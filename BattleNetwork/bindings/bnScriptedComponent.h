@@ -25,8 +25,8 @@ public:
   void OnUpdate(double dt) override;
   void Inject(BattleSceneBase&) override;
 
-  sol::object update_func;
-  sol::object scene_inject_func;
+  sol::object on_update_func;
+  sol::object on_scene_inject_func;
 private:
   WeakWrapper<ScriptedComponent> weakWrap;
 };

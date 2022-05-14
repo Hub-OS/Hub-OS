@@ -67,16 +67,16 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
     "get_owner", [](WeakWrapper<ScriptedComponent>& component) -> WeakWrapper<Entity> {
       return WeakWrapper(component.Unwrap()->GetOwner());
     },
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->update_func; },
+    "on_update_func", sol::property(
+      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedComponent>& component, sol::stack_object value) {
-        component.Unwrap()->update_func = VerifyLuaCallback(value);
+        component.Unwrap()->on_update_func = VerifyLuaCallback(value);
       }
     ),
-    "scene_inject_func", sol::property(
-      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->scene_inject_func; },
+    "on_scene_inject_func", sol::property(
+      [](WeakWrapper<ScriptedComponent>& component) { return component.Unwrap()->on_scene_inject_func; },
       [](WeakWrapper<ScriptedComponent>& component, sol::stack_object value) {
-        component.Unwrap()->scene_inject_func = VerifyLuaCallback(value);
+        component.Unwrap()->on_scene_inject_func = VerifyLuaCallback(value);
       }
     )
   );

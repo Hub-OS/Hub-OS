@@ -2,7 +2,7 @@
 
 #include "../bnResourceHandle.h"
 #include "../bnInputManager.h"
-#include "bnOverworldMenu.h"
+#include "../bnMenu.h"
 #include "bnOverworldTextBox.h"
 #include "bnBBS.h"
 #include <SFML/Graphics/Drawable.hpp>

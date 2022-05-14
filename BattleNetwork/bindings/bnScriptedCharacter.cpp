@@ -63,9 +63,9 @@ void ScriptedCharacter::OnDelete() {
     ChangeState<ExplodeState<ScriptedCharacter>>(numOfExplosions, explosionPlayback);
   }
 
-  if (delete_func.valid()) 
+  if (on_delete_func.valid()) 
   {
-    auto result = CallLuaCallback(delete_func, weakWrap);
+    auto result = CallLuaCallback(on_delete_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -85,9 +85,9 @@ void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
 }
 
 void ScriptedCharacter::OnBattleStart() {
-  if (battle_start_func.valid()) 
+  if (on_battle_start_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_start_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -102,9 +102,9 @@ void ScriptedCharacter::OnBattleStart() {
 void ScriptedCharacter::OnBattleStop() {
   Character::OnBattleStop();
 
-  if (battle_end_func.valid()) 
+  if (on_battle_end_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_end_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

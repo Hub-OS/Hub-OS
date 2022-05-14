@@ -106,7 +106,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
     sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
       ScriptResourceManager::PrintInvalidAssignMessage( table, "Step", key );
     },
-    "update_func", sol::property(
+    "on_update_func", sol::property(
       // write only, reading might cause lifetime issues
       [](WeakWrapper<CardAction::Step> step, sol::object callbackObject) {
         ExpectLuaFunction(callbackObject);
@@ -123,7 +123,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
         };
       }
     ),
-    "draw_func", sol::property(
+    "on_draw_func", sol::property(
       // write only, reading might cause lifetime issues
       [](WeakWrapper<CardAction::Step> step, sol::object callbackObject) {
         ExpectLuaFunction(callbackObject);

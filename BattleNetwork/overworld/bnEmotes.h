@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bnOverworldMenu.h"
+#include "../bnMenu.h"
 #include "../bnInputHandle.h"
 #include "../bnResourceHandle.h"
 #include "../bnSpriteProxyNode.h"
@@ -53,7 +53,6 @@ namespace Overworld {
 
   class EmoteWidget :
     public Menu,
-    public sf::Transformable,
     public ResourceHandle {
     float radius{ 25.0f }; //!< in pixels
     Emotes currEmote{};

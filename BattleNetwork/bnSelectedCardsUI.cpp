@@ -122,7 +122,7 @@ void SelectedCardsUI::OnUpdate(double _elapsed) {
 
       if (partition->HasPackage(addr)) {
         CardMeta& meta = partition->FindPackageByAddress(addr);
-        std::unique_ptr<CardImpl> cardImpl = std::unique_ptr<CardImpl>(meta.GetData());
+        std::unique_ptr<CardBuilderTrait> cardImpl = std::unique_ptr<CardBuilderTrait>(meta.GetData());
 
         // When we modify a card that we hold in our UI during battle,
         // we want to affect its base properties, but we might have existing

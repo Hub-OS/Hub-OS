@@ -35,7 +35,7 @@ public:
 
   sol::object filter_statuses_func;
   sol::object can_block_func;
-  sol::object replace_func;
+  sol::object on_replace_func;
 };
 
 #endif

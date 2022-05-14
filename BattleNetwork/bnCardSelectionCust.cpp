@@ -1027,7 +1027,7 @@ void CardSelectionCust::RefreshAvailableCards(int handSize)
   };
 
   // get info about the hand
-  char resolvedCode = '*';
+  char resolvedCode = WILDCARD;
   std::string resolvedName = "";
   bool codeDiffers = false;
   bool nameDiffers = false;
@@ -1108,4 +1108,19 @@ void CardSelectionCust::SetSelectedFormIndex(int index)
     selectedFormIndex = index;
     Broadcast(index);
   }
+}
+
+void CardSelectionCust::SetPlayerSpecialCard(const Battle::Card& data)
+{
+  playerSpecialCard = data;
+}
+
+void CardSelectionCust::SetPlayerSpecialButton1(const PlayerSpecialButton& data)
+{
+  playerSpecialButton1 = data;
+}
+
+void CardSelectionCust::SetPlayerSpecialButton2(const PlayerSpecialButton& data)
+{
+  playerSpecialButton2 = data;
 }

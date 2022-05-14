@@ -37,13 +37,13 @@ public:
   void ShakeCamera(double power, float duration);
 
   sol::object can_move_to_func;
-  sol::object collision_func;
-  sol::object update_func;
-  sol::object delete_func;
-  sol::object attack_func;
+  sol::object on_collision_func;
+  sol::object on_update_func;
+  sol::object on_delete_func;
+  sol::object on_attack_func;
   sol::object on_spawn_func;
-  sol::object battle_start_func;
-  sol::object battle_end_func;
+  sol::object on_battle_start_func;
+  sol::object on_battle_end_func;
 private:
   sf::Vector2f scriptedOffset{};
   float height{};

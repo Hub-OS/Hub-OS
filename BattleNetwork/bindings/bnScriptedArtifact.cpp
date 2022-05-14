@@ -21,9 +21,9 @@ ScriptedArtifact::~ScriptedArtifact() { }
 
 void ScriptedArtifact::OnUpdate(double _elapsed)
 {
-  if (update_func.valid()) 
+  if (on_update_func.valid()) 
   {
-    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
+    auto result = CallLuaCallback(on_update_func, weakWrap, _elapsed);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -44,9 +44,9 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
 }
 
 void ScriptedArtifact::OnBattleStart() {
-  if (battle_start_func.valid()) 
+  if (on_battle_start_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_start_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -59,9 +59,9 @@ void ScriptedArtifact::OnBattleStart() {
 void ScriptedArtifact::OnBattleStop() {
   Artifact::OnBattleStop();
 
-  if (battle_end_func.valid()) 
+  if (on_battle_end_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_end_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -71,9 +71,9 @@ void ScriptedArtifact::OnBattleStop() {
 
 void ScriptedArtifact::OnDelete()
 {
-  if (delete_func.valid()) 
+  if (on_delete_func.valid()) 
   {
-    auto result = CallLuaCallback(delete_func, weakWrap);
+    auto result = CallLuaCallback(on_delete_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

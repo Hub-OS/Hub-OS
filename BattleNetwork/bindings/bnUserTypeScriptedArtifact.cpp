@@ -24,10 +24,10 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
     sol::meta_function::length, [](WeakWrapper<ScriptedArtifact>& artifact) {
       return artifact.Unwrap()->entries.size();
     },
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->update_func; },
+    "on_update_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
-        artifact.Unwrap()->update_func = VerifyLuaCallback(value);
+        artifact.Unwrap()->on_update_func = VerifyLuaCallback(value);
       }
     ),
     "on_spawn_func", sol::property(
@@ -36,10 +36,10 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
         artifact.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
     ),
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->delete_func; },
+    "on_delete_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->on_delete_func; },
       [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
-        artifact.Unwrap()->delete_func = VerifyLuaCallback(value);
+        artifact.Unwrap()->on_delete_func = VerifyLuaCallback(value);
       }
     ),
     "can_move_to_func", sol::property(
@@ -48,16 +48,16 @@ void DefineScriptedArtifactUserType(sol::table& battle_namespace) {
         artifact.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_start_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->battle_start_func; },
+    "on_battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->on_battle_start_func; },
       [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
-        artifact.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+        artifact.Unwrap()->on_battle_start_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_end_func", sol::property(
-      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->battle_end_func; },
+    "on_battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedArtifact>& artifact) { return artifact.Unwrap()->on_battle_end_func; },
       [](WeakWrapper<ScriptedArtifact>& artifact, sol::stack_object value) {
-        artifact.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+        artifact.Unwrap()->on_battle_end_func = VerifyLuaCallback(value);
       }
     )
   );

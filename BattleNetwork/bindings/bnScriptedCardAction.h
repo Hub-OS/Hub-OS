@@ -27,10 +27,10 @@ public:
   void OnActionEnd() override;
   void OnExecute(std::shared_ptr<Character> user) override;
 
-  sol::object update_func;
-  sol::object animation_end_func;
-  sol::object action_end_func;
-  sol::object execute_func;
+  sol::object on_update_func;
+  sol::object on_animation_end_func;
+  sol::object on_action_end_func;
+  sol::object on_execute_func;
   sol::object can_move_to_func;
 
 private:

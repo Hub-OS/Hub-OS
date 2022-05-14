@@ -7,9 +7,8 @@
 #include "../../bnCard.h"
 #include "../bnSolHelpers.h"
 #include "../bnCardPackageManager.h"
-class CardImpl;
 
-class ScriptedCard : public CardImpl {
+class ScriptedCard : public CardBuilderTrait {
   sol::state& script;
 
 public:

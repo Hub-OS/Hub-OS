@@ -42,9 +42,9 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 
 void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
 {
-  if (collision_func.valid()) 
+  if (on_collision_func.valid()) 
   {
-    auto result = CallLuaCallback(collision_func, weakWrap, WeakWrapper(other));
+    auto result = CallLuaCallback(on_collision_func, weakWrap, WeakWrapper(other));
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -53,9 +53,9 @@ void ScriptedObstacle::OnCollision(const std::shared_ptr<Entity> other)
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
-  if (update_func.valid()) 
+  if (on_update_func.valid()) 
   {
-    auto result = CallLuaCallback(update_func, weakWrap, _elapsed);
+    auto result = CallLuaCallback(on_update_func, weakWrap, _elapsed);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -64,9 +64,9 @@ void ScriptedObstacle::OnUpdate(double _elapsed) {
 }
 
 void ScriptedObstacle::OnDelete() {
-  if (delete_func.valid()) 
+  if (on_delete_func.valid()) 
   {
-    auto result = CallLuaCallback(delete_func, weakWrap);
+    auto result = CallLuaCallback(on_delete_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -79,9 +79,9 @@ void ScriptedObstacle::OnDelete() {
 void ScriptedObstacle::Attack(std::shared_ptr<Entity> other) {
   other->Hit(GetHitboxProperties());
 
-  if (attack_func.valid()) 
+  if (on_attack_func.valid()) 
   {
-    auto result = CallLuaCallback(attack_func, weakWrap, WeakWrapper(other));
+    auto result = CallLuaCallback(on_attack_func, weakWrap, WeakWrapper(other));
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -102,9 +102,9 @@ void ScriptedObstacle::OnSpawn(Battle::Tile& spawn)
 }
 
 void ScriptedObstacle::OnBattleStart() {
-  if (battle_start_func.valid()) 
+  if (on_battle_start_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_start_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -117,9 +117,9 @@ void ScriptedObstacle::OnBattleStart() {
 void ScriptedObstacle::OnBattleStop() {
   Obstacle::OnBattleStop();
 
-  if (battle_end_func.valid()) 
+  if (on_battle_end_func.valid()) 
   {
-    auto result = CallLuaCallback(battle_end_func, weakWrap);
+    auto result = CallLuaCallback(on_battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

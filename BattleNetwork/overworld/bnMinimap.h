@@ -1,13 +1,13 @@
 #pragma once
 #include "../bnResourceHandle.h"
 #include "../bnDirection.h"
+#include "../bnMenu.h"
 #include "bnOverworldMap.h"
-#include "bnOverworldMenu.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
 namespace Overworld {
-  class Minimap : public Menu, public sf::Transformable, public ResourceHandle {
+  class Minimap : public Menu, public ResourceHandle {
   private:
     bool largeMapControls{};
     float scaling{}; //!< scaling used to fit everything on the screen

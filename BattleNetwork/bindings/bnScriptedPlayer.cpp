@@ -101,12 +101,12 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
   result = activeForm ? activeForm->OnSpecialAction(weakWrap.Lock()) : nullptr;
   if (result) return result;
   
-  if (!special_attack_func.valid()) {
+  if (!on_special_attack_func.valid()) {
     // prevent error message for nil function, just return nullptr
     return nullptr;
   }
 
-  result = GenerateCardAction(special_attack_func, "special_attack_func");
+  result = GenerateCardAction(on_special_attack_func, "on_special_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -115,9 +115,33 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteSpecialAction()
   return result;
 }
 
+std::shared_ptr<PlayerCardMeta> ScriptedPlayer::BuildSpecialCard()
+{
+  stx::result_t<sol::object> result = CallLuaCallback(build_special_card_func, WeakWrapper(weak_from_base<ScriptedPlayer>()));
+
+  if (result.is_error()) {
+    Logger::Log(LogLevel::critical, result.error_cstr());
+    return nullptr;
+  }
+
+  sol::object obj = result.value();
+
+  if (obj.valid()) {
+    if (obj.is<WeakWrapper<PlayerCardMeta>>())
+    {
+      return obj.as<WeakWrapper<PlayerCardMeta>>().Release();
+    }
+    else {
+      Logger::Logf(LogLevel::warning, "build_special_card_func \"%s\" didn't return a PlayerCardMeta.");
+    }
+  }
+
+  return nullptr;
+}
+
 std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteBusterAction()
 {
-  std::shared_ptr<CardAction> result = GenerateCardAction(normal_attack_func, "normal_attack_func");
+  std::shared_ptr<CardAction> result = GenerateCardAction(on_normal_attack_func, "on_normal_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::weapon);
@@ -133,7 +157,7 @@ std::shared_ptr<CardAction> ScriptedPlayer::OnExecuteChargedBusterAction()
   result = activeForm ? activeForm->OnChargedBusterAction(weakWrap.Lock()) : nullptr;
   if (result) return result;
 
-  result = GenerateCardAction(charged_attack_func, "charged_attack_func");
+  result = GenerateCardAction(on_charged_attack_func, "on_charged_attack_func");
 
   if (result) {
     result->SetLockoutGroup(CardAction::LockoutGroup::ability);
@@ -146,9 +170,9 @@ void ScriptedPlayer::OnUpdate(double elapsed)
 {
   Player::OnUpdate(elapsed);
 
-  if (update_func.valid())
+  if (on_update_func.valid())
   {
-    auto result = CallLuaCallback(update_func, weakWrap, elapsed);
+    auto result = CallLuaCallback(on_update_func, weakWrap, elapsed);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -159,9 +183,9 @@ void ScriptedPlayer::OnUpdate(double elapsed)
 void ScriptedPlayer::OnBattleStart() {
   Player::OnBattleStart();
 
-  if (battle_start_func.valid()) 
+  if (on_battle_start_func.valid())
   {
-    stx::result_t<sol::object> result = CallLuaCallback(battle_start_func, weakWrap);
+    stx::result_t<sol::object> result = CallLuaCallback(on_battle_start_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -172,9 +196,9 @@ void ScriptedPlayer::OnBattleStart() {
 void ScriptedPlayer::OnBattleStop() {
   Player::OnBattleStop();
 
-  if (battle_end_func.valid()) 
+  if (on_battle_end_func.valid())
   {
-    stx::result_t<sol::object> result = CallLuaCallback(battle_end_func, weakWrap);
+    stx::result_t<sol::object> result = CallLuaCallback(on_battle_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bnOverworldMenu.h"
-#include "bnOverworldPlayerSession.h"
+#include "../bnMenu.h"
+#include "../overworld/bnOverworldPlayerSession.h"
 #include "../bnInputManager.h"
 #include "../bnSpriteProxyNode.h"
 #include "../bnAnimation.h"
@@ -24,7 +24,7 @@ namespace Overworld {
    * @date 11/04/20
    * @brief PersonalMenu used in over-world hub. Can be interacted through public API.
    */
-  class PersonalMenu : public Menu, public SceneNode, public ResourceHandle {
+  class PersonalMenu : public Menu, public ResourceHandle {
   public:
     enum class state : unsigned {
       closed = 0,
@@ -32,13 +32,6 @@ namespace Overworld {
       closing,
       opening
     };
-
-    struct Options {
-      std::string name;
-      std::function<void()> onSelectFunc;
-    };
-
-    using OptionsList = std::vector<Options>;
 
   private:
     std::shared_ptr<PlayerSession> session;

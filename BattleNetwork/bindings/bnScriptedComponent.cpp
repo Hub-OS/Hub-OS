@@ -18,9 +18,9 @@ void ScriptedComponent::Init() {
 
 void ScriptedComponent::OnUpdate(double dt)
 {
-  if (update_func.valid()) 
+  if (on_update_func.valid()) 
   {
-    auto result = CallLuaCallback(update_func, weakWrap, dt);
+    auto result = CallLuaCallback(on_update_func, weakWrap, dt);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -30,9 +30,9 @@ void ScriptedComponent::OnUpdate(double dt)
 
 void ScriptedComponent::Inject(BattleSceneBase& scene)
 {
-  if (scene_inject_func.valid()) 
+  if (on_scene_inject_func.valid()) 
   {
-    auto result = CallLuaCallback(scene_inject_func, weakWrap);
+    auto result = CallLuaCallback(on_scene_inject_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

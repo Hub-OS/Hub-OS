@@ -294,6 +294,16 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   animationComponent->Refresh();
 }
 
+void Player::SetSpecialButton1(const std::shared_ptr<PlayerSpecialButton>& button)
+{
+  specialButton1 = button;
+}
+
+void Player::SetSpecialButton2(const std::shared_ptr<PlayerSpecialButton>& button)
+{
+  specialButton2 = button;
+}
+
 const std::string Player::GetMoveAnimHash()
 {
   return moveAnimHash;
@@ -341,6 +351,11 @@ frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
   }
 
   return frames(50);
+}
+
+std::shared_ptr<PlayerCardMeta> Player::BuildSpecialCard()
+{
+   return nullptr;
 }
 
 std::shared_ptr<CardAction> Player::ExecuteBuster()

@@ -9,6 +9,7 @@
 #include "bnBattleTextBox.h"
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
+#include "bnPlayerSpecialButton.h"
 #include "bnPlayerForm.h"
 #include "bnFormSelectionPublisher.hpp"
 
@@ -110,6 +111,8 @@ private:
   std::vector<Bucket*> selectQueue, newSelectQueue; /*!< List of selected buckets in order */
   Battle::TextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
+  std::optional<Battle::Card> playerSpecialCard;
+  std::optional<PlayerSpecialButton> playerSpecialButton1, playerSpecialButton2;
 
   void RefreshAvailableCards(int handSize);
 
@@ -325,5 +328,9 @@ public:
    * @return true if cards are ready to be used in battle
    */
   bool AreCardsReady();
+
+  void SetPlayerSpecialCard(const Battle::Card& data);
+  void SetPlayerSpecialButton1(const PlayerSpecialButton& data);
+  void SetPlayerSpecialButton2(const PlayerSpecialButton& data);
 };
 

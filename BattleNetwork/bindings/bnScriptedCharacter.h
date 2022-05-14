@@ -50,14 +50,14 @@ public:
   Animation& GetAnimationObject();
   void SetExplosionBehavior(int num, double speed, bool isBoss);
 
-  sol::object update_func;
-  sol::object delete_func;
+  sol::object on_update_func;
+  sol::object on_delete_func;
   sol::object on_spawn_func;
-  sol::object battle_start_func;
-  sol::object battle_end_func;
-  sol::object can_move_to_func;
+  sol::object on_battle_start_func;
+  sol::object on_battle_end_func;
   sol::object on_countered_func;
-  sol::object intro_func;
+  sol::object on_intro_func;
+  sol::object can_move_to_func;
 };
 
 class ScriptedCharacterState : public AIState<ScriptedCharacter> {
@@ -66,9 +66,9 @@ public:
   }
 
   void OnUpdate(double elapsed, ScriptedCharacter& s) override {
-    if (s.update_func.valid())
+    if (s.on_update_func.valid())
     {
-      auto result = CallLuaCallback(s.update_func, s.weakWrap, elapsed);
+      auto result = CallLuaCallback(s.on_update_func, s.weakWrap, elapsed);
 
       if (result.is_error()) {
         Logger::Log(LogLevel::critical, result.error_cstr());
@@ -91,9 +91,9 @@ private:
   long long time{};
 
   void RunIntroFunc(ScriptedCharacter& context, double elapsed) {
-    if (context.intro_func.valid())
+    if (context.on_intro_func.valid())
     {
-      auto result = CallLuaCallback(context.intro_func, context.weakWrap, targetState, finishNotifier, elapsed);
+      auto result = CallLuaCallback(context.on_intro_func, context.weakWrap, targetState, finishNotifier, elapsed);
 
       if (result.is_error()) {
         Logger::Log(LogLevel::critical, result.error_cstr());

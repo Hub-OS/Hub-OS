@@ -1,10 +1,10 @@
 #include "bnTile.h"
 #include "bnInvalidCardAction.h"
+#include "bnCardBuilderTrait.h"
 #include "bnCardPackageManager.h"
 
 /***
- * all of this code will be tossed out when scripting cards is complete. 
- * This is for demonstration of the engine until we have scripting done
+ * Utility function to map a light weight card property object to an action from the package manager
  */
 
 std::shared_ptr<CardAction> CardToAction(
@@ -22,7 +22,7 @@ std::shared_ptr<CardAction> CardToAction(
 
     if (partition->HasPackage(addr)) {
       CardMeta& meta = partition->FindPackageByAddress(addr);
-      std::unique_ptr<CardImpl> cardImpl = std::unique_ptr<CardImpl>(meta.GetData());
+      std::unique_ptr<CardBuilderTrait> cardImpl = std::unique_ptr<CardBuilderTrait>(meta.GetData());
       const Battle::Card::Properties& props = moddedProps.has_value() ? moddedProps.value() : meta.GetCardProperties();
 
       std::shared_ptr<CardAction> result = cardImpl->BuildCardAction(character, props);

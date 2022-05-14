@@ -21,9 +21,9 @@ void ScriptedCardAction::Init() {
 void ScriptedCardAction::Update(double elapsed) {
   CardAction::Update(elapsed);
 
-  if (update_func.valid())
+  if (on_update_func.valid())
   {
-    auto result = CallLuaCallback(update_func, weakWrap, elapsed);
+    auto result = CallLuaCallback(on_update_func, weakWrap, elapsed);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -66,9 +66,9 @@ void ScriptedCardAction::SetBackgroundColor(const sf::Color& color)
 }
 
 void ScriptedCardAction::OnAnimationEnd() {
-  if (animation_end_func.valid()) 
+  if (on_animation_end_func.valid()) 
   {
-    auto result = CallLuaCallback(animation_end_func, weakWrap);
+    auto result = CallLuaCallback(on_animation_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -77,9 +77,9 @@ void ScriptedCardAction::OnAnimationEnd() {
 }
 
 void ScriptedCardAction::OnActionEnd() {
-  if (action_end_func.valid()) 
+  if (on_action_end_func.valid()) 
   {
-    auto result = CallLuaCallback(action_end_func, weakWrap);
+    auto result = CallLuaCallback(on_action_end_func, weakWrap);
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());
@@ -88,9 +88,9 @@ void ScriptedCardAction::OnActionEnd() {
 }
 
 void ScriptedCardAction::OnExecute(std::shared_ptr<Character> user) {
-  if (execute_func.valid()) 
+  if (on_execute_func.valid()) 
   {
-    auto result = CallLuaCallback(execute_func, weakWrap, WeakWrapper(user));
+    auto result = CallLuaCallback(on_execute_func, weakWrap, WeakWrapper(user));
 
     if (result.is_error()) {
       Logger::Log(LogLevel::critical, result.error_cstr());

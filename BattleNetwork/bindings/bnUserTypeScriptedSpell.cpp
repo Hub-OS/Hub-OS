@@ -30,28 +30,28 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
         spell.Unwrap()->can_move_to_func = VerifyLuaCallback(value);
       }
     ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->update_func; },
+    "on_update_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->update_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_update_func = VerifyLuaCallback(value);
       }
     ),
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->delete_func; },
+    "on_delete_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_delete_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->delete_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_delete_func = VerifyLuaCallback(value);
       }
     ),
     "on_collision_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->collision_func; },
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_collision_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->collision_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_collision_func = VerifyLuaCallback(value);
       }
     ),
-    "attack_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->attack_func; },
+    "on_attack_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_attack_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->attack_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_attack_func = VerifyLuaCallback(value);
       }
     ),
     "on_spawn_func", sol::property(
@@ -60,16 +60,16 @@ void DefineScriptedSpellUserType(sol::table& battle_namespace) {
         spell.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_start_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->battle_start_func; },
+    "on_battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_battle_start_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_battle_start_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_end_func", sol::property(
-      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->battle_end_func; },
+    "on_battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedSpell>& spell) { return spell.Unwrap()->on_battle_end_func; },
       [](WeakWrapper<ScriptedSpell>& spell, sol::stack_object value) {
-        spell.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+        spell.Unwrap()->on_battle_end_func = VerifyLuaCallback(value);
       }
     )
   );

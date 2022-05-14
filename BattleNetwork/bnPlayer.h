@@ -13,8 +13,11 @@
 #include "bnPlayerState.h"
 #include "bnResourcePaths.h"
 #include "bnChargeEffectSceneNode.h"
+#include "bnCardPackageManager.h"
+#include "bnCardBuilderTrait.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
+#include "bnPlayerSpecialButton.h"
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
 #include "bnPlayerHitState.h"
@@ -26,8 +29,6 @@
 #include <array>
 
 using sf::IntRect;
-
-class CardAction;
 
 struct PlayerStats {
   static constexpr unsigned MAX_CHARGE_LEVEL = 5u;
@@ -45,6 +46,14 @@ struct BusterEvent {
   // Default is false which is shoot-then-move
   bool blocking{}; //!< If true, blocks incoming move events for auto-fire behavior
   std::shared_ptr<CardAction> action{ nullptr };
+};
+
+struct PlayerCardMeta final : public CardBuilderTrait {
+  Battle::Card::Properties properties;
+  std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
+  std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */
+  char code{ 'A' }; // only 1 code
+  ~PlayerCardMeta() {};
 };
 
 class Player : public Character, public AI<Player> {
@@ -135,15 +144,20 @@ public:
    * @param _state name of the animation
    */
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+
+  void SetSpecialButton1(const std::shared_ptr<PlayerSpecialButton>& button);
+  void SetSpecialButton2(const std::shared_ptr<PlayerSpecialButton>& button);
+
   const std::string GetMoveAnimHash();
   const std::string GetRecoilAnimHash();
 
   void SlideWhenMoving(bool enable = true, const frame_time_t& = frames(1));
 
-  virtual std::shared_ptr<CardAction> OnExecuteBusterAction() = 0;
-  virtual std::shared_ptr<CardAction> OnExecuteChargedBusterAction() = 0;
-  virtual std::shared_ptr<CardAction> OnExecuteSpecialAction();
-  virtual frame_time_t CalculateChargeTime(const unsigned chargeLevel);
+  virtual std::shared_ptr<CardAction> OnExecuteBusterAction() = 0; // custom
+  virtual std::shared_ptr<CardAction> OnExecuteChargedBusterAction() = 0; // custom
+  virtual std::shared_ptr<CardAction> OnExecuteSpecialAction(); // can be replaced by other mods
+  virtual std::shared_ptr<PlayerCardMeta> BuildSpecialCard(); // can be replaced
+  virtual frame_time_t CalculateChargeTime(const unsigned chargeLevel); // can be replaced
 
   std::shared_ptr<CardAction> ExecuteBuster();
   std::shared_ptr<CardAction> ExecuteChargedBuster();
@@ -173,6 +187,9 @@ protected:
 
   // add form from existing meta
   PlayerFormMeta* AddForm(PlayerFormMeta* meta);
+
+  // provide to card select GUI if there are special GUI behaviors
+  std::shared_ptr<PlayerSpecialButton> specialButton1, specialButton2;
 
   // member vars
   string state; /*!< Animation state name */

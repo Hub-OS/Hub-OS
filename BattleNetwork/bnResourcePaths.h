@@ -100,6 +100,12 @@ namespace TexturePaths {
   path CHAR_INFO_BOX = "resources/scenes/select/info_box.png";
   path SYMBOL_SLOTS = "resources/scenes/select/symbol_slots.png";
 
+  // PET menu
+  path PET_JACKIN = "resources/scenes/PET/jackin.png";
+  path PET_MENU = "resources/scenes/PET/menu.png";
+  path PET_MISC_MENU = "resources/scenes/PET/misc_menu.png";
+  path PET_LOGO = "resources/scenes/PET/petlogo.png";
+
   // Navigator and textbox
   path MUG_NAVIGATOR = "resources/ui/navigator.png";
   path ANIMATED_TEXT_BOX = "resources/ui/textbox.png";
@@ -159,12 +165,17 @@ namespace AnimationPaths {
   path CAMERA_PAN_UI = "resources/ui/camera_pan_ui.animation";
   path PET_PARTICLE_FOLDERS = "resources/scenes/PET/folders.animation";
   path PET_PARTICLE_WINDOWS = "resources/scenes/PET/windows.animation";
+  path PET_JACKIN = "resources/scenes/PET/jackin.animation";
+  path PET_MENU = "resources/scenes/PET/menu.animation";
+  path PET_MISC_MENU = "resources/scenes/PET/misc_menu.animation";
 }
 
 namespace SoundPaths {
   path ICE_FX = "resources/sfx/freeze.ogg";
   path CONFUSED_FX = "resources/sfx/confused.ogg";
   path COMPILE_BLIP_SFX = "resources/sfx/compile_blip.ogg";
+  path PET_LOGO = "resources/sfx/petlogo.ogg";
+  path PET_JACKIN = "resources/sfx/jackin.ogg";
 }
 
 namespace StreamPaths {

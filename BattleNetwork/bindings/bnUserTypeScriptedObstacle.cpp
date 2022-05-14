@@ -53,27 +53,27 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
       }
     ),
     "on_collision_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->collision_func; },
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_collision_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->collision_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_collision_func = VerifyLuaCallback(value);
       }
     ),
-    "update_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->update_func; },
+    "on_update_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_update_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->update_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_update_func = VerifyLuaCallback(value);
       }
     ),
-    "delete_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->delete_func; },
+    "on_delete_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_delete_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->delete_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_delete_func = VerifyLuaCallback(value);
       }
     ),
-    "attack_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->attack_func; },
+    "on_attack_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_attack_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->attack_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_attack_func = VerifyLuaCallback(value);
       }
     ),
     "on_spawn_func", sol::property(
@@ -82,16 +82,16 @@ void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namesp
         obstacle.Unwrap()->on_spawn_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_start_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->battle_start_func; },
+    "on_battle_start_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_battle_start_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->battle_start_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_battle_start_func = VerifyLuaCallback(value);
       }
     ),
-    "battle_end_func", sol::property(
-      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->battle_end_func; },
+    "on_battle_end_func", sol::property(
+      [](WeakWrapper<ScriptedObstacle>& obstacle) { return obstacle.Unwrap()->on_battle_end_func; },
       [](WeakWrapper<ScriptedObstacle>& obstacle, sol::stack_object value) {
-        obstacle.Unwrap()->battle_end_func = VerifyLuaCallback(value);
+        obstacle.Unwrap()->on_battle_end_func = VerifyLuaCallback(value);
       }
     )
   );

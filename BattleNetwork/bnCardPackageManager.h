@@ -6,6 +6,7 @@
 #include "bnPackageManager.h"
 #include "bnElements.h"
 #include "bnCard.h"
+#include "bnCardBuilderTrait.h"
 #include "bindings/bnCardImpl.h"
 
 /*! \brief Use this to register card mods with the engine
@@ -14,19 +15,12 @@
 class Character;
 class CardAction;
 
-class CardImpl {
-public:
-  virtual ~CardImpl() {};
-  virtual std::shared_ptr<CardAction> BuildCardAction(std::shared_ptr<Character> user, const Battle::Card::Properties& props) = 0;
-  virtual void OnUpdate(Battle::Card::Properties& props, double elapsed) = 0;
-};
-
 struct AdjacentCards {
   bool hasCardToLeft{}, hasCardToRight{}, deleteLeft{}, deleteRight{}, deleteThisCard{};
   Battle::Card::Properties* leftCard{nullptr}, *rightCard{nullptr};
 };
 
-struct CardMeta final : public PackageManager<CardMeta>::Meta<CardImpl> {
+struct CardMeta final : public PackageManager<CardMeta>::Meta<CardBuilderTrait> {
   Battle::Card::Properties properties;
   std::shared_ptr<sf::Texture> iconTexture; /*!< Icon used in hand */
   std::shared_ptr<sf::Texture> previewTexture; /*!< Picture used in select widget */

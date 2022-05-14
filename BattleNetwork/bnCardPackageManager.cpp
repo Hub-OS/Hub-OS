@@ -12,7 +12,7 @@
 
 CardMeta::CardMeta() :
   iconTexture(), previewTexture(),
-  PackageManager<CardMeta>::Meta<CardImpl>()
+  PackageManager<CardMeta>::Meta<CardBuilderTrait>()
 { 
 }
 

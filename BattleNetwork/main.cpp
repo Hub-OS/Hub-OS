@@ -6,6 +6,7 @@
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnLuaLibrary.h"
+#include "realPET/bnBootScene.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
 #include "bnBlockPackageManager.h"
@@ -119,6 +120,7 @@ int main(int argc, char** argv) {
     ("d,debug", "Enable debugging")
     ("s,singlethreaded", "run logic and draw routines in a single, main thread")
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
+    ("realPET", "boots into PET menus")
     ("p,port", "port for PVP", cxxopts::value<int>()->default_value("0"))
     ("r,remotePort", "remote port for main hub", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
     ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value(""))
@@ -297,7 +299,12 @@ int Launch(Game& g, const cxxopts::ParseResult& results) {
   // before the TitleSceene:
   // g.push<GameOverScene>(); // <-- uncomment
 
-  g.push<TitleScene>(g.Boot(results));
+  if (g.CommandLineValue<bool>("realPET")) {
+    g.push<RealPET::BootScene>(g.Boot(results));
+  }
+  else {
+    g.push<TitleScene>(g.Boot(results));
+  }
   return EXIT_SUCCESS;
 }
 
