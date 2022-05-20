@@ -132,6 +132,8 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
 
   InitializeFolderParticles();
   InitializeWindowParticles();
+
+  menuWidget.Open();
 }
 
 RealPET::Homepage::~Homepage() {

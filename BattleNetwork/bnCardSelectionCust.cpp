@@ -188,49 +188,90 @@ bool CardSelectionCust::CursorDown() {
 
     return true;
   }
-  else {
-    if (++cursorRow > 1) {
-      cursorRow = 1;
 
-      return false;
-    }
+  int lastCursorRow = cursorRow;
+  cursorRow++;
 
+  if (cursorPos == 5) {
+    // we can toggle between OK and special button 1
     if (playerSpecialButton1) {
-      if (cursorPos > 2 && cursorPos != 5) {
-        cursorPos = 0;
+      if (cursorRow > 1) {
+        cursorRow = 0;
       }
-
-      // select special button1
-      if (cursorPos == 5) {
-        cursorRow = 1;
-      }
-    }
-    else {
-      if (cursorPos > 2) {
-        cursorPos = 0;
-      }
+      return true;
     }
 
-    return true;
+    cursorRow = 0; // stick to OK always
+    return false;
   }
+
+  cursorRow = std::min(1, cursorRow);
+
+  if (cursorRow == lastCursorRow) {
+    return false; // we didn't move
+  }
+
+  if (playerSpecialButton2) {
+    if (cursorPos > 2 && cursorPos != 5) {
+      cursorPos = 3; // snap to specialButton2 pos
+      return true;
+    }
+  }
+
+  // Check to see if these cards spots can be moved to
+  int idx = (cursorRow * 5) + cursorPos;
+  bool canMove = true;
+
+  if (idx >= cardCount) {
+    canMove = false;
+    cursorRow = lastCursorRow;
+  }
+
+  return canMove;
 }
 
 bool CardSelectionCust::CursorRight() {
   if (isInFormSelect) return false;
 
+  int lastCursorPos = cursorPos;
+
+  // move to the right
   cursorPos++;
 
-  if (cursorRow == 1) {
-    if (cursorPos > 2 && !playerSpecialButton2) {
-      cursorPos = 5;
-      cursorRow = 0;
+  int sz = cardCount;
+
+  if (cursorRow == 0) {
+    // OK button is reserved at base-0 index position 5,
+    // anything past that is too far so then wrap around
+    if (cursorPos >= sz) {
+      if (lastCursorPos == 5) {
+        cursorPos = 0;
+      }
+      else {
+        cursorPos = 5; // warp to OK button instead
+      }
     }
-    else if (cursorPos > 4 && playerSpecialButton2) {
-      cursorPos = 5;
-      cursorRow = 0;
-    }
+    return true;
   }
-  else if (cursorPos > 5 && cursorRow == 0) {
+
+  // else if cursorRow == 1 aka bottom row...
+
+  sz -= 5; // skip this row of cards
+
+  // In this scenario, we were selecting the left-most card
+  if (cursorPos >= sz) {
+    if (lastCursorPos < 3 && playerSpecialButton2) {
+      // reserved for playerSpecialButton2
+      cursorPos = 3;
+      return true;
+    }
+
+    if (lastCursorPos != 5 && playerSpecialButton1) {
+      // reserved for playerSpecialButton1 on row 1
+      cursorPos = 5;
+      return true;
+    }
+
     cursorPos = 0;
   }
 
@@ -240,12 +281,35 @@ bool CardSelectionCust::CursorRight() {
 bool CardSelectionCust::CursorLeft() {
   if (isInFormSelect) return false;
 
+  int lastCursorPos = cursorPos;
+
   if (--cursorPos < 0 && cursorRow == 1) {
-    cursorPos = 5;
-    cursorRow = 0;
+    // wrap around to the special button1 under the OK button
+    if (playerSpecialButton1) {
+      cursorPos = 5;
+      return true;
+    }
   }
   else if (cursorPos < 0 && cursorRow == 0) {
     cursorPos = 5;
+  }
+
+  int sz = cardCount;
+
+  if (cursorRow == 1) {
+    sz -= 5;
+
+    // In this scenario, we were highlighting the special button1 under the OK button
+    if (lastCursorPos == 5 && playerSpecialButton2) {
+      cursorPos = 3;
+      return true;
+    }
+  }
+
+  cursorPos = std::min(cursorPos, sz - 1);
+
+  if (cursorPos < 0) {
+    cursorPos = lastCursorPos;
   }
 
   return true;
@@ -1002,14 +1066,16 @@ void CardSelectionCust::Update(double elapsed)
   }
 
   if (cardCount > 0) {
+    int index = cursorPos + (5 * cursorRow);
+    bool selectedSpecialButton2 = cursorRow == 1 && (cursorPos == 3 || cursorPos == 4) && playerSpecialButton2;
+
     // If OK button is highlighted, we are not selecting a dark card
     // If we are in form select, we are not selecting a dark card
     if (cursorPos == 5 || isInFormSelect) {
       isDarkCardSelected = false;
     }
-    else {
+    else if (!selectedSpecialButton2 && index < cardCount) {
       // Otherwise check if we are highlighting a dark card
-      int index = cursorPos + (5 * cursorRow);
       isDarkCardSelected = this->queue[index].data && this->queue[index].data->GetClass() == Battle::CardClass::dark;
     }
   }
