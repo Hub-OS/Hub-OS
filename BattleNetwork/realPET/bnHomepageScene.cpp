@@ -42,6 +42,7 @@ constexpr size_t DEFAULT_PORT = 8765;
 namespace {
   auto MakeOptions = [](RealPET::Homepage* scene) -> Menu::OptionsList {
     return {
+      { "jack_in",      std::bind(&RealPET::Homepage::GotoOverworld, scene) },
       { "chip_folder", std::bind(&RealPET::Homepage::GotoChipFolder, scene) },
       { "navi",        std::bind(&RealPET::Homepage::GotoNaviSelect, scene) },
       { "mail",        std::bind(&RealPET::Homepage::GotoMail, scene) },
@@ -133,6 +134,8 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   InitializeFolderParticles();
   InitializeWindowParticles();
 
+  menuWidget.setScale(2.f, 2.f);
+  menuWidget.setPosition(100.f, 50.f);
   menuWidget.Open();
 }
 
@@ -334,21 +337,19 @@ void RealPET::Homepage::onUpdate(double elapsed)
 {
   if (IsInFocus()) {
     menuWidget.Update(elapsed);
+
+    if (Input().Has(InputEvents::pressed_ui_up)) {
+      menuWidget.CursorMoveUp();
+    }
+    else if (Input().Has(InputEvents::pressed_ui_down)) {
+      menuWidget.CursorMoveDown();
+    } else if (Input().Has(InputEvents::pressed_confirm)) {
+      menuWidget.ExecuteSelection();
+    }
   }
 
   UpdateFolderParticles(elapsed);
   UpdateWindowParticles(elapsed);
-
-  if (Input().Has(InputEvents::pressed_confirm)) {
-    playJackin = true;
-    Audio().StopStream();
-    Audio().Play(jackinsfx, AudioPriority::highest);
-
-    jackinAnim << [this] {
-      using tx = segue<WhiteWashFade, types::milli<500>>::to<Overworld::Homepage>;
-      getController().push<tx>();
-    };
-  }
 
   if (playJackin) {
     jackinAnim.Update(elapsed, jackinSprite);
@@ -577,6 +578,18 @@ void RealPET::Homepage::GotoKeyItems()
   using effect = segue<BlackWashFade, milliseconds<500>>;
 
   getController().push<effect::to<KeyItemScene>>(items);
+}
+
+void RealPET::Homepage::GotoOverworld()
+{
+  playJackin = true;
+  Audio().StopStream();
+  Audio().Play(jackinsfx, AudioPriority::highest);
+
+  jackinAnim << [this] {
+    using tx = segue<WhiteWashFade, types::milli<500>>::to<Overworld::Homepage>;
+    getController().push<tx>();
+  };
 }
 
 std::string& RealPET::Homepage::GetCurrentNaviID()

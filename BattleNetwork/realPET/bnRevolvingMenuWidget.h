@@ -16,37 +16,38 @@ using Overworld::PlayerSession;
 
 namespace RealPET {
   class RevolvingMenuWidget : public Menu, public ResourceHandle {
-  public:
-    enum class state : unsigned {
-      closed = 0,
-      opened,
-      closing,
-      opening
-    };
-
   private:
     std::shared_ptr<PlayerSession> session;
     frame_time_t frameTick;
     int row{ 0 }; //!< Current row index
     float opacity{}; //!< Background darkens
     double elapsedThisFrame{};
-    bool selectExit{ false }; //!< If exit option is selected
-    state currState{}; //!< Track all open/close states. Default is closed
     std::shared_ptr<sf::Texture> widgetTexture; //!< texture used by widget
     mutable Text infoText; //!< Text obj used for all other info
     mutable Text time; //!< Text obj displaying the time both inside and outside of the widget
     swoosh::Timer easeInTimer; //!< Timer used for animations
-    std::shared_ptr<SpriteProxyNode> banner;
-    std::shared_ptr<SpriteProxyNode> symbol;
-    std::shared_ptr<SpriteProxyNode> infoBox;
-    std::shared_ptr<SpriteProxyNode> selectTextSpr;
     OptionsList optionsList;
     std::vector<std::shared_ptr<SpriteProxyNode>> options;
     std::vector<std::shared_ptr<SpriteProxyNode>> optionIcons;
     Animation infoBoxAnim;
     Animation optionAnim;
 
-    void QueueAnimTasks(const state& state);
+    struct barrel {
+      double startAngle{}; // which way out the barrel is facing
+      double phaseWidth{}; // the total surface we want to map the surface to
+      double radius{}; // of the barrel
+
+      sf::Vector2f calculate_point(unsigned int idx, unsigned int max) {
+        double idxRadians = startAngle;
+        idxRadians -= (phaseWidth / 2.0);
+        idxRadians += (idx*(phaseWidth)) / static_cast<double>(max);
+        return sf::Vector2f(radius * std::cosf(idxRadians), radius * std::sinf(idxRadians));
+      }
+    };
+
+    const double defaultPhaseWidth = swoosh::ease::pi;
+    double phaseWidth = defaultPhaseWidth;
+
     void CreateOptions();
     void DrawTime(sf::RenderTarget& target) const;
 
@@ -101,15 +102,5 @@ namespace RealPET {
     * @return true if the options column is able to move down, false if it cannot move down
     */
     bool CursorMoveDown();
-
-    /**
-    * @brief Open the widget and begin the open animations
-    */
-    virtual void Open();
-
-    /**
-    * @brief Close the widget and begin the close animations
-    */
-    virtual void Close();
   };
 }

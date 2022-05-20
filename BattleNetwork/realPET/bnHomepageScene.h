@@ -187,6 +187,7 @@ namespace RealPET {
     void GotoPVP();
     void GotoMail();
     void GotoKeyItems();
+    void GotoOverworld();
     // void GotoPlayerCust();
 
     std::string& GetCurrentNaviID();
