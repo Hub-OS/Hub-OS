@@ -393,7 +393,7 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     static Battle::Card::Properties dummy;
     dummy = Battle::Card::Properties{};
 
-    auto ui = entity.Unwrap()->GetFirstComponentDerivedFrom<SelectedCardsUI>();
+    auto ui = entity.Unwrap()->template GetFirstComponentDerivedFrom<SelectedCardsUI>();
 
     if (!ui) return dummy;
 
