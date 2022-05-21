@@ -98,7 +98,7 @@ namespace Overworld {
 #endif
 
   protected:
-    const bool IsMouseHovering(const WorldSprite& src, sf::Vector2f offset);
+    const bool IsMouseHovering(const WorldSprite& src, sf::Vector2f cameraOffset);
 
   public:
 

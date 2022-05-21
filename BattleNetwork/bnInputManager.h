@@ -159,9 +159,9 @@ public:
   */
   void FlushAllInputEvents();
 
-  sf::Vector2f GetMousePos(sf::RenderWindow& window, sf::Vector2f offset);
+  sf::Vector2f GetMousePos(sf::RenderWindow& window, sf::Vector2f cameraOffset = sf::Vector2f());
 
-  const bool IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window, sf::Vector2f offset);
+  const bool IsMouseHovering(sf::RenderWindow& window, sf::FloatRect bounds, sf::Vector2f cameraOffset = sf::Vector2f());
 
 private:
   mutable std::mutex mutex;

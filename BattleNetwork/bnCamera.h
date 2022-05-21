@@ -98,5 +98,7 @@ public:
   void FadeCamera(const sf::Color& color, sf::Time duration);
 
   const sf::RectangleShape& GetLens();
+
+  sf::Vector2f GetCenterOffset(const sf::Vector2f& scale = sf::Vector2f(), const sf::Vector2f& viewCenter = sf::Vector2f());
 };
 

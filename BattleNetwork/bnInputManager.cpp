@@ -561,17 +561,17 @@ InputTextBuffer& InputManager::GetInputTextBuffer() {
   return textBuffer;
 }
 
-sf::Vector2f InputManager::GetMousePos(sf::RenderWindow& window, sf::Vector2f offset)
+sf::Vector2f InputManager::GetMousePos(sf::RenderWindow& window, sf::Vector2f cameraOffset)
 {
   auto mousei = sf::Mouse::getPosition(window);
   auto mousef = window.mapPixelToCoords(mousei);
-  auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
+  auto mouseScreen = sf::Vector2f(mousef.x + cameraOffset.x, mousef.y + cameraOffset.y);
 
   return sf::Vector2f(mouseScreen.x, mouseScreen.y);
 }
 
-const bool InputManager::IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window, sf::Vector2f offset)
+const bool InputManager::IsMouseHovering(sf::RenderWindow& window, sf::FloatRect bounds, sf::Vector2f cameraOffset)
 {
-  sf::Vector2f mouse = GetMousePos(window, offset);
+  sf::Vector2f mouse = GetMousePos(window, cameraOffset);
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
