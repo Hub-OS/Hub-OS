@@ -8,6 +8,7 @@
 #include "bnMobHealthUI.h"
 #include "bnTile.h"
 #include "stx/tuple.h"
+#include "bnFont.h"
 
 #include <tuple>
 #include <vector>
@@ -400,7 +401,7 @@ public:
           enemy->template ChangeState<IntroState, FullTupleArgsT, std::tuple_size_v<FullTupleArgsT>>(fullTupleArgs);
         }
         else {
-          enemy->template InterruptState<IntroState>, FullTupleArgsT, std::tuple_size_v<FullTupleArgsT>>(fullTupleArgs);
+          enemy->template InterruptState<IntroState, FullTupleArgsT, std::tuple_size_v<FullTupleArgsT>>(fullTupleArgs);
         }
       }
     };

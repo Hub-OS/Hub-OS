@@ -257,6 +257,7 @@ void Entity::UpdateMovement(double elapsed)
     // Keep centered in the current tile with no offset
     tileOffset = sf::Vector2f(0, 0);
     elapsedMoveTime = 0;
+    currJumpHeight = 0;
   }
 
   if (tile) {
