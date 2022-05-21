@@ -9,6 +9,8 @@
 using std::map;
 using std::vector;
 
+#include "overworld/bnOverworldMap.h"
+#include "overworld/bnOverworldSprite.h"
 #include "bnVirtualInputState.h"
 #include "bnInputTextBuffer.h"
 #include "bnConfigReader.h"
@@ -158,6 +160,10 @@ public:
   * @brief if any buttons are held or pressed, fire release events for all
   */
   void FlushAllInputEvents();
+
+  sf::Vector2f GetMousePos(sf::RenderWindow& window);
+
+  const bool IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window);
 
 private:
   mutable std::mutex mutex;

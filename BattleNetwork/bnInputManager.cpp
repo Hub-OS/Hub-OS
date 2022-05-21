@@ -560,3 +560,16 @@ const size_t InputManager::GetGamepadCount() const
 InputTextBuffer& InputManager::GetInputTextBuffer() {
   return textBuffer;
 }
+
+sf::Vector2f InputManager::GetMousePos(sf::RenderWindow& window)
+{
+  auto mousei = sf::Mouse::getPosition(window);
+  auto mousef = window.mapPixelToCoords(mousei);  
+  return sf::Vector2f(mousef.x, mousef.y);
+}
+
+const bool InputManager::IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window)
+{
+  sf::Vector2f mouse = GetMousePos(window);
+  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+}

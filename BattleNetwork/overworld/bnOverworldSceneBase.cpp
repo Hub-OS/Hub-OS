@@ -1143,7 +1143,7 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
   return { y, x };
 }
 
-const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, const WorldSprite& src)
+const bool Overworld::SceneBase::IsMouseHovering(const WorldSprite& src)
 {
   auto textureRect = src.getSprite().getTextureRect();
   auto origin = src.getSprite().getOrigin();
@@ -1163,7 +1163,7 @@ const bool Overworld::SceneBase::IsMouseHovering(const sf::Vector2f& mouse, cons
     std::abs(textureRect.height) * scale.y
   );
 
-  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+  return inputHandle.Input().IsMouseHovering(bounds, getController().getWindow());
 }
 
 #ifdef __ANDROID__

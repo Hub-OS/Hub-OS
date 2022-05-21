@@ -568,7 +568,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
       return;
     }
 
-    if (IsMouseHovering(mouseScreen, actor)) {
+    if (IsMouseHovering(actor)) {
       topLayer = layer;
       topName = name;
       topY = screenY;
