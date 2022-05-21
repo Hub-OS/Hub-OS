@@ -41,8 +41,6 @@
 namespace Overworld {
   class SceneBase : public Scene {
   private:
-    InputHandle inputHandle;
-
     sf::Sprite cameraPanUI;
     std::shared_ptr<PlayerSession> playerSession;
     std::shared_ptr<Actor> playerActor;
@@ -100,7 +98,7 @@ namespace Overworld {
 #endif
 
   protected:
-    const bool IsMouseHovering(const WorldSprite& src);
+    const bool IsMouseHovering(const WorldSprite& src, sf::Vector2f offset);
 
   public:
 

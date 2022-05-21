@@ -9,8 +9,6 @@
 using std::map;
 using std::vector;
 
-#include "overworld/bnOverworldMap.h"
-#include "overworld/bnOverworldSprite.h"
 #include "bnVirtualInputState.h"
 #include "bnInputTextBuffer.h"
 #include "bnConfigReader.h"
@@ -161,9 +159,9 @@ public:
   */
   void FlushAllInputEvents();
 
-  sf::Vector2f GetMousePos(sf::RenderWindow& window);
+  sf::Vector2f GetMousePos(sf::RenderWindow& window, sf::Vector2f offset);
 
-  const bool IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window);
+  const bool IsMouseHovering(sf::FloatRect bounds, sf::RenderWindow& window, sf::Vector2f offset);
 
 private:
   mutable std::mutex mutex;
