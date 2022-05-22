@@ -168,12 +168,12 @@ const sf::RectangleShape& Camera::GetLens()
   return rect;
 }
 
-sf::Vector2f Camera::GetCenterOffset(const sf::Vector2f& scale, const sf::Vector2f& viewCenter)
+sf::Vector2f Camera::GetCenterOffset(const sf::Vector2f& scale, const swoosh::Activity& activity)
 {
     sf::Vector2f cameraCenter = focus.getCenter();
     cameraCenter.x = std::floor(cameraCenter.x) * scale.x;
     cameraCenter.y = std::floor(cameraCenter.y) * scale.y;
-    auto offset = cameraCenter - viewCenter;
+    auto offset = cameraCenter - activity.getView().getCenter();
 
     return offset;
 }

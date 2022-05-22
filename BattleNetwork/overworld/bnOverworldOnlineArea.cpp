@@ -536,11 +536,6 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   auto mousei = sf::Mouse::getPosition(window);
   auto mousef = window.mapPixelToCoords(mousei);
 
-  sf::Vector2f mapScale = GetWorldTransform().getScale();
-  auto offset = GetCamera().GetCenterOffset(mapScale, getView().getCenter());
-
-  auto mouseScreen = sf::Vector2f(mousef.x + offset.x, mousef.y + offset.y);
-
   // NOTE: Uncomment below for debug mouse cursor
   /*
   sf::RectangleShape rect({ 2.f, 2.f });
@@ -564,7 +559,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
       return;
     }
 
-    if (IsMouseHovering(actor, offset)) {
+    if (IsMouseHovering(actor)) {
       topLayer = layer;
       topName = name;
       topY = screenY;

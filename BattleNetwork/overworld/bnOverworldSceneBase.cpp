@@ -1143,8 +1143,11 @@ std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vect
   return { y, x };
 }
 
-const bool Overworld::SceneBase::IsMouseHovering(const WorldSprite& src, sf::Vector2f cameraOffset)
+const bool Overworld::SceneBase::IsMouseHovering(const WorldSprite& src)
 {
+  sf::Vector2f mapScale = GetWorldTransform().getScale();
+  auto cameraOffset = GetCamera().GetCenterOffset(mapScale, *this);
+
   auto textureRect = src.getSprite().getTextureRect();
   auto origin = src.getSprite().getOrigin();
 
