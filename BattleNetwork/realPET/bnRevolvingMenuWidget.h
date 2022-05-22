@@ -16,9 +16,33 @@ using Overworld::PlayerSession;
 
 namespace RealPET {
   class RevolvingMenuWidget : public Menu, public ResourceHandle {
+  public:
+    struct barrel {
+      double startAngle{}; // which way out the barrel is facing
+      double phaseWidth{}; // the total surface we want to map the surface to
+      double radius{};     // of the barrel
+      sf::Vector2f scale{ 1.f, 1.f }; // can be used for visual fx
+
+      sf::Vector2f calculate_point(unsigned int idx, unsigned int max) {
+        double idxRadians = startAngle;
+        idxRadians -= (phaseWidth / 2.0);
+        idxRadians += (idx * (phaseWidth)) / static_cast<double>(max);
+        return sf::Vector2f(radius * std::cosf(idxRadians) * scale.x, radius * std::sinf(idxRadians) * scale.y);
+      }
+    };
+
+    struct parabolaFx {
+      float minScale{};
+      float minOpacity{};
+      float opacityPower{1.0f}; 
+      float scalePower{1.0f};
+    };
+
   private:
-    std::shared_ptr<PlayerSession> session;
+    bool useIcons{ true };
+    unsigned int alpha{ 255 };
     frame_time_t frameTick;
+    size_t menuItemsMax{ 1 };
     int row{ 0 }; //!< Current row index
     float opacity{}; //!< Background darkens
     double elapsedThisFrame{};
@@ -32,30 +56,18 @@ namespace RealPET {
     Animation infoBoxAnim;
     Animation optionAnim;
 
-    struct barrel {
-      double startAngle{}; // which way out the barrel is facing
-      double phaseWidth{}; // the total surface we want to map the surface to
-      double radius{}; // of the barrel
+    barrel barrelParams;
+    parabolaFx parabolaParams;
 
-      sf::Vector2f calculate_point(unsigned int idx, unsigned int max) {
-        double idxRadians = startAngle;
-        idxRadians -= (phaseWidth / 2.0);
-        idxRadians += (idx*(phaseWidth)) / static_cast<double>(max);
-        return sf::Vector2f(radius * std::cosf(idxRadians), radius * std::sinf(idxRadians));
-      }
-    };
+    double defaultPhaseWidth = swoosh::ease::pi;
 
-    const double defaultPhaseWidth = swoosh::ease::pi;
-    double phaseWidth = defaultPhaseWidth;
-
-    void CreateOptions();
     void DrawTime(sf::RenderTarget& target) const;
 
   public:
     /**
      * @brief Constructs main menu widget UI. The programmer must set info params using the public API
      */
-    RevolvingMenuWidget(const std::shared_ptr<PlayerSession>& session, const Menu::OptionsList& options);
+    RevolvingMenuWidget(const Menu::OptionsList& options, const barrel& barrel);
 
     /**
      * @brief Deconstructor
@@ -102,5 +114,15 @@ namespace RealPET {
     * @return true if the options column is able to move down, false if it cannot move down
     */
     bool CursorMoveDown();
+
+    void SetAppearance(const std::string& texturePath, const std::string& animationPath, bool useIcons);
+    void SetBarrelFxParams(const parabolaFx& params);
+
+    size_t GetOptionsCount();
+    void SetMaxOptionsVisible(size_t max);
+    void CreateOptions();
+
+    unsigned int GetAlpha() const;
+    void SetAlpha(unsigned int alpha);
   };
 }

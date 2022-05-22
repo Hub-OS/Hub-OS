@@ -106,6 +106,7 @@ namespace TexturePaths {
   path PET_MENU = "resources/scenes/PET/menu.png";
   path PET_MISC_MENU = "resources/scenes/PET/misc_menu.png";
   path PET_LOGO = "resources/scenes/PET/petlogo.png";
+  path PET_SPEAK = "resources/scenes/PET/speak.png";
 
   // Navigator and textbox
   path MUG_NAVIGATOR = "resources/ui/navigator.png";

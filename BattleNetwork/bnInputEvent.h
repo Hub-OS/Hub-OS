@@ -108,6 +108,9 @@ namespace InputEvents {
   static const auto ui_left_group  = { pressed_ui_left,  held_ui_left  };
   static const auto ui_right_group = { pressed_ui_right, held_ui_right };
 
+  static const auto shoulder_left_group  = { pressed_shoulder_left,  held_shoulder_left  };
+  static const auto shoulder_right_group = { pressed_shoulder_right, held_shoulder_right };
+
   static const std::string KEYS[] = {
     "Move Up", "Move Down", "Move Left", "Move Right",
     "Shoot", "Use Card", "Special", "Cust Menu", "Pause",

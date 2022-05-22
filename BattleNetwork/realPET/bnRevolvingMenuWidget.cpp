@@ -5,27 +5,20 @@
 #include "../bnAudioResourceManager.h"
 
 namespace RealPET {
-  RevolvingMenuWidget::RevolvingMenuWidget(const std::shared_ptr<PlayerSession>& session, const Menu::OptionsList& options) :
-    session(session),
+  RevolvingMenuWidget::RevolvingMenuWidget(const Menu::OptionsList& options, const RevolvingMenuWidget::barrel& barrel) :
+    barrelParams(barrel),
     optionsList(options),
     infoText(Font::Style::thin),
     time(Font::Style::thick)
   {
+    defaultPhaseWidth = barrel.phaseWidth;
+
     // Load resources
     infoText.setPosition(127, 119);
 
     // clock
-    time.setPosition(480 - 4.f, 6.f);
+    time.setPosition(480 - 4.f, 4.f);
     time.setScale(2.f, 2.f);
-
-    widgetTexture = Textures().LoadFromFile(TexturePaths::PET_MENU);
-    optionAnim = Animation(AnimationPaths::PET_MENU);
-
-    //
-    // Load options
-    //
-
-    CreateOptions();
   }
 
   RevolvingMenuWidget::~RevolvingMenuWidget()
@@ -42,24 +35,37 @@ namespace RealPET {
     for (auto&& L : optionsList) {
       // label
       auto sprite = std::make_shared<SpriteProxyNode>();
-      sprite->setTexture(Textures().LoadFromFile(TexturePaths::PET_MENU));
+      sprite->setTexture(widgetTexture);
       sprite->setPosition(36, 26);
       optionAnim << (L.name + "_LABEL");
       optionAnim.SetFrame(1, sprite->getSprite());
       options.push_back(sprite);
       AddNode(sprite);
 
-      // icon
-      auto iconSpr = std::make_shared<SpriteProxyNode>();
-      iconSpr->setTexture(Textures().LoadFromFile(TexturePaths::PET_MENU));
-      iconSpr->setPosition(36, 26);
-      optionAnim << L.name;
-      optionAnim.SetFrame(1, iconSpr->getSprite());
-      optionIcons.push_back(iconSpr);
-      AddNode(iconSpr);
+      if (useIcons) {
+        // icon
+        auto iconSpr = std::make_shared<SpriteProxyNode>();
+        iconSpr->setTexture(widgetTexture);
+        iconSpr->setPosition(36, 26);
+        optionAnim << L.name;
+        optionAnim.SetFrame(1, iconSpr->getSprite());
+        optionIcons.push_back(iconSpr);
+        AddNode(iconSpr);
+      }
     }
+
+    menuItemsMax = optionsList.size();
   }
 
+  unsigned int RevolvingMenuWidget::GetAlpha() const
+  {
+    return alpha;
+  }
+
+  void RevolvingMenuWidget::SetAlpha(unsigned int alpha)
+  {
+    this->alpha = std::min(alpha, 255u);
+  }
 
   void RevolvingMenuWidget::Update(double elapsed)
   {
@@ -75,21 +81,15 @@ namespace RealPET {
 
     using namespace swoosh::ease;
 
-    size_t menuItemsMax = optionsList.size();
-
-    barrel b { 
-      0.0,        // start angle
-      phaseWidth, // phase width
-      50.0        //radius
-    };
-
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Add)) {
-      phaseWidth += 0.1;
+      barrelParams.phaseWidth += 0.1;
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract)) {
-      phaseWidth -= 0.1;
+      barrelParams.phaseWidth -= 0.1;
     }
+
+    float parentAlpha = alpha / 255.f;
 
     // loop over options
     for (size_t i = 0; i < optionsList.size(); i++) {      
@@ -97,20 +97,24 @@ namespace RealPET {
         optionAnim << (optionsList[i].name + "_LABEL");
         optionAnim.SetFrame(2, options[i]->getSprite());
 
-        // move the icon inwards to the label
-        optionAnim << optionsList[i].name;
-        optionAnim.SetFrame(2, optionIcons[i]->getSprite());
+        if (useIcons) {
+          // move the icon inwards to the label
+          optionAnim << optionsList[i].name;
+          optionAnim.SetFrame(2, optionIcons[i]->getSprite());
+        }
       }
       else {
         optionAnim << (optionsList[i].name + "_LABEL");
         optionAnim.SetFrame(1, options[i]->getSprite());
 
-        // move the icon away from the label
-        optionAnim << optionsList[i].name;
-        optionAnim.SetFrame(1, optionIcons[i]->getSprite());
+        if (useIcons) {
+          // move the icon away from the label
+          optionAnim << optionsList[i].name;
+          optionAnim.SetFrame(1, optionIcons[i]->getSprite());
+        }
       }
 
-      int circleIdx = static_cast<int>(row) - (optionsList.size() >> 1) - i;
+      int circleIdx = (static_cast<int>(row) - (optionsList.size() >> 1) - i);
       if (circleIdx > 0) {
         circleIdx = static_cast<int>(optionsList.size()) - circleIdx;
       }
@@ -118,30 +122,39 @@ namespace RealPET {
         circleIdx = std::abs(circleIdx) % optionsList.size();
       }
 
-      sf::Vector2f pointOnB = b.calculate_point(circleIdx, optionsList.size());
-      pointOnB.x *= 0.7;
+      sf::Vector2f pointOnB = barrelParams.calculate_point(circleIdx, optionsList.size());
+      float s = wideParabola(static_cast<float>(circleIdx), static_cast<float>(menuItemsMax), parabolaParams.scalePower);
+      s = std::max(s, parabolaParams.minScale);
 
-      float s = wideParabola(static_cast<float>(circleIdx+1), static_cast<float>(menuItemsMax), 1.0f);
-      sf::Color c = sf::Color::White;
+      int layer = -int(s * 100);
+
+      sf::Color c = sf::Color(255, 255, 255, static_cast<unsigned>(255.0f * parentAlpha));
       
       if (i != row) {
-        float s = wideParabola(static_cast<float>(circleIdx + 1), static_cast<float>(menuItemsMax), 0.5f);
-        c = sf::Color(255, 255, 255, static_cast<unsigned>(255.0f * s));
+        float s = wideParabola(static_cast<float>(circleIdx), static_cast<float>(menuItemsMax), parabolaParams.opacityPower);
+        s = std::max(s, parabolaParams.minOpacity);
+        c = sf::Color(255, 255, 255, static_cast<unsigned>(255.0f * s * parentAlpha));
       }
 
-      sf::Vector2f pos = optionIcons[i]->getPosition();
-      float dx = interpolate(0.5f, pos.x, pointOnB.x);
-      float dy = interpolate(0.5f, pos.y, pointOnB.y + getPosition().y);
-      optionIcons[i]->setPosition(dx, dy);
-      optionIcons[i]->setScale(s, s);
-      optionIcons[i]->setColor(c);
+      sf::Vector2f pos{};
+      
+      if (useIcons) {
+        pos = optionIcons[i]->getPosition();
+        float dx = interpolate(0.5f, pos.x, pointOnB.x);
+        float dy = interpolate(0.5f, pos.y, pointOnB.y + getPosition().y);
+        optionIcons[i]->setPosition(dx, dy);
+        optionIcons[i]->setScale(s, s);
+        optionIcons[i]->setColor(c);
+        optionIcons[i]->SetLayer(layer);
+      }
 
       pos = options[i]->getPosition();
-      dx = interpolate(0.5f, pos.x, pointOnB.x + 20.f);
-      dy = interpolate(0.5f, pos.y, pointOnB.y + getPosition().y);
+      float dx = interpolate(0.5f, pos.x, pointOnB.x + 20.f);
+      float dy = interpolate(0.5f, pos.y, pointOnB.y + getPosition().y);
       options[i]->setPosition(dx, dy);
       options[i]->setScale(s, s);
       options[i]->setColor(c);
+      options[i]->SetLayer(layer);
     }
   }
 
@@ -159,57 +172,6 @@ namespace RealPET {
     if (!IsClosed()) {
       // draw all child nodes
       SceneNode::draw(target, states);
-
-      sf::Color shadowColor = sf::Color(16, 82, 107, 255);
-
-      // hp shadow
-      infoText.SetString(std::to_string(session->health));
-      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.SetColor(shadowColor);
-      infoText.setPosition(174 + 1, 33 + 1);
-      target.draw(infoText, states);
-
-      // hp text
-      infoText.setPosition(174, 33);
-      infoText.SetColor(sf::Color::White);
-      target.draw(infoText, states);
-
-      // "/" shadow
-      infoText.SetString("/");
-      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.SetColor(shadowColor);
-      infoText.setPosition(182 + 1, 33 + 1);
-      target.draw(infoText, states);
-
-      // "/"
-      infoText.setPosition(182, 33);
-      infoText.SetColor(sf::Color::White);
-      target.draw(infoText, states);
-
-      // max hp shadow
-      infoText.SetString(std::to_string(session->maxHealth));
-      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.SetColor(shadowColor);
-      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 33 + 1);
-      target.draw(infoText, states);
-
-      // max hp 
-      infoText.setPosition(214, 33);
-      infoText.SetColor(sf::Color::White);
-      target.draw(infoText, states);
-
-      // coins shadow
-      infoText.SetColor(shadowColor);
-      infoText.SetString(std::to_string(session->money) + "$");
-      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 57 + 1);
-      target.draw(infoText, states);
-
-      // coins
-      infoText.setPosition(214, 57);
-      infoText.SetColor(sf::Color::White);
-      target.draw(infoText, states);
     }
 
     DrawTime(target);
@@ -275,5 +237,28 @@ namespace RealPET {
     row = (row + 1u) % (int)optionsList.size();
 
     return true;
+  }
+
+  void RevolvingMenuWidget::SetAppearance(const std::string& texturePath, const std::string& animationPath, bool useIcons)
+  {
+    this->useIcons = useIcons;
+    widgetTexture = Textures().LoadFromFile(texturePath);
+    optionAnim = Animation(animationPath);
+
+  }
+
+  void RevolvingMenuWidget::SetBarrelFxParams(const parabolaFx& params)
+  {
+    parabolaParams = params;
+  }
+
+  size_t RevolvingMenuWidget::GetOptionsCount()
+  {
+    return optionsList.size();
+  }
+
+  void RevolvingMenuWidget::SetMaxOptionsVisible(size_t max)
+  {
+    menuItemsMax = std::min(optionsList.size(), max);
   }
 }

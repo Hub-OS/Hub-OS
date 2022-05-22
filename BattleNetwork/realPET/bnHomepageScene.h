@@ -10,44 +10,14 @@
 #include "../bnPA.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnInputRepeater.h"
+#include "../bnRandom.h"
+#include "../bnTextBox.h"
 #include "bnRevolvingMenuWidget.h"
 
 using Overworld::PollingPacketProcessor;
 using Overworld::ServerStatus;
 using Overworld::PlayerSession;
 using Overworld::MenuSystem;
-
-template<typename T>
-T rand_val(const T& min, const T& max) {
-  int sample = rand() % RAND_MAX;
-  double frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
-  
-  return static_cast<T>(((1.0 - frac) * min) + (frac * max));
-}
-
-static int rand_val(const int& min, const int& max) {
-  return (rand() % (max-min+1)) + (min);
-}
-
-static bool rand_val() {
-  return rand() % RAND_MAX == 0;
-}
-
-static sf::Vector2f rand_val(const sf::Vector2f& min, const sf::Vector2f& max) {
-  int sample = rand() % RAND_MAX;
-  double frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
-
-  sf::Vector2f result{};
-  result.x = (((1.0 - frac) * min.x) + (frac * max.x));
-
-  // resample for y
-  sample = rand() % RAND_MAX;
-  frac = static_cast<double>(sample) / static_cast<double>(RAND_MAX);
-
-  result.y = (((1.0 - frac) * min.y) + (frac * max.y));
-
-  return result;
-}
 
 namespace RealPET {
   struct Particle {
@@ -74,15 +44,17 @@ namespace RealPET {
   class Homepage final : public Scene {
   private:
     double animElapsed{};
+    bool hideTextbox{};
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
     bool playJackin{};
     bool mouseClicked{};
     size_t mouseBufferIdx{};
+    sf::Vector2f currMenuPosition, otherMenuPosition;
     std::array<sf::Vector2f, 5> lastMousef;
-    sf::Sprite bgSprite, jackinSprite;
-    std::shared_ptr<sf::Texture> bgTexture, folderTexture, windowTexture, jackinTexture, menuTexture, miscMenuTexture;
-    Animation folderAnim, windowAnim, jackinAnim, menuAnim, miscMenuAnim;
-    
+    sf::Sprite bgSprite, jackinSprite, playerSprite, dockSprite, speakSprite;
+    std::shared_ptr<sf::Texture> bgTexture, folderTexture, windowTexture, jackinTexture, speakTexture;
+    Animation folderAnim, windowAnim, jackinAnim;
+    TextBox textbox;
     std::shared_ptr<sf::SoundBuffer> jackinsfx;
 
     size_t maxPoolSize{};
@@ -91,26 +63,26 @@ namespace RealPET {
     size_t maxStaticPoolSize{};
     std::vector<StaticParticle> staticPool;
 
-    Poco::Net::SocketAddress remoteAddress; //!< server
-    std::string host; // need to store host string to retain domain names
-    std::shared_ptr<PollingPacketProcessor> packetProcessor;
     std::vector<KeyItemScene::Item> items;
     uint16_t maxPayloadSize{};
-    ServerStatus serverStatus{ ServerStatus::offline };
 
     /*!< Current player package selection */
     std::shared_ptr<PlayerSession> playerSession;
     std::string currentNaviId, lastSelectedNaviId;
 
-    RevolvingMenuWidget menuWidget;
+    RevolvingMenuWidget menuWidget, miscMenuWidget;
     InputRepeater repeater;
 
     CardFolderCollection* folders{ nullptr }; /*!< Collection of folders */
     PA programAdvance;
 
-    void UpdateServerStatus(ServerStatus status, uint16_t serverMaxPayloadSize);
+    enum class state : char {
+      menu, misc_menu, size
+    } currState{ state::menu };
+
     void InitializeFolderParticles();
     void InitializeWindowParticles();
+    void HandleInput(RevolvingMenuWidget& widget);
     void UpdateFolderParticles(double elapsed);
     void UpdateWindowParticles(double elapsed);
     void DrawFolderParticles(sf::RenderTexture& surface);
@@ -188,7 +160,7 @@ namespace RealPET {
     void GotoMail();
     void GotoKeyItems();
     void GotoOverworld();
-    // void GotoPlayerCust();
+    void GotoPlayerCust();
 
     std::string& GetCurrentNaviID();
     PA& GetProgramAdvance();

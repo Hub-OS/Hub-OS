@@ -1,3 +1,4 @@
+#pragma once
 #include "bnGame.h"
 #include "bnResourceHandle.h"
 #include "bnPA.h"
@@ -12,4 +13,5 @@ class GameUtils : public ResourceHandle {
   public:
     GameUtils(Game& game);
     void LaunchMobBattle(PlayerMeta&, MobMeta&, std::shared_ptr<Background>, PA&, CardFolder*);
+    void LaunchPlayerCust(const std::string& playerPackageId);
 };

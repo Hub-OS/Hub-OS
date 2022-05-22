@@ -16,6 +16,7 @@
 #include "../netplay/bnNetPlayConfig.h"
 #include "../bnMessage.h"
 #include "../bnGameSession.h"
+#include "../bnGameUtils.h"
 #include "../bnCurrentTime.h"
 #include "../bnBlockPackageManager.h"
 #include "../bnMobPackageManager.h"
@@ -42,7 +43,7 @@ constexpr size_t DEFAULT_PORT = 8765;
 namespace {
   auto MakeOptions = [](RealPET::Homepage* scene) -> Menu::OptionsList {
     return {
-      { "jack_in",      std::bind(&RealPET::Homepage::GotoOverworld, scene) },
+      { "jack_in",     std::bind(&RealPET::Homepage::GotoOverworld, scene) },
       { "chip_folder", std::bind(&RealPET::Homepage::GotoChipFolder, scene) },
       { "navi",        std::bind(&RealPET::Homepage::GotoNaviSelect, scene) },
       { "mail",        std::bind(&RealPET::Homepage::GotoMail, scene) },
@@ -52,14 +53,52 @@ namespace {
       { "sync",        std::bind(&RealPET::Homepage::GotoPVP, scene) }
     };
   };
+
+  auto MakeMiscOptions = [](RealPET::Homepage* scene) -> Menu::OptionsList {
+    return {
+      { "neurolink",  std::bind(&RealPET::Homepage::GotoMail, scene) },
+      { "playercust", std::bind(&RealPET::Homepage::GotoPlayerCust, scene) }
+    };
+  };
 }
+
+using barrel = RealPET::RevolvingMenuWidget::barrel;
+using swoosh::ease::pi;
+
+// barrel{ /* start angle */, /* phase width */, /* radius */, {x, y} /* scale */ }
+const barrel menuBarrelParams = {
+   0.0, pi, 50.0, sf::Vector2f{0.7f, 1.0f }
+};
+
+const barrel miscMenuBarrelParams = {
+  barrel{ 0.0, pi / 2, 20.0 }
+};
 
 RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   lastIsConnectedState(false),
   playerSession(std::make_shared<PlayerSession>()),
-  menuWidget(playerSession, MakeOptions(this)),
+  menuWidget(MakeOptions(this), menuBarrelParams),
+  miscMenuWidget(MakeMiscOptions(this), miscMenuBarrelParams),
+  textbox(310, 180, Font::Style::thin),
   Scene(controller)
 {
+  currMenuPosition = sf::Vector2{ 210.f, 55.f };
+  otherMenuPosition = sf::Vector2{ 400.f, 55.f }; // outside of our view
+
+  menuWidget.SetAppearance(TexturePaths::PET_MENU, AnimationPaths::PET_MENU, true);
+  menuWidget.SetBarrelFxParams({ 0.f, 0.3f, 0.5f, 1.0f });
+  menuWidget.CreateOptions();
+  menuWidget.setScale(2.f, 2.f);
+  menuWidget.setPosition(currMenuPosition);
+  menuWidget.Open();
+
+  miscMenuWidget.SetAppearance(TexturePaths::PET_MISC_MENU, AnimationPaths::PET_MISC_MENU, false);
+  miscMenuWidget.SetBarrelFxParams({0.5f, 0.5f, 1.0f, 1.0f});
+  miscMenuWidget.CreateOptions();
+  miscMenuWidget.setScale(2.f, 2.f);
+  miscMenuWidget.setPosition(otherMenuPosition);
+  miscMenuWidget.Open();
+
   auto& session = getController().Session();
   bool loaded = session.LoadSession(FilePaths::PROFILE);
 
@@ -71,38 +110,6 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   }
 
   setView(sf::Vector2u(480, 320));
-
-  std::string destination_ip = getController().Session().GetKeyValue("homepage_warp:0");
-
-  int remotePort = getController().CommandLineValue<int>("remotePort");
-  host = getController().CommandLineValue<std::string>("cyberworld");
-
-  if (host.empty()) {
-    size_t colon = destination_ip.find(':', 0);
-
-    if (colon > 0 && colon != std::string::npos) {
-      host = destination_ip.substr(0, colon);
-      remotePort = std::atoi(destination_ip.substr(colon + 1u).c_str());
-    }
-    else {
-      host = destination_ip;
-    }
-  }
-
-  if (remotePort > 0 && host.size()) {
-    try {
-      remoteAddress = Poco::Net::SocketAddress(host, remotePort);
-
-      packetProcessor = std::make_shared<Overworld::PollingPacketProcessor>(
-        remoteAddress,
-        Net().GetMaxPayloadSize(),
-        [this](ServerStatus status, size_t maxPayloadSize) { UpdateServerStatus(status, maxPayloadSize); }
-      );
-
-      Net().AddHandler(remoteAddress, packetProcessor);
-    }
-    catch (Poco::IOException&) {}
-  }
 
   // Load audio and graphics resources ....
 
@@ -116,6 +123,17 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   windowTexture = Textures().LoadFromFile(TexturePaths::PET_PARTICLE_WINDOWS);
   windowAnim = Animation(AnimationPaths::PET_PARTICLE_WINDOWS) << "default";
 
+  Animation temp = Animation(AnimationPaths::PET_MENU) << "dock";
+  dockSprite.setTexture(*Textures().LoadFromFile(TexturePaths::PET_MENU));
+  dockSprite.setScale(2.f, 2.f);
+  temp.Refresh(dockSprite);
+
+  speakTexture = Textures().LoadFromFile(TexturePaths::PET_SPEAK);
+  speakSprite.setTexture(*speakTexture);
+  speakSprite.setScale(2.f, 2.f);
+  speakSprite.setOrigin(0.f, speakSprite.getLocalBounds().height);
+  speakSprite.setPosition(160.f, 320.f-2.f); // align on bottom of screen
+
   jackinTexture = Textures().LoadFromFile(TexturePaths::PET_JACKIN);
   jackinAnim = Animation(AnimationPaths::PET_JACKIN) << "default";
   jackinSprite.setTexture(*jackinTexture);
@@ -125,28 +143,15 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
 
   jackinsfx = Audio().LoadFromFile(SoundPaths::PET_JACKIN);
 
-  menuTexture = Textures().LoadFromFile(TexturePaths::PET_MENU);
-  menuAnim = Animation(AnimationPaths::PET_MENU);
-
-  miscMenuTexture = Textures().LoadFromFile(TexturePaths::PET_MISC_MENU);
-  miscMenuAnim = Animation(AnimationPaths::PET_MISC_MENU);
-
   InitializeFolderParticles();
   InitializeWindowParticles();
 
-  menuWidget.setScale(2.f, 2.f);
-  menuWidget.setPosition(100.f, 50.f);
-  menuWidget.Open();
+  textbox.SetText("Hi, I'm GalaxyMan.");
+  textbox.setPosition(180.f, 210.f);
+  textbox.SetTextColor(sf::Color(66, 57, 57));
 }
 
 RealPET::Homepage::~Homepage() {
-}
-
-void RealPET::Homepage::UpdateServerStatus(ServerStatus status, uint16_t serverMaxPayloadSize) {
-  serverStatus = status;
-  maxPayloadSize = serverMaxPayloadSize;
-
-  // EnableNetWarps(status == ServerStatus::online);
 }
 
 void RealPET::Homepage::InitializeFolderParticles()
@@ -172,9 +177,58 @@ void RealPET::Homepage::InitializeWindowParticles()
   }
 }
 
+void RealPET::Homepage::HandleInput(RevolvingMenuWidget& widget)
+{
+  if (!hideTextbox) {
+    if (Input().Has(InputEvents::pressed_confirm) && textbox.IsEndOfBlock()) {
+      if (textbox.IsEndOfMessage()) {
+        hideTextbox = true;
+      }
+      else {
+        textbox.CompleteCurrentBlock();
+      }
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
+    }
+    return;
+  }
+
+  auto upCallback = [&widget, this] { 
+    widget.CursorMoveUp();
+    Audio().Play(AudioType::CHIP_SELECT); 
+  };
+
+  auto downCallback = [&widget, this] { 
+    widget.CursorMoveDown();
+    Audio().Play(AudioType::CHIP_SELECT); 
+  };
+
+  auto switchMenuCallback = [this] {
+    char size = static_cast<char>(state::size);
+    currState = static_cast<state>((static_cast<char>(currState) + 1)%size);
+    Audio().Play(AudioType::CHIP_DESC, AudioPriority::highest);
+  };
+
+  if(repeater.HandleInput(InputEvents::ui_up_group, upCallback))
+    return;
+
+  if(repeater.HandleInput(InputEvents::ui_down_group, downCallback))
+    return;
+
+  if (repeater.HandleInput(InputEvents::shoulder_left_group, switchMenuCallback))
+    return;
+
+  if (repeater.HandleInput(InputEvents::shoulder_right_group, switchMenuCallback))
+    return;
+
+  repeater.Reset();
+
+  if (Input().Has(InputEvents::pressed_confirm)) {
+    widget.ExecuteSelection();
+  }
+}
+
 void RealPET::Homepage::UpdateFolderParticles(double elapsed)
 {
-
   sf::RenderWindow& window = getController().getWindow();
   sf::Vector2i mousei = sf::Mouse::getPosition(window);
   sf::Vector2f mousef = window.mapPixelToCoords(mousei);
@@ -300,6 +354,8 @@ void RealPET::Homepage::DrawFolderParticles(sf::RenderTexture& surface)
 
     particleSpr.setPosition(p.position);
 
+    particleSpr.setScale(2.f, 2.f);
+
     if (scaleOut || scaleIn) {
       particleSpr.setScale(sf::Vector2f(beta * 2.f, beta * 2.f));
     }
@@ -335,17 +391,41 @@ void RealPET::Homepage::DrawWindowParticles(sf::RenderTexture& surface)
 
 void RealPET::Homepage::onUpdate(double elapsed)
 {
-  if (IsInFocus()) {
-    menuWidget.Update(elapsed);
+  repeater.Update(elapsed);
 
-    if (Input().Has(InputEvents::pressed_ui_up)) {
-      menuWidget.CursorMoveUp();
+  if (IsInFocus()) {
+    if (!hideTextbox) {
+      textbox.Update(elapsed);
     }
-    else if (Input().Has(InputEvents::pressed_ui_down)) {
-      menuWidget.CursorMoveDown();
-    } else if (Input().Has(InputEvents::pressed_confirm)) {
-      menuWidget.ExecuteSelection();
+
+    menuWidget.Update(elapsed);
+    miscMenuWidget.Update(elapsed);
+
+    RevolvingMenuWidget* widget = &menuWidget, *otherWidget = &miscMenuWidget;
+    if (currState == state::misc_menu) {
+      std::swap(widget, otherWidget);
     }
+
+    state lastState = currState;
+    HandleInput(*widget);
+
+    if (lastState != currState) {
+      std::swap(widget, otherWidget);
+      widget->SetAlpha(255);
+      widget->setPosition(otherMenuPosition);
+    }
+
+    using swoosh::ease::interpolate;
+    sf::Vector2f pos = widget->getPosition();
+    pos.x = interpolate(0.5f, pos.x, currMenuPosition.x);
+    widget->setPosition(pos);
+
+    pos = otherWidget->getPosition();
+    pos.x = interpolate(0.5f, pos.x, 0.f);
+
+    float alpha = interpolate(0.3f, otherWidget->GetAlpha() / 255.f, 0.f);
+    otherWidget->SetAlpha(unsigned int(alpha*255));
+    otherWidget->setPosition(pos);
   }
 
   UpdateFolderParticles(elapsed);
@@ -367,7 +447,23 @@ void RealPET::Homepage::onDraw(sf::RenderTexture& surface)
     surface.draw(jackinSprite);
   }
   else {
+    // draw player w/ shadow
+    sf::Vector2f pos = playerSprite.getPosition();
+    playerSprite.setColor(sf::Color(0, 0, 20, 20));
+    playerSprite.setPosition({ pos.x - 20.f, pos.y });
+    surface.draw(playerSprite);
+    playerSprite.setPosition(pos);
+    playerSprite.setColor(sf::Color::White);
+    surface.draw(playerSprite);
+
+    surface.draw(dockSprite);
     surface.draw(menuWidget);
+    surface.draw(miscMenuWidget);
+
+    if (!hideTextbox) {
+      surface.draw(speakSprite);
+      surface.draw(textbox);
+    }
   }
 }
 
@@ -415,19 +511,11 @@ void RealPET::Homepage::onStart()
 void RealPET::Homepage::onResume()
 {
   Audio().Stream(StreamPaths::REAL_PET, true);
-
-  if (packetProcessor) {
-    Net().AddHandler(remoteAddress, packetProcessor);
-  }
-
   getController().Session().SaveSession(FilePaths::PROFILE);
 }
 
 void RealPET::Homepage::onLeave()
 {
-  if (packetProcessor) {
-    Net().DropProcessor(packetProcessor);
-  }
 }
 
 void RealPET::Homepage::onExit()
@@ -442,9 +530,6 @@ void RealPET::Homepage::onEnter()
 
 void RealPET::Homepage::onEnd()
 {
-  if (packetProcessor) {
-    Net().DropProcessor(packetProcessor);
-  }
 }
 
 void RealPET::Homepage::RefreshNaviSprite()
@@ -461,6 +546,14 @@ void RealPET::Homepage::RefreshNaviSprite()
   lastSelectedNaviId = currentNaviId;
 
   auto& meta = packageManager.FindPackageByID(currentNaviId);
+
+  // refresh sprite
+  playerSprite.setTexture(*meta.GetPreviewTexture(), true);
+  playerSprite.setScale(2.f, 2.f);
+
+  sf::FloatRect bounds = playerSprite.getLocalBounds();
+  playerSprite.setOrigin(0.0f, bounds.height * 0.5);
+  playerSprite.setPosition(0, 160.0f);
 
   // refresh menu widget too
   playerSession->health = meta.GetHP();
@@ -590,6 +683,12 @@ void RealPET::Homepage::GotoOverworld()
     using tx = segue<WhiteWashFade, types::milli<500>>::to<Overworld::Homepage>;
     getController().push<tx>();
   };
+}
+
+void RealPET::Homepage::GotoPlayerCust()
+{
+  Audio().Play(AudioType::CHIP_DESC);
+  GameUtils(getController()).LaunchPlayerCust(this->currentNaviId);
 }
 
 std::string& RealPET::Homepage::GetCurrentNaviID()

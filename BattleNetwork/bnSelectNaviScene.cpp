@@ -4,10 +4,9 @@
 
 #include "bnPlayerCustScene.h"
 #include "bnGameSession.h"
-#include "bnBlockPackageManager.h"
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
-
+#include "bnGameUtils.h"
 #include <Poco/TextIterator.h>
 #include <Poco/UTF8Encoding.h>
 #include <Poco/UnicodeConverter.h>
@@ -289,42 +288,10 @@ void SelectNaviScene::onEnd()
 
 void SelectNaviScene::GotoPlayerCust()
 {
-  // Config Select on PC
   gotoNextScene = true;
   Audio().Play(AudioType::CHIP_DESC);
 
-  using effect = segue<BlackWashFade, milliseconds<500>>;
-
-  std::vector<PlayerCustScene::Piece*> blocks;
-
-  auto& blockManager = getController().BlockPackagePartitioner().GetPartition(Game::LocalPartition);
-  std::string package = blockManager.FirstValidPackage();
-
-  do {
-    if (package.empty()) break;
-
-    auto& meta = blockManager.FindPackageByID(package);
-    auto* piece = meta.GetData();
-
-    // TODO: lines 283-295 should use PreGetData() hook in package manager class?
-    piece->uuid = meta.GetPackageID();
-    piece->name = meta.name;
-    piece->description = meta.description;
-
-    size_t idx{};
-    for (auto& s : piece->shape) {
-      s = *(meta.shape.begin() + idx);
-      idx++;
-    }
-
-    piece->typeIndex = meta.color;
-    piece->specialType = meta.isProgram;
-
-    blocks.push_back(piece);
-    package = blockManager.GetPackageAfter(package);
-  } while (package != blockManager.FirstValidPackage());
-
-  getController().push<effect::to<PlayerCustScene>>(this->currentChosenId, blocks);
+  GameUtils(getController()).LaunchPlayerCust(this->currentChosenId);
 }
 
 void SelectNaviScene::onUpdate(double elapsed) {
