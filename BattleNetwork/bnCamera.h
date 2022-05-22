@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <Swoosh/Activity.h>
 
 /**
  * @class Camera
@@ -98,5 +99,7 @@ public:
   void FadeCamera(const sf::Color& color, sf::Time duration);
 
   const sf::RectangleShape& GetLens();
+
+  sf::Vector2f GetCenterOffset(const sf::Vector2f& scale, const swoosh::Activity& activity);
 };
 
