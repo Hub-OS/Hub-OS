@@ -720,3 +720,8 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
 
   return "D"; // default is down
 }
+
+Animation Overworld::Actor::GetAnim()
+{
+    return anim;
+}
