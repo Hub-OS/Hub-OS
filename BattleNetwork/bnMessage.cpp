@@ -4,7 +4,6 @@
 Message::Message(std::string message) : MessageInterface(message) {
   ResourceHandle handle;
   nextCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_NEXT_CURSOR));
-  nextCursor.scale(2.0f, 2.0f);
   totalElapsed = 0;
 }
 
@@ -17,8 +16,7 @@ void Message::OnUpdate(double elapsed) {
 void Message::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   auto bounce = std::sin((float)totalElapsed * 20.0f);
 
-  auto textBoxBottom = (GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f) / 2.0f;
-  nextCursor.setPosition(sf::Vector2f(GetTextBox()->GetFrameWidth() - 15.0f, textBoxBottom + bounce) * 2.0f);
+  nextCursor.setPosition(226, 15+bounce);
 
   GetTextBox()->DrawMessage(target, states);
 

@@ -146,9 +146,10 @@ RealPET::Homepage::Homepage(swoosh::ActivityController& controller) :
   InitializeFolderParticles();
   InitializeWindowParticles();
 
-  textbox.SetText("Hi, I'm GalaxyMan.");
+  textbox.SetText("");
   textbox.setPosition(180.f, 210.f);
   textbox.SetTextColor(sf::Color(66, 57, 57));
+  hideTextbox = true; // NOTE: For now, don't use this feature...
 }
 
 RealPET::Homepage::~Homepage() {

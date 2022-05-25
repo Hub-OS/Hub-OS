@@ -29,7 +29,6 @@ private:
   bool isOpening{}; /*!< Opening textbox flag */
   bool isClosing{}; /*!< Closing textbox flag */
   mutable bool lightenMug{true};
-  bool canDraw{};
   double totalTime{}; /*!< elapsed */
   double textSpeed{1.0}; /*!< desired speed of text */
   mutable std::vector<sf::Sprite> mugshots; /*!< List of current and next mugshots */

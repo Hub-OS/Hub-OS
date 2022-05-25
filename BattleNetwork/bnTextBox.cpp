@@ -69,7 +69,6 @@ TextBox::TextBox(int width, int height) :
 TextBox::TextBox(int width, int height, const Font& font) :
   font(font),
   text("", font) {
-  text.scale(2.0f, 2.0f);
   message = "";
   areaWidth = width;
   areaHeight = height;
@@ -577,6 +576,9 @@ bool TextBox::IsFinalBlock() const {
 
 void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+  if (IsHidden())
+    return;
+
   SceneNode::draw(target, states);
 
   if (message.empty())

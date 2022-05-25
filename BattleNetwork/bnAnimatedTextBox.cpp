@@ -8,10 +8,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   textureRef = Textures().LoadFromFile(TexturePaths::ANIMATED_TEXT_BOX);
   lastSpeaker = std::make_shared<SpriteProxyNode>();
   frame = std::make_shared<SpriteProxyNode>(*textureRef);
-  textBox = std::make_shared<TextBox>(280, 45);
-
-  textBox->setPosition(sf::Vector2f(100.0f - 4.f, - 40.0f - 12.f));
-  frame->setPosition(sf::Vector2f(100.0f - 4.f, - 40.0f - 12.f));
+  textBox = std::make_shared<TextBox>(180, 45);
 
   // set the textbox positions
   setPosition(pos);
@@ -27,8 +24,15 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   isClosing = false;
 
   textBox->SetTextFillColor(sf::Color(66, 57, 57));
+
   AddNode(textBox);
   AddNode(frame);
+  AddNode(lastSpeaker);
+
+  textBox->setPosition(49.f, -22.f);
+  textBox->Hide();
+  lastSpeaker->setPosition(3.f, -23.f);
+  lastSpeaker->Hide();
 }
 
 AnimatedTextBox::~AnimatedTextBox() { }
@@ -42,10 +46,9 @@ void AnimatedTextBox::Close() {
 
   animator.SetAnimation("CLOSE");
 
-  animator << Animator::On(2,
-    [this]
-    {
-      canDraw = false;
+  animator << Animator::On(2, [this] {
+      textBox->Hide();
+      lastSpeaker->Hide();
     }
   );
 
@@ -66,7 +69,11 @@ void AnimatedTextBox::Open(const std::function<void()>& onOpen) {
 
   animator.SetAnimation("OPEN");
 
-  animator << Animator::On(3, [this] { canDraw = lightenMug = true; });
+  animator << Animator::On(3, [this] { 
+    lightenMug = true; 
+    textBox->Reveal();
+    lastSpeaker->Reveal();
+  });
 
   auto callback = [this, onOpen]() {
     isClosing = false;
@@ -296,18 +303,18 @@ void AnimatedTextBox::Update(double elapsed) {
   animator.Update((float)elapsed, frame->getSprite());
   mugAnimator.Refresh(lastSpeaker->getSprite());
 
-  frame->Hide();
   if (isOpening || isReady || isClosing) {
     frame->Reveal();
   }
+  else {
+    frame->Hide();
+  }
 
-  if (canDraw) {
-    if (lightenMug) {
-      lastSpeaker->setColor(sf::Color(255, 255, 255, 125));
-    }
-    else {
-      lastSpeaker->setColor(sf::Color::White);
-    }
+  if (lightenMug) {
+    lastSpeaker->setColor(sf::Color(255, 255, 255, 125));
+  }
+  else {
+    lastSpeaker->setColor(sf::Color::White);
   }
 }
 
@@ -317,9 +324,11 @@ void AnimatedTextBox::SetTextSpeed(double factor) {
 
 void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+  states.transform *= this->getTransform();
+
   SceneNode::draw(target, states);
   
-  if (messages.size() > 0) {
+  if (messages.size() > 0 && isReady) {
     messages.front()->OnDraw(target, states);
   }
 }

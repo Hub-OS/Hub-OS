@@ -15,6 +15,7 @@ void MailScene::ResetTextBox()
   textbox.SetText(msg);
   textbox.Mute();
   textbox.CompleteAll();
+  textbox.setScale(2.f, 2.f);
 
   isReading = false;
 }
