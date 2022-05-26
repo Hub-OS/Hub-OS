@@ -69,7 +69,8 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
   menuAnim = Animation("resources/scenes/cust/menu.animation") << "MOVE";
 
   textbox.SetTextSpeed(1.0f);
-  gotoNextScene = true;
+  textbox.ChangeAppearance(Textures().LoadFromFile(TexturePaths::FOLDER_TEXTBOX), AnimationPaths::FOLDER_TEXTBOX);
+  textbox.ChangeBlipSfx(Audio().LoadFromFile(SoundPaths::COMPILE_BLIP_SFX));
 
   auto load_audio = [this](const std::string& path) {
     return Audio().LoadFromFile(path);

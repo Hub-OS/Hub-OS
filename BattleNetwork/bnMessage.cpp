@@ -14,7 +14,7 @@ void Message::OnUpdate(double elapsed) {
 }
 
 void Message::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
-  auto bounce = std::sin((float)totalElapsed * 20.0f);
+  float bounce = std::sin((float)totalElapsed * 20.0f);
 
   nextCursor.setPosition(226, 15+bounce);
 

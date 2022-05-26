@@ -8,7 +8,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   textureRef = Textures().LoadFromFile(TexturePaths::ANIMATED_TEXT_BOX);
   lastSpeaker = std::make_shared<SpriteProxyNode>();
   frame = std::make_shared<SpriteProxyNode>(*textureRef);
-  textBox = std::make_shared<TextBox>(180, 45);
+  textBox = std::make_shared<TextBox>(180, 22);
 
   // set the textbox positions
   setPosition(pos);

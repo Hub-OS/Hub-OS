@@ -12,7 +12,6 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   Question::onYes = onYes;
   isQuestionReady = false;
   selectCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
-  selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;
 }
@@ -74,17 +73,15 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     // Find out how many rows there are and place arrows to fit the text.
     auto [lineStart, lineEnd] = GetTextBox()->GetCurrentLineRange();
     unsigned int numOfLines = lineEnd - lineStart + 1u;
-    int cursorY = ((3 - (int)numOfLines) * -30) - 15;
+    int cursorY = ((3 - (int)numOfLines) * -15) - 15;
     unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
     float bobf = static_cast<float>(bob);
 
-    float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
-
     if (yes) {
-      selectCursor.setPosition(180.0f + bobf, textBoxBottom + cursorY);
+      selectCursor.setPosition(90 + bobf, 25 + cursorY);
     }
     else {
-      selectCursor.setPosition(300.0f + bobf, textBoxBottom + cursorY);
+      selectCursor.setPosition(155 + bobf, 25 + cursorY);
     }
 
     // Draw the Yes / No and a cursor

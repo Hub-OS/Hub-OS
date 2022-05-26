@@ -39,8 +39,8 @@ const std::string& MessageInput::Submit() {
 }
 
 void MessageInput::OnUpdate(double elapsed) {
-  auto& textBuffer = Input().GetInputTextBuffer();
-  auto textbox = GetTextBox();
+  InputTextBuffer& textBuffer = Input().GetInputTextBuffer();
+  AnimatedTextBox* textbox = GetTextBox();
 
   if (!enteredView) {
     // prevent submission if we've started updating holding enter
@@ -66,13 +66,13 @@ void MessageInput::OnUpdate(double elapsed) {
   if (textBuffer.IsModified()) {
     // figure out which page we're on
     auto [firstRow, _] = textbox->GetCurrentLineRange();
-    auto page = firstRow / textbox->GetNumberOfFittingLines();
+    size_t page = firstRow / (size_t)textbox->GetNumberOfFittingLines();
 
     latestCapture = textBuffer.ToString();
     textbox->ReplaceText(latestCapture + ' '); // + ' ' needed to create a new blank page when the current page is filled
   }
 
-  auto caretPosition = textBuffer.GetCaretPosition();
+  size_t caretPosition = textBuffer.GetCaretPosition();
 
   if (caretPosition != prevCaretPosition) {
     // reset time to prevent the caret from blinking while typing
@@ -152,7 +152,7 @@ void MessageInput::HandleClick(sf::Vector2f mousePos) {
     return;
   }
 
-  auto textbox = GetTextBox();
+  AnimatedTextBox* textbox = GetTextBox();
 
   mousePos -= textbox->GetTextPosition();
   mousePos /= 2.0f;
@@ -164,12 +164,12 @@ void MessageInput::HandleClick(sf::Vector2f mousePos) {
   auto [rangeStart, rangeEnd] = textbox->GetCurrentLineRange();
   mousePos.y += rangeStart * textbox->GetFont().GetLineHeight();
 
-  auto& textBuffer = Input().GetInputTextBuffer();
+  InputTextBuffer& textBuffer = Input().GetInputTextBuffer();
   textBuffer.MoveCaretToCursor(mousePos);
 }
 
 void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
-  auto textbox = GetTextBox();
+  AnimatedTextBox* textbox = GetTextBox();
 
   if (!hint.empty() && latestCapture.empty()) {
     Text hintTxt = textbox->MakeTextObject(hint);
@@ -194,9 +194,9 @@ void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   }
 
   // update text and caret
-  const auto BLINK_FRAME_COUNT = 30;
+  const int BLINK_FRAME_COUNT = 30;
 
-  auto& textBuffer = Input().GetInputTextBuffer();
+  InputTextBuffer& textBuffer = Input().GetInputTextBuffer();
 
   auto [firstRow, _] = textbox->GetCurrentLineRange();
   auto [caretRow, caretCol] = textBuffer.GetRowCol();
@@ -204,12 +204,12 @@ void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   caretRow -= firstRow;
 
   if ((from_seconds(time).count() / BLINK_FRAME_COUNT) % 2 == 0) {
-    auto textPosition = textbox->GetTextPosition();
-    auto font = textbox->GetFont();
+    sf::Vector2f textPosition = textbox->GetTextPosition();
+    Font font = textbox->GetFont();
 
     // possibly slow, bnInputTextBuffer also does measurement, maybe it should be moved to Font?
     Text text(font);
-    auto caretPosition = textBuffer.GetCaretPosition();
+    size_t caretPosition = textBuffer.GetCaretPosition();
 
     std::string caretRef;
 
@@ -225,10 +225,10 @@ void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     sf::RectangleShape caret;
     caret.setFillColor(sf::Color::Black);
     caret.setPosition(
-      textPosition.x + text.GetWorldBounds().width * 2,
-      textPosition.y + caretRow * font.GetLineHeight() * 2 + 8
+      textPosition.x + text.GetWorldBounds().width,
+      textPosition.y + caretRow * font.GetLineHeight() + 2
     );
-    caret.setSize(sf::Vector2f(2.0f, (font.GetLineHeight() - 2) * 2));
+    caret.setSize(sf::Vector2f(1.0f, font.GetLineHeight() - 1));
 
     target.draw(caret, states);
   }
