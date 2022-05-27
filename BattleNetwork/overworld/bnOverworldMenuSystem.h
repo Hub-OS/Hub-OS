@@ -21,9 +21,8 @@ namespace Overworld {
 
     // grabs the latest BBS
     std::optional<std::reference_wrapper<BBS>> GetBBS();
-    size_t CountBBS();
-    void EnqueueBBS(const std::string& topic, sf::Color color, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
-    void ClearBBS();
+    void OpenBBS(const std::string& topic, sf::Color color, bool openInstantly, const std::function<void(const std::string&)>& onSelect, const std::function<void()>& onClose);
+    void CloseBBS();
     void AcknowledgeBBSSelection();
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
@@ -48,19 +47,13 @@ namespace Overworld {
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
   private:
-    struct PendingBBS {
-      std::unique_ptr<BBS> bbs;
-      size_t remainingMessages{};
-    };
-
     std::vector<std::pair<InputEvent, std::shared_ptr<Menu>>> bindedMenus;
     std::shared_ptr<Menu> activeBindedMenu;
-    std::queue<PendingBBS> pendingBbs;
-    size_t totalRemainingMessagesForBBS{};
-    std::vector<std::unique_ptr<BBS>> bbs;
+    std::unique_ptr<BBS> bbs;
+    std::unique_ptr<BBS> closingBbs;
+    bool bbsOpening{ };
+    float bbsFadeDuration{ 1.0f };
     Overworld::TextBox textbox;
     bool bbsNeedsAck{ };
-
-    void PopMessage();
   };
 }
