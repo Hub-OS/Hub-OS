@@ -102,17 +102,14 @@ Overworld::OnlineArea::OnlineArea(
 
   auto player = GetPlayer();
   // move the emote above the player's head
-  float emoteY{};
   auto anim = player->GetAnim();
+  sf::Vector2f emotePos = { 0, -player->getSprite().getOrigin().y - 10 };
   if (anim.HasPoint("head")) {
-      auto height = (anim.GetPoint("head") - anim.GetPoint("origin")).y;
-      emoteY = -player->getSprite().getOrigin().y + height;
-  }
-  else {
-      emoteY = -player->getSprite().getOrigin().y - 10;
+      emotePos = anim.GetPoint("head") - anim.GetPoint("origin");
+      emotePos.y -= 10.f;
   }
   emoteNode = std::make_shared<Overworld::EmoteNode>();
-  emoteNode->setPosition(0, emoteY);
+  emoteNode->setPosition(emotePos);
   emoteNode->SetLayer(-100);
   emoteNode->setScale(0.5f, 0.5f);
   player->AddNode(emoteNode);
@@ -390,22 +387,19 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
     GetPlayerController().ControlActor(player);
   }
 
+  // move the emote above the player's head
+  auto anim = player->GetAnim();
+  sf::Vector2f emotePos = { 0, -player->getSprite().getOrigin().y - 10 };
+  if (anim.HasPoint("head")) {
+      emotePos = anim.GetPoint("head") - anim.GetPoint("origin");
+      emotePos.y -= 10.f;
+  }
+  emoteNode->setPosition(emotePos);
+
   std::string currentNaviId = GetCurrentNaviID();
   if (lastFrameNaviId != currentNaviId) {
     sendAvatarChangeSignal();
     lastFrameNaviId = currentNaviId;
-
-    // move the emote above the player's head
-    auto anim = player->GetAnim();
-    float emoteY{};
-    if (anim.HasPoint("head")) {
-        auto height = (anim.GetPoint("head") - anim.GetPoint("origin")).y;
-        emoteY = -player->getSprite().getOrigin().y + height;
-    }
-    else {
-        emoteY = -player->getSprite().getOrigin().y - 10;
-    }
-    emoteNode->setPosition(0, emoteY);
   }
 
   if (!IsInputLocked()) {
@@ -2828,16 +2822,13 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
   auto& emoteNode = onlinePlayer.emoteNode;
   emoteNode = std::make_shared<Overworld::EmoteNode>();
   auto anim = GetPlayer()->GetAnim();
-  float emoteY{};
+  sf::Vector2f emotePos = { 0, -actor->getSprite().getOrigin().y - 10 };
   if (anim.HasPoint("head")) {
-      auto height = (anim.GetPoint("head") - anim.GetPoint("origin")).y;
-      emoteY = -actor->getSprite().getOrigin().y + height;
-  }
-  else {
-      emoteY = -actor->getSprite().getOrigin().y - 10;
+      emotePos = anim.GetPoint("head") - anim.GetPoint("origin");
+      emotePos.y -= 10.f;
   }
 
-  emoteNode->setPosition(0, emoteY);
+  emoteNode->setPosition(emotePos);
   emoteNode->setScale(0.5f, 0.5f);
   emoteNode->LoadCustomEmotes(customEmotesTexture);
 
@@ -3035,15 +3026,12 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   //float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
   //float emoteY = -actor->getSprite().getOrigin().y + 10;
   auto anim = actor->GetAnim();
-  float emoteY{};
+  sf::Vector2f emotePos = { 0, -actor->getSprite().getOrigin().y - 10 };
   if (anim.HasPoint("head")) {
-      auto height = (anim.GetPoint("head") - anim.GetPoint("origin")).y;
-      emoteY = -actor->getSprite().getOrigin().y + height;
+      emotePos = anim.GetPoint("head") - anim.GetPoint("origin");
+      emotePos.y -= 10.f;
   }
-  else {
-      emoteY = -actor->getSprite().getOrigin().y - 10;
-  }
-  emoteNode->setPosition(0, emoteY);
+  emoteNode->setPosition(emotePos);
 }
 
 void Overworld::OnlineArea::receiveActorEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
