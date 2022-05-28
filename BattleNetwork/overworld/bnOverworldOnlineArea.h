@@ -222,6 +222,8 @@ namespace Overworld {
     void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     void cleanup();
+
+    void RefreshEmotePosition(EmoteNode&, Actor&);
   protected:
     virtual std::filesystem::path GetPath(const std::string& path);
     virtual std::string GetText(const std::string& path);
