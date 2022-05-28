@@ -102,12 +102,8 @@ Overworld::OnlineArea::OnlineArea(
 
   auto player = GetPlayer();
 
-  // move the emote above the player's head
-
-
   emoteNode = std::make_shared<Overworld::EmoteNode>();
   RefreshEmotePosition(*emoteNode, *player);
-
   emoteNode->SetLayer(-100);
   emoteNode->setScale(0.5f, 0.5f);
   player->AddNode(emoteNode);
@@ -387,7 +383,6 @@ void Overworld::OnlineArea::updatePlayer(double elapsed) {
 
   // move the emote above the player's head
   RefreshEmotePosition(*emoteNode, *player);
-
   std::string currentNaviId = GetCurrentNaviID();
   if (lastFrameNaviId != currentNaviId) {
     sendAvatarChangeSignal();
@@ -2816,7 +2811,6 @@ void Overworld::OnlineArea::receiveActorConnectedSignal(BufferReader& reader, co
 
   // move the emote above the player's head
   RefreshEmotePosition(*emoteNode, *actor);
-
   emoteNode->setScale(0.5f, 0.5f);
   emoteNode->LoadCustomEmotes(customEmotesTexture);
 
@@ -3011,8 +3005,6 @@ void Overworld::OnlineArea::receiveActorSetAvatarSignal(BufferReader& reader, co
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
 
-  //float emoteY = -actor->getSprite().getOrigin().y - emoteNode->getSprite().getLocalBounds().height / 2;
-  //float emoteY = -actor->getSprite().getOrigin().y + 10;
   RefreshEmotePosition(*emoteNode, *actor);
 }
 
