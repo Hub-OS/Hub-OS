@@ -194,25 +194,21 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
 
 void AnimationComponent::SyncAnimation(Animation & other)
 {
-  for (AnimationOverride& animOverride : animationOverrides) {
-    other.OverrideAnimationFrames(animOverride.state, animOverride.frames, animOverride.id);
-  }
-
   animation.SyncAnimation(other);
 }
 
 void AnimationComponent::SyncAnimation(std::shared_ptr<AnimationComponent> other)
 {
-  for (AnimationOverride& animOverride : animationOverrides) {
-    other->OverrideAnimationFrames(animOverride.state, animOverride.frames, animOverride.id);
-  }
-
   animation.SyncAnimation(other->animation);
   other->OnUpdate(0);
 }
 
 void AnimationComponent::AddToSyncList(const AnimationComponent::SyncItem& item)
 {
+  for (AnimationOverride& animOverride : animationOverrides) {
+    item.anim->OverrideAnimationFrames(animOverride.state, animOverride.frames, animOverride.id);
+  }
+
   auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
     return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point);
   });
