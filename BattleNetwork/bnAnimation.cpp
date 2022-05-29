@@ -44,6 +44,7 @@ Animation::~Animation() {
 void Animation::CopyFrom(const Animation& rhs)
 {
   *this = rhs;
+  ReapplyOverrides();
 }
 
 void Animation::Reload() {
@@ -211,7 +212,7 @@ void Animation::LoadWithData(const string& data)
 
         std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
 
-        animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
+        animations.insert_or_assign(currentState, frameLists.at(frameAnimationIndex));
         currentAnimationDuration = frames(0);
       }
       currentState = GetValue(line, "state");
@@ -302,8 +303,10 @@ void Animation::LoadWithData(const string& data)
   // One more addAnimation to do if file is good
   if (frameAnimationIndex >= 0) {
     std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
-    animations.insert(std::make_pair(currentState, frameLists.at(frameAnimationIndex)));
+    animations.insert_or_assign(currentState, frameLists.at(frameAnimationIndex));
   }
+
+  ReapplyOverrides();
 }
 
 void Animation::HandleInterrupted()
@@ -495,6 +498,22 @@ void Animation::OverrideAnimationFrames(const std::string& animation, const std:
   if (animations.find(uuid) != animations.end()) return;
 
   animations.emplace(uuid, std::move(animations[animation].MakeNewFromOverrideData(data)));
+
+  AnimationOverride animOverride;
+  animOverride.state = animation;
+  animOverride.frames = data;
+  animOverride.id = uuid;
+
+  animationOverrides.push_back(animOverride);
+}
+
+void Animation::ReapplyOverrides() {
+  for (AnimationOverride& animOverride : animationOverrides) {
+    animations.insert_or_assign(
+      animOverride.id,
+      std::move(animations[animOverride.state].MakeNewFromOverrideData(animOverride.frames))
+    );
+  }
 }
 
 void Animation::SyncAnimation(Animation& other)

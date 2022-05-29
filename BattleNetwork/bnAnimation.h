@@ -13,6 +13,12 @@ using std::to_string;
 
 #define ANIMATION_EXTENSION ".animation"
 
+struct AnimationOverride {
+  std::string state;
+  std::list<OverrideFrame> frames;
+  std::string id;
+};
+
 /**
  * @class Animation
  * @author mav
@@ -206,6 +212,7 @@ public:
 
 private:
   void HandleInterrupted();
+  void ReapplyOverrides();
 protected:
   bool noAnim{ false }; /*!< If the requested state was not found, hide the sprite when updating */
   bool handlingInterrupt{ false }; /*!< Whether or not the interupt handler is executing (for nested animations) */
@@ -216,4 +223,5 @@ protected:
   double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
   std::function<void()> interruptCallback;
+  std::vector<AnimationOverride> animationOverrides;
 };

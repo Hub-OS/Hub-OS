@@ -22,7 +22,6 @@ void ScriptedPlayer::Init() {
     Logger::Log(LogLevel::critical, initResult.error_cstr());
   }
 
-  animationComponent->Reload();
   FinishConstructor();
 
   weakWrap = WeakWrapper(weak_from_base<ScriptedPlayer>());
@@ -49,6 +48,7 @@ void ScriptedPlayer::SetHeight(const float height)
 void ScriptedPlayer::SetAnimation(const std::string& path)
 {
   animationComponent->SetPath(path);
+  animationComponent->Reload();
 }
 
 const float ScriptedPlayer::GetHeight() const
