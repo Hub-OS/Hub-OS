@@ -20,7 +20,7 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
   busterAttachment = &AddAttachment("buster");
 
   Animation& busterAnim = busterAttachment->GetAnimationObject();
-  busterAnim.Load(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim.CopyFrom(actor->GetFirstComponent<AnimationComponent>()->GetAnimationObject());
   busterAnim.SetAnimation("BUSTER");
 
   buster = busterAttachment->GetSpriteNode();

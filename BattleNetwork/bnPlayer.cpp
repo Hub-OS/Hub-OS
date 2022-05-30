@@ -391,8 +391,6 @@ void Player::ActivateFormAt(int index)
     if (activeForm) {
       SaveStats();
       activeForm->OnActivate(shared_from_base<Player>());
-      CreateMoveAnimHash();
-      CreateRecoilAnimHash();
       animationComponent->Refresh();
     }
   }
@@ -413,7 +411,6 @@ void Player::DeactivateForm()
   if (activeForm) {
     activeForm->OnDeactivate(shared_from_base<Player>());
     RevertStats();
-    CreateMoveAnimHash();
   }
 }
 

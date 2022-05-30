@@ -45,6 +45,10 @@ void AnimationComponent::Load() {
 void AnimationComponent::Reload() {
   animation = Animation(path);
   animation.Reload();
+
+  for (AnimationOverride& animOverride : animationOverrides) {
+    animation.OverrideAnimationFrames(animOverride.state, animOverride.frames, animOverride.id);
+  }
 }
 
 void AnimationComponent::CopyFrom(const AnimationComponent& rhs)
@@ -178,6 +182,14 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
   for (auto& o : syncList) {
     o.anim->OverrideAnimationFrames(animation, data, uuid);
   }
+
+  // must occur after the above statements, as parameters may get mutated
+  AnimationOverride animOverride;
+  animOverride.state = animation;
+  animOverride.frames = data;
+  animOverride.id = uuid;
+
+  animationOverrides.push_back(animOverride);
 }
 
 void AnimationComponent::SyncAnimation(Animation & other)
@@ -193,6 +205,10 @@ void AnimationComponent::SyncAnimation(std::shared_ptr<AnimationComponent> other
 
 void AnimationComponent::AddToSyncList(const AnimationComponent::SyncItem& item)
 {
+  for (AnimationOverride& animOverride : animationOverrides) {
+    item.anim->OverrideAnimationFrames(animOverride.state, animOverride.frames, animOverride.id);
+  }
+
   auto iter = std::find_if(syncList.begin(), syncList.end(), [item](auto in) {
     return std::tie(in.anim, in.node, in.point) == std::tie(item.anim, item.node, item.point);
   });

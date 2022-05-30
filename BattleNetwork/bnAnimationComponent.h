@@ -174,6 +174,7 @@ private:
   Animation animation; /*!< Animation object */
   bool couldUpdateLastFrame{ true };
   std::vector<SyncItem> syncList;
+  std::vector<AnimationOverride> animationOverrides;
 
   void RefreshSyncItem(SyncItem& item);
   void UpdateAnimationObjects(sf::Sprite& sprite, double elapsed);
