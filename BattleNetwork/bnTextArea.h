@@ -13,7 +13,7 @@
 #include "bnResourceHandle.h"
 #include "bnSceneNode.h"
 
-class TextBox : public SceneNode, public ResourceHandle {
+class TextArea : public SceneNode, public ResourceHandle {
 public:
   typedef uint16_t vfx;
 
@@ -63,10 +63,10 @@ public:
    * @param width in pixels
    * @param height in pixels
    */
-   TextBox(int width, int height);
-   TextBox(int width, int height, const Font& font);
+  TextArea(int width, int height);
+  TextArea(int width, int height, const Font& font);
 
-  ~TextBox();
+  ~TextArea();
 
   /**
    * @brief Get reference to Text object

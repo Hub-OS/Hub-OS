@@ -1,5 +1,5 @@
 #pragma once
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 #include "bnAnimation.h"
 #include "bnMessageInterface.h"
 #include "bnResourceHandle.h"
@@ -40,7 +40,7 @@ private:
   Animation animator; /*!< Animator for the textbox */
   std::shared_ptr<Texture> textureRef; /*!< smart reference to the texture*/
   sf::IntRect textArea; /*!< The area for text to type in */
-  std::shared_ptr<TextBox> textBox; /*!< Textbox object types text out for us */
+  std::shared_ptr<TextArea> textBox; /*!< Textbox object types text out for us */
 
 public:
   /**

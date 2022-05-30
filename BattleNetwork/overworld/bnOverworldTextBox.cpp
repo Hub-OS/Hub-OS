@@ -7,16 +7,16 @@
 #include "../bnMessageInput.h"
 
 namespace Overworld {
-  TextBox::TextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {
+  TextArea::TextArea(sf::Vector2f pos) : textbox(pos), ResourceHandle() {
       turboScroll = false;
   }
 
-  void TextBox::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
+  void TextArea::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
     nextSpeaker = speaker;
     nextAnimation = animation;
   }
 
-  void TextBox::EnqueueMessage(const std::string& message, const std::function<void()>& onComplete) {
+  void TextArea::EnqueueMessage(const std::string& message, const std::function<void()>& onComplete) {
     if (!textbox.HasMessage()) {
       textbox.Open();
     }
@@ -65,7 +65,7 @@ namespace Overworld {
     });
   }
 
-  void TextBox::EnqueueQuestion(const std::string& prompt, const std::function<void(bool)>& onResponse) {
+  void TextArea::EnqueueQuestion(const std::string& prompt, const std::function<void(bool)>& onResponse) {
     if (!textbox.HasMessage()) {
       textbox.Open();
     }
@@ -109,7 +109,7 @@ namespace Overworld {
     });
   }
 
-  void TextBox::EnqueueQuiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse) {
+  void TextArea::EnqueueQuiz(const std::string& optionA, const std::string& optionB, const std::string& optionC, const std::function<void(int)>& onResponse) {
     if (!textbox.HasMessage()) {
       textbox.Open();
     }
@@ -147,7 +147,7 @@ namespace Overworld {
     });
   }
 
-  void TextBox::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
+  void TextArea::EnqueueTextInput(const std::string& initialText, size_t characterLimit, const std::function<void(const std::string&)>& onResponse) {
     if (!textbox.HasMessage()) {
       textbox.Open();
     }
@@ -170,23 +170,23 @@ namespace Overworld {
     });
   }
 
-  bool TextBox::IsOpen() {
+  bool TextArea::IsOpen() {
     return textbox.IsOpen();
   }
 
-  bool TextBox::IsClosed() {
+  bool TextArea::IsClosed() {
     return textbox.IsClosed();
   }
 
-  size_t TextBox::GetRemainingMessages() {
+  size_t TextArea::GetRemainingMessages() {
     return handlerQueue.size();
   }
 
-  void TextBox::Update(float elapsed) {
+  void TextArea::Update(float elapsed) {
     textbox.Update(elapsed);
   }
 
-  void TextBox::HandleInput(InputManager& input, sf::Vector2f mousePos) {
+  void TextArea::HandleInput(InputManager& input, sf::Vector2f mousePos) {
     if (!handlerQueue.empty()) {
       handlerQueue.front()(input, mousePos);
     }
@@ -198,17 +198,17 @@ namespace Overworld {
     }
   }
 
-  void TextBox::ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation)
+  void TextArea::ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation)
   {
     textbox.ChangeAppearance(newTexture, newAnimation);
   }
 
-  void TextBox::ChangeBlipSfx(std::shared_ptr<sf::SoundBuffer> newSfx)
+  void TextArea::ChangeBlipSfx(std::shared_ptr<sf::SoundBuffer> newSfx)
   {
     textbox.ChangeBlipSfx(newSfx);
   }
 
-  void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  void TextArea::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     textbox.draw(target, states);
   }
 }

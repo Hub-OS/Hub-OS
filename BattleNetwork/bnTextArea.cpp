@@ -1,4 +1,4 @@
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "stx/string.h"
@@ -63,10 +63,10 @@ namespace {
   }
 }
 
-TextBox::TextBox(int width, int height) :
-  TextBox::TextBox(width, height, Font::Style::thin) { }
+TextArea::TextArea(int width, int height) :
+  TextArea::TextArea(width, height, Font::Style::thin) { }
 
-TextBox::TextBox(int width, int height, const Font& font) :
+TextArea::TextArea(int width, int height, const Font& font) :
   font(font),
   text("", font) {
   message = "";
@@ -82,10 +82,10 @@ TextBox::TextBox(int width, int height, const Font& font) :
   blipSfx = Audio().FetchSharedPtr(AudioType::TEXT);
 }
 
-TextBox::~TextBox() {
+TextArea::~TextArea() {
 }
 
-void TextBox::FormatToFit() {
+void TextArea::FormatToFit() {
   if (message.empty())
     return;
 
@@ -188,7 +188,7 @@ void TextBox::FormatToFit() {
   numberOfFittingLines = line;
 }
 
-const bool TextBox::ProcessSpecialCharacters(int& pos) {
+const bool TextArea::ProcessSpecialCharacters(int& pos) {
   if (pos >= message.size()) return false;
 
   bool processed = false;
@@ -220,32 +220,32 @@ const bool TextBox::ProcessSpecialCharacters(int& pos) {
   return processed;
 };
 
-const Text& TextBox::GetText() const { return text; }
+const Text& TextArea::GetText() const { return text; }
 
-const TextBox::vfx TextBox::GetVFX() const
+const TextArea::vfx TextArea::GetVFX() const
 {
   return currEffect;
 }
 
-const Font& TextBox::GetFont() const { return font; }
+const Font& TextArea::GetFont() const { return font; }
 
-void TextBox::SetTextFillColor(sf::Color color) {
+void TextArea::SetTextFillColor(sf::Color color) {
   text.SetColor(color);
 }
 
-void TextBox::SetTextColor(sf::Color color) {
+void TextArea::SetTextColor(sf::Color color) {
   SetTextFillColor(color);
 }
 
-void TextBox::Mute(bool enabled) {
+void TextArea::Mute(bool enabled) {
   mute = enabled;
 }
 
-void TextBox::Unmute() {
+void TextArea::Unmute() {
   Mute(false);
 }
 
-const bool TextBox::HasMore() const {
+const bool TextArea::HasMore() const {
   if ((size_t)lineIndex + (size_t)numberOfFittingLines < lines.size()) {
     if (charIndex > lines[(size_t)lineIndex + (size_t)numberOfFittingLines]) {
       return true;
@@ -255,11 +255,11 @@ const bool TextBox::HasMore() const {
   return false;
 }
 
-const bool TextBox::HasLess() const {
+const bool TextArea::HasLess() const {
   return lineIndex > 0;
 }
 
-void TextBox::ShowNextLine() {
+void TextArea::ShowNextLine() {
   lineIndex++;
 
   if (lineIndex >= lines.size())
@@ -268,7 +268,7 @@ void TextBox::ShowNextLine() {
   dirty = true;
 }
 
-void TextBox::ShowPreviousLine() {
+void TextArea::ShowPreviousLine() {
   lineIndex--;
 
   if (lineIndex < 0)
@@ -277,7 +277,7 @@ void TextBox::ShowPreviousLine() {
   dirty = true;
 }
 
-void TextBox::CompleteCurrentBlock()
+void TextArea::CompleteCurrentBlock()
 {
   if (lineIndex >= lines.size()) return;
 
@@ -317,7 +317,7 @@ void TextBox::CompleteCurrentBlock()
   StoreCurrentBlock();
 }
 
-void TextBox::CompleteAll()
+void TextArea::CompleteAll()
 {
   charIndex = static_cast<int>(message.length());
 
@@ -330,7 +330,7 @@ void TextBox::CompleteAll()
   // StoreCurrentBlock();
 }
 
-void TextBox::StoreCurrentBlock() {
+void TextArea::StoreCurrentBlock() {
   auto [begin, end] = GetCurrentCharacterRangeRaw();
 
   text.SetString(message.substr(begin, end - begin));
@@ -339,66 +339,66 @@ void TextBox::StoreCurrentBlock() {
   dirty = false;
 }
 
-void TextBox::SetCharactersPerSecond(const double cps) {
+void TextArea::SetCharactersPerSecond(const double cps) {
   charsPerSecond = cps;
 }
 
-void TextBox::SetText(const std::string& text) {
+void TextArea::SetText(const std::string& text) {
   message = text;
   charIndex = 0;
   progress = 0;
   lines.clear();
   lineIndex = 0;
   numberOfFittingLines = 1;
-  currEffect = TextBox::effects::none;
+  currEffect = TextArea::effects::none;
   FormatToFit();
   dirty = true;
 }
 
-void TextBox::SetBlipSfx(std::shared_ptr<sf::SoundBuffer> blipSfx)
+void TextArea::SetBlipSfx(std::shared_ptr<sf::SoundBuffer> blipSfx)
 {
   this->blipSfx = blipSfx;
 }
 
-void TextBox::Play(const bool play) {
-  TextBox::play = play;
+void TextArea::Play(const bool play) {
+  TextArea::play = play;
 }
 
-void TextBox::Stop() {
+void TextArea::Stop() {
   Play(false);
 }
 
-const uint32_t TextBox::GetCurrentCharacter() const {
+const uint32_t TextArea::GetCurrentCharacter() const {
   return lastUTF8Codepoint(text.GetString());
 }
 
-const int TextBox::GetNumberOfFittingLines() const {
+const int TextArea::GetNumberOfFittingLines() const {
   return numberOfFittingLines;
 }
 
-const int TextBox::GetNumberOfLines() const {
+const int TextArea::GetNumberOfLines() const {
   return (int)lines.size();
 }
 
-const double TextBox::GetCharsPerSecond() const {
+const double TextArea::GetCharsPerSecond() const {
   return charsPerSecond;
 }
 
-const int TextBox::GetAreaWidth() const
+const int TextArea::GetAreaWidth() const
 {
   return areaWidth;
 }
 
-const int TextBox::GetAreaHeight() const
+const int TextArea::GetAreaHeight() const
 {
   return areaHeight;
 }
 
-const bool TextBox::IsPlaying() const {
+const bool TextArea::IsPlaying() const {
   return play;
 }
 
-std::pair<size_t, size_t> TextBox::GetCurrentCharacterRangeRaw() const {
+std::pair<size_t, size_t> TextArea::GetCurrentCharacterRangeRaw() const {
   int begin = lines[lineIndex];
   int end = 0;
 
@@ -415,7 +415,7 @@ std::pair<size_t, size_t> TextBox::GetCurrentCharacterRangeRaw() const {
 }
 
 // adjusts for inserted newlines
-std::pair<size_t, size_t> TextBox::GetCurrentCharacterRange() const {
+std::pair<size_t, size_t> TextArea::GetCurrentCharacterRange() const {
   auto range = GetCurrentCharacterRangeRaw();
 
   auto [begin, end] = range;
@@ -428,7 +428,7 @@ std::pair<size_t, size_t> TextBox::GetCurrentCharacterRange() const {
   return range;
 }
 
-std::pair<size_t, size_t> TextBox::GetCurrentLineRange() const {
+std::pair<size_t, size_t> TextArea::GetCurrentLineRange() const {
   if (lines.size() == 0) {
     return { 0, 0 };
   }
@@ -436,7 +436,7 @@ std::pair<size_t, size_t> TextBox::GetCurrentLineRange() const {
   return { lineIndex, std::min((size_t)(lineIndex + numberOfFittingLines - 1), lines.size() - 1) };
 }
 
-std::pair<size_t, size_t> TextBox::GetBlockCharacterRangeRaw() const {
+std::pair<size_t, size_t> TextArea::GetBlockCharacterRangeRaw() const {
   size_t begin = (size_t)lines[lineIndex];
   size_t end = 0;
 
@@ -447,7 +447,7 @@ std::pair<size_t, size_t> TextBox::GetBlockCharacterRangeRaw() const {
 }
 
 // adjusts for inserted newlines
-std::pair<size_t, size_t> TextBox::GetBlockCharacterRange() const {
+std::pair<size_t, size_t> TextArea::GetBlockCharacterRange() const {
   auto range = GetBlockCharacterRangeRaw();
 
   auto [begin, end] = range;
@@ -460,7 +460,7 @@ std::pair<size_t, size_t> TextBox::GetBlockCharacterRange() const {
   return range;
 }
 
-void TextBox::Update(const double elapsed) {
+void TextArea::Update(const double elapsed) {
   // If the message is empty don't update
   if (message.empty()) return;
 
@@ -564,11 +564,11 @@ void TextBox::Update(const double elapsed) {
   dirty = false;
 }
 
-const bool TextBox::IsEndOfMessage() const {
+const bool TextArea::IsEndOfMessage() const {
     return (charIndex >= message.length());
 }
 
-const bool TextBox::IsEndOfBlock() const
+const bool TextArea::IsEndOfBlock() const
 {
   int testCharIndex = static_cast<int>(message.size()) - 1;
   int lastLine = lineIndex + GetNumberOfFittingLines();
@@ -580,11 +580,11 @@ const bool TextBox::IsEndOfBlock() const
   return charIndex >= testCharIndex;
 }
 
-bool TextBox::IsFinalBlock() const {
+bool TextArea::IsFinalBlock() const {
   return lines.size() == 0 || GetCurrentLineRange().second == lines.size() - 1;
 }
 
-void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void TextArea::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
   if (IsHidden())
     return;

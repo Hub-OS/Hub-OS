@@ -14,7 +14,7 @@
 class Question;
 
 namespace Battle {
-  class TextBox : public AnimatedTextBox {
+  class TextArea : public AnimatedTextBox {
     bool requestedRetreat{}, asking{};
     sf::Sprite mug;
     Animation anim;
@@ -23,7 +23,7 @@ namespace Battle {
     /**
       * @brief sets the position of the textbox
       */
-    TextBox(const sf::Vector2f& pos);
+    TextArea(const sf::Vector2f& pos);
 
     /**
      * @brief Enqueues the card description and plays it

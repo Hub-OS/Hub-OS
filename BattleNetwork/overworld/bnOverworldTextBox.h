@@ -9,9 +9,9 @@
 #include <functional>
 
 namespace Overworld {
-  class TextBox : public sf::Drawable, ResourceHandle {
+  class TextArea : public sf::Drawable, ResourceHandle {
   public:
-    TextBox(sf::Vector2f pos);
+    TextArea(sf::Vector2f pos);
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
     void EnqueueMessage(const std::string& message, const std::function<void()>& onComplete = []() {});

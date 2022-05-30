@@ -1,7 +1,7 @@
 #pragma once
 #include "bnScene.h"
 #include "bnText.h"
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 #include "bnInbox.h"
 #include "bnAnimation.h"
 
@@ -19,7 +19,7 @@ private:
   sf::Sprite bg;
   sf::Sprite newSprite;
   std::shared_ptr<sf::Texture> iconTexture, noMug;
-  TextBox textbox;
+  TextArea textbox;
   Animation iconAnim, newAnim;
   float totalElapsed{};
   size_t row{}, rowOffset{};

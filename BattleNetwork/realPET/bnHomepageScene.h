@@ -11,7 +11,7 @@
 #include "../bnCardFolderCollection.h"
 #include "../bnInputRepeater.h"
 #include "../bnRandom.h"
-#include "../bnTextBox.h"
+#include "../bnTextArea.h"
 #include "bnRevolvingMenuWidget.h"
 
 using Overworld::PollingPacketProcessor;
@@ -54,7 +54,7 @@ namespace RealPET {
     sf::Sprite bgSprite, jackinSprite, playerSprite, dockSprite, speakSprite;
     std::shared_ptr<sf::Texture> bgTexture, folderTexture, windowTexture, jackinTexture, speakTexture;
     Animation folderAnim, windowAnim, jackinAnim;
-    TextBox textbox;
+    TextArea textbox;
     std::shared_ptr<sf::SoundBuffer> jackinsfx;
 
     size_t maxPoolSize{};

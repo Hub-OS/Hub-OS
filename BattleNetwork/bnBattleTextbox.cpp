@@ -4,11 +4,11 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-Battle::TextBox::TextBox(const sf::Vector2f& pos) : AnimatedTextBox(pos)
+Battle::TextArea::TextArea(const sf::Vector2f& pos) : AnimatedTextBox(pos)
 {
 }
 
-void Battle::TextBox::DescribeCard(Battle::Card* card)
+void Battle::TextArea::DescribeCard(Battle::Card* card)
 {
   if (card == nullptr || requestedRetreat) return;
 
@@ -24,7 +24,7 @@ void Battle::TextBox::DescribeCard(Battle::Card* card)
   Open();
 }
 
-void Battle::TextBox::PromptRetreat()
+void Battle::TextArea::PromptRetreat()
 {
   if (requestedRetreat) return;
 
@@ -43,28 +43,28 @@ void Battle::TextBox::PromptRetreat()
   asking = true;
 }
 
-void Battle::TextBox::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
+void Battle::TextArea::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
 {
   this->mug = mug;
   this->anim = anim;
 }
 
-void Battle::TextBox::Reset()
+void Battle::TextArea::Reset()
 {
   asking = requestedRetreat = false;
 }
 
-const bool Battle::TextBox::RequestedRetreat() const
+const bool Battle::TextArea::RequestedRetreat() const
 {
   return this->requestedRetreat;
 }
 
-const bool Battle::TextBox::HasQuestion() const
+const bool Battle::TextArea::HasQuestion() const
 {
   return asking;
 }
 
-bool Battle::TextBox::SelectYes() const
+bool Battle::TextArea::SelectYes() const
 {
   if (asking) {
     return question->SelectYes();
@@ -73,7 +73,7 @@ bool Battle::TextBox::SelectYes() const
   return false;
 }
 
-bool Battle::TextBox::SelectNo() const
+bool Battle::TextArea::SelectNo() const
 {
   if (asking) {
     return question->SelectNo();
@@ -82,7 +82,7 @@ bool Battle::TextBox::SelectNo() const
   return false;
 }
 
-void Battle::TextBox::ConfirmSelection()
+void Battle::TextArea::ConfirmSelection()
 {
   if (asking) {
     question->ConfirmSelection();
@@ -91,7 +91,7 @@ void Battle::TextBox::ConfirmSelection()
   this->Close();
 }
 
-void Battle::TextBox::Cancel()
+void Battle::TextArea::Cancel()
 {
   if (asking) {
     question->Cancel();

@@ -1,7 +1,7 @@
 #pragma once
 #include "bnScene.h"
 #include "bnText.h"
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 
 #include <vector>
 
@@ -19,7 +19,7 @@ private:
   sf::Sprite scroll;
   sf::Sprite cursor;
   sf::Sprite bg;
-  TextBox textbox;
+  TextArea textbox;
   float totalElapsed{};
   signed col{}, row{}, rowOffset{};
   float heldCooldown{};

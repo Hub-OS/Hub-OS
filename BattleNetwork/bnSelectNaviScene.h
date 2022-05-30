@@ -23,7 +23,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnScene.h"
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 #include "overworld/bnOverworldTextBox.h"
 
 constexpr float UI_LEFT_POS_MAX = 10.f; /*!< Left ui stops here */
@@ -80,8 +80,8 @@ private:
 
   bool gotoNextScene; /*!< If true, user cannot interact with the scene */
 
-  TextBox textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
-  Overworld::TextBox owTextbox;
+  TextArea textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
+  Overworld::TextArea owTextbox;
 
   double elapsed; /*!< delta seconds sice last frame */
 

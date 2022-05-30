@@ -13,7 +13,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "bnPlayerPackageManager.h"
-#include "bnTextBox.h"
+#include "bnTextArea.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
@@ -105,7 +105,7 @@ private:
 
   std::string mobSelectionId; /*!< Mob selected */
 
-  TextBox textbox; /*!< textbox message */
+  TextArea textbox; /*!< textbox message */
 
 public:
   /**

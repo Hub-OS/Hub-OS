@@ -8,7 +8,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   textureRef = Textures().LoadFromFile(TexturePaths::ANIMATED_TEXT_BOX);
   lastSpeaker = std::make_shared<SpriteProxyNode>();
   frame = std::make_shared<SpriteProxyNode>(*textureRef);
-  textBox = std::make_shared<TextBox>(180, 22);
+  textBox = std::make_shared<TextArea>(180, 22);
 
   // set the textbox positions
   setPosition(pos);
@@ -270,7 +270,7 @@ void AnimatedTextBox::Update(double elapsed) {
 
   if (isReady && messages.size() > 0) {
     uint32_t currChar = textBox->GetCurrentCharacter();
-    bool muteFX = (textBox->GetVFX() & TextBox::effects::zzz) == TextBox::effects::zzz;
+    bool muteFX = (textBox->GetVFX() & TextArea::effects::zzz) == TextArea::effects::zzz;
     bool speakingDot = currChar == U'.' || currChar == U'\0';
     bool silence = (currChar == U' ' && mugAnimator.GetAnimationString() == "IDLE");
     bool lipsSealed = muteFX || speakingDot || silence;

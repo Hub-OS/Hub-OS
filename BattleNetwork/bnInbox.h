@@ -6,7 +6,7 @@
 #include "bnCallback.h"
 
 //forward decl
-class TextBox;
+class TextArea;
 
 class Inbox {
 public:
