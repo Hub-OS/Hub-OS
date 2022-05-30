@@ -412,7 +412,7 @@ void InputTextBuffer::LineDown() {
 
   auto nextRowCharEndIndex = row + 2 < lineIndexes.size() ? lineIndexes[row + 2] : buffer.size();
   auto nextRowCharIndex = lineIndexes[row + 1];
-  auto nextRowLen = nextRowCharEndIndex - nextRowCharIndex;
+  auto nextRowLen = (nextRowCharEndIndex - nextRowCharIndex) + 1;
 
   if (nextRowLen < initialCol) {
     caretPos = nextRowCharIndex + nextRowLen;

@@ -384,6 +384,16 @@ const double TextBox::GetCharsPerSecond() const {
   return charsPerSecond;
 }
 
+const int TextBox::GetAreaWidth() const
+{
+  return areaWidth;
+}
+
+const int TextBox::GetAreaHeight() const
+{
+  return areaHeight;
+}
+
 const bool TextBox::IsPlaying() const {
   return play;
 }

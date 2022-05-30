@@ -157,6 +157,9 @@ public:
    */
   std::pair<size_t, size_t> GetBlockCharacterRange() const;
 
+  const int GetTextboxAreaWidth() const;
+  const int GetTextboxAreaHeight() const;
+
   /**
    * @brief Update the animated textbox
    * @param elapsed in seconds

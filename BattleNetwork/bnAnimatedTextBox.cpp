@@ -157,6 +157,16 @@ std::pair<size_t, size_t> AnimatedTextBox::GetBlockCharacterRange() const
   return textBox->GetBlockCharacterRange();
 }
 
+const int AnimatedTextBox::GetTextboxAreaWidth() const
+{
+  return textBox->GetAreaWidth();
+}
+
+const int AnimatedTextBox::GetTextboxAreaHeight() const
+{
+  return textBox->GetAreaHeight();
+}
+
 void AnimatedTextBox::CompleteCurrentBlock() {
   textBox->CompleteCurrentBlock();
 
@@ -342,7 +352,6 @@ Text AnimatedTextBox::MakeTextObject(const std::string& data)
 {
   Text obj = textBox->GetText();
   obj.SetString(data);
-  obj.setScale(2.f, 2.f);
   return obj;
 }
 

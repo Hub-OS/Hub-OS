@@ -21,7 +21,6 @@ Quiz::Quiz(const std::string& optionA, const std::string& optionB, const std::st
 
   ResourceHandle handle;
   selectCursor.setTexture(handle.Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
-  selectCursor.scale(2.0f, 2.0f);
 }
 
 /**
@@ -29,7 +28,7 @@ Quiz::Quiz(const std::string& optionA, const std::string& optionB, const std::st
  * @return true if success, false otherwise
  */
 const bool Quiz::SelectUp() {
-  auto oldSelection = selection;
+  int oldSelection = selection;
 
   while (selection > 0) {
     selection -= 1;
@@ -50,7 +49,7 @@ const bool Quiz::SelectUp() {
  * @return true if success, false otherwise
  */
 const bool Quiz::SelectDown() {
-  auto oldSelection = selection;
+  int oldSelection = selection;
 
   while (selection < 2) {
     selection += 1;
@@ -72,10 +71,11 @@ void Quiz::ConfirmSelection() {
 }
 
 void Quiz::OnUpdate(double elapsed) {
+  this->elapsed += elapsed;
 }
 
 void Quiz::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
-  auto textbox = GetTextBox();
+  AnimatedTextBox* textbox = GetTextBox();
 
   textbox->DrawMessage(target, states);
 
@@ -83,12 +83,13 @@ void Quiz::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     return;
   }
 
-  auto textboxPosition = textbox->getPosition();
-  auto textboxBottom = textboxPosition.y - 45;
+  sf::Vector2f textboxPosition = textbox->GetTextPosition();
 
-  auto cursorX = textboxPosition.x + 100 + 1;
-  auto cursorY = textboxBottom + (float)selection * textbox->GetFont().GetLineHeight() * 2;
+  unsigned bob = from_seconds(this->elapsed * 0.25).count() % 5; // 5 pixel bobs
+  float bobf = static_cast<float>(bob);
 
+  float cursorX = textboxPosition.x + bobf;
+  float cursorY = textboxPosition.y + (float)selection * textbox->GetFont().GetLineHeight() + 1.f;
   selectCursor.setPosition(cursorX,  cursorY);
 
   target.draw(selectCursor, states);

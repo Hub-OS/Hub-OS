@@ -53,7 +53,7 @@ void MessageInput::OnUpdate(double elapsed) {
     textBuffer.SetText(latestCapture);
     textBuffer.SetCaretPosition(prevCaretPosition);
     textBuffer.SetFont(textbox->GetFont());
-    textBuffer.SetLineWidth(140);
+    textBuffer.SetLineWidth(textbox->GetTextboxAreaWidth());
     textBuffer.SetIgnoreNewLine(true);
     textBuffer.ProtectPassword(password);
     textBuffer.CalculateLineIndexes();
@@ -132,6 +132,7 @@ void MessageInput::OnUpdate(double elapsed) {
     }
   }
 
+  // NOTE: we should have a boolean that makes the textbox animate for certain Message class types.... 5/29/2022
   // prevent animating from updates above
   if (textbox->IsPlaying()) {
     textbox->CompleteCurrentBlock();
@@ -146,16 +147,15 @@ void MessageInput::HandleClick(sf::Vector2f mousePos) {
     return;
   }
 
-  mousePos.y -= 8.0f;
-
   if (mousePos.x <= 0 || mousePos.y <= 0) {
     return;
   }
 
   AnimatedTextBox* textbox = GetTextBox();
+  const sf::Vector2f& textboxScale = textbox->getScale();
 
-  mousePos -= textbox->GetTextPosition();
-  mousePos /= 2.0f;
+  mousePos -= textbox->getTransform().transformPoint(textbox->GetTextPosition());
+  mousePos = sf::Vector2f(mousePos.x / textboxScale.x, mousePos.y / textboxScale.y);
 
   if (mousePos.y >= textbox->GetFont().GetLineHeight() * textbox->GetNumberOfFittingLines()) {
     return;
@@ -225,7 +225,7 @@ void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     sf::RectangleShape caret;
     caret.setFillColor(sf::Color::Black);
     caret.setPosition(
-      textPosition.x + text.GetWorldBounds().width,
+      textPosition.x + text.GetLocalBounds().width,
       textPosition.y + caretRow * font.GetLineHeight() + 2
     );
     caret.setSize(sf::Vector2f(1.0f, font.GetLineHeight() - 1));

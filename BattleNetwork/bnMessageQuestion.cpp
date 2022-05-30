@@ -77,6 +77,8 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     unsigned bob = from_seconds(this->totalElapsed*0.25).count() % 5; // 5 pixel bobs
     float bobf = static_cast<float>(bob);
 
+    // now that we use the node system for drawing composite widgets,
+    // these offsets are relative to the animated textbox origin
     if (yes) {
       selectCursor.setPosition(90 + bobf, 25 + cursorY);
     }

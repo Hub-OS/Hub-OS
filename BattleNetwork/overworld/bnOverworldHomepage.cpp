@@ -140,7 +140,8 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
 
       MenuSystem& menuSystem = GetMenuSystem();
       menuSystem.SetNextSpeaker(face, "resources/ow/prog/prog_mug.animation");
-      menuSystem.EnqueueMessage(message);
+      //menuSystem.EnqueueMessage(message);
+      menuSystem.EnqueueQuiz("Grape", "Purple", "Koolaide", [](int) {});
     });
 
     AddActor(mrprog);

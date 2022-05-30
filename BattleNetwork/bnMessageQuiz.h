@@ -18,7 +18,7 @@ class Quiz : public MessageInterface {
 private:
   std::function<void(int)> onResponse; /*!< Callback when user responds 0-2 */
   mutable SpriteProxyNode selectCursor; /*!< Used for making selections */
-  double elapsed;
+  double elapsed{};
   int selection;
   std::array<std::string, 3> options;
 public:

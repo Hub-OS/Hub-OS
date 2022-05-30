@@ -208,6 +208,9 @@ public:
    */
   const double GetCharsPerSecond() const;
 
+  const int GetAreaWidth() const;
+  const int GetAreaHeight() const;
+
   /**
    * @brief Query if textbox is playing
    * @return true if playing, false if paused
