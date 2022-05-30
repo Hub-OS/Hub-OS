@@ -37,6 +37,10 @@ public:
   }
 
   void OnUpdate(Battle::Card::Properties& props, double elapsed) override {
+    // cards can optionally have this function
+    sol::object possible_func = script["card_update"];
+    if (possible_func.get_type() != sol::type::function) return;
+
     auto functionResult = CallLuaFunction(script, "card_update", std::ref(props), elapsed);
 
     if (functionResult.is_error()) {

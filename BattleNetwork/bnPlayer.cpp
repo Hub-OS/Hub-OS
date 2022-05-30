@@ -200,8 +200,6 @@ void Player::OnDelete() {
     RemoveNode(node);
   }
 
-  std::shared_ptr<AnimationComponent> animationComponent = GetFirstComponent<AnimationComponent>();
-
   if (animationComponent) {
       animationComponent->CancelCallbacks();
       animationComponent->SetAnimation(PLAYER_HIT);
