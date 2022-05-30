@@ -236,6 +236,8 @@ namespace Overworld {
     const std::optional<sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
     const std::pair<bool, sf::Vector3f> CanMoveTo(Direction dir, MovementState state, float elapsed, Map& map, SpatialMap& spatialMap);
     const std::pair<bool, sf::Vector3f> CanMoveTo(sf::Vector2f pos, Map& map, SpatialMap& spatialMap);
+
+    Animation& GetAnim();
   };
 
   using ActorPtr = std::shared_ptr<Overworld::Actor>;
