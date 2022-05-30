@@ -1,5 +1,5 @@
-#include "bnFormSelectionListener.hpp"
-#include "bnFormSelectionPublisher.hpp"
+#include "bnFormSelectionListener.h"
+#include "bnFormSelectionPublisher.h"
 
 FormSelectionListener::FormSelectionListener() = default;
 FormSelectionListener::~FormSelectionListener() = default;

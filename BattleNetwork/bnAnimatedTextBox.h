@@ -39,8 +39,7 @@ private:
   mutable Animation mugAnimator; /*!< Animators the mugshot frames */
   Animation animator; /*!< Animator for the textbox */
   std::shared_ptr<Texture> textureRef; /*!< smart reference to the texture*/
-  sf::IntRect textArea; /*!< The area for text to type in */
-  std::shared_ptr<TextArea> textBox; /*!< Textbox object types text out for us */
+  std::shared_ptr<TextArea> textArea; /*!< TextArea object types text out for us */
 
 public:
   /**

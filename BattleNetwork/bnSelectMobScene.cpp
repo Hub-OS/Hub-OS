@@ -30,7 +30,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   attackLabel("1", uiFont),
   speedLabel("1", uiFont),
   hpLabel("1", uiFont),
-  textbox(360, 100),
+  textbox(180, 22),
   Scene(controller)
 {
   // Menu name font
@@ -79,6 +79,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   // Text box navigator
   textbox.Stop();
   textbox.setPosition(100, 205);
+  textbox.setScale(2.f, 2.f);
   textbox.SetTextColor(sf::Color::Black);
 
 #ifdef __ANDROID__

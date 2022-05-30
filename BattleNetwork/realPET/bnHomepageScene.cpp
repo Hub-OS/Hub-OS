@@ -458,8 +458,11 @@ void RealPET::Homepage::onDraw(sf::RenderTexture& surface)
     surface.draw(playerSprite);
 
     surface.draw(dockSprite);
-    surface.draw(menuWidget);
-    surface.draw(miscMenuWidget);
+
+    if (this->IsInFocus()) {
+      surface.draw(menuWidget);
+      surface.draw(miscMenuWidget);
+    }
 
     if (!hideTextbox) {
       surface.draw(speakSprite);
@@ -553,8 +556,8 @@ void RealPET::Homepage::RefreshNaviSprite()
   playerSprite.setScale(2.f, 2.f);
 
   sf::FloatRect bounds = playerSprite.getLocalBounds();
-  playerSprite.setOrigin(0.0f, bounds.height * 0.5);
-  playerSprite.setPosition(0, 160.0f);
+  playerSprite.setOrigin(0.0f, bounds.height);
+  playerSprite.setPosition(0, 320.0f);
 
   // refresh menu widget too
   playerSession->health = meta.GetHP();

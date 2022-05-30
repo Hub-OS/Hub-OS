@@ -4,11 +4,11 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-Battle::TextArea::TextArea(const sf::Vector2f& pos) : AnimatedTextBox(pos)
+Battle::AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) : ::AnimatedTextBox(pos)
 {
 }
 
-void Battle::TextArea::DescribeCard(Battle::Card* card)
+void Battle::AnimatedTextBox::DescribeCard(Battle::Card* card)
 {
   if (card == nullptr || requestedRetreat) return;
 
@@ -24,7 +24,7 @@ void Battle::TextArea::DescribeCard(Battle::Card* card)
   Open();
 }
 
-void Battle::TextArea::PromptRetreat()
+void Battle::AnimatedTextBox::PromptRetreat()
 {
   if (requestedRetreat) return;
 
@@ -43,28 +43,28 @@ void Battle::TextArea::PromptRetreat()
   asking = true;
 }
 
-void Battle::TextArea::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
+void Battle::AnimatedTextBox::SetSpeaker(const sf::Sprite& mug, const Animation& anim)
 {
   this->mug = mug;
   this->anim = anim;
 }
 
-void Battle::TextArea::Reset()
+void Battle::AnimatedTextBox::Reset()
 {
   asking = requestedRetreat = false;
 }
 
-const bool Battle::TextArea::RequestedRetreat() const
+const bool Battle::AnimatedTextBox::RequestedRetreat() const
 {
   return this->requestedRetreat;
 }
 
-const bool Battle::TextArea::HasQuestion() const
+const bool Battle::AnimatedTextBox::HasQuestion() const
 {
   return asking;
 }
 
-bool Battle::TextArea::SelectYes() const
+bool Battle::AnimatedTextBox::SelectYes() const
 {
   if (asking) {
     return question->SelectYes();
@@ -73,7 +73,7 @@ bool Battle::TextArea::SelectYes() const
   return false;
 }
 
-bool Battle::TextArea::SelectNo() const
+bool Battle::AnimatedTextBox::SelectNo() const
 {
   if (asking) {
     return question->SelectNo();
@@ -82,7 +82,7 @@ bool Battle::TextArea::SelectNo() const
   return false;
 }
 
-void Battle::TextArea::ConfirmSelection()
+void Battle::AnimatedTextBox::ConfirmSelection()
 {
   if (asking) {
     question->ConfirmSelection();
@@ -91,7 +91,7 @@ void Battle::TextArea::ConfirmSelection()
   this->Close();
 }
 
-void Battle::TextArea::Cancel()
+void Battle::AnimatedTextBox::Cancel()
 {
   if (asking) {
     question->Cancel();

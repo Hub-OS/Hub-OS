@@ -110,7 +110,7 @@ private:
   bool isInSortMenu{}; /*!< Flag if in the sort menu */
   Camera camera;
   CardFolder& folder;
-  Overworld::TextArea owTextbox;
+  Overworld::AnimatedTextBox owTextbox;
 
   // Menu name font
   Font font;

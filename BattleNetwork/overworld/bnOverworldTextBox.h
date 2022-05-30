@@ -9,9 +9,9 @@
 #include <functional>
 
 namespace Overworld {
-  class TextArea : public sf::Drawable, ResourceHandle {
+  class AnimatedTextBox : public sf::Drawable, ResourceHandle {
   public:
-    TextArea(sf::Vector2f pos);
+    AnimatedTextBox(sf::Vector2f pos);
 
     void SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation);
     void EnqueueMessage(const std::string& message, const std::function<void()>& onComplete = []() {});
@@ -35,7 +35,7 @@ namespace Overworld {
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
   private:
-    AnimatedTextBox textbox;
+    ::AnimatedTextBox textbox;
     sf::Sprite nextSpeaker;
     Animation nextAnimation;
     std::queue<std::function<void(InputManager& input, sf::Vector2f mousePos)>> handlerQueue;

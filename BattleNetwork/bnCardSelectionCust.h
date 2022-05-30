@@ -11,7 +11,7 @@
 #include "bnSceneNode.h"
 #include "bnPlayerSpecialButton.h"
 #include "bnPlayerForm.h"
-#include "bnFormSelectionPublisher.hpp"
+#include "bnFormSelectionPublisher.h"
 
 #include <SFML/Graphics.hpp>
 #include <Swoosh/Ease.h>
@@ -114,7 +114,7 @@ private:
   std::vector<Battle::Card> selectedCards; /*!< Pointer to a list of selected cards */
   std::vector<Bucket> queue; /*!< List of buckets */
   std::vector<Bucket*> selectQueue, newSelectQueue; /*!< List of selected buckets in order */
-  Battle::TextArea textbox; /*!< Popups card descriptions */
+  Battle::AnimatedTextBox textbox; /*!< Popups card descriptions */
   std::vector<PlayerFormMeta*> forms;
   std::optional<Battle::Card> playerSpecialCard;
   std::optional<PlayerSpecialButton> playerSpecialButton1, playerSpecialButton2;

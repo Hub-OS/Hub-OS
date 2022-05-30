@@ -48,7 +48,7 @@ std::string MailScene::GetStringFromIcon(Inbox::Icons icon)
 MailScene::MailScene(swoosh::ActivityController& controller, Inbox& inbox) :
   inbox(inbox),
   label(Font::Style::thin),
-  textbox(360,40, Font::Style::thin),
+  textbox(180,22, Font::Style::thin),
   Scene(controller)
 {
   label.setScale(2.f, 2.f);

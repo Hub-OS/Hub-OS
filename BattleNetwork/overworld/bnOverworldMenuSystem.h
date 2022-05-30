@@ -53,7 +53,7 @@ namespace Overworld {
     std::unique_ptr<BBS> closingBbs;
     bool bbsOpening{ };
     float bbsFadeDuration{ 1.0f };
-    Overworld::TextArea textbox;
+    Overworld::AnimatedTextBox textbox;
     bool bbsNeedsAck{ };
   };
 }

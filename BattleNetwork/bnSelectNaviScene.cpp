@@ -26,7 +26,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   naviSelectionId(currentNaviId),
   currentChosenId(currentNaviId),
   font(Font::Style::small),
-  textbox(140, 20, font),
+  textbox(70, 10, font),
   naviFont(Font::Style::thick),
   naviLabel("No Data", naviFont),
   hpLabel("1", font),
@@ -115,6 +115,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, std::st
   // Text box
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
+  textbox.setScale(2.f, 2.f);
   textbox.Stop();
   // textbox.
   textbox.Mute(); // no tick sound

@@ -81,7 +81,7 @@ private:
   bool gotoNextScene; /*!< If true, user cannot interact with the scene */
 
   TextArea textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
-  Overworld::TextArea owTextbox;
+  Overworld::AnimatedTextBox owTextbox;
 
   double elapsed; /*!< delta seconds sice last frame */
 

@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "bnEmotions.h"
-#include "bnFormSelectionListener.hpp"
+#include "bnFormSelectionListener.h"
 #include "bnSpriteProxyNode.h"
 #include "bnUIComponent.h"
 #include "frame_time_t.h"

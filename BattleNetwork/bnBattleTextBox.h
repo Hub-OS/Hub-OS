@@ -4,7 +4,7 @@
 #include "bnAnimatedTextBox.h"
 #include "bnCard.h"
 /**
- * @class BattleTextBox
+ * @class AnimatedTextBox
  * @author mav
  * @date 05/05/19
  * @file bnBattleTextBox.h
@@ -14,7 +14,7 @@
 class Question;
 
 namespace Battle {
-  class TextArea : public AnimatedTextBox {
+  class AnimatedTextBox : public ::AnimatedTextBox {
     bool requestedRetreat{}, asking{};
     sf::Sprite mug;
     Animation anim;
@@ -23,7 +23,7 @@ namespace Battle {
     /**
       * @brief sets the position of the textbox
       */
-    TextArea(const sf::Vector2f& pos);
+    AnimatedTextBox(const sf::Vector2f& pos);
 
     /**
      * @brief Enqueues the card description and plays it
