@@ -153,7 +153,6 @@ public:
   void SetMetaData(const Battle::Card::Properties& props);
   void Execute(std::shared_ptr<Character> user);
   void EndAction();
-  void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
   void SetCustomBackground(const std::shared_ptr<CustomBackground>& background);
   void TimeFreezeBlackoutTiles(bool enable);
 

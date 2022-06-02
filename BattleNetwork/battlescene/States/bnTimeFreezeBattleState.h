@@ -28,8 +28,9 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   struct EventData {
     std::string name;
     Team team{ Team::unknown };
-    std::shared_ptr<Character> user{ nullptr }, stuntDouble{ nullptr };
+    std::shared_ptr<Character> user{ nullptr };
     std::shared_ptr<CardAction> action{ nullptr };
+    std::shared_ptr<AnimationComponent> userAnim{ nullptr };
     frame_time_t alertFrameCount{ frames(0) };
     bool counterStart{}, animateCounter{};
   };
@@ -53,7 +54,6 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
   void HandleTimeFreezeCounter(std::shared_ptr<CardAction> action, uint64_t timestamp);
   const bool CanCounter(std::shared_ptr<Character> user);
-  void CleanupStuntDouble();
   void SkipToAnimateState();
   void ProcessInputs();
   void onStart(const BattleSceneState* last) override;
@@ -66,6 +66,4 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   bool IsOver();
   
   // void DrawCardData(sf::RenderTarget& target); // TODO: we are missing some data from the selected UI to draw the info we need
-
-  std::shared_ptr<Character> CreateStuntDouble(std::shared_ptr<Character> from);
 };

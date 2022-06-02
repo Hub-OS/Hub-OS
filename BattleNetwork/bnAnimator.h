@@ -266,10 +266,10 @@ public:
     
     friend class Animator;
   public:
-    static constexpr char NoEffect = 0x00; /*!< Play once and stop */
-    static constexpr char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
-    static constexpr char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
-    static constexpr char Reverse = 0x04; /*!< Reverse the animation */
+    static constexpr char PlayOnce = 0x00; /*!< Play once and stop */
+    static constexpr char Loop = 0x01;     /*!< When it reaches the end, restarts animation and resumes */
+    static constexpr char Bounce = 0x02;   /*!< When it reaches the end, reverse the animation and resume */
+    static constexpr char Reverse = 0x04;  /*!< Reverse the animation */
 
     Mode(int playback);
 

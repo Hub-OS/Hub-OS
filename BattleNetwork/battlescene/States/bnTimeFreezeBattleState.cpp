@@ -32,27 +32,6 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
-void TimeFreezeBattleState::CleanupStuntDouble()
-{
-  if (tfEvents.size()) {
-    auto iter = tfEvents.begin();
-
-    BattleSceneBase& scene = GetScene();
-    if (iter->stuntDouble) {
-      scene.UntrackMobCharacter(iter->stuntDouble);
-      scene.GetField()->DeallocEntity(iter->stuntDouble->GetID());
-    }
-  }
-}
-
-std::shared_ptr<Character> TimeFreezeBattleState::CreateStuntDouble(std::shared_ptr<Character> from)
-{
-  CleanupStuntDouble();
-  std::shared_ptr<StuntDouble> stuntDouble = std::make_shared<StuntDouble>(from);
-  stuntDouble->Init();
-  return stuntDouble;
-}
-
 void TimeFreezeBattleState::SkipToAnimateState()
 {
   currState = state::animate;
@@ -189,7 +168,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
         }
       }
 
-      if (first->action) {
+      if (first->action && first->userAnim) {
         // update the action until it is is complete
         switch (first->action->GetLockoutType()) {
         case CardAction::LockoutType::sequence:
@@ -202,12 +181,10 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
 
       if (updateAnim) {
+        first->userAnim->Update(elapsed);
         first->action->Update(elapsed);
       }
       else{
-        first->user->Reveal();
-        scene.UntrackMobCharacter(first->stuntDouble);
-        scene.GetField()->DeallocEntity(first->stuntDouble->GetID());
         first->action->EndAction();
 
         if (tfEvents.size() == 1) {
@@ -334,13 +311,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
   auto first = tfEvents.begin();
 
   if (first->action && first->action->CanExecute()) {
-    first->user->Hide();
-    if (GetScene().GetField()->AddEntity(first->stuntDouble, *first->user->GetTile()) != Field::AddEntityStatus::deleted) {
-      first->action->Execute(first->user);
-    }
-    else {
-      currState = state::fadeout;
-    }
+    first->action->Execute(first->user);
   }
 }
 
@@ -464,12 +435,10 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
   data.name = action->GetMetaData().shortname;
   data.team = action->GetActor()->GetTeam();
   data.user = action->GetActor();
-  lockedTimestamp = timestamp;
-
+  data.userAnim = data.user->GetFirstComponent<AnimationComponent>();
   data.action = action;
-  data.stuntDouble = CreateStuntDouble(data.user);
-  action->UseStuntDouble(data.stuntDouble);
 
+  lockedTimestamp = timestamp;
   tfEvents.insert(tfEvents.begin(), data);
 
   Logger::Logf(LogLevel::debug, "Added chip event: %s", data.name.c_str());

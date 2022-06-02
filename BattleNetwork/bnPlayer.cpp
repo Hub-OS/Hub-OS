@@ -103,19 +103,7 @@ void Player::OnUpdate(double _elapsed) {
   SetColorMode(ColorMode::additive);
 
   if (!IsInForm()) {
-    if (emotion == Emotion::angry) {
-      setColor(sf::Color(155, 0, 0, getColor().a));
-    }
-    else if (emotion == Emotion::full_synchro) {
-      setColor(sf::Color(55, 55, 155, getColor().a));
-    }
-    else if (emotion == Emotion::evil) {
-      setColor(sf::Color(155, 100, 255, getColor().a));
-    }
-
-    if (emotion == Emotion::evil) {
-      SetColorMode(ColorMode::multiply);
-    }
+    RefreshEmotionColors(emotion);
   }
 
   AI<Player>::Update(_elapsed);
@@ -272,11 +260,33 @@ void Player::SetEmotion(Emotion emotion)
   else {
     RemoveDefenseRule(superArmor);
   }
+
+  RefreshEmotionColors(emotion);
 }
 
 Emotion Player::GetEmotion() const
 {
   return emotion;
+}
+
+void Player::RefreshEmotionColors(Emotion emotion)
+{
+  if (emotion == Emotion::angry) {
+    setColor(sf::Color(155, 0, 0, getColor().a));
+  }
+  else if (emotion == Emotion::full_synchro) {
+    setColor(sf::Color(55, 55, 155, getColor().a));
+  }
+  else if (emotion == Emotion::evil) {
+    setColor(sf::Color(155, 100, 255, getColor().a));
+  }
+  else if (emotion == Emotion::normal) {
+    setColor(NoopCompositeColor(GetColorMode()));
+  }
+
+  if (emotion == Emotion::evil) {
+    SetColorMode(ColorMode::multiply);
+  }
 }
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {

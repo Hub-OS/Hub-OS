@@ -27,7 +27,7 @@ Animation::Animation(const Animation& rhs) {
   *this = rhs;
 }
 
-Animation & Animation::operator=(const Animation & rhs)
+Animation& Animation::operator=(const Animation & rhs)
 {
   noAnim = rhs.noAnim;
   animations = rhs.animations;
@@ -35,6 +35,10 @@ Animation & Animation::operator=(const Animation & rhs)
   currAnimation = rhs.currAnimation;
   path = rhs.path;
   progress = rhs.progress;
+  playbackSpeed = rhs.playbackSpeed;
+  animationOverrides = rhs.animationOverrides;
+  interruptCallback = rhs.interruptCallback;
+
   return *this;
 }
 

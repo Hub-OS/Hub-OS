@@ -182,6 +182,7 @@ protected:
   // functions
   void FinishConstructor();
   bool RegisterForm(PlayerFormMeta* meta);
+  void RefreshEmotionColors(Emotion emotion);
 
   // add form from class type
   template<typename T>

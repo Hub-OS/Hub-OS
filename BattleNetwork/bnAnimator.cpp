@@ -355,7 +355,7 @@ void Animator::operator() (frame_time_t progress, sf::Sprite& target, FrameList&
  * 
  * If in the middle of an update loop, add to the queue otherwise add directly to callback list
  */
-Animator & Animator::operator<<(On rhs)
+Animator& Animator::operator<<(On rhs)
 {
   if(!rhs.callback) return *this;
   
@@ -377,7 +377,7 @@ Animator & Animator::operator<<(On rhs)
   return *this;
 }
 
-Animator & Animator::operator<<(char rhs)
+Animator& Animator::operator<<(char rhs)
 {
   playbackMode = rhs;
   return *this;

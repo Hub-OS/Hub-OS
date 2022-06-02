@@ -107,7 +107,7 @@ void DefineAnimationUserType(sol::state& state, sol::table& engine_namespace) {
   );
 
   state.new_enum("Playback",
-    "Once", Animator::Mode::NoEffect,
+    "Once", Animator::Mode::PlayOnce,
     "Loop", Animator::Mode::Loop,
     "Bounce", Animator::Mode::Bounce,
     "Reverse", Animator::Mode::Reverse

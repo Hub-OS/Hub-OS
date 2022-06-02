@@ -56,7 +56,8 @@ CardAction::CardAction(std::weak_ptr<Character> user, const std::string& animati
         Logger::Logf(LogLevel::debug, "Character %s did not have animation %s, reverting to last anim", actor->GetName().c_str(), this->animation.c_str());
       }
 
-      anim->SetAnimation(this->animation, [this]() {
+      anim->Push(this->animation);
+      anim->OnFinish([this]() {
         RecallPreviousState();
       });
 
@@ -70,7 +71,6 @@ CardAction::CardAction(std::weak_ptr<Character> user, const std::string& animati
       }
 
       this->animationIsOver = false;
-      anim->OnUpdate(0);
     };
   }
 }
@@ -92,6 +92,7 @@ void CardAction::AddStep(std::shared_ptr<Step> step)
   step->added = true;
 
   steps.push_back(step);
+
   // Swooshlib takes ownership of raw pointers so we wrap our actions
   sequence.add(new StepActionItem(step));
 }
@@ -128,8 +129,7 @@ void CardAction::RecallPreviousState()
     FreeAttachedNodes();
 
     if (anim) {
-      anim->SetAnimation(prevState);
-      anim->SetPlaybackMode(Animator::Mode::Loop);
+      anim->Pop();
       OnAnimationEnd();
     }
   }
@@ -176,7 +176,8 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       }
 
       anim->OverrideAnimationFrames(this->animation, frameData, uuid);
-      anim->SetAnimation(uuid, [this]() {
+      anim->Push(uuid);
+      anim->OnFinish([this]() {
         RecallPreviousState();
       });
 
@@ -190,7 +191,6 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       }
 
       this->animationIsOver = false;
-      anim->OnUpdate(0);
     };
   }
 }
@@ -250,19 +250,6 @@ void CardAction::EndAction()
     context.aggressor = user->GetID();
     context.flags = Hit::none;
     user->SetHitboxContext(context);
-  }
-}
-
-void CardAction::UseStuntDouble(std::shared_ptr<Character> stuntDouble)
-{
-  actor = stuntDouble;
-  
-  if (std::shared_ptr<AnimationComponent> stuntDoubleAnim = stuntDouble->GetFirstComponent<AnimationComponent>()) {
-    for (auto& [nodeName, node] : attachments) {
-      node.parentAnim = stuntDoubleAnim->GetAnimationObject();
-    }
-
-    anim = stuntDoubleAnim;
   }
 }
 

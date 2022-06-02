@@ -169,9 +169,17 @@ public:
   void SetFrame(const int index);
 
   void Refresh();
+  
+  // Pushes current animation into storage and begins a new state
+  bool Push(const std::string& state);
+
+  // Pops animation in storage and refreshes the state
+  bool Pop();
+
 private:
   std::filesystem::path path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
+  std::optional<Animation> storedAnim;
   bool couldUpdateLastFrame{ true };
   std::vector<SyncItem> syncList;
   std::vector<AnimationOverride> animationOverrides;

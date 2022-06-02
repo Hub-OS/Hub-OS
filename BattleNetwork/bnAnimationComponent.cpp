@@ -258,6 +258,37 @@ void AnimationComponent::Refresh()
   UpdateAnimationObjects(owner->getSprite(), 0);
 }
 
+bool AnimationComponent::Push(const std::string& state)
+{
+  // State already in storage
+  if (storedAnim) return false;
+
+  // store exact state
+  storedAnim.emplace(animation);
+
+  // now update the new animation
+  char mode = animation.GetMode(); // preserve playback modes
+  animation.RemoveCallbacks(); // don't trigger events, they are preserved by the previous op
+  animation.SetAnimation(state);
+  animation << mode;
+  Refresh();
+
+  return true;
+}
+
+bool AnimationComponent::Pop()
+{
+  if (storedAnim) {
+    std::swap(animation, *storedAnim);
+    storedAnim.reset();
+    Refresh();
+    return true;
+  }
+
+  // Nothing in storage
+  return false;
+}
+
 void AnimationComponent::RefreshSyncItem(AnimationComponent::SyncItem& item)
 {
   auto character = GetOwnerAs<Character>();
