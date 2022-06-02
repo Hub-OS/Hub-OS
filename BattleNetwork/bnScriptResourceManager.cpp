@@ -81,9 +81,9 @@ std::list<OverrideFrame> CreateFrameData(sol::lua_table table)
   for( int ind = 1; ind <= count; ++ind )
   {
     unsigned animStateNumber = table.traverse_get<unsigned>(ind, 1);
-    double duration = table.traverse_get<double>(ind, 2);
+    int duration = table.traverse_get<int>(ind, 2);
 
-    frames.emplace_back( OverrideFrame { animStateNumber, duration } );
+    frames.emplace_back( OverrideFrame { animStateNumber, ::frames(duration) } );
   }
 
   return frames;

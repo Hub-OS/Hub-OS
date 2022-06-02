@@ -67,6 +67,11 @@ const std::filesystem::path& AnimationComponent::GetFilePath() const
   return path;
 }
 
+void AnimationComponent::DropState(const std::string& state)
+{
+  animation.DropState(state);
+}
+
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
   animation.SetPlaybackSpeed(playbackSpeed);
@@ -170,7 +175,7 @@ const bool AnimationComponent::HasPoint(const std::string& pointName)
   return animation.HasPoint(pointName);
 }
 
-Animation & AnimationComponent::GetAnimationObject()
+Animation& AnimationComponent::GetAnimationObject()
 {
   return animation;
 }

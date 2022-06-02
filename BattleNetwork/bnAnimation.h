@@ -124,7 +124,18 @@ public:
    *
    * If frame is out of bounds for the current animation, ignores
    */
-  void SetFrame(int frame, sf::Sprite& target);
+  void SetFrame(unsigned int frame, sf::Sprite& target);
+
+  /**
+   * @brief Directly mutates the frame list
+   * @param whereIndex the index in the frame list to insert to
+   * @param frame the Frame data to insert
+   *
+   *If whereIndex is out of bounds for the current animation, ignores
+   */
+  void InsertFrame(unsigned int whereIndex, const Frame& frame);
+
+  void DropState(const std::string& state);
 
   /**
    * @brief Sets the current animation from a map of FrameLists
@@ -205,7 +216,7 @@ public:
    *
    * This explicit function signature was added for scripting
    */
-  Animation& AddCallback(int frame, FrameCallback callback, bool doOnce) {
+  Animation& AddCallback(unsigned int frame, FrameCallback callback, bool doOnce) {
     *this << Animator::On(frame, callback, doOnce);
     return *this;
   }

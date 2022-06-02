@@ -4,6 +4,7 @@
 #include "bnCardAction.h"
 #include "bnTile.h"
 #include "bnPlayerSelectedCardsUI.h"
+#include "bnBusterCardAction.h"
 #include "bnAudioResourceManager.h"
 
 #include <iostream>
@@ -28,12 +29,35 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Actions with animation lockout controls take priority over movement
   bool lockout = player.IsLockoutAnimationComplete();
   bool actionable = player.IsActionable();
+  bool busterInterrupt = false;
+
+  Direction direction = Direction::none;
+  if (player.InputState().Has(InputEvents::pressed_move_up) || player.InputState().Has(InputEvents::held_move_up)) {
+    direction = Direction::up;
+  }
+  else if (player.InputState().Has(InputEvents::pressed_move_left) || player.InputState().Has(InputEvents::held_move_left)) {
+    direction = player.GetTeam() == Team::red ? Direction::left : Direction::right;
+  }
+  else if (player.InputState().Has(InputEvents::pressed_move_down) || player.InputState().Has(InputEvents::held_move_down)) {
+    direction = Direction::down;
+  }
+  else if (player.InputState().Has(InputEvents::pressed_move_right) || player.InputState().Has(InputEvents::held_move_right)) {
+    direction = player.GetTeam() == Team::red ? Direction::right : Direction::left;
+  }
 
   // One of our ongoing animations is preventing us from charging
   if (!lockout) {
     player.chargeEffect->SetCharging(false);
     isChargeHeld = false;
-    return;
+
+    BusterCardAction* busterAction = dynamic_cast<BusterCardAction*>(player.CurrentCardAction().get());
+    bool canMoveTo = player.CanMoveTo(player.GetCurrentTile() + direction);
+    if (busterAction && busterAction->CanMoveInterrupt() && direction != Direction::none && canMoveTo) {
+      busterAction->EndAction();
+      busterInterrupt = true;
+    }
+    
+    if(!busterInterrupt) return;
   }
 
   bool missChargeKey = isChargeHeld && !player.InputState().Has(InputEvents::held_shoot);
@@ -41,7 +65,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Are we creating an action this frame?
   if (player.InputState().Has(InputEvents::pressed_use_chip)) {
     std::shared_ptr<PlayerSelectedCardsUI> cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
-    if (player.CanAttack() && cardsUI && cardsUI->UseNextCard()) {
+    if (player.CanAttack() && cardsUI && cardsUI->UseNextCard() && !busterInterrupt) {
       player.chargeEffect->SetCharging(false);
       isChargeHeld = false;
     }
@@ -60,7 +84,7 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
       player.UseSpecial();
     }
   } // queue attack based on input behavior (buster or charge?)
-  else if (player.InputState().Has(InputEvents::released_shoot) || missChargeKey) {
+  else if ((player.InputState().Has(InputEvents::released_shoot) || missChargeKey) && !busterInterrupt) {
     // This routine is responsible for determining the outcome of the attack
     isChargeHeld = false;
     player.chargeEffect->SetCharging(false);
@@ -75,20 +99,6 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   // Movement increments are restricted based on anim speed at this time
   if (player.IsMoving()) return;
-
-  Direction direction = Direction::none;
-  if (player.InputState().Has(InputEvents::pressed_move_up) || player.InputState().Has(InputEvents::held_move_up)) {
-    direction = Direction::up;
-  }
-  else if (player.InputState().Has(InputEvents::pressed_move_left) || player.InputState().Has(InputEvents::held_move_left)) {
-    direction = player.GetTeam() == Team::red ? Direction::left : Direction::right;
-  }
-  else if (player.InputState().Has(InputEvents::pressed_move_down) || player.InputState().Has(InputEvents::held_move_down)) {
-    direction = Direction::down;
-  }
-  else if (player.InputState().Has(InputEvents::pressed_move_right) || player.InputState().Has(InputEvents::held_move_right)) {
-    direction = player.GetTeam() == Team::red ? Direction::right : Direction::left;
-  }
 
   if (player.IsConfused()) {
     direction = Reverse(direction);

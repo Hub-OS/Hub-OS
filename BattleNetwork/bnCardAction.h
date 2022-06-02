@@ -146,6 +146,7 @@ public:
   // Calculate the offset for an attachment for a given point in the owner's animation set
   sf::Vector2f CalculatePointOffset(const std::string& point);
 
+  void InsertFrame(unsigned int whereIndex, const Frame& frame);
   void PreventCounters();
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
@@ -156,6 +157,7 @@ public:
   void SetCustomBackground(const std::shared_ptr<CustomBackground>& background);
   void TimeFreezeBlackoutTiles(bool enable);
 
+  const Frame& GetFrame(unsigned int index);
   const LockoutGroup GetLockoutGroup() const;
   const LockoutType GetLockoutType() const;
   const std::string& GetAnimState() const;
@@ -172,6 +174,7 @@ public:
   virtual void Update(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   virtual std::optional<bool> CanMoveTo(Battle::Tile* next);
+
 protected:
   virtual void OnActionEnd() = 0;
   virtual void OnAnimationEnd() = 0;

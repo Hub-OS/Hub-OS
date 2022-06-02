@@ -10,15 +10,16 @@ class Character;
 class BusterCardAction : public CardAction {
 private:
   Attachment* busterAttachment{ nullptr };
-  bool charged{};
+  bool charged{}, canMove{};
   int damage{};
   std::shared_ptr<SpriteProxyNode> buster;
-  Field::NotifyID_t notifier{ -1 };
+
+  frame_time_t CalculateCooldown(unsigned speedLevel, unsigned tileDist);
+
 public:
   BusterCardAction(std::weak_ptr<Character> user, bool charged, int damage);
-
-  void Update(double _elapsed) override;
-  void OnAnimationEnd();
-  void OnActionEnd();
-  void OnExecute(std::shared_ptr<Character> user);
+  void OnExecute(std::shared_ptr<Character> user) override;
+  void OnActionEnd() override;
+  void OnAnimationEnd() override;
+  bool CanMoveInterrupt();
 };

@@ -71,6 +71,12 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
     "set_charge_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
       return player.Unwrap()->SetChargeLevel(level);
     },
+    "get_speed_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
+      return player.Unwrap()->GetSpeedLevel();
+    },
+    "set_speed_level", [](WeakWrapper<ScriptedPlayer>& player, unsigned int level) {
+      return player.Unwrap()->SetSpeedLevel(level);
+    },
     "mod_max_health", [](WeakWrapper<ScriptedPlayer>& player, int mod) -> void {
       player.Unwrap()->ModMaxHealth(mod);
     },

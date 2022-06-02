@@ -33,8 +33,9 @@ using sf::IntRect;
 struct PlayerStats {
   static constexpr unsigned MAX_CHARGE_LEVEL = 5u;
   static constexpr unsigned MAX_ATTACK_LEVEL = 5u;
+  static constexpr unsigned MAX_SPEED_LEVEL = 5u;
 
-  unsigned charge{1}, attack{1};
+  unsigned charge{ 1 }, attack{ 1 }, speed{ 1 };
   int moddedHP{};
   Element element{Element::none};
 };
@@ -130,6 +131,9 @@ public:
 
   void SetChargeLevel(unsigned lvl);
   const unsigned GetChargeLevel();
+
+  void SetSpeedLevel(unsigned lvl);
+  const unsigned GetSpeedLevel();
 
   void ModMaxHealth(int mod);
   const int GetMaxHealthMod();

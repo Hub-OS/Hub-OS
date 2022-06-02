@@ -5,10 +5,30 @@
 #include "bnAudioResourceManager.h"
 #include "bnBuster.h"
 #include "bnPlayer.h"
+#include "bnCharacter.h"
 #include "bnField.h"
 
 #define NODE_PATH "resources/scenes/battle/spells/buster_shoot.png"
 #define NODE_ANIM "resources/scenes/battle/spells/buster_shoot.animation"
+
+#define FRAME_DATA { {1, frames(1)}, {2, frames(2)}, {3, frames(2)}, {4, frames(1)} }
+#define CHARGED_FRAME_DATA { {6, frames(1)}, {2, frames(2)}, {3, frames(2)}, {4, frames(1)} }
+
+frame_time_t BusterCardAction::CalculateCooldown(unsigned speedLevel, unsigned tileDist)
+{
+  speedLevel = std::min(std::max(speedLevel, 1u), 5u);
+  tileDist = std::min(std::max(tileDist, 1u), 6u);
+
+  static constexpr frame_time_t table[5][6] = {
+    { frames(5), frames(9), frames(13), frames(17), frames(21), frames(25) },
+    { frames(4), frames(8), frames(11), frames(15), frames(18), frames(21) },
+    { frames(4), frames(7), frames(10), frames(13), frames(16), frames(18) },
+    { frames(3), frames(5), frames(7),  frames(9),  frames(11), frames(13) },
+    { frames(3), frames(4), frames(5),  frames(6),  frames(7) , frames(8)  }
+  };
+
+  return table[speedLevel - 1][tileDist - 1];
+}
 
 BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool charged, int damage) : CardAction(actorWeak, "PLAYER_SHOOTING")
 {
@@ -31,7 +51,14 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
 
   busterAnim.Refresh(buster->getSprite());
 
-  SetLockout({ CardAction::LockoutType::async, 0.5 });
+  if (charged) {
+    OverrideAnimationFrames(CHARGED_FRAME_DATA);
+  }
+  else {
+    OverrideAnimationFrames(FRAME_DATA);
+  }
+
+  SetLockout({ CardAction::LockoutType::async });
 }
 
 void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
@@ -40,20 +67,59 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
-    std::shared_ptr<Buster> b = std::make_shared<Buster>(team, charged, damage);
-    std::shared_ptr<Field> field = user->GetField();
 
-    b->SetMoveDirection(user->GetFacing());
+    Direction facing = user->GetFacing();
+    Battle::Tile* tilePtr = user->GetTile() + facing;
+    unsigned tileDist = 6u;
+    unsigned speedLevel = 1u;
 
-    auto busterRemoved = [this](auto target) {
-      EndAction();
-    };
+    if (tilePtr) {
+      std::shared_ptr<Buster> b = std::make_shared<Buster>(team, charged, damage);
+      std::shared_ptr<Field> field = user->GetField();
 
-    notifier = field->CallbackOnDelete(b->GetID(), busterRemoved);
+      b->SetMoveDirection(facing);
 
-    field->AddEntity(b, *user->GetTile());
+      field->AddEntity(b, *tilePtr);
+
+      tileDist = 0u;
+
+      do {
+        tileDist++;
+
+        auto list = tilePtr->FindHittableEntities([user](std::shared_ptr<Entity>& e) {
+          return !user->Teammate(e->GetTeam());
+        });
+
+        if (list.empty()) {
+          tilePtr = tilePtr + facing;
+        }
+        else break;
+      } while (tilePtr);
+
+      Player* asPlayer = dynamic_cast<Player*>(user.get());
+      if (asPlayer) {
+        speedLevel = asPlayer->GetSpeedLevel();
+      }
+    }
+
+    int64_t frameCount = CalculateCooldown(speedLevel, tileDist).count();
+
+    int poiseIndex = 4; // player frame arrangement must have 4 frames...
+    Frame copyFrame = GetFrame(poiseIndex);
+    copyFrame.duration = frames(1);
+
+    for (; frameCount > 0u; frameCount--) {
+      // copy the last frame for as many frames as we need
+      InsertFrame(poiseIndex, copyFrame);
+    }
+
     Audio().Play(AudioType::BUSTER_PEA);
+  };
 
+  AddAnimAction(2, onFire);
+
+  auto onVisual = [this, user]() -> void {
+    canMove = true;
     CardAction::Attachment& attachment = busterAttachment->AddAttachment("endpoint");
 
     std::shared_ptr<SpriteProxyNode> flare = attachment.GetSpriteNode();
@@ -65,26 +131,19 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     flareAnim.SetAnimation("DEFAULT");
   };
 
-  AddAnimAction(2, onFire);
-}
-
-void BusterCardAction::Update(double _elapsed)
-{
-  CardAction::Update(_elapsed);
+  AddAnimAction(3, onVisual);
 }
 
 void BusterCardAction::OnActionEnd()
 {
-  std::shared_ptr<Character> actor = GetActor();
-  if (!actor) return;
-
-  std::shared_ptr<Field> field = actor->GetField();
-
-  if (field) {
-    field->DropNotifier(notifier);
-  }
 }
 
 void BusterCardAction::OnAnimationEnd()
 {
+  EndAction();
+}
+
+bool BusterCardAction::CanMoveInterrupt()
+{
+  return canMove;
 }

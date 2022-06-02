@@ -82,6 +82,10 @@ CardAction::~CardAction()
   if (started) {
     FreeAttachedNodes();
   }
+
+  if (!uuid.empty()) {
+    anim->DropState(uuid);
+  }
 }
 
 void CardAction::AddStep(std::shared_ptr<Step> step)
@@ -317,6 +321,13 @@ void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   /* silence is golden */
 };
 
+void CardAction::InsertFrame(unsigned int whereIndex, const Frame& frame)
+{
+  // CardAction uses base-1 index for non-programmers convenience
+  // subtract 1 from the index to put it in base-0 used by FrameList
+  anim->GetAnimationObject().InsertFrame(whereIndex-1u, frame);
+}
+
 void CardAction::PreventCounters()
 {
   preventCounters = true;
@@ -355,6 +366,14 @@ void CardAction::TimeFreezeBlackoutTiles(bool enable)
 std::shared_ptr<CustomBackground> CardAction::GetCustomBackground()
 {
   return background;
+}
+
+const Frame& CardAction::GetFrame(unsigned int index)
+{
+  // CardAction uses base-1 index for non-programmers convenience
+  // subtract 1 from the index to put it in base-0 used by FrameList
+  const std::string& state = anim->GetAnimationString();
+  return anim->GetAnimationObject().GetFrameList(state).GetFrame(index - 1u);
 }
 
 const CardAction::LockoutGroup CardAction::GetLockoutGroup() const

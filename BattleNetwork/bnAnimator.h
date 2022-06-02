@@ -17,10 +17,10 @@ using PointHash = std::map<std::string, sf::Vector2f>;
 
 /**
  * @struct OverrideFrame
- * @brief a struct to override animations with using brace initialization e.g. { 3, 5.0f } */
+ * @brief a struct to override animations with using brace initialization e.g. { 3, frames(300) } */
 struct OverrideFrame {
   unsigned frameIndex{};
-  double duration{};
+  frame_time_t duration{};
 };
 
 /**
@@ -123,7 +123,7 @@ public:
       }
 
       Frame copy = frames[index];
-      copy.duration = from_seconds(iter->duration);
+      copy.duration = iter->duration;
       res.frames.push_back(copy);
       res.totalDuration += copy.duration;
 
@@ -141,6 +141,18 @@ public:
   inline void Add(frame_time_t dur, sf::IntRect sub) {
     frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0), false, false )));
     totalDuration += dur;
+  }
+
+  /**
+   * @brief Inserts frame to list with provided frame data at a target index position
+   * @param index position in the list to insert to (base 0)
+   * @param data Frame data to insert into our list
+   */
+  inline void Insert(unsigned int index, const Frame& data) {
+    if (index >= frames.size()) return;
+
+    totalDuration += data.duration;
+    frames.emplace(frames.begin() + index, data);
   }
 
   /**
@@ -237,12 +249,12 @@ public:
    * @brief Struct to add new callbacks with. Uses base 1 frame indeces.
    */
   struct On {
-    int id; /*!< Base 1 frame index */
+    unsigned id; /*!< Base 1 frame index */
     FrameCallback callback; /*!< Callback to queue */
     bool doOnce; /*!< If true, this is a one-time callback */
 
     friend class Animator;
-    On(int id, FrameCallback callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
+    On(unsigned int id, FrameCallback callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
     

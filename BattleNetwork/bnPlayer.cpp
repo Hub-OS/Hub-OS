@@ -238,6 +238,17 @@ const unsigned Player::GetChargeLevel()
   return stats.charge;
 }
 
+void Player::SetSpeedLevel(unsigned lvl)
+{
+  stats.speed = std::min(PlayerStats::MAX_SPEED_LEVEL, lvl);
+}
+
+const unsigned Player::GetSpeedLevel()
+{
+  return stats.speed;
+}
+
+
 void Player::ModMaxHealth(int mod)
 {
   stats.moddedHP += mod;
@@ -463,10 +474,12 @@ void Player::SaveStats()
   savedStats.element = GetElement();
   savedStats.charge = GetChargeLevel();
   savedStats.attack = GetAttackLevel();
+  savedStats.speed = GetSpeedLevel();
 }
 
 void Player::RevertStats()
 {
+  SetSpeedLevel(savedStats.speed);
   SetChargeLevel(savedStats.charge);
   SetAttackLevel(savedStats.attack);
   SetElement(savedStats.element);
@@ -475,9 +488,9 @@ void Player::RevertStats()
 void Player::CreateMoveAnimHash()
 {
   const auto i4_frames = frames(4);
-  const auto i4_seconds = seconds_cast<float>(i4_frames);
-  const auto i5_seconds = seconds_cast<float>(frames(5));
-  const auto i1_seconds = seconds_cast<float>(frames(1));
+  const auto i4_seconds = i4_frames;
+  const auto i5_seconds = frames(5);
+  const auto i1_seconds = frames(1);
 
   this->moveStartupDelay = frames(6);
   this->moveEndlagDelay = frames(7);
@@ -497,8 +510,8 @@ void Player::CreateMoveAnimHash()
 
 void Player::CreateRecoilAnimHash()
 {
-  const auto i15_seconds = seconds_cast<float>(frames(15));
-  const auto i7_seconds = seconds_cast<float>(frames(7));
+  const auto i15_seconds = frames(15);
+  const auto i7_seconds = frames(7);
 
   auto frame_data = std::initializer_list<OverrideFrame>{
     { 1, i15_seconds },

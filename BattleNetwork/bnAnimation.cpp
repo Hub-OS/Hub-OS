@@ -374,11 +374,11 @@ void Animation::SyncTime(frame_time_t newTime)
   }
 }
 
-void Animation::SetFrame(int frame, sf::Sprite& target)
+void Animation::SetFrame(unsigned int frame, sf::Sprite& target)
 {
   if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
 
-  auto size = animations[currAnimation].GetFrameCount();
+  const size_t size = animations[currAnimation].GetFrameCount();
 
   if (frame <= 0 || frame > size) {
     progress = frames(0);
@@ -392,6 +392,27 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
     while (frame) {
       progress += animations[currAnimation].GetFrame(--frame).duration;
     }
+  }
+}
+
+void Animation::InsertFrame(unsigned int whereIndex, const Frame& frame)
+{
+  FrameList& list = animations[currAnimation];
+
+  // ignore invalid index requests
+  if (whereIndex >= list.GetFrameCount()) return;
+
+  list.Insert(whereIndex, frame);
+}
+
+void Animation::DropState(const std::string& state)
+{
+  std::string _state = state;
+  std::transform(_state.begin(), _state.end(), _state.begin(), ::toupper);
+
+  auto pos = animations.find(state);
+  if (pos != animations.end()) {
+    animations.erase(pos);
   }
 }
 

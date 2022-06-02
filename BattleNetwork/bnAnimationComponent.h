@@ -84,6 +84,8 @@ public:
    */
   const std::filesystem::path& GetFilePath() const;
 
+  void DropState(const std::string& state);
+
   /**
    * @brief Set the animation playback speed
    * @param playbackSpeed factor of 100 e.g. 2 is 200%, 0.5 is 50%
