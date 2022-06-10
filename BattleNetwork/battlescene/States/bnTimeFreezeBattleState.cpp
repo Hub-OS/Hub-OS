@@ -53,8 +53,8 @@ void TimeFreezeBattleState::ProcessInputs()
         if (maybe_card.has_value()) {
           // convert meta data into a useable action object
           const Battle::Card& card = *maybe_card;
-
-          if (card.IsTimeFreeze() && CanCounter(p) && summonTick > summonTextLength) {
+          // Only counter if time freezable and counter is enabled.
+          if (card.IsTimeFreeze() && CanCounter(p)) {
             if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.GetProps())) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
@@ -131,7 +131,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       playerCountered = false;
 
       Audio().Play(AudioType::TRAP, AudioPriority::high);
-      auto last = tfEvents.begin()+1u;
+      auto last = tfEvents.begin();
       last->animateCounter = true;
       summonTick = frames(0);
     }
@@ -150,6 +150,12 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     for (TimeFreezeBattleState::EventData& e : tfEvents) {
       if (e.animateCounter) {
         e.alertFrameCount += frames(1);
+        //Set animation to false if we're done animating.
+        if (e.alertFrameCount.value > alertAnimFrames.value) {
+            e.animateCounter = false;
+        }
+        //Delay while animating. We can't counter right now.
+        summonTick = frames(0);
       }
     }
   }
@@ -160,7 +166,10 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
       if (first != tfEvents.end()) {
         std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
-        GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
+        //If the background hasn't been set, we shouldn't use it.
+        if (bg != nullptr){
+            GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
+        }
 
         if (first->action->WillTimeFreezeBlackoutTiles()) {
           // Instead of stopping at 0.5, we will go to 1.0 to darken the entire bg layer and tiles
@@ -222,9 +231,8 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   const auto& first = tfEvents.begin();
 
   double tfcTimerScale = 0;
-  
   if (summonTick.asSeconds().value > fadeInOutLength.asSeconds().value) {
-    tfcTimerScale = swoosh::ease::linear((double)(summonTick - fadeInOutLength).value, (double)summonTextLength.asSeconds().value, 1.0);
+    tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
   }
 
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
@@ -265,8 +273,8 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setPosition(position);
   scene.DrawWithPerspective(summonsLabel, surface);
 
-  if (currState == state::display_name && first->action->GetMetaData().counterable) {
-    // draw TF bar underneath
+  if (currState == state::display_name && first->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
+    // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
     scene.DrawWithPerspective(bar, surface);
@@ -282,7 +290,6 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   for (TimeFreezeBattleState::EventData& e : tfEvents) {
     if (e.animateCounter) {
       double scale = swoosh::ease::wideParabola(e.alertFrameCount.asSeconds().value, this->alertAnimFrames.asSeconds().value, 3.0);
-      
       sf::Vector2f position = sf::Vector2f(66.f, 82.f);
 
       if (e.team == Team::blue) {
@@ -404,19 +411,29 @@ void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action,
 }
 
 const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
-{
+{ 
   // tfc window ended
   if (summonTick > summonTextLength) return false;
 
   if (!tfEvents.empty()) {
+    // Don't counter during alert symbol. BN6 accurate. See notes from Alrysc.
     std::shared_ptr<CardAction> action = tfEvents.begin()->action;
-
+    for (TimeFreezeBattleState::EventData& e : tfEvents) {
+        if (e.animateCounter) {
+            return false;
+        }
+    }
     // some actions cannot be countered
     if (!action->GetMetaData().counterable) return false;
 
-    // only opposing players can counter
     std::shared_ptr<Character> lastActor = action->GetActor();
-    if (!lastActor->Teammate(user->GetTeam())) {
+    if (summonTick < tfcStartFrame) {
+      // tfc window hasn't started. text isn't done animating.
+      // takes priority over other conditions.
+      return false;
+    }
+    else if (!lastActor->Teammate(user->GetTeam())) {
+      // only opposing players can counter
       playerCountered = true;
       Logger::Logf(LogLevel::info, "Player was countered!");
     }
