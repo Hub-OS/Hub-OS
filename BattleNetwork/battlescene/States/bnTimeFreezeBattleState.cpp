@@ -432,7 +432,7 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
       // takes priority over other conditions.
       return false;
     }
-    else if (!lastActor->Teammate(user->GetTeam()) || (lastActor->Teammate(user->GetTeam()))) {
+    else if (!lastActor->Teammate(user->GetTeam())) {
       // only opposing players can counter
       playerCountered = true;
       Logger::Logf(LogLevel::info, "Player was countered!");
