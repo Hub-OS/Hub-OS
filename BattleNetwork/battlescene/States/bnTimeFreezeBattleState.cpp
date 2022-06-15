@@ -78,8 +78,8 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
   if (tfEvents.empty()) return;
 
-  const auto& first = tfEvents.begin();
-  if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
+  const auto& last = tfEvents.end()-1;
+  if (last->action && last->action->GetMetaData().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 
@@ -111,7 +111,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
   scene.GetField()->Update(elapsed);
 
-  const auto& first = tfEvents.begin();
+  const auto& last = tfEvents.end()-1;
 
   switch (currState) {
   case state::fadein:
@@ -164,37 +164,37 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     {
       bool updateAnim = false;
 
-      if (first != tfEvents.end()) {
-        std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
+      if (last != tfEvents.end()) {
+        std::shared_ptr<CustomBackground> bg = last->action->GetCustomBackground();
         //If the background hasn't been set, we shouldn't use it.
         if (bg != nullptr){
             GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
         }
 
-        if (first->action->WillTimeFreezeBlackoutTiles()) {
+        if (last->action->WillTimeFreezeBlackoutTiles()) {
           // Instead of stopping at 0.5, we will go to 1.0 to darken the entire bg layer and tiles
           GetScene().FadeInBackdrop(backdropInc, 1.0, true);
         }
       }
 
-      if (first->action && first->userAnim) {
-        // update the action until it is is complete
-        switch (first->action->GetLockoutType()) {
-        case CardAction::LockoutType::sequence:
-          updateAnim = !first->action->IsLockoutOver();
-          break;
-        default:
-          updateAnim = !first->action->IsAnimationOver();
-          break;
-        }
+      if (last->action && last->userAnim) {
+          // update the action until it is is complete
+          switch (last->action->GetLockoutType()) {
+          case CardAction::LockoutType::sequence:
+              updateAnim = !last->action->IsLockoutOver();
+              break;
+          default:
+              updateAnim = !last->action->IsAnimationOver();
+              break;
+          }
       }
 
       if (updateAnim) {
-        first->userAnim->Update(elapsed);
-        first->action->Update(elapsed);
+        last->userAnim->Update(elapsed);
+        last->action->Update(elapsed);
       }
       else{
-        first->action->EndAction();
+        last->action->EndAction();
 
         if (tfEvents.size() == 1) {
           // This is the only event in the list
@@ -228,7 +228,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   if (tfEvents.empty()) return;
 
   BattleSceneBase& scene = GetScene();
-  const auto& first = tfEvents.begin();
+  const auto& last = tfEvents.end() - 1;
 
   double tfcTimerScale = 0;
   if (summonTick.asSeconds().value > fadeInOutLength.asSeconds().value) {
@@ -248,14 +248,14 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   sf::Vector2f position = sf::Vector2f(66.f, 82.f);
 
-  if (first->team == Team::blue) {
+  if (last->team == Team::blue) {
     position = sf::Vector2f(416.f, 82.f);
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
 
   summonsLabel.setScale(2.0f, 2.0f*(float)scale);
 
-  if (first->team == Team::red) {
+  if (last->team == Team::red) {
     summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);
   }
   else {
@@ -273,7 +273,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setPosition(position);
   scene.DrawWithPerspective(summonsLabel, surface);
 
-  if (currState == state::display_name && first->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
+  if (currState == state::display_name && last->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
     // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
@@ -291,7 +291,6 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     if (e.animateCounter) {
       double scale = swoosh::ease::wideParabola(e.alertFrameCount.asSeconds().value, this->alertAnimFrames.asSeconds().value, 3.0);
       sf::Vector2f position = sf::Vector2f(66.f, 82.f);
-      Logger::Log(LogLevel::critical, "we're animating a TFC");
       if (e.team == Team::blue) {
         position = sf::Vector2f(416.f, 82.f);
       }
@@ -315,10 +314,10 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (tfEvents.empty()) return;
 
-  auto first = tfEvents.begin();
+  auto last = tfEvents.end()-1;
 
-  if (first->action && first->action->CanExecute()) {
-    first->action->Execute(first->user);
+  if (last->action && last->action->CanExecute()) {
+    last->action->Execute(last->user);
   }
 }
 
@@ -414,6 +413,8 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
 { 
   // tfc window ended
   if (summonTick > summonTextLength) return false;
+  //user is not actionable
+  if (!user->IsActionable()) return false;
 
   if (!tfEvents.empty()) {
     // Don't counter during alert symbol. BN6 accurate. See notes from Alrysc.
