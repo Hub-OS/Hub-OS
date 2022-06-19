@@ -161,11 +161,11 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
     "get_actor", [](WeakWrapper<ScriptedCardAction>& cardAction) -> WeakWrapper<Character> {
       return WeakWrapper(cardAction.Unwrap()->GetActor());
     },
-    "set_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction, const Battle::Card::Properties& props) {
-      cardAction.Unwrap()->SetMetaData(props);
+    "set_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction, const Battle::Card::Properties& meta) {
+      cardAction.Unwrap()->SetMetaData(Battle::Card(meta));
     },
     "copy_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction) -> Battle::Card::Properties {
-      return cardAction.Unwrap()->GetMetaData();
+      return cardAction.Unwrap()->GetMetaData().GetProps();
     },
     "set_background", sol::overload(
       [](WeakWrapper<ScriptedCardAction>& cardAction, const std::string& bgTexturePath, const std::string& animPath, float velx, float vely) {

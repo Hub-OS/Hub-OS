@@ -58,8 +58,10 @@ void Text::UpdateGeometry() const
   float width = 0.f;
 
   Poco::UTF8Encoding utf8Encoding;
-  Poco::TextIterator it(message, utf8Encoding);
+  Poco::TextIterator begin(message, utf8Encoding);
   Poco::TextIterator end(message);
+  Poco::TextIterator it = begin;
+
   for (; it != end; ++it) {
     uint32_t letter = *it;
 
@@ -78,7 +80,11 @@ void Text::UpdateGeometry() const
 
       AddLetterQuad(sf::Vector2f(x, y), color, letter);
 
-      x += font.GetLetterWidth() + letterSpacing;
+      if (it != begin) {
+        x += letterSpacing;
+      }
+
+      x += font.GetLetterWidth();
     }
 
     width = std::max(x, width);

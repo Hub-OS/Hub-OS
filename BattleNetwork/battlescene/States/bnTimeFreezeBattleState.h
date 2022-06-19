@@ -56,6 +56,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool CanCounter(std::shared_ptr<Character> user);
   void SkipToAnimateState();
   void ProcessInputs();
+  void SafelyEndCurrentAction(std::shared_ptr<CardAction> action);
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
@@ -64,6 +65,5 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
-  
-  // void DrawCardData(sf::RenderTarget& target); // TODO: we are missing some data from the selected UI to draw the info we need
+  void DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target);
 };

@@ -420,7 +420,7 @@ std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
 
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  if (action->GetMetaData().canBoost) {
+  if (action->GetMetaData().GetProps().canBoost) {
     HandleCounterLoss(*action->GetActor(), true);
   }
 }
