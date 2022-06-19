@@ -97,8 +97,8 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
   if (tfEvents.empty()) return;
 
-  const auto& last = tfEvents.end()-1;
-  if (last->action && last->action->GetMetaData().GetProps().skipTimeFreezeIntro) {
+  const auto& first = tfEvents.begin();
+  if (first->action && first->action->GetMetaData().GetProps().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 
@@ -130,7 +130,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
   scene.GetField()->Update(elapsed);
 
-  const auto& last = tfEvents.end()-1;
+  const auto& first = tfEvents.begin();
   switch (currState) {
   case state::fadein:
   {
@@ -143,15 +143,13 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     break;
   case state::display_name:
   {
-    summonsLabel.SetString((tfEvents.end()-1)->name);
+    summonsLabel.SetString(tfEvents.begin()->name);
 
     if (playerCountered) {
       playerCountered = false;
 
       Audio().Play(AudioType::TRAP, AudioPriority::high);
-      //The second-to-last time freeze counter event. This should be the one before the counter.
-      //Game accurate.
-      auto previous = tfEvents.end()-2;
+      auto previous = tfEvents.end()-1;
       previous->animateCounter = true;
       summonTick = frames(0);
     }
@@ -184,27 +182,27 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     {
       bool updateAnim = false;
 
-      if (last != tfEvents.end()) {
-        std::shared_ptr<CustomBackground> bg = last->action->GetCustomBackground();
+      if (first != tfEvents.end()) {
+        std::shared_ptr<CustomBackground> bg = first->action->GetCustomBackground();
         //If the background hasn't been set, we shouldn't use it.
         if (bg != nullptr){
             GetScene().FadeInBackground(backdropInc, sf::Color::Black, bg);
         }
 
-        if (last->action->WillTimeFreezeBlackoutTiles()) {
+        if (first->action->WillTimeFreezeBlackoutTiles()) {
           // Instead of stopping at 0.5, we will go to 1.0 to darken the entire bg layer and tiles
           GetScene().FadeInBackdrop(backdropInc, 1.0, true);
         }
       }
 
-      if (last->action && last->userAnim) {
+      if (first->action && first->userAnim) {
           // update the action until it is is complete
-          switch (last->action->GetLockoutType()) {
+          switch (first->action->GetLockoutType()) {
           case CardAction::LockoutType::sequence:
-              updateAnim = !last->action->IsLockoutOver();
+              updateAnim = !first->action->IsLockoutOver();
               break;
           default:
-              updateAnim = !last->action->IsAnimationOver();
+              updateAnim = !first->action->IsAnimationOver();
               break;
           }
       }
@@ -216,11 +214,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
 
       if (updateAnim) {
-        last->userAnim->Update(elapsed);
-        last->action->Update(elapsed);
+        first->userAnim->Update(elapsed);
+        first->action->Update(elapsed);
       }
       else{
-        SafelyEndCurrentAction(last->action);
+        SafelyEndCurrentAction(first->action);
       }
     }
     break;
@@ -240,7 +238,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   if (tfEvents.empty()) return;
 
   BattleSceneBase& scene = GetScene();
-  const auto& last = tfEvents.end() - 1;
+  const auto& first = tfEvents.begin();
 
   double tfcTimerScale = 0;
   if (summonTick.asSeconds().value > fadeInOutLength.asSeconds().value) {
@@ -260,7 +258,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   sf::Vector2f position = sf::Vector2f(64.f, 82.f);
 
-  if (last->team == Team::blue) {
+  if (first->team == Team::blue) {
     position = sf::Vector2f(416.f, 82.f);
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
@@ -270,7 +268,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   scene.DrawCustGauage(surface);
   surface.draw(scene.GetCardSelectWidget());
 
-  if (currState == state::display_name && last->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
+  if (currState == state::display_name && first->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
     // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
@@ -311,10 +309,10 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (tfEvents.empty()) return;
 
-  TimeFreezeBattleState::EventData& last = *(tfEvents.end()-1);
+  TimeFreezeBattleState::EventData& first = *(tfEvents.begin());
 
-  if (last.action && last.action->CanExecute()) {
-    last.action->Execute(last.user);
+  if (first.action && first.action->CanExecute()) {
+    first.action->Execute(first.user);
   }
 }
 
@@ -324,7 +322,7 @@ bool TimeFreezeBattleState::IsOver() {
 
 void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target)
 {
-  TimeFreezeBattleState::EventData& event = *(tfEvents.end() - 1);
+  TimeFreezeBattleState::EventData& event = *(tfEvents.begin());
   const auto orange = sf::Color(225, 140, 0);
   bool canBoost{};
   float multiplierOffset = 0.f;
@@ -492,7 +490,7 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
   data.action = action;
 
   lockedTimestamp = timestamp;
-  tfEvents.push_back(data);
+  tfEvents.insert(tfEvents.begin(), data);
 
   Logger::Logf(LogLevel::debug, "Added chip event: %s", data.name.c_str());
 }

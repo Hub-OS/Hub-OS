@@ -57,8 +57,8 @@ namespace Battle {
     flickerTeamCooldown = teamCooldown = frames(0);
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
 
-    burncycle = frames(1);
-    elapsedBurnTime = burncycle;
+    burncycle = frames(7); // Drain 1 HP every 7 Frames. Game accurate.
+    elapsedBurnTime = frames(0); //Instantly drain 1 HP. Game accurate.
 
     highlightMode = TileHighlight::none;
 
