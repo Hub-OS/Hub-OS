@@ -95,6 +95,11 @@ struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
 
+struct AppliedStatus {
+  std::string statusName;
+  frame_time_t remainingTime;
+};
+
 class Entity :
   public SpriteProxyNode,
   public ResourceHandle,
@@ -132,6 +137,8 @@ private:
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
   MoveEvent currMoveEvent{};
   VirtualInputState inputState;
+  AppliedStatus previousStatus{ "None", frames(0) }; /*!< The previous status, Stun or Freeze, applied when time freeze started.*/
+  AppliedStatus currentStatus{ "None", frames(0) }; /*!< The current status, Stun or Freeze, which is applied. Removed when timer hits 0.*/
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
   std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };

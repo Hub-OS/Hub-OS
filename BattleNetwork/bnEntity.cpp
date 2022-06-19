@@ -1071,6 +1071,37 @@ void Entity::AdoptNextTile()
 
 void Entity::ToggleTimeFreeze(bool state)
 {
+  if (state) {
+    if (currentStatus.statusName != "None") {
+      previousStatus = currentStatus;
+      if (currentStatus.statusName == "Freeze") {
+        previousStatus.remainingTime = freezeCooldown;
+        freezeCooldown = frames(0);
+      }
+      else if (currentStatus.statusName == "Stun") {
+        previousStatus.remainingTime = stunCooldown;
+        stunCooldown = frames(0);
+      }
+      currentStatus.statusName = "None";
+      currentStatus.remainingTime = frames(0);
+    }
+  }
+  else {
+    if (previousStatus.statusName != "None") {
+      currentStatus = previousStatus;
+      if (previousStatus.statusName == "Freeze") {
+        currentStatus.remainingTime = previousStatus.remainingTime;
+        freezeCooldown = previousStatus.remainingTime;
+      }
+      else if (previousStatus.statusName == "Stun") {
+        currentStatus.remainingTime = previousStatus.remainingTime;
+        stunCooldown = previousStatus.remainingTime;
+      }
+      Logger::Log(LogLevel::critical, "current cooldown is: " + std::to_string(currentStatus.remainingTime.count()));
+      previousStatus.statusName = "None";
+      previousStatus.remainingTime = frames(0);
+    }
+  }
   isTimeFrozen = state;
 }
 
@@ -1804,6 +1835,9 @@ void Entity::Stun(frame_time_t maxCooldown)
   invincibilityCooldown = frames(0); // cancel flash
   freezeCooldown = frames(0); // cancel freeze
   stunCooldown = maxCooldown;
+  std::string statusName = "Stun";
+  AppliedStatus stunStatus = { statusName, maxCooldown };
+  currentStatus = stunStatus;
 }
 
 void Entity::Root(frame_time_t maxCooldown)
@@ -1836,6 +1870,9 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
   }
 
   iceFxAnimation.Refresh(iceFx->getSprite());
+  std::string statusName = "Freeze";
+  AppliedStatus freezeStatus { statusName, maxCooldown };
+  currentStatus = freezeStatus;
 }
 
 void Entity::Blind(frame_time_t maxCooldown)

@@ -112,7 +112,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   scene.GetField()->Update(elapsed);
 
   const auto& last = tfEvents.end()-1;
-
   switch (currState) {
   case state::fadein:
   {
@@ -131,8 +130,10 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       playerCountered = false;
 
       Audio().Play(AudioType::TRAP, AudioPriority::high);
-      auto last = tfEvents.end()-1;
-      last->animateCounter = true;
+      //The second-to-last time freeze counter event. This should be the one before the counter.
+      //Game accurate.
+      auto previous = tfEvents.end()-2;
+      previous->animateCounter = true;
       summonTick = frames(0);
     }
 
@@ -413,11 +414,12 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
 { 
   // tfc window ended
   if (summonTick > summonTextLength) return false;
-  //user is not actionable
-  if (!user->IsActionable()) return false;
+  // Don't counter while in a card action. Game accurate. See notes from Alrysc.
+  std::shared_ptr<CardAction> currAction = user->CurrentCardAction();
+  if (currAction != nullptr && !currAction->IsLockoutOver()) return false;
 
   if (!tfEvents.empty()) {
-    // Don't counter during alert symbol. BN6 accurate. See notes from Alrysc.
+    // Don't counter during alert symbol. Game accurate. See notes from Alrysc.
     std::shared_ptr<CardAction> action = tfEvents.begin()->action;
     for (TimeFreezeBattleState::EventData& e : tfEvents) {
         if (e.animateCounter) {
@@ -457,8 +459,7 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
   data.action = action;
 
   lockedTimestamp = timestamp;
-  tfEvents.insert(tfEvents.end(), data);
+  tfEvents.push_back(data);
 
   Logger::Logf(LogLevel::debug, "Added chip event: %s", data.name.c_str());
 }
-
