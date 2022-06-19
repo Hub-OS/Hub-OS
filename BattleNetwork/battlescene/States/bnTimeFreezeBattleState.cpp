@@ -67,6 +67,25 @@ void TimeFreezeBattleState::ProcessInputs()
   }
 }
 
+void TimeFreezeBattleState::SafelyEndCurrentAction(std::shared_ptr<CardAction> action)
+{
+  action->EndAction();
+
+  if (tfEvents.size() == 1) {
+    // This is the only event in the list
+    lockedTimestamp = std::numeric_limits<long long>::max();
+    currState = state::fadeout;
+  }
+  else {
+    tfEvents.erase(tfEvents.begin());
+
+    // restart the time freeze animation
+    currState = state::animate;
+
+    ExecuteTimeFreeze();
+  }
+}
+
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
   Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onStart");
@@ -79,7 +98,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   if (tfEvents.empty()) return;
 
   const auto& last = tfEvents.end()-1;
-  if (last->action && last->action->GetMetaData().skipTimeFreezeIntro) {
+  if (last->action && last->action->GetMetaData().GetProps().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 
@@ -190,26 +209,18 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
           }
       }
 
+      // Any time freeze animation longer than 30 seconds is too long
+      // Prevent infinite loops and annoying time freeze cards...
+      if (summonTick >= frames(60 * 30) && currState == state::animate) {
+        updateAnim = false;
+      }
+
       if (updateAnim) {
         last->userAnim->Update(elapsed);
         last->action->Update(elapsed);
       }
       else{
-        last->action->EndAction();
-
-        if (tfEvents.size() == 1) {
-          // This is the only event in the list
-          lockedTimestamp = std::numeric_limits<long long>::max();
-          currState = state::fadeout;
-        }
-        else {
-          tfEvents.erase(tfEvents.begin());
-
-          // restart the time freeze animation
-          currState = state::animate;
-
-          ExecuteTimeFreeze();
-        }
+        SafelyEndCurrentAction(last->action);
       }
     }
     break;
@@ -247,34 +258,19 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     scale = std::max(scale, 0.0);
   }
 
-  sf::Vector2f position = sf::Vector2f(66.f, 82.f);
+  sf::Vector2f position = sf::Vector2f(64.f, 82.f);
 
   if (last->team == Team::blue) {
     position = sf::Vector2f(416.f, 82.f);
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
 
-  summonsLabel.setScale(2.0f, 2.0f*(float)scale);
-
-  if (last->team == Team::red) {
-    summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);
-  }
-  else {
-    summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height*0.5f);
-  }
+  DrawCardData(position, sf::Vector2f(2.f, scale*2.f), surface);
 
   scene.DrawCustGauage(surface);
   surface.draw(scene.GetCardSelectWidget());
 
-  summonsLabel.SetColor(sf::Color::Black);
-  summonsLabel.setPosition(position.x + 2.f, position.y + 2.f);
-  scene.DrawWithPerspective(summonsLabel, surface);
-
-  summonsLabel.SetColor(sf::Color::White);
-  summonsLabel.setPosition(position);
-  scene.DrawWithPerspective(summonsLabel, surface);
-
-  if (currState == state::display_name && last->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
+  if (currState == state::display_name && last->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
     // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
@@ -315,10 +311,10 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (tfEvents.empty()) return;
 
-  auto last = tfEvents.end()-1;
+  TimeFreezeBattleState::EventData& last = *(tfEvents.end()-1);
 
-  if (last->action && last->action->CanExecute()) {
-    last->action->Execute(last->user);
+  if (last.action && last.action->CanExecute()) {
+    last.action->Execute(last.user);
   }
 }
 
@@ -326,28 +322,52 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-/*
-void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
+void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target)
 {
+  TimeFreezeBattleState::EventData& event = *(tfEvents.end() - 1);
   const auto orange = sf::Color(225, 140, 0);
   bool canBoost{};
+  float multiplierOffset = 0.f;
+  float dmgOffset = 0.f;
 
-  summonsLabel.SetString("");
+  // helper function
+  auto setSummonLabelOrigin = [](Team team, Text& text) {
+    if (team == Team::red) {
+      text.setOrigin(0, text.GetLocalBounds().height * 0.5f);
+    }
+    else {
+      text.setOrigin(text.GetLocalBounds().width, text.GetLocalBounds().height * 0.5f);
+    }
+  };
+
+  // We want the other text to use the origin of the 
+  // summons label for the y so that they are all 
+  // sitting on the same line when they render
+  auto setOrigin = [setSummonLabelOrigin, this](Team team, Text& text) {
+    setSummonLabelOrigin(team, text);
+    text.setOrigin(text.getOrigin().x, this->summonsLabel.getOrigin().y);
+  };
+
+  summonsLabel.SetString(event.name);
+  summonsLabel.setScale(scale);
+  setSummonLabelOrigin(event.team, summonsLabel);
+
   dmg.SetString("");
   multiplier.SetString("");
 
-  TimeFreezeBattleState::EventData& event = *tfEvents.begin();
-  Battle::Card::Properties cardProps = event.action->GetMetaData();
-  canBoost = cardProps.canBoost;
+  const Battle::Card& card = event.action->GetMetaData();
+  canBoost = card.CanBoost();
 
-  // Text sits at the bottom-left of the screen
-  summonsLabel.SetString(event.name);
-  summonsLabel.setOrigin(0, 0);
-  summonsLabel.setPosition(2.0f, 296.0f);
+  // Calculate the delta damage values to correctly draw the modifiers
+  const unsigned int multiplierValue = card.GetMultiplier();
+  int unmodDamage = card.GetBaseProps().damage;
+  int damage = card.GetProps().damage;
 
-  // Text sits at the bottom-left of the screen
-  int unmodDamage = event.unmoddedProps.damage; // TODO: get unmodded properties??
-  int delta = cardProps.damage - unmodDamage;
+  if (multiplierValue) {
+    damage /= multiplierValue;
+  }
+
+  int delta = damage - unmodDamage;
   sf::String dmgText = std::to_string(unmodDamage);
 
   if (delta != 0) {
@@ -357,17 +377,30 @@ void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
   // attacks that normally show no damage will show if the modifer adds damage
   if (delta > 0 || unmodDamage > 0) {
     dmg.SetString(dmgText);
-    dmg.setOrigin(0, 0);
-    dmg.setPosition((summonsLabel.GetLocalBounds().width * summonsLabel.getScale().x) + 10.f, 296.f);
+    dmg.setScale(scale);
+    setOrigin(event.team, dmg);
+    dmgOffset = 10.0f;
   }
   
-  // TODO: multiplierValue needs to come from where?
   if (multiplierValue != 1 && unmodDamage != 0) {
     // add "x N" where N is the multiplier
     std::string multStr = "x" + std::to_string(multiplierValue);
     multiplier.SetString(multStr);
-    multiplier.setOrigin(0, 0);
-    multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width * dmg.getScale().x) + 3.0f, 296.0f);
+    multiplier.setScale(scale);
+    setOrigin(event.team, multiplier);
+    multiplierOffset = 3.0f;
+  }
+
+  // based on team, render the text from left-to-right or right-to-left alignment
+  if (event.team == Team::red) {
+    summonsLabel.setPosition(pos);
+    dmg.setPosition(summonsLabel.getPosition().x + summonsLabel.GetWorldBounds().width + dmgOffset, pos.y);
+    multiplier.setPosition(dmg.getPosition().x + dmg.GetWorldBounds().width + multiplierOffset, pos.y);
+  }
+  else { /* team == Team::blue or other */
+    multiplier.setPosition(pos);
+    dmg.setPosition(multiplier.getPosition().x - multiplier.GetWorldBounds().width - multiplierOffset, pos.y);
+    summonsLabel.setPosition(dmg.getPosition().x - dmg.GetWorldBounds().width - dmgOffset, pos.y);
   }
 
   // shadow beneath
@@ -397,13 +430,13 @@ void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
     target.draw(multiplier);
   }
 }
-*/
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
+  const Battle::Card::Properties& props = action->GetMetaData().GetProps();
+  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", props.shortname.c_str(), summonTick.count(), summonTextLength.count());
 
-  if (!(action && action->GetMetaData().timeFreeze)) return;
+  if (!(action && action->GetMetaData().GetProps().timeFreeze)) return;
  
   if (CanCounter(action->GetActor())) {
     HandleTimeFreezeCounter(action, timestamp);
@@ -427,7 +460,7 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
         }
     }
     // some actions cannot be countered
-    if (!action->GetMetaData().counterable) return false;
+    if (!action->GetMetaData().GetProps().counterable) return false;
 
     std::shared_ptr<Character> lastActor = action->GetActor();
     if (summonTick < tfcStartFrame) {
@@ -452,7 +485,7 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
 {
   TimeFreezeBattleState::EventData data;
   data.action = action;
-  data.name = action->GetMetaData().shortname;
+  data.name = action->GetMetaData().GetProps().shortname;
   data.team = action->GetActor()->GetTeam();
   data.user = action->GetActor();
   data.userAnim = data.user->GetFirstComponent<AnimationComponent>();

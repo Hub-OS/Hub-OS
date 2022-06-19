@@ -58,7 +58,7 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
     OverrideAnimationFrames(FRAME_DATA);
   }
 
-  SetLockout({ CardAction::LockoutType::async });
+  SetLockout({ CardAction::LockoutType::animation });
 }
 
 void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {

@@ -180,6 +180,6 @@ namespace Battle {
   private:
     Properties unmodded{};
     Properties props{};
-    unsigned int multiplier{ 0 };
+    unsigned int multiplier{ 1 };
   };
 }
