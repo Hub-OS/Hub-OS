@@ -279,6 +279,7 @@ private:
 public:
   void onStart() override;
   void onUpdate(double elapsed) override;
+  void SetNaviSpeaker();
   void onLeave() override;
   void onExit() override;
   void onEnter() override;

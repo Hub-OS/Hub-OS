@@ -436,6 +436,7 @@ sf::Vector2f BattleSceneBase::PerspectiveOffset(const sf::Vector2f& pos)
 
 sf::Vector2f BattleSceneBase::PerspectiveOrigin(const sf::Vector2f& origin, const sf::FloatRect& size)
 {
+  printf("perspectiveFlip is %d", perspectiveFlip);
   if (perspectiveFlip) {
     float rectW = size.width;
     float canX = (origin.x / rectW);
@@ -501,7 +502,9 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 
   HitListener::Subscribe(*localPlayer);
 
-  PreparePlayerFullSynchro(localPlayer);
+  if (localPlayer->GetEmotion() == Emotion::full_synchro) {
+      PreparePlayerFullSynchro(localPlayer);
+  }
 }
 
 void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
@@ -531,7 +534,9 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   HitListener::Subscribe(*player);
 
-  PreparePlayerFullSynchro(player);
+  if (player->GetEmotion() == Emotion::full_synchro) {
+      PreparePlayerFullSynchro(player);
+  }
 }
 
 void BattleSceneBase::LoadRedTeamMob(Mob& mob)
@@ -727,6 +732,9 @@ void BattleSceneBase::onUpdate(double elapsed) {
   newBlueTeamMobSize = blueTeamMob ? blueTeamMob->GetMobCount() : 0;
 
   current->onUpdate(elapsed);
+  if ((IsRedTeamDead() || IsBlueTeamDead())) {
+      BroadcastBattleStop();
+  }
 
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;
@@ -1452,9 +1460,19 @@ const bool BattleSceneBase::IsRedTeamCleared() const
   return redTeamMob? redTeamMob->IsCleared() && deletingRedMobs.empty() : true;
 }
 
+const bool BattleSceneBase::IsRedTeamDead() const
+{
+    return redTeamMob->GetMobCount() <= 0;
+}
+
 const bool BattleSceneBase::IsBlueTeamCleared() const
 {
   return blueTeamMob ? blueTeamMob->IsCleared() && deletingBlueMobs.empty() : true;
+}
+
+const bool BattleSceneBase::IsBlueTeamDead() const
+{
+    return blueTeamMob->GetMobCount() <= 0;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

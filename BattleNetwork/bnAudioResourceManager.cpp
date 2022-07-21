@@ -26,7 +26,7 @@ AudioResourceManager::AudioResourceManager(){
 
 AudioResourceManager::~AudioResourceManager() {
   // Stop playing everything
-  stream.stop();
+  StopStream();
 
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.stop();
@@ -382,8 +382,7 @@ int AudioResourceManager::Stream(const std::filesystem::path& path, bool loop, l
   currStreamPath = path;
 
   // stop previous stream if any
-  stream.stop();
-  midiMusic.stop();
+  StopStream();
 
   bool isMidi = false;
   std::unique_ptr<StdFilesystemInputStream> istream = std::make_unique<StdFilesystemInputStream>(path);

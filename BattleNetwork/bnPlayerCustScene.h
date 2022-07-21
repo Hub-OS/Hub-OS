@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-#include "bnAnimatedTextBox.h"
+#include "bnAnimatedTextbox.h"
 #include "bnMessageQuestion.h"
 #include "bnPackageAddress.h"
 
@@ -182,6 +182,9 @@ private:
   bool gotoNextScene{}; /*!< If true, user cannot interact */
   bool itemListSelected{}; // If the item list if not selected, it implies the grid area is
 
+  SpriteProxyNode navigator; /*!< Mugshot spritesheet */
+  Animation navigatorAnimator; /*!< Animators mugshot */
+
   bool IsCompileFinished();
   bool HasLeftInput();
   bool HasRightInput();
@@ -229,6 +232,8 @@ private:
   void ExecuteCancelGrab();
   void ExecuteCancelGrabOnGrid();//!< design oversight, we need to know if we canceled and the context
   void UpdateCursorHoverInfo();
+  std::filesystem::path GetNaviMugTexture();
+  std::filesystem::path GetNaviMugAnimation();
   void UpdateItemListHoverInfo();
   void UpdateMenuPosition();
   void SelectGridUI();

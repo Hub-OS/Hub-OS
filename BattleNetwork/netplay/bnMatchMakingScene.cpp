@@ -13,6 +13,7 @@
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
 #include "../bnMessage.h"
+#include "../bnPlayerPackageManager.h"""
 #include "../bnBlockPackageManager.h"
 #include "battlescene/bnNetworkBattleScene.h"
 
@@ -32,7 +33,8 @@ MatchMakingScene::MatchMakingScene(swoosh::ActivityController& controller, const
   vs.setTexture(Textures().LoadFromFile("resources/ui/vs_text.png"));
   vsFaded.setTexture(Textures().LoadFromFile("resources/ui/vs_text.png"));
   greenBg.setTexture(Textures().LoadFromFile(TexturePaths::FOLDER_VIEW_BG));
-  navigator.setTexture(Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR));
+  navigator.setTexture(Textures().LoadFromFile(GetNaviMugTexture()));
+  navigatorAnimationPath = GetNaviMugAnimation();
 
   float w = static_cast<float>(controller.getVirtualWindowSize().x);
   float h = static_cast<float>(controller.getVirtualWindowSize().y);
@@ -79,11 +81,32 @@ MatchMakingScene::~MatchMakingScene() {
   delete gridBG;
 }
 
+std::filesystem::path MatchMakingScene::GetNaviMugTexture()
+{
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNaviId)) {
+        auto& meta = packageManager.FindPackageByID(selectedNaviId);
+        return meta.GetMugshotTexturePath();
+    }
+    return std::filesystem::path("");
+}
+
+std::filesystem::path MatchMakingScene::GetNaviMugAnimation()
+{
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNaviId)) {
+        auto& meta = packageManager.FindPackageByID(selectedNaviId);
+        auto muganim = meta.GetMugshotAnimationPath();
+        return muganim;
+    }
+    return std::filesystem::path("");
+}
+
 void MatchMakingScene::HandleInfoMode()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("CTRL + C to copy your IP address");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
   textbox.Open();
   textbox.CompleteCurrentBlock();
 }
@@ -92,7 +115,7 @@ void MatchMakingScene::HandleJoinMode()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Paste your opponent's IP address");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
   textbox.Open();
   textbox.CompleteCurrentBlock();
 }
@@ -101,7 +124,7 @@ void MatchMakingScene::HandleReady()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Waiting for " + theirIP);
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
   textbox.Open();
   textbox.CompleteCurrentBlock();
 }
@@ -110,7 +133,7 @@ void MatchMakingScene::HandleCancel()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Cancelled...");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
   textbox.Open();
   textbox.CompleteCurrentBlock();
   Audio().Play(AudioType::CHIP_ERROR);
@@ -120,7 +143,7 @@ void MatchMakingScene::HandleGetIPFailure()
 {
   textbox.ClearAllMessages();
   Message* help = new Message("Error obtaining your IP");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
   textbox.Open([=]() {
     Audio().Play(AudioType::CHIP_ERROR);
   });
@@ -144,7 +167,7 @@ void MatchMakingScene::HandleCopyEvent()
     }
 
     textbox.ClearAllMessages();
-    textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+    textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
     textbox.CompleteCurrentBlock();
   }
 }
@@ -178,7 +201,7 @@ void MatchMakingScene::HandlePasteEvent()
     }
 
     textbox.ClearAllMessages();
-    textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+    textbox.EnqueMessage(navigator.getSprite(), navigatorAnimationPath, help);
     textbox.CompleteCurrentBlock();
   }
 }
@@ -398,7 +421,9 @@ void MatchMakingScene::Reset()
   using namespace std::placeholders;
   packetProcessor->SetPacketBodyCallback(std::bind(&MatchMakingScene::ProcessPacketBody, this, _1, _2));
   packetProcessor->SetKickCallback([] {});
-  packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+  if (!theirIP.empty()) {
+    packetProcessor->SetNewRemote(theirIP, Net().GetMaxPayloadSize());
+  }
   Net().DropProcessor(packetProcessor);
 }
 

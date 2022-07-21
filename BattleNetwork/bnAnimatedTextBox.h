@@ -116,6 +116,12 @@ public:
   const bool IsEndOfBlock();
 
   /**
+   * @brief Returns the current character printed
+   * @return char
+   */
+  const uint32_t GetCurrentCharacter() const;
+
+  /**
    * @brief Query if the current message has another block
    * @return false if the textbox has more blocks, true otherwise
    */

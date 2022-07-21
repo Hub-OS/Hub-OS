@@ -670,17 +670,10 @@ void FolderEditScene::onUpdate(double elapsed) {
             if (value) {
               equipFolderOnExit = true;
             }
-
             GotoLastScene();
           };
-          const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
-          PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
 
-          if (packageManager.HasPackage(selectedNavi)) {
-            auto& meta = packageManager.FindPackageByID(selectedNavi);
-            auto texture = Textures().LoadFromFile(meta.GetMugshotTexturePath());
-            owTextbox.SetNextSpeaker(sf::Sprite(*texture), meta.GetMugshotAnimationPath());
-          }
+          SetNaviSpeaker();
           owTextbox.EnqueueQuestion("You made changes. Want to equip?", onResponse);
           hasFolderChanged = false;
           return;
@@ -723,6 +716,17 @@ void FolderEditScene::onUpdate(double elapsed) {
       }
     }
   }
+}
+
+void FolderEditScene::SetNaviSpeaker()
+{
+    const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNavi)) {
+        auto& meta = packageManager.FindPackageByID(selectedNavi);
+        auto texture = Textures().LoadFromFile(meta.GetMugshotTexturePath());
+        owTextbox.SetNextSpeaker(sf::Sprite(*texture), meta.GetMugshotAnimationPath());
+    }
 }
 
 void FolderEditScene::onLeave() {

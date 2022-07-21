@@ -110,6 +110,8 @@ private:
   void DeleteFolder(std::function<void()> onSuccess);
   bool EquipFolder(size_t index);
   void RefreshOptions();
+  std::filesystem::path GetNaviMugTexture();
+  std::filesystem::path GetNaviMugAnimation();
 public:  
 
   void onLeave() override;

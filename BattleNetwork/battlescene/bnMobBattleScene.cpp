@@ -193,11 +193,11 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void MobBattleScene::onUpdate(double elapsed)
 {
-  if (combatPtr->IsStateCombat(GetCurrentState())) {
-    ProcessLocalPlayerInputQueue();
-  }
+    if (combatPtr->IsStateCombat(GetCurrentState()) && !(IsRedTeamDead() || IsBlueTeamDead())) {
+        ProcessLocalPlayerInputQueue();
+    }
 
-  BattleSceneBase::onUpdate(elapsed);
+    BattleSceneBase::onUpdate(elapsed);
 }
 
 void MobBattleScene::onStart()

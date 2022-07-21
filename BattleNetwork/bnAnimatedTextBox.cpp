@@ -104,6 +104,11 @@ const bool AnimatedTextBox::IsEndOfBlock()
   return textArea->IsEndOfBlock();
 }
 
+const uint32_t AnimatedTextBox::GetCurrentCharacter() const
+{
+    return textArea->GetCurrentCharacter();
+}
+
 bool AnimatedTextBox::IsFinalBlock() const {
   return textArea->IsFinalBlock();
 }
@@ -186,6 +191,7 @@ void AnimatedTextBox::DequeMessage() {
 
     if (texture) {
       lastSpeaker->setTexture(std::make_shared<sf::Texture>(*texture));
+      mugAnimator.Refresh(lastSpeaker->getSprite());
     }
     else {
       lastSpeaker->setTextureRect({});
@@ -206,6 +212,7 @@ void AnimatedTextBox::DequeMessage() {
 
   if (texture) {
     lastSpeaker->setTexture(std::make_shared<sf::Texture>(*texture));
+    mugAnimator.Refresh(lastSpeaker->getSprite());
   }
   else {
     lastSpeaker->setTextureRect({});
@@ -215,6 +222,7 @@ void AnimatedTextBox::DequeMessage() {
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
   textArea->SetText(messages[0]->GetMessage());
+  mugAnimator.Refresh(lastSpeaker->getSprite());
 }
 
 void AnimatedTextBox::ClearAllMessages()

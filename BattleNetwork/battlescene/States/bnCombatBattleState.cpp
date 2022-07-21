@@ -15,14 +15,15 @@
 #include "../../bnShaderResourceManager.h"
 
 CombatBattleState::CombatBattleState(double customDuration) :
-  pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE))
+  pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE)),
+  dmg(Font::Style::gradient_orange),
+  multiplier(Font::Style::thick)
 {
   // PAUSE
   pause.setTexture(*Textures().LoadFromFile("resources/ui/pause.png"));
   pause.setScale(2.f, 2.f);
   pause.setOrigin(pause.getLocalBounds().width * 0.5f, pause.getLocalBounds().height * 0.5f);
   pause.setPosition(sf::Vector2f(240.f, 145.f));
-
  
   if (pauseShader) {
     pauseShader->setUniform("texture", sf::Shader::CurrentTexture);
@@ -177,28 +178,37 @@ void CombatBattleState::onUpdate(double elapsed)
 
 void CombatBattleState::onDraw(sf::RenderTexture& surface)
 {
-  BattleSceneBase& scene = GetScene();
-  const int comboDeleteSize = scene.ComboDeleteSize();
+    BattleSceneBase& scene = GetScene();
+    const int comboDeleteSize = scene.ComboDeleteSize();
 
-  if (!scene.Countered()) {
-    if (comboDeleteSize == 2) {
-      surface.draw(doubleDelete);
-    } else if(comboDeleteSize > 2) {
-      surface.draw(tripleDelete);
+    if (!scene.Countered()) {
+        if (comboDeleteSize == 2) {
+            surface.draw(doubleDelete);
+        }
+        else if (comboDeleteSize > 2) {
+            surface.draw(tripleDelete);
+        }
     }
-  }
-  else {
-    surface.draw(counterHit);
-  }
+    else {
+        surface.draw(counterHit);
+    }
 
-  surface.draw(scene.GetCardSelectWidget());
+    surface.draw(scene.GetCardSelectWidget());
 
-  scene.DrawCustGauage(surface);
+    scene.DrawCustGauage(surface);
+    
+    std::shared_ptr<Player> player = scene.GetOtherPlayers().at(scene.GetOtherPlayers().size());
 
-  if (isPaused) {
-    // render on top
-    surface.draw(pause);
-  }
+    DrawCardData(surface, player);
+
+    player = scene.GetLocalPlayer();
+
+    DrawCardData(surface, player);
+
+    if (isPaused) {
+        // render on top
+        surface.draw(pause);
+    }
 }
 
 void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
@@ -212,6 +222,128 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
     hasTimeFreeze = action->GetMetaData().GetProps().timeFreeze;
   }
 }
+
+void CombatBattleState::DrawCardData(sf::RenderTarget& target, std::shared_ptr<Player> player)
+{
+    BattleSceneBase& scene = GetScene();
+    sf::Vector2f position = sf::Vector2f(64.f, 82.f);
+    if (player->GetTeam() == Team::blue) {
+        position = sf::Vector2f(416.f, 82.f);
+    }
+
+    const auto orange = sf::Color(225, 140, 0);
+    bool canBoost{};
+    float multiplierOffset = 0.f;
+    float dmgOffset = 0.f;
+
+    // helper function
+    auto setSummonLabelOrigin = [](Team team, Text& text) {
+        if (team == Team::red) {
+            text.setOrigin(0, text.GetLocalBounds().height * 0.5f);
+        }
+        else {
+            text.setOrigin(text.GetLocalBounds().width, text.GetLocalBounds().height * 0.5f);
+        }
+    };
+
+    // We want the other text to use the origin of the 
+    // summons label for the y so that they are all 
+    // sitting on the same line when they render
+    auto setOrigin = [setSummonLabelOrigin, this](Team team, Text& text) {
+        setSummonLabelOrigin(team, text);
+        text.setOrigin(text.getOrigin().x, summonsLabel.getOrigin().y);
+    };
+    std::shared_ptr<CardAction> action = player->CurrentCardAction();
+    if (action == nullptr || action->GetMetaData().IsTimeFreeze() || action->IsAnimationOver()) {
+        return;
+    }
+    Team team = action->GetActor()->GetTeam();
+
+    summonsLabel.SetString(action->GetMetaData().GetShortName());
+    summonsLabel.setScale({ 2.0f, 2.0f });
+    setSummonLabelOrigin(team, summonsLabel);
+
+    dmg.SetString("");
+    multiplier.SetString("");
+
+    const Battle::Card& card = action->GetMetaData();
+    canBoost = card.CanBoost();
+
+    // Calculate the delta damage values to correctly draw the modifiers
+    const unsigned int multiplierValue = card.GetMultiplier();
+    int unmodDamage = card.GetBaseProps().damage;
+    int damage = card.GetProps().damage;
+
+    if (multiplierValue) {
+        damage /= multiplierValue;
+    }
+
+    int delta = damage - unmodDamage;
+    sf::String dmgText = std::to_string(unmodDamage);
+
+    if (delta != 0) {
+        dmgText = dmgText + sf::String("+") + sf::String(std::to_string(std::abs(delta)));
+    }
+
+    // attacks that normally show no damage will show if the modifer adds damage
+    if (delta > 0 || unmodDamage > 0) {
+        dmg.SetString(dmgText);
+        dmg.setScale({ 2.0f, 2.0f });
+        setOrigin(team, dmg);
+        dmgOffset = 10.0f;
+    }
+
+    //Only show multiplier if value is greater than 1. Don't need to show x0 or x1.
+    if (multiplierValue > 1 && unmodDamage != 0) {
+        // add "x N" where N is the multiplier
+        std::string multStr = "x" + std::to_string(multiplierValue);
+        multiplier.SetString(multStr);
+        multiplier.setScale({ 2.0f, 2.0f });
+        setOrigin(team, multiplier);
+        multiplierOffset = 3.0f;
+    }
+    float shadowBonus = 2.f;
+    // based on team, render the text from left-to-right or right-to-left alignment
+    if (team == Team::red) {
+        summonsLabel.setPosition(position);
+        dmg.setPosition(summonsLabel.getPosition().x + summonsLabel.GetWorldBounds().width + dmgOffset, position.y);
+        multiplier.setPosition(dmg.getPosition().x + dmg.GetWorldBounds().width + multiplierOffset, position.y);
+    }
+    else { /* team == Team::blue or other */
+        multiplier.setPosition(position);
+        shadowBonus = -2.f;
+        dmg.setPosition(multiplier.getPosition().x - multiplier.GetWorldBounds().width - multiplierOffset, position.y);
+        summonsLabel.setPosition(dmg.getPosition().x - dmg.GetWorldBounds().width - dmgOffset, position.y);
+    }
+
+    // shadow beneath
+    auto textPos = summonsLabel.getPosition();
+    summonsLabel.SetColor(sf::Color::Black);
+    summonsLabel.setPosition(textPos.x + shadowBonus, textPos.y + 2.f);
+    scene.DrawWithPerspective(summonsLabel, target);
+
+    // font on top
+    summonsLabel.setPosition(textPos);
+    summonsLabel.SetColor(sf::Color::White);
+    scene.DrawWithPerspective(summonsLabel, target);
+
+    // our number font has shadow baked in
+    scene.DrawWithPerspective(dmg, target);
+
+    if (canBoost) {
+        // shadow
+        auto multiPos = multiplier.getPosition();
+        multiplier.SetColor(sf::Color::Black);
+        multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
+        scene.DrawWithPerspective(multiplier, target);
+
+        // font on top
+        multiplier.setPosition(multiPos);
+        multiplier.SetColor(sf::Color::White);
+        scene.DrawWithPerspective(multiplier, target);
+    }
+}
+
 
 const bool CombatBattleState::HandleNextRoundSetup(const BattleSceneState* state)
 {

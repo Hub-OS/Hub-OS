@@ -347,9 +347,11 @@ bool CardSelectionCust::CursorAction() {
   }
 
   if (cursorPos == 5 && cursorRow == 0) {
-    // End card select
+    // End card select. We do this by returning true so that we don't satisfy the else condition below.
     areCardsReady = true;
-  } if (playerSpecialButton1 && playerSpecialButton1Ready && cursorPos == 5 && cursorRow == 1) {
+    return areCardsReady;
+  }
+  if (playerSpecialButton1 && playerSpecialButton1Ready && cursorPos == 5 && cursorRow == 1) {
     // make a vector for callbacks
     std::vector<Battle::Card::Properties*> currentSelection;
     for (int i = 0; i < newSelectCount; i++) {

@@ -727,8 +727,8 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
   questionInterface = new Question("Delete this folder?", onYes, onNo);
 
   textbox.EnqueMessage(
-    sf::Sprite(*Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR)),
-    "resources/ui/navigator.animation", 
+    sf::Sprite(*Textures().LoadFromFile(GetNaviMugTexture())),
+    GetNaviMugAnimation(), 
     questionInterface);
 
   textbox.Open();
@@ -772,6 +772,29 @@ void FolderScene::RefreshOptions()
   else {
     folderOptions.setPosition(98.0f, 210.0f);
   }
+}
+
+std::filesystem::path FolderScene::GetNaviMugTexture()
+{
+    const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNavi)) {
+        auto& meta = packageManager.FindPackageByID(selectedNavi);
+        return meta.GetMugshotTexturePath();
+    }
+    return std::filesystem::path("");
+}
+
+std::filesystem::path FolderScene::GetNaviMugAnimation()
+{
+    const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNavi)) {
+        auto& meta = packageManager.FindPackageByID(selectedNavi);
+        auto muganim = meta.GetMugshotAnimationPath();
+        return muganim;
+    }
+    return std::filesystem::path("");
 }
 
 void FolderScene::onEnd() {

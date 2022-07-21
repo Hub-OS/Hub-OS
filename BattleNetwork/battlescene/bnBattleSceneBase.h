@@ -120,6 +120,7 @@ private:
   std::shared_ptr<Field> field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   std::shared_ptr<Player> localPlayer; /*!< Local player */
   std::vector<Entity::ID_t> deletingRedMobs, deletingBlueMobs; /*!< mobs untrack enemies but we need to know when they fully finish deleting*/
+  std::vector<Entity::ID_t> deadRedMobs, deadBlueMobs; /*!< mobs that have 0 HP but aren't deleted yet*/
   std::vector<std::shared_ptr<Player>> otherPlayers; /*!< Player array supports multiplayer */
   size_t localPlayerSpawnIndex{}; /*!< The index in the `otherPlayers` hash to respect spawn order relative to the local player*/
   std::map<Player*, TrackedFormData> allPlayerFormsHash;
@@ -331,11 +332,24 @@ public:
     */
   const bool IsRedTeamCleared() const;
 
+
+  /**
+    * @brief State boolean for BattleScene. Query if the red characters are defeated.
+    * @return true if all red team characters have 0 HP.
+    */
+  const bool IsRedTeamDead() const;
+
   /**
   * @brief State boolean for BattleScene. Query if the battle is over.
   * @return true if all mob enemies are marked as deleted and removed from field.
   */
   const bool IsBlueTeamCleared() const;
+
+  /**
+    * @brief State boolean for BattleScene. Query if the blue characters are defeated.
+    * @return true if all blue team characters have 0 HP.
+    */
+  const bool IsBlueTeamDead() const;
 
   /**
     * @brief Get the total number of counter moves

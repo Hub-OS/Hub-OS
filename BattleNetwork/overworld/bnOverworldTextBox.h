@@ -30,6 +30,7 @@ namespace Overworld {
 
     void Update(float elapsed);
     void HandleInput(InputManager& input, sf::Vector2f mousePos);
+    void Close();
     void ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation);
     void ChangeBlipSfx(std::shared_ptr<sf::SoundBuffer> newSfx);
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;

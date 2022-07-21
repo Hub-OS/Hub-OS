@@ -107,6 +107,9 @@ private:
 
   TextArea textbox; /*!< textbox message */
 
+  std::filesystem::path GetNaviMugTexture();
+  std::filesystem::path GetNaviMugAnimation();
+
 public:
   /**
    * @brief Loads graphics and sets original state of all items

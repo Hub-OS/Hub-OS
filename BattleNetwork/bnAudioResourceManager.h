@@ -12,7 +12,6 @@
 #include "sfMidi/include/sfMidi.h"
 #include "bnAudioType.h"
 #include "bnCachedResource.h"
-#include "bnCachedResource.h"
 
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 15

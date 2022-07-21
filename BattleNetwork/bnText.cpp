@@ -80,9 +80,7 @@ void Text::UpdateGeometry() const
 
       AddLetterQuad(sf::Vector2f(x, y), color, letter);
 
-      if (it != begin) {
-        x += letterSpacing;
-      }
+      x += letterSpacing;
 
       x += font.GetLetterWidth();
     }

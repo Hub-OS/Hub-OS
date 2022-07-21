@@ -10,7 +10,7 @@
 #include "bnBubbleTrap.h"
 #include "bnBubbleState.h"
 
-#define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
+#define RESOURCE_PATH ""
 
 Player::Player() :
   state(PLAYER_IDLE),

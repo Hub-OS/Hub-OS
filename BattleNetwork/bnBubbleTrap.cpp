@@ -7,7 +7,7 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/bubble_trap.animation"
+#define RESOURCE_PATH "resources/scenes/battle/spells/bubble_trap.animation"
 
 BubbleTrap::BubbleTrap(std::weak_ptr<Entity> owner) : 
   willDelete(false), defense(nullptr), duration(3), 
@@ -87,7 +87,7 @@ void BubbleTrap::OnUpdate(double _elapsed) {
     Pop();
   }
 
-  auto y = -asCharacter->GetHeight() / 4.0f;
+  auto y = -asCharacter->GetHeight() / 2.0f;
   setPosition(0.f, y);
 
   animation.Update(_elapsed, getSprite());

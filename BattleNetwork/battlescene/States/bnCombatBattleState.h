@@ -3,6 +3,7 @@
 #include "../bnBattleSceneState.h"
 #include "../../bnSpriteProxyNode.h"
 #include "../../bnCardUseListener.h"
+#include "../../bnText.h"
 
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Shader.hpp>
@@ -27,6 +28,9 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
   sf::Shader* pauseShader; /*!< Dim screen */
+  Text summonsLabel = Text(Font::Style::thick);
+  mutable Text multiplier;
+  mutable Text dmg; /*!< Text displays card damage */
   std::vector<const BattleSceneState*> subcombatStates;
   const bool IsMobCleared() const;
   const bool HasTimeFreeze() const;
@@ -43,6 +47,7 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
+  void DrawCardData(sf::RenderTarget& target, std::shared_ptr<Player> player);
 
   CombatBattleState(double customDuration);
 };

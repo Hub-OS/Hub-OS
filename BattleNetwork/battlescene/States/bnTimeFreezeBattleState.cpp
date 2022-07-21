@@ -252,8 +252,8 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   bar.setScale(2.f, 2.f);
 
   if (summonTick >= summonTextLength) {
-    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
-    scale = std::max(scale, 0.0);
+      scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
+      scale = std::max(scale, 0.0);
   }
 
   sf::Vector2f position = sf::Vector2f(64.f, 82.f);
@@ -380,7 +380,8 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
     dmgOffset = 10.0f;
   }
   
-  if (multiplierValue != 1 && unmodDamage != 0) {
+  //Only show multiplier if value is greater than 1. Don't need to show x0 or x1.
+  if (multiplierValue > 1 && unmodDamage != 0) {
     // add "x N" where N is the multiplier
     std::string multStr = "x" + std::to_string(multiplierValue);
     multiplier.SetString(multStr);

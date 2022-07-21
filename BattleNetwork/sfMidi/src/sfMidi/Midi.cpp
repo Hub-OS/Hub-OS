@@ -318,7 +318,6 @@ void sfmidi::Midi::play()
     SoundStream::play();
 }
 
-
 bool sfmidi::Midi::onGetData(sf::SoundStream::Chunk& data)
 {
   static const unsigned int audioBufferSize = SFMIDI_AUDIOFRAMES * 2;

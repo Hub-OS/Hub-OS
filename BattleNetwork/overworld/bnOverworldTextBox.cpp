@@ -9,6 +9,7 @@
 namespace Overworld {
   AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos) : textbox(pos), ResourceHandle() {
       turboScroll = false;
+      turboTimer = 0;
   }
 
   void AnimatedTextBox::SetNextSpeaker(const sf::Sprite& speaker, const Animation& animation) {
@@ -196,6 +197,10 @@ namespace Overworld {
       turboScroll = false;
       textbox.Close();
     }
+  }
+
+  void AnimatedTextBox::Close() {
+      textbox.Close();
   }
 
   void AnimatedTextBox::ChangeAppearance(std::shared_ptr<sf::Texture> newTexture, const Animation& newAnimation)

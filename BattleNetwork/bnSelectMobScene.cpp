@@ -37,11 +37,11 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectMob
   menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
   menuLabel.setScale(2.f, 2.f);
 
-  navigator.setTexture(Textures().LoadFromFile(TexturePaths::MUG_NAVIGATOR));
+  navigator.setTexture(Textures().LoadFromFile(GetNaviMugTexture()));
   navigator.setScale(2.0f, 2.0f);
   navigator.setPosition(10.0f, 208.0f);
 
-  navigatorAnimator = Animation("resources/ui/navigator.animation");
+  navigatorAnimator = Animation(GetNaviMugAnimation());
   navigatorAnimator.Reload();
   navigatorAnimator.SetAnimation("TALK");
   navigatorAnimator << Animator::Mode::Loop;
@@ -591,6 +591,29 @@ void SelectMobScene::onLeave() {
 
   Logger::Log(LogLevel::info, "SelectMobScene::onLeave()");
 
+}
+
+std::filesystem::path SelectMobScene::GetNaviMugTexture()
+{
+    const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNavi)) {
+        auto& meta = packageManager.FindPackageByID(selectedNavi);
+        return meta.GetMugshotTexturePath();
+    }
+    return std::filesystem::path("");
+}
+
+std::filesystem::path SelectMobScene::GetNaviMugAnimation()
+{
+    const std::string& selectedNavi = getController().Session().GetKeyValue("SelectedNavi");
+    PlayerPackageManager& packageManager = getController().PlayerPackagePartitioner().GetPartition(Game::LocalPartition);
+    if (packageManager.HasPackage(selectedNavi)) {
+        auto& meta = packageManager.FindPackageByID(selectedNavi);
+        auto muganim = meta.GetMugshotAnimationPath();
+        return muganim;
+    }
+    return std::filesystem::path("");
 }
 
 void SelectMobScene::onExit() {
