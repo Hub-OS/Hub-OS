@@ -243,7 +243,7 @@ bool CardSelectionCust::CursorRight() {
   if (cursorRow == 0) {
     // OK button is reserved at base-0 index position 5,
     // anything past that is too far so then wrap around
-    if (cursorPos >= sz) {
+    if (cursorPos >= 5) {
       if (lastCursorPos == 5) {
         cursorPos = 0;
       }
@@ -267,6 +267,7 @@ bool CardSelectionCust::CursorRight() {
     }
 
     if (lastCursorPos != 5 && playerSpecialButton1) {
+      Logger::Log(LogLevel::critical, "wrapped to pos 5 for special button 1");
       // reserved for playerSpecialButton1 on row 1
       cursorPos = 5;
       return true;

@@ -9,7 +9,7 @@ public:
   ~StuntDouble();
 
   void Init() override;
-  void OnDelete();
+  void OnDelete() override;
   void OnUpdate(double elapsed);
   bool CanMoveTo(Battle::Tile*) override;
 };

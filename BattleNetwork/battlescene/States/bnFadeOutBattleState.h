@@ -25,7 +25,7 @@ public:
 
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
-  void onUpdate(double);
-  void onDraw(sf::RenderTexture&);
+  void onUpdate(double) override;
+  void onDraw(sf::RenderTexture&) override;
   void EnableKeepPlaying(bool enable);
 };

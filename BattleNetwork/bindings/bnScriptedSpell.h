@@ -26,7 +26,7 @@ public:
   void OnSpawn(Battle::Tile& spawn) override;
   void OnBattleStart() override;
   void OnBattleStop() override;
-  const float GetHeight() const;
+  const float GetHeight() const override;
   void SetHeight(const float height);
 
   void SetAnimation(const std::string& path);

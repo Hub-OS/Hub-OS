@@ -47,7 +47,7 @@ public:
   frame_time_t CalculateChargeTime(const unsigned chargeLevel) override;
   ScriptedPlayerFormMeta* CreateForm();
 
-  const float GetHeight() const;
+  const float GetHeight() const override;
   Animation& GetAnimationObject();
   Battle::Tile* GetCurrentTile() const;
 

@@ -386,8 +386,6 @@ void Entity::Update(double _elapsed) {
         health = 0;
 
         // Ensure status effects do not play out
-        stunCooldown = frames(0);
-        rootCooldown = frames(0);
         CancelFlash();
     }
 
@@ -414,57 +412,35 @@ void Entity::Update(double _elapsed) {
         }
     }
 
-    if (rootCooldown > frames(0)) {
-        rootCooldown -= from_seconds(_elapsed);
-
-        // Root is cancelled if these conditions are met
-        if (rootCooldown <= frames(0)/* || IsIntangible() */) {
-            rootCooldown = frames(0);
-        }
-    }
+    statusDirector.OnUpdate(_elapsed);
 
     bool canUpdateThisFrame = true;
 
-    if (stunCooldown > frames(0)) {
+    if (IsStunned()) {
         canUpdateThisFrame = false;
-        stunCooldown -= from_seconds(_elapsed);
-
-        if (stunCooldown <= frames(0)) {
-            stunCooldown = frames(0);
-        }
     }
 
     // assume this is hidden, will flip to visible if not
     iceFx->Hide();
-    if (freezeCooldown > frames(0)) {
+    if (IsIceFrozen()) {
         iceFxAnimation.Update(_elapsed, iceFx->getSprite());
         iceFx->Reveal();
-
-        canUpdateThisFrame = false;
-        freezeCooldown -= from_seconds(_elapsed);
-
-        if (freezeCooldown <= frames(0)) {
-            freezeCooldown = frames(0);
+        if (!IsTimeFrozen()) {
+            canUpdateThisFrame = false;
         }
     }
 
     // assume this is hidden, will flip to visible if not
     blindFx->Hide();
-    if (blindCooldown > frames(0)) {
+    if (IsBlind()) {
         blindFxAnimation.Update(_elapsed, blindFx->getSprite());
         blindFx->Reveal();
-
-        blindCooldown -= from_seconds(_elapsed);
-
-        if (blindCooldown <= frames(0)) {
-            blindCooldown = frames(0);
-        }
     }
 
 
     // assume this is hidden, will flip to visible if not
     confusedFx->Hide();
-    if (confusedCooldown > frames(0)) {
+    if (IsConfused()) {
         confusedFxAnimation.Update(_elapsed, confusedFx->getSprite());
         confusedFx->Reveal();
 
@@ -476,13 +452,9 @@ void Entity::Update(double _elapsed) {
             Audio().Play(confusedsfx, AudioPriority::highest);
             confusedSfxCooldown = CONFUSED_SFX_INTERVAL;
         }
-
-        confusedCooldown -= from_seconds(_elapsed);
-
-        if (confusedCooldown <= frames(0)) {
-            confusedCooldown = frames(0);
-            confusedSfxCooldown = frames(0);
-        }
+    }
+    else {
+        confusedSfxCooldown = frames(0);
     }
 
     if (canUpdateThisFrame) {
@@ -588,6 +560,9 @@ void Entity::RefreshShader()
     smartShader.SetUniform("palette", palette);
 
     // state checks
+    frame_time_t stunCooldown = statusDirector.GetStatus(false, Hit::stun).remainingTime;
+    frame_time_t rootCooldown = statusDirector.GetStatus(false, Hit::root).remainingTime;
+    frame_time_t freezeCooldown = statusDirector.GetStatus(false, Hit::freeze).remainingTime;
     unsigned stunFrame = stunCooldown.count() % 4;
     unsigned rootFrame = rootCooldown.count() % 4;
     counterFrameFlag = counterFrameFlag % 4;
@@ -1012,7 +987,8 @@ void Entity::Delete()
     if (deleted) return;
     std::shared_ptr<Field> fieldPtr = field.lock();
 
-    if (fieldPtr) {
+    if (fieldPtr && !IsOnField()) {
+        Logger::Log(LogLevel::critical, "field escape");
         if (!fieldPtr->isBattleActive) return;
     }
     deleted = true;
@@ -1077,6 +1053,13 @@ void Entity::AdoptNextTile()
 
 void Entity::ToggleTimeFreeze(bool state)
 {
+    // When entering Time Freeze, force Stun, Freeze cooldowns to 0. Hide Ice, and refresh Shader.
+    // This is to allow animations during Time Freeze.
+    if (state) {
+        iceFx->Hide();
+        RefreshShader();
+    }
+
     isTimeFrozen = state;
 }
 
@@ -1397,6 +1380,7 @@ void Entity::ResolveFrameBattleDamage()
     bool frameFlashCancel = false;
     bool frameFreezeCancel = false;
     bool willFreeze = false;
+    bool isDrag = false;
     Hit::Drag postDragEffect{};
 
     std::queue<CombatHitProps> append;
@@ -1451,6 +1435,7 @@ void Entity::ResolveFrameBattleDamage()
 
                     // requeue drag if count is > 0
                     if (props.filtered.drag.count > 0) {
+                        isDrag = true;
                         // Apply drag effect post status resolution
                         postDragEffect.dir = props.filtered.drag.dir;
                         postDragEffect.count = props.filtered.drag.count - 1u;
@@ -1464,7 +1449,7 @@ void Entity::ResolveFrameBattleDamage()
             props.filtered.flags &= ~Hit::drag;
 
             bool flashAndFlinch = ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
-            frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
+            frameFreezeCancel = frameFreezeCancel || flashAndFlinch || isDrag;
 
             /**
             While an attack that only flinches will not cancel stun,
@@ -1482,11 +1467,11 @@ void Entity::ResolveFrameBattleDamage()
                 else {
                     if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
                         // cancel stun
-                        stunCooldown = frames(0);
+                        Stun(frames(0));
                     }
                     else {
                         // refresh stun
-                        stunCooldown = frames(120);
+                        Stun(frames(120));
                         flagCheckThunk(Hit::stun);
                     }
 
@@ -1561,7 +1546,7 @@ void Entity::ResolveFrameBattleDamage()
             props.filtered.flags &= ~Hit::bubble;
 
             if ((props.filtered.flags & Hit::root) == Hit::root) {
-                rootCooldown = frames(120);
+                Root(frames(120));
                 flagCheckThunk(Hit::root);
             }
 
@@ -1687,7 +1672,7 @@ void Entity::ResolveFrameBattleDamage()
     }
 
     if (frameFreezeCancel) {
-        freezeCooldown = frames(0); // end freeze effect
+        IceFreeze(frames(0)); // end freeze effect
     }
     else if (willFreeze) {
         IceFreeze(frames(150)); // start freeze effect
@@ -1699,7 +1684,7 @@ void Entity::ResolveFrameBattleDamage()
     }
 
     if (frameStunCancel) {
-        stunCooldown = frames(0); // end stun effect
+        Stun(frames(0)); // end stun effect
     }
 }
 
@@ -1786,7 +1771,7 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
 
 bool Entity::IsCounterable()
 {
-    return (counterable && stunCooldown <= frames(0));
+    return (counterable && !IsStunned());
 }
 
 void Entity::ToggleCounter(bool on)
@@ -1796,26 +1781,26 @@ void Entity::ToggleCounter(bool on)
 
 bool Entity::IsStunned()
 {
-    return stunCooldown > frames(0);
+    return statusDirector.GetStatus(false, Hit::stun).remainingTime > frames(0);
 }
 
 bool Entity::IsRooted()
 {
-    return rootCooldown > frames(0);
+    return statusDirector.GetStatus(false, Hit::root).remainingTime > frames(0);
 }
 
 bool Entity::IsIceFrozen() {
-    return freezeCooldown > frames(0);
+    return statusDirector.GetStatus(false, Hit::freeze).remainingTime > frames(0);
 }
 
 bool Entity::IsBlind()
 {
-    return blindCooldown > frames(0);
+    return statusDirector.GetStatus(false, Hit::blind).remainingTime > frames(0);
 }
 
 bool Entity::IsConfused()
 {
-    return confusedCooldown > frames(0);
+    return statusDirector.GetStatus(false, Hit::confuse).remainingTime > frames(0);
 }
 
 void Entity::CancelFlash()
@@ -1829,72 +1814,85 @@ void Entity::CancelFlash()
 
 void Entity::Stun(frame_time_t maxCooldown)
 {
-    CancelFlash();
-    freezeCooldown = frames(0); // cancel freeze
-    stunCooldown = maxCooldown;
+    if (maxCooldown > frames(0)) {
+        CancelFlash();
+        IceFreeze(frames(0));
+    }
+    statusDirector.AddStatus(Hit::stun, maxCooldown, false);
 }
 
 void Entity::Root(frame_time_t maxCooldown)
 {
-    rootCooldown = maxCooldown;
+    statusDirector.AddStatus(Hit::root, maxCooldown, false);
 }
 
 void Entity::IceFreeze(frame_time_t maxCooldown)
 {
-    CancelFlash(); // cancel flash
-    stunCooldown = frames(0); // cancel stun
-    freezeCooldown = maxCooldown;
-
-    const float height = GetHeight();
-
-    static std::shared_ptr<sf::SoundBuffer> freezesfx = Audio().LoadFromFile(SoundPaths::ICE_FX);
-    Audio().Play(freezesfx, AudioPriority::highest);
-
-    if (height <= 48) {
-        iceFxAnimation << "small" << Animator::Mode::Loop;
-        iceFx->setPosition(0, -height / 2.f);
+    if (IsConfused()) {
+        return;
     }
-    else if (height <= 75) {
-        iceFxAnimation << "medium" << Animator::Mode::Loop;
-        iceFx->setPosition(0, -height / 2.f);
-    }
-    else {
-        iceFxAnimation << "large" << Animator::Mode::Loop;
-        iceFx->setPosition(0, -height / 2.f);
-    }
+    if (maxCooldown > frames(0)) {
+        if (IsTimeFrozen()) {
+            CancelFlash(); // cancel flash
+        }
+        Stun(frames(0)); // cancel stun
 
+        const float height = GetHeight();
+
+        static std::shared_ptr<sf::SoundBuffer> freezesfx = Audio().LoadFromFile(SoundPaths::ICE_FX);
+        Audio().Play(freezesfx, AudioPriority::highest);
+
+        if (height <= 48) {
+            iceFxAnimation << "small" << Animator::Mode::Loop;
+            iceFx->setPosition(0, -height / 2.f);
+        }
+        else if (height <= 75) {
+            iceFxAnimation << "medium" << Animator::Mode::Loop;
+            iceFx->setPosition(0, -height / 2.f);
+        }
+        else {
+            iceFxAnimation << "large" << Animator::Mode::Loop;
+            iceFx->setPosition(0, -height / 2.f);
+        }
+    }
     iceFxAnimation.Refresh(iceFx->getSprite());
+    statusDirector.AddStatus(Hit::freeze, maxCooldown, false);
 }
 
 void Entity::Blind(frame_time_t maxCooldown)
 {
-    float height = -GetHeight() / 2.f;
-    std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
+    if (maxCooldown > frames(0)) {
+        float height = -GetHeight() / 2.f;
+        std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
 
-    if (anim && anim->HasPoint("head")) {
-        height = (anim->GetPoint("head") - anim->GetPoint("origin")).y;
+        if (anim && anim->HasPoint("head")) {
+            height = (anim->GetPoint("head") - anim->GetPoint("origin")).y;
+        }
+
+        blindFx->setPosition(0, height);
+        blindFxAnimation << "default" << Animator::Mode::Loop;
+        blindFxAnimation.Refresh(blindFx->getSprite());
     }
-
-    blindCooldown = maxCooldown;
-    blindFx->setPosition(0, height);
-    blindFxAnimation << "default" << Animator::Mode::Loop;
-    blindFxAnimation.Refresh(blindFx->getSprite());
+    statusDirector.AddStatus(Hit::blind, maxCooldown, false);
 }
 
 void Entity::Confuse(frame_time_t maxCooldown) {
-    constexpr float OFFSET_Y = 10.f;
+    if (maxCooldown > frames(0)) {
+        IceFreeze(frames(0));
+        constexpr float OFFSET_Y = 10.f;
 
-    float height = -GetHeight() - OFFSET_Y;
-    std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
+        float height = -GetHeight() - OFFSET_Y;
+        std::shared_ptr<AnimationComponent> anim = GetFirstComponent<AnimationComponent>();
 
-    if (anim && anim->HasPoint("head")) {
-        height = (anim->GetPoint("head") - anim->GetPoint("origin")).y - OFFSET_Y;
+        if (anim && anim->HasPoint("head")) {
+            height = (anim->GetPoint("head") - anim->GetPoint("origin")).y - OFFSET_Y;
+        }
+
+        confusedFx->setPosition(0, height);
+        confusedFxAnimation << "default" << Animator::Mode::Loop;
+        confusedFxAnimation.Refresh(confusedFx->getSprite());
     }
-
-    confusedCooldown = maxCooldown;
-    confusedFx->setPosition(0, height);
-    confusedFxAnimation << "default" << Animator::Mode::Loop;
-    confusedFxAnimation.Refresh(confusedFx->getSprite());
+    statusDirector.AddStatus(Hit::confuse, maxCooldown, false);
 }
 
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {

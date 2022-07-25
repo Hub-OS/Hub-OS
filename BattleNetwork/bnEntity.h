@@ -37,6 +37,7 @@ using std::string;
 #include "bnDefenseRule.h"
 #include "bnDefenseIntangible.h"
 #include "bnHitProperties.h"
+#include "bnStatusDirector.h"
 #include "stx/memory.h"
 
 namespace Battle {
@@ -133,6 +134,7 @@ private:
     EventBus::Channel channel; /*!< Our event bus channel to emit events */
     MoveEvent currMoveEvent{};
     VirtualInputState inputState;
+    StatusBehaviorDirector statusDirector{};
     std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
     std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
     std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };
@@ -477,6 +479,14 @@ public:
     std::shared_ptr<ComponentType> GetFirstComponent() const;
 
     /**
+    * @brief Get the first component that inherits BaseType
+    * @return null if no component is found, otherwise return the component
+    */
+
+    template<typename BaseType>
+    std::shared_ptr<BaseType> GetFirstComponentDerivedFrom() const;
+
+    /**
     * @brief Get all components that matches the exact Type
     * @return vector of specified components
     */
@@ -791,13 +801,8 @@ protected:
     frame_time_t moveStartupDelay{};
     std::optional<frame_time_t> moveEndlagDelay;
     frame_time_t grassHealCooldown{ 0 }; /*!< Timer until next healing is allowed */
-    frame_time_t stunCooldown{ 0 }; /*!< Timer until stun is over */
-    frame_time_t rootCooldown{ 0 }; /*!< Timer until root is over */
-    frame_time_t freezeCooldown{ 0 }; /*!< Timer until freeze is over */
-    frame_time_t blindCooldown{ 0 }; /*!< Timer until blind is over */
-    frame_time_t confusedCooldown{ 0 }; /*!< Timer until confusion is over */
-    frame_time_t confusedSfxCooldown{ 0 }; /*!< Timer to replay confusion SFX */
     frame_time_t invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
+    frame_time_t confusedSfxCooldown{ 0 };
     bool counterable{};
     bool hit{}; /*!< Was hit this frame */
     int counterFrameFlag{ 0 };
@@ -948,6 +953,20 @@ inline std::shared_ptr<ComponentType> Entity::GetFirstComponent() const
     for (auto& component : components) {
         if (typeid(*component) == typeid(ComponentType)) {
             return std::dynamic_pointer_cast<ComponentType>(component);
+        }
+    }
+
+    return nullptr;
+}
+
+template<typename BaseType>
+inline std::shared_ptr<BaseType> Entity::GetFirstComponentDerivedFrom() const
+{
+    for (const auto& component : components) {
+        auto cast = std::dynamic_pointer_cast<BaseType>(component);
+
+        if (cast) {
+            return cast;
         }
     }
 

@@ -24,7 +24,8 @@ void AnimationComponent::OnUpdate(double _elapsed)
   // `couldUpdateLastFrame` is used to allow animationComponent to update our frame-sensitive animations
   // on the conditions that the entity would-be stunned this frame, the animation component will need present that correct frame outcome
   // before halting due to status effects
-  bool canUpdateThisFrame = (!(owner->IsStunned() || owner->IsIceFrozen())) && couldUpdateLastFrame;
+  // Dawn -> Add a check for if the entity is time stopped. If it is, we ignore the stun or freeze issue to allow animation during time stop.
+  bool canUpdateThisFrame = (!(!owner->IsTimeFrozen() && (owner->IsStunned() || owner->IsIceFrozen()))) && couldUpdateLastFrame;
   if (!canUpdateThisFrame) {
     return;
   }

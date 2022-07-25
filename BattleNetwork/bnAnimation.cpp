@@ -47,8 +47,15 @@ Animation::~Animation() {
 
 void Animation::CopyFrom(const Animation& rhs)
 {
-  *this = rhs;
-  ReapplyOverrides();
+    noAnim = rhs.noAnim;
+    animations = rhs.animations;
+    animator = rhs.animator;
+    currAnimation = rhs.currAnimation;
+    path = rhs.path;
+    progress = rhs.progress;
+    playbackSpeed = rhs.playbackSpeed;
+    animationOverrides = rhs.animationOverrides;
+    ReapplyOverrides();
 }
 
 void Animation::Reload() {

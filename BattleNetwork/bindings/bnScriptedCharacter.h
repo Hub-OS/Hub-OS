@@ -34,7 +34,7 @@ public:
 
   ScriptedCharacter(Character::Rank rank);
   ~ScriptedCharacter();
-  void Init();
+  void Init() override;
   void InitFromScript(sol::state& script);
   void OnSpawn(Battle::Tile& start) override;
   void OnBattleStart() override;

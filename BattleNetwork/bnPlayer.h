@@ -110,9 +110,9 @@ public:
   /**
    * @brief when player is deleted, changes state to delete state and hide charge component
    */
-  virtual void OnDelete();
+  void OnDelete() override;
 
-  virtual const float GetHeight() const;
+  const float GetHeight() const override;
 
   /**
    * @brief Get how many times the player has moved across the grid

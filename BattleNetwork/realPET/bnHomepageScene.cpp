@@ -269,7 +269,7 @@ void RealPET::Homepage::UpdateFolderParticles(double elapsed)
 
     bool canClick = !p.click.has_value() && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !mouseClicked;
     if (length < 10.0f && canClick) {
-      p.click = p.position - mousef;
+      *p.click = p.position - mousef;
       mouseClicked = true;
     }
 
@@ -425,7 +425,7 @@ void RealPET::Homepage::onUpdate(double elapsed)
     pos.x = interpolate(0.5f, pos.x, 0.f);
 
     float alpha = interpolate(0.3f, otherWidget->GetAlpha() / 255.f, 0.f);
-    otherWidget->SetAlpha(unsigned int(alpha*255));
+    otherWidget->SetAlpha((unsigned int)(alpha)*255);
     otherWidget->setPosition(pos);
   }
 
@@ -705,9 +705,9 @@ PA& RealPET::Homepage::GetProgramAdvance() {
 }
 
 std::optional<CardFolder*> RealPET::Homepage::GetSelectedFolder() {
-  CardFolder* folder;
+  std::optional<CardFolder*> folder;
 
-  if (folders->GetFolder(0, folder)) {
+  if (folders->GetFolder(0, *folder)) {
     return folder;
   }
   else {
