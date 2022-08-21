@@ -363,6 +363,16 @@ void CardAction::TimeFreezeBlackoutTiles(bool enable)
   timeFreezeBlackoutTiles = enable;
 }
 
+void CardAction::ToggleShowName(bool enable)
+{
+    showName = enable;
+}
+
+bool CardAction::IsShowName()
+{
+    return showName;
+}
+
 std::shared_ptr<CustomBackground> CardAction::GetCustomBackground()
 {
   return background;

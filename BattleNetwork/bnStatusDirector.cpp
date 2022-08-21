@@ -1,4 +1,5 @@
 #include "bnStatusDirector.h"
+#include "bnInputManager.h"
 
 std::vector<StatusBlocker> StatusBehaviorDirector::statusBlockers{
     StatusBlocker { Hit::freeze, Hit::stun },
@@ -8,6 +9,7 @@ std::vector<StatusBlocker> StatusBehaviorDirector::statusBlockers{
 StatusBehaviorDirector::StatusBehaviorDirector() {
     currentStatus = {};
     bannedStatuses = { Hit::stun, Hit::freeze };
+    mashHandler = InputHandle();
 }
 
 void StatusBehaviorDirector::AddStatus(Hit::Flags statusFlag, frame_time_t maxCooldown, bool deffer) {
@@ -24,6 +26,8 @@ void StatusBehaviorDirector::AddStatus(Hit::Flags statusFlag, frame_time_t maxCo
 
 void StatusBehaviorDirector::OnUpdate(double elapsed)
 {
+    frame_time_t _elapsed = from_seconds(elapsed);
+
     std::vector<Hit::Flags> cancelledStatuses;
     for (StatusBlocker blocker : statusBlockers) {
         if (GetStatus(false, blocker.blockingFlag).remainingTime > frames(0)) {
@@ -35,9 +39,31 @@ void StatusBehaviorDirector::OnUpdate(double elapsed)
         GetStatus(false, flags).remainingTime = frames(0);
     }
 
+
+    auto keyTestThunk = [this](const InputEvent& key) {
+        bool pass = false;
+
+        if (mashHandler.Input().Has(key)) {
+            pass = true;
+        }
+
+        return pass;
+    };
+
+    bool anyKey = keyTestThunk(InputEvents::pressed_use_chip);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_down);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_up);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_left);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_right);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_shoot);
+    anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
+
     for (AppliedStatus& statusToCheck : currentStatus) {
         if (statusToCheck.remainingTime > frames(0)) {
-            statusToCheck.remainingTime -= from_seconds(elapsed);
+            if (anyKey && statusToCheck.statusFlag == (Hit::stun || Hit::freeze)) {
+                statusToCheck.remainingTime -= frames(1);
+            }
+            statusToCheck.remainingTime -= _elapsed;
         }
     }
 };
@@ -54,5 +80,13 @@ AppliedStatus& StatusBehaviorDirector::GetStatus(bool isPrevious, Hit::Flags fla
     return currentStatus.back();
 };
 
+void StatusBehaviorDirector::ClearStatus() {
+    
+    for (AppliedStatus& status : currentStatus) {
+        status.remainingTime = frames(0);
+        status.statusFlag = Hit::none;
+    }
+};
+
 StatusBehaviorDirector::~StatusBehaviorDirector() {
-}
+};

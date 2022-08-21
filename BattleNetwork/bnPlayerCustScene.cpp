@@ -1317,12 +1317,10 @@ void PlayerCustScene::onUpdate(double elapsed)
     bool isDone = !textbox.IsPlaying() || textbox.GetCurrentCharacter() == '\0';
     isDone = isDone || textbox.IsEndOfMessage();
     if (isDone && navigatorAnimator.GetAnimationString() != "IDLE") {
-        Logger::Log(LogLevel::critical, "setting navi to idle");
         navigatorAnimator.SetAnimation("IDLE");
         navigatorAnimator << Animator::Mode::Loop;
     }
     else if (!isDone && navigatorAnimator.GetAnimationString() != "TALK") {
-        Logger::Log(LogLevel::critical, "setting navi to talk");
         navigatorAnimator.SetAnimation("TALK");
         navigatorAnimator << Animator::Mode::Loop;
     }

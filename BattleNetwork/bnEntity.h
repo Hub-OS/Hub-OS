@@ -895,6 +895,12 @@ protected:
      */
     virtual void OnUpdate(double _elapsed) {};
 
+    void SetDragFinishCooldown(frame_time_t cooldown);
+    
+    frame_time_t GetDragFinishCooldown();
+
+    bool IsSlideFromDrag();
+
 private:
     bool ignoreCommonAggressor{};
     bool hasInit{};
@@ -909,7 +915,7 @@ private:
     bool hitboxEnabled{ true };
     bool canTilePush{};
     bool canShareTile{}; /*!< Some characters can share tiles with others */
-    bool slideFromDrag{}; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
+    bool slideFromDrag{ false }; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
     bool swapPalette{ false };
     bool fieldStart{ false }; /*!< Used to signify if battle has started */
     int moveCount{}; /*!< Used by battle results */
@@ -918,6 +924,7 @@ private:
     float elevation{}; // vector away from grid
     float counterSlideDelta{};
     double elapsedMoveTime{}; /*!< delta time since recent move event began */
+    frame_time_t dragFinishCooldown{ frames(0) };
     Battle::TileHighlight mode; /*!< Highlight occupying tile */
     Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
     Direction direction{};

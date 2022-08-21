@@ -572,13 +572,13 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     });
 
   engine_namespace.set_function("set_cust_gauge_time",
-    [this](double seconds) {
+    [this](frame_time_t seconds) {
       if (eventChannel == nullptr) return;
       eventChannel->Emit(&BattleSceneBase::SetCustomBarProgress, seconds);
     });
 
   engine_namespace.set_function("set_cust_gauge_max_time",
-    [this](double max_seconds) {
+    [this](frame_time_t max_seconds) {
       eventChannel->Emit(&BattleSceneBase::SetCustomBarDuration, max_seconds);
     });
 
@@ -599,6 +599,16 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Plus", Element::plus,
     "Break", Element::breaker,
     "None", Element::none
+  );
+
+  const auto& emotions_table = state.new_enum("Emotions",
+    "Normal", Emotion::normal,
+    "Dark", Emotion::evil,
+    "Anxious", Emotion::anxious,
+    "Tired", Emotion::tired,
+    "Pinch", Emotion::pinch,
+    "Focus", Emotion::focus,
+    "Happy", Emotion::happy
   );
 
   const auto& direction_table = state.new_enum("Direction",

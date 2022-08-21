@@ -28,9 +28,12 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
   sf::Shader* pauseShader; /*!< Dim screen */
-  Text summonsLabel = Text(Font::Style::thick);
-  mutable Text multiplier;
-  mutable Text dmg; /*!< Text displays card damage */
+  SceneNode cardText;
+  std::shared_ptr<Text> summonsLabel;
+  std::shared_ptr<Text> summonsLabelShadow;
+  mutable std::shared_ptr<Text> multiplier;
+  std::shared_ptr<Text> multiplierShadow;
+  mutable std::shared_ptr<Text> dmg; /*!< Text displays card damage */
   std::vector<const BattleSceneState*> subcombatStates;
   const bool IsMobCleared() const;
   const bool HasTimeFreeze() const;
@@ -49,5 +52,5 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
   void DrawCardData(sf::RenderTarget& target, std::shared_ptr<Player> player);
 
-  CombatBattleState(double customDuration);
+  CombatBattleState(frame_time_t customDuration);
 };

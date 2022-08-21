@@ -102,9 +102,9 @@ private:
   int newRedTeamMobSize{ 0 }, newBlueTeamMobSize{ 0 };
   frame_time_t frameNumber{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
-  double customProgress{ 0 }; /*!< Cust bar progress in seconds */
-  double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
-  double customDefaultDuration{ 10.0 }; /*!< Default value */
+  frame_time_t customProgress{ frames(0) }; /*!< Cust bar progress in frames */
+  frame_time_t customDuration{ frames(512) }; /*!< Cust bar max time in frames */
+  frame_time_t customDefaultDuration{ frames(512) }; /*!< Default value */
   double customFullAnimDelta{ 0 }; /*!< For animating a complete cust bar*/
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
@@ -314,10 +314,10 @@ public:
   void HandleCounterLoss(Entity& subject, bool playsound);
   void HighlightTiles(bool enable);
 
-  const double GetCustomBarProgress() const;
-  const double GetCustomBarDuration() const;
-  void SetCustomBarProgress(double value);
-  void SetCustomBarDuration(double maxTimeSeconds);
+  const frame_time_t GetCustomBarProgress() const;
+  const frame_time_t GetCustomBarDuration() const;
+  void SetCustomBarProgress(frame_time_t value);
+  void SetCustomBarDuration(frame_time_t maxTimeSeconds);
   void ResetCustomBarDuration();
   void DrawCustGauage(sf::RenderTexture& surface);
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
@@ -378,6 +378,12 @@ public:
     return StateNodeWrapper<T>(*this, *ptr);
   }
 
+  template<typename T>
+  void DrawWithPerspective(T& drawable, sf::RenderTarget& surf);
+
+  template<typename T>
+  void DrawWithPerspectiveLowercase(T& drawable, sf::RenderTarget& surf);
+
   /*  
       \brief Set the current state pointer to this state node reference and begin the scene
   */
@@ -394,10 +400,6 @@ public:
 
   // Define what happens on scenes that need to inspect pre-filtered card selections
   virtual void OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
-
-  void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
-  void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
-  void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
   void PerspectiveFlip(bool flipped);
   bool TrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackOtherPlayer(std::shared_ptr<Player>& other);
@@ -509,3 +511,37 @@ private:
   */
   void Link(StateNode& a, StateNode& b, ChangeCondition when);
 };
+
+template<typename T>
+void BattleSceneBase::DrawWithPerspective(T& drawable, sf::RenderTarget& surf)
+{
+    sf::Vector2f position = drawable.getPosition();
+    sf::Vector2f origin = drawable.getOrigin();
+    sf::Vector2f offset = PerspectiveOffset(position);
+    sf::Vector2f originNew = PerspectiveOrigin(drawable.getOrigin(), drawable.GetLocalBounds());
+
+    drawable.setPosition(drawable.getPosition() + offset);
+    drawable.setOrigin(originNew);
+
+    surf.draw(drawable);
+
+    drawable.setPosition(position);
+    drawable.setOrigin(origin);
+}
+
+template<typename T>
+void BattleSceneBase::DrawWithPerspectiveLowercase(T& drawable, sf::RenderTarget& surf)
+{
+    sf::Vector2f position = drawable.getPosition();
+    sf::Vector2f origin = drawable.getOrigin();
+    sf::Vector2f offset = PerspectiveOffset(position);
+    sf::Vector2f originNew = PerspectiveOrigin(drawable.getOrigin(), drawable.getLocalBounds());
+
+    drawable.setPosition(drawable.getPosition() + offset);
+    drawable.setOrigin(originNew);
+
+    surf.draw(drawable);
+
+    drawable.setPosition(position);
+    drawable.setOrigin(origin);
+}

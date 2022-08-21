@@ -272,13 +272,13 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
-    scene.DrawWithPerspective(bar, surface);
+    scene.DrawWithPerspectiveLowercase(bar, surface);
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
     bar.setFillColor(sf::Color(255, 255, b));
-    scene.DrawWithPerspective(bar, surface);
+    scene.DrawWithPerspectiveLowercase(bar, surface);
   }
 
   // draw the !! sprite
@@ -300,7 +300,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
       }
 
       alertSprite.setPosition(position);
-      scene.DrawWithPerspective(alertSprite, surface);
+      scene.DrawWithPerspectiveLowercase(alertSprite, surface);
     }
   }
 }

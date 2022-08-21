@@ -35,6 +35,8 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
+  ToggleShowName(false);
+
   std::shared_ptr<Character> actor = actorWeak.lock();
 
   busterAttachment = &AddAttachment("buster");

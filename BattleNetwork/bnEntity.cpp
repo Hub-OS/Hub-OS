@@ -416,6 +416,11 @@ void Entity::Update(double _elapsed) {
 
     bool canUpdateThisFrame = true;
 
+    if (dragFinishCooldown > frames(0)) {
+        dragFinishCooldown -= frames(1);
+        canUpdateThisFrame = false;
+    }
+
     if (IsStunned()) {
         canUpdateThisFrame = false;
     }
@@ -987,11 +992,9 @@ void Entity::Delete()
     if (deleted) return;
     std::shared_ptr<Field> fieldPtr = field.lock();
 
-    if (fieldPtr && !IsOnField()) {
-        Logger::Log(LogLevel::critical, "field escape");
-        if (!fieldPtr->isBattleActive) return;
-    }
     deleted = true;
+
+    statusDirector.ClearStatus();
 
     OnDelete();
 }
@@ -1440,6 +1443,10 @@ void Entity::ResolveFrameBattleDamage()
                         postDragEffect.dir = props.filtered.drag.dir;
                         postDragEffect.count = props.filtered.drag.count - 1u;
                     }
+                    else{
+                        //Now that drag is finished, queue the 22f cooldown where the entity can do nothing.
+                        SetDragFinishCooldown(frames(22));
+                    }
                 }
 
                 flagCheckThunk(Hit::drag);
@@ -1854,8 +1861,11 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
             iceFxAnimation << "large" << Animator::Mode::Loop;
             iceFx->setPosition(0, -height / 2.f);
         }
+        iceFxAnimation.Refresh(iceFx->getSprite());
     }
-    iceFxAnimation.Refresh(iceFx->getSprite());
+    else{
+        iceFx->Hide();
+    }
     statusDirector.AddStatus(Hit::freeze, maxCooldown, false);
 }
 
@@ -1893,6 +1903,21 @@ void Entity::Confuse(frame_time_t maxCooldown) {
         confusedFxAnimation.Refresh(confusedFx->getSprite());
     }
     statusDirector.AddStatus(Hit::confuse, maxCooldown, false);
+}
+
+void Entity::SetDragFinishCooldown(frame_time_t cooldown)
+{
+    dragFinishCooldown = cooldown;
+}
+
+frame_time_t Entity::GetDragFinishCooldown()
+{
+    return dragFinishCooldown;
+}
+
+bool Entity::IsSlideFromDrag()
+{
+    return slideFromDrag || false;
 }
 
 const Battle::TileHighlight Entity::GetTileHighlightMode() const {

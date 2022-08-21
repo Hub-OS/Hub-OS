@@ -180,7 +180,7 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
       const sf::Vector2f pos = player->getPosition();
       shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));
       
-      scene.DrawWithPerspective(shine, surface);
+      scene.DrawWithPerspectiveLowercase(shine, surface);
     }
 
     count++;

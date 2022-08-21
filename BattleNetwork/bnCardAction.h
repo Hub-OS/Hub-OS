@@ -110,6 +110,7 @@ private:
   bool recalledAnimation{ false };
   bool preventCounters{ false };
   bool timeFreezeBlackoutTiles{ false };
+  bool showName{ true };
   LockoutProperties lockoutProps{};
   std::string animation;
   std::string uuid, prevState;
@@ -156,6 +157,8 @@ public:
   void EndAction();
   void SetCustomBackground(const std::shared_ptr<CustomBackground>& background);
   void TimeFreezeBlackoutTiles(bool enable);
+  void ToggleShowName(bool enable);
+  bool IsShowName();
 
   const Frame& GetFrame(unsigned int index);
   const LockoutGroup GetLockoutGroup() const;

@@ -14,10 +14,13 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(double customDuration) :
+CombatBattleState::CombatBattleState(frame_time_t customDuration) :
   pauseShader(Shaders().GetShader(ShaderType::BLACK_FADE)),
-  dmg(Font::Style::gradient_orange),
-  multiplier(Font::Style::thick)
+  summonsLabel(std::make_shared<Text>(Font::Style::thick)),
+  summonsLabelShadow(std::make_shared<Text>(Font::Style::thick)),
+  dmg(std::make_shared<Text>(Font::Style::gradient_orange)),
+  multiplier(std::make_shared<Text>(Font::Style::thick)),
+  multiplierShadow(std::make_shared<Text>(Font::Style::thick))
 {
   // PAUSE
   pause.setTexture(*Textures().LoadFromFile("resources/ui/pause.png"));
@@ -43,6 +46,20 @@ CombatBattleState::CombatBattleState(double customDuration) :
 
   counterHit = doubleDelete;
   counterHit.setTexture(*Textures().LoadFromFile(TexturePaths::COUNTER_HIT));
+
+  //PVP Labels and such
+  summonsLabelShadow->SetColor(sf::Color::Black);
+  multiplierShadow->SetColor(sf::Color::Black);
+  cardText.AddNode(summonsLabelShadow);
+  cardText.AddNode(summonsLabel);
+  cardText.AddNode(dmg);
+  cardText.AddNode(multiplierShadow);
+  cardText.AddNode(multiplier);
+  summonsLabelShadow->setScale({ 2.0f, 2.0f });
+  summonsLabel->setScale({ 2.0f, 2.0f });
+  dmg->setScale({ 2.0f, 2.0f });
+  multiplierShadow->setScale({ 2.0f, 2.0f });
+  multiplier->setScale({ 2.0f, 2.0f });
 }
 
 const bool CombatBattleState::IsMobCleared() const
@@ -111,7 +128,7 @@ void CombatBattleState::onStart(const BattleSceneState* last)
     hasTimeFreeze = false;
 
     // reset bar and related flags
-    scene.SetCustomBarProgress(0);
+    scene.SetCustomBarProgress(frames(0));
   }
 }
 
@@ -125,7 +142,7 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
     scene.StopBattleStepTimer();
 
     // reset bar 
-    scene.SetCustomBarProgress(0);
+    scene.SetCustomBarProgress(frames(0));
   }
 
   scene.HighlightTiles(false);
@@ -169,7 +186,7 @@ void CombatBattleState::onUpdate(double elapsed)
 
   if (isPaused) return; // do not update anything else
 
-  scene.SetCustomBarProgress(scene.GetCustomBarProgress() + elapsed);
+  scene.SetCustomBarProgress(scene.GetCustomBarProgress() + frames(1));
 
   // Update the field. This includes the player.
   // After this function, the player may have used a card.
@@ -196,14 +213,14 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
     surface.draw(scene.GetCardSelectWidget());
 
     scene.DrawCustGauage(surface);
-    
-    std::shared_ptr<Player> player = scene.GetOtherPlayers().at(scene.GetOtherPlayers().size());
+    auto otherPlayers = scene.GetOtherPlayers();
 
-    DrawCardData(surface, player);
-
-    player = scene.GetLocalPlayer();
-
-    DrawCardData(surface, player);
+    //If we are in pvp (other players are existing) draw cards for them
+    if (otherPlayers.size() > 0) {
+        for (std::shared_ptr<Player> player : otherPlayers) {
+            DrawCardData(surface, player);
+        }
+    }
 
     if (isPaused) {
         // render on top
@@ -225,46 +242,46 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
 
 void CombatBattleState::DrawCardData(sf::RenderTarget& target, std::shared_ptr<Player> player)
 {
-    BattleSceneBase& scene = GetScene();
-    sf::Vector2f position = sf::Vector2f(64.f, 82.f);
-    if (player->GetTeam() == Team::blue) {
-        position = sf::Vector2f(416.f, 82.f);
+    //Do nothing if the player is null.
+    if (player == nullptr) {
+        return;
     }
 
-    const auto orange = sf::Color(225, 140, 0);
-    bool canBoost{};
-    float multiplierOffset = 0.f;
-    float dmgOffset = 0.f;
-
-    // helper function
-    auto setSummonLabelOrigin = [](Team team, Text& text) {
-        if (team == Team::red) {
-            text.setOrigin(0, text.GetLocalBounds().height * 0.5f);
-        }
-        else {
-            text.setOrigin(text.GetLocalBounds().width, text.GetLocalBounds().height * 0.5f);
-        }
-    };
-
-    // We want the other text to use the origin of the 
-    // summons label for the y so that they are all 
-    // sitting on the same line when they render
-    auto setOrigin = [setSummonLabelOrigin, this](Team team, Text& text) {
-        setSummonLabelOrigin(team, text);
-        text.setOrigin(text.getOrigin().x, summonsLabel.getOrigin().y);
-    };
+    //If the action is time freeze it will be drawn by time freeze state
+    //If the action is nothing what are we doing don't draw it
+    //If the action's animation is over, stop drawing it. NOTE: Add a hang time where we keep drawing it for a bit
+    //This is so that fast actions are visible for, say, 30 frames.
     std::shared_ptr<CardAction> action = player->CurrentCardAction();
     if (action == nullptr || action->GetMetaData().IsTimeFreeze() || action->IsAnimationOver()) {
         return;
     }
+
+    //If the action exists and is registered to not show it's name, don't continue.
+    //If we are the same team as the action, don't continue.
     Team team = action->GetActor()->GetTeam();
+    if (!action->IsShowName() || player->GetTeam() == action->GetActor()->GetTeam()) {
+        return;
+    }
 
-    summonsLabel.SetString(action->GetMetaData().GetShortName());
-    summonsLabel.setScale({ 2.0f, 2.0f });
-    setSummonLabelOrigin(team, summonsLabel);
+    BattleSceneBase& scene = GetScene();
 
-    dmg.SetString("");
-    multiplier.SetString("");
+    bool canBoost{};
+    float multiplierOffset = 0.f;
+    float dmgOffset = 0.f;
+
+    Team localTeam = scene.GetLocalPlayer()->GetTeam();
+    sf::Vector2f position = sf::Vector2f(64.f, 64.f);
+    if (player->GetTeam() != localTeam) {
+        position = sf::Vector2f(256.f, 64.f);
+    }
+
+    summonsLabelShadow->SetString(action->GetMetaData().GetShortName());
+    summonsLabel->SetString(action->GetMetaData().GetShortName());
+
+    dmg->SetString("");
+
+    multiplierShadow->SetString("");
+    multiplier->SetString("");
 
     const Battle::Card& card = action->GetMetaData();
     canBoost = card.CanBoost();
@@ -278,70 +295,40 @@ void CombatBattleState::DrawCardData(sf::RenderTarget& target, std::shared_ptr<P
         damage /= multiplierValue;
     }
 
+    //Determine damage text
     int delta = damage - unmodDamage;
     sf::String dmgText = std::to_string(unmodDamage);
-
     if (delta != 0) {
         dmgText = dmgText + sf::String("+") + sf::String(std::to_string(std::abs(delta)));
     }
 
     // attacks that normally show no damage will show if the modifer adds damage
     if (delta > 0 || unmodDamage > 0) {
-        dmg.SetString(dmgText);
-        dmg.setScale({ 2.0f, 2.0f });
-        setOrigin(team, dmg);
+        dmg->SetString(dmgText);
         dmgOffset = 10.0f;
     }
 
-    //Only show multiplier if value is greater than 1. Don't need to show x0 or x1.
+    //Dawn: Only show multiplier if value is greater than 1. Don't need to show x0 or x1.
     if (multiplierValue > 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
         std::string multStr = "x" + std::to_string(multiplierValue);
-        multiplier.SetString(multStr);
-        multiplier.setScale({ 2.0f, 2.0f });
-        setOrigin(team, multiplier);
-        multiplierOffset = 3.0f;
-    }
-    float shadowBonus = 2.f;
-    // based on team, render the text from left-to-right or right-to-left alignment
-    if (team == Team::red) {
-        summonsLabel.setPosition(position);
-        dmg.setPosition(summonsLabel.getPosition().x + summonsLabel.GetWorldBounds().width + dmgOffset, position.y);
-        multiplier.setPosition(dmg.getPosition().x + dmg.GetWorldBounds().width + multiplierOffset, position.y);
-    }
-    else { /* team == Team::blue or other */
-        multiplier.setPosition(position);
-        shadowBonus = -2.f;
-        dmg.setPosition(multiplier.getPosition().x - multiplier.GetWorldBounds().width - multiplierOffset, position.y);
-        summonsLabel.setPosition(dmg.getPosition().x - dmg.GetWorldBounds().width - dmgOffset, position.y);
+        multiplierShadow->SetString(multStr);
+        multiplier->SetString(multStr);
+        multiplierOffset = 10.0f;
     }
 
-    // shadow beneath
-    auto textPos = summonsLabel.getPosition();
-    summonsLabel.SetColor(sf::Color::Black);
-    summonsLabel.setPosition(textPos.x + shadowBonus, textPos.y + 2.f);
-    scene.DrawWithPerspective(summonsLabel, target);
+    //Set the position of the label
+    //Label position gets overwritten by the last player to use the card, favoring the other team.
+    cardText.setPosition(position);
+    auto textPos = cardText.getPosition();
+    summonsLabelShadow->setPosition(textPos.x + 2.f, textPos.y + 2.f);
+    summonsLabel->setPosition(textPos.x, textPos.y);
+    dmg->setPosition(textPos.x + summonsLabel->GetWorldBounds().width + dmgOffset, textPos.y);
+    multiplierShadow->setPosition(textPos.x + summonsLabel->GetWorldBounds().width + dmg->GetWorldBounds().width + multiplierOffset + 2.f, textPos.y + 2.f);
+    multiplier->setPosition(multiplierShadow->getPosition().x - 2.f, multiplierShadow->getPosition().y - 2.f);
 
-    // font on top
-    summonsLabel.setPosition(textPos);
-    summonsLabel.SetColor(sf::Color::White);
-    scene.DrawWithPerspective(summonsLabel, target);
-
-    // our number font has shadow baked in
-    scene.DrawWithPerspective(dmg, target);
-
-    if (canBoost) {
-        // shadow
-        auto multiPos = multiplier.getPosition();
-        multiplier.SetColor(sf::Color::Black);
-        multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
-        scene.DrawWithPerspective(multiplier, target);
-
-        // font on top
-        multiplier.setPosition(multiPos);
-        multiplier.SetColor(sf::Color::White);
-        scene.DrawWithPerspective(multiplier, target);
-    }
+    // shadow beneath does not get drawn; had to add secondary text effects. much duplication. is there a solution?
+    scene.DrawWithPerspective(cardText, target);
 }
 
 

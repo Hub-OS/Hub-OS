@@ -77,8 +77,8 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
   pingIndicator.setScale(2.f, 2.f);
   UpdatePingIndicator(frames(0));
 
-  // in seconds
-  constexpr double battleDuration = 10.0;
+  // in frames, and accurate
+  constexpr frame_time_t battleDuration = frames(512);
 
   // First, we create all of our scene states
   auto connectSyncState = AddState<NetworkSyncBattleState>(this);
@@ -422,8 +422,8 @@ void NetworkBattleScene::Init()
   std::shared_ptr<MobHealthUI> ui = remotePlayer->GetFirstComponent<MobHealthUI>();
 
   if (ui) {
-    ui->SetManualMode(true);
     ui->SetHP(remotePlayer->GetHealth());
+    ui->SetManualMode(true);
   }
 
   GetCardSelectWidget().PreventRetreat();
@@ -769,14 +769,6 @@ std::function<bool()> NetworkBattleScene::HookPlayerDecrosses(CharacterTransform
     for (std::shared_ptr<Player> player : GetAllPlayers()) {
       TrackedFormData& formData = GetPlayerFormData(player);
 
-      bool decross = player->GetHealth() == 0 && (formData.selectedForm != -1);
-
-      // ensure we decross if their HP is zero and they have not yet
-      if (decross) {
-        formData.selectedForm = -1;
-        formData.animationComplete = false;
-      }
-
       // If the anim form data is configured to decross, then we will
       bool myChangeState = (formData.selectedForm == -1 && formData.animationComplete == false);
 
@@ -810,13 +802,13 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
-    bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
+    bool localTriggered = localPlayerDecross;
+    bool remoteTriggered = remotePlayerDecross;
     bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
 
     if (triggered) {
-      remotePlayerDecross = false; // reset our decross flag
-      localPlayerDecross = false;
+      remotePlayerDecross = false; // reset their decross flag
+      localPlayerDecross = false; //reset our decross flag
 
       // update the card select gui and state
       // since the state has its own records
@@ -858,7 +850,7 @@ void NetworkBattleScene::UpdatePingIndicator(frame_time_t frames)
 
   if (count >= 20) {
     // 1st frame is red - no connection for a significant fraction of the frame
-    // innevitable desync here
+    // inevitable desync here
     idx = 1;
   }
   else if (count >= 5) {

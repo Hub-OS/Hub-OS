@@ -47,7 +47,8 @@ class Character:
 private:
   std::vector<std::shared_ptr<CardAction>> asyncActions;
   std::shared_ptr<CardAction> currCardAction{ nullptr };
-  frame_time_t cardActionStartDelay{0};
+  frame_time_t cardActionStartDelay{ 0 };
+  frame_time_t cardActionConsumeDelay{ 0 };
 public:
 
   /**

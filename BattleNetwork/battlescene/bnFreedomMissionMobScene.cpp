@@ -24,8 +24,8 @@ FreedomMissionMobScene::FreedomMissionMobScene(ActivityController& controller, F
 
   Mob* mob = props.mobs.at(0);
 
-  // in seconds
-  constexpr double battleDuration = 10.0;
+  // in frames, and accurate
+  constexpr frame_time_t battleDuration = frames(512);
 
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(mob);
@@ -254,7 +254,7 @@ std::function<bool()> FreedomMissionMobScene::HookIntro(MobIntroBattleState& int
 std::function<bool()> FreedomMissionMobScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+    bool triggered = form.IsFinished() && playerDecross;
 
     if (triggered) {
       playerDecross = false; // reset our decross flag
@@ -277,9 +277,7 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
     TrackedFormData& formData = GetPlayerFormData(localPlayer);
 
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
+    bool changeState = playerDecross && (formData.selectedForm != -1);
 
     if (changeState) {
       formData.selectedForm = -1;
@@ -322,13 +320,13 @@ std::function<bool()> FreedomMissionMobScene::HookPlayerWon()
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
 
     if (localPlayer->GetTeam() == Team::red) {
-      return IsBlueTeamCleared();
+      return IsBlueTeamDead();
     }
     else if (localPlayer->GetTeam() == Team::blue) {
-      return IsRedTeamCleared();
+      return IsRedTeamDead();
     }
 
-    return IsBlueTeamCleared() && IsRedTeamCleared();
+    return IsBlueTeamDead() && IsRedTeamDead();
   };
 
   return lambda;

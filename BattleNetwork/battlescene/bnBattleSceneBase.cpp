@@ -44,8 +44,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   comboDeleteCounter(0),
   totalCounterMoves(0),
   totalCounterDeletions(0),
-  customProgress(0),
-  customDuration(10),
+  customProgress(frames(0)),
+  customDuration(frames(512)),
   whiteShader(Shaders().GetShader(ShaderType::WHITE_FADE)),
   backdropShader(Shaders().GetShader(ShaderType::BLACK_FADE)),
   yellowShader(Shaders().GetShader(ShaderType::YELLOW)),
@@ -53,6 +53,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   iceShader(Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   customBarShader(Shaders().GetShader(ShaderType::CUSTOM_BAR)),
   // cap of 8 cards, 8 cards drawn per turn
+  //Dawn: Do something about drawing 8 cards per turn. That's the MAX. Not the norm.
   cardCustGUI(
     CardSelectionCust::Props{ 
       std::move(props.folder), 
@@ -178,7 +179,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
 
   // create bi-directional communication
   Scripts().SetEventChannel(channel);
-  Scripts().SetKeyValue("cust_gauge_default_max_time", std::to_string(customDefaultDuration));
+  Scripts().SetKeyValue("cust_gauge_default_max_time", std::to_string(customDefaultDuration.asSeconds().value));
 }
 
 BattleSceneBase::~BattleSceneBase() {
@@ -319,12 +320,12 @@ void BattleSceneBase::HighlightTiles(bool enable)
   this->highlightTiles = enable;
 }
 
-const double BattleSceneBase::GetCustomBarProgress() const
+const frame_time_t BattleSceneBase::GetCustomBarProgress() const
 {
   return this->customProgress;
 }
 
-const double BattleSceneBase::GetCustomBarDuration() const
+const frame_time_t BattleSceneBase::GetCustomBarDuration() const
 {
   return this->customDuration;
 }
@@ -334,7 +335,7 @@ const bool BattleSceneBase::IsCustGaugeFull() const
   return isGaugeFull;
 }
 
-void BattleSceneBase::SetCustomBarProgress(double value)
+void BattleSceneBase::SetCustomBarProgress(frame_time_t value)
 {
   customProgress = value;
 
@@ -342,7 +343,7 @@ void BattleSceneBase::SetCustomBarProgress(double value)
     isGaugeFull = false;
   }
 
-  float percentage = (float)(customProgress / customDuration);
+  float percentage = (float)(customProgress.asSeconds().value / customDuration.asSeconds().value);
   if (customBarShader) {
     customBarShader->setUniform("factor", std::min(1.0f, percentage));
   }
@@ -354,14 +355,15 @@ void BattleSceneBase::SetCustomBarProgress(double value)
     SetCustomBarDuration(customDefaultDuration);
   }
 
-  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_time", std::to_string(customProgress));
+  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_time", std::to_string(customProgress.asSeconds().value));
   channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_value", std::to_string(percentage));
 }
 
-void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
+void BattleSceneBase::SetCustomBarDuration(frame_time_t maxTimeSeconds)
 {
-  customDuration = std::max(1.0, maxTimeSeconds);
-  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_max_time", std::to_string(maxTimeSeconds));
+  
+  customDuration = std::max(frames(1), maxTimeSeconds);
+  channel.Emit(&ScriptResourceManager::SetKeyValue, "cust_gauge_max_time", std::to_string(maxTimeSeconds.asSeconds().value));
 }
 
 void BattleSceneBase::ResetCustomBarDuration()
@@ -436,7 +438,6 @@ sf::Vector2f BattleSceneBase::PerspectiveOffset(const sf::Vector2f& pos)
 
 sf::Vector2f BattleSceneBase::PerspectiveOrigin(const sf::Vector2f& origin, const sf::FloatRect& size)
 {
-  printf("perspectiveFlip is %d", perspectiveFlip);
   if (perspectiveFlip) {
     float rectW = size.width;
     float canX = (origin.x / rectW);
@@ -732,11 +733,12 @@ void BattleSceneBase::onUpdate(double elapsed) {
   newBlueTeamMobSize = blueTeamMob ? blueTeamMob->GetMobCount() : 0;
 
   current->onUpdate(elapsed);
-  if ((IsRedTeamDead() || IsBlueTeamDead())) {
-      BroadcastBattleStop();
-  }
 
-  if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
+  /*if ((IsRedTeamDead() || IsBlueTeamDead())) {
+      BroadcastBattleStop();
+  }*/
+
+  if (customProgress.asSeconds().value / customDuration.asSeconds().value >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;
     Audio().Play(AudioType::CUSTOM_BAR_FULL);
   }
@@ -886,7 +888,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   // custom bar continues to animate when it is already full
   if (isGaugeFull) {
-    customFullAnimDelta += elapsed/customDefaultDuration;
+    customFullAnimDelta += elapsed/customDefaultDuration.asSeconds().value;
     customBarShader->setUniform("factor", (float)(1.0 + customFullAnimDelta));
   }
 
@@ -1120,54 +1122,6 @@ void BattleSceneBase::PreparePlayerFullSynchro(const std::shared_ptr<Player>& pl
 
   // when players get hit by impact, battle scene takes back counter blessings
   player->AddDefenseRule(counterCombatRule);
-}
-
-void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf)
-{
-  sf::Vector2f position = shape.getPosition();
-  sf::Vector2f origin = shape.getOrigin();
-  sf::Vector2f offset = PerspectiveOffset(position);
-  sf::Vector2f originNew = PerspectiveOrigin(shape.getOrigin(), shape.getLocalBounds());
-
-  shape.setPosition(shape.getPosition() + offset);
-  shape.setOrigin(originNew);
-
-  surf.draw(shape);
-
-  shape.setPosition(position);
-  shape.setOrigin(origin);
-}
-
-void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf)
-{
-  sf::Vector2f position = sprite.getPosition();
-  sf::Vector2f origin = sprite.getOrigin();
-  sf::Vector2f offset = PerspectiveOffset(position);
-  sf::Vector2f originNew = PerspectiveOrigin(sprite.getOrigin(), sprite.getLocalBounds());
-
-  sprite.setPosition(sprite.getPosition() + offset);
-  sprite.setOrigin(originNew);
-
-  surf.draw(sprite);
-
-  sprite.setPosition(position);
-  sprite.setOrigin(origin);
-}
-
-void BattleSceneBase::DrawWithPerspective(Text& text, sf::RenderTarget& surf)
-{
-  sf::Vector2f position = text.getPosition();
-  sf::Vector2f origin = text.getOrigin();
-  sf::Vector2f offset = PerspectiveOffset(position);
-  sf::Vector2f originNew = PerspectiveOrigin(text.getOrigin(), text.GetLocalBounds());
-
-  text.setPosition(text.getPosition() + offset);
-  text.setOrigin(originNew);
-
-  surf.draw(text);
-
-  text.setPosition(position);
-  text.setOrigin(origin);
 }
 
 void BattleSceneBase::PerspectiveFlip(bool flipped)
@@ -1462,7 +1416,7 @@ const bool BattleSceneBase::IsRedTeamCleared() const
 
 const bool BattleSceneBase::IsRedTeamDead() const
 {
-    return redTeamMob->GetMobCount() <= 0;
+    return redTeamMob ? redTeamMob->GetMobCount() <= 0 : true;
 }
 
 const bool BattleSceneBase::IsBlueTeamCleared() const
@@ -1472,7 +1426,7 @@ const bool BattleSceneBase::IsBlueTeamCleared() const
 
 const bool BattleSceneBase::IsBlueTeamDead() const
 {
-    return blueTeamMob->GetMobCount() <= 0;
+    return blueTeamMob ? blueTeamMob->GetMobCount() <= 0 : true;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

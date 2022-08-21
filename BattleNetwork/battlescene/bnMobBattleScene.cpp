@@ -26,8 +26,8 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
 
   Mob* current = props.mobs.at(0);
 
-  // in seconds
-  constexpr double battleDuration = 10.0;
+  // in frames, and accurate.
+  constexpr frame_time_t battleDuration = frames(512);
 
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(current);
@@ -259,60 +259,58 @@ std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, F
 
 std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
-  auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+    auto lambda = [&form, &cardSelect, this]() mutable {
+        bool triggered = form.IsFinished() && playerDecross;
 
-    if (triggered) {
-      playerDecross = false; // reset our decross flag
+        if (triggered) {
+            playerDecross = false; // reset our decross flag
 
-      // update the card select gui and state
-      // since the state has its own records
-      cardSelect.ResetSelectedForm();
-    }
+            // update the card select gui and state
+            // since the state has its own records
+            cardSelect.ResetSelectedForm();
+        }
 
-    return triggered;
-  };
+        return triggered;
+    };
 
-  return lambda;
+    return lambda;
 }
 
 std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBattleState& form)
 {
-  // special condition: if in combat and should decross, trigger the character transform states
-  auto lambda = [this, &form]() mutable {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    TrackedFormData& formData = GetPlayerFormData(localPlayer);
+    // special condition: if in combat and should decross, trigger the character transform states
+    auto lambda = [this, &form]() mutable {
+        std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+        TrackedFormData& formData = GetPlayerFormData(localPlayer);
 
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
+        bool changeState = playerDecross && (formData.selectedForm != -1);
 
-    if (changeState) {
-      formData.selectedForm = -1;
-      formData.animationComplete = false;
-      form.SkipBackdrop();
-    }
+        if (changeState) {
+            formData.selectedForm = -1;
+            formData.animationComplete = false;
+            form.SkipBackdrop();
+        }
 
-    return changeState;
-  };
+        return changeState;
+    };
 
-  return lambda;
+    return lambda;
 }
 
 std::function<bool()> MobBattleScene::HookPlayerWon()
 {
-  auto lambda = [this] {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+    auto lambda = [this] {
+        std::shared_ptr<Player> localPlayer = GetLocalPlayer();
 
-    if (localPlayer->GetTeam() == Team::red) {
-      return IsBlueTeamCleared();
-    }
-    else if (localPlayer->GetTeam() == Team::blue) {
-      return IsRedTeamCleared();
-    }
+        if (localPlayer->GetTeam() == Team::red) {
+            return IsBlueTeamCleared();
+        }
+        else if (localPlayer->GetTeam() == Team::blue) {
+            return IsRedTeamCleared();
+        }
 
-    return IsBlueTeamCleared() && IsRedTeamCleared();
-  };
+        return IsBlueTeamCleared() && IsRedTeamCleared();
+    };
 
-  return lambda;
+    return lambda;
 }

@@ -83,6 +83,8 @@ public:
    */
   void AddNode(std::shared_ptr<SceneNode> node);
 
+  virtual sf::FloatRect GetLocalBounds() const;
+
   /**
    * @brief Removes a child node
    * @param find the node to remove if it exists

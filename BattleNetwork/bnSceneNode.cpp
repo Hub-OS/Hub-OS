@@ -74,6 +74,17 @@ void SceneNode::AddNode(std::shared_ptr<SceneNode> child) {
   if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); 
 }
 
+sf::FloatRect SceneNode::GetLocalBounds() const
+{   
+    sf::Vector2f position = getPosition();
+    sf::FloatRect bounds;
+    bounds.height = 0;
+    bounds.width = 0;
+    bounds.top = position.y;
+    bounds.left = position.x;
+    return bounds;
+}
+
 void SceneNode::RemoveNode(std::shared_ptr<SceneNode> find) {
   RemoveNode(find.get());
 }

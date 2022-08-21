@@ -55,7 +55,7 @@ void BubbleTrap::OnUpdate(double _elapsed) {
       if (iter == lastFrameStates.end()) {
         lastFrameStates.clear();
         pass = true;
-      } 
+      }
 
       lastFrameStates.push_back(key);
     }
@@ -64,13 +64,11 @@ void BubbleTrap::OnUpdate(double _elapsed) {
   };
 
   bool anyKey = keyTestThunk(InputEvents::pressed_use_chip);
-  anyKey = anyKey || keyTestThunk(InputEvents::pressed_cust_menu);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_down);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_up);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_left);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_right);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_shoot);
-  anyKey = anyKey || keyTestThunk(InputEvents::pressed_pause);
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
 
   if (anyKey) {
