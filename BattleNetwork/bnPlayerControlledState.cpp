@@ -100,11 +100,11 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Movement increments are restricted based on anim speed at this time
   if (player.IsMoving()) return;
 
-  if (player.IsConfused()) {
+  if (player.HasStatus(Hit::confuse)) {
     direction = Reverse(direction);
   }
 
-  if(direction != Direction::none && actionable && !player.IsRooted()) {
+  if(direction != Direction::none && actionable && !player.HasStatus(Hit::root)) {
     Battle::Tile* next_tile = player.GetTile() + direction;
     std::shared_ptr<AnimationComponent> anim = player.GetFirstComponent<AnimationComponent>();
 

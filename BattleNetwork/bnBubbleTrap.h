@@ -15,15 +15,13 @@
  * Creates a defense rule to absord first damage and forces this bubble to pop
  * On pop, frees owner and deletes self
  */
-class BubbleTrap : public SpriteProxyNode, public Component, public ResourceHandle, public InputHandle
+class BubbleTrap : public SpriteProxyNode, public Component, public ResourceHandle
 {
 private:
   Animation animation;
   sf::Sprite bubble;
-  double duration; /*!< when this reaches zero, pops */
   std::shared_ptr<DefenseBubbleStatus> defense; /*!< Add BubbleWrapTrap defense rule */
   bool willDelete;
-  std::vector<InputEvent> lastFrameStates;
   bool init{};
 public:
   /**
@@ -47,5 +45,5 @@ public:
    */
   void Pop();
 
-  const double GetDuration() const;
+  frame_time_t GetDuration() const;
 };

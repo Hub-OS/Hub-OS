@@ -32,7 +32,8 @@ Entity::Entity() :
     channel(nullptr),
     mode(Battle::TileHighlight::none),
     hitboxProperties(Hit::DefaultProperties),
-    CounterHitPublisher()
+    CounterHitPublisher(),
+    statusDirector(*this)
 {
     ID = ++Entity::numOfIDs;
 
@@ -421,13 +422,13 @@ void Entity::Update(double _elapsed) {
         canUpdateThisFrame = false;
     }
 
-    if (IsStunned()) {
+    if (HasStatus(Hit::stun)) {
         canUpdateThisFrame = false;
     }
 
     // assume this is hidden, will flip to visible if not
     iceFx->Hide();
-    if (IsIceFrozen()) {
+    if (HasStatus(Hit::freeze)) {
         iceFxAnimation.Update(_elapsed, iceFx->getSprite());
         iceFx->Reveal();
         if (!IsTimeFrozen()) {
@@ -437,7 +438,7 @@ void Entity::Update(double _elapsed) {
 
     // assume this is hidden, will flip to visible if not
     blindFx->Hide();
-    if (IsBlind()) {
+    if (HasStatus(Hit::blind)) {
         blindFxAnimation.Update(_elapsed, blindFx->getSprite());
         blindFx->Reveal();
     }
@@ -445,7 +446,7 @@ void Entity::Update(double _elapsed) {
 
     // assume this is hidden, will flip to visible if not
     confusedFx->Hide();
-    if (IsConfused()) {
+    if (HasStatus(Hit::blind)) {
         confusedFxAnimation.Update(_elapsed, confusedFx->getSprite());
         confusedFx->Reveal();
 
@@ -565,9 +566,9 @@ void Entity::RefreshShader()
     smartShader.SetUniform("palette", palette);
 
     // state checks
-    frame_time_t stunCooldown = statusDirector.GetStatus(false, Hit::stun).remainingTime;
-    frame_time_t rootCooldown = statusDirector.GetStatus(false, Hit::root).remainingTime;
-    frame_time_t freezeCooldown = statusDirector.GetStatus(false, Hit::freeze).remainingTime;
+    frame_time_t stunCooldown = statusDirector.GetStatus(Hit::stun).remainingTime;
+    frame_time_t rootCooldown = statusDirector.GetStatus(Hit::root).remainingTime;
+    frame_time_t freezeCooldown = statusDirector.GetStatus(Hit::freeze).remainingTime;
     unsigned stunFrame = stunCooldown.count() % 4;
     unsigned rootFrame = rootCooldown.count() % 4;
     counterFrameFlag = counterFrameFlag % 4;
@@ -768,7 +769,7 @@ void Entity::HandleMoveEvent(MoveEvent& event, const ActionQueue::ExecutionType&
         return;
     }
 
-    if (currMoveEvent.dest == nullptr && !IsRooted()) {
+    if (currMoveEvent.dest == nullptr && !HasStatus(Hit::root)) {
         UpdateMoveStartPosition();
         FilterMoveEvent(event);
         currMoveEvent = event;
@@ -1546,6 +1547,7 @@ void Entity::ResolveFrameBattleDamage()
                 }
                 else {
                     flagCheckThunk(Hit::bubble);
+                    statusDirector.AddStatus(Hit::bubble, frames(150));
                 }
             }
 
@@ -1778,7 +1780,7 @@ void Entity::DefenseCheck(DefenseFrameStateJudge& judge, std::shared_ptr<Entity>
 
 bool Entity::IsCounterable()
 {
-    return (counterable && !IsStunned());
+    return (counterable && !HasStatus(Hit::stun));
 }
 
 void Entity::ToggleCounter(bool on)
@@ -1786,28 +1788,13 @@ void Entity::ToggleCounter(bool on)
     counterable = on;
 }
 
-bool Entity::IsStunned()
-{
-    return statusDirector.GetStatus(false, Hit::stun).remainingTime > frames(0);
+bool Entity::HasStatus(Hit::Flags flag) {
+    return statusDirector.GetStatus(flag).remainingTime > frames(0);
 }
 
-bool Entity::IsRooted()
+frame_time_t Entity::GetStatusDuration(Hit::Flags flag)
 {
-    return statusDirector.GetStatus(false, Hit::root).remainingTime > frames(0);
-}
-
-bool Entity::IsIceFrozen() {
-    return statusDirector.GetStatus(false, Hit::freeze).remainingTime > frames(0);
-}
-
-bool Entity::IsBlind()
-{
-    return statusDirector.GetStatus(false, Hit::blind).remainingTime > frames(0);
-}
-
-bool Entity::IsConfused()
-{
-    return statusDirector.GetStatus(false, Hit::confuse).remainingTime > frames(0);
+    return statusDirector.GetStatus(flag).remainingTime;
 }
 
 void Entity::CancelFlash()
@@ -1823,26 +1810,24 @@ void Entity::Stun(frame_time_t maxCooldown)
 {
     if (maxCooldown > frames(0)) {
         CancelFlash();
-        IceFreeze(frames(0));
     }
-    statusDirector.AddStatus(Hit::stun, maxCooldown, false);
+    statusDirector.AddStatus(Hit::stun, maxCooldown);
 }
 
 void Entity::Root(frame_time_t maxCooldown)
 {
-    statusDirector.AddStatus(Hit::root, maxCooldown, false);
+    statusDirector.AddStatus(Hit::root, maxCooldown);
 }
 
 void Entity::IceFreeze(frame_time_t maxCooldown)
 {
-    if (IsConfused()) {
+    if (HasStatus(Hit::confuse)) {
         return;
     }
     if (maxCooldown > frames(0)) {
         if (IsTimeFrozen()) {
             CancelFlash(); // cancel flash
         }
-        Stun(frames(0)); // cancel stun
 
         const float height = GetHeight();
 
@@ -1866,7 +1851,7 @@ void Entity::IceFreeze(frame_time_t maxCooldown)
     else{
         iceFx->Hide();
     }
-    statusDirector.AddStatus(Hit::freeze, maxCooldown, false);
+    statusDirector.AddStatus(Hit::freeze, maxCooldown);
 }
 
 void Entity::Blind(frame_time_t maxCooldown)
@@ -1883,12 +1868,11 @@ void Entity::Blind(frame_time_t maxCooldown)
         blindFxAnimation << "default" << Animator::Mode::Loop;
         blindFxAnimation.Refresh(blindFx->getSprite());
     }
-    statusDirector.AddStatus(Hit::blind, maxCooldown, false);
+    statusDirector.AddStatus(Hit::blind, maxCooldown);
 }
 
 void Entity::Confuse(frame_time_t maxCooldown) {
     if (maxCooldown > frames(0)) {
-        IceFreeze(frames(0));
         constexpr float OFFSET_Y = 10.f;
 
         float height = -GetHeight() - OFFSET_Y;
@@ -1902,7 +1886,7 @@ void Entity::Confuse(frame_time_t maxCooldown) {
         confusedFxAnimation << "default" << Animator::Mode::Loop;
         confusedFxAnimation.Refresh(confusedFx->getSprite());
     }
-    statusDirector.AddStatus(Hit::confuse, maxCooldown, false);
+    statusDirector.AddStatus(Hit::confuse, maxCooldown);
 }
 
 void Entity::SetDragFinishCooldown(frame_time_t cooldown)

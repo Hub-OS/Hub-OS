@@ -222,6 +222,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["is_intangible"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsIntangible();
   };
+  entity_table["is_super_effective"] = [](WeakWrapper<E>& entity, Element element) -> bool {
+    return entity.Unwrap()->IsSuperEffective(element);
+  };
   entity_table["is_deleted"] = [](WeakWrapper<E>& entity) -> bool {
     auto ptr = entity.Lock();
     return !ptr || ptr->IsDeleted();
@@ -373,14 +376,20 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["set_air_shoe"] = [](WeakWrapper<E>& entity, bool enable) {
     entity.Unwrap()->SetAirShoe(enable);
   };
+  entity_table["has_air_shoe"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->HasAirShoe();
+  };
+  entity_table["has_float_shoe"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->HasFloatShoe();
+  };
   entity_table["toggle_hitbox"] = [](WeakWrapper<E>& entity, bool enabled) {
     return entity.Unwrap()->EnableHitbox(enabled);
   };
   entity_table["is_counterable"] = [](WeakWrapper<E>& entity) -> bool {
     return entity.Unwrap()->IsCounterable();
   };
-  entity_table["is_confused"] = [](WeakWrapper<E>& entity) -> bool {
-    return entity.Unwrap()->IsConfused();
+  entity_table["has_status"] = [](WeakWrapper<E>& entity, Hit::Flags flag) -> bool {
+    return entity.Unwrap()->HasStatus(flag);
   };
   entity_table["toggle_counter"] = [](WeakWrapper<E>& entity, bool on) {
     entity.Unwrap()->ToggleCounter(on);

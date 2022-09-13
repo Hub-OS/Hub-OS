@@ -21,6 +21,8 @@ enum class TileState : int {
   sea,
   sand,
   metal,
+  dark,
+  pull,
   hidden, // immutable
   size // no a valid state! used for enum length
 };

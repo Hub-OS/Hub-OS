@@ -92,6 +92,7 @@ private:
   bool backdropAffectBG{ false };
   bool perspectiveFlip{ false }; //!< if true, view from blue team's perspective
   bool hasPlayerSpawned{ false };
+  bool canIncrementTimer{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int turn{ 0 }; //!< How many turns per round (inbetween card selection)
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
@@ -101,7 +102,7 @@ private:
   int lastRedTeamMobSize{ 0 }, lastBlueTeamMobSize{ 0 };
   int newRedTeamMobSize{ 0 }, newBlueTeamMobSize{ 0 };
   frame_time_t frameNumber{ 0 };
-  double elapsed{ 0 }; /*!< total time elapsed in battle */
+  frame_time_t elapsed{ 0 }; /*!< total time elapsed in battle */
   frame_time_t customProgress{ frames(0) }; /*!< Cust bar progress in frames */
   frame_time_t customDuration{ frames(512) }; /*!< Cust bar max time in frames */
   frame_time_t customDefaultDuration{ frames(512) }; /*!< Default value */

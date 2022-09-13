@@ -688,7 +688,9 @@ void BattleSceneBase::onStart()
 }
 
 void BattleSceneBase::onUpdate(double elapsed) {
-  this->elapsed = elapsed;
+  if (canIncrementTimer) {
+    this->elapsed += frames(1);
+  }
 
   if (getController().CommandLineValue<bool>("debug")) {
     if (Input().Has(InputEvents::pressed_map)) {
@@ -1006,7 +1008,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       // TODO: having the field use hashes to identify entity types purely by ID would be faster
       //       and remove all dynamic casting in the engine...
       bool isSpell = (dynamic_cast<Spell*>(node) != nullptr);
-      if (isSpell || localPlayer->Teammate(node->GetTeam()) || !localPlayer->IsBlind()) {
+      if (isSpell || localPlayer->Teammate(node->GetTeam()) || !localPlayer->HasStatus(Hit::blind)) {
         surface.draw(*node);
       }
 
@@ -1023,7 +1025,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   // draw ui on top
   for (Entity* ent : allEntities) {
     // skip this entity's UI components if player is blinded
-    if (!(localPlayer->Teammate(ent->GetTeam()) || !localPlayer->IsBlind())) continue;
+    if (!(localPlayer->Teammate(ent->GetTeam()) || !localPlayer->HasStatus(Hit::blind))) continue;
 
     std::vector<std::shared_ptr<UIComponent>> uis = ent->GetComponentsDerivedFrom<UIComponent>();
     sf::Vector2f flipOffset = PerspectiveOffset(ent->getPosition());
@@ -1226,11 +1228,13 @@ void BattleSceneBase::StopBattleStepTimer()
 void BattleSceneBase::BroadcastBattleStart()
 {
   field->RequestBattleStart();
+  canIncrementTimer = true;
 }
 
 void BattleSceneBase::BroadcastBattleStop()
 {
   field->RequestBattleStop();
+  canIncrementTimer = false;
 }
 
 void BattleSceneBase::IncrementTurnCount()

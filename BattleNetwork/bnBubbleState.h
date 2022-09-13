@@ -18,7 +18,7 @@ template<typename Any>
 class BubbleState : public AIState<Any>
 {
 protected:
-  double progress;
+  frame_time_t progress;
   bool prevFloatShoe;
 
 public:
@@ -38,7 +38,7 @@ public:
 
 template<typename Any>
 BubbleState<Any>::BubbleState()
-  : progress(0), prevFloatShoe(false), AIState<Any>() {
+  : progress(frames(0)), prevFloatShoe(false), AIState<Any>() {
   this->PriorityLock();
 }
 
@@ -70,7 +70,7 @@ void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
   else {
     progress = bubbleTrap->GetDuration();
 
-    sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
+    sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress.asSeconds().value * 10.0f));
     e.SetDrawOffset(-offset);
     e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
   }

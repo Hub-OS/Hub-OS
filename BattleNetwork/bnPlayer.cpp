@@ -514,8 +514,10 @@ void Player::CreateMoveAnimHash()
       { 1, i4_seconds }
     };
 
+    auto anim_to_use = animationComponent->GetAnimationObject().HasAnimation("PLAYER_MOVE") ? "PLAYER_MOVE" : "PLAYER_IDLE";
+
     // creates and stores the new state in variable `moveAnimHash`
-    animationComponent->OverrideAnimationFrames("PLAYER_MOVE", frame_data, moveAnimHash);
+    animationComponent->OverrideAnimationFrames(anim_to_use, frame_data, moveAnimHash);
 }
 
 void Player::CreateRecoilAnimHash()
@@ -528,8 +530,10 @@ void Player::CreateRecoilAnimHash()
       { 2, i7_seconds }
     };
 
-    // creates and stores the new state in variable `moveAnimHash`
-    animationComponent->OverrideAnimationFrames("PLAYER_HIT", frame_data, recoilAnimHash);
+    auto anim_to_use = animationComponent->GetAnimationObject().HasAnimation("PLAYER_HIT") ? "PLAYER_HIT" : "PLAYER_IDLE";
+
+    // creates and stores the new state in variable `recoilAnimHash`
+    animationComponent->OverrideAnimationFrames(anim_to_use, frame_data, recoilAnimHash);
 }
 
 void Player::TagBaseNodes()

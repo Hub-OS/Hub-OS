@@ -3,7 +3,6 @@
 #include "bnLogger.h"
 #include "bnHitProperties.h"
 #include "bnFrameTimeUtils.h"
-#include "bnInputHandle.h"
 #include "bnInputEvent.h"
 
 struct AppliedStatus {
@@ -16,18 +15,20 @@ struct StatusBlocker {
     Hit::Flags blockedFlag; /*!<The flag that is being prevented.*/
 };
 
+class Entity;
+
 class StatusBehaviorDirector {
 public:
-    StatusBehaviorDirector();
+    StatusBehaviorDirector(Entity& owner);
     virtual ~StatusBehaviorDirector();
-    void AddStatus(Hit::Flags statusFlag, frame_time_t maxCooldown, bool deffer);
+    void AddStatus(Hit::Flags statusFlag, frame_time_t maxCooldown);
     void OnUpdate(double elapsed);
-    AppliedStatus& GetStatus(bool isPrevious, Hit::Flags flag);
+    AppliedStatus& GetStatus(Hit::Flags flag);
     void ClearStatus();
 private:
+    Entity& owner;
     static std::vector<StatusBlocker> statusBlockers;
     std::vector<Hit::Flags> bannedStatuses;
     std::vector<AppliedStatus> currentStatus;
     std::vector<InputEvent> lastFrameStates;
-    InputHandle mashHandler;
 };

@@ -25,7 +25,7 @@ void AnimationComponent::OnUpdate(double _elapsed)
   // on the conditions that the entity would-be stunned this frame, the animation component will need present that correct frame outcome
   // before halting due to status effects
   // Dawn -> Add a check for if the entity is time stopped. If it is, we ignore the stun or freeze issue to allow animation during time stop.
-  bool canUpdateThisFrame = (!(!owner->IsTimeFrozen() && (owner->IsStunned() || owner->IsIceFrozen()))) && couldUpdateLastFrame;
+  bool canUpdateThisFrame = (!(!owner->IsTimeFrozen() && (owner->HasStatus(Hit::stun) || owner->HasStatus(Hit::freeze)))) && couldUpdateLastFrame;
   if (!canUpdateThisFrame) {
     return;
   }

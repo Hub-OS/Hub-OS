@@ -134,7 +134,7 @@ private:
     EventBus::Channel channel; /*!< Our event bus channel to emit events */
     MoveEvent currMoveEvent{};
     VirtualInputState inputState;
-    StatusBehaviorDirector statusDirector{};
+    StatusBehaviorDirector statusDirector;
     std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
     std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
     std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };
@@ -615,34 +615,13 @@ public:
     void ToggleCounter(bool on = true);
 
     /**
-     * @brief Query the character's state is Stunned
-     * @return true if character is currently stunned, false otherwise
+     * @brief Query if the character has the status described by the flag.
+     * @return true if status is present and time is greater than zero, false otherwise
      */
-    bool IsStunned();
 
-    /**
-     * @brief Query the character's state is Rooted
-     * @return true if character is currently rooted, false otherwise
-     */
-    bool IsRooted();
+    bool HasStatus(Hit::Flags flag);
 
-    /**
-     * @brief Query the character's state is Ice Frozen
-     * @return true if character is currently frozen from hitbox status effects, false otherwise
-     */
-    bool IsIceFrozen();
-
-    /**
-    * @brief Query the character's state is Blind
-    * @return true if character is currently blind from hitbox status effects, false otherwise
-    */
-    bool IsBlind();
-
-    /**
-     * @brief Query the character's state is confused
-     * @return true if character is currently confused from hitbox status effects, false otherwise
-     */
-    bool IsConfused();
+    frame_time_t GetStatusDuration(Hit::Flags flag);
 
     /**
      * @brief Some characters allow others to move on top of them

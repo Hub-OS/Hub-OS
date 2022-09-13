@@ -1,21 +1,22 @@
 #include "bnStatusDirector.h"
-#include "bnInputManager.h"
+#include "bnEntity.h"
 
 std::vector<StatusBlocker> StatusBehaviorDirector::statusBlockers{
     StatusBlocker { Hit::freeze, Hit::stun },
-    StatusBlocker { Hit::stun, Hit::freeze }
+    StatusBlocker { Hit::stun, Hit::freeze },
+    StatusBlocker { Hit::bubble, Hit::freeze },
+    StatusBlocker { Hit::confuse, Hit::freeze }
 };
 
-StatusBehaviorDirector::StatusBehaviorDirector() {
+StatusBehaviorDirector::StatusBehaviorDirector(Entity& owner) : owner(owner) {
     currentStatus = {};
     bannedStatuses = { Hit::stun, Hit::freeze };
-    mashHandler = InputHandle();
 }
 
-void StatusBehaviorDirector::AddStatus(Hit::Flags statusFlag, frame_time_t maxCooldown, bool deffer) {
+void StatusBehaviorDirector::AddStatus(Hit::Flags statusFlag, frame_time_t maxCooldown) {
     // Since we might use it twice, create it once. No need to repeat code.
     AppliedStatus statusToSet{ statusFlag, maxCooldown };
-    AppliedStatus& statusToCheck = GetStatus(deffer, statusFlag);
+    AppliedStatus& statusToCheck = GetStatus(statusFlag);
     if (statusToCheck.statusFlag == statusFlag) {
         statusToCheck.remainingTime = maxCooldown;
     }
@@ -30,20 +31,19 @@ void StatusBehaviorDirector::OnUpdate(double elapsed)
 
     std::vector<Hit::Flags> cancelledStatuses;
     for (StatusBlocker blocker : statusBlockers) {
-        if (GetStatus(false, blocker.blockingFlag).remainingTime > frames(0)) {
+        if (GetStatus(blocker.blockingFlag).remainingTime > frames(0)) {
             cancelledStatuses.push_back(blocker.blockedFlag);
         }
     }
 
     for (Hit::Flags flags : cancelledStatuses) {
-        GetStatus(false, flags).remainingTime = frames(0);
+        GetStatus(flags).remainingTime = frames(0);
     }
-
 
     auto keyTestThunk = [this](const InputEvent& key) {
         bool pass = false;
 
-        if (mashHandler.Input().Has(key)) {
+        if (owner.InputState().Has(key)) {
             pass = true;
         }
 
@@ -60,7 +60,7 @@ void StatusBehaviorDirector::OnUpdate(double elapsed)
 
     for (AppliedStatus& statusToCheck : currentStatus) {
         if (statusToCheck.remainingTime > frames(0)) {
-            if (anyKey && statusToCheck.statusFlag == (Hit::stun || Hit::freeze)) {
+            if (anyKey && (statusToCheck.statusFlag == Hit::stun || statusToCheck.statusFlag == Hit::freeze || statusToCheck.statusFlag == Hit::bubble)) {
                 statusToCheck.remainingTime -= frames(1);
             }
             statusToCheck.remainingTime -= _elapsed;
@@ -68,7 +68,7 @@ void StatusBehaviorDirector::OnUpdate(double elapsed)
     }
 };
 
-AppliedStatus& StatusBehaviorDirector::GetStatus(bool isPrevious, Hit::Flags flag) {
+AppliedStatus& StatusBehaviorDirector::GetStatus(Hit::Flags flag) {
     // If the previous status is being called, grab it.
     for (AppliedStatus& status : currentStatus) {
         if (status.statusFlag == flag) {

@@ -15,7 +15,7 @@ MobHealthUI::MobHealthUI(std::weak_ptr<Character> mob) : UIComponent(mob) {
   color = sf::Color::White;
   glyphs.setTexture(ResourceHandle().Textures().LoadFromFile(TexturePaths::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
-
+  hideCountdown = frames(10);
   /*auto onMobDelete = [this](auto target) {
     mob = nullptr;
   };
@@ -34,53 +34,59 @@ HP drop is not 1 unit per frame. It is:
 -3 per frame for anything lower
 */
 void MobHealthUI::OnUpdate(double elapsed) {
-  if (!Input().Has(InputEvents::pressed_option) && Input().Has(InputEvents::held_option)) {
-    this->Hide();
-  }
-  else {
-    this->Reveal();
-  }
-
-  if (std::shared_ptr<Character> mob = GetOwnerAs<Character>()) {
-    if (!manualMode) {
-      targetHealth = mob->GetHealth();
+    if (Input().Has(InputEvents::held_option)) {
+        if (hideCountdown > frames(0)) {
+            hideCountdown -= frames(1);
+        }
+        else {
+            this->Hide();
+        }
+    }
+    if (Input().Has(InputEvents::released_option)) {
+        hideCountdown = frames(10);
+        this->Reveal();
     }
 
-    if (cooldown <= 0) { cooldown = 0; }
-    else { cooldown -= elapsed; }
+    if (std::shared_ptr<Character> mob = GetOwnerAs<Character>()) {
+        if (!manualMode) {
+            targetHealth = mob->GetHealth();
+        }
 
-    if (healthCounter > targetHealth) {
-      int diff = healthCounter - targetHealth;
+        if (cooldown <= 0) { cooldown = 0; }
+        else { cooldown -= elapsed; }
 
-      if (diff >= 100) {
-        healthCounter -= 10;
-      }
-      else if (diff >= 40) {
-        healthCounter -= 5;
-      }
-      else if (diff >= 3) {
-        healthCounter -= 3;
-      }
-      else {
-        healthCounter--;
-      }
+        if (healthCounter > targetHealth) {
+            int diff = healthCounter - targetHealth;
 
-      cooldown = seconds_cast<double>(frames(10));
+            if (diff >= 100) {
+                healthCounter -= 10;
+            }
+            else if (diff >= 40) {
+                healthCounter -= 5;
+            }
+            else if (diff >= 3) {
+                healthCounter -= 3;
+            }
+            else {
+                healthCounter--;
+            }
+
+            cooldown = seconds_cast<double>(frames(10));
+        }
+        else if (healthCounter < targetHealth) {
+            healthCounter++;
+            color = sf::Color(0, 255, 80);
+        }
+        else {
+            color = sf::Color::White;
+        }
+
+        if (cooldown > 0) {
+            color = sf::Color(255, 165, 0);
+        }
+
+        if (healthCounter < 0 || targetHealth <= 0) { healthCounter = 0; }
     }
-    else if (healthCounter < targetHealth) {
-      healthCounter++;
-      color = sf::Color(0, 255, 80);
-    }
-    else {
-      color = sf::Color::White;
-    }
-
-    if (cooldown > 0) {
-      color = sf::Color(255, 165, 0);
-    }
-
-    if (healthCounter < 0 || targetHealth <= 0) { healthCounter = 0; }
-  }
 }
 
 void MobHealthUI::Inject(BattleSceneBase& scene)

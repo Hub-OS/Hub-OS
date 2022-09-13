@@ -927,71 +927,77 @@ namespace Battle {
 
   std::string Tile::GetAnimState(const TileState state)
   {
-    if (state == TileState::hidden) return "";
+      if (state == TileState::hidden) return "";
 
-    std::string str = "row_" + std::to_string(4 - GetY()) + "_";
+      std::string str = "row_" + std::to_string(4 - GetY()) + "_";
 
-    switch (state) {
-    case TileState::broken:
-      str = str + "broken";
-      break;
-    case TileState::cracked:
-      str = str + "cracked";
-      break;
-    case TileState::empty:
-      str = str + "empty";
-      break;
-    case TileState::grass:
-      str = str + "grass";
-      break;
-    case TileState::ice:
-      str = str + "ice";
-      break;
-    case TileState::lava:
-      str = str + "lava";
-      break;
-    case TileState::normal:
-      str = str + "normal";
-      break;
-    case TileState::poison:
-      str = str + "poison";
-      break;
-    case TileState::directionDown:
-      str = str + "direction_down";
-      break;
-    case TileState::directionLeft:
-      str = str + (isPerspectiveFlipped? "direction_right" : "direction_left");
-      break;
-    case TileState::directionRight:
-      str = str + (isPerspectiveFlipped ? "direction_left" : "direction_right");
-      break;
-    case TileState::directionUp:
-      str = str + "direction_up";
-      break;
-    case TileState::volcano:
-      str = str + "volcano";
-      break;
-    case TileState::holy:
-      str = str + "holy";
-      break;
-    case TileState::sea:
-      str = str + "sea";
-      break;
-    case TileState::sand:
-      str = str + "sand";
-      break;
-    case TileState::metal:
-      str = str + "metal";
-      break;
-    default:
-      str = str + "normal";
-    }
+      switch (state) {
+      case TileState::broken:
+          str = str + "broken";
+          break;
+      case TileState::cracked:
+          str = str + "cracked";
+          break;
+      case TileState::empty:
+          str = str + "empty";
+          break;
+      case TileState::grass:
+          str = str + "grass";
+          break;
+      case TileState::ice:
+          str = str + "ice";
+          break;
+      case TileState::lava:
+          str = str + "lava";
+          break;
+      case TileState::normal:
+          str = str + "normal";
+          break;
+      case TileState::poison:
+          str = str + "poison";
+          break;
+      case TileState::directionDown:
+          str = str + "direction_down";
+          break;
+      case TileState::directionLeft:
+          str = str + (isPerspectiveFlipped ? "direction_right" : "direction_left");
+          break;
+      case TileState::directionRight:
+          str = str + (isPerspectiveFlipped ? "direction_left" : "direction_right");
+          break;
+      case TileState::directionUp:
+          str = str + "direction_up";
+          break;
+      case TileState::volcano:
+          str = str + "volcano";
+          break;
+      case TileState::holy:
+          str = str + "holy";
+          break;
+      case TileState::sea:
+          str = str + "sea";
+          break;
+      case TileState::sand:
+          str = str + "sand";
+          break;
+      case TileState::metal:
+          str = str + "metal";
+          break;
+      case TileState::dark:
+          str = str + "dark";
+          break;
+      case TileState::pull:
+          str = str + "pull";
+          break;
+      default:
+          str = str + "normal";
+      }
 
-    if (GetX() == 0 || GetX() == 7 || GetY() == 0 || GetY() == 4) {
-      str = "row_1_normal";
-    }
+      if (GetX() == 0 || GetX() == 7 || GetY() == 0 || GetY() == 4) {
+          str = "row_1_normal";
+      }
 
-    return str;
+      return str;
   }
 
   void Tile::PrepareNextFrame(Field& field)

@@ -3,6 +3,7 @@
 #include "bnUIComponent.h"
 #include "bnSpriteProxyNode.h"
 #include "bnInputHandle.h"
+#include "bnFrameTimeUtils.h"
 
 // forward delcare
 class Character;
@@ -66,4 +67,5 @@ private:
   int targetHealth{}; /*!< UI target health (mob real hp) */
   double cooldown{}; /*!< Time after dial to uncolorize */
   bool manualMode{}; /*!< Default is automatic from the entity's hp*/
+  frame_time_t hideCountdown{ frames(0) };
 };
