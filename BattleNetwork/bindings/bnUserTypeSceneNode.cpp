@@ -34,16 +34,16 @@ void DefineSceneNodeUserType(sol::table& engine_namespace) {
     "remove_node", [](WeakWrapper<SceneNode>& node, WeakWrapper<SceneNode>& child) {
       node.Unwrap()->RemoveNode(child.Unwrap().get());
     },
-    "add_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
+    "add_tags", [](WeakWrapper<SceneNode>& node, std::vector<std::string> tags) {
       node.Unwrap()->AddTags(tags);
     },
-    "remove_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
+    "remove_tags", [](WeakWrapper<SceneNode>& node, std::vector<std::string> tags) {
       node.Unwrap()->RemoveTags(tags);
     },
     "has_tag", [](WeakWrapper<SceneNode>& node, const std::string& tag) -> bool{
       return node.Unwrap()->HasTag(tag);
     },
-    "find_child_nodes_with_tags", [](WeakWrapper<SceneNode>& node, std::initializer_list<std::string> tags) {
+    "find_child_nodes_with_tags", [](WeakWrapper<SceneNode>& node, std::vector<std::string> tags) {
       auto nodes = node.Unwrap()->GetChildNodesWithTag(tags);
       std::vector<WeakWrapper<SceneNode>> result;
       result.reserve(nodes.size());

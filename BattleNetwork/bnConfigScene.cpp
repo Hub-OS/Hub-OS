@@ -894,7 +894,6 @@ void ConfigScene::onStart()
 
 void ConfigScene::onLeave()
 {
-  Audio().StopStream();
 }
 
 void ConfigScene::onExit()
