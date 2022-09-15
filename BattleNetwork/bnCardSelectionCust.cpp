@@ -243,13 +243,18 @@ bool CardSelectionCust::CursorRight() {
   if (cursorRow == 0) {
     // OK button is reserved at base-0 index position 5,
     // anything past that is too far so then wrap around
-    if (cursorPos >= 5) {
+    if (cursorPos > 5) {
       if (lastCursorPos == 5) {
         cursorPos = 0;
       }
       else {
         cursorPos = 5; // warp to OK button instead
       }
+    }
+    cursorPos = std::min(cursorPos, 5);
+
+    if (cursorPos >= sz) {
+        cursorPos = 5;
     }
     return true;
   }
@@ -267,7 +272,6 @@ bool CardSelectionCust::CursorRight() {
     }
 
     if (lastCursorPos != 5 && playerSpecialButton1) {
-      Logger::Log(LogLevel::critical, "wrapped to pos 5 for special button 1");
       // reserved for playerSpecialButton1 on row 1
       cursorPos = 5;
       return true;
@@ -293,6 +297,7 @@ bool CardSelectionCust::CursorLeft() {
   }
   else if (cursorPos < 0 && cursorRow == 0) {
     cursorPos = 5;
+    return true;
   }
 
   int sz = cardCount;
@@ -554,9 +559,10 @@ const bool CardSelectionCust::HasQuestion() const
 bool CardSelectionCust::ContinueTextBox() {
   if (isInFormSelect) return false;
   if (!IsInView() || textbox.IsClosed()) return false;
-
-  // textbox.Continue();
-  return false;
+  if (textbox.HasMessage()) {
+    textbox.ShowNextLines();
+  }
+  return true;
 }
 
 bool CardSelectionCust::FastForwardTextBox(double factor) {

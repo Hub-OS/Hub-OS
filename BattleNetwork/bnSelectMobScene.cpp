@@ -624,6 +624,7 @@ void SelectMobScene::onExit() {
 }
 
 void SelectMobScene::onEnter() {
+  Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
   Logger::Log(LogLevel::info, "SelectMobScene::onEnter()");
 }
 

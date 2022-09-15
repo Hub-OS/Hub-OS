@@ -20,7 +20,9 @@ void Battle::AnimatedTextBox::DescribeCard(Battle::Card* card)
   // use the short card description instead
   const std::string& longDescr = card->GetVerboseDescription();
   const std::string& shortDescr = card->GetDescription();
-  EnqueMessage(mug, anim, new Message(longDescr.empty()? shortDescr : longDescr));
+  Message* object = new Message(longDescr.empty() ? shortDescr : longDescr);
+  object->ShowEndMessageCursor(true);
+  EnqueMessage(mug, anim, object);
   Open();
 }
 

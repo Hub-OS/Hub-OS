@@ -1271,6 +1271,7 @@ void PlayerCustScene::onExit()
 
 void PlayerCustScene::onEnter()
 {
+  Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
 }
 
 void PlayerCustScene::onResume()
