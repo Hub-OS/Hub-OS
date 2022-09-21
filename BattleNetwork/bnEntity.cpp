@@ -446,7 +446,7 @@ void Entity::Update(double _elapsed) {
 
     // assume this is hidden, will flip to visible if not
     confusedFx->Hide();
-    if (HasStatus(Hit::blind)) {
+    if (HasStatus(Hit::confuse)) {
         confusedFxAnimation.Update(_elapsed, confusedFx->getSprite());
         confusedFx->Reveal();
 

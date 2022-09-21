@@ -372,9 +372,12 @@ namespace Battle {
     static frame_time_t brokenCooldownLength;
     static frame_time_t flickerTeamCooldownLength;
     static frame_time_t seaCooldownLength;
+    static frame_time_t conveyorCooldownLength;
+    frame_time_t moveDelay{};
     frame_time_t teamCooldown{};
     frame_time_t brokenCooldown{};
     frame_time_t seaCooldown{};
+    frame_time_t conveyorCooldown{};
     frame_time_t flickerTeamCooldown{};
     frame_time_t totalElapsed{};
     frame_time_t elapsedBurnTime{};

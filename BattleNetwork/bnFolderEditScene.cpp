@@ -11,7 +11,9 @@
 #include "Segues/BlackWashFade.h"
 #include "bnCardFolder.h"
 #include "bnPlayerPackageManager.h"
+#include "bnPlayerCustScene.h"
 #include "bnCardPackageManager.h"
+#include "bnBlockPackageManager.h"
 #include "Android/bnTouchArea.h"
 #include "stx/string.h"
 
@@ -293,13 +295,13 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
-        //Set the index.
-        view->currCardIndex = std::max(0, view->currCardIndex - 1);
         //Check the index's validity. If proper, play the sound and reset the timer.
-        if (view->currCardIndex >= 0) {
+        if (view->currCardIndex > 0) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
+        //Set the index.
+        view->currCardIndex = std::max(0, view->currCardIndex - 1);
         //Condition: if we're at the top of the screen, decrement the last card on screen.
         if (view->currCardIndex < view->firstCardOnScreen) {
             --view->firstCardOnScreen;
@@ -319,14 +321,18 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
+        //Check the validity of there being another card to point to.
+        //If true, play a sound and reveal it.
+        //If false, do nothing.
+        if (view->currCardIndex < view->numOfCards-1) {
+          Audio().Play(AudioType::CHIP_SELECT);
+          cardRevealTimer.reset();
+        }
+
         //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
         //Otherwise, if available, increment the index by 1.
         view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + 1);
         
-        if (view->currCardIndex < view->numOfCards) {
-          Audio().Play(AudioType::CHIP_SELECT);
-          cardRevealTimer.reset();
-        }
         //Condition: If we're at the bottom of the menu, increment the last card on screen.
         if (view->currCardIndex > view->firstCardOnScreen + view->maxCardsOnScreen - 1) {
             ++view->firstCardOnScreen;
@@ -346,13 +352,13 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
-        //Adjust the math to use std::max so that the current card index is always set to 0 at least.
-        view->currCardIndex = std::max(view->currCardIndex - view->maxCardsOnScreen, 0);
-
-        if (view->currCardIndex < view->numOfCards) {
+        if (view->currCardIndex > 0) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
+        //Adjust the math to use std::max so that the current card index is always set to 0 at least.
+        view->currCardIndex = std::max(view->currCardIndex - view->maxCardsOnScreen, 0);
+
         //Set last card to either the current last card minus the amount of cards on screen, or the first card in the pool.
         view->firstCardOnScreen = std::max(view->firstCardOnScreen - view->maxCardsOnScreen, 0);
       }
@@ -392,9 +398,12 @@ void FolderEditScene::onUpdate(double elapsed) {
         if (folderView.swapCardIndex != -1) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
             Battle::Card copy;
+            Battle::Card view;
+            Battle::Card selected = folderCardSlots[folderView.currCardIndex].ViewCard();
             bool found = false;
             for (size_t i = 0; i < poolCardBuckets.size(); i++) {
-              if (poolCardBuckets[i].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
+              view = poolCardBuckets[i].ViewCard();
+              if (view.GetUUID() == selected.GetUUID() && view.GetCode() == selected.GetCode()) {
                 hasFolderChanged = true;
                 poolCardBuckets[i].AddCard();
                 folderCardSlots[folderView.currCardIndex].GetCard(copy);
@@ -438,13 +447,12 @@ void FolderEditScene::onUpdate(double elapsed) {
             int foundCards = 0;
             for (size_t i = 0; i < folderCardSlots.size(); i++) {
               checkCard = Battle::Card(folderCardSlots[i].ViewCard());
-              if (checkCard.GetShortName() == copy2.GetShortName() && checkCard.GetClass() == copy2.GetClass() && checkCard.GetElement() == copy2.GetElement()) {
+              if (checkCard.GetUUID() == copy2.GetUUID()) {
                 foundCards++;
               }
             }
             bool gotCard = false;
-            if (foundCards < maxCards || maxCards == 0) {
-
+            if (RuleCheck(copy2)) {
               // If the pack pointed to is the same as the card in our folder, add the card back into folder
               if (poolCardBuckets[packView.swapCardIndex].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
                 poolCardBuckets[packView.swapCardIndex].AddCard();
@@ -462,7 +470,7 @@ void FolderEditScene::onUpdate(double elapsed) {
                 // If the card slot had a card, find the corresponding bucket to add it back into
                 if (findBucket) {
                   auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
-                    [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
+                    [&prev](const PoolBucket& in) { return prev.GetUUID() == in.ViewCard().GetUUID(); }
                   );
 
                   if (iter != poolCardBuckets.end()) {
@@ -504,16 +512,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               }
               Battle::Card copy;
               if (found != -1 && poolCardBuckets[packView.currCardIndex].GetCard(copy)) {
-                Battle::Card checkCard;
-                int maxCards = copy.GetLimit();
-                int foundCards = 0;
-                for (size_t i = 0; i < folderCardSlots.size(); i++) {
-                  checkCard = Battle::Card(folderCardSlots[i].ViewCard());
-                  if (checkCard.GetShortName() == copy.GetShortName() && checkCard.GetClass() == copy.GetClass() && checkCard.GetElement() == copy.GetElement()) {
-                    foundCards++;
-                  }
-                }
-                if (foundCards < maxCards || maxCards == 0) {
+                if (RuleCheck(copy)) {
                   folderCardSlots[found].AddCard(copy);
                   packView.swapCardIndex = -1;
                   folderView.swapCardIndex = -1;
@@ -574,13 +573,12 @@ void FolderEditScene::onUpdate(double elapsed) {
               Battle::Card prev;
 
               bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
-
               folderCardSlots[folderView.currCardIndex].AddCard(copy);
 
               // If the card slot had a card, find the corresponding bucket to add it back into
               if (findBucket) {
                 auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(),
-                  [&prev](const PoolBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
+                  [&prev](const PoolBucket& in) { return prev.GetUUID() == in.ViewCard().GetUUID(); }
                 );
 
                 if (iter != poolCardBuckets.end()) {
@@ -600,7 +598,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               int foundCards = 0;
               for (size_t i = 0; i < folderCardSlots.size(); i++) {
                 checkCard = Battle::Card(folderCardSlots[i].ViewCard());
-                if (checkCard.GetShortName() == copy.GetShortName() && checkCard.GetClass() == copy.GetClass() && checkCard.GetElement() == copy.GetElement()) {
+                if (checkCard.GetUUID() == copy.GetUUID()) {
                   foundCards++;
                 }
               }
@@ -653,35 +651,60 @@ void FolderEditScene::onUpdate(double elapsed) {
     bool gotoLastScene = false;
 
     if (Input().Has(InputEvents::pressed_cancel) && canInteract) {
-      if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
-        Audio().Play(AudioType::CHIP_DESC_CLOSE);
-        packView.swapCardIndex = folderView.swapCardIndex = -1;
-      }
-      else if (currViewMode == ViewMode::pool) {
-        currViewMode = ViewMode::folder;
-        canInteract = false;
-        Audio().Play(AudioType::CHIP_DESC);
-      }
-      else {
-        WriteNewFolderData();
-
-        if (hasFolderChanged) {
-          auto onResponse = [this](bool value) {
-            if (value) {
-              equipFolderOnExit = true;
+        if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
+            packView.swapCardIndex = folderView.swapCardIndex = -1;
+        }
+        else if (currViewMode == ViewMode::pool) {
+            currViewMode = ViewMode::folder;
+            canInteract = false;
+            Audio().Play(AudioType::CHIP_DESC);
+        }
+        else {
+            for (size_t cardCount = 0; cardCount < folderView.numOfCards; cardCount++) {
+                if (!folderCardSlots[cardCount].IsEmpty()) {
+                    folderView.numOfValidCards++;
+                }
             }
-            GotoLastScene();
-          };
+            if (folderView.numOfValidCards < 30) {
+                Audio().Play(AudioType::CHIP_ERROR);
 
-          SetNaviSpeaker();
-          owTextbox.EnqueueQuestion("You made changes. Want to equip?", onResponse);
-          hasFolderChanged = false;
-          return;
-        } 
+                SetNaviSpeaker();
+                auto query = [this](bool value) {
+                    if (value) {
+                        GotoLastScene();
+                        hasFolderChanged = false;
+                    }
+                    else{
+                        canInteract = true;
+                    }
+                };
 
-        gotoLastScene = true;
-        canInteract = false;
-      }
+                owTextbox.EnqueueMessage("You don't have thirty cards yet!");
+                owTextbox.EnqueueQuestion("Want to quit?", query);
+                canInteract = false;
+            }
+            else {
+                Logger::Log(LogLevel::critical, std::to_string(folderView.numOfCards));
+                WriteNewFolderData();
+                if (hasFolderChanged) {
+                    auto onResponse = [this](bool value) {
+                        if (value) {
+                            equipFolderOnExit = true;
+                        }
+                        GotoLastScene();
+                    };
+
+                    SetNaviSpeaker();
+
+                    owTextbox.EnqueueQuestion("You made changes. Want to equip?", onResponse);
+                    hasFolderChanged = false;
+                    return;
+                }
+                gotoLastScene = true;
+                canInteract = false;
+            }
+        }
     }
 
     if (gotoLastScene) {
@@ -1386,3 +1409,57 @@ void FolderEditScene::ShutdownTouchControls() {
   TouchArea::free();
 }
 #endif
+
+const bool FolderEditScene::RuleCheck(Battle::Card& copy)
+{
+    bool valid = true;
+    int limit = copy.GetLimit();
+    Battle::CardClass cardClass = copy.GetClass();
+    Battle::Card checkCard;
+    auto& session = getController().Session();
+    int foundCards = 0;
+    int foundMega = 0;
+    int megaCardLimit = GetCardTypeLimit(Battle::CardClass::mega);
+    int foundDark = 0;
+    int darkCardLimit = GetCardTypeLimit(Battle::CardClass::dark);
+    int foundGiga = 0;
+    int gigaCardLimit = GetCardTypeLimit(Battle::CardClass::giga);
+    for (size_t i = 0; i < folderCardSlots.size(); i++) {
+        checkCard = Battle::Card(folderCardSlots[i].ViewCard());
+        if (checkCard.GetUUID() == copy.GetUUID()) {
+            foundCards++;
+        }
+        if (checkCard.GetClass() == Battle::CardClass::dark) {
+            foundDark++;
+        }
+        if (checkCard.GetClass() == Battle::CardClass::mega) {
+            foundMega++;
+        }
+        if (checkCard.GetClass() == Battle::CardClass::giga) {
+            foundGiga++;
+        }
+    }
+    if ((foundCards >= limit && limit != 0)
+      || (cardClass == Battle::CardClass::dark && foundDark >= darkCardLimit)
+      || (cardClass == Battle::CardClass::mega && foundMega >= megaCardLimit)
+      || (cardClass == Battle::CardClass::giga && foundGiga >= gigaCardLimit)) {
+        Audio().Play(AudioType::CHIP_ERROR);
+        valid = false;
+    }
+    return valid;
+}
+
+const int FolderEditScene::GetCardTypeLimit(Battle::CardClass cardClass)
+{
+    //auto& session = getController().Session();
+    if (cardClass == Battle::CardClass::giga) {
+        return 1;
+    }
+    else if (cardClass == Battle::CardClass::dark) {
+        return 3;
+    }
+    else if (cardClass == Battle::CardClass::mega) {
+        return 5;
+    }
+    return 30;
+}

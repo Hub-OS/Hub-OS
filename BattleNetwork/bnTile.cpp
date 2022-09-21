@@ -26,12 +26,14 @@
 #define COOLDOWN frames(1800)
 #define FLICKER frames(180)
 #define SEA_COOLDOWN frames(60*60)
+#define CONVEYOR_MOVE_DELAY frames(8)
 
 namespace Battle {
   frame_time_t Tile::brokenCooldownLength = COOLDOWN;
   frame_time_t Tile::teamCooldownLength = COOLDOWN;
   frame_time_t Tile::flickerTeamCooldownLength = FLICKER;
   frame_time_t Tile::seaCooldownLength = SEA_COOLDOWN;
+  frame_time_t Tile::conveyorCooldownLength = COOLDOWN;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
@@ -190,8 +192,8 @@ namespace Battle {
 
   void Tile::HandleMove(std::shared_ptr<Entity> entity)
   {
-    // If removing an entity and the tile was broken, crack the tile
-    if (reserved.size() == 0 && dynamic_cast<Character*>(entity.get()) != nullptr && (IsCracked() && !(entity->HasFloatShoe() || entity->HasAirShoe()))) {
+    // If removing an entity and the tile was cracked, break the tile
+    if (reserved.size() == 0 && dynamic_cast<Character*>(entity.get()) != nullptr && (IsCracked() && !entity->HasFloatShoe())) {
       SetState(TileState::broken);
       Audio().Play(AudioType::PANEL_CRACK);
     }
@@ -316,6 +318,11 @@ namespace Battle {
       seaCooldown = seaCooldownLength;
     }
 
+    if (_state == TileState::directionUp || _state == TileState::directionDown || _state == TileState::directionLeft || _state == TileState::directionRight) {
+      conveyorCooldown = conveyorCooldownLength;
+      moveDelay = frames(0);
+    }
+
     state = _state;
   }
 
@@ -342,6 +349,9 @@ namespace Battle {
     if (state == TileState::sea) {
       // Sea tiles flicker when they regen
       animState = (((seaCooldown.count()%4) < 2) && seaCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+    }
+    if (state == TileState::directionUp || state == TileState::directionDown || state == TileState::directionLeft || state == TileState::directionRight) {
+      animState = (((conveyorCooldown.count() % 4) < 2) && conveyorCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
     }
     else {
       animState = std::move(GetAnimState(state));
@@ -573,6 +583,11 @@ namespace Battle {
         if (seaCooldown < frames(0)) { seaCooldown = frames(0); state = TileState::normal; };
       }
 
+      if (state == TileState::directionUp || state == TileState::directionDown || state == TileState::directionLeft || state == TileState::directionRight) {
+        conveyorCooldown -= frames(1);
+        if (conveyorCooldown <= frames(0)) { conveyorCooldown = frames(0); state = TileState::normal; };
+      }
+
       if (state == TileState::broken) {
         brokenCooldown -= frames(1);
 
@@ -681,10 +696,13 @@ namespace Battle {
 
       if (directional != Direction::none) {
         if (obst.WillSlideOnTiles()) {
-          if (!obst.HasAirShoe() && !obst.HasFloatShoe()) {
+          if (!obst.HasFloatShoe()) {
             if (!obst.IsSliding() && notMoving) {
-              MoveEvent event{ frames(3), frames(0), frames(0), 0, obst.GetTile() + directional };
-              obst.Entity::RawMoveEvent(event, ActionOrder::involuntary);
+              moveDelay += frames(1);
+              if (moveDelay >= CONVEYOR_MOVE_DELAY) {
+                MoveEvent event{ frames(4), frames(0), frames(0), 0, obst.GetTile() + directional };
+                obst.Entity::RawMoveEvent(event, ActionOrder::involuntary);
+              }
             }
           }
         }
@@ -749,10 +767,14 @@ namespace Battle {
       if (directional != Direction::none) {
         bool notMoving = !character.IsMoving();
         if (character.WillSlideOnTiles()) {
-          if (!character.HasAirShoe() && !character.HasFloatShoe()) {
+          if (!character.HasFloatShoe()) {
             if (notMoving && !character.IsSliding()) {
-              MoveEvent event{ frames(3), frames(0), frames(0), 0, character.GetTile() + directional };
-              character.RawMoveEvent(event, ActionOrder::involuntary);
+              moveDelay += frames(1);
+              if (moveDelay >= CONVEYOR_MOVE_DELAY) {
+                MoveEvent event{ frames(4), frames(0), frames(0), 0, character.GetTile() + directional };
+                character.RawMoveEvent(event, ActionOrder::involuntary);
+                moveDelay = frames(0);
+              }
             }
           }
         }

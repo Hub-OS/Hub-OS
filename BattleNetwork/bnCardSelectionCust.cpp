@@ -630,8 +630,18 @@ void CardSelectionCust::GetNextCards() {
       return;
     }
 
-    bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
+    if (queue[i].data->GetClass() == Battle::CardClass::giga && props._folder->GetSize() > 19) {
+        //If we're too early in the folder and we would draw a giga card,
+        //We need to skip that card and reiterate over this slot.
+        //Giga cards can only be drawn in slots 11 or later.
+        //Technically 11-27. Not 28-30 either.
+        props._folder->Skip();
+        i--;
+        continue;
+    }
 
+    bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
+    
     // This auto-selects the first dark card if visible
     if (selectFirstDarkCard && isDarkCard) {
       cursorPos = i % 5;

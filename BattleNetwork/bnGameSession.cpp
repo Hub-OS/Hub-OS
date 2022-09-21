@@ -117,6 +117,13 @@ const bool GameSession::IsPackageAllowed(const PackageHash& hash) const
 const bool GameSession::IsFolderAllowed(CardFolder* folder) const
 {
   // as long as ALL contents in the folder match, the folder is allowed
+  bool result = true;
+  int foundDark = 0;
+  int foundMega = 0;
+  int foundGiga = 0;
+  int gigaCardLimit = 1;
+  int darkCardLimit = 3;
+  int megaCardLimit = 5;
   for (CardFolder::Iter iter = folder->Begin(); iter != folder->End(); iter++) {
     PackageHash hash;
     hash.packageId = (*iter)->GetUUID();
@@ -125,12 +132,26 @@ const bool GameSession::IsFolderAllowed(CardFolder* folder) const
 
     hash.md5 = cardPackages->FindPackageByID(hash.packageId).GetPackageFingerprint();
 
-    if (IsPackageAllowed(hash)) continue;
-
-    return false;
+    if (!IsPackageAllowed(hash)) {
+        result = false;
+        break;
+    }
+    if ((*iter)->GetClass() == Battle::CardClass::dark) {
+        foundDark++;
+    }
+    if ((*iter)->GetClass() == Battle::CardClass::mega) {
+        foundMega++;
+    }
+    if ((*iter)->GetClass() == Battle::CardClass::giga) {
+        foundGiga++;
+    }
+    if (foundGiga > gigaCardLimit || foundMega > megaCardLimit || foundDark > darkCardLimit) {
+        result = false;
+        break;
+    }
   }
 
-  return true;
+  return result;
 }
 
 const bool GameSession::IsBlockAllowed(const std::string& packageId) const

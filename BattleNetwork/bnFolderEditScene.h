@@ -34,6 +34,9 @@ private:
     pool
   };
 
+  const bool RuleCheck(Battle::Card& copy);
+  const int GetCardTypeLimit(Battle::CardClass cardClass);
+
   // abstract interface class
   class ICardView {
   private:
@@ -162,6 +165,7 @@ private:
     int firstCardOnScreen{ 0 }; //!< index, the topmost card seen in the list
     int prevIndex{ -1 }; // for effect
     int numOfCards{ 0 };
+    int numOfValidCards{ 0 };
     int swapCardIndex{ -1 }; // -1 for unselected, otherwise ID
   } folderView, packView;
 

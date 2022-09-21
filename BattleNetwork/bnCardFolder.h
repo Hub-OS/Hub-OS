@@ -63,6 +63,11 @@ public:
    * @return Card*
    */
   Battle::Card* Next();
+
+  /**
+  * @brief Skips the current card
+  */
+  Battle::Card* Skip();
   
   /**
    * @brief The remaining size of the folder

@@ -363,7 +363,7 @@ void FolderScene::onUpdate(double elapsed) {
       else if(folderNames.size()) {
         switch (optionIndex) {
         case 0: // EDIT
-          if (folder && IsFolderAllowed(folder)) {
+          if (folder) {
             Audio().Play(AudioType::CHIP_CONFIRM);
 
             using effect = segue<BlackWashFade, milli<500>>;

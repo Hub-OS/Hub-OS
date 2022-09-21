@@ -175,10 +175,9 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
     bool isPoisoned = false;
 
     // If the player is burning or poisoned, turn red to alert them
-    if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
+    if (player->GetTile() && !player->HasFloatShoe()) {
       isBurning = player->GetTile()->GetState() == TileState::lava;
       isBurning = isBurning && player->GetElement() != Element::fire;
-      isBurning = isBurning && !player->HasFloatShoe();
       isPoisoned = player->GetTile()->GetState() == TileState::poison;
     }
 
