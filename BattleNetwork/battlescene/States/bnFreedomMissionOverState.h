@@ -14,7 +14,7 @@ class Player;
 struct FreedomMissionOverState final : public BattleTextIntroState {
   enum class Conditions : char {
     player_won_single_turn = 0,
-    player_won_mutliple_turn,
+    player_won_multiple_turn,
     player_failed,
     player_deleted
   };

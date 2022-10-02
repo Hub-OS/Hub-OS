@@ -180,6 +180,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, BattleSceneBase
   // create bi-directional communication
   Scripts().SetEventChannel(channel);
   Scripts().SetKeyValue("cust_gauge_default_max_time", std::to_string(customDefaultDuration.asSeconds().value));
+  Scripts().SetKeyValue("turn_count", "1");
 }
 
 BattleSceneBase::~BattleSceneBase() {
@@ -707,7 +708,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   if (Input().GetAnyKey() == sf::Keyboard::Escape && this->IsSceneInFocus()) {
     BroadcastBattleStop();
     Quit(FadeOut::white);
-    Audio().StopStream();
   }
 
   // State update
@@ -1240,6 +1240,7 @@ void BattleSceneBase::BroadcastBattleStop()
 void BattleSceneBase::IncrementTurnCount()
 {
   turn++;
+  Scripts().SetKeyValue("turn_count", std::to_string(turn));
 }
 
 void BattleSceneBase::IncrementRoundCount()

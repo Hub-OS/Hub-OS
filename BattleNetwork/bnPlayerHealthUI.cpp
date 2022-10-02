@@ -160,7 +160,7 @@ HP drop is not 1 unit per frame. It is:
 */
 void PlayerHealthUIComponent::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
-  isBattleOver = Injected() ? (Scene()->IsRedTeamCleared() || Scene()->IsBlueTeamCleared()) : true;
+  isBattleOver = Injected() ? (Scene()->IsRedTeamDead() || Scene()->IsBlueTeamDead()) : true;
 
   ui.Update(elapsed);
 
@@ -182,12 +182,12 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
     }
 
     if (isBurning || isPoisoned || player->GetHealth() <= startHP * 0.25) {
-      ui.SetFontStyle(Font::Style::gradient_gold);
+        ui.SetFontStyle(Font::Style::gradient_gold);
 
-      // If HP is low, play beep with high priority
-      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver && scene && scene->GetSelectedCardsUI().IsHidden()) {
-        ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
-      }
+        // If HP is low, play beep with high priority
+        if (player->GetHealth() <= startHP * 0.25 && !isBattleOver && scene && scene->GetCardSelectWidget().IsOutOfView()) {
+            ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
+        }
     }
   }
 }

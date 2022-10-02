@@ -1,0 +1,11 @@
+imagePath="C:/Users/seven/OneDrive/Desktop/OpenNetBattle/BattleNetwork/resources/ui/folder_edit_next.png"
+
+animation state="DEFAULT"
+frame duration="0.1" x="1" y="1" w="8" h="8" originx="10" originy="4" flipx="0" flipy="0"
+frame duration="0.1" x="10" y="1" w="8" h="8" originx="10" originy="4" flipx="0" flipy="0"
+frame duration="0.1" x="1" y="10" w="8" h="8" originx="10" originy="4" flipx="0" flipy="0"
+
+animation state="REVERSE"
+frame duration="0.1" x="1" y="1" w="8" h="8" originx="10" originy="4" flipx="1" flipy="0"
+frame duration="0.1" x="10" y="1" w="8" h="8" originx="10" originy="4" flipx="1" flipy="0"
+frame duration="0.1" x="1" y="10" w="8" h="8" originx="10" originy="4" flipx="1" flipy="0"

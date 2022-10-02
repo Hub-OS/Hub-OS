@@ -102,16 +102,27 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   folderSwapCursor = folderCursor;
 
   packCursor = folderCursor;
-  packCursor.setPosition((2.f * 90.f) + 480.0f, 64.0f);
+  packCursor.setPosition((2.f * 90.f) + 490.0f, 64.0f);
   packSwapCursor = packCursor;
 
   sortCursor = folderCursor;
 
   folderNextArrow = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_NEXT_ARROW));
+  folderNextArrow.setPosition(464.f, 50.f);
   folderNextArrow.setScale(2.f, 2.f);
+  folderNextAnimation = Animation(AnimationPaths::FOLDER_PAGE_ARROW);
+  folderNextAnimation.SetAnimation("DEFAULT");
+  folderNextAnimation << Animator::Mode::Loop;
 
-  packNextArrow = folderNextArrow;
-  packNextArrow.setScale(-2.f, 2.f);
+  packNextArrow = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_NEXT_ARROW));
+  packNextArrow.setPosition(488.f, 50.f);
+  packNextArrow.setScale(2.f, 2.f);
+  packNextAnimation = Animation(AnimationPaths::FOLDER_PAGE_ARROW);
+  packNextAnimation.SetAnimation("REVERSE");
+  packNextAnimation << Animator::Mode::Loop;
+
+  folderNextAnimation.Update(0, folderNextArrow);
+  packNextAnimation.Update(0, packNextArrow);
 
   folderCardCountBox = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SIZE));
   folderCardCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderCardCountBox.getLocalBounds().height));
@@ -177,6 +188,9 @@ void FolderEditScene::onUpdate(double elapsed) {
   totalTimeElapsed += elapsed;
 
   owTextbox.Update((float)elapsed);
+
+  folderNextAnimation.Update((float)elapsed, folderNextArrow);
+  packNextAnimation.Update((float)elapsed, packNextArrow);
 
   if (owTextbox.IsOpen()) {
     owTextbox.HandleInput(Input(), {});
@@ -377,7 +391,10 @@ void FolderEditScene::onUpdate(double elapsed) {
           extendedHold = true;
         }
 
-        Audio().Play(AudioType::CHIP_SELECT);
+        if (view->currCardIndex < view->numOfCards - 1) {
+            Audio().Play(AudioType::CHIP_SELECT);
+            cardRevealTimer.reset();
+        }
         
         //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
         view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + view->maxCardsOnScreen);
@@ -385,7 +402,6 @@ void FolderEditScene::onUpdate(double elapsed) {
         //Set the last card on screen to be one page down or the true final card in the pack.
         view->firstCardOnScreen = std::min(view->firstCardOnScreen + view->maxCardsOnScreen, view->numOfCards-view->maxCardsOnScreen);
 
-        cardRevealTimer.reset();
       }
     }
     else {
@@ -685,7 +701,6 @@ void FolderEditScene::onUpdate(double elapsed) {
                 canInteract = false;
             }
             else {
-                Logger::Log(LogLevel::critical, std::to_string(folderView.numOfCards));
                 WriteNewFolderData();
                 if (hasFolderChanged) {
                     auto onResponse = [this](bool value) {
@@ -841,11 +856,15 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
   DrawPool(surface);
 
   if (isInSortMenu) {
+    float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
+    float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, sortCursor.getPosition().y, 64.0f + (32.f * cursorSortIndex));
+    sortCursor.setPosition((2.f * sortCursor.getPosition().x - folderSort.getPosition().x + 10.f) + bounce, y);
     surface.draw(folderSort);
     surface.draw(sortCursor);
   }
 
   surface.draw(owTextbox);
+  
 }
 
 void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
@@ -863,6 +882,10 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   scrollbar.setPosition(452.f, top + depth);
 
   surface.draw(scrollbar);
+
+  if (currViewMode == ViewMode::folder) {
+      surface.draw(folderNextArrow);
+  }
 
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
@@ -1010,6 +1033,10 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   surface.draw(packDock);
   surface.draw(packCardHolder);
 
+  if (currViewMode == ViewMode::pool) {
+      surface.draw(packNextArrow);
+  }
+
   if (packView.numOfCards == 0) return;
 
   // Per BN6, don't draw the scrollbar itself if you can't scroll in the pack.
@@ -1091,7 +1118,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
       };
         
       // draw the cursor where the entry is located and bounce
-      packCursor.setPosition(bounce + 480.f + 2.f, y);
+      packCursor.setPosition(bounce + 484.f, y);
 
       if (!isInSortMenu) {
         surface.draw(packCursor);
@@ -1132,7 +1159,7 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
     if (packView.firstCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
       float y = 64.0f + (32.f * i);
 
-      packSwapCursor.setPosition(485.f + 2.f + 2.f, y);
+      packSwapCursor.setPosition(490.f, y);
       packSwapCursor.setColor(sf::Color(255, 255, 255, 200));
       surface.draw(packSwapCursor);
       packSwapCursor.setColor(sf::Color::White);

@@ -150,6 +150,9 @@ private:
   sf::Sprite folderCardCountBox;
   sf::Sprite folderSort, sortCursor;
 
+  Animation folderNextAnimation;
+  Animation packNextAnimation;
+
   // Current card graphic data
   sf::Sprite card;
   sf::IntRect cardSubFrame;

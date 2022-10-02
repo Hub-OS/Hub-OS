@@ -587,6 +587,11 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       eventChannel->Emit(&BattleSceneBase::ResetCustomBarDuration);
     });
 
+  engine_namespace.set_function("get_turn_count",
+    [this]() {
+      return std::atof(keys["turn_count"].c_str());
+    });
+
   const auto& elements_table = state.new_enum("Element",
     "Fire", Element::fire,
     "Aqua", Element::aqua,

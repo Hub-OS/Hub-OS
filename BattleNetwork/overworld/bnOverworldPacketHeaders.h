@@ -6,7 +6,7 @@
 namespace Overworld
 {
     constexpr std::string_view VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
-    const uint64_t VERSION_ITERATION = 48;
+    const uint64_t VERSION_ITERATION = 42; //previously 48; revert later
 
     constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
 
@@ -86,10 +86,7 @@ namespace Overworld
         shake_camera,
         fade_camera,
         track_with_camera,
-        enable_camera_controls,
         unlock_camera,
-        enable_camera_zoom,
-        disable_camera_zoom,
         lock_input,
         unlock_input,
         teleport,
@@ -105,10 +102,8 @@ namespace Overworld
         close_bbs,
         shop_inventory,
         open_shop,
-        package_offer,
         load_package,
         mod_whitelist,
-        mod_blacklist,
         initiate_mob,
         initiate_pvp,
         actor_connected,
@@ -120,6 +115,11 @@ namespace Overworld
         actor_animate,
         actor_keyframes,
         actor_minimap_color,
+        enable_camera_controls,
+        enable_camera_zoom,
+        disable_camera_zoom,
+        package_offer,
+        mod_blacklist,
         synchronize_updates,
         end_synchronization,
         size,
@@ -128,10 +128,10 @@ namespace Overworld
 
     enum class AssetType : char {
         text = 0,
-        compressed_text,
         texture,
         audio,
         data,
+        compressed_text,
     };
 
     enum class PackageType : char {

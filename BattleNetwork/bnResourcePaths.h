@@ -172,6 +172,7 @@ namespace AnimationPaths {
   path PET_MISC_MENU = "resources/scenes/PET/misc_menu.animation";
 
   path CUST_CURSOR_BUTTON2 = "resources/ui/button2_cursor.animation";
+  path FOLDER_PAGE_ARROW = "resources/ui/page_arrow.animation";
 
 }
 

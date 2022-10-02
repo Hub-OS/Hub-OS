@@ -123,14 +123,14 @@ void Player::MakeActionable()
     animationComponent->CancelCallbacks();
 
     if (!IsActionable()) {
-        animationComponent->SetAnimation("PLAYER_IDLE");
+        animationComponent->SetAnimation(PLAYER_IDLE);
         animationComponent->SetPlaybackMode(Animator::Mode::Loop);
     }
 }
 
 bool Player::IsActionable() const
 {
-    return animationComponent->GetAnimationString() == "PLAYER_IDLE";
+    return animationComponent->GetAnimationString() == PLAYER_IDLE;
 }
 
 void Player::Attack() {
@@ -514,10 +514,8 @@ void Player::CreateMoveAnimHash()
       { 1, i4_seconds }
     };
 
-    auto anim_to_use = animationComponent->GetAnimationObject().HasAnimation("PLAYER_MOVE") ? "PLAYER_MOVE" : "PLAYER_IDLE";
-
     // creates and stores the new state in variable `moveAnimHash`
-    animationComponent->OverrideAnimationFrames(anim_to_use, frame_data, moveAnimHash);
+    animationComponent->OverrideAnimationFrames(PLAYER_MOVING, frame_data, moveAnimHash);
 }
 
 void Player::CreateRecoilAnimHash()
@@ -530,10 +528,8 @@ void Player::CreateRecoilAnimHash()
       { 2, i7_seconds }
     };
 
-    auto anim_to_use = animationComponent->GetAnimationObject().HasAnimation("PLAYER_HIT") ? "PLAYER_HIT" : "PLAYER_IDLE";
-
     // creates and stores the new state in variable `recoilAnimHash`
-    animationComponent->OverrideAnimationFrames(anim_to_use, frame_data, recoilAnimHash);
+    animationComponent->OverrideAnimationFrames(PLAYER_HIT, frame_data, recoilAnimHash);
 }
 
 void Player::TagBaseNodes()
@@ -552,7 +548,7 @@ void Player::FinishConstructor()
     CreateRecoilAnimHash();
     TagBaseNodes();
 
-    animationComponent->SetAnimation("PLAYER_IDLE");
+    animationComponent->SetAnimation(PLAYER_IDLE);
     animationComponent->Refresh();
     animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 

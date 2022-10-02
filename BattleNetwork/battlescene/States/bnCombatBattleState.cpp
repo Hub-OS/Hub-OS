@@ -259,7 +259,8 @@ void CombatBattleState::DrawCardData(sf::RenderTarget& target, std::shared_ptr<P
     //If the action exists and is registered to not show it's name, don't continue.
     //If we are the same team as the action, don't continue.
     Team team = action->GetActor()->GetTeam();
-    if (!action->IsShowName() || player->GetTeam() == action->GetActor()->GetTeam()) {
+    Team localTeam = scene->GetLocalPlayer()->GetTeam();
+    if (action->IsShowName() == false || localTeam == action->GetActor()->GetTeam()) {
         return;
     }
 
@@ -269,7 +270,6 @@ void CombatBattleState::DrawCardData(sf::RenderTarget& target, std::shared_ptr<P
     float multiplierOffset = 0.f;
     float dmgOffset = 0.f;
 
-    Team localTeam = scene.GetLocalPlayer()->GetTeam();
     sf::Vector2f position = sf::Vector2f(64.f, 64.f);
     if (player->GetTeam() != localTeam) {
         position = sf::Vector2f(256.f, 64.f);

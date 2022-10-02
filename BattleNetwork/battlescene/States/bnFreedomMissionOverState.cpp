@@ -34,7 +34,7 @@ void FreedomMissionOverState::onStart(const BattleSceneState* _)
     SetIntroText("Single Turn Liberation!");
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;
-  case Conditions::player_won_mutliple_turn:
+  case Conditions::player_won_multiple_turn:
     SetIntroText("Liberate success!");
     Audio().Stream("resources/loops/enemy_deleted.ogg");
     break;

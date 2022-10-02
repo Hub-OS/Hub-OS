@@ -54,9 +54,13 @@ Battle::Card* CardFolder::Next() {
 Battle::Card* CardFolder::Skip()
 {
     //Start with the card we want to replace. It's at the index we'd normally return with Next()
-    Battle::Card* current = folderList[folderSize];
+    int current = folderSize;
+    if (current == 30) {
+        current--;
+    }
+    Battle::Card* currentCard = folderList[current];
     //Grab the max we can't go past. For giga cards, it should be 27, but we might have less than that.
-    int max = std::min(folderSize, 27);
+    int max = std::min(current, 27);
     //Loop down over the folder list in the opposite direction of the hand.
     for (int count = max; count-- > 0; 0) {
         //Flip a weighted coin psuedorandomly.
@@ -66,13 +70,13 @@ Battle::Card* CardFolder::Skip()
             //And the flip is true, OR we're at the end of our rope...
             if (flip || count == max) {
                 //Swap the locations and break.
-                folderList[folderSize] = folderList[count];
-                folderList[count] = current;
+                folderList[current] = folderList[count];
+                folderList[count] = currentCard;
                 break;
             }
         }
     }
-    return folderList[folderSize];
+    return folderList[current];
 }
 
 const int CardFolder::GetSize() const

@@ -698,7 +698,6 @@ void MatchMakingScene::onEnter()
 
 void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(greenBg);
-  surface.draw(*gridBG);
 
   if (!isInFlashyVSIntro) {
     surface.draw(textbox);
@@ -731,6 +730,7 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
     this->DrawCopyPasteWidget(surface);
   }
   else {
+    surface.draw(*gridBG);
     surface.draw(clientPreview);
     surface.draw(remotePreview);
     surface.draw(vs);

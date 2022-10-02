@@ -54,7 +54,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
     infoText(Font::Style::thin),
     itemText(Font::Style::thick),
     hoverText(Font::Style::thick),
-    textbox(sf::Vector2f(4, 200)),
+    textbox(sf::Vector2f(4, 176)),
     questionInterface(nullptr),
     Scene(controller)
 {
@@ -76,7 +76,7 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
     navigator.setTexture(Textures().LoadFromFile(GetNaviMugTexture()));
     
     navigator.setScale(2.0f, 2.0f);
-    navigator.setPosition(12.0f, 162.0f);
+    navigator.setPosition(10.0f, 130.0f);
     navigator.Hide();
 
     navigatorAnimator = Animation(GetNaviMugAnimation());
@@ -103,6 +103,11 @@ PlayerCustScene::PlayerCustScene(swoosh::ActivityController& controller, const s
     sf::FloatRect bounds = itemArrowCursor.getLocalBounds();
     itemArrowCursor.setScale(2.f, 2.f);
     itemArrowCursor.setOrigin({ bounds.width, 0. });
+
+    bgTopTex = load_texture("resources/scenes/cust/bg_top.png");
+    bgTop = sf::Sprite(*bgTopTex);
+    bgTop.setPosition(sf::Vector2f(272.f, 0.f));
+    bgTop.setScale(2.f, 2.f);
 
     bgTex = load_texture("resources/scenes/cust/bg.png");
     bg = sf::Sprite(*bgTex);
@@ -1065,20 +1070,22 @@ bool PlayerCustScene::HandleUIKeys(double elapsed)
 
   keyRepeater.Reset();
 
-  if (Input().Has(InputEvents::pressed_option) && !itemListSelected) {
-    if (grabbingPiece) {
-      grabbingPiece->Revert();
-      ExecuteCancelGrab();
-    }
+  if (Input().Has(InputEvents::pressed_option)) {
+      if (!itemListSelected) {
+          if (grabbingPiece) {
+              grabbingPiece->Revert();
+              ExecuteCancelGrab();
+          }
 
-    if (insertingPiece) {
-      insertingPiece->Revert();
-      ExecuteCancelInsert();
-    }
+          if (insertingPiece) {
+              insertingPiece->Revert();
+              ExecuteCancelInsert();
+          }
+      }
 
-    SelectItemUI(pieces.size());
-    StartScaffolding();
-    return true;
+      SelectItemUI(pieces.size());
+      StartScaffolding();
+      return true;
   }
 
   if (Input().Has(InputEvents::pressed_cancel)) {
@@ -1098,7 +1105,7 @@ bool PlayerCustScene::HandleUIKeys(double elapsed)
       };
 
       Audio().Play(AudioType::PAUSE, AudioPriority::low);
-      questionInterface = new Question("Quit programming?", onYes, onNo);
+      questionInterface = new Question("Quit programming\nand return to menu?", onYes, onNo);
       textbox.EnqueMessage(questionInterface);
       textbox.Open();
       textbox.CompleteCurrentBlock();
@@ -1145,7 +1152,7 @@ void PlayerCustScene::SelectItemUI(size_t idx)
   state = state::usermode;
   keyRepeater.Reset();
 
-  if (itemListSelected) return;
+  if (itemListSelected && (Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::held_ui_right))) return;
 
   itemListSelected = true;
   listStart = idx;
@@ -1535,10 +1542,10 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   surface.draw(track);
 
   // draw items
-  float yoffset = 0.;
+  float yoffset = 19.f;
   
   if (listStart+1u > MAX_ITEMS_ON_SCREEN) {
-    yoffset = -blueButtonSprite.getLocalBounds().height * ((listStart+1u) - MAX_ITEMS_ON_SCREEN);
+    yoffset = -blueButtonSprite.getLocalBounds().height * ((listStart+1u) - MAX_ITEMS_ON_SCREEN-1) - 5;
   }
 
   sf::Vector2f previewPos{};
@@ -1657,6 +1664,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   // textbox is top over everything
   surface.draw(textbox);
   surface.draw(navigator);
+  surface.draw(bgTop);
 }
 
 void PlayerCustScene::onEnd()

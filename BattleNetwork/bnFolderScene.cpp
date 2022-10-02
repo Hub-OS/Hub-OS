@@ -84,7 +84,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   folderEquip = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_EQUIP));
   folderEquip.setScale(2.f, 2.f);
 
-  cursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::TEXT_BOX_CURSOR));
+  cursor = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition(2.0, 155.0f);
 
@@ -267,6 +267,32 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
     }
+    else if (Input().Has(InputEvents::pressed_shoulder_left) || Input().Has(InputEvents::held_shoulder_left)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+            if (!extendedHold) {
+                selectInputCooldown = maxSelectInputCooldown;
+                extendedHold = true;
+            }
+            //Adjust the math to use std::max so that the current card index is always set to 0 at least.
+            currCardIndex -= maxCardsOnScreen;
+        }
+    }
+    else if (Input().Has(InputEvents::pressed_shoulder_right) || Input().Has(InputEvents::held_shoulder_right)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+            if (!extendedHold) {
+                selectInputCooldown = maxSelectInputCooldown;
+                extendedHold = true;
+            }
+
+
+            //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
+            currCardIndex += maxCardsOnScreen;
+        }
+    }
     else if (Input().Has(InputEvents::pressed_ui_right)) {
       extendedHold = false;
 
@@ -301,7 +327,7 @@ void FolderScene::onUpdate(double elapsed) {
     }
 
     currCardIndex = std::max(0, currCardIndex);
-    currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
+    currCardIndex = std::min(std::max(0, numOfCards - maxCardsOnScreen), currCardIndex);
     currFolderIndex = std::max(0, currFolderIndex);
     currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
     optionIndex = std::max(0, optionIndex);
@@ -518,11 +544,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       cardLabel.SetColor(color);
       cardLabel.SetString(folderNames[i]);
       cardLabel.setOrigin(0.0f, 0.0f);
-      cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
+      cardLabel.setPosition(folderLeft + 10.0f, 56.0f);
       surface.draw(cardLabel);
 
       if (i == selectedFolderIndex) {
-        folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
+        folderEquip.setPosition(folderLeft+28.0f, 30.0f);
         surface.draw(folderEquip);
       }
 
@@ -555,8 +581,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     }
 #else 
     float x = swoosh::ease::interpolate(
-      (float)frameElapsed * 7.f, folderCursor.getPosition().x,
-      98.0f + (std::min(2, currFolderIndex) * 144.0f)
+        (float)frameElapsed * 7.f, folderCursor.getPosition().x,
+        100.0f + (std::min(2, currFolderIndex) * 144.0f)
     );
 
     folderCursor.setPosition(x, 68.0f);
@@ -587,6 +613,9 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
+    float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
+    float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, cursor.getPosition().y, 76.0f + (32.f * optionIndex));
+    cursor.setPosition(2.f * cursor.getPosition().x + bounce, y+12.f);
     surface.draw(cursor);
   }
   else {

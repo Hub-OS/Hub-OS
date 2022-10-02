@@ -227,7 +227,7 @@ void FreedomMissionMobScene::IncrementTurnCount()
     overStatePtr->context = FreedomMissionOverState::Conditions::player_won_single_turn;
   }
   else {
-    overStatePtr->context = FreedomMissionOverState::Conditions::player_won_mutliple_turn;
+    overStatePtr->context = FreedomMissionOverState::Conditions::player_won_multiple_turn;
   }
 }
 

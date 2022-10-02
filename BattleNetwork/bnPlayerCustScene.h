@@ -141,7 +141,7 @@ private:
   double blockFlashElapsed{}, buttonFlashElapsed{};
   double frameElapsed{};
   float scaffolding{1.f};
-  sf::Sprite bg, bgBottom;
+  sf::Sprite bg, bgBottom, bgTop;
   sf::Sprite cursor, itemArrowCursor;
   sf::Sprite claw;
   sf::Sprite sceneLabel;
@@ -158,6 +158,7 @@ private:
   std::shared_ptr<sf::Texture> cursorTexture, miniblocksTexture, disabledBlockTexture;
   std::vector<std::shared_ptr<sf::Texture>> blockTextures;
   std::shared_ptr<sf::Texture> bgTex;
+  std::shared_ptr<sf::Texture> bgTopTex;
   std::shared_ptr<sf::Texture> progressBarTexture;
   std::shared_ptr<sf::SoundBuffer> compile_start, compile_complete, compile_no_item, compile_item;
   std::vector<Piece*> pieces;
