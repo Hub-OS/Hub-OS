@@ -4,11 +4,11 @@
 - [x] Unlimited players in PVP
 - [x] Official co-op support
 - [x] Mod protection
-- [] Automated GitHub builds
-  - [] Windows
-  - [] Mac OS
-  - [] Linux / Steam Deck
-  - [] Android
+- [ ] Automated GitHub builds
+  - [ ] Windows
+  - [ ] Mac OS
+  - [ ] Linux / Steam Deck
+  - [ ] Android
 
 # Building
 
