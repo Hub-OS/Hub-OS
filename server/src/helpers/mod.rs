@@ -1,5 +1,3 @@
-use std::net::{IpAddr, SocketAddr};
-
 pub fn unwrap_and_parse_or_default<A>(option: Option<&str>) -> A
 where
     A: Default + std::str::FromStr,
@@ -31,31 +29,6 @@ pub fn normalize_path(path: &std::path::Path) -> std::path::PathBuf {
     }
 
     normalized_path
-}
-
-// use is_global when it's stabilized https://github.com/rust-lang/rust/issues/27709
-pub fn is_internal_ip(ip: IpAddr) -> bool {
-    match ip {
-        IpAddr::V6(ipv6) => ipv6.is_loopback(),
-        IpAddr::V4(ipv4) => {
-            ipv4.is_private()
-                || ipv4.is_loopback()
-                || ipv4.is_link_local()
-                || ipv4.is_broadcast()
-                || ipv4.is_documentation()
-        }
-    }
-}
-
-/* \brief makes a localhost ip useable for pvp */
-pub fn use_public_ip(address: SocketAddr, public_ip: IpAddr) -> SocketAddr {
-    let ip = address.ip();
-
-    if is_internal_ip(ip) {
-        return std::net::SocketAddr::new(public_ip, address.port());
-    }
-
-    address
 }
 
 pub mod iterators;
