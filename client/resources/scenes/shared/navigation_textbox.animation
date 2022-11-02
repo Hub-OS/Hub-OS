@@ -1,0 +1,22 @@
+# @frame_rate 60
+
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/shared/navigation_textbox.png"
+
+animation state="IDLE"
+frame duration="0f" x="0" y="0" w="236" h="64" originx="118" originy="28" flipx="0" flipy="0"
+point label="AVATAR" x="3" y="8"
+point label="TEXT_TOP_LEFT" x="49" y="8"
+point label="TEXT_BOTTOM_RIGHT" x="229" y="56"
+point label="NEXT" x="232" y="57"
+
+animation state="OPEN"
+frame duration="1f" x="0" y="134" w="235" h="2" originx="118" originy="0" flipx="0" flipy="0"
+frame duration="1f" x="0" y="107" w="236" h="27" originx="118" originy="14" flipx="0" flipy="0"
+frame duration="1f" x="0" y="64" w="236" h="43" originx="118" originy="22" flipx="0" flipy="0"
+frame duration="1f" x="0" y="0" w="236" h="59" originx="118" originy="28" flipx="0" flipy="0"
+
+animation state="CLOSE"
+frame duration="1f" x="0" y="0" w="236" h="59" originx="118" originy="28" flipx="0" flipy="0"
+frame duration="1f" x="0" y="64" w="236" h="43" originx="118" originy="22" flipx="0" flipy="0"
+frame duration="1f" x="0" y="107" w="236" h="27" originx="118" originy="14" flipx="0" flipy="0"
+frame duration="1f" x="0" y="134" w="235" h="2" originx="118" originy="0" flipx="0" flipy="0"

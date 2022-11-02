@@ -1,0 +1,11 @@
+imagePath="confused.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="28" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="56" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="84" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="112" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="140" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="168" w="49" h="28" originx="24" originy="14"
+frame duration="0.05" x="0" y="196" w="49" h="28" originx="24" originy="14"

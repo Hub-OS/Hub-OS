@@ -1,0 +1,9 @@
+imagePath="C:\Users\Proto\Documents\Code\OpenNetBattle\BattleNetwork\resources\scenes\PET\misc_menu.png"
+
+animation state="NEUROLINK_LABEL"
+frame duration="0.005" x="127" y="9" w="102" h="31" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.005" x="17" y="5" w="102" h="31" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="PLAYERCUST_LABEL"
+frame duration="0.005" x="127" y="47" w="102" h="31" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.005" x="17" y="43" w="102" h="31" originx="0" originy="0" flipx="0" flipy="0"

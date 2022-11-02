@@ -1,0 +1,17 @@
+# @frame_rate 60
+
+imagePath="spell_bullet_hit.png"
+
+animation state="HIT"
+frame duration="1f" x="1" y="1" w="30" h="23" originx="15" originy="11"
+frame duration="1f" x="30" y="0" w="30" h="23" originx="15" originy="11"
+frame duration="1f" x="60" y="0" w="30" h="23" originx="15" originy="11"
+frame duration="1f" x="90" y="0" w="30" h="23" originx="15" originy="11"
+
+animation state="CHARGED_HIT"
+frame duration="1f" x="5" y="33" w="22" h="21" originx="11" originy="11"
+frame duration="1f" x="33" y="30" w="32" h="28" originx="17" originy="16"
+frame duration="2f" x="81" y="26" w="38" h="35" originx="20" originy="19"
+frame duration="2f" x="132" y="26" w="34" h="31" originx="18" originy="18"
+frame duration="2f" x="176" y="24" w="38" h="35" originx="19" originy="20"
+frame duration="3f" x="224" y="24" w="38" h="36" originx="20" originy="20"

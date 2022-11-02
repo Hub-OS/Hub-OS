@@ -1,0 +1,20 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/scenes/mail/mail_icons_compressed.png"
+
+animation state="mission"
+frame duration="0.05" x="0" y="0" w="14" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="dm_w_attachment"
+frame duration="0.05" x="40" y="0" w="13" h="11" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="dm"
+frame duration="0.05" x="0" y="11" w="13" h="10" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="announcement"
+frame duration="0.05" x="14" y="0" w="13" h="12" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="important"
+frame duration="0.05" x="27" y="0" w="13" h="12" originx="0" originy="0" flipx="0" flipy="0" 
+
+animation state="new"
+frame duration="0.1" x="40" y="11" w="16" h="6" originx="0" originy="0" flipx="0" flipy="0" 
+frame duration="0.1" x="14" y="12" w="16" h="6" originx="0" originy="0" flipx="0" flipy="0" 

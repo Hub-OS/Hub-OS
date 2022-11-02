@@ -1,0 +1,8 @@
+# @frame_rate 60
+
+imagePath="textbox_cursor.png"
+
+animation state="DEFAULT"
+frame duration="6f" w="9" h="14" originx="11" originy="7"
+frame duration="6f" w="9" h="14" originx="12" originy="7"
+frame duration="6f" w="9" h="14" originx="13" originy="7"

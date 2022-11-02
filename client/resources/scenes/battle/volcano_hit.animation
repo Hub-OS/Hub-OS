@@ -1,0 +1,9 @@
+imagePath="C:/mmbn/net battle engine/Release/resources/spells/volcano_hit.png"
+
+animation state="HIT"
+frame duration="0.033" x="4" y="5" w="30" h="32" originx="15" originy="16"
+frame duration="0.033" x="42" y="2" w="42" h="44" originx="21" originy="21"
+frame duration="0.033" x="96" y="9" w="26" h="24" originx="13" originy="11"
+frame duration="0.033" x="145" y="3" w="56" h="58" originx="28" originy="28"
+frame duration="0.05" x="3" y="51" w="60" h="62" originx="30" originy="30"
+frame duration="0.05" x="109" y="74" w="64" h="63" originx="32" originy="31"

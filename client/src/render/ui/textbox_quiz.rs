@@ -1,0 +1,108 @@
+use super::{TextStyle, TextboxCursor, TextboxInterface, UiInputTracker};
+use crate::render::*;
+use crate::resources::*;
+use framework::prelude::*;
+
+pub struct TextboxQuiz {
+    message: String,
+    selection: usize,
+    complete: bool,
+    callback: Option<Box<dyn FnOnce(usize)>>,
+    cursor: Option<TextboxCursor>,
+    input_tracker: UiInputTracker,
+}
+
+impl TextboxQuiz {
+    pub fn new(options: &[&str; 3], callback: impl FnOnce(usize) + 'static) -> Self {
+        Self {
+            message: format!("  {}\n  {}\n  {}", options[0], options[1], options[2]),
+            complete: false,
+            selection: 0,
+            callback: Some(Box::new(callback)),
+            cursor: None,
+            input_tracker: UiInputTracker::new(),
+        }
+    }
+}
+
+impl TextboxInterface for TextboxQuiz {
+    fn text(&self) -> &str {
+        &self.message
+    }
+
+    fn is_complete(&self) -> bool {
+        self.complete
+    }
+
+    fn update(&mut self, game_io: &mut GameIO<Globals>, text_style: &TextStyle, _lines: usize) {
+        if self.complete {
+            return;
+        }
+
+        if self.cursor.is_none() {
+            self.cursor = Some(TextboxCursor::new(game_io));
+        }
+
+        let input_util = InputUtil::new(game_io);
+        self.input_tracker.update(game_io);
+
+        let old_selection = self.selection;
+
+        if self.input_tracker.is_active(Input::Up) {
+            if self.selection == 0 {
+                self.selection = 2;
+            } else {
+                self.selection -= 1;
+            }
+        }
+
+        if self.input_tracker.is_active(Input::Down) {
+            if self.selection == 2 {
+                self.selection = 0;
+            } else {
+                self.selection += 1;
+            }
+        }
+
+        if self.selection != old_selection {
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_move_sfx);
+        }
+
+        if input_util.was_just_pressed(Input::Confirm) {
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_select_sfx);
+
+            self.complete = true;
+        }
+
+        if self.complete {
+            let callback = self.callback.take().unwrap();
+            callback(self.selection);
+        }
+
+        let cursor = self.cursor.as_mut().unwrap();
+
+        let line_height = text_style.line_height();
+        let relative_position = Vec2::new(
+            text_style.measure("  ").size.x,
+            line_height * 0.5 + line_height * self.selection as f32,
+        );
+
+        cursor.set_position(text_style.bounds.position() + relative_position);
+        cursor.update();
+    }
+
+    fn draw(
+        &mut self,
+        _game_io: &framework::prelude::GameIO<Globals>,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        let cursor = match &mut self.cursor {
+            Some(cursor) => cursor,
+            None => return,
+        };
+
+        cursor.draw(sprite_queue);
+    }
+}

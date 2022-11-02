@@ -1,0 +1,8 @@
+# @frame_rate 60
+
+imagePath="textbox_next.png"
+
+animation state="DEFAULT"
+frame duration="6f" x="0" y="0" w="11" h="11" originx="5" originy="11"
+frame duration="6f" x="0" y="0" w="11" h="11" originx="5"  originy="12"
+frame duration="5f" x="0" y="0" w="11" h="11" originx="5" originy="13"

@@ -1,0 +1,5 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/backgrounds/config/end_btn.png"
+
+animation state="BLINK"
+frame duration="0.02" x="0" y="0" w="51" h="18" originx="0" originy="0"
+frame duration="0.02" x="51" y="0" w="51" h="20" originx="0" originy="0"
