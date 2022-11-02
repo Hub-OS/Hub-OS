@@ -1,0 +1,5 @@
+imagePath="health_frame.png"
+
+animation state="DEFAULT"
+frame duration="0" x="0" y="0" w="44" h="16" originx="0" originy="0"
+point label="text_start" x="7" y="3"

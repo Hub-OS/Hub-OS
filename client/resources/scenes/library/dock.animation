@@ -1,0 +1,5 @@
+animation state="DEFAULT"
+frame x="0" y="0" w="154" h="132" originx="-86" originy="-16"
+point label="list" x="17" y="13"
+point label="scroll_start" x="145" y="18"
+point label="scroll_end" x="145" y="120"

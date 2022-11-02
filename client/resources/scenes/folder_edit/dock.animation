@@ -1,0 +1,9 @@
+imagePath="dock.png"
+
+animation state="DEFAULT"
+frame x="0" y="0" w="239" h="136" originx="-1" originy="-16"
+point label="card" x="7" y="1"
+point label="list" x="102" y="16"
+point label="scroll_start" x="229" y="21"
+point label="scroll_end" x="229" y="123"
+point label="context_menu" x="17" y="4"

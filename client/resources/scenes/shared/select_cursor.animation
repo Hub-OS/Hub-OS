@@ -1,0 +1,22 @@
+animation state="DEFAULT"
+frame duration="6f" x="0" y="0" w="10" h="11"
+frame duration="6f" x="0" y="0" w="10" h="11" originx="-2"
+frame duration="6f" x="0" y="0" w="10" h="11" originx="-1"
+
+animation state="SELECTED"
+# 1
+frame duration="3f" x="0" y="0" w="10" h="11" originx="-5"
+blank duration="1f"
+frame duration="2f" x="0" y="0" w="10" h="11" originx="-5"
+# 2
+frame duration="1f" x="0" y="0" w="10" h="11" originx="-7"
+blank duration="1f"
+frame duration="3f" x="0" y="0" w="10" h="11" originx="-7"
+blank duration="1f"
+# 3
+frame duration="3f" x="0" y="0" w="10" h="11" originx="-6"
+blank duration="1f"
+frame duration="2f" x="0" y="0" w="10" h="11" originx="-6"
+
+animation state="IDLE"
+frame duration="1f" x="0" y="0" w="10" h="11"

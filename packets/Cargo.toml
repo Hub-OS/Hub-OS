@@ -1,0 +1,18 @@
+[package]
+name = "packets"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+network_channels = { path = "../network_channels" }
+serde = { version = "1.0.144", features = ["derive"] }
+flate2 = "1.0.24"
+num-derive = "0.3.3"
+num-traits = "0.2.15"
+rollback_mlua = { git = "ssh://git@github.com/Real-PET/rollback-mlua.git" }
+log = "0.4.17"
+async-std = "1.12.0"
+strum = { version = "0.24.1", features = ["derive"] }
+md5 = "0.7.0"

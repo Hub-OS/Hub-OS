@@ -1,0 +1,127 @@
+<html>
+
+<head>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #333;
+                color: white;
+            }
+            a {
+                color: skyblue;
+            }
+        }
+        html {
+            font-family: sans-serif;
+            margin: 0;
+        }
+        .intro {
+            text-align: center;
+        }
+        .license-id {
+            display: none;
+        }
+        .license-tabbed-container {
+            display: flex;
+            flex-direction: row;
+            margin-top: 8px;
+        }
+        .license-list {
+            min-width: 250px;
+            min-height: 500px;
+            overflow-x: auto;
+            background: #eee;
+            margin-right: 24px;
+        }
+        .license-list-item {
+            white-space: nowrap;
+            cursor: pointer;
+            color: inherit;
+            text-decoration: none;
+        }
+        .license-list-item:hover {
+            background: #ddd;
+        }
+        .license-list-item.selected {
+            background: #ccc;
+        }
+        .license-list-item, .license {
+            display: none;
+        }
+        .license-used-by {
+            margin-top: -10px;
+        }
+        .license-text {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="intro">
+        <h1>Third Party Licenses</h1>
+    </div>
+
+    <div class="licenses-overview">
+        {{#each overview}}
+        <div><a href="javascript:filter_licenses('{{id}}')">{{name}}</a> ({{count}})</div>
+        {{/each}}
+    </div>
+
+    <div class="license-tabbed-container">
+        <div class="license-list">
+            {{#each licenses}}
+            {{#each used_by}}
+            <a href="javascript:" class="license-list-item {{../id}}" onclick="javascript:view_license(this, '{{crate.name}}')">
+                {{crate.name}}
+            </a>
+            {{/each}}
+            {{/each}}
+        </div>
+
+        {{#each licenses}}
+        {{#each used_by}}
+        <div class="license" id="{{crate.name}}">
+            <h3>
+                {{crate.name}} {{crate.version}}<br />
+                <a href="{{#if crate.repository}} {{crate.repository}} {{else}} https://crates.io/crates/{{crate.name}} {{/if}}">
+                    (project link)
+                </a>
+            </h3>
+            
+            <pre class="license-text">{{../text}}</pre>
+        </div>
+        {{/each}}
+        {{/each}}
+    </div>
+</body>
+
+<script>
+    let current_license = null;
+    let current_filter = null;
+
+    function view_license(button, id) {
+        if (current_license) {
+            document.getElementById(current_license.id).style.display = null;
+            current_license.button.classList.remove("selected");
+        }
+        document.getElementById(id).style.display = "block";
+        button.classList.add("selected");
+        current_license = { button, id };
+    }
+
+    function filter_licenses(id) {
+        if (current_filter) {
+            for (const element of document.querySelectorAll(current_filter)) {
+                element.style.display = null;
+            }
+        }
+        current_filter = '.' + id.replace('.', '\\.');
+
+        for (const element of document.querySelectorAll(current_filter)) {
+            element.style.display = "block";
+        }
+    }
+</script>
+
+</html>

@@ -1,0 +1,14 @@
+animation state="STANDARD"
+frame x="0" y="0" w="80" h="134"
+point label="preview" x="40" y="4"
+point label="description_start" x="5" y="70"
+point label="description_end" x="74" y="120"
+
+animation state="MEGA"
+frame x="80" y="0" w="80" h="134"
+
+animation state="GIGA"
+frame x="160" y="0" w="80" h="134"
+
+animation state="DARK"
+frame x="240" y="0" w="80" h="134"

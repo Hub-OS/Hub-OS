@@ -1,0 +1,7 @@
+imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/scenes/cust/menu.png"
+
+animation state="MOVE"
+frame duration="0.05" x="0" y="0" w="48" h="30" originx="27" originy="0" flipx="0" flipy="0" 
+
+animation state="REMOVE"
+frame duration="0.05" x="48" y="0" w="48" h="30" originx="27" originy="0" flipx="0" flipy="0" 

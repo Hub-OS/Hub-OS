@@ -1,0 +1,52 @@
+[package]
+name = "real_pet"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+packets = { path = "../packets" }
+framework = { path = "../framework" }
+anyhow = "1.0.65"
+bytemuck = "1.12.1"
+chrono = "0.4.22"
+flume = "0.10.14"
+generational-arena = "0.2.8"
+hecs = "0.9.0"
+itertools = "0.10.5"
+lazy_static = "1.4.0"
+log = "0.4.17"
+rollback_mlua = { git = "ssh://git@github.com/Real-PET/rollback-mlua.git" }
+num-derive = "0.3.3"
+num-traits = "0.2.15"
+rand = "0.8.5"
+rmp-serde = "1.1.1"
+rodio = "0.16.0"
+roxmltree = "0.15.0"
+rust-ini = "0.18.0"
+serde = { version = "1.0.145", features = ["derive"] }
+strum = { version = "0.24.1", features = ["derive"] }
+taffy = "0.1.0"
+unicode-segmentation = "1.10.0"
+clap = { version = "3.2.22", features = ["derive"] }
+unicode_categories = "0.1.1"
+flate2 = "1.0.24"
+bimap = "0.6.2"
+zip = "0.6.3"
+path-clean = "0.1.0"
+futures = "0.3.25"
+walkdir = "2.3.2"
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk-glue = "0.7.0"
+
+# necessary for android + wasm builds
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[package.metadata.android]
+build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
+
+[package.metadata.android.application.activity]
+exported = true

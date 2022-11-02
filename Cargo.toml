@@ -1,0 +1,6 @@
+[workspace]
+members = ["client", "packets", "scripts", "server", "framework"]
+resolver = "2"
+
+[profile.dev]
+opt-level = 1

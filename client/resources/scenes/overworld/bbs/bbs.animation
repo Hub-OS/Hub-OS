@@ -1,0 +1,15 @@
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/overworld/bbs/bbs.png"
+
+animation state="BG"
+frame duration="0.005" x="0" y="0" w="240" h="160" originx="0" originy="0" flipx="0" flipy="0"
+point label="FRAME" x="3" y="18"
+
+animation state="FRAME"
+frame duration="0.005" x="241" y="0" w="235" h="140" originx="0" originy="0" flipx="0" flipy="0"
+point label="SCROLL_START" x="230" y="10"
+point label="SCROLL_END" x="230" y="129"
+point label="POSTS_BG" x="3" y="3"
+
+animation state="POSTS_BG"
+frame duration="0.005" x="241" y="141" w="222" h="134" originx="0" originy="0" flipx="0" flipy="0"
+point label="POSTS_START" x="3" y="2"

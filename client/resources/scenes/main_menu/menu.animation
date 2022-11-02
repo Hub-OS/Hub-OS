@@ -1,0 +1,89 @@
+# @frame_rate 60
+
+imagePath="C:\Users\Proto\Documents\Code\OpenNetBattle\BattleNetwork\resources\scenes\PET\menu.png"
+
+animation state="FOLDERS_LABEL"
+frame duration="6f" x="76" y="41" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="41" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="SERVERS_LABEL"
+frame duration="6f" x="76" y="25" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="25" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="SUB_CHIP_LABEL"
+frame duration="6f" x="76" y="57" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="57" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="LIBRARY_LABEL"
+frame duration="6f" x="76" y="73" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="73" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="CHARACTER_LABEL"
+frame duration="6f" x="76" y="89" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="89" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="MAIL_LABEL"
+frame duration="6f" x="76" y="105" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="105" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="BATTLE_SELECT_LABEL"
+frame duration="6f" x="76" y="121" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="121" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="CONFIG_LABEL"
+frame duration="6f" x="76" y="137" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="137" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="NET_PLAY_LABEL"
+frame duration="6f" x="76" y="153" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="153" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="KEY_ITEMS_LABEL"
+frame duration="6f" x="76" y="169" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="2" y="169" w="69" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="INFO"
+frame duration="50f" x="30" y="187" w="88" h="54" originx="44" originy="27" flipx="0" flipy="0"
+
+animation state="SERVERS"
+frame duration="3f" x="174" y="24" w="14" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="24" w="14" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="FOLDERS"
+frame duration="3f" x="174" y="39" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="39" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="SUB_CHIP"
+frame duration="3f" x="174" y="56" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="56" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="LIBRARY"
+frame duration="3f" x="174" y="72" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="72" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="CHARACTER"
+frame duration="3f" x="174" y="88" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="88" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="MAIL"
+frame duration="3f" x="174" y="103" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="103" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="BATTLE_SELECT"
+frame duration="3f" x="174" y="119" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="150" y="119" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="CONFIG"
+frame duration="3f" x="174" y="136" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="150" y="136" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="NET_PLAY"
+frame duration="3f" x="174" y="152" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="151" y="152" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="KEY_ITEMS"
+frame duration="3f" x="173" y="168" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="150" y="168" w="16" h="15" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="TOP_BAR"
+frame duration="50f" x="2" y="3" w="240" h="16" originx="0" originy="0" flipx="0" flipy="0"

@@ -1,0 +1,5 @@
+imagePath="unread.png"
+
+animation state="DEFAULT"
+frame duration="0.25" x="0" y="0" w="16" h="13" originx="0" originy="6"
+frame duration="0.25" x="16" y="0" w="16" h="13" originx="0" originy="6"

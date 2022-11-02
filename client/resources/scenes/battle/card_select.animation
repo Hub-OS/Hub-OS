@@ -1,0 +1,57 @@
+# @frame_rate 60
+
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/resources/scenes/battle/card_select.png"
+
+animation state="ROOT"
+frame duration="0f" x="236" y="192" w="120" h="64" originx="0" originy="-96" flipx="0" flipy="0"
+point label="card_start" x="9" y="9"
+point label="confirm" x="91" y="16"
+
+animation state="STANDARD_FRAME"
+frame duration="0f" x="0" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+point label="preview" x="16" y="24"
+
+animation state="MEGA_FRAME"
+frame duration="0f" x="89" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="GIGA_FRAME"
+frame duration="0f" x="0" y="101" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="DARK_FRAME"
+frame duration="0f" x="89" y="101" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="EMPTY_MESSAGE"
+frame duration="0f" x="178" y="0" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="CONFIRM_MESSAGE"
+frame duration="0f" x="178" y="49" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="ERROR_MESSAGE"
+frame duration="0f" x="178" y="98" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="FORM_FRAME"
+frame duration="0f" x="235" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="SELECTION_FRAME"
+frame duration="0f" x="324" y="0" w="32" h="111" originx="-88" originy="0" flipx="0" flipy="0"
+point label="start" x="9" y="25"
+
+animation state="SELECTED_FRAME"
+frame duration="0f" x="329" y="112" w="22" h="16" originx="4" originy="1" flipx="0" flipy="0"
+
+animation state="CARD_CURSOR"
+frame duration="8f" x="0" y="202" w="18" h="18" originx="2" originy="2" flipx="0" flipy="0"
+frame duration="8f" x="19" y="202" w="22" h="22" originx="4" originy="4" flipx="0" flipy="0"
+
+animation state="SIDE_CURSOR"
+frame duration="8f" x="53" y="202" w="25" h="22" originx="0" originy="1" flipx="0" flipy="0"
+frame duration="8f" x="79" y="202" w="29" h="26" originx="2" originy="3" flipx="0" flipy="0"
+
+animation state="ICON_FRAME"
+frame duration="50f" x="244" y="200" w="16" h="24" originx="1" originy="1" flipx="0" flipy="0"
+
+animation state="NAME_PLATE"
+frame duration="50f" x="356" y="178" w="1" h="11" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="NAME_PLATE_EDGE"
+frame duration="50f" x="346" y="178" w="9" h="11" originx="9" originy="0" flipx="0" flipy="0"

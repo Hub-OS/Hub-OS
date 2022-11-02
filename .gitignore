@@ -1,0 +1,17 @@
+# output
+/target
+dist
+
+# editors
+*.code-workspace
+.vscode
+
+# client files
+cache/
+mods
+save.dat
+corrupted_save.dat
+config.ini
+
+# private files
+_*

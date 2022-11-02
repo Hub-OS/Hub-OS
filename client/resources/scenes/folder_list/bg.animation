@@ -1,0 +1,6 @@
+animation state="default"
+frame x="0" y="0" w="240" h="60"
+point label="folder_start" x="13" y="17"
+point label="scroll_start" x="222" y="69"
+point label="scroll_end" x="222" y="140"
+point label="list" x="95" y="64"
