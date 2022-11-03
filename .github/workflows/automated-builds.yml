@@ -50,6 +50,9 @@ jobs:
         with:
           cc: 0
 
+      - name: Make Release Folder
+        run: mkdir -p target/release
+
       - name: Build Windows Client
         uses: actions-rs/cargo@v1
         with:
@@ -71,6 +74,11 @@ jobs:
             --release
             --target
             x86_64-pc-windows-gnu
+
+      - name: Copy Windows Executables
+        run: |
+          cp target/x86_64-pc-windows-gnu/release/real_pet.exe target/release/real_pet.exe
+          cp target/x86_64-pc-windows-gnu/release/real_pet_server.exe target/release/real_pet_server.exe
 
       - name: Install Linux Dependencies
         run: sudo apt install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
