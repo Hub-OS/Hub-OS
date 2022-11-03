@@ -7,11 +7,13 @@ use crate::resources::*;
 use crate::saves::{Card, Folder};
 use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION, DRAMATIC_FADE_DURATION};
 use framework::prelude::*;
+use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
 use packets::{NetplayPacket, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::pin::Pin;
 
 enum Event {
     AddressesFailed,
@@ -51,6 +53,7 @@ pub struct NetplayInitScene {
     event_receiver: flume::Receiver<Event>,
     ui_camera: Camera,
     sprite: Sprite,
+    communication_future: Option<Pin<Box<dyn Future<Output = ()>>>>,
     next_scene: NextScene<Globals>,
 }
 
@@ -83,46 +86,42 @@ impl NetplayInitScene {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
-        game_io
-            .spawn_local_task(async move {
-                let results = futures::future::join_all(remote_futures).await;
-                let mut senders_and_receivers: Vec<_> = results.into_iter().flatten().collect();
-                let fallback_sender_receiver = senders_and_receivers.pop().unwrap();
+        let communication_future = async move {
+            let results = futures::future::join_all(remote_futures).await;
+            let mut senders_and_receivers: Vec<_> = results.into_iter().flatten().collect();
+            let fallback_sender_receiver = senders_and_receivers.pop().unwrap();
 
-                if senders_and_receivers.len() < total_remote {
-                    log::error!(
-                        "server sent an invalid address for a remote player, using fallback"
-                    );
+            if senders_and_receivers.len() < total_remote {
+                log::error!("server sent an invalid address for a remote player, using fallback");
 
-                    let _ = event_sender.send(Event::Fallback {
-                        fallback: fallback_sender_receiver,
-                    });
-                    return;
+                let _ = event_sender.send(Event::Fallback {
+                    fallback: fallback_sender_receiver,
+                });
+                return;
+            }
+
+            let success = punch_holes(
+                local_index,
+                &remote_index_map,
+                &senders_and_receivers,
+                &fallback_sender_receiver,
+            )
+            .await;
+
+            let event = if success {
+                log::debug!("hole punching successful");
+                Event::ResolvedAddresses {
+                    players: senders_and_receivers,
                 }
+            } else {
+                log::debug!("hole punching failed");
+                Event::Fallback {
+                    fallback: fallback_sender_receiver,
+                }
+            };
 
-                let success = punch_holes(
-                    local_index,
-                    &remote_index_map,
-                    &senders_and_receivers,
-                    &fallback_sender_receiver,
-                )
-                .await;
-
-                let event = if success {
-                    log::debug!("hole punching successful");
-                    Event::ResolvedAddresses {
-                        players: senders_and_receivers,
-                    }
-                } else {
-                    log::debug!("hole punching failed");
-                    Event::Fallback {
-                        fallback: fallback_sender_receiver,
-                    }
-                };
-
-                let _ = event_sender.send(event);
-            })
-            .detach();
+            let _ = event_sender.send(event);
+        };
 
         let remote_player_connections: Vec<_> = remote_players
             .iter()
@@ -154,6 +153,7 @@ impl NetplayInitScene {
             event_receiver,
             ui_camera: Camera::new_ui(game_io),
             sprite: (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
+            communication_future: Some(Box::pin(communication_future)),
             next_scene: NextScene::None,
         }
     }
@@ -568,6 +568,12 @@ impl NetplayInitScene {
 impl Scene<Globals> for NetplayInitScene {
     fn next_scene(&mut self) -> &mut NextScene<Globals> {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+        if let Some(future) = self.communication_future.take() {
+            game_io.spawn_local_task(future).detach();
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
