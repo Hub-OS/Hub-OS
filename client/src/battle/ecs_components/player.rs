@@ -76,7 +76,7 @@ impl Player {
         if self.local {
             PackageNamespace::Local
         } else {
-            PackageNamespace::PvP(self.index)
+            PackageNamespace::Remote(self.index)
         }
     }
 }

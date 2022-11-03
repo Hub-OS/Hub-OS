@@ -126,10 +126,10 @@ async fn decode_messages(
                 }
             }
         }
-        PacketChannels::PvP => {
+        PacketChannels::Netplay => {
             for message in messages {
                 sender
-                    .send(ThreadMessage::PvPPacket {
+                    .send(ThreadMessage::NetplayPacket {
                         socket_address,
                         packet: message,
                     })

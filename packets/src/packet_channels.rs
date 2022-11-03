@@ -5,5 +5,5 @@ pub enum PacketChannels {
     Client,
     Server,
     ServerComm,
-    PvP,
+    Netplay,
 }

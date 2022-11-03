@@ -1,7 +1,7 @@
 # Features:
 
 - [x] Rollback
-- [x] Unlimited players in PVP
+- [x] Unlimited players in Netplay/PVP
 - [x] Official co-op support
 - [x] Mod protection
 - [ ] Automated GitHub builds

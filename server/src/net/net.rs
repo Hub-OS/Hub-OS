@@ -945,7 +945,7 @@ impl Net {
         false
     }
 
-    pub fn initiate_pvp(
+    pub fn initiate_netplay(
         &mut self,
         ids: &[&str],
         package_path: Option<String>,
@@ -987,7 +987,7 @@ impl Net {
                 orchestrator.send(
                     client.socket_address,
                     Reliability::ReliableOrdered,
-                    ServerPacket::InitiatePvp {
+                    ServerPacket::InitiateNetplay {
                         package_path: package_path.clone(),
                         data: data.clone(),
                         remote_players,

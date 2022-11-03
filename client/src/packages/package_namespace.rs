@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum PackageNamespace {
     Local,
     Server,
-    PvP(usize),
+    Remote(usize),
 }
 
 impl PackageNamespace {
@@ -21,7 +21,7 @@ impl PackageNamespace {
         }
 
         match self {
-            PackageNamespace::PvP(_) => PackageNamespace::Server.find_with_fallback(callback),
+            PackageNamespace::Remote(_) => PackageNamespace::Server.find_with_fallback(callback),
             PackageNamespace::Server => callback(PackageNamespace::Local),
             PackageNamespace::Local => None,
         }

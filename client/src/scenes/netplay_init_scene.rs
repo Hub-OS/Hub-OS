@@ -8,7 +8,7 @@ use crate::saves::{Card, Folder};
 use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION, DRAMATIC_FADE_DURATION};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
-use packets::{PvPPacket, SERVER_TICK_RATE};
+use packets::{NetplayPacket, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -16,10 +16,10 @@ use std::collections::{HashMap, HashSet, VecDeque};
 enum Event {
     AddressesFailed,
     ResolvedAddresses {
-        players: Vec<(PvPPacketSender, PvPPacketReceiver)>,
+        players: Vec<(NetplayPacketSender, NetplayPacketReceiver)>,
     },
     Fallback {
-        fallback: (PvPPacketSender, PvPPacketReceiver),
+        fallback: (NetplayPacketSender, NetplayPacketReceiver),
     },
 }
 
@@ -31,8 +31,8 @@ struct RemotePlayerConnection {
     load_map: HashMap<FileHash, PackageCategory>,
     received_package_list: bool,
     ready: bool,
-    send: Option<PvPPacketSender>,
-    receiver: Option<PvPPacketReceiver>,
+    send: Option<NetplayPacketSender>,
+    receiver: Option<NetplayPacketReceiver>,
     input_buffer: VecDeque<Vec<Input>>,
 }
 
@@ -47,7 +47,7 @@ pub struct NetplayInitScene {
     missing_packages: HashSet<FileHash>,
     uploaded_packages: HashSet<FileHash>,
     player_connections: Vec<RemotePlayerConnection>,
-    fallback_sender_receiver: Option<(PvPPacketSender, PvPPacketReceiver)>,
+    fallback_sender_receiver: Option<(NetplayPacketSender, NetplayPacketReceiver)>,
     event_receiver: flume::Receiver<Event>,
     ui_camera: Camera,
     sprite: Sprite,
@@ -75,8 +75,10 @@ impl NetplayInitScene {
 
         let remote_futures: Vec<_> = remote_players
             .iter()
-            .map(|remote_player| network.subscribe_to_pvp(remote_player.address.to_string()))
-            .chain(std::iter::once(network.subscribe_to_pvp(fallback_address)))
+            .map(|remote_player| network.subscribe_to_netplay(remote_player.address.to_string()))
+            .chain(std::iter::once(
+                network.subscribe_to_netplay(fallback_address),
+            ))
             .collect();
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -182,7 +184,7 @@ impl NetplayInitScene {
         if now - self.last_heartbeat >= SERVER_TICK_RATE {
             self.last_heartbeat = now;
 
-            self.broadcast(PvPPacket::Heartbeat {
+            self.broadcast(NetplayPacket::Heartbeat {
                 index: self.local_index,
             });
         }
@@ -224,8 +226,8 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_packet(&mut self, game_io: &mut GameIO<Globals>, packet: PvPPacket) {
-        if matches!(packet, PvPPacket::AllDisconnected) {
+    fn handle_packet(&mut self, game_io: &mut GameIO<Globals>, packet: NetplayPacket) {
+        if matches!(packet, NetplayPacket::AllDisconnected) {
             self.failed = true;
             return;
         }
@@ -243,13 +245,13 @@ impl NetplayInitScene {
         };
 
         match packet {
-            PvPPacket::Hello { .. } => {
+            NetplayPacket::Hello { .. } => {
                 // handled earlier
             }
-            PvPPacket::HelloAck { .. } | PvPPacket::Heartbeat { .. } => {
+            NetplayPacket::HelloAck { .. } | NetplayPacket::Heartbeat { .. } => {
                 // response unnecessary
             }
-            PvPPacket::PlayerSetup {
+            NetplayPacket::PlayerSetup {
                 player_package,
                 cards,
                 ..
@@ -260,7 +262,7 @@ impl NetplayInitScene {
                     .map(|(package_id, code)| Card { package_id, code })
                     .collect();
             }
-            PvPPacket::PackageList { index, packages } => {
+            NetplayPacket::PackageList { index, packages } => {
                 log::debug!("received PackageList for {index}");
 
                 connection.received_package_list = true;
@@ -305,7 +307,7 @@ impl NetplayInitScene {
                     // request missing packages
                     self.send(
                         index,
-                        PvPPacket::MissingPackages {
+                        NetplayPacket::MissingPackages {
                             index: self.local_index,
                             recipient_index: index,
                             list: missing_packages,
@@ -313,7 +315,7 @@ impl NetplayInitScene {
                     );
                 }
             }
-            PvPPacket::MissingPackages {
+            NetplayPacket::MissingPackages {
                 index,
                 recipient_index,
                 list,
@@ -338,7 +340,7 @@ impl NetplayInitScene {
 
                             self.send(
                                 index,
-                                PvPPacket::PackageZip {
+                                NetplayPacket::PackageZip {
                                     index: self.local_index,
                                     data,
                                 },
@@ -347,7 +349,7 @@ impl NetplayInitScene {
                     }
                 }
             }
-            PvPPacket::PackageZip { data, .. } => {
+            NetplayPacket::PackageZip { data, .. } => {
                 let hash = FileHash::hash(&data);
 
                 log::debug!("received zip for {hash}");
@@ -361,7 +363,7 @@ impl NetplayInitScene {
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
-                            let namespace = PackageNamespace::PvP(connection.index);
+                            let namespace = PackageNamespace::Remote(connection.index);
                             globals.load_virtual_package(category, namespace, hash);
                         }
                     }
@@ -374,22 +376,21 @@ impl NetplayInitScene {
                     self.failed = true;
                 }
             }
-            PvPPacket::Ready { seed, .. } => {
+            NetplayPacket::Ready { seed, .. } => {
                 // todo: prevent seed manipulation
                 self.seed = self.seed.max(seed);
                 connection.ready = true;
 
                 log::debug!("received Ready for {index}");
             }
-            PvPPacket::Input { pressed, .. } => {
-                // todo: pass input
+            NetplayPacket::Input { pressed, .. } => {
                 use num_traits::FromPrimitive;
 
                 let pressed_inputs: Vec<_> = pressed.into_iter().flat_map(Input::from_u8).collect();
 
                 connection.input_buffer.push_back(pressed_inputs);
             }
-            PvPPacket::AllDisconnected => unreachable!(),
+            NetplayPacket::AllDisconnected => unreachable!(),
         }
     }
 
@@ -409,7 +410,7 @@ impl NetplayInitScene {
                 .all(|connection| connection.received_package_list)
     }
 
-    fn send(&self, remote_index: usize, packet: PvPPacket) {
+    fn send(&self, remote_index: usize, packet: NetplayPacket) {
         if let Some((send, _)) = &self.fallback_sender_receiver {
             send(packet);
         } else {
@@ -426,7 +427,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast(&self, packet: PvPPacket) {
+    fn broadcast(&self, packet: NetplayPacket) {
         if let Some((send, _)) = &self.fallback_sender_receiver {
             send(packet);
         } else {
@@ -453,7 +454,7 @@ impl NetplayInitScene {
             })
             .collect();
 
-        self.broadcast(PvPPacket::PackageList {
+        self.broadcast(NetplayPacket::PackageList {
             index: self.local_index,
             packages,
         });
@@ -467,7 +468,7 @@ impl NetplayInitScene {
             .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
 
-        self.broadcast(PvPPacket::PlayerSetup {
+        self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
             player_package: player_package_info.id.clone(),
             cards,
@@ -475,7 +476,7 @@ impl NetplayInitScene {
     }
 
     fn broadcast_ready(&self) {
-        self.broadcast(PvPPacket::Ready {
+        self.broadcast(NetplayPacket::Ready {
             index: self.local_index,
             seed: OsRng.next_u64(),
         })
@@ -515,7 +516,7 @@ impl NetplayInitScene {
 
             // setup other players
             for connection in &mut self.player_connections {
-                let namespace = PackageNamespace::PvP(connection.index);
+                let namespace = PackageNamespace::Remote(connection.index);
                 let package = globals
                     .player_packages
                     .package_or_fallback(namespace, &connection.player_package);
@@ -615,14 +616,14 @@ impl Scene<Globals> for NetplayInitScene {
 async fn punch_holes(
     local_index: usize,
     remote_index_map: &[usize],
-    senders_and_receivers: &[(PvPPacketSender, PvPPacketReceiver)],
-    fallback_sender_receiver: &(PvPPacketSender, PvPPacketReceiver),
+    senders_and_receivers: &[(NetplayPacketSender, NetplayPacketReceiver)],
+    fallback_sender_receiver: &(NetplayPacketSender, NetplayPacketReceiver),
 ) -> bool {
     use futures::future::FutureExt;
     use futures::StreamExt;
 
     for (send, _) in senders_and_receivers {
-        send(PvPPacket::Hello { index: local_index });
+        send(NetplayPacket::Hello { index: local_index });
     }
 
     // expecting the first message from everyone to be Hello and the second is a HelloAck
@@ -644,17 +645,17 @@ async fn punch_holes(
         futures::select! {
             result = hello_stream.select_next_some() => {
                 match result {
-                    PvPPacket::Hello { index } => {
+                    NetplayPacket::Hello { index } => {
                         log::debug!("received Hello");
 
                         if let Some(slice_index) = remote_index_map.iter().position(|i| *i == index) {
                             log::debug!("sending HelloAck");
 
                             let send = &senders_and_receivers[slice_index].0;
-                            send(PvPPacket::HelloAck { index: local_index });
+                            send(NetplayPacket::HelloAck { index: local_index });
                         }
                     }
-                    PvPPacket::HelloAck {..} => {
+                    NetplayPacket::HelloAck {..} => {
                         log::debug!("received HelloAck");
 
                         total_responses += 1;
@@ -673,7 +674,7 @@ async fn punch_holes(
                 }
             }
             result = fallback_stream.select_next_some() => {
-                if let PvPPacket::Hello { .. } = result {
+                if let NetplayPacket::Hello { .. } = result {
                     log::debug!("received Hello through fallback channel");
                     return false;
                 }
@@ -684,7 +685,7 @@ async fn punch_holes(
                 // out of time, we'll assume hole punching failed
 
                 // send a hello message on the fallback channel to force wait timers on other players to end
-                fallback_sender_receiver.0(PvPPacket::Hello {
+                fallback_sender_receiver.0(NetplayPacket::Hello {
                     index: local_index,
                 });
 
