@@ -34,6 +34,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
             target/
           key: ${{ runner.os }}-cargo
 
@@ -71,7 +73,7 @@ jobs:
             x86_64-pc-windows-gnu
 
       - name: Install Linux Dependencies
-        run: sudo apt install -y libasound2-dev libudev-dev
+        run: sudo apt install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
 
       - name: Build Linux Executables and Create Dist
         uses: actions-rs/cargo@v1
