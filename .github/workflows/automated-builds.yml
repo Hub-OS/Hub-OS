@@ -58,7 +58,6 @@ jobs:
           command: run
           args: |
             --bin
-            --target
             dist
 
       - name: Archive
