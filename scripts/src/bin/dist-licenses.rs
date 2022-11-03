@@ -14,6 +14,6 @@ fn main() {
         return;
     }
 
-    fs::create_dir("dist").unwrap();
+    let _ = fs::create_dir("dist");
     let _ = fs::write("dist/third_party_licenses.html", &cargo_about_output.stdout);
 }
