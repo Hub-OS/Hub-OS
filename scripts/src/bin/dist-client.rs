@@ -1,9 +1,9 @@
 use std::fs;
-use std::process::Command;
+use std::process::{Command, ExitCode};
 
 const CLIENT_NAME: &str = "real_pet";
 
-fn main() {
+fn main() -> ExitCode {
     let build_output = Command::new("cargo")
         .args(["build", "-p", CLIENT_NAME, "--release"])
         .stdout(std::process::Stdio::inherit())
@@ -13,7 +13,8 @@ fn main() {
 
     if !build_output.status.success() {
         // stdout + stderr are shared, no need to display anything
-        return;
+
+        return ExitCode::FAILURE;
     }
 
     fs_extra::dir::create_all("dist/client", true).unwrap();
@@ -36,4 +37,6 @@ fn main() {
         &fs_extra::dir::CopyOptions::default(),
     )
     .unwrap();
+
+    ExitCode::SUCCESS
 }
