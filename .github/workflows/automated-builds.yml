@@ -38,16 +38,33 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo
 
+      - name: Install Cargo About
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-about
+
       - name: MinGW Setup
         uses: egor-tensin/setup-mingw@v2
         with:
           cc: 0
 
-      - name: Build Windows Executables
+      - name: Build Windows Client
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: |
+            --bin real_pet
+            --release
+            --target
+            x86_64-pc-windows-gnu
+
+      - name: Build Windows Server
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: |
+            --bin real_pet_server
             --release
             --target
             x86_64-pc-windows-gnu
