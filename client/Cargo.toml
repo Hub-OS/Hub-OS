@@ -17,7 +17,7 @@ hecs = "0.9.0"
 itertools = "0.10.5"
 lazy_static = "1.4.0"
 log = "0.4.17"
-rollback_mlua = { git = "ssh://git@github.com/Real-PET/rollback-mlua.git" }
+rollback_mlua = { path = "../rollback-mlua" }
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 rand = "0.8.5"
