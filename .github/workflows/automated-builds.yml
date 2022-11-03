@@ -28,7 +28,7 @@ jobs:
           target: x86_64-pc-windows-gnu
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
@@ -38,7 +38,12 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo
 
-      - name: Build Windows
+      - name: MinGW Setup
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+
+      - name: Build Windows Executables
         uses: actions-rs/cargo@v1
         with:
           command: build
@@ -47,7 +52,7 @@ jobs:
             --target
             x86_64-pc-windows-gnu
 
-      - name: Build Linux and Create Dist
+      - name: Build Linux Executables and Create Dist
         uses: actions-rs/cargo@v1
         with:
           command: run
