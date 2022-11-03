@@ -27,8 +27,7 @@ jobs:
           toolchain: stable
           target: x86_64-pc-windows-gnu
 
-      - name: Cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
@@ -70,6 +69,9 @@ jobs:
             --release
             --target
             x86_64-pc-windows-gnu
+
+      - name: Install libasound2-dev
+        run: sudo apt install -y libasound2-dev
 
       - name: Build Linux Executables and Create Dist
         uses: actions-rs/cargo@v1

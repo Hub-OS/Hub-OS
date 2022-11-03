@@ -1,10 +1,10 @@
 use fs_extra;
 use std::fs;
-use std::process::Command;
+use std::process::{Command, ExitCode};
 
 const CLIENT_NAME: &str = "real_pet_server";
 
-fn main() {
+fn main() -> ExitCode {
     let build_output = Command::new("cargo")
         .args(["build", "-p", CLIENT_NAME, "--release"])
         .stdout(std::process::Stdio::inherit())
@@ -14,7 +14,7 @@ fn main() {
 
     if !build_output.status.success() {
         // stdout + stderr are shared, no need to display anything
-        return;
+        return ExitCode::FAILURE;
     }
 
     // areas
@@ -53,4 +53,6 @@ fn main() {
         format!("target/release/{CLIENT_NAME}"),
         format!("dist/server/{CLIENT_NAME}"),
     );
+
+    ExitCode::SUCCESS
 }

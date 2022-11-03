@@ -1,6 +1,6 @@
-use std::process::Command;
+use std::process::{Command, ExitCode};
 
-fn main() {
+fn main() -> ExitCode {
     fs_extra::dir::create_all("dist", true).unwrap();
 
     let scripts = ["dist-client", "dist-server", "dist-licenses"];
@@ -15,7 +15,10 @@ fn main() {
 
         if !build_output.status.success() {
             // stdout + stderr are shared, no need to display anything
-            return;
+
+            return ExitCode::FAILURE;
         }
     }
+
+    ExitCode::SUCCESS
 }
