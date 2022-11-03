@@ -41,7 +41,7 @@ jobs:
       - name: MinGW Setup
         uses: egor-tensin/setup-mingw@v2
         with:
-          platform: x64
+          cc: 0
 
       - name: Build Windows Executables
         uses: actions-rs/cargo@v1
