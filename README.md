@@ -5,9 +5,9 @@
 - [x] Official co-op support
 - [x] Mod protection
 - [ ] Automated GitHub builds
-  - [ ] Windows
+  - [x] Windows
   - [ ] Mac OS
-  - [ ] Linux / Steam Deck
+  - [x] Linux / Steam Deck
   - [ ] Android
 
 # Building
