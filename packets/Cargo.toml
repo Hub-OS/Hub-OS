@@ -11,7 +11,7 @@ serde = { version = "1.0.144", features = ["derive"] }
 flate2 = "1.0.24"
 num-derive = "0.3.3"
 num-traits = "0.2.15"
-rollback_mlua = { git = "ssh://git@github.com/Real-PET/rollback-mlua.git" }
+rollback_mlua = { path = "../rollback-mlua" }
 log = "0.4.17"
 async-std = "1.12.0"
 strum = { version = "0.24.1", features = ["derive"] }
