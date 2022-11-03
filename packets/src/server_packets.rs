@@ -203,7 +203,7 @@ pub enum ServerPacket {
         package_path: String,
         data: Option<String>,
     },
-    InitiatePvp {
+    InitiateNetplay {
         package_path: Option<String>,
         data: Option<String>,
         remote_players: Vec<RemotePlayerInfo>,

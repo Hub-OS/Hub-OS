@@ -154,7 +154,7 @@ impl Globals {
             let ns = if setup.local {
                 PackageNamespace::Local
             } else {
-                PackageNamespace::PvP(setup.index)
+                PackageNamespace::Remote(setup.index)
             };
 
             let card_iter = setup.folder.cards.iter();

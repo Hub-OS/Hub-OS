@@ -35,7 +35,7 @@ impl<T: Package> PackageManager<T> {
         let package = self.package(ns, id);
 
         match ns {
-            PackageNamespace::PvP(_) => {
+            PackageNamespace::Remote(_) => {
                 package.or_else(|| self.package_or_fallback(PackageNamespace::Server, id))
             }
             PackageNamespace::Server => {

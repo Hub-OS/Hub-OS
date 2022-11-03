@@ -14,7 +14,7 @@ pub enum ThreadMessage {
         socket_address: SocketAddr,
         packet: ClientPacket,
     },
-    PvPPacket {
+    NetplayPacket {
         socket_address: SocketAddr,
         packet: Vec<u8>,
     },

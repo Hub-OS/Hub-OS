@@ -14,7 +14,7 @@ pub struct Card {
 }
 
 impl Card {
-    // used in pvp, luckily we shouldnt see what the opponent has, so using server namespace is fine
+    // used in netplay, luckily we shouldnt see what remotes have, so using server namespace is fine
     pub fn draw_icon(
         &self,
         game_io: &GameIO<Globals>,

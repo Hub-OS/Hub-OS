@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize, IntoStaticStr)]
-pub enum PvPPacket {
+pub enum NetplayPacket {
     Heartbeat {
         index: usize,
     },
@@ -43,23 +43,23 @@ pub enum PvPPacket {
         pressed: Vec<u8>,
         buffer_sizes: Vec<usize>,
     },
-    // Disconnect { index: usize }, // todo: use in pvp scene
+    // Disconnect { index: usize }, // todo: use in netplay scene
     AllDisconnected,
 }
 
-impl PvPPacket {
+impl NetplayPacket {
     pub fn index(&self) -> usize {
         match self {
-            PvPPacket::Hello { index } => *index,
-            PvPPacket::HelloAck { index } => *index,
-            PvPPacket::Heartbeat { index } => *index,
-            PvPPacket::PlayerSetup { index, .. } => *index,
-            PvPPacket::PackageList { index, .. } => *index,
-            PvPPacket::MissingPackages { index, .. } => *index,
-            PvPPacket::PackageZip { index, .. } => *index,
-            PvPPacket::Ready { index, .. } => *index,
-            PvPPacket::Input { index, .. } => *index,
-            PvPPacket::AllDisconnected => 0,
+            NetplayPacket::Hello { index } => *index,
+            NetplayPacket::HelloAck { index } => *index,
+            NetplayPacket::Heartbeat { index } => *index,
+            NetplayPacket::PlayerSetup { index, .. } => *index,
+            NetplayPacket::PackageList { index, .. } => *index,
+            NetplayPacket::MissingPackages { index, .. } => *index,
+            NetplayPacket::PackageZip { index, .. } => *index,
+            NetplayPacket::Ready { index, .. } => *index,
+            NetplayPacket::Input { index, .. } => *index,
+            NetplayPacket::AllDisconnected => 0,
         }
     }
 }

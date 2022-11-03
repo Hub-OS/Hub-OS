@@ -37,8 +37,8 @@ pub struct BattleProps<'a> {
     pub data: Option<String>,
     pub player_setups: Vec<PlayerSetup<'a>>,
     pub background: Background,
-    pub senders: Vec<PvPPacketSender>,
-    pub receivers: Vec<(Option<usize>, PvPPacketReceiver)>,
+    pub senders: Vec<NetplayPacketSender>,
+    pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
 }
 
 impl<'a> BattleProps<'a> {

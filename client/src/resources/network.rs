@@ -2,7 +2,9 @@ use crate::args::Args;
 use crate::render::FrameTime;
 use framework::util::Instant;
 use generational_arena::Arena;
-use packets::{deserialize, ClientPacket, PacketChannels, PvPPacket, Reliability, ServerPacket};
+use packets::{
+    deserialize, ClientPacket, NetplayPacket, PacketChannels, Reliability, ServerPacket,
+};
 use std::collections::HashMap;
 use std::future::Future;
 use std::net::{SocketAddr, UdpSocket};
@@ -12,14 +14,14 @@ use std::time::Duration;
 const DISCONNECT_AFTER: Duration = Duration::from_secs(5);
 pub type ClientPacketSender = Arc<dyn Fn(Reliability, ClientPacket) + Send + Sync>;
 pub type ServerPacketReceiver = flume::Receiver<ServerPacket>;
-pub type PvPPacketSender = Arc<dyn Fn(PvPPacket) + Send + Sync>;
-pub type PvPPacketReceiver = flume::Receiver<PvPPacket>;
+pub type NetplayPacketSender = Arc<dyn Fn(NetplayPacket) + Send + Sync>;
+pub type NetplayPacketReceiver = flume::Receiver<NetplayPacket>;
 
 enum Event {
     ServerSubscription(SocketAddr, flume::Sender<ServerPacket>),
-    PvPSubscription(SocketAddr, flume::Sender<PvPPacket>),
+    NetplaySubscription(SocketAddr, flume::Sender<NetplayPacket>),
     SendingClientPacket(SocketAddr, Reliability, ClientPacket),
-    SendingPvPPacket(SocketAddr, PvPPacket),
+    SendingNetplayPacket(SocketAddr, NetplayPacket),
     ReceivedPacket(SocketAddr, Instant, Vec<u8>),
     Tick,
 }
@@ -57,10 +59,10 @@ impl Network {
         }
     }
 
-    pub fn subscribe_to_pvp(
+    pub fn subscribe_to_netplay(
         &self,
         address: String,
-    ) -> impl Future<Output = Option<(PvPPacketSender, PvPPacketReceiver)>> {
+    ) -> impl Future<Output = Option<(NetplayPacketSender, NetplayPacketReceiver)>> {
         let event_sender = self.sender.clone();
 
         async move {
@@ -69,11 +71,11 @@ impl Network {
             let (sender, receiver) = flume::unbounded();
 
             event_sender
-                .send(Event::PvPSubscription(addr, sender))
+                .send(Event::NetplaySubscription(addr, sender))
                 .ok()?;
 
-            let send_packet: PvPPacketSender = Arc::new(move |body| {
-                let _ = event_sender.send(Event::SendingPvPPacket(addr, body));
+            let send_packet: NetplayPacketSender = Arc::new(move |body| {
+                let _ = event_sender.send(Event::SendingNetplayPacket(addr, body));
             });
 
             Some((send_packet, receiver))
@@ -130,12 +132,12 @@ fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) 
 struct Connection {
     socket_addr: SocketAddr,
     client_channel: packets::ChannelSender<PacketChannels>,
-    pvp_channel: packets::ChannelSender<PacketChannels>,
+    netplay_channel: packets::ChannelSender<PacketChannels>,
     packet_sender: packets::PacketSender<PacketChannels>,
     packet_receiver: packets::PacketReceiver<PacketChannels>,
     server_subscribers: Vec<flume::Sender<ServerPacket>>,
-    pvp_subscribers: Vec<flume::Sender<PvPPacket>>,
-    stored_pvp_packets: Vec<PvPPacket>,
+    netplay_subscribers: Vec<flume::Sender<NetplayPacket>>,
+    stored_netplay_packets: Vec<NetplayPacket>,
 }
 
 impl Connection {
@@ -143,18 +145,18 @@ impl Connection {
         let mut builder = packets::ConnectionBuilder::new(&packets::Config::default());
         builder.receiving_channel(PacketChannels::Server);
         let client_channel = builder.sending_channel(PacketChannels::Client);
-        let pvp_channel = builder.bidirectional_channel(PacketChannels::PvP);
+        let netplay_channel = builder.bidirectional_channel(PacketChannels::Netplay);
         let (packet_sender, packet_receiver) = builder.build().split();
 
         Self {
             socket_addr,
             client_channel,
-            pvp_channel,
+            netplay_channel,
             packet_sender,
             packet_receiver,
             server_subscribers: Vec::new(),
-            pvp_subscribers: Vec::new(),
-            stored_pvp_packets: Vec::new(),
+            netplay_subscribers: Vec::new(),
+            stored_netplay_packets: Vec::new(),
         }
     }
 }
@@ -189,11 +191,13 @@ impl EventListener {
                 Event::ServerSubscription(addr, sender) => {
                     self.handle_server_subscription(addr, sender)
                 }
-                Event::PvPSubscription(addr, sender) => self.handle_pvp_subscription(addr, sender),
+                Event::NetplaySubscription(addr, sender) => {
+                    self.handle_netplay_subscription(addr, sender)
+                }
                 Event::SendingClientPacket(addr, reliability, body) => {
                     self.send_client_packet(addr, reliability, packets::serialize(body))
                 }
-                Event::SendingPvPPacket(addr, body) => self.send_pvp_packet(
+                Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
                     addr,
                     Reliability::ReliableOrdered,
                     packets::serialize(body),
@@ -221,21 +225,25 @@ impl EventListener {
         }
     }
 
-    fn handle_pvp_subscription(&mut self, addr: SocketAddr, sender: flume::Sender<PvPPacket>) {
+    fn handle_netplay_subscription(
+        &mut self,
+        addr: SocketAddr,
+        sender: flume::Sender<NetplayPacket>,
+    ) {
         // create a connection if it doesnt already exist
 
         if let Some(index) = self.connection_map.get_mut(&addr) {
             let connection = &mut self.connections[*index];
 
-            // push stored pvp packets
-            for packet in std::mem::take(&mut connection.stored_pvp_packets) {
+            // push stored netplay packets
+            for packet in std::mem::take(&mut connection.stored_netplay_packets) {
                 let _ = sender.send(packet);
             }
 
-            connection.pvp_subscribers.push(sender);
+            connection.netplay_subscribers.push(sender);
         } else {
             let mut connection = Connection::new(addr);
-            connection.pvp_subscribers.push(sender);
+            connection.netplay_subscribers.push(sender);
             let index = self.connections.insert(connection);
             self.connection_map.insert(addr, index);
         }
@@ -257,14 +265,14 @@ impl EventListener {
         })
     }
 
-    fn send_pvp_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
+    fn send_netplay_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
         let connection = match self.connection_map.get_mut(&addr) {
             Some(index) => &mut self.connections[*index],
             None => return,
         };
 
         connection
-            .pvp_channel
+            .netplay_channel
             .send_shared_bytes(reliability, Arc::new(bytes));
 
         // push asap
@@ -296,11 +304,13 @@ impl EventListener {
         // similar branches, maybe these could be condensed into structs?
         match channel {
             PacketChannels::Client => {
-                log::warn!("Received Client packet from remote, expecting server or pvp packets");
+                log::warn!(
+                    "Received Client packet from remote, expecting server or netplay packets"
+                );
             }
             PacketChannels::ServerComm => {
                 log::warn!(
-                    "Received ServerComm packet from remote, expecting server or pvp packets"
+                    "Received ServerComm packet from remote, expecting server or netplay packets"
                 );
             }
             PacketChannels::Server => {
@@ -331,41 +341,41 @@ impl EventListener {
                     connection.server_subscribers.remove(i);
                 }
             }
-            PacketChannels::PvP => {
-                let mut pending_pvp_removal = Vec::new();
+            PacketChannels::Netplay => {
+                let mut pending_netplay_removal = Vec::new();
 
                 for message in messages {
-                    let pvp_packet: PvPPacket = match deserialize(&message) {
-                        Ok(pvp_packet) => pvp_packet,
+                    let netplay_packet: NetplayPacket = match deserialize(&message) {
+                        Ok(netplay_packet) => netplay_packet,
                         Err(e) => {
                             log::error!(
-                                "Failed to deserialize pvp packet from {}: {e}",
+                                "Failed to deserialize netplay packet from {}: {e}",
                                 connection.socket_addr
                             );
                             continue;
                         }
                     };
 
-                    for (i, sender) in connection.pvp_subscribers.iter().enumerate() {
-                        if sender.send(pvp_packet.clone()).is_err()
-                            && !pending_pvp_removal.contains(&i)
+                    for (i, sender) in connection.netplay_subscribers.iter().enumerate() {
+                        if sender.send(netplay_packet.clone()).is_err()
+                            && !pending_netplay_removal.contains(&i)
                         {
-                            pending_pvp_removal.push(i);
+                            pending_netplay_removal.push(i);
                         }
                     }
 
-                    if connection.pvp_subscribers.is_empty()
-                        || pending_pvp_removal.len() == connection.pvp_subscribers.len()
+                    if connection.netplay_subscribers.is_empty()
+                        || pending_netplay_removal.len() == connection.netplay_subscribers.len()
                     {
                         // if no one can receive this packet, store it for new subscribers
                         // this is to handle a case where packets are routed through the server
-                        // and the remote client is closer, causing packets to possibly be received before we enter a pvp scene
-                        connection.stored_pvp_packets.push(pvp_packet);
+                        // and the remote client is closer, causing packets to possibly be received before we enter a netplay scene
+                        connection.stored_netplay_packets.push(netplay_packet);
                     }
                 }
 
-                for i in pending_pvp_removal.into_iter().rev() {
-                    connection.pvp_subscribers.remove(i);
+                for i in pending_netplay_removal.into_iter().rev() {
+                    connection.netplay_subscribers.remove(i);
                 }
             }
         }

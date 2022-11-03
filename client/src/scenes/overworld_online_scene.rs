@@ -697,37 +697,33 @@ impl OverworldOnlineScene {
                     self.next_scene_queue.push_back(next_scene);
                 }
             }
-            ServerPacket::InitiatePvp {
+            ServerPacket::InitiateNetplay {
                 package_path,
                 data,
                 remote_players,
             } => {
-                if remote_players.len() > 4 {
-                    log::error!("server provided more than four players for pvp, ignoring message");
-                } else {
-                    (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
+                (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
-                    let background = self
-                        .base_scene
-                        .map
-                        .background_properties()
-                        .generate_background(game_io, &self.assets);
+                let background = self
+                    .base_scene
+                    .map
+                    .background_properties()
+                    .generate_background(game_io, &self.assets);
 
-                    let scene = NetplayInitScene::new(
-                        game_io,
-                        Some(background),
-                        package_path.map(|path| (PackageNamespace::Server, path)),
-                        data,
-                        remote_players,
-                        self.server_address.clone(),
-                    );
+                let scene = NetplayInitScene::new(
+                    game_io,
+                    Some(background),
+                    package_path.map(|path| (PackageNamespace::Server, path)),
+                    data,
+                    remote_players,
+                    self.server_address.clone(),
+                );
 
-                    let transition =
-                        ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION);
+                let transition =
+                    ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION);
 
-                    let next_scene = NextScene::new_push(scene).with_transition(transition);
-                    self.next_scene_queue.push_back(next_scene);
-                }
+                let next_scene = NextScene::new_push(scene).with_transition(transition);
+                self.next_scene_queue.push_back(next_scene);
             }
             ServerPacket::ActorConnected {
                 actor_id,

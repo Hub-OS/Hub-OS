@@ -545,7 +545,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua_ctx.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "_initiate_pvp", |api_ctx, lua_ctx, params| {
+    lua_api.add_dynamic_function("Net", "_initiate_netplay", |api_ctx, lua_ctx, params| {
         let (player_ids, package_path, data): (Vec<mlua::String>, Option<String>, Option<String>) =
             lua_ctx.unpack_multi(params)?;
 
@@ -561,7 +561,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             }
         }
 
-        net.initiate_pvp(&player_ids, package_path, data);
+        net.initiate_netplay(&player_ids, package_path, data);
 
         lua_ctx.pack_multi(())
     });

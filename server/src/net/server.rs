@@ -111,9 +111,9 @@ impl Server {
                                 packet,
                             );
                         }
-                        ThreadMessage::PvPPacket  { socket_address, packet } => {
+                        ThreadMessage::NetplayPacket  { socket_address, packet } => {
                             let packet_orchestrator = self.packet_orchestrator.borrow_mut();
-                            packet_orchestrator.forward_pvp_packet(socket_address, packet);
+                            packet_orchestrator.forward_netplay_packet(socket_address, packet);
                         }
                         ThreadMessage::MessageServer { socket_address, data } => {
                             let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
@@ -475,7 +475,10 @@ impl Server {
                         if let Some((_, dest_addresses)) = client.battle_tracker.front() {
                             self.packet_orchestrator
                                 .borrow_mut()
-                                .configure_pvp_destinations(socket_address, dest_addresses.clone());
+                                .configure_netplay_destinations(
+                                    socket_address,
+                                    dest_addresses.clone(),
+                                );
                         }
                     }
                 }

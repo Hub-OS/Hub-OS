@@ -1,6 +1,6 @@
 use generational_arena::{Arena, Index};
 use packets::{
-    ChannelSender, ConnectionBuilder, PacketChannels, PacketReceiver, PacketSender, PvPPacket,
+    ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver, PacketSender,
     Reliability, ServerCommPacket, ServerPacket,
 };
 use std::collections::{HashMap, HashSet};
@@ -18,7 +18,7 @@ struct Connection {
     pub packet_sender: PacketSender<PacketChannels>,
     pub server_comm_channel: ChannelSender<PacketChannels>,
     pub server_channel: ChannelSender<PacketChannels>,
-    pub pvp_channel: ChannelSender<PacketChannels>,
+    pub netplay_channel: ChannelSender<PacketChannels>,
 }
 
 impl Connection {
@@ -30,7 +30,7 @@ impl Connection {
         let server_comm_channel =
             connection_builder.bidirectional_channel(PacketChannels::ServerComm);
         let server_channel = connection_builder.sending_channel(PacketChannels::Server);
-        let pvp_channel = connection_builder.bidirectional_channel(PacketChannels::PvP);
+        let netplay_channel = connection_builder.bidirectional_channel(PacketChannels::Netplay);
         connection_builder.receiving_channel(PacketChannels::Client);
 
         let (packet_sender, receiver) = connection_builder.build().split();
@@ -41,7 +41,7 @@ impl Connection {
             packet_sender,
             server_comm_channel,
             server_channel,
-            pvp_channel,
+            netplay_channel,
         };
 
         (connection, receiver)
@@ -57,7 +57,7 @@ pub struct PacketOrchestrator {
     client_id_map: HashMap<String, Index>,
     client_room_map: HashMap<SocketAddr, Vec<String>>,
     rooms: HashMap<String, Vec<Index>>,
-    pvp_route_map: HashMap<SocketAddr, Vec<SocketAddr>>,
+    netplay_route_map: HashMap<SocketAddr, Vec<SocketAddr>>,
     synchronize_updates: bool,
     synchronize_requests: usize,
     synchronize_locked_clients: HashSet<SocketAddr>,
@@ -82,7 +82,7 @@ impl PacketOrchestrator {
             client_id_map: HashMap::new(),
             client_room_map: HashMap::new(),
             rooms: HashMap::new(),
-            pvp_route_map: HashMap::new(),
+            netplay_route_map: HashMap::new(),
             synchronize_updates: false,
             synchronize_requests: 0,
             synchronize_locked_clients: HashSet::new(),
@@ -170,8 +170,13 @@ impl PacketOrchestrator {
         // must be dropped after self.leave_room
         self.client_room_map.remove(&socket_address);
 
-        for address in self.pvp_route_map.remove(&socket_address).iter().flatten() {
-            if let Some(address_list) = self.pvp_route_map.get_mut(address) {
+        for address in self
+            .netplay_route_map
+            .remove(&socket_address)
+            .iter()
+            .flatten()
+        {
+            if let Some(address_list) = self.netplay_route_map.get_mut(address) {
                 if let Some(index) = address_list
                     .iter()
                     .position(|address| *address == socket_address)
@@ -181,9 +186,9 @@ impl PacketOrchestrator {
 
                 if address_list.is_empty() {
                     if let Some(index) = self.connection_map.get(address) {
-                        self.connections[*index].pvp_channel.send_serialized(
+                        self.connections[*index].netplay_channel.send_serialized(
                             Reliability::ReliableOrdered,
-                            PvPPacket::AllDisconnected,
+                            NetplayPacket::AllDisconnected,
                         );
                     }
                 }
@@ -199,23 +204,23 @@ impl PacketOrchestrator {
         }
     }
 
-    pub fn configure_pvp_destinations(
+    pub fn configure_netplay_destinations(
         &mut self,
         socket_address: SocketAddr,
         destination_addresses: Vec<SocketAddr>,
     ) {
-        self.pvp_route_map
+        self.netplay_route_map
             .insert(socket_address, destination_addresses);
     }
 
-    pub fn forward_pvp_packet(&self, socket_address: SocketAddr, data: Vec<u8>) {
+    pub fn forward_netplay_packet(&self, socket_address: SocketAddr, data: Vec<u8>) {
         let data = Arc::new(data);
 
-        if let Some(addresses) = self.pvp_route_map.get(&socket_address) {
+        if let Some(addresses) = self.netplay_route_map.get(&socket_address) {
             for address in addresses {
                 if let Some(index) = self.connection_map.get(address) {
                     self.connections[*index]
-                        .pvp_channel
+                        .netplay_channel
                         .send_shared_bytes(Reliability::ReliableOrdered, data.clone());
                 }
             }

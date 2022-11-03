@@ -5,7 +5,7 @@ use crate::packages::{Package, PackageInfo};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use packets::PvPPacket;
+use packets::NetplayPacket;
 use std::collections::VecDeque;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
@@ -32,8 +32,8 @@ pub struct BattleScene {
     vms: Vec<RollbackVM>,
     player_controllers: Vec<PlayerController>,
     local_index: usize,
-    senders: Vec<PvPPacketSender>,
-    receivers: Vec<(Option<usize>, PvPPacketReceiver)>,
+    senders: Vec<NetplayPacketSender>,
+    receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     already_snapped: bool,
@@ -179,11 +179,11 @@ impl BattleScene {
         }
     }
 
-    fn handle_packet(&mut self, game_io: &GameIO<Globals>, packet: PvPPacket) {
+    fn handle_packet(&mut self, game_io: &GameIO<Globals>, packet: NetplayPacket) {
         use num_traits::FromPrimitive;
 
         match packet {
-            PvPPacket::Input {
+            NetplayPacket::Input {
                 index,
                 pressed,
                 buffer_sizes,
@@ -222,7 +222,7 @@ impl BattleScene {
                     self.resimulate(game_io, resimulation_time);
                 }
             }
-            PvPPacket::AllDisconnected => {
+            NetplayPacket::AllDisconnected => {
                 for controller in &mut self.player_controllers {
                     controller.connected = false;
                 }
@@ -236,7 +236,7 @@ impl BattleScene {
         }
     }
 
-    fn broadcast(&self, packet: PvPPacket) {
+    fn broadcast(&self, packet: NetplayPacket) {
         for send in &self.senders {
             send(packet.clone());
         }
@@ -277,7 +277,7 @@ impl BattleScene {
             .map(|controller| controller.input_buffer.len())
             .collect();
 
-        self.broadcast(PvPPacket::Input {
+        self.broadcast(NetplayPacket::Input {
             index: self.local_index,
             pressed: pressed_bytes,
             buffer_sizes,
