@@ -70,8 +70,8 @@ jobs:
             --target
             x86_64-pc-windows-gnu
 
-      - name: Install libasound2-dev
-        run: sudo apt install -y libasound2-dev
+      - name: Install Linux Dependencies
+        run: sudo apt install -y libasound2-dev libudev-dev
 
       - name: Build Linux Executables and Create Dist
         uses: actions-rs/cargo@v1
