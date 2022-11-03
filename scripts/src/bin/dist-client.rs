@@ -19,18 +19,16 @@ fn main() {
     fs_extra::dir::create_all("dist/client", true).unwrap();
 
     // windows exe
-    fs::copy(
+    let _ = fs::copy(
         format!("target/release/{CLIENT_NAME}.exe"),
         format!("dist/client/{CLIENT_NAME}.exe"),
-    )
-    .unwrap();
+    );
 
     // linux exe
-    fs::copy(
+    let _ = fs::copy(
         format!("target/release/{CLIENT_NAME}"),
         format!("dist/client/{CLIENT_NAME}"),
-    )
-    .unwrap();
+    );
 
     fs_extra::dir::copy(
         "client/resources",
