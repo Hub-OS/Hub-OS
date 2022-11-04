@@ -550,7 +550,6 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO<Globals>,
         vms: &[RollbackVM],
-
         package_id: &str,
         namespace: PackageNamespace,
         index: usize,

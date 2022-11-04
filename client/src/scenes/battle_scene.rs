@@ -94,6 +94,9 @@ impl BattleScene {
 
         // load the players in the correct order
         for setup in props.player_setups.iter_mut() {
+            // shuffle cards
+            setup.folder.shuffle(&mut scene.simulation.rng);
+
             let result = scene.simulation.load_player(
                 game_io,
                 &scene.vms,
@@ -101,7 +104,7 @@ impl BattleScene {
                 setup.player_package.package_info.namespace,
                 setup.index,
                 setup.local,
-                setup.folder.cards.clone(),
+                std::mem::take(&mut setup.folder.cards),
             );
 
             if let Err(e) = result {
