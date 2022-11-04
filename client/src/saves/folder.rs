@@ -16,4 +16,11 @@ impl Folder {
             cards: Vec::new(),
         }
     }
+
+    // todo: handle card classes, likely will need to take in game_io and namespace for resolving card classes
+    pub fn shuffle(&mut self, rng: &mut impl rand::Rng) {
+        use rand::seq::SliceRandom;
+
+        self.cards.shuffle(rng);
+    }
 }
