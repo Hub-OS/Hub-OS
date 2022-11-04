@@ -227,11 +227,12 @@ impl BattleScene {
                     controller.connected = false;
                 }
             }
+            NetplayPacket::Heartbeat { .. } => {}
             packet => {
                 let name: &'static str = (&packet).into();
                 let index = packet.index();
 
-                log::error!("expecting Input, AllDisconnected, or Disconnected during battle, received: {name} from {index}");
+                log::error!("expecting Input, Heartbeat, AllDisconnected, or Disconnected during battle, received: {name} from {index}");
             }
         }
     }
