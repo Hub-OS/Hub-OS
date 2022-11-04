@@ -44,7 +44,7 @@ pub struct BattleSimulation {
     pub player_spawn_positions: Vec<(i32, i32)>,
     pub perspective_flipped: bool,
     pub intro_complete: bool,
-    pub stale: bool, // resimulation
+    pub is_resimulation: bool,
     pub exit: bool,
 }
 
@@ -83,7 +83,7 @@ impl BattleSimulation {
             player_spawn_positions,
             perspective_flipped: false,
             intro_complete: false,
-            stale: false,
+            is_resimulation: false,
             exit: false,
         }
     }
@@ -148,7 +148,7 @@ impl BattleSimulation {
             player_spawn_positions: self.player_spawn_positions.clone(),
             perspective_flipped: self.perspective_flipped.clone(),
             intro_complete: self.intro_complete.clone(),
-            stale: self.stale.clone(),
+            is_resimulation: self.is_resimulation.clone(),
             exit: self.exit.clone(),
         }
     }
@@ -179,6 +179,12 @@ impl BattleSimulation {
                 let callbacks = animator.set_state("PLAYER_IDLE");
                 self.pending_callbacks.extend(callbacks);
             }
+        }
+    }
+
+    pub fn play_sound(&self, game_io: &GameIO<Globals>, sound_buffer: &SoundBuffer) {
+        if !self.is_resimulation {
+            game_io.globals().audio.play_sound(sound_buffer);
         }
     }
 
@@ -593,6 +599,9 @@ impl BattleSimulation {
         charge_sprite.set_offset(Vec2::new(0.0, -20.0));
 
         entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
+            let player_deleted_sfx = &game_io.globals().player_deleted_sfx;
+            simulation.play_sound(game_io, player_deleted_sfx);
+
             let (entity, living) = simulation
                 .entities
                 .query_one_mut::<(&mut Entity, &Living)>(id.into())

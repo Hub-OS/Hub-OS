@@ -130,7 +130,7 @@ impl BattleState {
         if previously_incomplete {
             // just completed, play a sfx
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.turn_guage_sfx);
+            simulation.play_sound(game_io, &globals.turn_guage_sfx);
         }
 
         self.complete = simulation
@@ -678,6 +678,11 @@ impl BattleState {
                         player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
                         charge_sprite_node.set_color(Color::BLACK);
                         charge_sprite_node.set_visible(true);
+
+                        if !simulation.is_resimulation {
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.attack_charging_sfx);
+                        }
                     } else if player.charging_time
                         == player.max_charging_time + Player::CHARGE_DELAY
                     {
@@ -685,9 +690,12 @@ impl BattleState {
                         player.charge_animator.set_state("CHARGED");
                         player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
                         charge_sprite_node.set_color(player.charged_color);
-                    }
 
-                    // todo: sfx
+                        if !simulation.is_resimulation {
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.attack_charged_sfx);
+                        }
+                    }
 
                     charging = true;
                     player.charging_time += 1;

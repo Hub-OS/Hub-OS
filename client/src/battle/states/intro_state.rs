@@ -33,16 +33,16 @@ impl State for IntroState {
 
     fn update(
         &mut self,
-        _game_io: &GameIO<Globals>,
+        game_io: &GameIO<Globals>,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
-        use hecs::Without;
-
         let entities = &mut simulation.entities;
 
         // first frame setup
         if simulation.time == 0 {
+            use hecs::Without;
+
             for (_, (entity, _)) in
                 entities.query_mut::<Without<(&mut Entity, &Character), &Player>>()
             {
@@ -55,8 +55,6 @@ impl State for IntroState {
                 let root_node = entity.sprite_tree.root_mut();
                 root_node.set_alpha(0.0);
             }
-
-            return;
         }
 
         for (i, id) in self.tracked_entities.iter().cloned().enumerate() {
@@ -77,6 +75,11 @@ impl State for IntroState {
         }
 
         if simulation.time > self.animation_delay {
+            if self.animation_time == 0 {
+                let appear_sfx = &game_io.globals().appear_sfx;
+                simulation.play_sound(game_io, appear_sfx);
+            }
+
             self.animation_time += 1;
         }
 

@@ -31,7 +31,11 @@ pub struct Globals {
     pub warp_sfx: SoundBuffer,
     pub appear_sfx: SoundBuffer,
     pub card_select_open_sfx: SoundBuffer,
+    pub card_select_confirm_sfx: SoundBuffer,
     pub turn_guage_sfx: SoundBuffer,
+    pub attack_charging_sfx: SoundBuffer,
+    pub attack_charged_sfx: SoundBuffer,
+    pub player_deleted_sfx: SoundBuffer,
 
     // assets
     pub assets: LocalAssetManager,
@@ -82,7 +86,11 @@ impl Globals {
             warp_sfx: assets.audio(ResourcePaths::WARP_SFX),
             appear_sfx: assets.audio(ResourcePaths::APPEAR_SFX),
             card_select_open_sfx: assets.audio(ResourcePaths::CARD_SELECT_OPEN_SFX),
+            card_select_confirm_sfx: assets.audio(ResourcePaths::CARD_SELECT_CONFIRM_SFX),
             turn_guage_sfx: assets.audio(ResourcePaths::TURN_GAUGE_SFX),
+            attack_charging_sfx: assets.audio(ResourcePaths::ATTACK_CHARGING_SFX),
+            attack_charged_sfx: assets.audio(ResourcePaths::ATTACK_CHARGED_SFX),
+            player_deleted_sfx: assets.audio(ResourcePaths::PLAYER_DELETED_SFX),
 
             // assets
             font_texture,
