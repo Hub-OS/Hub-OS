@@ -475,11 +475,17 @@ impl NetplayInitScene {
         })
     }
 
-    fn broadcast_ready(&self) {
+    fn broadcast_ready(&mut self) {
+        let seed = OsRng.next_u64();
+
         self.broadcast(NetplayPacket::Ready {
             index: self.local_index,
-            seed: OsRng.next_u64(),
-        })
+            seed,
+        });
+
+        if self.seed < seed {
+            self.seed = seed;
+        }
     }
 
     fn handle_transition(&mut self, game_io: &mut GameIO<Globals>) {
@@ -505,6 +511,7 @@ impl NetplayInitScene {
             let mut props = BattleProps::new_with_defaults(game_io, battle_package);
 
             props.data = self.data.take();
+            props.seed = Some(self.seed);
 
             // copy background
             if let Some(background) = self.background.take() {

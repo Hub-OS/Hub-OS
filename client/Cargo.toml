@@ -21,6 +21,7 @@ rollback_mlua = { path = "../rollback-mlua" }
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 rand = "0.8.5"
+rand_xoshiro = "0.6.0"
 rmp-serde = "1.1.1"
 rodio = "0.16.0"
 roxmltree = "0.15.0"

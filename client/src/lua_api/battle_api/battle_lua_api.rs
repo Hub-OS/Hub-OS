@@ -74,6 +74,7 @@ impl BattleLuaApi {
 
         lua_api.add_static_injector(inject_global_api);
 
+        super::math_api::inject_math_api(&mut lua_api);
         super::include_api::inject_include_api(&mut lua_api);
         super::engine_api::inject_engine_api(&mut lua_api);
         super::entity_api::inject_entity_api(&mut lua_api);
