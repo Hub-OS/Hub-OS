@@ -69,7 +69,7 @@ impl BattleSimulation {
             inputs: vec![PlayerInput::new(); player_count],
             camera,
             background,
-            turn_guage: TurnGauge::new(),
+            turn_guage: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
             entities: hecs::World::new(),
             queued_attacks: Vec::new(),

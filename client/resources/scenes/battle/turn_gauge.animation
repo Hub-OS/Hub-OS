@@ -1,0 +1,15 @@
+# @frame_rate 60
+
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/battle/turn_gauge.png"
+
+animation state="CONTAINER"
+frame duration="0f" x="1" y="0" w="144" h="16" originx="72" originy="0" flipx="0" flipy="0"
+
+animation state="READY"
+frame duration="7f" x="9" y="26" w="128" h="8" originx="0" originy="-7" flipx="0" flipy="0"
+frame duration="7f" x="9" y="35" w="128" h="8" originx="0" originy="-7" flipx="0" flipy="0"
+frame duration="7f" x="9" y="44" w="128" h="8" originx="0" originy="-7" flipx="0" flipy="0"
+frame duration="7f" x="9" y="53" w="128" h="8" originx="0" originy="-7" flipx="0" flipy="0"
+
+animation state="STRETCH"
+frame duration="50f" x="9" y="17" w="128" h="8" originx="0" originy="-7" flipx="0" flipy="0"

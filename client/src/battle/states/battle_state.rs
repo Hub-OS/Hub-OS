@@ -11,6 +11,7 @@ use std::cell::RefCell;
 
 #[derive(Clone)]
 pub struct BattleState {
+    complete: bool,
     message: Option<(&'static str, FrameTime)>,
 }
 
@@ -19,8 +20,12 @@ impl State for BattleState {
         Box::new(self.clone())
     }
 
-    fn next_state(&self, _: &GameIO<Globals>) -> Option<Box<dyn State>> {
-        None
+    fn next_state(&self, game_io: &GameIO<Globals>) -> Option<Box<dyn State>> {
+        if self.complete {
+            Some(Box::new(CardSelectState::new(game_io)))
+        } else {
+            None
+        }
     }
 
     fn update(
@@ -70,10 +75,14 @@ impl State for BattleState {
 
         simulation.call_pending_callbacks(game_io, vms);
 
-        simulation.battle_time += 1;
-        simulation.statistics.time += 1;
+        if self.message.is_none() {
+            // skip updating time if the battle has ended
+            simulation.battle_time += 1;
+            simulation.statistics.time += 1;
+        }
 
         self.detect_success_or_failure(simulation);
+        self.update_turn_guage(game_io, simulation);
     }
 
     fn draw_ui<'a>(
@@ -95,12 +104,49 @@ impl State for BattleState {
 
             style.draw(game_io, sprite_queue, text);
         }
+
+        simulation.turn_guage.draw(sprite_queue);
     }
 }
 
 impl BattleState {
     pub fn new() -> Self {
-        Self { message: None }
+        Self {
+            complete: false,
+            message: None,
+        }
+    }
+
+    fn update_turn_guage(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+        let previously_incomplete = !simulation.turn_guage.is_complete();
+
+        simulation.turn_guage.increment_time();
+
+        if !simulation.turn_guage.is_complete() || self.message.is_some() {
+            // don't check for input if the battle has ended, or if the turn guage isn't complete
+            return;
+        }
+
+        if previously_incomplete {
+            // just completed, play a sfx
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.turn_guage_sfx);
+        }
+
+        self.complete = simulation
+            .entities
+            .query_mut::<(&Entity, &mut Player)>()
+            .into_iter()
+            .any(|(_, (entity, player))| {
+                if entity.deleted {
+                    return false;
+                }
+
+                let input = &simulation.inputs[player.index];
+
+                // todo: create a new input for ending the turn?
+                input.was_just_pressed(Input::ShoulderL) || input.was_just_pressed(Input::ShoulderR)
+            });
     }
 
     fn detect_success_or_failure(&mut self, simulation: &mut BattleSimulation) {
