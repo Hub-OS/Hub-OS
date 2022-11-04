@@ -30,6 +30,8 @@ pub struct Globals {
     pub text_blip_sfx: SoundBuffer,
     pub warp_sfx: SoundBuffer,
     pub appear_sfx: SoundBuffer,
+    pub card_select_open_sfx: SoundBuffer,
+    pub turn_guage_sfx: SoundBuffer,
 
     // assets
     pub assets: LocalAssetManager,
@@ -79,6 +81,8 @@ impl Globals {
             text_blip_sfx: assets.audio(ResourcePaths::TEXT_BLIP_SFX),
             warp_sfx: assets.audio(ResourcePaths::WARP_SFX),
             appear_sfx: assets.audio(ResourcePaths::APPEAR_SFX),
+            card_select_open_sfx: assets.audio(ResourcePaths::CARD_SELECT_OPEN_SFX),
+            turn_guage_sfx: assets.audio(ResourcePaths::TURN_GAUGE_SFX),
 
             // assets
             font_texture,

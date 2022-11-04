@@ -67,7 +67,10 @@ impl State for CardSelectState {
     ) {
         if self.time == 0 {
             simulation.statistics.turns += 1;
-            // todo: open sfx
+            simulation.turn_guage.set_time(0);
+
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.card_select_open_sfx);
 
             // initialize selections
         }

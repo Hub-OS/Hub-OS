@@ -28,6 +28,8 @@ impl ResourcePaths {
     pub const TEXT_BLIP_SFX: &str = "resources/sfx/text.ogg";
     pub const WARP_SFX: &str = "resources/sfx/warp.ogg";
     pub const APPEAR_SFX: &str = "resources/sfx/appear.ogg";
+    pub const CARD_SELECT_OPEN_SFX: &str = "resources/sfx/card_select_open.ogg";
+    pub const TURN_GAUGE_SFX: &str = "resources/sfx/turn_gauge_full.ogg";
 
     // General
     pub const BLANK: &str = "";
@@ -135,6 +137,8 @@ impl ResourcePaths {
         "resources/scenes/battle/transform_shine.animation";
     pub const BATTLE_CARD_SELECT: &str = "resources/scenes/battle/card_select.png";
     pub const BATTLE_CARD_SELECT_ANIMATION: &str = "resources/scenes/battle/card_select.animation";
+    pub const BATTLE_TURN_GAUGE: &str = "resources/scenes/battle/turn_gauge.png";
+    pub const BATTLE_TURN_GAUGE_ANIMATION: &str = "resources/scenes/battle/turn_gauge.animation";
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH
