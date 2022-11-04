@@ -33,9 +33,11 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let path = absolute_path(lua, path)?;
 
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.globals();
-        let sound_buffer = globals.assets.audio(&path);
-        globals.audio.play_sound(&sound_buffer);
+        let game_io = &api_ctx.game_io;
+        let simulation = &api_ctx.simulation;
+
+        let sound_buffer = game_io.globals().assets.audio(&path);
+        simulation.play_sound(game_io, &sound_buffer);
 
         lua.pack_multi(())
     });

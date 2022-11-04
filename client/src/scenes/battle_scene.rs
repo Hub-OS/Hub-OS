@@ -327,11 +327,15 @@ impl BattleScene {
         let steps = (local_time - start_time) as usize;
         self.rollback(game_io, steps);
 
+        self.simulation.is_resimulation = true;
+
         // resimulate until we're caught up to our previous time
         while self.simulation.time < local_time {
             // avoiding snapshots for the first frame as it's still retained
             self.simulate(game_io);
         }
+
+        self.simulation.is_resimulation = false;
     }
 
     fn rewind(&mut self, game_io: &GameIO<Globals>, mut steps: usize) {

@@ -69,8 +69,9 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_guage.set_time(0);
 
+            // sfx
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.card_select_open_sfx);
+            simulation.play_sound(game_io, &globals.card_select_open_sfx);
 
             // initialize selections
         }
@@ -105,7 +106,9 @@ impl State for CardSelectState {
 
             let input = &simulation.inputs[player.index];
 
-            if resolve_selected_item(player, selection) == SelectedItem::None {
+            let previous_item = resolve_selected_item(player, selection);
+
+            if previous_item == SelectedItem::None {
                 // select Confirm as a safety net
                 selection.col = 5;
                 selection.row = 0;
@@ -129,25 +132,52 @@ impl State for CardSelectState {
 
             let selected_item = resolve_selected_item(player, selection);
 
+            // sfx
+            if previous_item != selected_item && selection.local && !simulation.is_resimulation {
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.cursor_move_sfx);
+            }
+
             if input.was_just_pressed(Input::Confirm) {
                 match selected_item {
                     SelectedItem::Confirm => {
                         selection.confirm_time = self.time;
+
+                        // sfx
+                        if selection.local && !simulation.is_resimulation {
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.card_select_confirm_sfx);
+                        }
                     }
                     SelectedItem::Card(index) => {
-                        if !selection.selected_card_indices.contains(&index) {
-                            selection.selected_card_indices.push(index)
+                        if !selection.selected_card_indices.contains(&index)
+                            && selection.selected_card_indices.len() < 5
+                        {
+                            selection.selected_card_indices.push(index);
+
+                            // sfx
+                            if selection.local && !simulation.is_resimulation {
+                                let globals = game_io.globals();
+                                globals.audio.play_sound(&globals.cursor_select_sfx);
+                            }
                         }
                     }
                     _ => {}
                 }
             }
 
-            if input.was_just_pressed(Input::Cancel) {
+            if input.was_just_pressed(Input::Cancel) && !selection.selected_card_indices.is_empty()
+            {
                 selection.selected_card_indices.pop();
+
+                // sfx
+                if selection.local && !simulation.is_resimulation {
+                    let globals = game_io.globals();
+                    globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                }
             }
 
-            // todo: form selection and sfx if it's the local player
+            // todo: form selection
         }
 
         for i in 0..self.player_selections.len() {
