@@ -15,7 +15,10 @@ struct Selection {
     form_index: usize,
     selected_form_index: Option<usize>,
     selected_card_indices: Vec<usize>,
-    confirmed: bool,
+    confirm_time: FrameTime,
+    animating_slide: bool,
+    erased: bool,
+    local: bool,
 }
 
 #[derive(PartialEq, Eq)]
@@ -40,7 +43,6 @@ pub struct CardSelectState {
     selected_card_start: Vec2,
     player_selections: Vec<Selection>,
     time: FrameTime,
-    confirm_time: FrameTime,
     completed: bool,
 }
 
@@ -66,15 +68,13 @@ impl State for CardSelectState {
         if self.time == 0 {
             simulation.statistics.turns += 1;
             // todo: open sfx
+
+            // initialize selections
         }
 
-        let animating = self.animate_slide(simulation);
-
-        if !animating && self.confirm_time > 0 {
-            // finished the closing animation
-            // prepare for the next state
-            self.complete(game_io, simulation);
-            return;
+        for selection in &mut self.player_selections {
+            // assume erased until we hit the next loop
+            selection.erased = true;
         }
 
         // we'll only see our own selection
@@ -82,16 +82,25 @@ impl State for CardSelectState {
         for (_, player) in (simulation.entities).query_mut::<&Player>() {
             if player.index >= self.player_selections.len() {
                 self.player_selections
-                    .resize_with(player.index + 1, Selection::default)
+                    .resize_with(player.index + 1, Selection::default);
+
+                // initialize selection
+                let selection = &mut self.player_selections[player.index];
+                selection.local = player.local;
+                selection.animating_slide = true;
             }
 
-            if animating {
-                // ignore inputs while animating in + out
+            let selection = &mut self.player_selections[player.index];
+
+            // unmark as erased
+            selection.erased = false;
+
+            if selection.animating_slide || selection.confirm_time != 0 {
+                // if we're animating the ui or already confirmed we should skip this input
                 continue;
             }
 
             let input = &simulation.inputs[player.index];
-            let selection = &mut self.player_selections[player.index];
 
             if resolve_selected_item(player, selection) == SelectedItem::None {
                 // select Confirm as a safety net
@@ -120,7 +129,7 @@ impl State for CardSelectState {
             if input.was_just_pressed(Input::Confirm) {
                 match selected_item {
                     SelectedItem::Confirm => {
-                        selection.confirmed = true;
+                        selection.confirm_time = self.time;
                     }
                     SelectedItem::Card(index) => {
                         if !selection.selected_card_indices.contains(&index) {
@@ -138,15 +147,16 @@ impl State for CardSelectState {
             // todo: form selection and sfx if it's the local player
         }
 
-        if self.confirm_time == 0 {
-            let all_confirmed = (self.player_selections)
-                .iter()
-                .all(|selection| selection.confirmed);
+        for i in 0..self.player_selections.len() {
+            self.animate_slide(simulation, i);
+        }
 
-            if all_confirmed {
-                // mark confirmation start for animation
-                self.confirm_time = self.time;
-            }
+        let all_confirmed = (self.player_selections).iter().all(|selection| {
+            selection.erased || (!selection.animating_slide && selection.confirm_time != 0)
+        });
+
+        if all_confirmed {
+            self.complete(game_io, simulation);
         }
 
         self.time += 1;
@@ -225,7 +235,7 @@ impl State for CardSelectState {
         }
 
         // draw cursor
-        if self.confirm_time == 0 {
+        if selection.confirm_time == 0 {
             let selected_item = resolve_selected_item(player, selection);
 
             match selected_item {
@@ -303,6 +313,23 @@ impl State for CardSelectState {
                 y += 16.0;
             }
         }
+
+        if !selection.animating_slide && selection.confirm_time != 0 {
+            // render text to signal we're waiting on other players
+
+            let wait_time = self.time - selection.confirm_time;
+
+            if (wait_time / 30) % 2 == 0 {
+                const TEXT: &str = "Cstmzing...";
+
+                let mut style = TextStyle::new(game_io, FontStyle::Thick);
+                style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+                let metrics = style.measure(TEXT);
+                style.bounds.set_position(RESOLUTION_F - metrics.size - 1.0);
+                style.draw(game_io, sprite_queue, TEXT);
+            }
+        }
     }
 }
 
@@ -368,7 +395,6 @@ impl CardSelectState {
             selected_card_start,
             player_selections: Vec::new(),
             time: 0,
-            confirm_time: 0,
             completed: false,
         }
     }
@@ -410,32 +436,37 @@ impl CardSelectState {
         self.completed = true;
     }
 
-    fn animate_slide(&mut self, simulation: &mut BattleSimulation) -> bool {
+    fn animate_slide(&mut self, simulation: &mut BattleSimulation, player_index: usize) {
         const ANIMATION_DURATION: f32 = 10.0;
 
         use crate::ease::inverse_lerp;
 
-        let root_node = self.sprites.root_mut();
-        let width = root_node.size().x;
+        let selection = &mut self.player_selections[player_index];
 
-        let progress = if self.confirm_time == 0 {
+        let progress = if selection.confirm_time == 0 {
             inverse_lerp!(0.0, ANIMATION_DURATION, self.time)
         } else {
-            1.0 - inverse_lerp!(0.0, ANIMATION_DURATION, self.time - self.confirm_time)
+            1.0 - inverse_lerp!(0.0, ANIMATION_DURATION, self.time - selection.confirm_time)
         };
 
-        root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
+        if selection.local {
+            // update ui if this is the local selection
+            let root_node = self.sprites.root_mut();
+            let width = root_node.size().x;
 
-        (simulation.local_health_ui)
-            .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
+            root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
+
+            (simulation.local_health_ui)
+                .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
+        }
 
         // returns true if we're still animating
-        if self.confirm_time == 0 {
+        selection.animating_slide = if selection.confirm_time == 0 {
             progress < 1.0
         } else {
             // animation is reversed when every player has confirmed
             progress > 0.0
-        }
+        };
     }
 
     fn hide(&mut self, simulation: &mut BattleSimulation) {
