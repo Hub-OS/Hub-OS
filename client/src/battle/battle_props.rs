@@ -35,8 +35,9 @@ impl<'a> PlayerSetup<'a> {
 pub struct BattleProps<'a> {
     pub battle_package: Option<&'a BattlePackage>,
     pub data: Option<String>,
-    pub player_setups: Vec<PlayerSetup<'a>>,
+    pub seed: Option<u64>,
     pub background: Background,
+    pub player_setups: Vec<PlayerSetup<'a>>,
     pub senders: Vec<NetplayPacketSender>,
     pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
 }
@@ -56,8 +57,9 @@ impl<'a> BattleProps<'a> {
         Self {
             battle_package,
             data: None,
-            player_setups: vec![PlayerSetup::from_globals(game_io)],
+            seed: None,
             background,
+            player_setups: vec![PlayerSetup::from_globals(game_io)],
             senders: Vec::new(),
             receivers: Vec::new(),
         }

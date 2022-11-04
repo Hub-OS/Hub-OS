@@ -10,6 +10,8 @@ use crate::saves::Card;
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::BattleStatistics;
+use rand::SeedableRng;
+use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
 const DEFAULT_PLAYER_LAYOUTS: [[(i32, i32); 4]; 4] = [
@@ -22,6 +24,7 @@ const DEFAULT_PLAYER_LAYOUTS: [[(i32, i32); 4]; 4] = [
 pub struct BattleSimulation {
     pub battle_started: bool,
     pub statistics: BattleStatistics,
+    pub rng: Xoshiro256PlusPlus,
     pub inputs: Vec<PlayerInput>,
     pub time: FrameTime,
     pub battle_time: FrameTime,
@@ -54,9 +57,13 @@ impl BattleSimulation {
         let mut player_spawn_positions = DEFAULT_PLAYER_LAYOUTS[spawn_count - 1].to_vec();
         player_spawn_positions.resize(spawn_count, (0, 0));
 
+        let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
+        let default_seed = game_run_duration.as_secs();
+
         Self {
             battle_started: false,
             statistics: BattleStatistics::new(),
+            rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
             time: 0,
             battle_time: 0,
             inputs: vec![PlayerInput::new(); player_count],
@@ -79,6 +86,10 @@ impl BattleSimulation {
             stale: false,
             exit: false,
         }
+    }
+
+    pub fn seed_random(&mut self, seed: u64) {
+        self.rng = Xoshiro256PlusPlus::seed_from_u64(seed);
     }
 
     pub fn clone(&mut self, game_io: &GameIO<Globals>) -> Self {
@@ -118,6 +129,7 @@ impl BattleSimulation {
             battle_started: self.battle_started.clone(),
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
+            rng: self.rng.clone(),
             time: self.time.clone(),
             battle_time: self.battle_time.clone(),
             camera: self.camera.clone(game_io),

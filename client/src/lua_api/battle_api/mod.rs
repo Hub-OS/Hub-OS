@@ -10,6 +10,7 @@ mod entity_api;
 mod errors;
 mod field_api;
 mod include_api;
+mod math_api;
 mod sprite_api;
 mod tile_api;
 

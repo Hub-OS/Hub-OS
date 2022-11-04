@@ -70,6 +70,11 @@ impl BattleScene {
 
         scene.ui_camera.snap(RESOLUTION_F * 0.5);
 
+        // seed before running any vm
+        if let Some(seed) = props.seed {
+            scene.simulation.seed_random(seed);
+        }
+
         // load every vm we need
         scene.load_vms(game_io, &props);
 
