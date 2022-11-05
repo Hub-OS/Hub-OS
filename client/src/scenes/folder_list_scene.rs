@@ -355,7 +355,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
 
     if input_util.was_just_pressed(Input::Cancel) {
         let globals = game_io.globals();
-        globals.audio.play_sound(&globals.cursor_cancel_sfx);
+        globals.audio.play_sound(&globals.menu_close_sfx);
 
         use crate::transitions::{PushTransition, DEFAULT_PUSH_DURATION};
 

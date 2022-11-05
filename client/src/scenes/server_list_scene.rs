@@ -443,11 +443,14 @@ impl Scene<Globals> for ServerListScene {
             }
         } else if self.ui_input_tracker.is_active(Input::Cancel) {
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             if self.scroll_tracker.remembered_index().is_some() {
+                globals.audio.play_sound(&globals.cursor_cancel_sfx);
+
                 self.scroll_tracker.forget_index();
             } else {
+                globals.audio.play_sound(&globals.menu_close_sfx);
+
                 let transition = PushTransition::new(
                     game_io,
                     game_io.globals().default_sampler.clone(),
