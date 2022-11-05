@@ -76,10 +76,12 @@ impl State for BattleState {
         simulation.call_pending_callbacks(game_io, vms);
 
         if self.message.is_none() {
-            // skip updating time if the battle has ended
-            simulation.battle_time += 1;
+            // only update the time statistic if the battle is still going for the local player
             simulation.statistics.time += 1;
         }
+
+        // other players may still be in battle, and some components make use of this
+        simulation.battle_time += 1;
 
         self.detect_success_or_failure(simulation);
         self.update_turn_guage(game_io, simulation);
