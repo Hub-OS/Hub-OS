@@ -162,10 +162,7 @@ impl PacketOrchestrator {
             };
 
             let index = connection.netplay_index;
-            self.forward_netplay_packet(
-                socket_address,
-                serialize(NetplayPacket::Disconnect { index }),
-            );
+            self.forward_netplay_packet(socket_address, NetplayPacket::Disconnect { index });
         }
 
         // must leave rooms before dropping client_room_map
@@ -217,8 +214,15 @@ impl PacketOrchestrator {
         }
     }
 
-    pub fn forward_netplay_packet(&self, socket_address: SocketAddr, data: Vec<u8>) {
-        let data = Arc::new(data);
+    pub fn forward_netplay_packet(&self, socket_address: SocketAddr, packet: NetplayPacket) {
+        if let Some(index) = self.connection_map.get(&socket_address) {
+            if self.connections[*index].netplay_index != packet.index() {
+                // client is attempting to impersonate another player, reject the packet
+                return;
+            }
+        }
+
+        let data = Arc::new(serialize(packet));
 
         if let Some(addresses) = self.netplay_route_map.get(&socket_address) {
             for address in addresses {

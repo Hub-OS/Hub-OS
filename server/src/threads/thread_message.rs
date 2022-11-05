@@ -1,5 +1,5 @@
 use crate::jobs::JobPromise;
-use packets::{ClientPacket, PacketChannels, PacketReceiver, ServerCommPacket};
+use packets::{ClientPacket, NetplayPacket, PacketChannels, PacketReceiver, ServerCommPacket};
 use std::net::SocketAddr;
 
 pub enum ThreadMessage {
@@ -16,7 +16,7 @@ pub enum ThreadMessage {
     },
     NetplayPacket {
         socket_address: SocketAddr,
-        packet: Vec<u8>,
+        packet: NetplayPacket,
     },
     MessageServer {
         socket_address: SocketAddr,
