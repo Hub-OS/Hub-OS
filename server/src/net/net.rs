@@ -1,11 +1,10 @@
-use crate::jobs::JobPromise;
-use crate::threads::ThreadMessage;
-
 use super::asset_manager::AssetManager;
 use super::boot::Boot;
-use super::client::Client;
+use super::client::{BattleTrackingInfo, Client};
 use super::map::Map;
 use super::*;
+use crate::jobs::JobPromise;
+use crate::threads::ThreadMessage;
 use flume::Sender;
 use packets::{Reliability, ServerPacket};
 use std::cell::RefCell;
@@ -966,7 +965,7 @@ impl Net {
 
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
 
-        for id in ids {
+        for (player_index, id) in ids.into_iter().enumerate() {
             if let Some(client) = self.clients.get_mut(*id) {
                 let remote_addresses: Vec<_> = remote_players
                     .iter()
@@ -974,13 +973,17 @@ impl Net {
                     .map(|info| info.address)
                     .collect();
 
-                client
-                    .battle_tracker
-                    .push_back((self.active_plugin, remote_addresses));
+                let tracking_info = BattleTrackingInfo {
+                    plugin_index: self.active_plugin,
+                    player_index,
+                    remote_addresses,
+                };
+
+                client.battle_tracker.push_back(tracking_info);
 
                 let remote_players: Vec<_> = remote_players
                     .iter()
-                    .filter(|info| info.address != client.socket_address)
+                    .filter(|info| info.index != player_index)
                     .cloned()
                     .collect();
 
@@ -1110,9 +1113,12 @@ impl Net {
         };
 
         // update tracking
-        client
-            .battle_tracker
-            .push_back((self.active_plugin, Vec::new()));
+        let tracking_info = BattleTrackingInfo {
+            plugin_index: self.active_plugin,
+            ..Default::default()
+        };
+
+        client.battle_tracker.push_back(tracking_info);
 
         // send dependencies
         let dependency_chain = self

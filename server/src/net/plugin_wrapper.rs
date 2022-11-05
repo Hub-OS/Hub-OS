@@ -262,7 +262,9 @@ impl PluginInterface for PluginWrapper {
         battle_stats: &BattleStatistics,
     ) {
         if let Some(client) = net.get_client_mut(player_id) {
-            if let Some((i, _)) = client.battle_tracker.pop_front() {
+            if let Some(info) = client.battle_tracker.pop_front() {
+                let i = info.plugin_index;
+
                 self.wrap_call(i, net, |plugin_interface, net| {
                     plugin_interface.handle_battle_results(net, player_id, battle_stats)
                 });

@@ -472,12 +472,13 @@ impl Server {
                 }
                 ClientPacket::EncounterStart => {
                     if let Some(client) = net.get_client_mut(player_id) {
-                        if let Some((_, dest_addresses)) = client.battle_tracker.front() {
+                        if let Some(info) = client.battle_tracker.front() {
                             self.packet_orchestrator
                                 .borrow_mut()
                                 .configure_netplay_destinations(
                                     socket_address,
-                                    dest_addresses.clone(),
+                                    info.player_index,
+                                    info.remote_addresses.clone(),
                                 );
                         }
                     }

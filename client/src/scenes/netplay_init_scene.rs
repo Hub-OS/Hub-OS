@@ -227,11 +227,6 @@ impl NetplayInitScene {
     }
 
     fn handle_packet(&mut self, game_io: &mut GameIO<Globals>, packet: NetplayPacket) {
-        if matches!(packet, NetplayPacket::AllDisconnected) {
-            self.failed = true;
-            return;
-        }
-
         let index = packet.index();
 
         let connection = self
@@ -390,7 +385,10 @@ impl NetplayInitScene {
 
                 connection.input_buffer.push_back(pressed_inputs);
             }
-            NetplayPacket::AllDisconnected => unreachable!(),
+            NetplayPacket::Disconnect { .. } => {
+                log::debug!("{} disconnected", index);
+                self.failed = true;
+            }
         }
     }
 
@@ -648,7 +646,10 @@ async fn punch_holes(
     let mut total_responses = 0;
 
     // if we receive anything from the fallback future we'll switch to it
-    let fallback_stream = fallback_sender_receiver.1.stream();
+    let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
+        let out = !matches!(packet, NetplayPacket::Hello { .. });
+        async move { out }
+    });
 
     // a short amount of time for responses
     let timer = async_sleep(Duration::from_secs(2)).fuse();
