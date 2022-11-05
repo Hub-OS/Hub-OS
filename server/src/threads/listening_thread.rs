@@ -128,12 +128,14 @@ async fn decode_messages(
         }
         PacketChannels::Netplay => {
             for message in messages {
-                sender
-                    .send(ThreadMessage::NetplayPacket {
-                        socket_address,
-                        packet: message,
-                    })
-                    .unwrap();
+                if let Ok(packet) = deserialize(&message) {
+                    sender
+                        .send(ThreadMessage::NetplayPacket {
+                            socket_address,
+                            packet,
+                        })
+                        .unwrap();
+                }
             }
         }
     }

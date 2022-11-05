@@ -168,6 +168,11 @@ impl BattleScene {
 
         for (i, (index, receiver)) in self.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
+                if index.is_some() && Some(packet.index()) != *index {
+                    // ignore obvious impersonation cheat
+                    continue;
+                }
+
                 packets.push(packet);
             }
 
