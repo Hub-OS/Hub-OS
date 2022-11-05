@@ -3,6 +3,13 @@ use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::net::SocketAddr;
 
+#[derive(Default)]
+pub(super) struct BattleTrackingInfo {
+    pub plugin_index: usize,
+    pub player_index: usize,
+    pub remote_addresses: Vec<SocketAddr>,
+}
+
 pub(super) struct Client {
     pub socket_address: SocketAddr,
     pub actor: Actor,
@@ -21,7 +28,7 @@ pub(super) struct Client {
     pub mugshot_texture_buffer: Vec<u8>,
     pub mugshot_animation_buffer: Vec<u8>,
     pub widget_tracker: WidgetTracker<usize>,
-    pub battle_tracker: VecDeque<(usize, Vec<SocketAddr>)>,
+    pub battle_tracker: VecDeque<BattleTrackingInfo>,
     pub player_data: PlayerData,
     pub is_input_locked: bool,
 }

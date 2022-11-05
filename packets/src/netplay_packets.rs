@@ -43,8 +43,9 @@ pub enum NetplayPacket {
         pressed: Vec<u8>,
         buffer_sizes: Vec<usize>,
     },
-    // Disconnect { index: usize }, // todo: use in netplay scene
-    AllDisconnected,
+    Disconnect {
+        index: usize,
+    },
 }
 
 impl NetplayPacket {
@@ -59,7 +60,7 @@ impl NetplayPacket {
             NetplayPacket::PackageZip { index, .. } => *index,
             NetplayPacket::Ready { index, .. } => *index,
             NetplayPacket::Input { index, .. } => *index,
-            NetplayPacket::AllDisconnected => 0,
+            NetplayPacket::Disconnect { index } => *index,
         }
     }
 }

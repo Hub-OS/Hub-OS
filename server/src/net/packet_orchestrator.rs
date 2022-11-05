@@ -1,7 +1,7 @@
 use generational_arena::{Arena, Index};
 use packets::{
-    ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver, PacketSender,
-    Reliability, ServerCommPacket, ServerPacket,
+    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
+    PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
 use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
@@ -15,6 +15,7 @@ use super::ServerConfig;
 struct Connection {
     pub socket_address: SocketAddr,
     pub client_id: Option<String>,
+    pub netplay_index: usize,
     pub packet_sender: PacketSender<PacketChannels>,
     pub server_comm_channel: ChannelSender<PacketChannels>,
     pub server_channel: ChannelSender<PacketChannels>,
@@ -38,6 +39,7 @@ impl Connection {
         let connection = Self {
             socket_address,
             client_id: None,
+            netplay_index: 0,
             packet_sender,
             server_comm_channel,
             server_channel,
@@ -158,6 +160,12 @@ impl PacketOrchestrator {
                 Some(id) => self.client_id_map.remove(id),
                 None => return,
             };
+
+            let index = connection.netplay_index;
+            self.forward_netplay_packet(
+                socket_address,
+                serialize(NetplayPacket::Disconnect { index }),
+            );
         }
 
         // must leave rooms before dropping client_room_map
@@ -183,15 +191,6 @@ impl PacketOrchestrator {
                 {
                     address_list.remove(index);
                 }
-
-                if address_list.is_empty() {
-                    if let Some(index) = self.connection_map.get(address) {
-                        self.connections[*index].netplay_channel.send_serialized(
-                            Reliability::ReliableOrdered,
-                            NetplayPacket::AllDisconnected,
-                        );
-                    }
-                }
             }
         }
     }
@@ -207,10 +206,15 @@ impl PacketOrchestrator {
     pub fn configure_netplay_destinations(
         &mut self,
         socket_address: SocketAddr,
+        player_index: usize,
         destination_addresses: Vec<SocketAddr>,
     ) {
-        self.netplay_route_map
-            .insert(socket_address, destination_addresses);
+        if let Some(index) = self.connection_map.get(&socket_address) {
+            self.connections[*index].netplay_index = player_index;
+
+            self.netplay_route_map
+                .insert(socket_address, destination_addresses);
+        }
     }
 
     pub fn forward_netplay_packet(&self, socket_address: SocketAddr, data: Vec<u8>) {

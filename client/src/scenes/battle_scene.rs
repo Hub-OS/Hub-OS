@@ -230,8 +230,8 @@ impl BattleScene {
                     self.resimulate(game_io, resimulation_time);
                 }
             }
-            NetplayPacket::AllDisconnected => {
-                for controller in &mut self.player_controllers {
+            NetplayPacket::Disconnect { index } => {
+                if let Some(controller) = self.player_controllers.get_mut(index) {
                     controller.connected = false;
                 }
             }
@@ -240,7 +240,7 @@ impl BattleScene {
                 let name: &'static str = (&packet).into();
                 let index = packet.index();
 
-                log::error!("expecting Input, Heartbeat, AllDisconnected, or Disconnected during battle, received: {name} from {index}");
+                log::error!("expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
             }
         }
     }
@@ -470,6 +470,9 @@ impl Scene<Globals> for BattleScene {
             use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
 
             self.exiting = true;
+            self.broadcast(NetplayPacket::Disconnect {
+                index: self.local_index,
+            });
 
             let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
             self.next_scene = NextScene::new_pop().with_transition(transition);
