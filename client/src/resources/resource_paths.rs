@@ -23,7 +23,7 @@ impl ResourcePaths {
     pub const CURSOR_CANCEL_SFX: &str = "resources/sfx/cursor_cancel.ogg";
     pub const CURSOR_ERROR_SFX: &str = "resources/sfx/cursor_error.ogg";
     pub const MENU_OPEN_SFX: &str = "resources/sfx/menu_open.ogg";
-    // pub const MENU_CLOSE_SFX: & str = "resources/sfx/menu_close.ogg";
+    pub const MENU_CLOSE_SFX: &str = "resources/sfx/menu_close.ogg";
     pub const PAGE_TURN_SFX: &str = "resources/sfx/cursor_move.ogg";
     pub const TEXT_BLIP_SFX: &str = "resources/sfx/text.ogg";
     pub const WARP_SFX: &str = "resources/sfx/warp.ogg";

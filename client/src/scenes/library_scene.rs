@@ -95,7 +95,7 @@ impl LibraryScene {
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.menu_close_sfx);
         }
     }
 
