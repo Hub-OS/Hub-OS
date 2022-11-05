@@ -19,7 +19,7 @@ pub type NetplayPacketReceiver = flume::Receiver<NetplayPacket>;
 
 enum Event {
     ServerSubscription(SocketAddr, flume::Sender<ServerPacket>),
-    NetplaySubscription(SocketAddr, flume::Sender<NetplayPacket>),
+    NetplaySubscription(SocketAddr, flume::Sender<NetplayPacketReceiver>),
     SendingClientPacket(SocketAddr, Reliability, ClientPacket),
     SendingNetplayPacket(SocketAddr, NetplayPacket),
     ReceivedPacket(SocketAddr, Instant, Vec<u8>),
@@ -68,7 +68,7 @@ impl Network {
         async move {
             let addr = packets::address_parsing::resolve_socket_addr(address.as_str()).await?;
 
-            let (sender, receiver) = flume::unbounded();
+            let (sender, receiver) = flume::bounded(1);
 
             event_sender
                 .send(Event::NetplaySubscription(addr, sender))
@@ -77,6 +77,8 @@ impl Network {
             let send_packet: NetplayPacketSender = Arc::new(move |body| {
                 let _ = event_sender.send(Event::SendingNetplayPacket(addr, body));
             });
+
+            let receiver = receiver.recv_async().await.ok()?;
 
             Some((send_packet, receiver))
         }
@@ -136,8 +138,8 @@ struct Connection {
     packet_sender: packets::PacketSender<PacketChannels>,
     packet_receiver: packets::PacketReceiver<PacketChannels>,
     server_subscribers: Vec<flume::Sender<ServerPacket>>,
-    netplay_subscribers: Vec<flume::Sender<NetplayPacket>>,
-    stored_netplay_packets: Vec<NetplayPacket>,
+    netplay_sender: flume::Sender<NetplayPacket>,
+    netplay_recycled_receiver: NetplayPacketReceiver,
 }
 
 impl Connection {
@@ -147,6 +149,7 @@ impl Connection {
         let client_channel = builder.sending_channel(PacketChannels::Client);
         let netplay_channel = builder.bidirectional_channel(PacketChannels::Netplay);
         let (packet_sender, packet_receiver) = builder.build().split();
+        let (netplay_sender, netplay_recycled_receiver) = flume::unbounded();
 
         Self {
             socket_addr,
@@ -155,8 +158,8 @@ impl Connection {
             packet_sender,
             packet_receiver,
             server_subscribers: Vec::new(),
-            netplay_subscribers: Vec::new(),
-            stored_netplay_packets: Vec::new(),
+            netplay_sender,
+            netplay_recycled_receiver,
         }
     }
 }
@@ -228,22 +231,19 @@ impl EventListener {
     fn handle_netplay_subscription(
         &mut self,
         addr: SocketAddr,
-        sender: flume::Sender<NetplayPacket>,
+        sender: flume::Sender<NetplayPacketReceiver>,
     ) {
-        // create a connection if it doesnt already exist
-
         if let Some(index) = self.connection_map.get_mut(&addr) {
-            let connection = &mut self.connections[*index];
+            let connection = &self.connections[*index];
 
-            // push stored netplay packets
-            for packet in std::mem::take(&mut connection.stored_netplay_packets) {
-                let _ = sender.send(packet);
-            }
-
-            connection.netplay_subscribers.push(sender);
+            let _ = sender.send(connection.netplay_recycled_receiver.clone());
         } else {
-            let mut connection = Connection::new(addr);
-            connection.netplay_subscribers.push(sender);
+            // create a connection if it doesnt already exist
+            let connection = Connection::new(addr);
+
+            let _ = sender.send(connection.netplay_recycled_receiver.clone());
+
+            // store the connection
             let index = self.connections.insert(connection);
             self.connection_map.insert(addr, index);
         }
@@ -342,8 +342,6 @@ impl EventListener {
                 }
             }
             PacketChannels::Netplay => {
-                let mut pending_netplay_removal = Vec::new();
-
                 for message in messages {
                     let netplay_packet: NetplayPacket = match deserialize(&message) {
                         Ok(netplay_packet) => netplay_packet,
@@ -356,26 +354,7 @@ impl EventListener {
                         }
                     };
 
-                    for (i, sender) in connection.netplay_subscribers.iter().enumerate() {
-                        if sender.send(netplay_packet.clone()).is_err()
-                            && !pending_netplay_removal.contains(&i)
-                        {
-                            pending_netplay_removal.push(i);
-                        }
-                    }
-
-                    if connection.netplay_subscribers.is_empty()
-                        || pending_netplay_removal.len() == connection.netplay_subscribers.len()
-                    {
-                        // if no one can receive this packet, store it for new subscribers
-                        // this is to handle a case where packets are routed through the server
-                        // and the remote client is closer, causing packets to possibly be received before we enter a netplay scene
-                        connection.stored_netplay_packets.push(netplay_packet);
-                    }
-                }
-
-                for i in pending_netplay_removal.into_iter().rev() {
-                    connection.netplay_subscribers.remove(i);
+                    let _ = connection.netplay_sender.send(netplay_packet);
                 }
             }
         }

@@ -166,14 +166,33 @@ impl BattleScene {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
 
-        for (i, (index, receiver)) in self.receivers.iter().enumerate() {
+        let mut connected_count = self
+            .player_controllers
+            .iter()
+            .enumerate()
+            .filter(|(i, controller)| controller.connected && *i != self.local_index)
+            .count();
+
+        'main_loop: for (i, (index, receiver)) in self.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
                 if index.is_some() && Some(packet.index()) != *index {
                     // ignore obvious impersonation cheat
                     continue;
                 }
 
+                let is_disconnect = matches!(packet, NetplayPacket::Disconnect { .. });
+
                 packets.push(packet);
+
+                if is_disconnect {
+                    connected_count -= 1;
+
+                    if connected_count == 0 {
+                        // break to prevent receiving extra packets from the fallback receiver
+                        // these extra packets are likely for future scenes
+                        break 'main_loop;
+                    }
+                }
             }
 
             if receiver.is_disconnected() {
@@ -185,6 +204,11 @@ impl BattleScene {
 
                 pending_removal.push(i);
             }
+        }
+
+        if connected_count == 0 {
+            // no need to store these, helps prevent reading too many packets from the fallback receiver
+            self.receivers.clear();
         }
 
         for packet in packets {
@@ -263,6 +287,10 @@ impl BattleScene {
     }
 
     fn handle_local_input(&mut self, game_io: &GameIO<Globals>) {
+        if self.exiting {
+            return;
+        }
+
         let input_util = InputUtil::new(game_io);
 
         let local_controller = match self.player_controllers.get_mut(self.local_index) {
