@@ -67,7 +67,7 @@ impl BootScene {
 
         std::thread::spawn(move || {
             // delete cache folder to prevent infinitely growing cache
-            let _ = std::fs::remove_dir(ResourcePaths::MOD_CACHE_FOLDER);
+            let _ = std::fs::remove_dir_all(ResourcePaths::MOD_CACHE_FOLDER);
 
             let mut child_packages = Vec::new();
 
