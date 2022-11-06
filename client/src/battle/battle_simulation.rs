@@ -540,13 +540,7 @@ impl BattleSimulation {
         });
 
         entity.delete_callback = BattleCallback::new(move |_, simulation, _, _| {
-            // let entity = simulation
-            //     .entities
-            //     .query_one_mut::<&mut Entity>(id.into())
-            //     .unwrap();
-
-            Component::new_character_deletion(simulation, id);
-            // todo: explosions
+            super::default_delete::delete_character(simulation, id);
         });
 
         Ok(id)
@@ -599,56 +593,7 @@ impl BattleSimulation {
         charge_sprite.set_offset(Vec2::new(0.0, -20.0));
 
         entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
-            let player_deleted_sfx = &game_io.globals().player_deleted_sfx;
-            simulation.play_sound(game_io, player_deleted_sfx);
-
-            let (entity, living) = simulation
-                .entities
-                .query_one_mut::<(&mut Entity, &Living)>(id.into())
-                .unwrap();
-
-            let x = entity.x;
-            let y = entity.y;
-
-            // flinch
-            let player_animator = &mut simulation.animators[entity.animator_index];
-            let callbacks = player_animator.set_state(living.flinch_anim_state.as_ref().unwrap());
-            simulation.pending_callbacks.extend(callbacks);
-
-            let player_root_node = entity.sprite_tree.root_mut();
-            player_animator.apply(player_root_node);
-
-            player_animator.disable();
-
-            Component::new_character_deletion(simulation, id);
-
-            // create transformation shine artifact
-
-            let artifact_id = simulation.create_artifact(game_io);
-            let artifact_entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(artifact_id.into())
-                .unwrap();
-
-            artifact_entity.x = x;
-            artifact_entity.y = y;
-            artifact_entity.pending_spawn = true;
-
-            let root_node = artifact_entity.sprite_tree.root_mut();
-            root_node.set_texture(game_io, ResourcePaths::BATTLE_TRANSFORM_SHINE.to_string());
-
-            let animator = &mut simulation.animators[artifact_entity.animator_index];
-            animator.load(game_io, ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION);
-            let _ = animator.set_state("DEFAULT");
-
-            animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
-                let artifact_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(artifact_id.into())
-                    .unwrap();
-
-                artifact_entity.erased = true;
-            }));
+            super::default_delete::delete_player(game_io, simulation, id);
         });
 
         self.entities
@@ -683,7 +628,6 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO<Globals>,
         vms: &[RollbackVM],
-
         package_id: &str,
         namespace: PackageNamespace,
         rank: CharacterRank,
