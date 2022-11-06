@@ -309,6 +309,52 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "default_player_delete",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let id: EntityID = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+
+            let is_living = simulation
+                .entities
+                .query_one_mut::<&Living>(id.into())
+                .is_ok();
+
+            if is_living {
+                crate::battle::delete_player_animation(api_ctx.game_io, simulation, id);
+            }
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "default_character_delete",
+        |api_ctx, lua, params| {
+            let (table, explosion_count): (rollback_mlua::Table, Option<usize>) =
+                lua.unpack_multi(params)?;
+
+            let id: EntityID = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+
+            if simulation.entities.contains(id.into()) {
+                crate::battle::delete_character_animation(simulation, id, explosion_count);
+            }
+
+            lua.pack_multi(())
+        },
+    );
+
     getter(lua_api, "get_team", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.team)
     });
