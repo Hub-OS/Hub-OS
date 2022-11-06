@@ -97,7 +97,7 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO<Globals>, assets: &A, data: &s
                     map.set_song_path(property_value.to_string());
                 }
                 _ => {
-                    println!("{}", property_name.to_lowercase());
+                    // println!("{}", property_name.to_lowercase());
                 }
             }
         }

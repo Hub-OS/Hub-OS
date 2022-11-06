@@ -1,8 +1,8 @@
 use crate::overworld::components::*;
 use crate::scenes::OverworldSceneBase;
 
-const WARP_IN_REVEAL_FRAME: usize = 5;
-const WARP_OUT_HIDE_FRAME: usize = 2;
+const WARP_IN_REVEAL_FRAME: usize = 4;
+const WARP_OUT_HIDE_FRAME: usize = 1;
 
 pub fn system_warp_effect(scene: &mut OverworldSceneBase) {
     let entities = &mut scene.entities;
@@ -18,17 +18,30 @@ pub fn system_warp_effect(scene: &mut OverworldSceneBase) {
         if frame_changed {
             let is_hidden = entities
                 .query_one::<&HiddenSprite>(effect.actor_entity)
-                .is_ok();
+                .map(|mut q| q.get().is_some())
+                .unwrap_or_default();
 
             match effect.warp_type {
                 WarpType::In { .. } => {
                     if current_frame == WARP_IN_REVEAL_FRAME && is_hidden {
-                        pending_action.push((effect.warp_type, effect.actor_entity));
+                        pending_action.push((
+                            effect.warp_type,
+                            effect.actor_entity,
+                            effect.callback.take(),
+                        ));
                     }
                 }
                 WarpType::Out | WarpType::Full { .. } => {
                     if current_frame == WARP_OUT_HIDE_FRAME && !is_hidden {
-                        pending_action.push((effect.warp_type, effect.actor_entity));
+                        // only passing callback for WarpType::Out as
+                        // WarpType::Full truely completes when it becomes a WarpType::In
+                        let callback = if matches!(effect.warp_type, WarpType::Out) {
+                            effect.callback.take()
+                        } else {
+                            None
+                        };
+
+                        pending_action.push((effect.warp_type, effect.actor_entity, callback));
                     }
                 }
             }
@@ -63,7 +76,7 @@ pub fn system_warp_effect(scene: &mut OverworldSceneBase) {
         }
     }
 
-    for (warp_type, actor_entity) in pending_action {
+    for (warp_type, actor_entity, callback) in pending_action {
         match warp_type {
             WarpType::In {
                 position,
@@ -78,10 +91,20 @@ pub fn system_warp_effect(scene: &mut OverworldSceneBase) {
 
                     *set_position = position;
                     *set_direction = direction;
+
+                    if let Some(callback) = callback {
+                        callback();
+                    }
                 }
             }
             WarpType::Out | WarpType::Full { .. } => {
                 let _ = entities.insert_one(actor_entity, HiddenSprite);
+
+                if entities.contains(actor_entity) {
+                    if let Some(callback) = callback {
+                        callback();
+                    }
+                }
             }
         }
     }
