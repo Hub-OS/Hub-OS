@@ -14,13 +14,14 @@ use crate::scenes::BattleScene;
 use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION, DRAMATIC_FADE_DURATION};
 use bimap::BiMap;
 use framework::prelude::*;
-use packets::structures::FileHash;
+use packets::structures::{BattleStatistics, FileHash};
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
 };
 use std::collections::{HashMap, VecDeque};
 
 enum Event {
+    BattleStatistics(Option<BattleStatistics>),
     ServerTextboxResponse(u8),
     ServerPromptResponse(String),
     RemoveActor { actor_id: String },
@@ -681,6 +682,12 @@ impl OverworldOnlineScene {
 
                     let mut props = BattleProps::new_with_defaults(game_io, battle_package);
 
+                    // callback
+                    let event_sender = self.event_sender.clone();
+                    props.statistics_callback = Some(Box::new(move |statistics| {
+                        let _ = event_sender.send(Event::BattleStatistics(statistics));
+                    }));
+
                     // copy background
                     props.background = self
                         .base_scene
@@ -710,6 +717,11 @@ impl OverworldOnlineScene {
                     .background_properties()
                     .generate_background(game_io, &self.assets);
 
+                let event_sender = self.event_sender.clone();
+                let statistics_callback = Box::new(move |statistics| {
+                    let _ = event_sender.send(Event::BattleStatistics(statistics));
+                });
+
                 let scene = NetplayInitScene::new(
                     game_io,
                     Some(background),
@@ -717,6 +729,7 @@ impl OverworldOnlineScene {
                     data,
                     remote_players,
                     self.server_address.clone(),
+                    Some(statistics_callback),
                 );
 
                 let transition =
@@ -952,6 +965,24 @@ impl OverworldOnlineScene {
     fn handle_events(&mut self, game_io: &GameIO<Globals>) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
+                Event::BattleStatistics(statistics) => {
+                    let player_data = &self.base_scene.player_data;
+
+                    let battle_stats = match statistics {
+                        Some(statistics) => statistics,
+                        None => BattleStatistics {
+                            health: player_data.health as u32,
+                            emotion: player_data.emotion,
+                            ran: true,
+                            ..Default::default()
+                        },
+                    };
+
+                    (self.send_packet)(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::BattleResults { battle_stats },
+                    );
+                }
                 Event::ServerTextboxResponse(response) => (self.send_packet)(
                     Reliability::ReliableOrdered,
                     ClientPacket::TextBoxResponse { response },

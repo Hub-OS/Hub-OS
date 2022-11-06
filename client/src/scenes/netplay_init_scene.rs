@@ -1,5 +1,5 @@
 use super::BattleScene;
-use crate::battle::{BattleProps, PlayerSetup};
+use crate::battle::{BattleProps, BattleStatisticsCallback, PlayerSetup};
 use crate::bindable::{Input, SpriteColorMode};
 use crate::packages::PackageNamespace;
 use crate::render::*;
@@ -43,6 +43,7 @@ pub struct NetplayInitScene {
     battle_package: Option<(PackageNamespace, String)>,
     data: Option<String>,
     background: Option<Background>,
+    statistics_callback: Option<BattleStatisticsCallback>,
     last_heartbeat: Instant,
     failed: bool,
     seed: u64,
@@ -65,6 +66,7 @@ impl NetplayInitScene {
         data: Option<String>,
         remote_players: Vec<RemotePlayerInfo>,
         fallback_address: String,
+        statistics_callback: Option<BattleStatisticsCallback>,
     ) -> Self {
         let local_index = Self::resolve_local_index(&remote_players);
 
@@ -143,6 +145,7 @@ impl NetplayInitScene {
             battle_package,
             data,
             background,
+            statistics_callback,
             last_heartbeat: Instant::now(),
             failed: false,
             seed: 0,
@@ -488,6 +491,10 @@ impl NetplayInitScene {
 
     fn handle_transition(&mut self, game_io: &mut GameIO<Globals>) {
         if self.failed {
+            if let Some(callback) = self.statistics_callback.take() {
+                callback(None);
+            }
+
             let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
             self.next_scene = NextScene::new_pop().with_transition(transition);
             return;
@@ -508,6 +515,7 @@ impl NetplayInitScene {
 
             let mut props = BattleProps::new_with_defaults(game_io, battle_package);
 
+            props.statistics_callback = self.statistics_callback.take();
             props.data = self.data.take();
             props.seed = Some(self.seed);
 

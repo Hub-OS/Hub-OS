@@ -3,6 +3,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Folder;
 use framework::prelude::*;
+use packets::structures::BattleStatistics;
 use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
@@ -32,6 +33,8 @@ impl<'a> PlayerSetup<'a> {
     }
 }
 
+pub type BattleStatisticsCallback = Box<dyn FnOnce(Option<BattleStatistics>)>;
+
 pub struct BattleProps<'a> {
     pub battle_package: Option<&'a BattlePackage>,
     pub data: Option<String>,
@@ -40,6 +43,7 @@ pub struct BattleProps<'a> {
     pub player_setups: Vec<PlayerSetup<'a>>,
     pub senders: Vec<NetplayPacketSender>,
     pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
+    pub statistics_callback: Option<BattleStatisticsCallback>,
 }
 
 impl<'a> BattleProps<'a> {
@@ -62,6 +66,7 @@ impl<'a> BattleProps<'a> {
             player_setups: vec![PlayerSetup::from_globals(game_io)],
             senders: Vec::new(),
             receivers: Vec::new(),
+            statistics_callback: None,
         }
     }
 }
