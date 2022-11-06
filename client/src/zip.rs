@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::fs::File;
 use std::io::{Cursor, Read, Write};
 use std::path::Path;
@@ -55,7 +56,12 @@ where
 
         let root_path = path;
 
-        for entry in WalkDir::new(&path).into_iter().flatten() {
+        let entry_iter = WalkDir::new(&path)
+            .into_iter()
+            .flatten()
+            .sorted_by_cached_key(|entry| entry.path().to_path_buf());
+
+        for entry in entry_iter {
             let metadata = match entry.metadata() {
                 Ok(metadata) => metadata,
                 _ => continue,
