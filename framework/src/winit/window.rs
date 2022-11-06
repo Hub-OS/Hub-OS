@@ -47,7 +47,7 @@ impl Window {
     }
 
     pub fn set_title(&mut self, title: &str) {
-        let _ = self.window.set_title(title);
+        self.window.set_title(title);
     }
 
     pub(crate) fn build(window_config: WindowConfig) -> anyhow::Result<WindowLoop> {

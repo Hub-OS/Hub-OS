@@ -33,6 +33,7 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
         self.last_receive_time
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn receive_packet<'a>(
         &mut self,
         now: Instant,

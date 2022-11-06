@@ -15,6 +15,7 @@ impl<ChannelLabel: Label> Connection<ChannelLabel> {
         self.packet_sender.tick(now, send);
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn receive_packet(
         &mut self,
         now: Instant,
