@@ -38,6 +38,7 @@ pub struct BattleScene {
     frame_by_frame_debug: bool,
     already_snapped: bool,
     exiting: bool,
+    statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene<Globals>,
 }
 
@@ -65,6 +66,7 @@ impl BattleScene {
             frame_by_frame_debug: false,
             already_snapped: false,
             exiting: false,
+            statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
         };
 
@@ -506,6 +508,10 @@ impl Scene<Globals> for BattleScene {
             self.broadcast(NetplayPacket::Disconnect {
                 index: self.local_index,
             });
+
+            if let Some(statistics_callback) = self.statistics_callback.take() {
+                statistics_callback(Some(self.simulation.statistics.clone()));
+            }
 
             let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
             self.next_scene = NextScene::new_pop().with_transition(transition);
