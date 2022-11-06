@@ -440,6 +440,11 @@ impl CardSelectState {
         {
             let selection = &mut self.player_selections[player.index];
 
+            if selection.selected_card_indices.is_empty() {
+                // if no cards were selected, we keep cards from the previous selection
+                continue;
+            }
+
             character.cards.clear();
 
             // load cards in reverse as we'll pop them off in battle state (first item must be last)
