@@ -6,6 +6,7 @@ mod battle_script_context;
 mod battle_simulation;
 mod card_action;
 mod component;
+mod default_delete;
 mod defense_rule;
 mod ecs_components;
 mod emotion_window;
