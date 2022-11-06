@@ -1,9 +1,0 @@
-imagePath="C:/mmbn/net battle engine/Release/resources/spells/spell_explosion.png"
-
-animation state="Default"
-frame duration="0.05" x="0" y="0" w="48" h="48" originx="23" originy="23"
-frame duration="0.083" x="51" y="6" w="43" h="42" originx="21" originy="29"
-frame duration="0.083" x="97" y="5" w="46" h="43" originx="23" originy="29"
-frame duration="0.083" x="144" y="3" w="48" h="44" originx="24" originy="30"
-frame duration="0.083" x="192" y="1" w="48" h="46" originx="24" originy="30"
-frame duration="0.083" x="240" y="1" w="48" h="46" originx="24" originy="30"

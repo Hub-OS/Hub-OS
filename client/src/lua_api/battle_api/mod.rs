@@ -41,6 +41,7 @@ pub const CHARACTER_TABLE: &str = "Battle.Character";
 pub const OBSTACLE_TABLE: &str = "Battle.Obstacle";
 pub const SPELL_TABLE: &str = "Battle.Spell";
 pub const ARTIFACT_TABLE: &str = "Battle.Artifact";
+pub const EXPLOSION_TABLE: &str = "Battle.Explosion";
 pub const BUSTER_TABLE: &str = "Battle.Buster";
 
 // callbacks

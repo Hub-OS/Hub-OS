@@ -765,6 +765,40 @@ impl BattleSimulation {
         id
     }
 
+    pub fn create_explosion(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+        let id = self.create_artifact(game_io);
+
+        let entity = self
+            .entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .unwrap();
+
+        // load texture
+        let texture_string = ResourcePaths::absolute(ResourcePaths::BATTLE_EXPLOSION);
+        let sprite_root = entity.sprite_tree.root_mut();
+        sprite_root.set_texture(game_io, texture_string);
+
+        // load animation
+        let animator = &mut self.animators[entity.animator_index];
+        animator.load(game_io, ResourcePaths::BATTLE_EXPLOSION_ANIMATION);
+        let _ = animator.set_state("DEFAULT");
+
+        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
+            simulation.play_sound(game_io, &game_io.globals().explode_sfx);
+        });
+
+        // delete when the animation completes
+        animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(id.into())
+                .unwrap();
+            entity.erased = true;
+        }));
+
+        id
+    }
+
     pub fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
         // resolve perspective
         if let Ok(entity) = (self.entities).query_one_mut::<&Entity>(self.local_player_id.into()) {

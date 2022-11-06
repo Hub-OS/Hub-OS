@@ -1,0 +1,11 @@
+# @frame_rate 60
+
+imagePath="explosion.png"
+
+animation state="DEFAULT"
+frame duration="2f" x="0" y="0" w="48" h="48" originx="23" originy="23"
+frame duration="4f" x="51" y="6" w="43" h="42" originx="20" originy="25"
+frame duration="4f" x="97" y="5" w="46" h="43" originx="22" originy="25"
+frame duration="4f" x="144" y="3" w="48" h="44" originx="23" originy="26"
+frame duration="4f" x="192" y="1" w="48" h="46" originx="23" originy="26"
+frame duration="4f" x="240" y="1" w="48" h="46" originx="23" originy="26"
