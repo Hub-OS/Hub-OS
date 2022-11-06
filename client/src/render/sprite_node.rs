@@ -43,6 +43,7 @@ impl SpriteNode {
         self.layer
     }
 
+    /// Negative is closer, positive is farther
     pub fn set_layer(&mut self, layer: i32) {
         self.layer = layer;
     }

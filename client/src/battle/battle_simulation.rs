@@ -787,7 +787,8 @@ impl BattleSimulation {
             }
         }
 
-        sorted_entities.sort_by_key(|entity| (entity.y, entity.x));
+        sorted_entities
+            .sort_by_key(|entity| (entity.y, entity.x, -entity.sprite_tree.root().layer()));
 
         // reusing vec to avoid realloctions
         let mut sprite_nodes_recycled = Vec::new();
