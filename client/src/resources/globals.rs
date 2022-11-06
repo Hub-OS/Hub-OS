@@ -37,6 +37,7 @@ pub struct Globals {
     pub attack_charging_sfx: SoundBuffer,
     pub attack_charged_sfx: SoundBuffer,
     pub player_deleted_sfx: SoundBuffer,
+    pub explode_sfx: SoundBuffer,
 
     // assets
     pub assets: LocalAssetManager,
@@ -93,6 +94,7 @@ impl Globals {
             attack_charging_sfx: assets.audio(ResourcePaths::ATTACK_CHARGING_SFX),
             attack_charged_sfx: assets.audio(ResourcePaths::ATTACK_CHARGED_SFX),
             player_deleted_sfx: assets.audio(ResourcePaths::PLAYER_DELETED_SFX),
+            explode_sfx: assets.audio(ResourcePaths::EXPLODE_SFX),
 
             // assets
             font_texture,
