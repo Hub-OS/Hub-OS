@@ -91,27 +91,27 @@ impl FlatShapeModel {
     }
 
     pub fn origin(&self) -> Vec2 {
-        self.origin.into()
+        self.origin
     }
 
     pub fn set_origin(&mut self, origin: Vec2) {
-        self.origin = origin.into()
+        self.origin = origin
     }
 
     pub fn position(&self) -> Vec2 {
-        self.position.into()
+        self.position
     }
 
     pub fn set_position(&mut self, position: Vec2) {
-        self.position = position.into()
+        self.position = position
     }
 
     pub fn scale(&self) -> Vec2 {
-        self.scale.into()
+        self.scale
     }
 
     pub fn set_scale(&mut self, scale: Vec2) {
-        self.scale = scale.into()
+        self.scale = scale
     }
 
     pub fn rotation(&self) -> f32 {

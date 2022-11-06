@@ -1,11 +1,15 @@
 use crate::prelude::*;
 
+type GlobalsConstructor<Globals> = Box<dyn FnOnce(&mut GameIO<Globals>) -> Globals>;
+type SceneConstructor<Globals> = Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn Scene<Globals>>>;
+type OverlayConstructor<Globals> =
+    Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn SceneOverlay<Globals>>>;
+
 pub struct Game<Globals: 'static> {
-    globals_constructor: Box<dyn FnOnce(&mut GameIO<Globals>) -> Globals>,
+    globals_constructor: GlobalsConstructor<Globals>,
     window_config: WindowConfig,
     target_fps: u16,
-    overlay_constructor:
-        Option<Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn SceneOverlay<Globals>>>>,
+    overlay_constructor: Option<OverlayConstructor<Globals>>,
 }
 
 impl<Globals> Game<Globals> {
@@ -91,9 +95,8 @@ impl<Globals> Game<Globals> {
 }
 
 pub(crate) struct WindowLoopParams<Globals: 'static> {
-    pub globals_constructor: Box<dyn FnOnce(&mut GameIO<Globals>) -> Globals>,
-    pub scene_constructor: Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn Scene<Globals>>>,
+    pub globals_constructor: GlobalsConstructor<Globals>,
+    pub scene_constructor: SceneConstructor<Globals>,
     pub target_fps: u16,
-    pub overlay_constructor:
-        Option<Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn SceneOverlay<Globals>>>>,
+    pub overlay_constructor: Option<OverlayConstructor<Globals>>,
 }

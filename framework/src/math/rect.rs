@@ -411,6 +411,9 @@ impl_rect2!(DRect, DVec2, f64, 0.0, 1.0);
 impl_rect2!(IRect, IVec2, i32, 0, 1);
 impl_rect2!(URect, UVec2, u32, 0, 1);
 
+impl Eq for IRect {}
+impl Eq for URect {}
+
 #[cfg(test)]
 mod test {
     use super::*;
