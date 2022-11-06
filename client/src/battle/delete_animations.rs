@@ -3,7 +3,12 @@ use crate::bindable::EntityID;
 use crate::resources::{Globals, ResourcePaths};
 use framework::prelude::GameIO;
 
-pub fn delete_player(game_io: &GameIO<Globals>, simulation: &mut BattleSimulation, id: EntityID) {
+/// requires Living component
+pub fn delete_player_animation(
+    game_io: &GameIO<Globals>,
+    simulation: &mut BattleSimulation,
+    id: EntityID,
+) {
     let player_deleted_sfx = &game_io.globals().player_deleted_sfx;
     simulation.play_sound(game_io, player_deleted_sfx);
 
@@ -55,6 +60,18 @@ pub fn delete_player(game_io: &GameIO<Globals>, simulation: &mut BattleSimulatio
     }));
 }
 
-pub fn delete_character(simulation: &mut BattleSimulation, id: EntityID) {
-    Component::new_character_deletion(simulation, id);
+pub fn delete_character_animation(
+    simulation: &mut BattleSimulation,
+    id: EntityID,
+    explosion_count: Option<usize>,
+) {
+    let explosion_count = explosion_count.unwrap_or(2);
+    let entity = simulation
+        .entities
+        .query_one_mut::<&Entity>(id.into())
+        .unwrap();
+
+    simulation.animators[entity.animator_index].disable();
+
+    Component::new_character_deletion(simulation, id, explosion_count);
 }

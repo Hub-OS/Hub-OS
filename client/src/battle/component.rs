@@ -57,11 +57,16 @@ impl Component {
         });
     }
 
-    pub fn new_character_deletion(simulation: &mut BattleSimulation, entity_id: EntityID) {
-        const TOTAL_DURATION: FrameTime = 16;
+    pub fn new_character_deletion(
+        simulation: &mut BattleSimulation,
+        entity_id: EntityID,
+        explosion_count: usize,
+    ) {
+        const END_DELAY: FrameTime = 4;
         const EXPLOSION_RATE: FrameTime = 14;
 
         let start_time = simulation.battle_time;
+        let total_duration = EXPLOSION_RATE * explosion_count as FrameTime + END_DELAY;
 
         simulation.components.insert_with(move |index| {
             let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
@@ -83,7 +88,7 @@ impl Component {
                 let root_node = entity.sprite_tree.root_mut();
                 root_node.set_color(color);
 
-                if elapsed_time >= TOTAL_DURATION {
+                if elapsed_time >= total_duration {
                     entity.erased = true;
                     simulation.components.remove(index);
                 }
@@ -94,7 +99,7 @@ impl Component {
                 let total_entity_offset =
                     entity.offset + entity.tile_offset + Vec2::new(0.0, entity.elevation);
 
-                if elapsed_time % EXPLOSION_RATE == 0 {
+                if elapsed_time % EXPLOSION_RATE == 0 && elapsed_time < total_duration - END_DELAY {
                     let id = simulation.create_explosion(game_io);
                     let explosion_entity = simulation
                         .entities

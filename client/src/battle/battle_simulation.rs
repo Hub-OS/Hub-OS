@@ -540,7 +540,7 @@ impl BattleSimulation {
         });
 
         entity.delete_callback = BattleCallback::new(move |_, simulation, _, _| {
-            super::default_delete::delete_character(simulation, id);
+            super::delete_character_animation(simulation, id, None);
         });
 
         Ok(id)
@@ -593,7 +593,7 @@ impl BattleSimulation {
         charge_sprite.set_offset(Vec2::new(0.0, -20.0));
 
         entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
-            super::default_delete::delete_player(game_io, simulation, id);
+            super::delete_player_animation(game_io, simulation, id);
         });
 
         self.entities
