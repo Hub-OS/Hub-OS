@@ -4,7 +4,7 @@ use crate::scenes::OverworldSceneBase;
 use framework::prelude::{GameIO, Vec3};
 use packets::structures::Direction;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum WarpType {
     In {
         position: Vec3,
@@ -30,7 +30,7 @@ pub struct WarpEffect {
     pub actor_entity: hecs::Entity,
     pub warp_type: WarpType,
     pub last_frame: usize,
-    pub callback: Box<dyn FnOnce() + Send + Sync>,
+    pub callback: Option<Box<dyn FnOnce() + Send + Sync>>,
 }
 
 impl WarpEffect {
@@ -78,7 +78,7 @@ impl WarpEffect {
                     warp_type,
                     actor_entity: target_entity,
                     last_frame: 0,
-                    callback,
+                    callback: Some(callback),
                 },
             )
             .unwrap();
