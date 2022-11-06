@@ -651,7 +651,10 @@ impl OverworldOnlineScene {
                     None => {
                         let bytes = self.assets.binary(&package_path);
                         let hash = FileHash::hash(&bytes);
+
                         assets.load_virtual_zip(game_io, hash, bytes);
+                        self.loaded_zips.insert(package_path.clone(), hash);
+
                         hash
                     }
                 };
