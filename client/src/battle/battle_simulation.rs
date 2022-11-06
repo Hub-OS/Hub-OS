@@ -214,7 +214,7 @@ impl BattleSimulation {
     pub fn post_update(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM]) {
         // update scene components
         for (_, component) in &self.components {
-            if component.lifetime == ComponentLifetime::BattleStep {
+            if component.lifetime == ComponentLifetime::Scene {
                 self.pending_callbacks
                     .push(component.update_callback.clone());
             }
