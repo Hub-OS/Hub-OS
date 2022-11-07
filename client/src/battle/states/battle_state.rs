@@ -152,7 +152,7 @@ impl BattleState {
     }
 
     fn detect_success_or_failure(&mut self, simulation: &mut BattleSimulation) {
-        const TOTAL_MESSAGE_TIME: FrameTime = 5 * 60;
+        const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
 
         if let Some((_, time)) = self.message {
             if simulation.time - time >= TOTAL_MESSAGE_TIME {
