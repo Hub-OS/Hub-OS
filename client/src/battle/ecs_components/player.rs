@@ -31,7 +31,7 @@ impl Player {
     pub const CHARGE_DELAY: FrameTime = 10;
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
-        DerivedFrame::new(0, 4),
+        DerivedFrame::new(0, 3),
         DerivedFrame::new(1, 1),
         DerivedFrame::new(2, 1),
         DerivedFrame::new(3, 1),
