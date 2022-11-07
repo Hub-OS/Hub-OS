@@ -9,8 +9,11 @@ use crate::resources::*;
 use framework::prelude::*;
 use std::cell::RefCell;
 
+const GRACE_TIME: FrameTime = 5;
+
 #[derive(Clone)]
 pub struct BattleState {
+    time: FrameTime,
     complete: bool,
     message: Option<(&'static str, FrameTime)>,
 }
@@ -82,6 +85,7 @@ impl State for BattleState {
 
         // other players may still be in battle, and some components make use of this
         simulation.battle_time += 1;
+        self.time += 1;
 
         self.detect_success_or_failure(simulation);
         self.update_turn_guage(game_io, simulation);
@@ -114,6 +118,7 @@ impl State for BattleState {
 impl BattleState {
     pub fn new() -> Self {
         Self {
+            time: 0,
             complete: false,
             message: None,
         }
@@ -613,7 +618,10 @@ impl BattleState {
             let mut charging = false;
 
             if !action_active {
-                if input.was_just_pressed(Input::UseCard) && !character.cards.is_empty() {
+                if input.was_just_pressed(Input::UseCard)
+                    && !character.cards.is_empty()
+                    && self.time >= GRACE_TIME
+                {
                     // using a card
 
                     let card_props = character.cards.pop().unwrap();
@@ -1068,13 +1076,6 @@ impl BattleState {
 
             let animator_index = entity.animator_index;
 
-            if card_action.startup_delay > 1 {
-                if entity.move_action.is_none() {
-                    card_action.startup_delay -= 1;
-                }
-                continue;
-            }
-
             if card_action.completed {
                 actions_pending_deletion.push(action_index);
                 continue;
@@ -1082,6 +1083,10 @@ impl BattleState {
 
             // execute
             if !card_action.executed {
+                if entity.move_action.is_some() {
+                    continue;
+                }
+
                 let entity_id = entity.id;
 
                 // animations
