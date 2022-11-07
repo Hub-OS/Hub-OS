@@ -34,7 +34,11 @@ clap = { version = "3.2.22", features = ["derive"] }
 unicode_categories = "0.1.1"
 flate2 = "1.0.24"
 bimap = "0.6.2"
-zip = { version = "0.6.3", features = ["zstd"], default-features = false }
+zip = { version = "0.6.3", features = [
+    "zstd",
+    "bzip2",
+    "deflate",
+], default-features = false }
 path-clean = "0.1.0"
 futures = "0.3.25"
 walkdir = "2.3.2"
