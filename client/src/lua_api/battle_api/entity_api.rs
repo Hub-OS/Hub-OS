@@ -750,7 +750,15 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
     // todo: add_defense_rule
     // todo: remove_defense_rule
-    // todo: register_status_callback
+
+    setter(
+        lua_api,
+        "register_status_callback",
+        |living: &mut Living, _, (hit_flag, callback): (HitFlags, BattleCallback)| {
+            living.register_status_callback(hit_flag, callback);
+            Ok(())
+        },
+    );
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {

@@ -80,7 +80,7 @@ impl DefenseJudge {
         defense_rules: &[DefenseRule],
     ) {
         let lua_api = &game_io.globals().battle_api;
-        let no_counter = props.flags | HitFlag::NO_COUNTER;
+        let no_counter = props.flags & HitFlag::NO_COUNTER;
 
         for defense_rule in defense_rules {
             let context = RefCell::new(BattleScriptContext {

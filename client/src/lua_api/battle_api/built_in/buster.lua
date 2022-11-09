@@ -182,4 +182,8 @@ card_action:add_anim_action(4, function()
     animation:pause()
 end)
 
+card_action.on_animation_end_func = function()
+    card_action:end_action()
+end
+
 return card_action

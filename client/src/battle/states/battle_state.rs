@@ -37,6 +37,8 @@ impl State for BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
+        simulation.update_animations();
+
         self.detect_battle_start(game_io, simulation, vms);
 
         // new: process player input
@@ -775,8 +777,8 @@ impl BattleState {
             }
 
             let entities = &mut simulation.entities;
-            let (entity, player, character) = entities
-                .query_one_mut::<(&mut Entity, &mut Player, &mut Character)>(id)
+            let (entity, player, living, character) = entities
+                .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
                 .unwrap();
 
             let input = &simulation.inputs[player.index];
@@ -787,11 +789,15 @@ impl BattleState {
                 .get_mut(player.charge_sprite_index)
                 .unwrap();
 
-            if entity.deleted || player.charging_time == 0 {
+            if entity.deleted || living.status_director.is_inactionable() {
+                player.charging_time = 0;
+            }
+
+            if player.charging_time == 0 {
                 charge_sprite_node.set_visible(false);
             }
 
-            if entity.deleted {
+            if entity.deleted || living.status_director.is_inactionable() {
                 continue;
             }
 
@@ -972,9 +978,11 @@ impl BattleState {
 
         let entities = &mut simulation.entities;
 
-        for (id, (entity, player)) in entities.query_mut::<(&mut Entity, &mut Player)>() {
-            // can't move if there's a blocking card action
-            if entity.card_action_index.is_some() {
+        for (id, (entity, living, player)) in
+            entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
+        {
+            // can't move if there's a blocking card action or immoble
+            if entity.card_action_index.is_some() || living.status_director.is_immobile() {
                 continue;
             }
 
@@ -986,13 +994,17 @@ impl BattleState {
                 continue;
             }
 
-            // todo: flip offsets from confusion
+            let confused = (living.status_director).remaining_status_time(HitFlag::CONFUSE) > 0;
 
             let mut x_offset =
                 input.is_down(Input::Right) as i32 - input.is_down(Input::Left) as i32;
 
             if entity.team == Team::Blue {
                 // flipped perspective
+                x_offset = -x_offset;
+            }
+
+            if confused {
                 x_offset = -x_offset;
             }
 
@@ -1010,7 +1022,12 @@ impl BattleState {
                 ));
             }
 
-            let y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
+            let mut y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
+
+            if confused {
+                y_offset = -y_offset;
+            }
+
             let tile_exists = simulation
                 .field
                 .tile_at_mut((entity.x, entity.y + y_offset))
@@ -1099,7 +1116,16 @@ impl BattleState {
                 }
 
                 entity.updated = true;
-                // todo: process statuses
+
+                // process statuses
+                living.status_director.update(&simulation.inputs);
+
+                // status callbacks
+                for hit_flag in living.status_director.take_new_statuses() {
+                    if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
+                        callbacks.extend(status_callbacks.iter().cloned());
+                    }
+                }
 
                 living.intangibility.update();
             }
@@ -1246,7 +1272,15 @@ impl BattleState {
                             }
                         }
                         TileState::Sea => {
-                            // todo: apply root
+                            let position = (entity.x, entity.y);
+
+                            if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id)
+                            {
+                                living.status_director.apply_status(HitFlag::ROOT, 20);
+
+                                let splash_id = simulation.create_splash(game_io);
+                                simulation.request_entity_spawn(splash_id, position);
+                            }
                         }
                         _ => {}
                     }
@@ -1291,19 +1325,17 @@ impl BattleState {
 
         // card actions
         for action_index in card_action_indices {
-            let mut card_action = &mut simulation.card_actions[action_index];
+            let card_action = &mut simulation.card_actions[action_index];
 
             if time_is_frozen && !card_action.properties.time_freeze {
                 // non time freeze action in time freeze
                 continue;
             }
 
-            let entity = match simulation
-                .entities
-                .query_one_mut::<&mut Entity>(card_action.entity.into())
-            {
-                Ok(entity) => entity,
-                _ => continue,
+            let entity_id = card_action.entity;
+
+            let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+                continue;
             };
 
             if !entity.spawned || entity.deleted || entity.time_is_frozen {
@@ -1323,7 +1355,15 @@ impl BattleState {
                     continue;
                 }
 
-                let entity_id = entity.id;
+                if !simulation.is_entity_actionable(entity_id) {
+                    continue;
+                }
+
+                let card_action = &mut simulation.card_actions[action_index];
+                let entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(entity_id.into())
+                    .unwrap();
 
                 // animations
                 let animator = &mut simulation.animators[animator_index];

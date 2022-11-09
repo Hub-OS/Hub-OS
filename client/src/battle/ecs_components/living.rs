@@ -2,6 +2,7 @@ use crate::battle::*;
 use crate::bindable::*;
 use crate::resources::*;
 use framework::prelude::*;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Living {
@@ -15,9 +16,8 @@ pub struct Living {
     pub intangibility: Intangibility,
     pub defense_rules: Vec<DefenseRule>,
     pub flinch_anim_state: Option<String>,
-    // status director
-    // status/hit queue?
-    // status callbacks
+    pub status_director: StatusDirector,
+    pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
 }
 
 impl Default for Living {
@@ -33,6 +33,8 @@ impl Default for Living {
             intangibility: Intangibility::default(),
             defense_rules: Vec::new(),
             flinch_anim_state: None,
+            status_director: StatusDirector::default(),
+            status_callbacks: HashMap::new(),
         }
     }
 }
@@ -46,6 +48,14 @@ impl Living {
         }
 
         self.health = health.min(self.max_health);
+    }
+
+    pub fn register_status_callback(&mut self, hit_flag: HitFlags, callback: BattleCallback) {
+        if let Some(callbacks) = self.status_callbacks.get_mut(&hit_flag) {
+            callbacks.push(callback);
+        } else {
+            self.status_callbacks.insert(hit_flag, vec![callback]);
+        }
     }
 
     pub fn process_hit(
@@ -105,6 +115,7 @@ impl Living {
             living.hit = true
         }
 
-        // todo: pass hit_props to status director
+        living.status_director.apply_hit_flags(hit_props.flags);
+        // todo: handle drag
     }
 }

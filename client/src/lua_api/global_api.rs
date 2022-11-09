@@ -20,7 +20,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     hit_flags_table.set("PierceInvis", HitFlag::PIERCE_INVIS)?;
     hit_flags_table.set("Flinch", HitFlag::FLINCH)?;
     hit_flags_table.set("Shake", HitFlag::SHAKE)?;
-    hit_flags_table.set("Stun", HitFlag::STUN)?;
+    hit_flags_table.set("Paralyze", HitFlag::PARALYZE)?;
+    hit_flags_table.set("Stun", HitFlag::PARALYZE)?; // todo: remove deprecated
     hit_flags_table.set("Flash", HitFlag::FLASH)?;
     hit_flags_table.set("PierceGuard", HitFlag::PIERCE_GUARD)?;
     hit_flags_table.set("Impact", HitFlag::IMPACT)?;
