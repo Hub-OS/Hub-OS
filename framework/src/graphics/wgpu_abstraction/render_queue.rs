@@ -165,7 +165,7 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
         !latest_resources
             .iter()
             .zip(resources)
-            .all(|(a, b)| std::ptr::eq(a, b))
+            .all(|(a, b)| std::ptr::eq(&*a, &*b))
     }
 
     fn set_mesh(&mut self, mesh: &Arc<super::Mesh<Vertex>>) {
