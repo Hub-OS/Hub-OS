@@ -47,11 +47,11 @@ impl State for BattleState {
         // update time freeze first as it affects the rest of the updates
         self.update_time_freeze(game_io, simulation, vms);
 
-        // update tiles
-        self.update_field(game_io, simulation, vms);
-
         // new: process action queues
         self.process_action_queues(game_io, simulation, vms);
+
+        // update tiles
+        self.update_field(game_io, simulation, vms);
 
         // update spells
         self.update_spells(game_io, simulation, vms);
@@ -456,10 +456,7 @@ impl BattleState {
                 | TileState::DirectionRight
                 | TileState::DirectionUp
                 | TileState::DirectionDown => {
-                    if entity.move_action.is_none()
-                        && simulation.battle_time - entity.last_successful_move
-                            >= CONVEYOR_MOVEMENT_DELAY
-                    {
+                    if entity.move_action.is_none() {
                         let direction = tile.state().direction();
                         let offset = direction.i32_vector();
                         let dest = (entity.x + offset.0, entity.y + offset.1);
@@ -477,7 +474,8 @@ impl BattleState {
                                     .query_one_mut::<&mut Entity>(id)
                                     .unwrap();
 
-                                let move_action = MoveAction::slide(dest, 4);
+                                let mut move_action = MoveAction::slide(dest, 4);
+                                move_action.endlag_frames = CONVEYOR_END_LAG;
                                 entity.move_action = Some(move_action);
                             }
                         });
@@ -1064,8 +1062,8 @@ impl BattleState {
                     entity.move_action = Some(MoveAction::slide(dest, 14));
                 } else {
                     let mut move_event = MoveAction::teleport(dest);
-                    move_event.delay_frames = 6;
-                    move_event.endlag_frames = 7;
+                    move_event.delay_frames = 4;
+                    move_event.endlag_frames = 8;
 
                     let anim_index = entity.animator_index;
                     let move_state = entity.move_anim_state.clone();

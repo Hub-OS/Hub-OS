@@ -31,7 +31,7 @@ pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const POISON_INTERVAL: FrameTime = 7;
 pub const GRASS_HEAL_INTERVAL: FrameTime = 20;
 pub const GRASS_SLOWED_HEAL_INTERVAL: FrameTime = 180;
-pub const CONVEYOR_MOVEMENT_DELAY: FrameTime = 8;
+pub const CONVEYOR_END_LAG: FrameTime = 6;
 
 // text colors
 pub const TEXT_TRANSPARENT_SHADOW_COLOR: Color = Color::new(0.4, 0.4, 0.4, 0.3);
