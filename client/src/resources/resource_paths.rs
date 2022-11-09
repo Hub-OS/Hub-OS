@@ -35,6 +35,7 @@ impl ResourcePaths {
     pub const ATTACK_CHARGING_SFX: &str = "resources/sfx/attack_charging.ogg";
     pub const ATTACK_CHARGED_SFX: &str = "resources/sfx/attack_charged.ogg";
     pub const PLAYER_DELETED_SFX: &str = "resources/sfx/player_deleted.ogg";
+    pub const HURT_SFX: &str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &str = "resources/sfx/explode.ogg";
 
     // General
@@ -147,6 +148,8 @@ impl ResourcePaths {
     pub const BATTLE_TURN_GAUGE_ANIMATION: &str = "resources/scenes/battle/turn_gauge.animation";
     pub const BATTLE_EXPLOSION: &str = "resources/scenes/battle/explosion.png";
     pub const BATTLE_EXPLOSION_ANIMATION: &str = "resources/scenes/battle/explosion.animation";
+    pub const BATTLE_SPLASH: &str = "resources/scenes/battle/splash.png";
+    pub const BATTLE_SPLASH_ANIMATION: &str = "resources/scenes/battle/splash.animation";
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH

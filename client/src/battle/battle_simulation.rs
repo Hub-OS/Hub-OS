@@ -180,6 +180,7 @@ impl BattleSimulation {
 
             if animator.current_state().is_none() {
                 let callbacks = animator.set_state("PLAYER_IDLE");
+                animator.set_loop_mode(AnimatorLoopMode::Loop);
                 self.pending_callbacks.extend(callbacks);
             }
         }
@@ -200,9 +201,6 @@ impl BattleSimulation {
 
         // reset frame temporary variables
         self.prepare_updates();
-
-        // update sprites
-        self.update_animations();
 
         // spawn pending entities
         self.spawn_pending();
@@ -248,12 +246,18 @@ impl BattleSimulation {
         }
     }
 
-    fn update_animations(&mut self) {
+    pub fn update_animations(&mut self) {
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
-        for (_, entity) in self.entities.query_mut::<&Entity>() {
+        for (id, entity) in self.entities.query::<&Entity>().into_iter() {
             if entity.time_is_frozen {
                 continue;
+            }
+
+            if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
+                if living.status_director.is_inactionable() {
+                    continue;
+                }
             }
 
             let animator = &mut self.animators[entity.animator_index];
@@ -401,6 +405,25 @@ impl BattleSimulation {
         self.local_health_ui.update();
     }
 
+    pub fn is_entity_actionable(&mut self, entity_id: EntityID) -> bool {
+        let entities = &mut self.entities;
+
+        if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into()) {
+            let animator = &self.animators[entity.animator_index];
+
+            if animator.current_state() != Some("PLAYER_IDLE") {
+                // todo: find a way to have this exist in a non Player specific way and accessible to lua
+                return false;
+            }
+        };
+
+        if let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) {
+            return !living.status_director.is_inactionable();
+        };
+
+        true
+    }
+
     pub fn use_card_action(
         &mut self,
         game_io: &GameIO<Globals>,
@@ -534,6 +557,17 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
+    pub fn request_entity_spawn(&mut self, id: EntityID, (x, y): (i32, i32)) {
+        let entity = self
+            .entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .unwrap();
+
+        entity.x = x;
+        entity.y = y;
+        entity.pending_spawn = true;
+    }
+
     fn create_entity(&mut self, game_io: &GameIO<Globals>) -> EntityID {
         let mut animator = BattleAnimator::new();
         animator.disable();
@@ -653,6 +687,7 @@ impl BattleSimulation {
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
         living.set_health(player_package.health);
+        living.status_director.set_input_index(index);
 
         // derive states
         let animator = &mut self.animators[entity.animator_index];
@@ -670,9 +705,47 @@ impl BattleSimulation {
         charge_sprite.set_layer(-2);
         charge_sprite.set_offset(Vec2::new(0.0, -20.0));
 
+        // delete callback
         entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
             super::delete_player_animation(game_io, simulation, id);
         });
+
+        // flinch callback
+        living.register_status_callback(
+            HitFlag::FLINCH,
+            BattleCallback::new(move |game_io, simulation, vms, _| {
+                let (entity, living, player) = simulation
+                    .entities
+                    .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
+                    .unwrap();
+
+                player.charging_time = 0;
+
+                let animator = &mut simulation.animators[entity.animator_index];
+
+                let callbacks = animator.set_state(living.flinch_anim_state.as_ref().unwrap());
+                simulation.pending_callbacks.extend(callbacks);
+
+                // on complete will return to idle
+                animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
+                    let entity = simulation
+                        .entities
+                        .query_one_mut::<&Entity>(id.into())
+                        .unwrap();
+
+                    let animator = &mut simulation.animators[entity.animator_index];
+
+                    let callbacks = animator.set_state("PLAYER_IDLE");
+                    animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    simulation.pending_callbacks.extend(callbacks);
+
+                    simulation.call_pending_callbacks(game_io, vms);
+                }));
+
+                simulation.play_sound(game_io, &game_io.globals().hurt_sfx);
+                simulation.call_pending_callbacks(game_io, vms);
+            }),
+        );
 
         self.entities
             .insert(
@@ -787,7 +860,12 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_explosion(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_animated_artifact(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        texture_path: &str,
+        animation_path: &str,
+    ) -> EntityID {
         let id = self.create_artifact(game_io);
 
         let entity = self
@@ -796,18 +874,14 @@ impl BattleSimulation {
             .unwrap();
 
         // load texture
-        let texture_string = ResourcePaths::absolute(ResourcePaths::BATTLE_EXPLOSION);
+        let texture_string = ResourcePaths::absolute(texture_path);
         let sprite_root = entity.sprite_tree.root_mut();
         sprite_root.set_texture(game_io, texture_string);
 
         // load animation
         let animator = &mut self.animators[entity.animator_index];
-        animator.load(game_io, ResourcePaths::BATTLE_EXPLOSION_ANIMATION);
+        animator.load(game_io, animation_path);
         let _ = animator.set_state("DEFAULT");
-
-        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
-            simulation.play_sound(game_io, &game_io.globals().explode_sfx);
-        });
 
         // delete when the animation completes
         animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
@@ -819,6 +893,33 @@ impl BattleSimulation {
         }));
 
         id
+    }
+
+    pub fn create_explosion(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+        let id = self.create_animated_artifact(
+            game_io,
+            ResourcePaths::BATTLE_EXPLOSION,
+            ResourcePaths::BATTLE_EXPLOSION_ANIMATION,
+        );
+
+        let entity = self
+            .entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .unwrap();
+
+        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
+            simulation.play_sound(game_io, &game_io.globals().explode_sfx);
+        });
+
+        id
+    }
+
+    pub fn create_splash(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+        self.create_animated_artifact(
+            game_io,
+            ResourcePaths::BATTLE_SPLASH,
+            ResourcePaths::BATTLE_SPLASH_ANIMATION,
+        )
     }
 
     pub fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
