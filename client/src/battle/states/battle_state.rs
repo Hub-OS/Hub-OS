@@ -813,7 +813,7 @@ impl BattleState {
             }
 
             let animator = &simulation.animators[entity.animator_index];
-            let is_idle = animator.current_state() == Some("PLAYER_IDLE");
+            let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
 
             if player.card_use_requested
                 && entity.move_action.is_none()
@@ -998,7 +998,7 @@ impl BattleState {
             let anim = &simulation.animators[entity.animator_index];
 
             // can only move if there's no move action queued and the current animation is PLAYER_IDLE
-            if entity.move_action.is_some() || anim.current_state() != Some("PLAYER_IDLE") {
+            if entity.move_action.is_some() || anim.current_state() != Some(Player::IDLE_STATE) {
                 continue;
             }
 
@@ -1089,7 +1089,7 @@ impl BattleState {
                         // reset to PLAYER_IDLE when movement finishes
                         anim.on_complete(BattleCallback::new(move |_, simulation, _, _| {
                             let anim = &mut simulation.animators[anim_index];
-                            let callbacks = anim.set_state("PLAYER_IDLE");
+                            let callbacks = anim.set_state(Player::IDLE_STATE);
                             anim.set_loop_mode(AnimatorLoopMode::Loop);
 
                             simulation.pending_callbacks.extend(callbacks);

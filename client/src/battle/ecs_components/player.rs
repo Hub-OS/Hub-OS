@@ -29,6 +29,7 @@ pub struct Player {
 }
 
 impl Player {
+    pub const IDLE_STATE: &str = "PLAYER_IDLE";
     pub const CHARGE_DELAY: FrameTime = 10;
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
