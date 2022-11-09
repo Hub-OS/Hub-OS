@@ -33,6 +33,12 @@ impl BattleAnimator {
         self.enabled = true;
     }
 
+    pub fn clear_callbacks(&mut self) {
+        self.complete_callbacks.clear();
+        self.frame_callbacks.clear();
+        self.interrupt_callbacks.clear();
+    }
+
     pub fn load(&mut self, game_io: &GameIO<Globals>, path: &str) -> Vec<BattleCallback> {
         self.animator.load(&game_io.globals().assets, path);
 
