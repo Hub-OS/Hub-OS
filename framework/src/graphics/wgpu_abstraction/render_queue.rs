@@ -162,10 +162,10 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
         }
 
         // use if anything doesn't match
-        !latest_resources.iter().zip(resources).all(|(a, b)| {
-            // clippy reports this as an issue, not certain if it is yet
-            Arc::ptr_eq(a, b)
-        })
+        !latest_resources
+            .iter()
+            .zip(resources)
+            .all(|(a, b)| std::ptr::eq(a, b))
     }
 
     fn set_mesh(&mut self, mesh: &Arc<super::Mesh<Vertex>>) {
