@@ -5,7 +5,7 @@ local speed_level = user:get_speed_level()
 
 -- override animation
 
-local frame_data = { { 1, 1 }, { 2, 2 }, { 3, 2 }, { 4, 1 } }
+local frame_data = { { 1, 1 }, { 2, 2 }, { 3, 2 }, { 1, 1 } }
 
 card_action:override_animation_frames(frame_data)
 

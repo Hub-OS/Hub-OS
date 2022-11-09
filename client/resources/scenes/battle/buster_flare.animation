@@ -1,7 +1,7 @@
 imagePath="buster_flare.png"
 
 animation state="DEFAULT"
-frame duration="0.033" x="0" y="0" w="24" h="13" originx="0" originy="6"
-frame duration="0.033" x="24" y="0" w="24" h="13" originx="0" originy="6"
-frame duration="0.033" x="48" y="0" w="24" h="8" originx="0" originy="6"
-frame duration="0" x="0" y="0" w="1" h="1" originx="0" originy="0"
+frame duration="1f" x="0" y="0" w="24" h="13" originx="-3" originy="6"
+frame duration="1f" x="24" y="0" w="24" h="13" originx="-3" originy="6"
+frame duration="2f" x="48" y="0" w="24" h="8" originx="-3" originy="6"
+frame duration="0f" x="0" y="0" w="1" h="1" originx="-3" originy="0"
