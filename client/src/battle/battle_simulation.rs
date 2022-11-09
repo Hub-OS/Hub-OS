@@ -179,7 +179,7 @@ impl BattleSimulation {
             let animator = &mut self.animators[entity.animator_index];
 
             if animator.current_state().is_none() {
-                let callbacks = animator.set_state("PLAYER_IDLE");
+                let callbacks = animator.set_state(Player::IDLE_STATE);
                 animator.set_loop_mode(AnimatorLoopMode::Loop);
                 self.pending_callbacks.extend(callbacks);
             }
@@ -738,7 +738,7 @@ impl BattleSimulation {
 
                     let animator = &mut simulation.animators[entity.animator_index];
 
-                    let callbacks = animator.set_state("PLAYER_IDLE");
+                    let callbacks = animator.set_state(Player::IDLE_STATE);
                     animator.set_loop_mode(AnimatorLoopMode::Loop);
                     simulation.pending_callbacks.extend(callbacks);
 
