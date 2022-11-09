@@ -646,15 +646,25 @@ async fn punch_holes(
     }
 
     // expecting the first message from everyone to be Hello and the second is a HelloAck
-    let hello_streams = senders_and_receivers
-        .iter()
-        .map(|(_, receiver)| receiver.stream().take(2));
+    let hello_streams = senders_and_receivers.iter().map(|(_, receiver)| {
+        Box::pin(
+            receiver
+                .stream()
+                .skip_while(|packet| {
+                    // skip non hello packets as those are leftovers from a previous match
+                    let out = !matches!(packet, NetplayPacket::Hello { .. });
+                    async move { out }
+                })
+                .take(2),
+        )
+    });
 
     let mut hello_stream = futures::stream::select_all(hello_streams);
     let mut total_responses = 0;
 
     // if we receive anything from the fallback future we'll switch to it
     let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
+        // skip non hello packets as those are leftovers from a previous match
         let out = !matches!(packet, NetplayPacket::Hello { .. });
         async move { out }
     });
