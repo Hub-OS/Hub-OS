@@ -308,9 +308,9 @@ impl BattleState {
                 let entity_id = card_action.entity;
 
                 // unfreeze our entity
-                if let Ok(entity) = simulation
+                if let Ok((entity, living)) = simulation
                     .entities
-                    .query_one_mut::<&mut Entity>(entity_id.into())
+                    .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
                 {
                     entity.time_is_frozen = false;
 
@@ -321,6 +321,7 @@ impl BattleState {
                         entity_id,
                         entity.card_action_index,
                         animator.clone(),
+                        std::mem::take(&mut living.status_director),
                     );
 
                     entity.card_action_index = Some(action_index);
@@ -348,12 +349,12 @@ impl BattleState {
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
-            if let Some((entity_id, action_index, animator)) =
+            if let Some((entity_id, action_index, animator, status_director)) =
                 time_freeze_tracker.take_character_backup()
             {
-                if let Ok(entity) = simulation
+                if let Ok((entity, living)) = simulation
                     .entities
-                    .query_one_mut::<&mut Entity>(entity_id.into())
+                    .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
                 {
                     // freeze the entity again
                     entity.time_is_frozen = true;
@@ -362,6 +363,9 @@ impl BattleState {
 
                     // restore animator
                     simulation.animators[entity.animator_index] = animator;
+
+                    // restore status director
+                    living.status_director = status_director;
                 }
             }
 

@@ -1,4 +1,4 @@
-use super::{BattleAnimator, BattleSimulation, Entity};
+use super::{BattleAnimator, BattleSimulation, Entity, StatusDirector};
 use crate::bindable::{EntityID, Team};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
@@ -26,7 +26,12 @@ pub struct TimeFreezeTracker {
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
-    character_backup: Option<(EntityID, Option<generational_arena::Index>, BattleAnimator)>,
+    character_backup: Option<(
+        EntityID,
+        Option<generational_arena::Index>,
+        BattleAnimator,
+        StatusDirector,
+    )>,
 }
 
 impl TimeFreezeTracker {
@@ -143,13 +148,19 @@ impl TimeFreezeTracker {
         id: EntityID,
         action_index: Option<generational_arena::Index>,
         animator: BattleAnimator,
+        status_director: StatusDirector,
     ) {
-        self.character_backup = Some((id, action_index, animator));
+        self.character_backup = Some((id, action_index, animator, status_director));
     }
 
     pub fn take_character_backup(
         &mut self,
-    ) -> Option<(EntityID, Option<generational_arena::Index>, BattleAnimator)> {
+    ) -> Option<(
+        EntityID,
+        Option<generational_arena::Index>,
+        BattleAnimator,
+        StatusDirector,
+    )> {
         self.character_backup.take()
     }
 
