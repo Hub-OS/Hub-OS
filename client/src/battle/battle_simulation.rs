@@ -249,6 +249,8 @@ impl BattleSimulation {
     }
 
     fn update_animations(&mut self) {
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
+
         for (_, entity) in self.entities.query_mut::<&Entity>() {
             if entity.time_is_frozen {
                 continue;
@@ -256,6 +258,25 @@ impl BattleSimulation {
 
             let animator = &mut self.animators[entity.animator_index];
             self.pending_callbacks.extend(animator.update());
+        }
+
+        for (_, action) in &mut self.card_actions {
+            if !action.executed {
+                continue;
+            }
+
+            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+                continue;
+            };
+
+            if entity.time_is_frozen || (time_is_frozen && !action.properties.time_freeze) {
+                continue;
+            }
+
+            for attachment in &mut action.attachments {
+                let animator = &mut self.animators[attachment.animator_index];
+                self.pending_callbacks.extend(animator.update());
+            }
         }
     }
 
@@ -305,9 +326,8 @@ impl BattleSimulation {
                 continue;
             }
 
-            let entity = match (self.entities).query_one_mut::<&mut Entity>(action.entity.into()) {
-                Ok(entity) => entity,
-                Err(_) => continue,
+            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+                continue;
             };
 
             for attachment in &mut action.attachments {
