@@ -418,16 +418,6 @@ impl BattleSimulation {
             if entity.time_is_frozen {
                 return false;
             }
-        } else {
-            if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into())
-            {
-                let animator = &self.animators[entity.animator_index];
-
-                if animator.current_state() != Some("PLAYER_IDLE") {
-                    // todo: find a way to have this exist in a non Player specific way and accessible to lua
-                    return false;
-                }
-            };
         }
 
         if let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) {

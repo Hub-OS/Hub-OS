@@ -812,9 +812,13 @@ impl BattleState {
                 continue;
             }
 
+            let animator = &simulation.animators[entity.animator_index];
+            let is_idle = animator.current_state() == Some("PLAYER_IDLE");
+
             if player.card_use_requested
                 && entity.move_action.is_none()
                 && !character.cards.is_empty()
+                && is_idle
             {
                 // wait until movement ends before adding a card action
                 // this is to prevent time freeze cards from applying during movement
@@ -835,7 +839,9 @@ impl BattleState {
                 continue;
             }
 
-            if input.is_down(Input::Shoot) {
+            let previously_charging = player.charging_time > 0;
+
+            if input.is_down(Input::Shoot) || (!is_idle && previously_charging) {
                 // charging
                 player.charge_animator.update();
 
@@ -864,7 +870,7 @@ impl BattleState {
 
                 player.charging_time += 1;
                 charge_sprite_node.apply_animation(&player.charge_animator);
-            } else if player.charging_time > 0 {
+            } else if previously_charging {
                 // shooting
                 let callback =
                     if player.charging_time < player.max_charging_time + Player::CHARGE_DELAY {
