@@ -408,14 +408,27 @@ impl BattleSimulation {
     pub fn is_entity_actionable(&mut self, entity_id: EntityID) -> bool {
         let entities = &mut self.entities;
 
-        if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into()) {
-            let animator = &self.animators[entity.animator_index];
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
-            if animator.current_state() != Some("PLAYER_IDLE") {
-                // todo: find a way to have this exist in a non Player specific way and accessible to lua
+        if time_is_frozen {
+            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                return false;
+            };
+
+            if entity.time_is_frozen {
                 return false;
             }
-        };
+        } else {
+            if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into())
+            {
+                let animator = &self.animators[entity.animator_index];
+
+                if animator.current_state() != Some("PLAYER_IDLE") {
+                    // todo: find a way to have this exist in a non Player specific way and accessible to lua
+                    return false;
+                }
+            };
+        }
 
         if let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) {
             return !living.status_director.is_inactionable();
