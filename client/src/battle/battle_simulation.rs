@@ -37,6 +37,7 @@ pub struct BattleSimulation {
     pub defense_judge: DefenseJudge,
     pub animators: Arena<BattleAnimator>,
     pub card_actions: Arena<CardAction>,
+    pub time_freeze_tracker: TimeFreezeTracker,
     pub components: Arena<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityID,
@@ -76,6 +77,7 @@ impl BattleSimulation {
             defense_judge: DefenseJudge::new(),
             animators: Arena::new(),
             card_actions: Arena::new(),
+            time_freeze_tracker: TimeFreezeTracker::new(),
             components: Arena::new(),
             pending_callbacks: Vec::new(),
             local_player_id: EntityID::DANGLING,
@@ -141,6 +143,7 @@ impl BattleSimulation {
             defense_judge: self.defense_judge.clone(),
             animators: self.animators.clone(),
             card_actions: self.card_actions.clone(),
+            time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
             local_player_id: self.local_player_id.clone(),
@@ -246,7 +249,12 @@ impl BattleSimulation {
     }
 
     fn update_animations(&mut self) {
-        for (_, animator) in &mut self.animators {
+        for (_, entity) in self.entities.query_mut::<&Entity>() {
+            if entity.time_is_frozen {
+                continue;
+            }
+
+            let animator = &mut self.animators[entity.animator_index];
             self.pending_callbacks.extend(animator.update());
         }
     }
@@ -373,35 +381,50 @@ impl BattleSimulation {
         self.local_health_ui.update();
     }
 
-    pub fn delete_entity(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM], id: EntityID) {
-        let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
-            Ok(entity) => entity,
-            _ => return,
+    pub fn use_card_action(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        entity_id: EntityID,
+        index: generational_arena::Index,
+    ) -> bool {
+        let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return false;
         };
 
-        if entity.deleted {
-            return;
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
+
+        if !time_is_frozen && entity.card_action_index.is_some() {
+            // already set
+            return false;
         }
 
-        let delete_indices: Vec<_> = (self.card_actions)
-            .iter()
-            .filter(|(_, action)| action.entity == id && action.used)
-            .map(|(index, _)| index)
-            .collect();
+        // validate index as it may be coming from lua
+        let Some(card_action) = self.card_actions.get_mut(index) else {
+            log::error!("received invalid CardAction index {index:?}");
+            return false;
+        };
 
-        entity.deleted = true;
+        if time_is_frozen && !card_action.properties.time_freeze {
+            return false;
+        }
 
-        let callbacks = std::mem::take(&mut entity.delete_callbacks);
-        let delete_callback = entity.delete_callback.clone();
+        card_action.used = true;
 
-        // delete card actions
-        self.delete_card_actions(game_io, vms, &delete_indices);
+        if card_action.properties.time_freeze {
+            let time_freeze_tracker = &mut self.time_freeze_tracker;
 
-        // call delete callbacks after
-        self.pending_callbacks.extend(callbacks);
-        self.pending_callbacks.push(delete_callback);
+            if time_is_frozen && !self.is_resimulation {
+                // must be countering, play sfx
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.trap_sfx);
+            }
 
-        self.call_pending_callbacks(game_io, vms);
+            time_freeze_tracker.set_team_action(entity.team, index);
+        } else {
+            entity.card_action_index = Some(index);
+        }
+
+        true
     }
 
     pub fn delete_card_actions(
@@ -460,6 +483,37 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
+    pub fn delete_entity(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM], id: EntityID) {
+        let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
+            Ok(entity) => entity,
+            _ => return,
+        };
+
+        if entity.deleted {
+            return;
+        }
+
+        let delete_indices: Vec<_> = (self.card_actions)
+            .iter()
+            .filter(|(_, action)| action.entity == id && action.used)
+            .map(|(index, _)| index)
+            .collect();
+
+        entity.deleted = true;
+
+        let callbacks = std::mem::take(&mut entity.delete_callbacks);
+        let delete_callback = entity.delete_callback.clone();
+
+        // delete card actions
+        self.delete_card_actions(game_io, vms, &delete_indices);
+
+        // call delete callbacks after
+        self.pending_callbacks.extend(callbacks);
+        self.pending_callbacks.push(delete_callback);
+
+        self.call_pending_callbacks(game_io, vms);
+    }
+
     fn create_entity(&mut self, game_io: &GameIO<Globals>) -> EntityID {
         let mut animator = BattleAnimator::new();
         animator.disable();
@@ -497,11 +551,15 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO<Globals>,
         rank: CharacterRank,
+        namespace: PackageNamespace,
     ) -> rollback_mlua::Result<EntityID> {
         let id = self.create_entity(game_io);
 
         self.entities
-            .insert(id.into(), (Character::new(rank), Living::default()))
+            .insert(
+                id.into(),
+                (Character::new(rank, namespace), Living::default()),
+            )
             .unwrap();
 
         let entity = self
@@ -557,7 +615,7 @@ impl BattleSimulation {
         cards: Vec<Card>,
     ) -> rollback_mlua::Result<EntityID> {
         let vm_index = Self::find_vm(vms, package_id, namespace)?;
-        let id = self.create_character(game_io, CharacterRank::V1)?;
+        let id = self.create_character(game_io, CharacterRank::V1, namespace)?;
 
         let (entity, living) = self
             .entities
@@ -633,7 +691,7 @@ impl BattleSimulation {
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityID> {
         let vm_index = Self::find_vm(vms, package_id, namespace)?;
-        let id = self.create_character(game_io, rank)?;
+        let id = self.create_character(game_io, rank, namespace)?;
 
         let lua = &vms[vm_index].lua;
         let character_init: rollback_mlua::Function = lua
@@ -756,6 +814,23 @@ impl BattleSimulation {
         self.field
             .draw(game_io, render_pass, &self.camera, self.perspective_flipped);
 
+        let mut sprite_queue =
+            SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::default());
+
+        // draw dramatic fade
+        let fade_alpha = self.time_freeze_tracker.fade_alpha();
+
+        if fade_alpha > 0.0 {
+            const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
+
+            let assets = &game_io.globals().assets;
+            let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            fade_sprite.set_color(FADE_COLOR.multiply_alpha(fade_alpha));
+            fade_sprite.set_bounds(self.camera.bounds());
+
+            sprite_queue.draw_sprite(&fade_sprite);
+        }
+
         // draw entities, sorting by position
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);
 
@@ -770,8 +845,6 @@ impl BattleSimulation {
 
         // reusing vec to avoid realloctions
         let mut sprite_nodes_recycled = Vec::new();
-        let mut sprite_queue =
-            SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::default());
 
         for entity in sorted_entities {
             let mut sprite_nodes = sprite_nodes_recycled;
@@ -909,9 +982,7 @@ impl BattleSimulation {
         let executed_action_count = self
             .card_actions
             .iter()
-            .filter(|(_, action)| {
-                action.executed && matches!(action.lockout_type, ActionLockout::Async(_))
-            })
+            .filter(|(_, action)| action.executed && !action.is_async())
             .count();
 
         // if there's more executed actions than held actions, we forgot to delete one

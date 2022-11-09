@@ -16,6 +16,7 @@ mod player_input;
 mod rollback_vm;
 mod states;
 mod tile;
+mod time_freeze_tracker;
 mod turn_gauge;
 
 pub use attack_box::*;
@@ -36,4 +37,5 @@ pub use player_input::*;
 pub use rollback_vm::*;
 pub use states::*;
 pub use tile::*;
+pub use time_freeze_tracker::*;
 pub use turn_gauge::*;

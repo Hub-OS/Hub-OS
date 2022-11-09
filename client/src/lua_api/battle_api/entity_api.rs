@@ -207,13 +207,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
         let id: EntityID = table.raw_get("#id")?;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
 
         let card_action = (simulation.card_actions)
@@ -228,17 +223,9 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_aready_used());
         }
 
-        card_action.used = true;
+        let used = simulation.use_card_action(api_ctx.game_io, id.into(), action_index.into());
 
-        if !card_action.is_async() {
-            if entity.card_action_index.is_none() {
-                entity.card_action_index = Some(action_index.into());
-            } else {
-                simulation.card_actions.remove(action_index.into());
-            }
-        }
-
-        lua.pack_multi(())
+        lua.pack_multi(used)
     });
 
     movement_function(lua_api, "teleport", |dest: (i32, i32), _: ()| {

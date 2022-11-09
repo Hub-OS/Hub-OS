@@ -106,6 +106,11 @@ impl Sprite {
         Rect::new(position.x, position.y, size.x, size.y)
     }
 
+    pub fn set_bounds(&mut self, rect: Rect) {
+        self.set_position(rect.position());
+        self.set_size(rect.size());
+    }
+
     pub fn frame(&self) -> Rect {
         Rect::new(
             self.frame.x * self.texture.width() as f32,

@@ -39,6 +39,12 @@ impl State for BattleState {
     ) {
         self.detect_battle_start(game_io, simulation, vms);
 
+        // new: process player input
+        self.process_input(game_io, simulation, vms);
+
+        // update time freeze first as it affects the rest of the updates
+        self.update_time_freeze(game_io, simulation, vms);
+
         // update tiles
         self.update_field(game_io, simulation, vms);
 
@@ -60,9 +66,6 @@ impl State for BattleState {
 
         // update artifacts
         self.update_artifacts(game_io, simulation, vms);
-
-        // new: process player input
-        self.process_input(game_io, simulation, vms);
 
         // new: update living, processes statuses
         self.update_living(game_io, simulation, vms);
@@ -112,6 +115,10 @@ impl State for BattleState {
         }
 
         simulation.turn_guage.draw(sprite_queue);
+
+        simulation
+            .time_freeze_tracker
+            .draw_ui(game_io, simulation, sprite_queue);
     }
 }
 
@@ -125,6 +132,10 @@ impl BattleState {
     }
 
     fn update_turn_guage(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            return;
+        }
+
         let previously_incomplete = !simulation.turn_guage.is_complete();
 
         simulation.turn_guage.increment_time();
@@ -157,6 +168,11 @@ impl BattleState {
     }
 
     fn detect_success_or_failure(&mut self, simulation: &mut BattleSimulation) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // allow the time freeze action to finish
+            return;
+        }
+
         const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
 
         if let Some((_, time)) = self.message {
@@ -220,6 +236,144 @@ impl BattleState {
         simulation.call_pending_callbacks(game_io, vms);
     }
 
+    pub fn update_time_freeze(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+
+        if !time_freeze_tracker.time_is_frozen() {
+            return;
+        }
+
+        if time_freeze_tracker.freeze_should_start() {
+            // freeze all entities
+            for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
+                entity.time_is_frozen = true;
+            }
+        }
+
+        if time_freeze_tracker.can_counter() {
+            let entities = &mut simulation.entities;
+
+            let player_ids: Vec<_> = entities
+                .query_mut::<&Player>()
+                .into_iter()
+                .map(|(e, _)| e)
+                .collect();
+
+            let last_team = time_freeze_tracker.last_team().unwrap();
+
+            for id in player_ids {
+                let (entity, player, character) = entities
+                    .query_one_mut::<(&Entity, &Player, &Character)>(id)
+                    .unwrap();
+
+                if entity.deleted || entity.team == last_team {
+                    // can't counter
+                    // can't counter a card from the same team
+                    continue;
+                }
+
+                if !simulation.inputs[player.index].was_just_pressed(Input::UseCard) {
+                    // didn't try to counter
+                    continue;
+                }
+
+                if let Some(card_props) = character.cards.last() {
+                    if !card_props.time_freeze {
+                        // must counter with a time freeze card
+                        continue;
+                    }
+                } else {
+                    // no cards to counter with
+                    continue;
+                }
+
+                self.use_character_card(game_io, simulation, vms, id.into());
+                break;
+            }
+        }
+
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+
+        if time_freeze_tracker.action_should_start() {
+            let action_index = time_freeze_tracker.active_action().unwrap();
+
+            if let Some(card_action) = simulation.card_actions.get(action_index) {
+                let entity_id = card_action.entity;
+
+                // unfreeze our entity
+                if let Ok(entity) = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(entity_id.into())
+                {
+                    entity.time_is_frozen = false;
+
+                    // back up their data
+                    let animator = &mut simulation.animators[entity.animator_index];
+
+                    time_freeze_tracker.back_up_character(
+                        entity_id,
+                        entity.card_action_index,
+                        animator.clone(),
+                    );
+
+                    entity.card_action_index = Some(action_index);
+
+                    // reset callbacks as they'll run when the animator is reverted
+                    animator.clear_callbacks();
+                } else {
+                    // entity erased?
+                    time_freeze_tracker.end_action();
+                    log::error!("time freeze entity erased, yet action still exists?");
+                }
+            } else {
+                // action deleted?
+                time_freeze_tracker.end_action();
+            }
+        }
+
+        if let Some(index) = time_freeze_tracker.active_action() {
+            if simulation.card_actions.get(index).is_none() {
+                // action completed, update tracking
+                time_freeze_tracker.end_action();
+            }
+        }
+
+        time_freeze_tracker.increment_time();
+
+        if time_freeze_tracker.action_out_of_time() {
+            if let Some((entity_id, action_index, animator)) =
+                time_freeze_tracker.take_character_backup()
+            {
+                if let Ok(entity) = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(entity_id.into())
+                {
+                    // freeze the entity again
+                    entity.time_is_frozen = true;
+
+                    entity.card_action_index = action_index;
+
+                    // restore animator
+                    simulation.animators[entity.animator_index] = animator;
+                }
+            }
+
+            time_freeze_tracker.advance_action();
+        }
+
+        if !time_freeze_tracker.time_is_frozen() {
+            // unfreeze all entities
+            for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
+                entity.time_is_frozen = false;
+            }
+        }
+    }
+
     pub fn update_field(
         &mut self,
         game_io: &GameIO<Globals>,
@@ -235,6 +389,11 @@ impl BattleState {
 
                 tile.reset_highlight();
             }
+        }
+
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // skip tile effect processing if time is frozen
+            return;
         }
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
@@ -590,24 +749,49 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        let mut card_action_callbacks = Vec::new();
-        let mut movement_tests = Vec::new();
+        self.process_action_input(game_io, simulation, vms);
+        self.process_movement_input(game_io, simulation, vms);
+    }
 
-        for (id, (entity, player, character)) in
-            simulation
-                .entities
-                .query_mut::<(&mut Entity, &mut Player, &mut Character)>()
-        {
+    fn process_action_input(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        let entities = &mut simulation.entities;
+
+        let player_ids: Vec<_> = entities
+            .query_mut::<&Player>()
+            .into_iter()
+            .map(|(e, _)| e)
+            .collect();
+
+        for id in player_ids {
+            if simulation.time_freeze_tracker.time_is_frozen() {
+                // stop adding card actions if time freeze is starting
+                // this way time freeze cards aren't eaten
+                break;
+            }
+
+            let entities = &mut simulation.entities;
+            let (entity, player, character) = entities
+                .query_one_mut::<(&mut Entity, &mut Player, &mut Character)>(id)
+                .unwrap();
+
             let input = &simulation.inputs[player.index];
 
             // normal attack and charged attack
-            let charge_sprite_node = &mut entity
+            let charge_sprite_node = entity
                 .sprite_tree
                 .get_mut(player.charge_sprite_index)
                 .unwrap();
 
-            if entity.deleted {
+            if entity.deleted || player.charging_time == 0 {
                 charge_sprite_node.set_visible(false);
+            }
+
+            if entity.deleted {
                 continue;
             }
 
@@ -615,128 +799,186 @@ impl BattleState {
                 .iter()
                 .any(|(_, action)| action.used && action.entity == entity.id);
 
-            let mut charging = false;
-
-            if !action_active {
-                if input.was_just_pressed(Input::UseCard)
-                    && !character.cards.is_empty()
-                    && self.time >= GRACE_TIME
-                {
-                    // using a card
-
-                    let card_props = character.cards.pop().unwrap();
-
-                    let entity_id = entity.id;
-                    let package_id = card_props.package_id.clone();
-                    let namespace = player.namespace();
-
-                    let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
-                        let vm_index = match BattleSimulation::find_vm(vms, &package_id, namespace)
-                        {
-                            Ok(vm_index) => vm_index,
-                            _ => {
-                                log::error!("failed to find vm for {package_id}");
-                                return None;
-                            }
-                        };
-
-                        let lua = &vms[vm_index].lua;
-                        let card_init: rollback_mlua::Function =
-                            match lua.globals().get("card_create_action") {
-                                Ok(card_init) => card_init,
-                                _ => {
-                                    log::error!("{package_id} is missing card_create_action()");
-                                    return None;
-                                }
-                            };
-
-                        let api_ctx = RefCell::new(BattleScriptContext {
-                            vm_index,
-                            vms,
-                            game_io,
-                            simulation,
-                        });
-
-                        let lua_api = &game_io.globals().battle_api;
-                        let mut id: Option<GenerationalIndex> = None;
-
-                        lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-                            let entity_table = create_entity_table(lua, entity_id)?;
-                            let table: rollback_mlua::Table = card_init.call(entity_table)?;
-
-                            id = Some(table.raw_get("#id")?);
-                            Ok(())
-                        });
-
-                        id
-                    });
-
-                    card_action_callbacks.push((id, callback));
-                } else if input.was_just_pressed(Input::Special) {
-                    let callback = player.special_attack_callback.clone();
-
-                    card_action_callbacks.push((id, callback));
-                }
-
-                if input.is_down(Input::Shoot) {
-                    // charging
-                    player.charge_animator.update();
-
-                    if player.charging_time == Player::CHARGE_DELAY {
-                        // charging
-                        player.charge_animator.set_state("CHARGING");
-                        player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        charge_sprite_node.set_color(Color::BLACK);
-                        charge_sprite_node.set_visible(true);
-
-                        if !simulation.is_resimulation {
-                            let globals = game_io.globals();
-                            globals.audio.play_sound(&globals.attack_charging_sfx);
-                        }
-                    } else if player.charging_time
-                        == player.max_charging_time + Player::CHARGE_DELAY
-                    {
-                        // charged
-                        player.charge_animator.set_state("CHARGED");
-                        player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        charge_sprite_node.set_color(player.charged_color);
-
-                        if !simulation.is_resimulation {
-                            let globals = game_io.globals();
-                            globals.audio.play_sound(&globals.attack_charged_sfx);
-                        }
-                    }
-
-                    charging = true;
-                    player.charging_time += 1;
-                    charge_sprite_node.apply_animation(&player.charge_animator);
-                } else if player.charging_time > 0 {
-                    // shooting
-
-                    let callback =
-                        if player.charging_time < player.max_charging_time + Player::CHARGE_DELAY {
-                            // uncharged
-                            player.normal_attack_callback.clone()
-                        } else {
-                            // charged
-                            player.charged_attack_callback.clone()
-                        };
-
-                    card_action_callbacks.push((id, callback));
-                }
-            }
-
-            if !charging {
+            if action_active {
                 player.charging_time = 0;
-                charge_sprite_node.set_visible(false);
+                continue;
             }
 
-            // movement
+            if player.card_use_requested
+                && entity.move_action.is_none()
+                && !character.cards.is_empty()
+            {
+                // wait until movement ends before adding a card action
+                // this is to prevent time freeze cards from applying during movement
+                // process_action_queues only prevents non time freeze actions from starting until movements end
+                player.card_use_requested = false;
+
+                self.use_character_card(game_io, simulation, vms, id.into());
+                continue;
+            }
+
+            if input.was_just_pressed(Input::UseCard) && !character.cards.is_empty() {
+                // using a card
+                player.card_use_requested = true;
+            } else if input.was_just_pressed(Input::Special) {
+                let callback = player.special_attack_callback.clone();
+
+                self.generate_card_action(game_io, simulation, vms, id, callback);
+                continue;
+            }
+
+            if input.is_down(Input::Shoot) {
+                // charging
+                player.charge_animator.update();
+
+                if player.charging_time == Player::CHARGE_DELAY {
+                    // charging
+                    player.charge_animator.set_state("CHARGING");
+                    player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    charge_sprite_node.set_color(Color::BLACK);
+                    charge_sprite_node.set_visible(true);
+
+                    if !simulation.is_resimulation {
+                        let globals = game_io.globals();
+                        globals.audio.play_sound(&globals.attack_charging_sfx);
+                    }
+                } else if player.charging_time == player.max_charging_time + Player::CHARGE_DELAY {
+                    // charged
+                    player.charge_animator.set_state("CHARGED");
+                    player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    charge_sprite_node.set_color(player.charged_color);
+
+                    if !simulation.is_resimulation {
+                        let globals = game_io.globals();
+                        globals.audio.play_sound(&globals.attack_charged_sfx);
+                    }
+                }
+
+                player.charging_time += 1;
+                charge_sprite_node.apply_animation(&player.charge_animator);
+            } else if player.charging_time > 0 {
+                // shooting
+                let callback =
+                    if player.charging_time < player.max_charging_time + Player::CHARGE_DELAY {
+                        // uncharged
+                        player.normal_attack_callback.clone()
+                    } else {
+                        // charged
+                        player.charged_attack_callback.clone()
+                    };
+
+                player.charging_time = 0;
+                self.generate_card_action(game_io, simulation, vms, id, callback);
+            }
+        }
+    }
+
+    fn use_character_card(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityID,
+    ) {
+        let character = simulation
+            .entities
+            .query_one_mut::<&mut Character>(entity_id.into())
+            .unwrap();
+
+        let namespace = character.namespace;
+        let card_props = character.cards.pop().unwrap();
+
+        let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
+            let package_id = &card_props.package_id;
+
+            let vm_index = match BattleSimulation::find_vm(vms, package_id, namespace) {
+                Ok(vm_index) => vm_index,
+                _ => {
+                    log::error!("failed to find vm for {package_id}");
+                    return None;
+                }
+            };
+
+            let lua = &vms[vm_index].lua;
+            let card_init: rollback_mlua::Function = match lua.globals().get("card_create_action") {
+                Ok(card_init) => card_init,
+                _ => {
+                    log::error!("{package_id} is missing card_create_action()");
+                    return None;
+                }
+            };
+
+            let api_ctx = RefCell::new(BattleScriptContext {
+                vm_index,
+                vms,
+                game_io,
+                simulation,
+            });
+
+            let lua_api = &game_io.globals().battle_api;
+            let mut id: Option<GenerationalIndex> = None;
+
+            lua_api.inject_dynamic(lua, &api_ctx, |lua| {
+                use rollback_mlua::ToLua;
+
+                let entity_table = create_entity_table(lua, entity_id)?;
+                let lua_card_props = card_props.to_lua(lua)?;
+
+                let table: rollback_mlua::Table = card_init.call((entity_table, lua_card_props))?;
+
+                let index = table.raw_get("#id")?;
+                id = Some(index);
+
+                Ok(())
+            });
+
+            if let Some(index) = id {
+                if let Some(action) = simulation.card_actions.get_mut(index.into()) {
+                    action.properties = card_props.clone();
+                }
+            }
+
+            id
+        });
+
+        self.generate_card_action(game_io, simulation, vms, entity_id.into(), callback);
+    }
+
+    fn generate_card_action(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        id: hecs::Entity,
+        card_action_callback: BattleCallback<(), Option<GenerationalIndex>>,
+    ) {
+        if let Some(index) = card_action_callback.call(game_io, simulation, vms, ()) {
+            simulation.use_card_action(game_io, id.into(), index.into());
+        }
+    }
+
+    fn process_movement_input(
+        &self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // shouldn't move during time freeze
+            return;
+        }
+
+        let mut movement_tests = Vec::new();
+
+        let entities = &mut simulation.entities;
+
+        for (id, (entity, player)) in entities.query_mut::<(&mut Entity, &mut Player)>() {
             // can't move if there's a blocking card action
             if entity.card_action_index.is_some() {
                 continue;
             }
 
+            let input = &simulation.inputs[player.index];
             let anim = &simulation.animators[entity.animator_index];
 
             // can only move if there's no move action queued and the current animation is PLAYER_IDLE
@@ -781,36 +1023,6 @@ impl BattleState {
                     (entity.x, entity.y + y_offset),
                     player.slide_when_moving,
                 ));
-            }
-        }
-
-        // try activating a card action
-        for (id, card_action_callback) in card_action_callbacks {
-            let entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(id)
-                .unwrap();
-
-            if entity.card_action_index.is_some() {
-                // already set by a previous run
-                continue;
-            }
-
-            if let Some(index) = card_action_callback.call(game_io, simulation, vms, ()) {
-                let index = index.into();
-
-                // validate index as it's coming straight from lua
-                if let Some(card_action) = simulation.card_actions.get_mut(index) {
-                    card_action.used = true;
-
-                    let entity = simulation
-                        .entities
-                        .query_one_mut::<&mut Entity>(id)
-                        .unwrap();
-                    entity.card_action_index = Some(index);
-                } else {
-                    log::error!("received invalid CardAction index {index:?}");
-                }
             }
         }
 
@@ -911,12 +1123,21 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
+        self.process_movement(game_io, simulation, vms);
+        self.process_card_actions(game_io, simulation, vms);
+    }
+
+    fn process_movement(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
-        let mut actions_pending_deletion = Vec::new();
 
         for (id, entity) in simulation.entities.query_mut::<&mut Entity>() {
-            if !entity.spawned || entity.deleted {
+            if !entity.spawned || entity.deleted || entity.time_is_frozen {
                 continue;
             }
 
@@ -1051,6 +1272,16 @@ impl BattleState {
         }
 
         simulation.call_pending_callbacks(game_io, vms);
+    }
+
+    fn process_card_actions(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        let mut actions_pending_deletion = Vec::new();
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
         let card_action_indices: Vec<_> = (simulation.card_actions)
             .iter()
@@ -1062,6 +1293,11 @@ impl BattleState {
         for action_index in card_action_indices {
             let mut card_action = &mut simulation.card_actions[action_index];
 
+            if time_is_frozen && !card_action.properties.time_freeze {
+                // non time freeze action in time freeze
+                continue;
+            }
+
             let entity = match simulation
                 .entities
                 .query_one_mut::<&mut Entity>(card_action.entity.into())
@@ -1070,7 +1306,7 @@ impl BattleState {
                 _ => continue,
             };
 
-            if !entity.spawned || entity.deleted {
+            if !entity.spawned || entity.deleted || entity.time_is_frozen {
                 continue;
             }
 
@@ -1172,19 +1408,46 @@ impl BattleState {
                 card_action.step_index += 1;
             }
 
-            // end
+            // handling async card actions
             let mut card_action = &mut simulation.card_actions[action_index];
+            let animation_completed = simulation.animators[animator_index].is_complete();
 
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(card_action.entity.into())
+                .unwrap();
+
+            if card_action.is_async()
+                && animation_completed
+                && entity.card_action_index == Some(action_index)
+            {
+                // async action completed animation
+
+                // unset card_action_index to allow other card actions to be used
+                entity.card_action_index = None;
+
+                // revert animation
+                if let Some(state) = card_action.prev_state.as_ref() {
+                    let animator = &mut simulation.animators[entity.animator_index];
+                    let callbacks = animator.set_state(state);
+                    simulation.pending_callbacks.extend(callbacks);
+
+                    let sprite_node = entity.sprite_tree.root_mut();
+                    animator.apply(sprite_node);
+                }
+            }
+
+            // detecting end
             let is_complete = match card_action.lockout_type {
-                ActionLockout::Animation => simulation.animators[animator_index].is_complete(),
+                ActionLockout::Animation => animation_completed,
                 ActionLockout::Sequence => card_action.step_index >= card_action.steps.len(),
                 ActionLockout::Async(frames) => card_action.active_frames >= frames,
             };
 
             card_action.active_frames += 1;
 
-            // queue deletion
             if is_complete {
+                // queue deletion
                 actions_pending_deletion.push(action_index);
             }
         }
