@@ -573,8 +573,7 @@ impl NetplayInitScene {
 
             // create scene
             let scene = BattleScene::new(game_io, props);
-            let transition =
-                ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION);
+            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
 
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }

@@ -81,16 +81,16 @@ impl State for IntroState {
             }
 
             self.animation_time += 1;
-        }
 
-        if self.animation_time >= MAX_ANIMATION_TIME {
-            self.animation_time = 0;
-            self.tracked_entities.pop_front();
-        }
+            if self.animation_time >= MAX_ANIMATION_TIME {
+                self.animation_time = 0;
+                self.tracked_entities.pop_front();
+            }
 
-        if self.tracked_entities.is_empty() {
-            self.completed = true;
-            simulation.intro_complete = true;
+            if self.tracked_entities.is_empty() {
+                self.completed = true;
+                simulation.intro_complete = true;
+            }
         }
     }
 }
