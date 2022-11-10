@@ -5,7 +5,7 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Folder};
-use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION, DRAMATIC_FADE_DURATION};
+use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
