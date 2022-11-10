@@ -746,7 +746,20 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     getter(lua_api, "is_intangible", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.intangibility.is_enabled())
     });
-    // todo: set_intangible
+
+    setter(
+        lua_api,
+        "set_intangible",
+        |living: &mut Living, _, (intangible, rule): (bool, Option<IntangibleRule>)| {
+            if intangible {
+                living.intangibility.enable(rule.unwrap_or_default());
+            } else {
+                living.intangibility.disable();
+            }
+
+            Ok(())
+        },
+    );
 
     // todo: add_defense_rule
     // todo: remove_defense_rule
