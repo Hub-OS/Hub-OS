@@ -20,6 +20,10 @@ impl<T: Package> PackageManager<T> {
         }
     }
 
+    pub fn namespaces(&self) -> impl Iterator<Item = PackageNamespace> + '_ {
+        self.package_maps.keys().cloned()
+    }
+
     pub fn local_packages(&self) -> impl Iterator<Item = &String> + '_ {
         self.package_maps
             .get(&PackageNamespace::Local)

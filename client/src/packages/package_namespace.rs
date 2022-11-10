@@ -10,6 +10,10 @@ pub enum PackageNamespace {
 }
 
 impl PackageNamespace {
+    pub fn is_remote(self) -> bool {
+        matches!(self, PackageNamespace::Remote(_))
+    }
+
     pub fn find_with_fallback<T, F>(self, mut callback: F) -> Option<T>
     where
         F: FnMut(Self) -> Option<T>,

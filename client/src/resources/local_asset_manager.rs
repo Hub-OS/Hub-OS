@@ -74,26 +74,38 @@ impl LocalAssetManager {
 
         if let Some(tracking) = loaded_zips.get_mut(hash) {
             tracking.use_count -= 1;
-
-            if tracking.use_count == 0 {
-                loaded_zips.remove(&hash);
-
-                if let Some(tracking) = loaded_zips.remove(&hash) {
-                    log::debug!("deleting virtual zip: {hash}");
-
-                    let mut text_cache = self.text_cache.borrow_mut();
-                    let mut texture_cache = self.texture_cache.borrow_mut();
-                    let mut sound_cache = self.sound_cache.borrow_mut();
-
-                    for file in tracking.virtual_files {
-                        text_cache.remove(&file);
-                        texture_cache.remove(&file);
-                        sound_cache.remove(&file);
-                    }
-                }
-            }
         } else {
             log::error!("virtual zip usage below zero: {}", hash);
+        }
+    }
+
+    pub fn remove_unused_virtual_zips(&self) {
+        let mut loaded_zips = self.loaded_zips.borrow_mut();
+
+        let mut pending_removal = Vec::new();
+
+        for (hash, tracking) in loaded_zips.iter() {
+            if tracking.use_count == 0 {
+                pending_removal.push(*hash);
+            }
+        }
+
+        for hash in pending_removal {
+            loaded_zips.remove(&hash);
+
+            if let Some(tracking) = loaded_zips.remove(&hash) {
+                log::debug!("deleting virtual zip: {hash}");
+
+                let mut text_cache = self.text_cache.borrow_mut();
+                let mut texture_cache = self.texture_cache.borrow_mut();
+                let mut sound_cache = self.sound_cache.borrow_mut();
+
+                for file in tracking.virtual_files {
+                    text_cache.remove(&file);
+                    texture_cache.remove(&file);
+                    sound_cache.remove(&file);
+                }
+            }
         }
     }
 

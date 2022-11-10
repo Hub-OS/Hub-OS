@@ -7,6 +7,7 @@ use crate::resources::*;
 use crate::saves::{Config, GlobalSave};
 use framework::prelude::*;
 use packets::structures::FileHash;
+use std::collections::HashSet;
 use std::sync::Arc;
 
 pub struct Globals {
@@ -196,7 +197,6 @@ impl Globals {
     where
         I: IntoIterator<Item = (PackageCategory, PackageNamespace, String)>,
     {
-        use std::collections::HashSet;
         let mut resolved = HashSet::new();
 
         let mut is_unresolved = move |triplet: &(PackageCategory, PackageNamespace, String)| {
@@ -265,5 +265,38 @@ impl Globals {
                 .package_or_fallback(namespace, &id)
                 .map(|package| package.package_info()),
         }
+    }
+
+    pub fn remote_namespaces(&self) -> Vec<PackageNamespace> {
+        let mut namespace_set = HashSet::new();
+
+        self.library_packages
+            .namespaces()
+            .chain(self.battle_packages.namespaces())
+            .chain(self.block_packages.namespaces())
+            .chain(self.card_packages.namespaces())
+            .chain(self.player_packages.namespaces())
+            .filter(|ns| ns.is_remote())
+            .for_each(|namespace| {
+                namespace_set.insert(namespace);
+            });
+
+        Vec::from_iter(namespace_set)
+    }
+
+    pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
+        self.library_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.battle_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.block_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.card_packages.remove_namespace(&self.assets, namespace);
+
+        self.player_packages
+            .remove_namespace(&self.assets, namespace);
     }
 }
