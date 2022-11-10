@@ -74,7 +74,6 @@ impl Default for Config {
             (Input::Right, Key::D),
             (Input::Up, Key::W),
             (Input::Down, Key::S),
-            (Input::Option, Key::F),
             (Input::ShoulderL, Key::Q),
             (Input::ShoulderR, Key::E),
             (Input::Confirm, Key::Space),
@@ -82,8 +81,12 @@ impl Default for Config {
             (Input::Cancel, Key::LShift),
             (Input::Shoot, Key::LShift),
             (Input::Sprint, Key::LShift),
+            (Input::Option, Key::F),
+            (Input::Special, Key::F),
             (Input::Minimap, Key::M),
             (Input::Pause, Key::Escape),
+            (Input::RewindFrame, Key::Left),
+            (Input::AdvanceFrame, Key::Right),
         ]);
 
         let controller_bindings = HashMap::new();
