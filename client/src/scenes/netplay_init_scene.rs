@@ -503,6 +503,9 @@ impl NetplayInitScene {
         if self.all_ready() {
             let globals = game_io.globals();
 
+            // clean up zips
+            globals.assets.remove_unused_virtual_zips();
+
             // get package
             let battle_package = self
                 .battle_package
@@ -584,6 +587,12 @@ impl Scene<Globals> for NetplayInitScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+        let globals = game_io.globals_mut();
+
+        for namespace in globals.remote_namespaces() {
+            globals.remove_namespace(namespace);
+        }
+
         if let Some(future) = self.communication_future.take() {
             game_io.spawn_local_task(future).detach();
         }
