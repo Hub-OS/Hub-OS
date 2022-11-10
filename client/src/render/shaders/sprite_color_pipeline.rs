@@ -7,6 +7,7 @@ use framework::wgpu;
 pub struct SpritePipelineCollection {
     add_pipeline: SpritePipeline<SpriteInstanceData>,
     multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    replace_pipeline: SpritePipeline<SpriteInstanceData>,
 }
 
 impl SpritePipelineCollection {
@@ -17,6 +18,7 @@ impl SpritePipelineCollection {
         Self {
             add_pipeline: create_pipeline(game_io, &shader, "add_main"),
             multiply_pipeline: create_pipeline(game_io, &shader, "multiply_main"),
+            replace_pipeline: create_pipeline(game_io, &shader, "replace_main"),
         }
     }
 
@@ -27,6 +29,7 @@ impl SpritePipelineCollection {
         match color_mode {
             SpriteColorMode::Add => &self.add_pipeline,
             SpriteColorMode::Multiply => &self.multiply_pipeline,
+            SpriteColorMode::Replace => &self.replace_pipeline,
         }
     }
 }

@@ -7,6 +7,7 @@ use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use rand::Rng;
 use std::cell::RefCell;
 
 const GRACE_TIME: FrameTime = 5;
@@ -40,6 +41,9 @@ impl State for BattleState {
         simulation.update_animations();
 
         self.detect_battle_start(game_io, simulation, vms);
+
+        // reset frame temporary variables
+        self.prepare_updates(simulation);
 
         // new: process player input
         self.process_input(game_io, simulation, vms);
@@ -80,6 +84,8 @@ impl State for BattleState {
                     .push(component.update_callback.clone());
             }
         }
+
+        self.apply_status_vfx(game_io, simulation);
 
         simulation.call_pending_callbacks(game_io, vms);
 
@@ -410,6 +416,20 @@ impl BattleState {
             for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
                 entity.time_is_frozen = false;
             }
+        }
+    }
+
+    fn prepare_updates(&self, simulation: &mut BattleSimulation) {
+        // entities should only update once, clearing the flag that tracks this
+        for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
+            entity.updated = false;
+
+            let sprite_node = entity.sprite_tree.root_mut();
+
+            // reset frame temp properties
+            entity.tile_offset = Vec2::ZERO;
+            sprite_node.set_color(Color::BLACK);
+            sprite_node.set_color_mode(SpriteColorMode::Add);
         }
     }
 
@@ -1566,5 +1586,35 @@ impl BattleState {
         }
 
         simulation.delete_card_actions(game_io, vms, &actions_pending_deletion);
+    }
+
+    fn apply_status_vfx(&self, _game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+        for (_, (entity, living)) in simulation.entities.query_mut::<(&mut Entity, &Living)>() {
+            let root_sprite = entity.sprite_tree.root_mut();
+
+            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::PARALYZE) {
+                if (lifetime / 2) % 2 == 0 {
+                    root_sprite.set_color_mode(SpriteColorMode::Add);
+                    root_sprite.set_color(Color::YELLOW);
+                }
+            }
+
+            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::ROOT) {
+                if (lifetime / 2) % 2 == 0 {
+                    root_sprite.set_color_mode(SpriteColorMode::Replace);
+                    root_sprite.set_color(Color::BLACK);
+                }
+            }
+
+            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::FLASH) {
+                if (lifetime / 2) % 2 == 0 {
+                    root_sprite.set_color(Color::TRANSPARENT);
+                }
+            }
+
+            if living.status_director.remaining_status_time(HitFlag::SHAKE) > 0 {
+                entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
+            }
+        }
     }
 }
