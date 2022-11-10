@@ -289,10 +289,10 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     defense_priority_table.set("Last", DefensePriority::Last)?;
     globals.set("DefensePriority", defense_priority_table)?;
 
-    let defense_priority_table = lua.create_table()?;
-    defense_priority_table.set("Always", false)?;
-    defense_priority_table.set("CollisionOnly", true)?;
-    globals.set("DefenseOrder", defense_priority_table)?;
+    let defense_order_table = lua.create_table()?;
+    defense_order_table.set("Always", false)?;
+    defense_order_table.set("CollisionOnly", true)?;
+    globals.set("DefenseOrder", defense_order_table)?;
 
     use crate::bindable::IntangibleRule;
 

@@ -1,5 +1,5 @@
-use super::BattleSimulation;
 use super::{rollback_vm::RollbackVM, BattleScriptContext};
+use super::{BattleSimulation, Living};
 use crate::bindable::{DefensePriority, EntityID, HitFlag, HitProperties};
 use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
 use crate::resources::Globals;
@@ -10,9 +10,127 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct DefenseRule {
     pub collision_only: bool,
-    pub defense_priority: DefensePriority,
+    pub priority: DefensePriority,
     pub vm_index: usize,
     pub table: Arc<rollback_mlua::RegistryKey>,
+}
+
+impl DefenseRule {
+    pub fn add(
+        api_ctx: &mut BattleScriptContext,
+        lua: &rollback_mlua::Lua,
+        defense_table: rollback_mlua::Table,
+        entity_id: EntityID,
+    ) -> rollback_mlua::Result<()> {
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+            return Ok(());
+        };
+
+        let key = lua.create_registry_value(defense_table.clone())?;
+
+        let mut rule = DefenseRule {
+            collision_only: defense_table.get("#collision_only")?,
+            priority: defense_table.get("#priority")?,
+            vm_index: api_ctx.vm_index,
+            table: Arc::new(key),
+        };
+
+        if rule.priority == DefensePriority::Last {
+            living.defense_rules.push(rule);
+            return Ok(());
+        }
+
+        let priority = rule.priority;
+
+        if let Some(index) = living
+            .defense_rules
+            .iter()
+            .position(|r| r.priority >= priority)
+        {
+            // there's a rule with the same or greater priority
+            let existing_rule = &mut living.defense_rules[index];
+
+            if existing_rule.priority > rule.priority {
+                // greater priority, we'll insert just before
+                living.defense_rules.insert(index, rule);
+            } else {
+                // same priority, we'll replace
+                std::mem::swap(existing_rule, &mut rule);
+
+                // call the on_replace_func on the old rule
+                rule.call_on_replace(api_ctx.game_io, simulation, api_ctx.vms);
+            }
+        } else {
+            // nothing should exist after this rule, just append
+            living.defense_rules.push(rule);
+        }
+
+        Ok(())
+    }
+
+    pub fn remove(
+        api_ctx: &mut BattleScriptContext,
+        lua: &rollback_mlua::Lua,
+        defense_table: rollback_mlua::Table,
+        entity_id: EntityID,
+    ) -> rollback_mlua::Result<()> {
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+            return Ok(());
+        };
+
+        let priority = defense_table.get("#priority")?;
+
+        let similar_rule_index = living
+            .defense_rules
+            .iter()
+            .position(|rule| rule.vm_index == api_ctx.vm_index && rule.priority == priority);
+
+        if let Some(index) = similar_rule_index {
+            let existing_rule = &living.defense_rules[index];
+
+            if lua.registry_value::<rollback_mlua::Table>(&existing_rule.table)? == defense_table {
+                living.defense_rules.remove(index);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn call_on_replace(
+        &self,
+        game_io: &GameIO<Globals>,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        let lua_api = &game_io.globals().battle_api;
+
+        let context = RefCell::new(BattleScriptContext {
+            vm_index: self.vm_index,
+            vms,
+            game_io,
+            simulation,
+        });
+
+        let lua = &vms[self.vm_index].lua;
+
+        let table: rollback_mlua::Table = lua.registry_value(&self.table).unwrap();
+
+        lua_api.inject_dynamic(lua, &context, |_| {
+            table.raw_set("#replaced", true)?;
+
+            let callback: rollback_mlua::Function = table.get("on_replace_func")?;
+
+            callback.call(())?;
+
+            Ok(())
+        });
+    }
 }
 
 #[derive(Clone, Copy)]
