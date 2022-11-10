@@ -17,6 +17,7 @@ pub struct PlayerPackage {
     pub overworld_texture_path: String,
     pub mugshot_texture_path: String,
     pub mugshot_animation_path: String,
+    pub emotions_texture_path: String,
 }
 
 impl Package for PlayerPackage {
@@ -141,6 +142,15 @@ impl Package for PlayerPackage {
                 "set_mugshot_animation_path",
                 scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
                     package.borrow_mut().mugshot_animation_path =
+                        package_info.base_path.to_string() + &path;
+                    Ok(())
+                })?,
+            )?;
+
+            package_table.set(
+                "set_emotions_texture_path",
+                scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
+                    package.borrow_mut().emotions_texture_path =
                         package_info.base_path.to_string() + &path;
                     Ok(())
                 })?,
