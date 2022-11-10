@@ -1,20 +1,19 @@
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::GameIO;
-use std::collections::HashSet;
 
 pub struct UiInputTracker {
-    held_inputs: HashSet<Input>,
-    held_duration: FrameTime,
-    held_button: Option<Input>,
+    held_navigation_inputs: Vec<Input>,
+    navigation_held_duration: FrameTime,
+    just_pressed_inputs: Vec<Input>,
 }
 
 impl UiInputTracker {
     pub fn new() -> Self {
         Self {
-            held_inputs: HashSet::new(),
-            held_duration: 0,
-            held_button: None,
+            held_navigation_inputs: Vec::new(),
+            just_pressed_inputs: Vec::new(),
+            navigation_held_duration: 0,
         }
     }
 
@@ -22,11 +21,15 @@ impl UiInputTracker {
         const LONG_DELAY: FrameTime = 15;
         const SHORT_DELAY: FrameTime = 5;
 
-        if self.held_inputs.get(&input).is_none() {
+        if self.just_pressed_inputs.contains(&input) {
+            return true;
+        }
+
+        if !self.held_navigation_inputs.contains(&input) {
             return false;
         }
 
-        let duration = self.held_duration;
+        let duration = self.navigation_held_duration;
 
         if duration < LONG_DELAY {
             duration % LONG_DELAY == 0
@@ -53,21 +56,29 @@ impl UiInputTracker {
         use strum::IntoEnumIterator;
 
         let input_util = InputUtil::new(game_io);
-        let mut nothing_held = true;
+
+        // detect fresh input
+        self.just_pressed_inputs.clear();
 
         for input in Input::iter() {
-            if input_util.is_down(input) {
-                nothing_held = false;
-                self.held_inputs.insert(input);
-            } else {
-                self.held_inputs.remove(&input);
+            if input_util.was_just_pressed(input) {
+                self.just_pressed_inputs.push(input);
             }
         }
 
-        if nothing_held {
-            self.held_duration = -1;
+        // detect held navigation inputs
+        self.held_navigation_inputs.clear();
+
+        for input in UI_NAVIGATION_INPUTS {
+            if input_util.is_down(input) {
+                self.held_navigation_inputs.push(input);
+            }
+        }
+
+        if self.held_navigation_inputs.is_empty() {
+            self.navigation_held_duration = -1;
         } else {
-            self.held_duration += 1;
+            self.navigation_held_duration += 1;
         }
     }
 }

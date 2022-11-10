@@ -2,7 +2,6 @@ use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::lua_api::{battle_init, create_battle_vm};
 use crate::packages::{Package, PackageInfo};
-use crate::render::ui::UiInputTracker;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
