@@ -403,8 +403,6 @@ impl BattleScene {
     }
 
     fn simulate(&mut self, game_io: &GameIO<Globals>) {
-        self.load_input();
-
         if !self.already_snapped {
             for vm in &mut self.vms {
                 vm.lua.snap();
@@ -417,6 +415,8 @@ impl BattleScene {
         }
 
         self.already_snapped = false;
+
+        self.load_input();
 
         // update simulation
         if let Some(state) = self.state.next_state(game_io) {
