@@ -1,5 +1,6 @@
 use super::OverworldOnlineScene;
 use crate::bindable::SpriteColorMode;
+use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -23,6 +24,7 @@ pub struct InitialConnectScene {
     task: AsyncTask<()>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
+    deferred_packets: Vec<ServerPacket>,
     textbox: Textbox,
     success: bool,
     next_scene: NextScene<Globals>,
@@ -103,6 +105,7 @@ impl InitialConnectScene {
             task,
             event_sender,
             event_receiver,
+            deferred_packets: Vec::new(),
             textbox: Textbox::new_navigation(game_io),
             success: false,
             next_scene: NextScene::None,
@@ -133,6 +136,11 @@ impl Scene<Globals> for InitialConnectScene {
                     ServerPacket::CompleteConnection => {
                         self.success = true;
                         online_scene.handle_packet(game_io, packet);
+                    }
+                    ServerPacket::LoadPackage { .. }
+                    | ServerPacket::InitiateEncounter { .. }
+                    | ServerPacket::InitiateNetplay { .. } => {
+                        self.deferred_packets.push(packet);
                     }
                     packet => {
                         online_scene.handle_packet(game_io, packet);
@@ -197,11 +205,19 @@ impl Scene<Globals> for InitialConnectScene {
         }
 
         if self.bg_animator.is_complete() && self.success {
+            let globals = game_io.globals_mut();
+            globals.remove_namespace(PackageNamespace::Server);
+
+            let mut online_scene = self.online_scene.take().unwrap();
+
+            for packet in std::mem::take(&mut self.deferred_packets) {
+                online_scene.handle_packet(game_io, packet);
+            }
+
             // move to the network scene if we can and the animator completed
             let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
 
-            self.next_scene =
-                NextScene::new_swap(self.online_scene.take().unwrap()).with_transition(transition);
+            self.next_scene = NextScene::new_swap(online_scene).with_transition(transition);
         }
     }
 

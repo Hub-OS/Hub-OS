@@ -117,19 +117,18 @@ impl LocalAssetManager {
         bytes: Vec<u8>,
     ) -> VirtualZipMeta {
         let mut loaded_zips = self.loaded_zips.borrow_mut();
+
+        if let Some(tracking) = loaded_zips.get(&hash) {
+            log::debug!("{hash} is already loaded. skipping...");
+
+            return tracking.meta.clone();
+        }
+
+        loaded_zips.remove(&hash);
+
         let mut text_cache = self.text_cache.borrow_mut();
         let mut texture_cache = self.texture_cache.borrow_mut();
         let mut sound_cache = self.sound_cache.borrow_mut();
-
-        if let Some(tracking) = loaded_zips.remove(&hash) {
-            log::warn!("{hash} is already loaded. replacing...");
-
-            for file in tracking.virtual_files {
-                text_cache.remove(&file);
-                texture_cache.remove(&file);
-                sound_cache.remove(&file);
-            }
-        }
 
         use std::io::Read;
 
