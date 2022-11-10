@@ -283,7 +283,12 @@ impl BattleState {
             for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
                 entity.time_is_frozen = true;
             }
+
+            // play sfx
+            simulation.play_sound(game_io, &game_io.globals().time_freeze_sfx);
         }
+
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
         if time_freeze_tracker.can_counter() {
             let entities = &mut simulation.entities;
