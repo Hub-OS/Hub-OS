@@ -37,7 +37,6 @@ pub struct BattleScene {
     receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
-    debug_input_tracker: UiInputTracker,
     already_snapped: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
@@ -66,7 +65,6 @@ impl BattleScene {
             receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
-            debug_input_tracker: UiInputTracker::new(),
             already_snapped: false,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
@@ -459,17 +457,16 @@ impl Scene<Globals> for BattleScene {
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
         self.handle_packets(game_io);
 
-        self.debug_input_tracker.update(game_io);
         let input_util = InputUtil::new(game_io);
 
         if self.frame_by_frame_debug {
-            let rewind = self.debug_input_tracker.is_active(Input::RewindFrame);
+            let rewind = input_util.was_just_pressed(Input::RewindFrame);
 
             if rewind {
                 self.rewind(game_io, 1);
             }
 
-            let advance = self.debug_input_tracker.is_active(Input::AdvanceFrame);
+            let advance = input_util.was_just_pressed(Input::AdvanceFrame);
 
             if advance {
                 self.handle_local_input(game_io);
