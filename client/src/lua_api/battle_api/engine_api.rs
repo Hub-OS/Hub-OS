@@ -58,17 +58,17 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENGINE_TABLE, "get_turn_gauge_value", |api_ctx, lua, _| {
-        lua.pack_multi(api_ctx.borrow().simulation.turn_guage.progress())
+        lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.progress())
     });
 
     lua_api.add_dynamic_function(ENGINE_TABLE, "get_turn_gauge_time", |api_ctx, lua, _| {
-        lua.pack_multi(api_ctx.borrow().simulation.turn_guage.time())
+        lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.time())
     });
 
     lua_api.add_dynamic_function(
         ENGINE_TABLE,
         "get_turn_gauge_max_time",
-        |api_ctx, lua, _| lua.pack_multi(api_ctx.borrow().simulation.turn_guage.max_time()),
+        |api_ctx, lua, _| lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.max_time()),
     );
 
     lua_api.add_dynamic_function(
@@ -84,8 +84,8 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
             let time: FrameTime = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let turn_guage = &mut api_ctx.simulation.turn_guage;
-            turn_guage.set_time(time);
+            let turn_gauge = &mut api_ctx.simulation.turn_gauge;
+            turn_gauge.set_time(time);
 
             lua.pack_multi(())
         },
@@ -98,8 +98,8 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
             let time: FrameTime = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let turn_guage = &mut api_ctx.simulation.turn_guage;
-            turn_guage.set_max_time(time);
+            let turn_gauge = &mut api_ctx.simulation.turn_gauge;
+            turn_gauge.set_max_time(time);
 
             lua.pack_multi(())
         },
@@ -110,8 +110,8 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         "reset_turn_gauge_to_default",
         |api_ctx, lua, _| {
             let mut api_ctx = api_ctx.borrow_mut();
-            let turn_guage = &mut api_ctx.simulation.turn_guage;
-            turn_guage.set_max_time(TurnGauge::DEFAULT_MAX_TIME);
+            let turn_gauge = &mut api_ctx.simulation.turn_gauge;
+            turn_gauge.set_max_time(TurnGauge::DEFAULT_MAX_TIME);
 
             lua.pack_multi(())
         },

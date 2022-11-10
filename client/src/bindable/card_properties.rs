@@ -1,4 +1,8 @@
 use super::{CardClass, Element, HitFlags};
+use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::SpriteColorQueue;
+use crate::resources::Globals;
+use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone)]
 pub struct CardProperties {
@@ -39,6 +43,49 @@ impl Default for CardProperties {
             skip_time_freeze_intro: false,
             meta_classes: Vec::new(),
         }
+    }
+}
+
+impl CardProperties {
+    pub fn draw_summary(
+        &self,
+        game_io: &GameIO<Globals>,
+        sprite_queue: &mut SpriteColorQueue,
+        position: Vec2,
+        center: bool,
+    ) {
+        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        text_style.monospace = true;
+        text_style.bounds.set_position(position);
+
+        let name_text = &self.short_name;
+        let damage_text = if self.damage == 0 {
+            String::new()
+        } else {
+            format!("{}", self.damage)
+        };
+
+        // measure text
+        let name_width = text_style.measure(name_text).size.x;
+
+        if center {
+            text_style.font_style = FontStyle::GradientGold;
+            let damage_width = text_style.measure(&damage_text).size.x;
+            let text_width = name_width + text_style.letter_spacing + damage_width;
+
+            text_style.bounds.x -= text_width * 0.5;
+        }
+
+        // draw name
+        text_style.shadow_color = Color::BLACK;
+        text_style.font_style = FontStyle::Thick;
+        text_style.draw(game_io, sprite_queue, name_text);
+
+        // draw damage
+        text_style.shadow_color = Color::TRANSPARENT;
+        text_style.font_style = FontStyle::GradientGold;
+        text_style.bounds.x += name_width + text_style.letter_spacing;
+        text_style.draw(game_io, sprite_queue, &damage_text);
     }
 }
 

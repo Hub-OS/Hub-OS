@@ -67,7 +67,7 @@ impl State for CardSelectState {
     ) {
         if self.time == 0 {
             simulation.statistics.turns += 1;
-            simulation.turn_guage.set_time(0);
+            simulation.turn_gauge.set_time(0);
 
             // sfx
             let globals = game_io.globals();
@@ -349,17 +349,20 @@ impl State for CardSelectState {
 
         if !selection.animating_slide && selection.confirm_time != 0 {
             // render text to signal we're waiting on other players
+            const MARGIN_TOP: f32 = 38.0;
 
             let wait_time = self.time - selection.confirm_time;
 
             if (wait_time / 30) % 2 == 0 {
-                const TEXT: &str = "Cstmzing...";
+                const TEXT: &str = "Waiting...";
 
                 let mut style = TextStyle::new(game_io, FontStyle::Thick);
                 style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
                 let metrics = style.measure(TEXT);
-                style.bounds.set_position(RESOLUTION_F - metrics.size - 1.0);
+                let position = Vec2::new((RESOLUTION_F.x - metrics.size.x) * 0.5, MARGIN_TOP);
+
+                style.bounds.set_position(position);
                 style.draw(game_io, sprite_queue, TEXT);
             }
         }

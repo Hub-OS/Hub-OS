@@ -93,7 +93,7 @@ impl State for BattleState {
         self.time += 1;
 
         self.detect_success_or_failure(simulation);
-        self.update_turn_guage(game_io, simulation);
+        self.update_turn_gauge(game_io, simulation);
     }
 
     fn draw_ui<'a>(
@@ -102,6 +102,7 @@ impl State for BattleState {
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
+        // win / lose message
         if let Some((text, start_time)) = self.message {
             const MESSAGE_INTRO_TIME: FrameTime = 10;
 
@@ -116,11 +117,38 @@ impl State for BattleState {
             style.draw(game_io, sprite_queue, text);
         }
 
-        simulation.turn_guage.draw(sprite_queue);
+        // turn gauge
+        simulation.turn_gauge.draw(sprite_queue);
 
-        simulation
-            .time_freeze_tracker
-            .draw_ui(game_io, simulation, sprite_queue);
+        // time freeze
+        let time_freeze_tracker = &simulation.time_freeze_tracker;
+        time_freeze_tracker.draw_ui(game_io, simulation, sprite_queue);
+
+        // render top card text
+        let entities = &mut simulation.entities;
+        let entity_id = simulation.local_player_id;
+
+        if let Ok(character) = entities.query_one_mut::<&Character>(entity_id.into()) {
+            let action_active = simulation
+                .card_actions
+                .iter()
+                .any(|(_, action)| action.entity == entity_id && action.used);
+
+            if !action_active {
+                // only render if there's no active / queued actions
+                if let Some(card_props) = character.cards.last() {
+                    // render on the bottom left
+                    const MARGIN: Vec2 = Vec2::new(1.0, -1.0);
+
+                    let position = Vec2::new(
+                        0.0,
+                        RESOLUTION_F.y - TextStyle::new(game_io, FontStyle::Thick).line_height(),
+                    ) + MARGIN;
+
+                    card_props.draw_summary(game_io, sprite_queue, position, false);
+                }
+            }
+        }
     }
 }
 
@@ -133,16 +161,16 @@ impl BattleState {
         }
     }
 
-    fn update_turn_guage(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+    fn update_turn_gauge(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
         if simulation.time_freeze_tracker.time_is_frozen() {
             return;
         }
 
-        let previously_incomplete = !simulation.turn_guage.is_complete();
+        let previously_incomplete = !simulation.turn_gauge.is_complete();
 
-        simulation.turn_guage.increment_time();
+        simulation.turn_gauge.increment_time();
 
-        if !simulation.turn_guage.is_complete() || self.message.is_some() {
+        if !simulation.turn_gauge.is_complete() || self.message.is_some() {
             // don't check for input if the battle has ended, or if the turn guage isn't complete
             return;
         }
@@ -150,7 +178,7 @@ impl BattleState {
         if previously_incomplete {
             // just completed, play a sfx
             let globals = game_io.globals();
-            simulation.play_sound(game_io, &globals.turn_guage_sfx);
+            simulation.play_sound(game_io, &globals.turn_gauge_sfx);
         }
 
         self.complete = simulation
