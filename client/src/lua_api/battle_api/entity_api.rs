@@ -761,8 +761,33 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    // todo: add_defense_rule
-    // todo: remove_defense_rule
+    lua_api.add_dynamic_function(ENTITY_TABLE, "add_defense_rule", |api_ctx, lua, params| {
+        let (table, defense_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityID = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        DefenseRule::add(api_ctx, lua, defense_table, id)?;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "remove_defense_rule",
+        |api_ctx, lua, params| {
+            let (table, defense_table): (rollback_mlua::Table, rollback_mlua::Table) =
+                lua.unpack_multi(params)?;
+
+            let id: EntityID = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            DefenseRule::remove(api_ctx, lua, defense_table, id)?;
+
+            lua.pack_multi(())
+        },
+    );
 
     setter(
         lua_api,

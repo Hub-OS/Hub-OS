@@ -43,6 +43,7 @@ pub const SPELL_TABLE: &str = "Battle.Spell";
 pub const ARTIFACT_TABLE: &str = "Battle.Artifact";
 pub const EXPLOSION_TABLE: &str = "Battle.Explosion";
 pub const BUSTER_TABLE: &str = "Battle.Buster";
+pub const VIRUS_DEFENSE_TABLE: &str = "Battle.DefenseVirusBody";
 
 // callbacks
 
