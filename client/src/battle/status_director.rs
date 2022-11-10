@@ -1,6 +1,8 @@
 use crate::bindable::{HitFlag, HitFlags};
 use crate::render::FrameTime;
-use crate::resources::BATTLE_INPUTS;
+use crate::resources::{
+    BATTLE_INPUTS, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
+};
 
 use super::PlayerInput;
 
@@ -42,6 +44,8 @@ pub struct StatusDirector {
     statuses: Vec<AppliedStatus>,
     new_statuses: Vec<AppliedStatus>,
     input_index: Option<usize>,
+    dragged: bool,
+    remaining_drag_lockout: FrameTime,
 }
 
 impl Default for StatusDirector {
@@ -50,6 +54,8 @@ impl Default for StatusDirector {
             statuses: Vec::new(),
             new_statuses: Vec::new(),
             input_index: None,
+            dragged: false,
+            remaining_drag_lockout: 0,
         }
     }
 }
@@ -65,12 +71,14 @@ impl StatusDirector {
                 continue;
             }
 
+            if hit_flag == HitFlag::DRAG {
+                self.dragged = true;
+            }
+
             let duration = if HitFlag::STATUS_LIST.contains(&hit_flag) {
-                90
-            } else if hit_flag == HitFlag::DRAG {
-                1
+                DEFAULT_STATUS_DURATION
             } else if hit_flag == HitFlag::FLASH {
-                120
+                DEFAULT_INTANGIBILITY_DURATION
             } else {
                 0
             };
@@ -95,8 +103,19 @@ impl StatusDirector {
         }
     }
 
+    pub fn input_locked_out(&self) -> bool {
+        self.dragged || self.remaining_drag_lockout > 0 || self.is_inactionable()
+    }
+
     pub fn is_dragged(&self) -> bool {
-        self.remaining_status_time(HitFlag::DRAG) > 0
+        self.dragged
+    }
+
+    pub fn end_drag(&mut self) {
+        self.dragged = false;
+
+        // adding 1 since it's immediately subtracted
+        self.remaining_drag_lockout = DRAG_LOCKOUT + 1;
     }
 
     pub fn is_inactionable(&self) -> bool {
@@ -106,7 +125,8 @@ impl StatusDirector {
     }
 
     pub fn is_immobile(&self) -> bool {
-        self.remaining_status_time(HitFlag::PARALYZE) > 0
+        self.remaining_drag_lockout > 0
+            || self.remaining_status_time(HitFlag::PARALYZE) > 0
             || self.remaining_status_time(HitFlag::BUBBLE) > 0
             || self.remaining_status_time(HitFlag::ROOT) > 0
             || self.remaining_status_time(HitFlag::FREEZE) > 0
@@ -217,5 +237,9 @@ impl StatusDirector {
         }
 
         self.apply_new_statuses();
+
+        if self.remaining_drag_lockout > 0 {
+            self.remaining_drag_lockout -= 1;
+        }
     }
 }

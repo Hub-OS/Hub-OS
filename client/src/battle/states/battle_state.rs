@@ -685,7 +685,7 @@ impl BattleState {
             if living.intangibility.is_retangible() {
                 living.intangibility.disable();
 
-                if let Some(callback) = living.intangibility.deactivate_callback.take() {
+                for callback in living.intangibility.take_deactivate_callbacks() {
                     callback.call(game_io, simulation, vms, ());
                 }
             }
@@ -791,7 +791,7 @@ impl BattleState {
                 .get_mut(player.charge_sprite_index)
                 .unwrap();
 
-            if entity.deleted || living.status_director.is_inactionable() {
+            if entity.deleted || living.status_director.input_locked_out() {
                 player.charging_time = 0;
             }
 
@@ -799,7 +799,7 @@ impl BattleState {
                 charge_sprite_node.set_visible(false);
             }
 
-            if entity.deleted || living.status_director.is_inactionable() {
+            if entity.deleted || living.status_director.input_locked_out() {
                 continue;
             }
 
@@ -1110,7 +1110,7 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        for (_, (entity, living)) in simulation
+        for (id, (entity, living)) in simulation
             .entities
             .query_mut::<(&mut Entity, &mut Living)>()
         {
@@ -1125,17 +1125,49 @@ impl BattleState {
 
                 entity.updated = true;
 
-                // process statuses
-                living.status_director.update(&simulation.inputs);
+                if living.status_director.is_dragged() && entity.move_action.is_none() {
+                    // let the status director know we're no longer being dragged
+                    living.status_director.end_drag()
+                }
 
-                // status callbacks
-                for hit_flag in living.status_director.take_new_statuses() {
-                    if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
-                        callbacks.extend(status_callbacks.iter().cloned());
+                // process statuses as long as the entity isn't being dragged
+                if !living.status_director.is_dragged() {
+                    living.status_director.update(&simulation.inputs);
+
+                    // status callbacks
+                    for hit_flag in living.status_director.take_new_statuses() {
+                        if hit_flag & HitFlag::FLASH != HitFlag::NONE {
+                            // apply intangible
+
+                            // callback will keep the status director in sync when intangibility is pierced
+                            let callback = BattleCallback::new(move |_, simulation, _, _| {
+                                let living = simulation
+                                    .entities
+                                    .query_one_mut::<&mut Living>(id)
+                                    .unwrap();
+
+                                living.status_director.remove_status(hit_flag)
+                            });
+
+                            living.intangibility.enable(IntangibleRule {
+                                duration: living.status_director.remaining_status_time(hit_flag),
+                                deactivate_callback: Some(callback),
+                                ..Default::default()
+                            });
+                        }
+
+                        // call registered status callbacks
+                        if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
+                            callbacks.extend(status_callbacks.iter().cloned());
+                        }
                     }
                 }
 
+                // update intangibility
                 living.intangibility.update();
+
+                let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
+                callbacks.extend(deactivate_callbacks);
             }
 
             if living.hit {

@@ -24,12 +24,12 @@ impl Default for IntangibleRule {
 
 #[derive(Default, Clone)]
 pub struct Intangibility {
-    pub deactivate_callback: Option<BattleCallback>,
+    deactivate_callbacks: Vec<BattleCallback>,
+    deactivate_callback: Option<BattleCallback>,
     remaining_duration: FrameTime,
     hit_weaknesses: HitFlags,
     element_weaknesses: Vec<Element>,
     retangible: bool,
-    just_deactivated: bool,
 }
 
 impl Intangibility {
@@ -38,6 +38,11 @@ impl Intangibility {
     }
 
     pub fn enable(&mut self, rule: IntangibleRule) {
+        if let Some(callback) = self.deactivate_callback.take() {
+            // deactivate the previous intangible rule
+            self.deactivate_callbacks.push(callback);
+        }
+
         self.remaining_duration = rule.duration;
         self.hit_weaknesses = rule.hit_weaknesses;
         self.element_weaknesses = rule.element_weaknesses;
@@ -49,15 +54,6 @@ impl Intangibility {
     }
 
     pub fn update(&mut self) {
-        if self.just_deactivated {
-            debug_assert!(
-                self.deactivate_callback.is_none(),
-                "deactivate callback must be used"
-            );
-
-            self.just_deactivated = false;
-        }
-
         if self.remaining_duration == 0 {
             return;
         }
@@ -65,13 +61,16 @@ impl Intangibility {
         self.remaining_duration -= 1;
 
         if self.remaining_duration == 0 {
-            self.just_deactivated = true;
             self.retangible = false;
+
+            if let Some(callback) = self.deactivate_callback.take() {
+                self.deactivate_callbacks.push(callback);
+            }
         }
     }
 
-    pub fn just_deactivated(&self) -> bool {
-        self.just_deactivated
+    pub fn take_deactivate_callbacks(&mut self) -> Vec<BattleCallback> {
+        std::mem::take(&mut self.deactivate_callbacks)
     }
 
     pub fn disable(&mut self) {
@@ -79,9 +78,12 @@ impl Intangibility {
             return;
         }
 
-        self.just_deactivated = true;
         self.remaining_duration = 0;
         self.retangible = false;
+
+        if let Some(callback) = self.deactivate_callback.take() {
+            self.deactivate_callbacks.push(callback);
+        }
     }
 
     pub fn is_retangible(&self) -> bool {

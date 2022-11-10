@@ -115,7 +115,38 @@ impl Living {
             living.hit = true
         }
 
+        // apply statuses
         living.status_director.apply_hit_flags(hit_props.flags);
-        // todo: handle drag
+
+        // handle drag
+        if hit_props.drags() && entity.move_action.is_none() {
+            let can_move_to_callback = entity.can_move_to_callback.clone();
+            let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
+
+            let mut dest = IVec2::new(entity.x, entity.y);
+            let mut duration = 0;
+
+            for _ in 0..hit_props.drag.count {
+                dest += delta;
+
+                let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();
+
+                if !tile_exists || !can_move_to_callback.call(game_io, simulation, vms, dest.into())
+                {
+                    dest -= delta;
+                    break;
+                }
+
+                duration += DRAG_PER_TILE_DURATION;
+            }
+
+            if duration != 0 {
+                let entity = (simulation.entities)
+                    .query_one_mut::<&mut Entity>(entity_id.into())
+                    .unwrap();
+
+                entity.move_action = Some(MoveAction::slide(dest.into(), duration));
+            }
+        }
     }
 }
