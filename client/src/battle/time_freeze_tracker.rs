@@ -4,7 +4,7 @@ use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
-use framework::prelude::{Color, GameIO};
+use framework::prelude::{Color, GameIO, Vec2};
 
 const FADE_DURATION: FrameTime = 10;
 const COUNTER_DURATION: FrameTime = 60;
@@ -173,9 +173,6 @@ impl TimeFreezeTracker {
         const MARGIN_TOP: f32 = 38.0;
         const BAR_WIDTH: f32 = 80.0;
 
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
-        text_style.bounds.y = MARGIN_TOP;
-
         if !self.can_counter() {
             return;
         }
@@ -197,45 +194,24 @@ impl TimeFreezeTracker {
                 .unwrap_or_default()
         };
 
-        let text_center_x = if same_team {
-            RESOLUTION_F.x * 0.25
+        let mut position = Vec2::new(0.0, MARGIN_TOP);
+
+        if same_team {
+            position.x = RESOLUTION_F.x * 0.25
         } else {
-            RESOLUTION_F.x * 0.75
+            position.x = RESOLUTION_F.x * 0.75
         };
 
         let card_props = &action.properties;
-
-        let name_text = &card_props.short_name;
-        let damage_text = if card_props.damage == 0 {
-            String::new()
-        } else {
-            format!("{}", card_props.damage)
-        };
-
-        // measure text
-        let name_width = text_style.measure(name_text).size.x;
-        text_style.font_style = FontStyle::GradientGold;
-        let damage_width = text_style.measure(&damage_text).size.x;
-        let text_width = name_width + text_style.letter_spacing + damage_width;
-
-        // draw name
-        text_style.shadow_color = Color::BLACK;
-        text_style.font_style = FontStyle::Thick;
-        text_style.bounds.x = text_center_x - text_width / 2.0;
-        text_style.draw(game_io, sprite_queue, name_text);
-
-        // draw damage
-        text_style.shadow_color = Color::TRANSPARENT;
-        text_style.font_style = FontStyle::GradientGold;
-        text_style.bounds.x += name_width + text_style.letter_spacing;
-        text_style.draw(game_io, sprite_queue, &damage_text);
+        card_props.draw_summary(game_io, sprite_queue, position, true);
 
         // drawing bar
+        let text_style = TextStyle::new(game_io, FontStyle::Thick);
+        position.x -= BAR_WIDTH * 0.5;
+        position.y += text_style.line_height() + text_style.line_spacing;
+
         let elapsed_time = self.active_time - self.state_start_time;
         let width_multiplier = inverse_lerp!(COUNTER_DURATION, 0, elapsed_time);
-        let mut position = text_style.bounds.position();
-        position.x = text_center_x - BAR_WIDTH / 2.0;
-        position.y += text_style.line_height() + text_style.line_spacing;
 
         let assets = &game_io.globals().assets;
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);

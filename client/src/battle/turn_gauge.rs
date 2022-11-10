@@ -19,7 +19,7 @@ impl TurnGauge {
 
         let sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TURN_GAUGE);
         let mut container_sprite = sprite.clone();
-        container_sprite.set_position(Vec2::new(RESOLUTION_F.x / 2.0, 0.0));
+        container_sprite.set_position(Vec2::new(RESOLUTION_F.x * 0.5, 0.0));
 
         let mut animator = Animator::load_new(assets, ResourcePaths::BATTLE_TURN_GAUGE_ANIMATION);
         animator.set_state("CONTAINER");
@@ -93,7 +93,7 @@ impl TurnGauge {
         let mut frame = self.sprite.frame();
 
         // position sprite
-        let position = self.container_sprite.position() - Vec2::new(frame.width / 2.0, 0.0);
+        let position = self.container_sprite.position() - Vec2::new(frame.width * 0.5, 0.0);
         self.sprite.set_position(position);
 
         // adjust the frame
