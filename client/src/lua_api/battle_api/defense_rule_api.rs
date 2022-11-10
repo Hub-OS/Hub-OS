@@ -9,12 +9,12 @@ pub fn inject_defense_rule_api(lua_api: &mut BattleLuaApi) {
         let (priority, collision_only): (DefensePriority, bool) = lua.unpack_multi(params)?;
 
         let table = lua.create_table()?;
-        table.set("_priority", priority)?;
-        table.set("_collision_only", collision_only)?;
+        table.set("#priority", priority)?;
+        table.set("#collision_only", collision_only)?;
         table.set(
             "is_replaced",
             lua.create_function(|_, table: rollback_mlua::Table| {
-                Ok(table.get::<_, bool>("_replaced").unwrap_or_default())
+                Ok(table.get::<_, bool>("#replaced").unwrap_or_default())
             })?,
         )?;
 

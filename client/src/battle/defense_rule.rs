@@ -33,7 +33,6 @@ impl DefenseJudge {
         game_io: &GameIO<Globals>,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-
         defender_id: EntityID,
         attacker_id: EntityID,
         defense_rules: &[DefenseRule],
