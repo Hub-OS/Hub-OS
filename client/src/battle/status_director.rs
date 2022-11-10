@@ -37,6 +37,7 @@ const MASHABLE_STATUSES: [HitFlags; 3] = [HitFlag::PARALYZE, HitFlag::FREEZE, Hi
 struct AppliedStatus {
     status_flag: HitFlags,
     remaining_time: FrameTime,
+    lifetime: FrameTime,
 }
 
 #[derive(Clone)]
@@ -99,6 +100,7 @@ impl StatusDirector {
             self.new_statuses.push(AppliedStatus {
                 status_flag,
                 remaining_time: duration,
+                lifetime: 0,
             })
         }
     }
@@ -138,6 +140,13 @@ impl StatusDirector {
             .find(|status| status.status_flag == status_flag)
             .map(|status| status.remaining_time)
             .unwrap_or_default()
+    }
+
+    pub fn status_lifetime(&self, status_flag: HitFlags) -> Option<FrameTime> {
+        self.statuses
+            .iter()
+            .find(|status| status.status_flag == status_flag && status.remaining_time > 0)
+            .map(|status| status.lifetime)
     }
 
     pub fn remove_status(&mut self, status_flag: HitFlags) {
@@ -182,7 +191,7 @@ impl StatusDirector {
 
             if let Some((i, prev_status)) = status_search {
                 if prev_status.remaining_time > 0 {
-                    already_existing.push(i)
+                    already_existing.push(i);
                 }
                 prev_status.remaining_time = status.remaining_time.max(prev_status.remaining_time);
             } else {
@@ -230,9 +239,11 @@ impl StatusDirector {
             }
 
             status.remaining_time -= 1;
+            status.lifetime += 1;
 
             if status.remaining_time < 0 {
                 status.remaining_time = 0;
+                status.lifetime = 0;
             }
         }
 

@@ -199,9 +199,6 @@ impl BattleSimulation {
         // update bg
         self.background.update();
 
-        // reset frame temporary variables
-        self.prepare_updates();
-
         // spawn pending entities
         self.spawn_pending();
 
@@ -230,20 +227,6 @@ impl BattleSimulation {
         self.update_ui();
 
         self.time += 1;
-    }
-
-    fn prepare_updates(&mut self) {
-        // entities should only update once, clearing the flag that tracks this
-        for (_, entity) in self.entities.query_mut::<&mut Entity>() {
-            entity.updated = false;
-
-            let sprite_node = entity.sprite_tree.root_mut();
-
-            // reset frame temp properties
-            entity.tile_offset = Vec2::ZERO;
-            sprite_node.set_color(Color::BLACK);
-            sprite_node.set_color_mode(SpriteColorMode::Add);
-        }
     }
 
     pub fn update_animations(&mut self) {
