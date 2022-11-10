@@ -1,11 +1,12 @@
 use crate::render::*;
-use crate::resources::Input;
+use crate::resources::{Input, UI_NAVIGATION_INPUTS};
 
 #[derive(Default, Clone)]
 pub struct PlayerInput {
     previous_input: Vec<Input>,
     pressed_input: Vec<Input>,
-    held_duration: FrameTime,
+    held_navigation_input: Vec<Input>,
+    navigation_held_duration: FrameTime,
 }
 
 impl PlayerInput {
@@ -21,7 +22,11 @@ impl PlayerInput {
             return false;
         }
 
-        let duration = self.held_duration;
+        if !UI_NAVIGATION_INPUTS.contains(&input) {
+            return self.was_just_pressed(input);
+        }
+
+        let duration = self.navigation_held_duration;
 
         if duration < LONG_DELAY {
             duration % LONG_DELAY == 0
@@ -66,10 +71,15 @@ impl PlayerInput {
         // copy previous state
         self.previous_input = self.pressed_input.clone();
 
-        if self.previous_input.is_empty() {
-            self.held_duration = 0;
+        let navigation_held = self
+            .previous_input
+            .iter()
+            .any(|input| UI_NAVIGATION_INPUTS.contains(input));
+
+        if navigation_held {
+            self.navigation_held_duration += 1;
         } else {
-            self.held_duration += 1;
+            self.navigation_held_duration = 0;
         }
     }
 }

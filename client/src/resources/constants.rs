@@ -25,6 +25,15 @@ pub const BATTLE_INPUTS: [Input; 11] = [
     Input::Cancel,
 ];
 
+pub const UI_NAVIGATION_INPUTS: [Input; 6] = [
+    Input::Up,
+    Input::Down,
+    Input::Left,
+    Input::Right,
+    Input::ShoulderL,
+    Input::ShoulderR,
+];
+
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 
 // tile states
