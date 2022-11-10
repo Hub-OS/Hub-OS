@@ -33,6 +33,12 @@ pub const GRASS_HEAL_INTERVAL: FrameTime = 20;
 pub const GRASS_SLOWED_HEAL_INTERVAL: FrameTime = 180;
 pub const CONVEYOR_END_LAG: FrameTime = 6;
 
+// statuses
+pub const DEFAULT_STATUS_DURATION: FrameTime = 90;
+pub const DEFAULT_INTANGIBILITY_DURATION: FrameTime = 120;
+pub const DRAG_PER_TILE_DURATION: FrameTime = 4;
+pub const DRAG_LOCKOUT: FrameTime = 22;
+
 // text colors
 pub const TEXT_TRANSPARENT_SHADOW_COLOR: Color = Color::new(0.4, 0.4, 0.4, 0.3);
 pub const TEXT_DARK_SHADOW_COLOR: Color = Color::new(0.32, 0.388, 0.45, 1.0);

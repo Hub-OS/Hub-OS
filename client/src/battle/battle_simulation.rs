@@ -722,6 +722,11 @@ impl BattleSimulation {
                     .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
                     .unwrap();
 
+                if !living.status_director.is_dragged() {
+                    // cancel movement
+                    entity.move_action = None;
+                }
+
                 player.charging_time = 0;
 
                 let animator = &mut simulation.animators[entity.animator_index];

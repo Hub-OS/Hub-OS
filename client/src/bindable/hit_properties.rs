@@ -38,6 +38,12 @@ impl HitProperties {
         }
     }
 
+    pub fn drags(&self) -> bool {
+        self.drag.count > 0
+            && self.drag.direction != Direction::None
+            && self.flags & HitFlag::DRAG != HitFlag::NONE
+    }
+
     pub fn is_super_effective(&self, element: Element) -> bool {
         element.is_weak_to(self.element) || element.is_weak_to(self.secondary_element)
     }
