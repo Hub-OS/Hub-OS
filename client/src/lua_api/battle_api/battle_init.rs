@@ -166,8 +166,8 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let package_id: rollback_mlua::String = table.get("_package_id")?;
-        let rank = table.get("_rank")?;
+        let package_id: rollback_mlua::String = table.get("#package_id")?;
+        let rank = table.get("#rank")?;
 
         let namespace = api_ctx.vms[api_ctx.vm_index].namespace;
 
@@ -199,8 +199,8 @@ fn create_spawner(
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     inherit_metatable(lua, SPAWNER_TABLE, &table)?;
-    table.set("_package_id", package_id)?;
-    table.set("_rank", rank)?;
+    table.set("#package_id", package_id)?;
+    table.set("#rank", rank)?;
 
     Ok(table)
 }
@@ -210,7 +210,7 @@ pub fn inject_mutator_api(lua_api: &mut BattleLuaApi) {
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.get("_entity_id")?;
+        let id: EntityID = table.get("#entity_id")?;
 
         let table = create_entity_table(lua, id)?;
         callback.call(table)?;
@@ -224,7 +224,7 @@ fn create_mutator(
     id: EntityID,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
-    table.set("_entity_id", id)?;
+    table.set("#entity_id", id)?;
     inherit_metatable(lua, MUTATOR_TABLE, &table)?;
 
     Ok(table)
