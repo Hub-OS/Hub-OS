@@ -1,26 +1,7 @@
-use crate::bindable::{Element, HitFlag, HitFlags, HitProperties};
+use crate::bindable::{Element, HitFlag, HitFlags, HitProperties, IntangibleRule};
 use crate::render::FrameTime;
 
 use super::BattleCallback;
-
-#[derive(Clone)]
-pub struct IntangibleRule {
-    pub duration: FrameTime,
-    pub hit_weaknesses: HitFlags,
-    pub element_weaknesses: Vec<Element>,
-    pub deactivate_callback: Option<BattleCallback>,
-}
-
-impl Default for IntangibleRule {
-    fn default() -> Self {
-        Self {
-            duration: 120,
-            hit_weaknesses: HitFlag::PIERCE_INVIS,
-            element_weaknesses: Vec::new(),
-            deactivate_callback: None,
-        }
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct Intangibility {
