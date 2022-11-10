@@ -20,6 +20,8 @@ pub enum Input {
     ShoulderL,
     ShoulderR,
     Minimap,
+    AdvanceFrame,
+    RewindFrame,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for Input {

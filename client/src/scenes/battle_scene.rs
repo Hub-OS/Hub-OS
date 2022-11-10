@@ -2,6 +2,7 @@ use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::lua_api::{battle_init, create_battle_vm};
 use crate::packages::{Package, PackageInfo};
+use crate::render::ui::UiInputTracker;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -36,6 +37,7 @@ pub struct BattleScene {
     receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
+    debug_input_tracker: UiInputTracker,
     already_snapped: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
@@ -64,6 +66,7 @@ impl BattleScene {
             receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
+            debug_input_tracker: UiInputTracker::new(),
             already_snapped: false,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
@@ -456,20 +459,17 @@ impl Scene<Globals> for BattleScene {
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
         self.handle_packets(game_io);
 
-        if self.frame_by_frame_debug {
-            // debugging with < and >
+        self.debug_input_tracker.update(game_io);
+        let input_util = InputUtil::new(game_io);
 
-            // <
-            let rewind = game_io.input().was_key_just_pressed(Key::Comma)
-                || game_io.input().is_key_repeated(Key::Comma);
+        if self.frame_by_frame_debug {
+            let rewind = self.debug_input_tracker.is_active(Input::RewindFrame);
 
             if rewind {
                 self.rewind(game_io, 1);
             }
 
-            // >
-            let advance = game_io.input().was_key_just_pressed(Key::Period)
-                || game_io.input().is_key_repeated(Key::Period);
+            let advance = self.debug_input_tracker.is_active(Input::AdvanceFrame);
 
             if advance {
                 self.handle_local_input(game_io);
@@ -477,7 +477,6 @@ impl Scene<Globals> for BattleScene {
             }
 
             // exit from frame_by_frame_debug with pause
-            let input_util = InputUtil::new(game_io);
             self.frame_by_frame_debug = !input_util.was_just_pressed(Input::Pause);
         } else {
             // normal update
@@ -495,8 +494,8 @@ impl Scene<Globals> for BattleScene {
             }
 
             self.frame_by_frame_debug = self.is_solo()
-                && (game_io.input().was_key_just_pressed(Key::Comma)
-                    || game_io.input().was_key_just_pressed(Key::Period));
+                && (input_util.was_just_pressed(Input::RewindFrame)
+                    || input_util.was_just_pressed(Input::AdvanceFrame));
         }
 
         self.simulation.camera.update(game_io);

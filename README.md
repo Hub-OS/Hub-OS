@@ -3,6 +3,7 @@
 - [x] Rollback
 - [x] Unlimited players in Netplay/PVP
 - [x] Official co-op support
+- [x] P2P PVP and indirect fallback
 - [x] Mod protection
 - [ ] Automated GitHub builds
   - [x] Windows
