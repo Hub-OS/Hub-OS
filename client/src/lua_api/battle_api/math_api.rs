@@ -21,26 +21,22 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
         let mut api_ctx = api_ctx.borrow_mut();
         let rng = &mut api_ctx.simulation.rng;
 
-        let n = match n {
-            Some(n) => n,
-            None => return lua.pack_multi(rng.gen::<f32>()),
+        let Some( mut n) = n else {
+            return lua.pack_multi(rng.gen::<f32>());
         };
 
-        if n < 0 {
-            return Err(LuaError::RuntimeError(String::from(
-                "n must be larger than 0",
-            )));
-        }
+        let Some(mut m) = m else {
+            if n < 0 {
+                return Err(LuaError::RuntimeError(String::from(
+                    "n must be larger than 0",
+                )));
+            }
 
-        let m = match m {
-            Some(m) => m,
-            None => return lua.pack_multi(rng.gen_range(1..=n)),
+            return lua.pack_multi(rng.gen_range(1..=n));
         };
 
         if m < n {
-            return Err(LuaError::RuntimeError(String::from(
-                "m must be larger or equal to n",
-            )));
+            std::mem::swap(&mut n, &mut m);
         }
 
         lua.pack_multi(rng.gen_range(n..=m))
