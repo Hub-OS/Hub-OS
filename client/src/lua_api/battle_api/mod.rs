@@ -44,6 +44,8 @@ pub const ARTIFACT_TABLE: &str = "Battle.Artifact";
 pub const EXPLOSION_TABLE: &str = "Battle.Explosion";
 pub const BUSTER_TABLE: &str = "Battle.Buster";
 pub const VIRUS_DEFENSE_TABLE: &str = "Battle.DefenseVirusBody";
+pub const HITBOX_TABLE: &str = "Battle.Hitbox";
+pub const SHARED_HITBOX_TABLE: &str = "Battle.SharedHitbox";
 
 // callbacks
 
