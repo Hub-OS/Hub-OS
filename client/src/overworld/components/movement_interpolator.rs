@@ -51,14 +51,8 @@ impl MovementInterpolator {
             self.average = delay * K + self.average * (1.0 - K);
         }
 
-        let likely_idle = self.current_position.distance_squared(position) <= MAX_IDLE_MOVEMENT_SQR;
-
         self.last_push = game_io.frame_start_instant();
-        self.last_position = if likely_idle {
-            position
-        } else {
-            self.current_position
-        };
+        self.last_position = self.current_position;
         self.target_position = position;
         self.idle_direction = direction;
     }
@@ -73,12 +67,13 @@ impl MovementInterpolator {
         let delta_instant = game_io.frame_start_instant() - self.last_push;
         let delta = self.target_position - self.last_position;
 
+        // average * FPS * SERVER_TICK_RATE
+        let alpha = self.average * 60.0 / 20.0;
+        self.current_position += delta * alpha;
+
         let distance_sqr = delta.length_squared();
         let likely_idle =
             distance_sqr <= MAX_IDLE_MOVEMENT_SQR || delta_instant >= MAX_IDLE_DURATION;
-
-        let alpha = delta_instant.as_secs_f32() / self.average;
-        let position = self.last_position + delta * alpha;
 
         let direction;
         let movement_state;
@@ -95,8 +90,6 @@ impl MovementInterpolator {
             movement_state = MovementState::Running;
         }
 
-        self.current_position = position;
-
-        (position, direction, movement_state)
+        (self.current_position, direction, movement_state)
     }
 }
