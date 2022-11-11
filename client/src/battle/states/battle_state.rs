@@ -1498,6 +1498,10 @@ impl BattleState {
                             None => return,
                         };
 
+                        if matches!(card_action.lockout_type, ActionLockout::Animation) {
+                            card_action.completed = true;
+                        }
+
                         if let Some(callback) = card_action.animation_end_callback.clone() {
                             callback.call(game_io, simulation, vms, ());
                         }
