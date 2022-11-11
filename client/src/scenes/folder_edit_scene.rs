@@ -315,8 +315,9 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
         // closing
         if !cancel_handled {
             let folder = &globals.global_save.folders[scene.folder_index];
+            let is_equipped = globals.global_save.selected_folder == scene.folder_index;
 
-            if folder.cards == scene.clone_cards() {
+            if is_equipped || folder.cards == scene.clone_cards() {
                 // didn't modify the folder, leave without changing the equipped folder
                 scene.leave(game_io, false);
             } else {
