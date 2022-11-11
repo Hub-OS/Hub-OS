@@ -11,6 +11,7 @@ pub struct BattleAnimator {
     interrupt_callbacks: Vec<BattleCallback>,
     frame_callbacks: HashMap<usize, Vec<BattleCallback>>,
     animator: Animator,
+    first_run: bool,
     enabled: bool,
 }
 
@@ -21,6 +22,7 @@ impl BattleAnimator {
             interrupt_callbacks: Vec::new(),
             frame_callbacks: HashMap::new(),
             animator: Animator::new(),
+            first_run: true,
             enabled: true,
         }
     }
@@ -129,6 +131,7 @@ impl BattleAnimator {
     #[must_use]
     pub fn set_state(&mut self, state: &str) -> Vec<BattleCallback> {
         self.animator.set_state(state);
+        self.first_run = true;
 
         self.complete_callbacks.clear();
         self.frame_callbacks.clear();
@@ -146,6 +149,14 @@ impl BattleAnimator {
 
         let previous_frame = self.animator.current_frame_index();
         let previous_loop_count = self.animator.loop_count();
+
+        if self.first_run {
+            if let Some(callbacks) = self.frame_callbacks.get(&previous_frame) {
+                pending_callbacks.extend(callbacks.iter().cloned());
+            }
+
+            self.first_run = false;
+        }
 
         self.animator.update();
 
