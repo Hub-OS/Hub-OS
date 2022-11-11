@@ -8,9 +8,7 @@ pub fn absolute_path(
         return Ok(path_string);
     }
 
-    let path = std::path::Path::new(&path_string);
-
-    if path.is_absolute() || path.starts_with("/") {
+    if ResourcePaths::is_absolute(&path_string) {
         return Ok(path_string);
     }
 
