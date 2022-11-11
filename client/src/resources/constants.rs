@@ -40,7 +40,8 @@ pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const POISON_INTERVAL: FrameTime = 7;
 pub const GRASS_HEAL_INTERVAL: FrameTime = 20;
 pub const GRASS_SLOWED_HEAL_INTERVAL: FrameTime = 180;
-pub const CONVEYOR_END_LAG: FrameTime = 6;
+pub const CONVEYOR_SLIDE_DURATION: FrameTime = 4;
+pub const CONVEYOR_WAIT_DELAY: FrameTime = 7;
 
 // statuses
 pub const DEFAULT_STATUS_DURATION: FrameTime = 90;

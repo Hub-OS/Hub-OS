@@ -513,7 +513,9 @@ impl BattleState {
                 | TileState::DirectionRight
                 | TileState::DirectionUp
                 | TileState::DirectionDown => {
-                    if entity.move_action.is_none() {
+                    if entity.move_action.is_none()
+                        && simulation.battle_time - entity.last_movement >= CONVEYOR_WAIT_DELAY
+                    {
                         let direction = tile.state().direction();
                         let offset = direction.i32_vector();
                         let dest = (entity.x + offset.0, entity.y + offset.1);
@@ -531,8 +533,7 @@ impl BattleState {
                                     .query_one_mut::<&mut Entity>(id)
                                     .unwrap();
 
-                                let mut move_action = MoveAction::slide(dest, 4);
-                                move_action.endlag_frames = CONVEYOR_END_LAG;
+                                let move_action = MoveAction::slide(dest, CONVEYOR_SLIDE_DURATION);
                                 entity.move_action = Some(move_action);
                             }
                         });
@@ -1125,8 +1126,8 @@ impl BattleState {
                     entity.move_action = Some(MoveAction::slide(dest, 14));
                 } else {
                     let mut move_event = MoveAction::teleport(dest);
-                    move_event.delay_frames = 4;
-                    move_event.endlag_frames = 8;
+                    move_event.delay_frames = 5;
+                    move_event.endlag_frames = 7;
 
                     let anim_index = entity.animator_index;
                     let move_state = entity.move_anim_state.clone();
@@ -1280,6 +1281,7 @@ impl BattleState {
             };
 
             if move_action.progress == 0 {
+                entity.last_movement = simulation.battle_time;
                 move_action.source = (entity.x, entity.y);
             }
 
@@ -1288,6 +1290,11 @@ impl BattleState {
             }
 
             move_action.progress += 1;
+
+            if !move_action.is_in_endlag() {
+                entity.last_movement = simulation.battle_time;
+            }
+
             let animation_progress = move_action.animation_progress_percent();
 
             if animation_progress >= 0.5 && !move_action.success {
@@ -1320,7 +1327,6 @@ impl BattleState {
                 // update tile position
                 entity.x = dest.0;
                 entity.y = dest.1;
-                entity.last_successful_move = simulation.battle_time;
 
                 let start_tile = simulation.field.tile_at_mut(move_action.source).unwrap();
                 start_tile.unignore_attacker(entity.id);
