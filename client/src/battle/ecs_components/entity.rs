@@ -83,7 +83,10 @@ impl Entity {
             shadow_index,
             offset: Vec2::ZERO,
             tile_offset: Vec2::ZERO,
-            hit_context: HitContext::default(),
+            hit_context: HitContext {
+                aggressor: id,
+                ..Default::default()
+            },
             time_is_frozen: false,
             ignore_hole_tiles: false,
             ignore_tile_effects: false,
