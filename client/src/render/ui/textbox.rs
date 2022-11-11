@@ -135,18 +135,26 @@ impl Textbox {
     }
 
     fn with_position(mut self, position: Vec2) -> Self {
-        self.sprite.set_position(position);
-        self.text_style
-            .bounds
-            .set_position(position + self.text_offset);
-        self.next_sprite
-            .set_position(position + self.next_sprite_offset);
+        self.set_position(position);
         self
     }
 
     pub fn with_accept_input(mut self, accept_input: bool) -> Self {
         self.accept_input = accept_input;
         self
+    }
+
+    pub fn position(&self) -> Vec2 {
+        self.sprite.position()
+    }
+
+    pub fn set_position(&mut self, position: Vec2) {
+        self.sprite.set_position(position);
+        self.text_style
+            .bounds
+            .set_position(position + self.text_offset);
+        self.next_sprite
+            .set_position(position + self.next_sprite_offset);
     }
 
     pub fn begin_open(mut self) -> Self {

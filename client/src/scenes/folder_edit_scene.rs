@@ -163,6 +163,8 @@ impl Scene<Globals> for FolderEditScene {
         ));
         self.camera.update(game_io);
 
+        let textbox_position = Vec2::new(self.camera.position().x, self.textbox.position().y);
+        self.textbox.set_position(textbox_position);
         self.textbox.update(game_io);
 
         // input
