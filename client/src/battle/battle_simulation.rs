@@ -607,6 +607,9 @@ impl BattleSimulation {
             .query_one_mut::<&mut Entity>(id.into())
             .unwrap();
 
+        // characters should own their tiles by default
+        entity.share_tile = false;
+
         entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
             if simulation.field.is_edge(dest) {
                 // can't walk on edge tiles
@@ -628,13 +631,40 @@ impl BattleSimulation {
                 return false;
             }
 
-            if !entity.share_tile && tile.has_other_reservations(entity.id) {
-                // reserved by another entity
+            if tile.team() != entity.team && tile.team() != Team::Other {
+                // tile can't belong to the opponent team
                 return false;
             }
 
-            // tile can't belong to the opponent team
-            tile.team() == entity.team || tile.team() == Team::Other
+            if entity.share_tile {
+                return true;
+            }
+
+            for entity_id in tile.reservations().iter().cloned() {
+                if entity_id == id {
+                    continue;
+                }
+
+                let other_entity = simulation
+                    .entities
+                    .query_one_mut::<&Entity>(entity_id.into())
+                    .unwrap();
+
+                if !other_entity.share_tile {
+                    // another entity is reserving this tile and refusing to share
+                    return false;
+                }
+            }
+
+            // todo: should this be handled exclusively by reservations?
+            for (_, other_entity) in simulation.entities.query_mut::<&Entity>() {
+                if !other_entity.share_tile && (other_entity.x, other_entity.y) == dest {
+                    // another entity is reserving this tile and refusing to share
+                    return false;
+                }
+            }
+
+            return true;
         });
 
         entity.delete_callback = BattleCallback::new(move |_, simulation, _, _| {
@@ -840,6 +870,14 @@ impl BattleSimulation {
 
     pub fn create_obstacle(&mut self, game_io: &GameIO<Globals>) -> EntityID {
         let id = self.create_entity(game_io);
+
+        let entity = self
+            .entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .unwrap();
+
+        // obstacles should own their tile by default
+        entity.share_tile = false;
 
         self.entities
             .insert(
