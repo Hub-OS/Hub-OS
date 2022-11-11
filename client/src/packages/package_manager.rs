@@ -203,16 +203,22 @@ impl<T: Package> PackageManager<T> {
         let base_path;
         let script_path;
 
+        let path = if ResourcePaths::is_absolute(path) {
+            path.to_string()
+        } else {
+            ResourcePaths::absolute(path)
+        };
+
         if path.to_lowercase().ends_with(".lua") {
             // assume file
             // not actually checking since we deal with virtual files
-            let path = ResourcePaths::clean(path);
+            let path = ResourcePaths::clean(&path);
             let file_parent_path = ResourcePaths::parent(&path)?.to_string();
 
             base_path = file_parent_path;
             script_path = path;
         } else {
-            base_path = ResourcePaths::clean_folder(path);
+            base_path = ResourcePaths::clean_folder(&path);
             script_path = base_path.clone() + "entry.lua";
         }
 
