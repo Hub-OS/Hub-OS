@@ -34,7 +34,7 @@ pub struct Entity {
     pub ignore_tile_effects: bool,
     pub move_action: Option<MoveAction>,
     pub move_anim_state: Option<String>,
-    pub last_successful_move: FrameTime, // stores the simulation.battle_time at the moment the tiles switch
+    pub last_movement: FrameTime, // stores the simulation.battle_time for the last move_action update, excluding endlag
     pub card_action_index: Option<generational_arena::Index>,
     pub local_components: Vec<generational_arena::Index>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
@@ -73,7 +73,7 @@ impl Entity {
             deleted: false,
             erased: false,
             facing: Direction::None,
-            share_tile: false,
+            share_tile: true,
             x: 0,
             y: 0,
             height: 0.0,
@@ -89,7 +89,7 @@ impl Entity {
             ignore_tile_effects: false,
             move_action: None,
             move_anim_state: None,
-            last_successful_move: 0,
+            last_movement: 0,
             card_action_index: None,
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),

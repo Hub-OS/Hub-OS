@@ -52,6 +52,10 @@ impl MoveAction {
         self.delta_frames == 0 && self.height == 0.0
     }
 
+    pub fn is_in_endlag(&self) -> bool {
+        self.progress >= self.delay_frames + self.delta_frames
+    }
+
     pub fn animation_progress_percent(&self) -> f32 {
         if self.progress < self.delay_frames {
             return 0.0;
