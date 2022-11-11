@@ -30,11 +30,13 @@ impl BattleSelectScene {
         let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_BG);
 
         // preview
-        let battle_manager = &globals.battle_packages;
-        let package_ids: Vec<_> = battle_manager.local_packages().cloned().collect();
-
         let mut preview_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
         preview_sprite.set_position(Vec2::new(12.0 + 44.0, 36.0 + 28.0));
+
+        // package list
+        let battle_manager = &globals.battle_packages;
+        let mut package_ids: Vec<_> = battle_manager.local_packages().cloned().collect();
+        package_ids.sort();
 
         let mut scene = Box::new(Self {
             camera,
