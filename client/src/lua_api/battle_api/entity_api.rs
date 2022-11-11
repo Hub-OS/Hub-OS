@@ -1156,7 +1156,7 @@ where
     });
 }
 
-fn generate_cast_fn<C: hecs::Component>(lua_api: &mut BattleLuaApi, table_name: &str) {
+fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str) {
     lua_api.add_dynamic_function(table_name, "from", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -1165,7 +1165,7 @@ fn generate_cast_fn<C: hecs::Component>(lua_api: &mut BattleLuaApi, table_name: 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        if entities.query_one_mut::<&C>(id.into()).is_ok() {
+        if entities.query_one_mut::<Q>(id.into()).is_ok() {
             lua.pack_multi(table)
         } else {
             lua.pack_multi(())
