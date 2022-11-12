@@ -660,7 +660,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_character_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(CHARACTER_TABLE, "set_animation", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(CHARACTER_TABLE, "from_package", |api_ctx, lua, params| {
         let (package_id, team, rank): (String, Team, CharacterRank) = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
