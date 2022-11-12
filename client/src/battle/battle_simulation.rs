@@ -1044,6 +1044,7 @@ impl BattleSimulation {
 
             // capture root values before mutable reference
             let root_node = entity.sprite_tree.root();
+            let root_palette = root_node.palette().cloned();
             let root_color_mode = root_node.color_mode();
             let root_color = root_node.color();
 
@@ -1060,16 +1061,26 @@ impl BattleSimulation {
                 }
 
                 // resolve shader
+                let palette;
                 let color_mode;
                 let color;
                 let original_color = node.color();
 
                 if node.using_parent_shader() {
+                    palette = root_palette.clone();
                     color_mode = root_color_mode;
                     color = root_color;
                 } else {
+                    palette = node.palette().cloned();
                     color_mode = node.color_mode();
                     color = node.color();
+                }
+
+                if let Some(texture) = palette {
+                    sprite_queue.set_shader_effect(SpriteShaderEffect::Palette);
+                    sprite_queue.set_palette(texture);
+                } else {
+                    sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
                 }
 
                 sprite_queue.set_color_mode(color_mode);
@@ -1083,6 +1094,8 @@ impl BattleSimulation {
 
             sprite_nodes_recycled = recycle_vec(sprite_nodes);
         }
+
+        sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
         // draw hp on living entities
         if self.intro_complete {

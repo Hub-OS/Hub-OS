@@ -376,8 +376,32 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    // todo: get_current_palette
-    // todo: set_palette
+    getter(
+        lua_api,
+        "get_current_palette",
+        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.sprite_tree.root().palette_path()),
+    );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        let path = absolute_path(lua, path)?;
+
+        let id: EntityID = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_node = entity.sprite_tree.root_mut();
+        sprite_node.set_palette(api_ctx.game_io, path);
+
+        lua.pack_multi(())
+    });
+
+    // no idea if people use these:
     // todo: get_base_palette
     // todo: store_base_palette why is this not just set_base_palette?
 
