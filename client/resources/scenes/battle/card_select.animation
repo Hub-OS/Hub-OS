@@ -9,7 +9,7 @@ point label="confirm" x="91" y="16"
 
 animation state="STANDARD_FRAME"
 frame duration="0f" x="0" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
-point label="preview" x="16" y="24"
+point label="preview" x="44" y="24"
 
 animation state="MEGA_FRAME"
 frame duration="0f" x="89" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
@@ -21,13 +21,13 @@ animation state="DARK_FRAME"
 frame duration="0f" x="89" y="101" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="EMPTY_MESSAGE"
-frame duration="0f" x="178" y="0" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0f" x="178" y="0" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
 
 animation state="CONFIRM_MESSAGE"
-frame duration="0f" x="178" y="49" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0f" x="178" y="49" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
 
 animation state="ERROR_MESSAGE"
-frame duration="0f" x="178" y="98" w="56" h="48" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0f" x="178" y="98" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
 
 animation state="FORM_FRAME"
 frame duration="0f" x="235" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"

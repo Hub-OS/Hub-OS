@@ -1,4 +1,4 @@
-use super::{Animator, SpriteColorQueue, Tree};
+use super::{Animator, SpriteColorQueue, Tree, TreeIndex};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
 use framework::prelude::*;
@@ -156,6 +156,34 @@ impl SpriteNode {
 }
 
 impl Tree<SpriteNode> {
+    pub fn global_position(&self, mut index: TreeIndex) -> Vec2 {
+        let mut position = Vec2::ZERO;
+
+        if let Some(node) = self.get_node(index) {
+            position += node.value().offset;
+
+            if let Some(parent_index) = node.parent_index() {
+                index = parent_index;
+            } else {
+                return position;
+            }
+        }
+
+        while let Some(tree_node) = self.get_node(index) {
+            let sprite_node = tree_node.value();
+            position += sprite_node.offset();
+            position += sprite_node.origin();
+
+            if let Some(parent_index) = tree_node.parent_index() {
+                index = parent_index;
+            } else {
+                break;
+            }
+        }
+
+        position
+    }
+
     /// Inherit position into sprite + visibility into inherited_visible, adapts scale + adjust for perspective
     pub fn inherit_from_parent(&mut self, root_offset: Vec2, flipped: bool) {
         struct InheritedProperties {
