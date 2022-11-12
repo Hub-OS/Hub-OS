@@ -159,8 +159,8 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "on_frame",
-        |animator, lua, (frame, callback): (usize, BattleCallback)| {
-            animator.on_frame(frame.max(1) - 1, callback);
+        |animator, lua, (frame, callback, do_once): (usize, BattleCallback, Option<bool>)| {
+            animator.on_frame(frame.max(1) - 1, callback, do_once.unwrap_or_default());
             lua.pack_multi(())
         },
     );
