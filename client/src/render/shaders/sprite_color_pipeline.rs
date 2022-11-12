@@ -1,4 +1,5 @@
 use crate::bindable::SpriteColorMode;
+use crate::bindable::SpriteShaderEffect;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -7,6 +8,8 @@ use framework::wgpu;
 pub struct SpritePipelineCollection {
     add_pipeline: SpritePipeline<SpriteInstanceData>,
     multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    greyscale_add_pipeline: SpritePipeline<SpriteInstanceData>,
+    greyscale_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
 }
 
 impl SpritePipelineCollection {
@@ -17,16 +20,29 @@ impl SpritePipelineCollection {
         Self {
             add_pipeline: create_pipeline(game_io, &shader, "add_main"),
             multiply_pipeline: create_pipeline(game_io, &shader, "multiply_main"),
+            greyscale_add_pipeline: create_pipeline(game_io, &shader, "greyscale_add_main"),
+            greyscale_multiply_pipeline: create_pipeline(
+                game_io,
+                &shader,
+                "greyscale_multiply_main",
+            ),
         }
     }
 
-    fn pipeline_for_color_mode(
+    fn pipeline_for_config(
         &self,
+        shader_effect: SpriteShaderEffect,
         color_mode: SpriteColorMode,
     ) -> &SpritePipeline<SpriteInstanceData> {
-        match color_mode {
-            SpriteColorMode::Add => &self.add_pipeline,
-            SpriteColorMode::Multiply => &self.multiply_pipeline,
+        match shader_effect {
+            SpriteShaderEffect::Default => match color_mode {
+                SpriteColorMode::Add => &self.add_pipeline,
+                SpriteColorMode::Multiply => &self.multiply_pipeline,
+            },
+            SpriteShaderEffect::Greyscale => match color_mode {
+                SpriteColorMode::Add => &self.greyscale_add_pipeline,
+                SpriteColorMode::Multiply => &self.greyscale_multiply_pipeline,
+            },
         }
     }
 }
@@ -55,6 +71,8 @@ pub struct SpriteColorQueue<'a> {
     sprite_queue: SpriteQueue<'a, SpriteInstanceData>,
     queue_draw_count: usize,
     operation_vec: Vec<RenderOperation>,
+    shader_effect: SpriteShaderEffect,
+    previous_shader_effect: SpriteShaderEffect,
     color_mode: SpriteColorMode,
     previous_color_mode: SpriteColorMode,
     camera: &'a Camera,
@@ -68,15 +86,18 @@ impl<'a> SpriteColorQueue<'a> {
         camera: &'a Camera,
         color_mode: SpriteColorMode,
     ) -> Self {
+        let shader_effect = SpriteShaderEffect::Default;
         let uniforms = [camera.as_binding()];
 
         let pipeline_collection = &game_io.globals().sprite_pipeline_collection;
-        let pipeline = pipeline_collection.pipeline_for_color_mode(color_mode);
+        let pipeline = pipeline_collection.pipeline_for_config(shader_effect, color_mode);
 
         Self {
             sprite_queue: SpriteQueue::new(game_io, pipeline, uniforms),
             queue_draw_count: 0,
             operation_vec: Vec::new(),
+            shader_effect,
+            previous_shader_effect: shader_effect,
             color_mode,
             previous_color_mode: color_mode,
             camera,
@@ -93,6 +114,14 @@ impl<'a> SpriteColorQueue<'a> {
         self.color_mode = color_mode;
     }
 
+    pub fn shader_effect(&self) -> SpriteShaderEffect {
+        self.shader_effect
+    }
+
+    pub fn set_shader_effect(&mut self, shader_effect: SpriteShaderEffect) {
+        self.shader_effect = shader_effect;
+    }
+
     pub fn update_camera(&mut self, camera: &'a Camera) {
         self.camera = camera;
         self.updated_camera = true;
@@ -103,16 +132,19 @@ impl<'a> SpriteColorQueue<'a> {
     }
 
     pub fn draw_sprite(&mut self, sprite: &Sprite) {
+        let updated_shader_effect = self.shader_effect != self.previous_shader_effect;
         let updated_color_mode = self.color_mode != self.previous_color_mode;
-        let updated_uniforms = updated_color_mode || self.updated_camera;
+        let requires_shader_change = updated_shader_effect || updated_color_mode;
+        let updated_uniforms = requires_shader_change || self.updated_camera;
 
         if updated_uniforms {
             let uniforms = [self.camera.as_binding()];
 
-            if updated_color_mode {
+            if requires_shader_change {
                 // need to swap render pipelines
                 let pipeline_collection = &self.game_io.globals().sprite_pipeline_collection;
-                let pipeline = pipeline_collection.pipeline_for_color_mode(self.color_mode);
+                let pipeline =
+                    pipeline_collection.pipeline_for_config(self.shader_effect, self.color_mode);
 
                 let new_queue = SpriteQueue::new(self.game_io, pipeline, uniforms);
                 let old_queue = std::mem::replace(&mut self.sprite_queue, new_queue);
@@ -123,6 +155,7 @@ impl<'a> SpriteColorQueue<'a> {
                     self.queue_draw_count = 0;
                 }
 
+                self.previous_shader_effect = self.shader_effect;
                 self.previous_color_mode = self.color_mode;
             } else {
                 // reusing the current pipeline and just updating the uniforms

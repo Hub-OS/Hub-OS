@@ -56,9 +56,28 @@ fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @
 
 @fragment
 fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
-    let sampled = textureSample(txture, smplr, uv);
-    var out: vec4<f32> = clamp(color + sampled, vec4<f32>(), vec4<f32>(1.0));
-    out.w = sampled.w * color.w;
+    let sample = textureSample(txture, smplr, uv);
+    var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
+    out.w = sample.w * color.w;
+
+    return out;
+}
+
+@fragment
+fn greyscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    let sample = textureSample(txture, smplr, uv);
+    let average = (sample.r + sample.g + sample.b) * 0.33333;
+    return color * vec4<f32>(vec3<f32>(average), sample.a);
+}
+
+@fragment
+fn greyscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    let sample = textureSample(txture, smplr, uv);
+    let average = (sample.r + sample.g + sample.b) * 0.33333;
+
+    let greyscale = vec4<f32>(vec3<f32>(average), sample.a);
+    var out: vec4<f32> = clamp(color + greyscale, vec4<f32>(), vec4<f32>(1.0));
+    out.w = sample.w * color.w;
 
     return out;
 }

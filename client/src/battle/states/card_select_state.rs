@@ -31,6 +31,14 @@ enum SelectedItem {
     None,
 }
 
+#[derive(Clone, Copy)]
+enum CardRestriction<'a> {
+    Code(&'a str),
+    Package(&'a str),
+    Mixed { package_id: &'a str, code: &'a str },
+    Any,
+}
+
 #[derive(Clone)]
 pub struct CardSelectState {
     sprites: Tree<SpriteNode>,
@@ -152,7 +160,7 @@ impl State for CardSelectState {
                     }
                     SelectedItem::Card(index) => {
                         if !selection.selected_card_indices.contains(&index)
-                            && selection.selected_card_indices.len() < 5
+                            && can_player_select(player, selection, index)
                         {
                             selection.selected_card_indices.push(index);
 
@@ -161,6 +169,10 @@ impl State for CardSelectState {
                                 let globals = game_io.globals();
                                 globals.audio.play_sound(&globals.cursor_select_sfx);
                             }
+                        } else if selection.local && !simulation.is_resimulation {
+                            // error sfx
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.cursor_error_sfx);
                         }
                     }
                     _ => {}
@@ -229,8 +241,12 @@ impl State for CardSelectState {
         // draw icons
         self.animator.set_state("ICON_FRAME");
         self.animator.apply(&mut recycled_sprite);
+        let maxed_card_usage = selection.selected_card_indices.len() >= 5;
+        let card_restriction = resolve_card_restriction(player, selection);
 
         for (i, card, position) in self.card_icon_render_iter(player) {
+            sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
+
             recycled_sprite.set_position(position);
             sprite_queue.draw_sprite(&recycled_sprite);
 
@@ -238,8 +254,15 @@ impl State for CardSelectState {
                 continue;
             }
 
+            if maxed_card_usage || !does_restriction_allow_card(card_restriction, card) {
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
+            } else {
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
+            }
             card.draw_icon(game_io, sprite_queue, position);
         }
+
+        sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
         // draw codes
         const CODE_HORIZONTAL_OFFSET: f32 = 4.0;
@@ -630,6 +653,73 @@ fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem
     // todo: Wide, Card, Special
 
     SelectedItem::None
+}
+
+fn can_player_select(player: &Player, selection: &Selection, index: usize) -> bool {
+    if selection.selected_card_indices.len() >= 5 {
+        return false;
+    }
+
+    let restriction = resolve_card_restriction(player, selection);
+    let card = &player.cards[index];
+
+    does_restriction_allow_card(restriction, card)
+}
+
+fn does_restriction_allow_card(restriction: CardRestriction, card: &Card) -> bool {
+    match restriction {
+        CardRestriction::Code(code) => card.code == code || card.code == "*",
+        CardRestriction::Package(package_id) => card.package_id == package_id,
+        CardRestriction::Mixed { package_id, code } => {
+            card.package_id == package_id || card.code == code || card.code == "*"
+        }
+        CardRestriction::Any => true,
+    }
+}
+
+fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> CardRestriction<'a> {
+    if selection.selected_card_indices.is_empty() {
+        return CardRestriction::Any;
+    }
+
+    let mut first_package_id: Option<&str> = None;
+    let mut code_restriction: Option<&str> = None;
+
+    let mut same_package_id = true;
+    let mut same_code = true;
+
+    for i in selection.selected_card_indices.iter().cloned() {
+        let card = &player.cards[i];
+
+        if let Some(package_id) = first_package_id {
+            same_package_id &= card.package_id == package_id;
+        } else {
+            first_package_id = Some(&card.package_id);
+        }
+
+        if let Some(code) = code_restriction {
+            same_code &= card.code == code || card.code == "*";
+        } else if card.code != "*" {
+            code_restriction = Some(&card.code);
+        }
+    }
+
+    if same_package_id && code_restriction.is_some() {
+        if !same_code {
+            return CardRestriction::Package(first_package_id.unwrap());
+        } else {
+            return CardRestriction::Mixed {
+                package_id: first_package_id.unwrap(),
+                code: code_restriction.unwrap(),
+            };
+        }
+    }
+
+    if same_code && code_restriction.is_some() {
+        return CardRestriction::Code(code_restriction.unwrap());
+    }
+
+    CardRestriction::Any
 }
 
 fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {
