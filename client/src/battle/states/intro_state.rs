@@ -8,7 +8,7 @@ use framework::prelude::*;
 use std::collections::VecDeque;
 
 // max time per entity
-const MAX_ANIMATION_TIME: FrameTime = 45;
+const MAX_ANIMATION_TIME: FrameTime = 30;
 
 #[derive(Clone)]
 pub struct IntroState {
