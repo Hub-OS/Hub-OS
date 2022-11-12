@@ -545,6 +545,30 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua_ctx.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "_initiate_pvp", |api_ctx, lua_ctx, params| {
+        let (player_1_id, player_2_id, package_path, data): (
+            mlua::String,
+            mlua::String,
+            Option<String>,
+            Option<String>,
+        ) = lua_ctx.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
+
+        let player_ids = vec![player_1_id.to_str()?, player_2_id.to_str()?];
+
+        for player_id in &player_ids {
+            if let Some(tracker) = battle_tracker.get_mut(*player_id) {
+                tracker.push_back(api_ctx.script_index);
+            }
+        }
+
+        net.initiate_netplay(&player_ids, package_path, data);
+
+        lua_ctx.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "_initiate_netplay", |api_ctx, lua_ctx, params| {
         let (player_ids, package_path, data): (Vec<mlua::String>, Option<String>, Option<String>) =
             lua_ctx.unpack_multi(params)?;

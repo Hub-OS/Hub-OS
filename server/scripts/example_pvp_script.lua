@@ -78,7 +78,7 @@ Net:on("textbox_response", function(event)
   if requests[player_id][other_id] then
     -- we're saying yes to the other player's request
     requests[player_id][other_id] = nil
-    Net.initiate_netplay({ player_id, other_id })
+    Net.initiate_pvp(player_id, other_id)
   else
     -- we're making a request for the other player
     requests[other_id][player_id] = true
