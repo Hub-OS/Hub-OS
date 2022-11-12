@@ -41,5 +41,5 @@ pub mod HitFlag {
         CONFUSE,
     ];
 
-    pub const STATUS_LIST: [HitFlags; 7] = [FREEZE, SHAKE, PARALYZE, BUBBLE, ROOT, BLIND, CONFUSE];
+    pub const STATUS_LIST: [HitFlags; 6] = [FREEZE, PARALYZE, BUBBLE, ROOT, BLIND, CONFUSE];
 }

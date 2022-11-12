@@ -1590,31 +1590,41 @@ impl BattleState {
     }
 
     fn apply_status_vfx(&self, _game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
-        for (_, (entity, living)) in simulation.entities.query_mut::<(&mut Entity, &Living)>() {
+        for (_, (entity, living)) in simulation
+            .entities
+            .query_mut::<(&mut Entity, &mut Living)>()
+        {
             let root_sprite = entity.sprite_tree.root_mut();
+            let status_director = &mut living.status_director;
 
-            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::PARALYZE) {
+            if status_director.status_lifetime(HitFlag::FREEZE).is_some() {
+                root_sprite.set_color_mode(SpriteColorMode::Add);
+                root_sprite.set_color(Color::new(0.7, 0.8, 0.9, 1.0));
+            }
+
+            if let Some(lifetime) = status_director.status_lifetime(HitFlag::PARALYZE) {
                 if (lifetime / 2) % 2 == 0 {
                     root_sprite.set_color_mode(SpriteColorMode::Add);
                     root_sprite.set_color(Color::YELLOW);
                 }
             }
 
-            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::ROOT) {
+            if let Some(lifetime) = status_director.status_lifetime(HitFlag::ROOT) {
                 if (lifetime / 2) % 2 == 0 {
                     root_sprite.set_color_mode(SpriteColorMode::Multiply);
                     root_sprite.set_color(Color::BLACK);
                 }
             }
 
-            if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::FLASH) {
+            if let Some(lifetime) = status_director.status_lifetime(HitFlag::FLASH) {
                 if (lifetime / 2) % 2 == 0 {
                     root_sprite.set_color(Color::TRANSPARENT);
                 }
             }
 
-            if living.status_director.remaining_status_time(HitFlag::SHAKE) > 0 {
+            if status_director.is_shaking() {
                 entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
+                status_director.decrement_shake_time();
             }
         }
     }
