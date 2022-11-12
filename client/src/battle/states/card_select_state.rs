@@ -36,10 +36,10 @@ pub struct CardSelectState {
     sprites: Tree<SpriteNode>,
     texture: Arc<Texture>,
     view_index: GenerationalIndex,
-    message_index: GenerationalIndex,
     animator: Animator,
     card_start: Vec2,
     confirm_point: Vec2,
+    preview_point: Vec2,
     selected_card_start: Vec2,
     player_selections: Vec<Selection>,
     time: FrameTime,
@@ -268,9 +268,9 @@ impl State for CardSelectState {
         }
 
         // draw cursor
-        if selection.confirm_time == 0 {
-            let selected_item = resolve_selected_item(player, selection);
+        let selected_item = resolve_selected_item(player, selection);
 
+        if selection.confirm_time == 0 {
             match selected_item {
                 SelectedItem::Card(_) => {
                     self.animator.set_state("CARD_CURSOR");
@@ -293,6 +293,39 @@ impl State for CardSelectState {
                     sprite_queue.draw_sprite(&recycled_sprite);
                 }
                 _ => {}
+            }
+        }
+
+        // draw preview icon
+        let preview_point = self.preview_point + self.sprites.root().offset();
+
+        match selected_item {
+            SelectedItem::Card(i) => {
+                let card = &player.cards[i];
+                card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
+                card.draw_preview_title(game_io, sprite_queue, preview_point);
+            }
+            SelectedItem::Confirm => {
+                let player_selection = self.player_selections.get(player.index);
+                let selected_a_card = player_selection
+                    .map(|selection| !selection.selected_card_indices.is_empty())
+                    .unwrap_or_default();
+
+                if selected_a_card {
+                    self.animator.set_state("CONFIRM_MESSAGE");
+                } else {
+                    self.animator.set_state("EMPTY_MESSAGE");
+                }
+
+                self.animator.apply(&mut recycled_sprite);
+                recycled_sprite.set_position(preview_point);
+                sprite_queue.draw_sprite(&recycled_sprite);
+            }
+            SelectedItem::CardButton
+            | SelectedItem::WideButton
+            | SelectedItem::SpecialButton
+            | SelectedItem::None => {
+                // unreachable, currently
             }
         }
 
@@ -411,23 +444,14 @@ impl CardSelectState {
         selection_node.apply_animation(&animator);
         sprites.insert_root_child(selection_node);
 
-        // message
-        animator.set_state("EMPTY_MESSAGE");
-
-        let mut message_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-        message_node.set_texture_direct(texture.clone());
-        message_node.apply_animation(&animator);
-        message_node.set_offset(preview_point);
-        let message_index = sprites.insert_child(view_index, message_node).unwrap();
-
         Self {
             sprites,
             texture,
             view_index,
-            message_index,
             animator,
             card_start,
             confirm_point,
+            preview_point,
             selected_card_start,
             player_selections: Vec::new(),
             time: 0,

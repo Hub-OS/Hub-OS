@@ -45,6 +45,28 @@ impl Card {
         sprite_queue.draw_sprite(&sprite);
     }
 
+    pub fn draw_preview_title(
+        &self,
+        game_io: &GameIO<Globals>,
+        sprite_queue: &mut SpriteColorQueue,
+        position: Vec2,
+    ) {
+        let globals = game_io.globals();
+        let package_manager = &globals.card_packages;
+        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
+            return;
+        };
+
+        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+        text_style.letter_spacing = 2.0;
+        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+        text_style.bounds.set_position(position);
+        text_style.bounds.x -= 27.0;
+        text_style.bounds.y -= text_style.line_height() + text_style.line_spacing;
+
+        text_style.draw(game_io, sprite_queue, &package.card_properties.short_name);
+    }
+
     pub fn draw_preview(
         &self,
         game_io: &GameIO<Globals>,
@@ -55,19 +77,15 @@ impl Card {
         let globals = game_io.globals();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let package =
-            package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id);
-
-        let package = match package {
-            Some(package) => package,
-            None => return,
+        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
+            return;
         };
 
         const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
-        const ELEMENT_OFFSET: Vec2 = Vec2::new(-20.0, 49.0);
-        const ELEMENT2_OFFSET: Vec2 = Vec2::new(-9.0, 49.0);
-        const CODE_OFFSET: Vec2 = Vec2::new(-28.0, 51.0);
-        const DAMAGE_OFFSET: Vec2 = Vec2::new(28.0, 51.0);
+        const ELEMENT_OFFSET: Vec2 = Vec2::new(-23.0, 49.0);
+        const ELEMENT2_OFFSET: Vec2 = Vec2::new(-8.0, 49.0);
+        const CODE_OFFSET: Vec2 = Vec2::new(-31.0, 51.0);
+        const DAMAGE_OFFSET: Vec2 = Vec2::new(31.0, 51.0);
 
         let scale = Vec2::new(scale, 1.0);
 
@@ -103,6 +121,7 @@ impl Card {
 
         // code
         let mut label = TextStyle::new(game_io, FontStyle::Thick);
+        label.letter_spacing = 2.0;
         label.scale = scale;
         label.bounds.set_position(CODE_OFFSET * scale + position);
 
@@ -130,12 +149,8 @@ impl Card {
         let globals = game_io.globals();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let package =
-            package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id);
-
-        let package = match package {
-            Some(package) => package,
-            None => return,
+        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
+            return;
         };
 
         const ICON_OFFSET: Vec2 = Vec2::new(2.0, 1.0);
