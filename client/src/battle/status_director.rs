@@ -47,6 +47,7 @@ pub struct StatusDirector {
     input_index: Option<usize>,
     dragged: bool,
     remaining_drag_lockout: FrameTime,
+    remaining_shake_time: FrameTime,
 }
 
 impl Default for StatusDirector {
@@ -57,6 +58,7 @@ impl Default for StatusDirector {
             input_index: None,
             dragged: false,
             remaining_drag_lockout: 0,
+            remaining_shake_time: 0,
         }
     }
 }
@@ -83,6 +85,10 @@ impl StatusDirector {
             } else {
                 0
             };
+
+            if hit_flag == HitFlag::SHAKE {
+                self.remaining_shake_time = DEFAULT_STATUS_DURATION;
+            }
 
             self.apply_status(hit_flag, duration);
         }
@@ -132,6 +138,16 @@ impl StatusDirector {
             || self.remaining_status_time(HitFlag::BUBBLE) > 0
             || self.remaining_status_time(HitFlag::ROOT) > 0
             || self.remaining_status_time(HitFlag::FREEZE) > 0
+    }
+
+    pub fn is_shaking(&self) -> bool {
+        self.remaining_shake_time > 0
+    }
+
+    pub fn decrement_shake_time(&mut self) {
+        if self.remaining_shake_time > 0 {
+            self.remaining_shake_time -= 1;
+        }
     }
 
     pub fn remaining_status_time(&self, status_flag: HitFlags) -> FrameTime {
