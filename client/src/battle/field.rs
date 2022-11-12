@@ -213,14 +213,22 @@ impl Field {
                     _ => &mut self.other_tile_sprite,
                 };
 
-                // todo: Yellow
-                sprite.set_color(Color::BLACK);
+                // resolve highlight
+                if tile.should_highlight() {
+                    sprite.set_color(Color::YELLOW);
+                    sprite_queue.set_color_mode(SpriteColorMode::Replace);
+                } else {
+                    sprite.set_color(Color::BLACK);
+                    sprite_queue.set_color_mode(SpriteColorMode::Add);
+                }
 
+                // set position
                 sprite.set_position(Vec2::new(
                     (x_start + col as f32 * self.tile_size.x) * flip_multiplier,
                     y_start + row as f32 * self.tile_size.y,
                 ));
 
+                // set frame and draw
                 self.tile_animator.apply(sprite);
                 sprite.set_origin(sprite_origin);
                 sprite_queue.draw_sprite(sprite);
