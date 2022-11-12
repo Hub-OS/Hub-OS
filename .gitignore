@@ -12,6 +12,7 @@ mods
 save.dat
 corrupted_save.dat
 config.ini
+crash.txt
 
 # private files
 _*
