@@ -1,4 +1,5 @@
 use crate::bindable::*;
+use crate::render::FrameTime;
 
 #[derive(Default, Clone)]
 pub struct Tile {
@@ -6,6 +7,7 @@ pub struct Tile {
     team: Team,
     direction: Direction,
     highlight: TileHighlight,
+    flash_time: FrameTime,
     washed: bool, // an attack washed the state out
     ignored_attackers: Vec<EntityID>,
     reservations: Vec<EntityID>,
@@ -56,7 +58,27 @@ impl Tile {
         self.direction
     }
 
+    pub fn should_highlight(&self) -> bool {
+        match self.highlight {
+            TileHighlight::None => false,
+            TileHighlight::Solid => true,
+            TileHighlight::Flash => (self.flash_time / 4) % 2 == 0,
+            TileHighlight::Automatic => {
+                log::error!(
+                    "a tile's TileHighlight is set to Automatic? should only exist on spells"
+                );
+                false
+            }
+        }
+    }
+
     pub fn reset_highlight(&mut self) {
+        if self.highlight != TileHighlight::Flash {
+            self.flash_time = 0;
+        } else {
+            self.flash_time += 1;
+        }
+
         self.highlight = TileHighlight::None;
     }
 
