@@ -89,7 +89,25 @@ impl Default for Config {
             (Input::AdvanceFrame, Key::Right),
         ]);
 
-        let controller_bindings = HashMap::new();
+        let controller_bindings = HashMap::from([
+            (Input::Left, Button::DPadLeft),
+            (Input::Right, Button::DPadRight),
+            (Input::Up, Button::DPadUp),
+            (Input::Down, Button::DPadDown),
+            (Input::ShoulderL, Button::LeftTrigger),
+            (Input::ShoulderR, Button::RightTrigger),
+            (Input::Confirm, Button::A),
+            (Input::UseCard, Button::A),
+            (Input::Cancel, Button::B),
+            (Input::Shoot, Button::B),
+            (Input::Sprint, Button::B),
+            (Input::Option, Button::X),
+            (Input::Special, Button::X),
+            (Input::Minimap, Button::Y),
+            (Input::Pause, Button::Start),
+            (Input::RewindFrame, Button::LeftShoulder),
+            (Input::AdvanceFrame, Button::RightShoulder),
+        ]);
 
         Config {
             fullscreen: false,

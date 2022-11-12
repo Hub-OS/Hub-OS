@@ -1,9 +1,9 @@
 use super::Globals;
+pub use crate::bindable::Input;
 use crate::saves::Config;
 use framework::prelude::*;
 use packets::structures::Direction;
-
-pub use crate::bindable::Input;
+use std::collections::HashMap;
 
 pub struct InputUtil<'a> {
     input_manager: &'a InputManager,
@@ -19,13 +19,26 @@ impl<'a> InputUtil<'a> {
     }
 
     pub fn latest_input(&self) -> Option<Input> {
-        self.input_manager.latest_key().and_then(|key| {
-            self.config
-                .key_bindings
-                .iter()
-                .find(|(_, k)| **k == key)
-                .map(|(input, _)| *input)
-        })
+        let latest_key = self.input_manager.latest_key();
+        let latest_button = self.input_manager.latest_button();
+
+        latest_key
+            .and_then(|key| Self::latest_input_from_bindings(&self.config.key_bindings, key))
+            .or_else(|| {
+                latest_button.and_then(|key| {
+                    Self::latest_input_from_bindings(&self.config.controller_bindings, key)
+                })
+            })
+    }
+
+    fn latest_input_from_bindings<K: std::cmp::PartialEq>(
+        bindings: &HashMap<Input, K>,
+        key: K,
+    ) -> Option<Input> {
+        bindings
+            .iter()
+            .find(|(_, k)| **k == key)
+            .map(|(input, _)| *input)
     }
 
     pub fn direction(&self) -> Direction {
@@ -52,24 +65,60 @@ impl<'a> InputUtil<'a> {
     }
 
     pub fn is_down(&self, input: Input) -> bool {
-        match self.config.key_bindings.get(&input) {
-            Some(key) => self.input_manager.is_key_down(*key),
-            None => false,
+        let config = &self.config;
+        let input_manager = self.input_manager;
+
+        if let Some(key) = config.key_bindings.get(&input) {
+            if input_manager.is_key_down(*key) {
+                return true;
+            }
         }
+
+        if let Some(button) = config.controller_bindings.get(&input) {
+            if input_manager.is_button_down(config.controller_index, *button) {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn was_just_pressed(&self, input: Input) -> bool {
-        match self.config.key_bindings.get(&input) {
-            Some(key) => self.input_manager.was_key_just_pressed(*key),
-            None => false,
+        let config = &self.config;
+        let input_manager = self.input_manager;
+
+        if let Some(key) = config.key_bindings.get(&input) {
+            if input_manager.was_key_just_pressed(*key) {
+                return true;
+            }
         }
+
+        if let Some(button) = config.controller_bindings.get(&input) {
+            if input_manager.was_button_just_pressed(config.controller_index, *button) {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn was_released(&self, input: Input) -> bool {
-        match self.config.key_bindings.get(&input) {
-            Some(key) => self.input_manager.was_key_released(*key),
-            None => false,
+        let config = &self.config;
+        let input_manager = self.input_manager;
+
+        if let Some(key) = config.key_bindings.get(&input) {
+            if input_manager.was_key_released(*key) {
+                return true;
+            }
         }
+
+        if let Some(button) = config.controller_bindings.get(&input) {
+            if input_manager.was_button_released(config.controller_index, *button) {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn as_axis(&self, negative: Input, positive: Input) -> f32 {
