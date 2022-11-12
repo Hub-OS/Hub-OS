@@ -954,9 +954,17 @@ impl BattleSimulation {
     }
 
     pub fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+        let mut blind_filter = None;
+
         // resolve perspective
-        if let Ok(entity) = (self.entities).query_one_mut::<&Entity>(self.local_player_id.into()) {
+        if let Ok((entity, living)) =
+            (self.entities).query_one_mut::<(&Entity, &Living)>(self.local_player_id.into())
+        {
             self.perspective_flipped = entity.team == Team::Blue;
+
+            if living.status_director.remaining_status_time(HitFlag::BLIND) > 0 {
+                blind_filter = Some(entity.team);
+            }
         }
 
         // draw background
@@ -986,19 +994,34 @@ impl BattleSimulation {
         // draw entities, sorting by position
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);
 
-        for (_, entity) in self.entities.query_mut::<&mut Entity>() {
-            if entity.on_field {
-                sorted_entities.push(entity);
+        // filter characters for blindness
+        for (id, entity) in self.entities.query_mut::<hecs::With<&Entity, &Character>>() {
+            if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                continue;
+            }
+
+            if entity.on_field && entity.sprite_tree.root().visible() {
+                sorted_entities.push((id, entity.sort_key()));
             }
         }
 
-        sorted_entities
-            .sort_by_key(|entity| (entity.y, entity.x, -entity.sprite_tree.root().layer()));
+        // add everything else
+        for (id, entity) in self
+            .entities
+            .query_mut::<hecs::Without<&Entity, &Character>>()
+        {
+            if entity.on_field && entity.sprite_tree.root().visible() {
+                sorted_entities.push((id, entity.sort_key()));
+            }
+        }
+
+        sorted_entities.sort_by_key(|(_, key)| *key);
 
         // reusing vec to avoid realloctions
         let mut sprite_nodes_recycled = Vec::new();
 
-        for entity in sorted_entities {
+        for (id, _) in sorted_entities {
+            let entity = self.entities.query_one_mut::<&mut Entity>(id).unwrap();
             let mut sprite_nodes = sprite_nodes_recycled;
 
             // offset for calculating initial placement position
@@ -1076,6 +1099,11 @@ impl BattleSimulation {
                     || !entity.sprite_tree.root().visible()
                     || entity.id == self.local_player_id
                 {
+                    continue;
+                }
+
+                if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                    // blindness filter
                     continue;
                 }
 

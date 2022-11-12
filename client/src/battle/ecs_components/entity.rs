@@ -136,6 +136,10 @@ impl Entity {
         self.can_move_to_callback.clone()
     }
 
+    pub fn sort_key(&self) -> (i32, i32, i32) {
+        (self.y, self.x, -self.sprite_tree.root().layer())
+    }
+
     pub fn flipped(&self) -> bool {
         self.facing == Direction::Left
     }
