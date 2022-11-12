@@ -62,6 +62,7 @@ impl State for CardSelectState {
     fn update(
         &mut self,
         game_io: &GameIO<Globals>,
+        _shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {

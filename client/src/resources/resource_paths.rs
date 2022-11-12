@@ -151,6 +151,8 @@ impl ResourcePaths {
     pub const BATTLE_EXPLOSION_ANIMATION: &str = "resources/scenes/battle/explosion.animation";
     pub const BATTLE_SPLASH: &str = "resources/scenes/battle/splash.png";
     pub const BATTLE_SPLASH_ANIMATION: &str = "resources/scenes/battle/splash.animation";
+    pub const BATTLE_STATUSES: &str = "resources/scenes/battle/statuses.png";
+    pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH
