@@ -1431,7 +1431,9 @@ impl BattleState {
 
         // card actions
         for action_index in card_action_indices {
-            let card_action = &mut simulation.card_actions[action_index];
+            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                continue;
+            };
 
             if time_is_frozen && !card_action.properties.time_freeze {
                 // non time freeze action in time freeze
@@ -1449,11 +1451,6 @@ impl BattleState {
             }
 
             let animator_index = entity.animator_index;
-
-            if card_action.completed {
-                actions_pending_deletion.push(action_index);
-                continue;
-            }
 
             // execute
             if !card_action.executed {
@@ -1492,7 +1489,10 @@ impl BattleState {
                 }
 
                 // setup frame callbacks
-                let card_action = &mut simulation.card_actions[action_index];
+                let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                    continue;
+                };
+
                 let entity = simulation
                     .entities
                     .query_one_mut::<&mut Entity>(entity_id.into())
@@ -1506,17 +1506,20 @@ impl BattleState {
                 // animation end callback
                 let animation_end_callback =
                     BattleCallback::new(move |game_io, simulation, vms, _| {
-                        let card_action = match simulation.card_actions.get_mut(action_index) {
-                            Some(card_action) => card_action,
-                            None => return,
+                        let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                            return;
                         };
-
-                        if matches!(card_action.lockout_type, ActionLockout::Animation) {
-                            card_action.completed = true;
-                        }
 
                         if let Some(callback) = card_action.animation_end_callback.clone() {
                             callback.call(game_io, simulation, vms, ());
+                        }
+
+                        let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                            return;
+                        };
+
+                        if matches!(card_action.lockout_type, ActionLockout::Animation) {
+                            simulation.delete_card_actions(game_io, vms, &[action_index]);
                         }
                     });
 
@@ -1536,14 +1539,18 @@ impl BattleState {
             }
 
             // update callback
-            let card_action = &mut simulation.card_actions[action_index];
+            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                continue;
+            };
 
             if let Some(callback) = card_action.update_callback.clone() {
                 callback.call(game_io, simulation, vms, ());
             }
 
             // steps
-            let card_action = &mut simulation.card_actions[action_index];
+            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                continue;
+            };
 
             while card_action.step_index < card_action.steps.len() {
                 let step = &mut card_action.steps[card_action.step_index];
@@ -1559,7 +1566,10 @@ impl BattleState {
             }
 
             // handling async card actions
-            let mut card_action = &mut simulation.card_actions[action_index];
+            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                continue;
+            };
+
             let animation_completed = simulation.animators[animator_index].is_complete();
 
             let entity = simulation
