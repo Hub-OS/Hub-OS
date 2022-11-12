@@ -36,6 +36,7 @@ impl TurnGauge {
 
     pub fn increment_time(&mut self) {
         self.time = self.max_time.min(self.time + 1);
+        self.animator.update();
     }
 
     pub fn is_complete(&self) -> bool {
@@ -83,8 +84,6 @@ impl TurnGauge {
         if self.animator.current_state() != Some(state) {
             self.animator.set_state(state);
             self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-        } else {
-            self.animator.update();
         }
 
         self.animator.apply(&mut self.sprite);

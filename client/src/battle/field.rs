@@ -154,6 +154,16 @@ impl Field {
         }
     }
 
+    pub fn update(&mut self) {
+        for tile in &mut self.tiles {
+            tile.reset_highlight();
+        }
+    }
+
+    pub fn update_animations(&mut self) {
+        self.time += 1;
+    }
+
     pub fn draw(
         &mut self,
         game_io: &GameIO<Globals>,
@@ -163,7 +173,6 @@ impl Field {
     ) {
         let mut sprite_queue = SpriteColorQueue::new(game_io, camera, SpriteColorMode::Add);
 
-        self.time += 1;
         self.tile_animator.sync_time(self.time);
 
         let sprite_origin = Vec2::new(self.tile_size.x * 0.5, 0.0);
