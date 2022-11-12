@@ -970,12 +970,12 @@ impl BattleSimulation {
         // draw background
         self.background.draw(game_io, render_pass);
 
-        // draw field
-        self.field
-            .draw(game_io, render_pass, &self.camera, self.perspective_flipped);
-
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::default());
+
+        // draw field
+        self.field
+            .draw(game_io, &mut sprite_queue, self.perspective_flipped);
 
         // draw dramatic fade
         let fade_alpha = self.time_freeze_tracker.fade_alpha();

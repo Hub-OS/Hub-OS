@@ -59,6 +59,10 @@ impl Tile {
     }
 
     pub fn should_highlight(&self) -> bool {
+        if self.state == TileState::Hidden {
+            return false;
+        }
+
         match self.highlight {
             TileHighlight::None => false,
             TileHighlight::Solid => true,

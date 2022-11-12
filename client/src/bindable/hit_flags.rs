@@ -65,7 +65,7 @@ pub mod HitFlag {
         match flag {
             CONFUSE => Vec2::new(0.0, -height),
             BLIND => Vec2::new(0.0, -height),
-            FREEZE => Vec2::new(0.0, -height / 2.0),
+            FREEZE => Vec2::new(0.0, -height * 0.5),
             _ => Vec2::ZERO,
         }
     }
