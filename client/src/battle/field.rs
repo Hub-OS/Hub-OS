@@ -25,14 +25,22 @@ impl Field {
         let globals = game_io.globals();
         let assets = &globals.assets;
 
+        let mut red_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_RED_TILES);
+        let mut blue_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BLUE_TILES);
+        let mut other_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_OTHER_TILES);
+
+        red_tile_sprite.set_color(Color::BLACK);
+        blue_tile_sprite.set_color(Color::BLACK);
+        other_tile_sprite.set_color(Color::BLACK);
+
         Self {
             cols,
             rows,
             tiles,
             tile_size: Vec2::new(40.0, 25.0), // todo: read from .animation?
-            red_tile_sprite: assets.new_sprite(game_io, ResourcePaths::BATTLE_RED_TILES),
-            blue_tile_sprite: assets.new_sprite(game_io, ResourcePaths::BATTLE_BLUE_TILES),
-            other_tile_sprite: assets.new_sprite(game_io, ResourcePaths::BATTLE_OTHER_TILES),
+            red_tile_sprite,
+            blue_tile_sprite,
+            other_tile_sprite,
             tile_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_ANIMATION),
             time: 0,
         }
@@ -57,6 +65,10 @@ impl Field {
         self.red_tile_sprite.set_texture(red_tile_texture);
         self.blue_tile_sprite.set_texture(blue_tile_texture);
         self.other_tile_sprite.set_texture(other_tile_texture);
+
+        self.red_tile_sprite.set_color(Color::BLACK);
+        self.blue_tile_sprite.set_color(Color::BLACK);
+        self.other_tile_sprite.set_color(Color::BLACK);
 
         self.tile_animator = Animator::load_new(assets, animation_path);
         self.tile_size = spacing;
@@ -167,11 +179,10 @@ impl Field {
     pub fn draw(
         &mut self,
         game_io: &GameIO<Globals>,
-        render_pass: &mut RenderPass,
-        camera: &Camera,
+        sprite_queue: &mut SpriteColorQueue,
         flipped: bool,
     ) {
-        let mut sprite_queue = SpriteColorQueue::new(game_io, camera, SpriteColorMode::Add);
+        sprite_queue.set_color_mode(SpriteColorMode::Add);
 
         self.tile_animator.sync_time(self.time);
 
@@ -191,6 +202,8 @@ impl Field {
         }
 
         let flip_multiplier = if flipped { -1.0 } else { 1.0 };
+
+        let mut highlight_positions = Vec::new();
 
         for row in 0..self.rows {
             let prefix = format!("row_{}_", 3 - (row) * 3 / (self.rows - 1));
@@ -213,15 +226,6 @@ impl Field {
                     _ => &mut self.other_tile_sprite,
                 };
 
-                // resolve highlight
-                if tile.should_highlight() {
-                    sprite.set_color(Color::YELLOW);
-                    sprite_queue.set_color_mode(SpriteColorMode::Replace);
-                } else {
-                    sprite.set_color(Color::BLACK);
-                    sprite_queue.set_color_mode(SpriteColorMode::Add);
-                }
-
                 // set position
                 sprite.set_position(Vec2::new(
                     (x_start + col as f32 * self.tile_size.x) * flip_multiplier,
@@ -232,9 +236,26 @@ impl Field {
                 self.tile_animator.apply(sprite);
                 sprite.set_origin(sprite_origin);
                 sprite_queue.draw_sprite(sprite);
+
+                // resolve highlight
+                if tile.should_highlight() {
+                    highlight_positions.push(sprite.position());
+                }
             }
         }
 
-        render_pass.consume_queue(sprite_queue);
+        // draw tile highlight separately to reduce switching shaders
+        sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+
+        let assets = &game_io.globals().assets;
+        let mut highlight_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        highlight_sprite.set_color(Color::YELLOW);
+        highlight_sprite.set_size(self.tile_size);
+        highlight_sprite.set_origin(Vec2::new(0.5, 0.0));
+
+        for position in highlight_positions {
+            highlight_sprite.set_position(position);
+            sprite_queue.draw_sprite(&highlight_sprite);
+        }
     }
 }

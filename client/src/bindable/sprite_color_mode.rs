@@ -7,7 +7,6 @@ pub enum SpriteColorMode {
     Add,
     #[default]
     Multiply,
-    Replace,
 }
 
 impl SpriteColorMode {
@@ -15,7 +14,6 @@ impl SpriteColorMode {
         match self {
             SpriteColorMode::Add => Color::BLACK,
             SpriteColorMode::Multiply => Color::WHITE,
-            SpriteColorMode::Replace => Color::WHITE,
         }
     }
 }

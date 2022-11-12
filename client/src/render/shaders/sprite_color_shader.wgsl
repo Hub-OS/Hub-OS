@@ -50,11 +50,6 @@ var txture: texture_2d<f32>;
 var smplr: sampler;
 
 @fragment
-fn replace_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
-    return color * textureSample(txture, smplr, uv).w;
-}
-
-@fragment
 fn multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     return color * textureSample(txture, smplr, uv);
 }

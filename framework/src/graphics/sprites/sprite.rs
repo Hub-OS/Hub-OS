@@ -101,7 +101,7 @@ impl Sprite {
 
     pub fn bounds(&self) -> Rect {
         let position = self.position - self.origin;
-        let size = self.frame.size() * self.texture.size().as_vec2();
+        let size = self.frame.size() * self.texture.size().as_vec2() * self.scale;
 
         Rect::new(position.x, position.y, size.x, size.y)
     }
