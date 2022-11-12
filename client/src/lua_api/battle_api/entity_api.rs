@@ -191,12 +191,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(false);
         }
 
-        let can_move = entity.can_move_to_callback.clone().call(
-            api_ctx.game_io,
-            simulation,
-            api_ctx.vms,
-            dest,
-        );
+        let can_move_to_callback = entity.current_can_move_to_callback(&simulation.card_actions);
+        let can_move = can_move_to_callback.call(api_ctx.game_io, simulation, api_ctx.vms, dest);
 
         lua.pack_multi(can_move)
     });
@@ -683,7 +679,35 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     });
 
     // todo: get_held_card_props
-    // todo: can_attack, card action active and not PLAYER_IDLE for players
+
+    // todo: can_attack, maybe better inverted and described as is_idle?
+    // nothing is stoping a card action from being queued other than another card action
+    // lua_api.add_dynamic_function(ENTITY_TABLE, "can_attack", |api_ctx, lua, params| {
+    //     let entity_table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+    //     let entity_id: EntityID = entity_table.get("#id")?;
+
+    //     let api_ctx = &mut *api_ctx.borrow_mut();
+    //     let entities = &mut api_ctx.simulation.entities;
+
+    //     let entity = entities
+    //         .query_one_mut::<&Entity>(entity_id.into())
+    //         .map_err(|_| entity_not_found())?;
+
+    //     if entity.card_action_index.is_some() {
+    //         return lua.pack_multi(false);
+    //     }
+
+    //     if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into()) {
+    //         let animator = &api_ctx.simulation.animators[entity.animator_index];
+
+    //         if animator.current_state() != Some(Player::IDLE_STATE) {
+    //             return lua.pack_multi(false);
+    //         }
+    //     }
+
+    //     lua.pack_multi(api_ctx.simulation.is_entity_actionable(entity_id))
+    // });
 
     getter(lua_api, "get_rank", |character: &Character, lua, _: ()| {
         lua.pack_multi(character.rank)
