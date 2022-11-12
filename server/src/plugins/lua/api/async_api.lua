@@ -310,6 +310,7 @@ end)
 -- asyncified battles
 
 create_asyncified_api("initiate_encounter", battle_trackers)
+create_asyncified_api("initiate_pvp", battle_trackers)
 create_asyncified_netplay_api("initiate_netplay", battle_trackers)
 
 Net:on("battle_results", function(event)

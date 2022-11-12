@@ -627,6 +627,7 @@ Net.offer_package(player_id, package_path)
 Net.set_mod_whitelist_for_player(player_id, whitelist_path) -- whitelist has this format: `[md5] [package_id]\n`
 Net.set_mod_blacklist_for_player(player_id, blacklist_path) -- blacklist has this format: `[md5] [package_id]\n`
 Net.initiate_encounter(player_id, package_path, data?) -- data is a table, read as second param in package_build for the encounter package
+Net.initiate_pvp(player_1_id, player_2_id, package_path?, data?)
 Net.initiate_netplay(player_ids, package_path?, data?)
 Net.transfer_player(player_id, area_id, warp_in?, x?, y?, z?, direction?)
 Net.transfer_server(player_id, address, warp_out?, data?) -- data = string
@@ -735,7 +736,8 @@ Async.question_player(player_id, question, mug_texture_path?, mug_animation_path
 Async.quiz_player(player_id, option_a?, option_b?, option_c?, mug_texture_path?, mug_animation_path?) -- promise, value = number?
 Async.prompt_player(player_id, character_limit?, default_text?) -- promise, value = string?
 Async.initiate_encounter(player_id, package_path, data?) -- promise, value = { player_id: string, health: number, score: number, time: number, ran: bool, emotion: number, turns: number, enemies: { id: String, health: number }[] } }
-Async.initiate_netplay(player_1_id, player_2_id, field_script_path?) -- promise, value = { player_id: string, health: number, score: number, time: number, ran: bool, emotion: number, turns: number, enemies: { id: String, health: number }[] } }
+Async.initiate_pvp(player_1_id, player_2_id, package_path?, data?) -- promise, value = { player_id: string, health: number, score: number, time: number, ran: bool, emotion: number, turns: number, enemies: { id: String, health: number }
+Async.initiate_netplay(player_ids, package_path?, data?) -- promise, value = { player_id: string, health: number, score: number, time: number, ran: bool, emotion: number, turns: number, enemies: { id: String, health: number }[] } }[] } }
 ```
 
 ### Event Emitters
