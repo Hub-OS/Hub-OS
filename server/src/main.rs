@@ -11,6 +11,11 @@ use std::net::IpAddr;
 
 #[async_std::main]
 async fn main() {
+    std::panic::set_hook(Box::new(|p| {
+        let output = format!("{p}");
+        let _ = std::fs::write("crash.txt", &output);
+    }));
+
     logger::init();
 
     let matches = clap::Command::new("OpenNetBattle Server")
