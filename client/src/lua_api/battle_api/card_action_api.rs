@@ -106,10 +106,27 @@ pub fn inject_card_action_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(lua_api, "end_action", |card_action, _, _: ()| {
-        card_action.completed = true;
-        Ok(())
-    });
+    lua_api.add_dynamic_function(
+        CARD_ACTION_TABLE,
+        "end_action",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let id: GenerationalIndex = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let card_actions = &mut simulation.card_actions;
+
+            if card_actions.get_mut(id.into()).is_none() {
+                return Err(card_action_not_found());
+            }
+
+            simulation.delete_card_actions(api_ctx.game_io, api_ctx.vms, &[id.into()]);
+
+            lua.pack_multi(())
+        },
+    );
 
     getter(lua_api, "get_actor", |card_action, lua, _: ()| {
         lua.pack_multi(create_entity_table(lua, card_action.entity)?)

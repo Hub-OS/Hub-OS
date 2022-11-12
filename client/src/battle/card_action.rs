@@ -7,7 +7,7 @@ use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
 #[derive(Clone)]
 pub struct CardAction {
     pub active_frames: FrameTime,
-    pub completed: bool,
+    pub deleted: bool,
     pub executed: bool,
     pub used: bool,
     pub entity: EntityID,
@@ -33,7 +33,7 @@ impl CardAction {
     pub fn new(entity: EntityID, state: String, sprite_index: GenerationalIndex) -> Self {
         Self {
             active_frames: 0,
-            completed: false,
+            deleted: false,
             executed: false,
             used: false,
             entity,

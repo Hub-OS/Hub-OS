@@ -462,11 +462,19 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO<Globals>,
         vms: &[RollbackVM],
-
         delete_indices: &[generational_arena::Index],
     ) {
         for index in delete_indices {
-            let card_action = self.card_actions.get(*index).unwrap();
+            let Some(card_action) = self.card_actions.get_mut(*index) else {
+                continue;
+            };
+
+            if card_action.deleted {
+                // avoid callbacks calling delete_card_actions on this card action
+                continue;
+            }
+
+            card_action.deleted = true;
 
             // remove the index from the entity
             let entity = self
@@ -474,17 +482,19 @@ impl BattleSimulation {
                 .query_one_mut::<&mut Entity>(card_action.entity.into())
                 .unwrap();
 
-            if !entity.deleted && entity.card_action_index == Some(*index) {
+            if entity.card_action_index == Some(*index) {
                 entity.card_action_index = None;
 
                 // revert state
-                if let Some(state) = card_action.prev_state.as_ref() {
-                    let animator = &mut self.animators[entity.animator_index];
-                    let callbacks = animator.set_state(state);
-                    self.pending_callbacks.extend(callbacks);
+                if !entity.deleted {
+                    if let Some(state) = card_action.prev_state.as_ref() {
+                        let animator = &mut self.animators[entity.animator_index];
+                        let callbacks = animator.set_state(state);
+                        self.pending_callbacks.extend(callbacks);
 
-                    let sprite_node = entity.sprite_tree.root_mut();
-                    animator.apply(sprite_node);
+                        let sprite_node = entity.sprite_tree.root_mut();
+                        animator.apply(sprite_node);
+                    }
                 }
             }
 
