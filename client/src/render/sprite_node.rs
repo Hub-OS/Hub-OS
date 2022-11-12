@@ -1,4 +1,4 @@
-use super::{Animator, SpriteColorQueue, Tree, TreeIndex};
+use super::{Animator, SpriteColorQueue, SpriteShaderEffect, Tree, TreeIndex};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
 use framework::prelude::*;
@@ -6,16 +6,19 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct SpriteNode {
-    texture_path: String,
     layer: i32,
     scale: Vec2,
     offset: Vec2,
+    base_palette_path: String,
+    palette_path: String,
+    palette: Option<Arc<Texture>>,
+    texture_path: String,
+    sprite: Sprite,
+    color_mode: SpriteColorMode, // root node resets every frame
     using_parent_shader: bool,
     never_flip: bool,
     visible: bool,
     inherited_visible: bool,
-    color_mode: SpriteColorMode, // root node resets every frame
-    sprite: Sprite,
 }
 
 impl SpriteNode {
@@ -29,6 +32,9 @@ impl SpriteNode {
             layer: 0,
             scale: Vec2::ONE,
             offset: Vec2::ZERO,
+            base_palette_path: String::new(),
+            palette_path: String::new(),
+            palette: None,
             texture_path: ResourcePaths::BLANK.to_string(),
             sprite,
             color_mode,
@@ -130,6 +136,24 @@ impl SpriteNode {
 
     pub fn set_color_mode(&mut self, mode: SpriteColorMode) {
         self.color_mode = mode;
+    }
+
+    pub fn palette_path(&self) -> Option<&str> {
+        if self.palette.is_none() {
+            return None;
+        }
+
+        Some(&self.palette_path)
+    }
+
+    pub fn palette(&self) -> Option<&Arc<Texture>> {
+        self.palette.as_ref()
+    }
+
+    pub fn set_palette(&mut self, game_io: &GameIO<Globals>, path: String) {
+        let assets = &game_io.globals().assets;
+        self.palette = Some(assets.texture(game_io, &path));
+        self.palette_path = path;
     }
 
     pub fn texture_path(&self) -> &str {
@@ -238,6 +262,8 @@ impl Tree<SpriteNode> {
     }
 
     pub fn draw<'a>(&mut self, sprite_queue: &mut SpriteColorQueue<'a>) {
+        let intial_shader_effect = sprite_queue.shader_effect();
+
         // offset each child by parent node
         self.inherit_from_parent(Vec2::ZERO, false);
 
@@ -245,6 +271,7 @@ impl Tree<SpriteNode> {
 
         // capture root values before mutable reference
         let root_node = self.root();
+        let root_palette = root_node.palette.clone();
         let root_color_mode = root_node.color_mode();
         let root_color = root_node.color();
 
@@ -262,16 +289,26 @@ impl Tree<SpriteNode> {
             }
 
             // resolve shader
+            let palette;
             let color_mode;
             let color;
             let original_color = node.color();
 
             if node.using_parent_shader() {
+                palette = &root_palette;
                 color_mode = root_color_mode;
                 color = root_color;
             } else {
+                palette = &node.palette;
                 color_mode = node.color_mode();
                 color = node.color();
+            }
+
+            if let Some(texture) = palette.as_ref() {
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Palette);
+                sprite_queue.set_palette(texture.clone());
+            } else {
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
 
             sprite_queue.set_color_mode(color_mode);
@@ -282,5 +319,7 @@ impl Tree<SpriteNode> {
 
             node.set_color(original_color);
         }
+
+        sprite_queue.set_shader_effect(intial_shader_effect);
     }
 }
