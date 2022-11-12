@@ -9,7 +9,7 @@ use std::collections::HashMap;
 pub struct BattleAnimator {
     complete_callbacks: Vec<BattleCallback>,
     interrupt_callbacks: Vec<BattleCallback>,
-    frame_callbacks: HashMap<usize, Vec<BattleCallback>>,
+    frame_callbacks: HashMap<usize, Vec<(BattleCallback, bool)>>,
     animator: Animator,
     first_run: bool,
     enabled: bool,
@@ -71,11 +71,12 @@ impl BattleAnimator {
         self.interrupt_callbacks.push(callback);
     }
 
-    pub fn on_frame(&mut self, frame_index: usize, callback: BattleCallback) {
+    pub fn on_frame(&mut self, frame_index: usize, callback: BattleCallback, do_once: bool) {
         if let Some(callbacks) = self.frame_callbacks.get_mut(&frame_index) {
-            callbacks.push(callback);
+            callbacks.push((callback, do_once));
         } else {
-            self.frame_callbacks.insert(frame_index, vec![callback]);
+            self.frame_callbacks
+                .insert(frame_index, vec![(callback, do_once)]);
         }
     }
 
@@ -139,6 +140,24 @@ impl BattleAnimator {
         std::mem::take(&mut self.interrupt_callbacks)
     }
 
+    fn call_frame_callbacks(&mut self, pending_callbacks: &mut Vec<BattleCallback>, frame: usize) {
+        if let Some(callbacks) = self.frame_callbacks.get_mut(&frame) {
+            pending_callbacks.extend(callbacks.iter().map(|(callback, _)| callback.clone()));
+
+            let pending_removal: Vec<_> = callbacks
+                .iter()
+                .enumerate()
+                .filter(|(_, (_, do_once))| *do_once)
+                .map(|(i, _)| i)
+                .rev()
+                .collect();
+
+            for index in pending_removal {
+                callbacks.remove(index);
+            }
+        }
+    }
+
     #[must_use]
     pub fn update(&mut self) -> Vec<BattleCallback> {
         let mut pending_callbacks = Vec::new();
@@ -151,10 +170,7 @@ impl BattleAnimator {
         let previous_loop_count = self.animator.loop_count();
 
         if self.first_run {
-            if let Some(callbacks) = self.frame_callbacks.get(&previous_frame) {
-                pending_callbacks.extend(callbacks.iter().cloned());
-            }
-
+            self.call_frame_callbacks(&mut pending_callbacks, previous_frame);
             self.first_run = false;
         }
 
@@ -163,9 +179,7 @@ impl BattleAnimator {
         let current_frame = self.animator.current_frame_index();
 
         if previous_frame != current_frame {
-            if let Some(callbacks) = self.frame_callbacks.get(&current_frame) {
-                pending_callbacks.extend(callbacks.iter().cloned());
-            }
+            self.call_frame_callbacks(&mut pending_callbacks, current_frame);
         }
 
         if self.animator.is_complete() || previous_loop_count != self.animator.loop_count() {

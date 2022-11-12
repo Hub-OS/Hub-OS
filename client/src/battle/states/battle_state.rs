@@ -1500,7 +1500,7 @@ impl BattleState {
                 let animator = &mut simulation.animators[animator_index];
 
                 for (frame_index, callback) in std::mem::take(&mut card_action.frame_callbacks) {
-                    animator.on_frame(frame_index, callback);
+                    animator.on_frame(frame_index, callback, false);
                 }
 
                 // animation end callback
