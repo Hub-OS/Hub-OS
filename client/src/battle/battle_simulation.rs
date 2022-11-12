@@ -486,7 +486,7 @@ impl BattleSimulation {
                 entity.card_action_index = None;
 
                 // revert state
-                if !entity.deleted {
+                if !entity.deleted && !card_action.interrupted {
                     if let Some(state) = card_action.prev_state.as_ref() {
                         let animator = &mut self.animators[entity.animator_index];
                         let callbacks = animator.set_state(state);

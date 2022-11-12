@@ -1524,7 +1524,18 @@ impl BattleState {
                     });
 
                 animator.on_complete(animation_end_callback.clone());
-                animator.on_interrupt(animation_end_callback);
+
+                let interrupt_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
+                    let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                        return;
+                    };
+
+                    card_action.interrupted = true;
+
+                    animation_end_callback.call(game_io, simulation, vms, ());
+                });
+
+                animator.on_interrupt(interrupt_callback);
 
                 // update attachments
                 if let Some(sprite) = entity.sprite_tree.get_mut(card_action.sprite_index) {
