@@ -1168,12 +1168,14 @@ impl BattleState {
             .query_mut::<(&mut Entity, &mut Living)>()
         {
             if !entity.time_is_frozen && !entity.updated && entity.spawned && !entity.deleted {
-                callbacks.push(entity.update_callback.clone());
+                if !living.status_director.is_inactionable() {
+                    callbacks.push(entity.update_callback.clone());
 
-                for index in entity.local_components.iter().cloned() {
-                    let component = simulation.components.get(index).unwrap();
+                    for index in entity.local_components.iter().cloned() {
+                        let component = simulation.components.get(index).unwrap();
 
-                    callbacks.push(component.update_callback.clone());
+                        callbacks.push(component.update_callback.clone());
+                    }
                 }
 
                 entity.updated = true;
@@ -1255,20 +1257,24 @@ impl BattleState {
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
 
-        for (id, entity) in simulation.entities.query_mut::<&mut Entity>() {
-            if !entity.spawned || entity.deleted || entity.time_is_frozen {
-                continue;
+        for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
+            let mut update_progress = entity.spawned && !entity.deleted && !entity.time_is_frozen;
+
+            if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
+                if living.status_director.is_immobile() {
+                    update_progress = false;
+                }
             }
 
             if entity.move_action.is_some() {
-                moving_entities.push(id);
+                moving_entities.push((id, update_progress));
             }
         }
 
         // movement
         // maybe this should happen in a separate update before everything else updates
         // that way scripts see accurate offsets
-        for id in moving_entities {
+        for (id, update_progress) in moving_entities {
             let mut entity = simulation
                 .entities
                 .query_one_mut::<&mut Entity>(id)
@@ -1288,7 +1294,9 @@ impl BattleState {
                 simulation.pending_callbacks.push(callback);
             }
 
-            move_action.progress += 1;
+            if update_progress {
+                move_action.progress += 1;
+            }
 
             if !move_action.is_in_endlag() {
                 entity.last_movement = simulation.battle_time;
