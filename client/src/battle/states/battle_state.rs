@@ -35,6 +35,7 @@ impl State for BattleState {
     fn update(
         &mut self,
         game_io: &GameIO<Globals>,
+        shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -85,7 +86,7 @@ impl State for BattleState {
             }
         }
 
-        self.apply_status_vfx(game_io, simulation);
+        self.apply_status_vfx(game_io, shared_assets, simulation);
 
         simulation.call_pending_callbacks(game_io, vms);
 
@@ -356,6 +357,11 @@ impl BattleState {
                     // back up their data
                     let animator = &mut simulation.animators[entity.animator_index];
 
+                    // delete old status sprites
+                    for (_, index) in living.status_director.take_status_sprites() {
+                        entity.sprite_tree.remove(index);
+                    }
+
                     time_freeze_tracker.back_up_character(
                         entity_id,
                         entity.card_action_index,
@@ -388,7 +394,7 @@ impl BattleState {
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
-            if let Some((entity_id, action_index, animator, status_director)) =
+            if let Some((entity_id, action_index, animator, mut status_director)) =
                 time_freeze_tracker.take_character_backup()
             {
                 if let Ok((entity, living)) = simulation
@@ -404,7 +410,9 @@ impl BattleState {
                     simulation.animators[entity.animator_index] = animator;
 
                     // restore status director
-                    living.status_director = status_director;
+                    std::mem::swap(&mut living.status_director, &mut status_director);
+                    // merge to retain statuses gained from time freeze
+                    living.status_director.merge(status_director);
                 }
             }
 
@@ -1589,21 +1597,28 @@ impl BattleState {
         simulation.delete_card_actions(game_io, vms, &actions_pending_deletion);
     }
 
-    fn apply_status_vfx(&self, _game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+    fn apply_status_vfx(
+        &self,
+        game_io: &GameIO<Globals>,
+        shared_assets: &mut SharedBattleAssets,
+        simulation: &mut BattleSimulation,
+    ) {
         for (_, (entity, living)) in simulation
             .entities
             .query_mut::<(&mut Entity, &mut Living)>()
         {
-            let root_sprite = entity.sprite_tree.root_mut();
+            let sprite_tree = &mut entity.sprite_tree;
             let status_director = &mut living.status_director;
 
             if status_director.status_lifetime(HitFlag::FREEZE).is_some() {
+                let root_sprite = sprite_tree.root_mut();
                 root_sprite.set_color_mode(SpriteColorMode::Add);
                 root_sprite.set_color(Color::new(0.7, 0.8, 0.9, 1.0));
             }
 
             if let Some(lifetime) = status_director.status_lifetime(HitFlag::PARALYZE) {
                 if (lifetime / 2) % 2 == 0 {
+                    let root_sprite = sprite_tree.root_mut();
                     root_sprite.set_color_mode(SpriteColorMode::Add);
                     root_sprite.set_color(Color::YELLOW);
                 }
@@ -1611,6 +1626,7 @@ impl BattleState {
 
             if let Some(lifetime) = status_director.status_lifetime(HitFlag::ROOT) {
                 if (lifetime / 2) % 2 == 0 {
+                    let root_sprite = sprite_tree.root_mut();
                     root_sprite.set_color_mode(SpriteColorMode::Multiply);
                     root_sprite.set_color(Color::BLACK);
                 }
@@ -1618,6 +1634,7 @@ impl BattleState {
 
             if let Some(lifetime) = status_director.status_lifetime(HitFlag::FLASH) {
                 if (lifetime / 2) % 2 == 0 {
+                    let root_sprite = sprite_tree.root_mut();
                     root_sprite.set_color(Color::TRANSPARENT);
                 }
             }
@@ -1626,6 +1643,8 @@ impl BattleState {
                 entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
                 status_director.decrement_shake_time();
             }
+
+            status_director.update_status_sprites(game_io, shared_assets, entity);
         }
     }
 }

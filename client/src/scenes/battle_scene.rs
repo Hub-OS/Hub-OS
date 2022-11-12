@@ -26,6 +26,7 @@ pub struct BattleScene {
     battle_duration: FrameTime,
     ui_camera: Camera,
     synced_time: FrameTime,
+    shared_assets: SharedBattleAssets,
     simulation: BattleSimulation,
     state: Box<dyn State>,
     backups: VecDeque<Backup>,
@@ -50,6 +51,7 @@ impl BattleScene {
             battle_duration: 0,
             ui_camera: Camera::new(game_io),
             synced_time: 0,
+            shared_assets: SharedBattleAssets::new(game_io),
             simulation: BattleSimulation::new(
                 game_io,
                 props.background.clone(),
@@ -424,7 +426,12 @@ impl BattleScene {
         }
 
         self.simulation.pre_update(game_io, &self.vms);
-        self.state.update(game_io, &mut self.simulation, &self.vms);
+        self.state.update(
+            game_io,
+            &mut self.shared_assets,
+            &mut self.simulation,
+            &self.vms,
+        );
         self.simulation.post_update(game_io, &self.vms);
 
         if self.backups.len() > INPUT_BUFFER_LIMIT {

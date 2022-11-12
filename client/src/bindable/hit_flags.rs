@@ -4,6 +4,7 @@ pub type HitFlags = u32;
 #[allow(non_snake_case)]
 pub mod HitFlag {
     use super::HitFlags;
+    use framework::prelude::Vec2;
 
     pub const NONE: HitFlags = 0x00000000;
     pub const RETAIN_INTANGIBLE: HitFlags = 0x00000001;
@@ -42,4 +43,30 @@ pub mod HitFlag {
     ];
 
     pub const STATUS_LIST: [HitFlags; 6] = [FREEZE, PARALYZE, BUBBLE, ROOT, BLIND, CONFUSE];
+
+    pub fn status_animation_state(flag: HitFlags, height: f32) -> &'static str {
+        match flag {
+            CONFUSE => "CONFUSE",
+            BLIND => "BLIND",
+            FREEZE => {
+                if height <= 48.0 {
+                    "FREEZE_SMALL"
+                } else if height <= 75.0 {
+                    "FREEZE_MEDIUM"
+                } else {
+                    "FREEZE_LARGE"
+                }
+            }
+            _ => "",
+        }
+    }
+
+    pub fn status_sprite_position(flag: HitFlags, height: f32) -> Vec2 {
+        match flag {
+            CONFUSE => Vec2::new(0.0, -height),
+            BLIND => Vec2::new(0.0, -height),
+            FREEZE => Vec2::new(0.0, -height / 2.0),
+            _ => Vec2::ZERO,
+        }
+    }
 }

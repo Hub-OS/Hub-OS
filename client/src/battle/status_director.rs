@@ -1,10 +1,10 @@
-use crate::bindable::{HitFlag, HitFlags};
-use crate::render::FrameTime;
+use super::{Entity, PlayerInput, SharedBattleAssets};
+use crate::bindable::{HitFlag, HitFlags, SpriteColorMode};
+use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::{
-    BATTLE_INPUTS, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
+    Globals, BATTLE_INPUTS, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
 };
-
-use super::PlayerInput;
+use framework::prelude::GameIO;
 
 struct StatusBlocker {
     blocking_flag: HitFlags, // The flag that prevents the other from going through.
@@ -44,6 +44,7 @@ struct AppliedStatus {
 pub struct StatusDirector {
     statuses: Vec<AppliedStatus>,
     new_statuses: Vec<AppliedStatus>,
+    status_sprites: Vec<(HitFlags, TreeIndex)>,
     input_index: Option<usize>,
     dragged: bool,
     remaining_drag_lockout: FrameTime,
@@ -55,6 +56,7 @@ impl Default for StatusDirector {
         Self {
             statuses: Vec::new(),
             new_statuses: Vec::new(),
+            status_sprites: Vec::new(),
             input_index: None,
             dragged: false,
             remaining_drag_lockout: 0,
@@ -147,6 +149,109 @@ impl StatusDirector {
     pub fn decrement_shake_time(&mut self) {
         if self.remaining_shake_time > 0 {
             self.remaining_shake_time -= 1;
+        }
+    }
+
+    pub fn take_status_sprites(&mut self) -> Vec<(HitFlags, TreeIndex)> {
+        std::mem::take(&mut self.status_sprites)
+    }
+
+    pub fn update_status_sprites(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        shared_assets: &mut SharedBattleAssets,
+        entity: &mut Entity,
+    ) {
+        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::FREEZE);
+        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::BLIND);
+        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::CONFUSE);
+    }
+
+    fn update_status_sprite(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        shared_assets: &mut SharedBattleAssets,
+        entity: &mut Entity,
+        status_flag: HitFlags,
+    ) {
+        let sprite_tree = &mut entity.sprite_tree;
+
+        let existing_index = self.status_sprite_index(status_flag);
+
+        let Some(lifetime) = self.status_lifetime(status_flag) else {
+            if let Some(sprite_index) = existing_index {
+                sprite_tree.remove(sprite_index);
+                self.forget_status_sprite(status_flag);
+            }
+            return;
+        };
+
+        let index = existing_index.unwrap_or_else(|| {
+            let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
+            let texture = shared_assets.statuses_texture.clone();
+            sprite_node.set_texture_direct(texture);
+
+            let index = sprite_tree.insert_root_child(sprite_node);
+            self.status_sprites.push((status_flag, index));
+            index
+        });
+
+        let alpha = sprite_tree.root().color().a;
+
+        let sprite_node = &mut sprite_tree[index];
+        let animator = &mut shared_assets.statuses_animator;
+        let state = HitFlag::status_animation_state(status_flag, entity.height);
+
+        if animator.current_state() != Some(state) {
+            animator.set_state(state);
+            animator.set_loop_mode(AnimatorLoopMode::Loop);
+        }
+
+        animator.sync_time(lifetime);
+        sprite_node.apply_animation(&animator);
+        sprite_node.set_offset(HitFlag::status_sprite_position(status_flag, entity.height));
+        sprite_node.set_alpha(alpha);
+    }
+
+    fn status_sprite_index(&self, status_flag: HitFlags) -> Option<TreeIndex> {
+        self.status_sprites
+            .iter()
+            .find(|(flag, _)| *flag == status_flag)
+            .map(|(_, index)| *index)
+    }
+
+    fn forget_status_sprite(&mut self, status_flag: HitFlags) {
+        if let Some(index) = self
+            .status_sprites
+            .iter()
+            .position(|(flag, _)| *flag == status_flag)
+        {
+            self.status_sprites.remove(index);
+        }
+    }
+
+    pub fn merge(&mut self, source: Self) {
+        self.status_sprites = source.status_sprites;
+
+        for status in source.new_statuses {
+            self.apply_status(status.status_flag, status.remaining_time);
+        }
+
+        for status in source.statuses {
+            let status_flag = status.status_flag;
+
+            if let Some(prev_status) = self
+                .statuses
+                .iter_mut()
+                .find(|status| status.status_flag == status_flag)
+            {
+                // overwrite previous status
+                prev_status.lifetime = status.lifetime;
+                prev_status.remaining_time = status.remaining_time;
+            } else {
+                // push status
+                self.statuses.push(status);
+            }
         }
     }
 
