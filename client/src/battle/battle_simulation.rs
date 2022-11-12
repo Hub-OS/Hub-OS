@@ -226,6 +226,8 @@ impl BattleSimulation {
 
         self.update_ui();
 
+        self.field.update_animations();
+
         self.time += 1;
     }
 

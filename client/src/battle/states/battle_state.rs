@@ -439,16 +439,7 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        let cols = simulation.field.cols() as i32;
-        let rows = simulation.field.rows() as i32;
-
-        for row in 0..rows {
-            for col in 0..cols {
-                let tile = simulation.field.tile_at_mut((col, row)).unwrap();
-
-                tile.reset_highlight();
-            }
-        }
+        simulation.field.update();
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // skip tile effect processing if time is frozen
@@ -1611,7 +1602,7 @@ impl BattleState {
 
             if let Some(lifetime) = living.status_director.status_lifetime(HitFlag::ROOT) {
                 if (lifetime / 2) % 2 == 0 {
-                    root_sprite.set_color_mode(SpriteColorMode::Replace);
+                    root_sprite.set_color_mode(SpriteColorMode::Multiply);
                     root_sprite.set_color(Color::BLACK);
                 }
             }
