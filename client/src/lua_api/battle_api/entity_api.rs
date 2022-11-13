@@ -864,10 +864,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
-    // todo: rename to set_full_charge_color or set_fully_charged_color?
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
-        "set_fully_charge_color",
+        "set_fully_charged_color",
         |api_ctx, lua, params| {
             let (table, color): (rollback_mlua::Table, LuaColor) = lua.unpack_multi(params)?;
 
