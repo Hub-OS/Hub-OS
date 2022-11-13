@@ -573,6 +573,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let table = lua.create_table()?;
         table.raw_set("#id", GenerationalIndex::from(id))?;
+        table.raw_set("#entity", entity_table)?;
         inherit_metatable(lua, COMPONENT_TABLE, &table)?;
 
         lua.pack_multi(table)
