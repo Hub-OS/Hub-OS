@@ -159,12 +159,7 @@ impl Tile {
         props.is_super_effective(element)
     }
 
-    pub fn update(&mut self) {
-        self.reset_highlight();
-        self.update_state();
-    }
-
-    fn reset_highlight(&mut self) {
+    pub fn reset_highlight(&mut self) {
         if self.highlight != TileHighlight::Flash {
             self.flash_time = 0;
         } else {
@@ -174,7 +169,7 @@ impl Tile {
         self.highlight = TileHighlight::None;
     }
 
-    fn update_state(&mut self) {
+    pub fn update_state(&mut self) {
         self.state_lifetime += 1;
 
         if let Some(max_lifetime) = self.state.max_lifetime() {

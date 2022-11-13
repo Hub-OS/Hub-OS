@@ -166,9 +166,15 @@ impl Field {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn reset_highlight(&mut self) {
         for tile in &mut self.tiles {
-            tile.update();
+            tile.reset_highlight();
+        }
+    }
+
+    pub fn update_tile_states(&mut self) {
+        for tile in &mut self.tiles {
+            tile.update_state();
         }
     }
 
