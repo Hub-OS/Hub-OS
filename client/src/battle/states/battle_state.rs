@@ -713,7 +713,7 @@ impl BattleState {
                     id.into(),
                     attacker_id,
                     &defense_rules,
-                    false,
+                    true,
                 );
 
                 if simulation.defense_judge.damage_blocked {
