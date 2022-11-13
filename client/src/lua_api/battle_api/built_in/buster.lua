@@ -15,6 +15,7 @@ local buster_attachment = card_action:add_attachment("BUSTER")
 local buster_sprite = buster_attachment:sprite()
 buster_sprite:set_texture(user:get_texture())
 buster_sprite:set_layer(-2)
+buster_sprite:enable_parent_shader()
 
 local buster_animation = buster_attachment:get_animation()
 buster_animation:copy_from(user:get_animation())
