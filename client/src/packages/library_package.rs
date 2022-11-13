@@ -1,6 +1,6 @@
 use super::*;
 use crate::lua_api::create_analytical_vm;
-use crate::resources::AssetManager;
+use crate::resources::LocalAssetManager;
 use std::cell::RefCell;
 
 #[derive(Default, Clone)]
@@ -17,13 +17,13 @@ impl Package for LibraryPackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &impl AssetManager, package_info: PackageInfo) -> Self {
+    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
         let lua = create_analytical_vm(assets, &package_info);
 
         let package = RefCell::new(Self { package_info });
 
         lua.scope(|scope| {
-            crate::lua_api::inject_analytical_api(&lua, scope, &package)?;
+            crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
             Ok(())

@@ -1,7 +1,7 @@
 use super::*;
 use crate::bindable::Element;
 use crate::lua_api::create_analytical_vm;
-use crate::resources::{AssetManager, ResourcePaths};
+use crate::resources::{LocalAssetManager, ResourcePaths};
 use std::cell::RefCell;
 
 #[derive(Default, Clone)]
@@ -29,7 +29,7 @@ impl Package for PlayerPackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &impl AssetManager, package_info: PackageInfo) -> Self {
+    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
         let package = RefCell::new(PlayerPackage::default());
         package.borrow_mut().package_info = package_info.clone();
 
@@ -48,7 +48,7 @@ impl Package for PlayerPackage {
         };
 
         lua.scope(|scope| {
-            crate::lua_api::inject_analytical_api(&lua, scope, &package)?;
+            crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
             let package_table = lua.create_table()?;

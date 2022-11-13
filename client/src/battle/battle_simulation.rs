@@ -691,12 +691,20 @@ impl BattleSimulation {
         game_io: &GameIO<Globals>,
         vms: &[RollbackVM],
         package_id: &str,
-        namespace: PackageNamespace,
+        package_namespace: PackageNamespace,
         index: usize,
         local: bool,
         cards: Vec<Card>,
     ) -> rollback_mlua::Result<EntityID> {
-        let vm_index = Self::find_vm(vms, package_id, namespace)?;
+        let vm_index = Self::find_vm(vms, package_id, package_namespace)?;
+
+        // namespace for using cards / attacks
+        let namespace = if local {
+            PackageNamespace::Local
+        } else {
+            PackageNamespace::Remote(index)
+        };
+
         let id = self.create_character(game_io, CharacterRank::V1, namespace)?;
 
         let (entity, living) = self
@@ -709,7 +717,7 @@ impl BattleSimulation {
 
         // use preloaded package properties
         let player_package = (game_io.globals().player_packages)
-            .package_or_fallback(namespace, package_id)
+            .package_or_fallback(package_namespace, package_id)
             .unwrap();
 
         entity.element = player_package.element;

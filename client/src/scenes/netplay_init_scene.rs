@@ -297,7 +297,7 @@ impl NetplayInitScene {
                 // track files we need to download
                 let missing_packages: Vec<_> = load_list
                     .iter()
-                    .filter(|(_, _, hash)| self.missing_packages.contains(hash))
+                    .filter(|(_, _, hash)| !self.missing_packages.contains(hash))
                     .map(|(_, _, hash)| *hash)
                     .collect();
 
