@@ -1,9 +1,11 @@
 use crate::bindable::*;
 use crate::render::FrameTime;
+use crate::resources::TILE_FLICKER_DURATION;
 
 #[derive(Default, Clone)]
 pub struct Tile {
     state: TileState,
+    state_lifetime: FrameTime,
     team: Team,
     direction: Direction,
     highlight: TileHighlight,
@@ -33,6 +35,7 @@ impl Tile {
             return;
         }
 
+        self.state_lifetime = 0;
         self.state = state;
     }
 
@@ -74,16 +77,6 @@ impl Tile {
                 false
             }
         }
-    }
-
-    pub fn reset_highlight(&mut self) {
-        if self.highlight != TileHighlight::Flash {
-            self.flash_time = 0;
-        } else {
-            self.flash_time += 1;
-        }
-
-        self.highlight = TileHighlight::None;
     }
 
     pub fn set_highlight(&mut self, highlight: TileHighlight) {
@@ -164,5 +157,42 @@ impl Tile {
         };
 
         props.is_super_effective(element)
+    }
+
+    pub fn update(&mut self) {
+        self.reset_highlight();
+        self.update_state();
+    }
+
+    fn reset_highlight(&mut self) {
+        if self.highlight != TileHighlight::Flash {
+            self.flash_time = 0;
+        } else {
+            self.flash_time += 1;
+        }
+
+        self.highlight = TileHighlight::None;
+    }
+
+    fn update_state(&mut self) {
+        self.state_lifetime += 1;
+
+        if let Some(max_lifetime) = self.state.max_lifetime() {
+            if self.state_lifetime > max_lifetime {
+                self.state = TileState::Normal;
+            }
+        }
+    }
+
+    pub fn animation_state(&self, flipped: bool) -> &'static str {
+        if let Some(max_lifetime) = self.state.max_lifetime() {
+            let flicker_elapsed = self.state_lifetime - (max_lifetime - TILE_FLICKER_DURATION);
+
+            if flicker_elapsed > 0 && (flicker_elapsed / 2) % 2 == 0 {
+                return TileState::Normal.animation_suffix(flipped);
+            }
+        }
+
+        self.state.animation_suffix(flipped)
     }
 }
