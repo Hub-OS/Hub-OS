@@ -180,7 +180,9 @@ impl DefenseJudge {
                     return Ok(());
                 };
 
-                let judge_table: LuaTable = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
+                // todo: use constant?
+                let battle_table: LuaTable = lua.globals().get("Battle")?;
+                let judge_table: LuaTable = battle_table.get("DefenseJudge")?;
 
                 let attacker_table = create_entity_table(lua, attacker_id)?;
                 let defender_table = create_entity_table(lua, defender_id)?;
