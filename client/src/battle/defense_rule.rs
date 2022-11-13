@@ -1,7 +1,7 @@
 use super::{rollback_vm::RollbackVM, BattleScriptContext};
 use super::{BattleSimulation, Living};
 use crate::bindable::{DefensePriority, EntityID, HitFlag, HitProperties};
-use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
+use crate::lua_api::create_entity_table;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
 use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
