@@ -447,12 +447,14 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        simulation.field.update();
+        simulation.field.reset_highlight();
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // skip tile effect processing if time is frozen
             return;
         }
+
+        simulation.field.update_tile_states();
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
             if entity.ignore_tile_effects || !entity.on_field || entity.deleted {
