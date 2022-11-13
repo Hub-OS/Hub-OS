@@ -168,7 +168,7 @@ impl Field {
 
     pub fn update(&mut self) {
         for tile in &mut self.tiles {
-            tile.reset_highlight();
+            tile.update();
         }
     }
 
@@ -215,7 +215,7 @@ impl Field {
                     continue;
                 }
 
-                let animation_string = prefix.clone() + tile.state().animation_suffix(flipped);
+                let animation_string = prefix.clone() + tile.animation_state(flipped);
                 self.tile_animator.set_state(&animation_string);
                 self.tile_animator.set_loop_mode(AnimatorLoopMode::Loop);
                 self.tile_animator.sync_time(self.time);

@@ -1,6 +1,7 @@
-use num_derive::FromPrimitive;
-
 use super::Direction;
+use crate::render::FrameTime;
+use crate::resources::{BROKEN_LIFETIME, CONVEYOR_LIFETIME};
+use num_derive::FromPrimitive;
 
 #[repr(u8)]
 #[derive(PartialEq, Eq, Default, Clone, Copy, FromPrimitive)]
@@ -49,6 +50,17 @@ impl TileState {
             TileState::DirectionUp => Direction::Up,
             TileState::DirectionDown => Direction::Down,
             _ => Direction::None,
+        }
+    }
+
+    pub fn max_lifetime(self) -> Option<FrameTime> {
+        match self {
+            TileState::Broken => Some(BROKEN_LIFETIME),
+            TileState::DirectionLeft
+            | TileState::DirectionRight
+            | TileState::DirectionUp
+            | TileState::DirectionDown => Some(CONVEYOR_LIFETIME),
+            _ => None,
         }
     }
 
