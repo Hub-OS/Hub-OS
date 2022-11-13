@@ -4,6 +4,7 @@ use crate::bindable::{DefensePriority, EntityID, HitFlag, HitProperties};
 use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
 use crate::resources::Globals;
 use framework::prelude::GameIO;
+use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
 use std::cell::RefCell;
 use std::sync::Arc;
 
@@ -12,16 +13,16 @@ pub struct DefenseRule {
     pub collision_only: bool,
     pub priority: DefensePriority,
     pub vm_index: usize,
-    pub table: Arc<rollback_mlua::RegistryKey>,
+    pub table: Arc<LuaRegistryKey>,
 }
 
 impl DefenseRule {
     pub fn add(
         api_ctx: &mut BattleScriptContext,
         lua: &rollback_mlua::Lua,
-        defense_table: rollback_mlua::Table,
+        defense_table: LuaTable,
         entity_id: EntityID,
-    ) -> rollback_mlua::Result<()> {
+    ) -> LuaResult<()> {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
@@ -74,9 +75,9 @@ impl DefenseRule {
     pub fn remove(
         api_ctx: &mut BattleScriptContext,
         lua: &rollback_mlua::Lua,
-        defense_table: rollback_mlua::Table,
+        defense_table: LuaTable,
         entity_id: EntityID,
-    ) -> rollback_mlua::Result<()> {
+    ) -> LuaResult<()> {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
@@ -94,7 +95,7 @@ impl DefenseRule {
         if let Some(index) = similar_rule_index {
             let existing_rule = &living.defense_rules[index];
 
-            if lua.registry_value::<rollback_mlua::Table>(&existing_rule.table)? == defense_table {
+            if lua.registry_value::<LuaTable>(&existing_rule.table)? == defense_table {
                 living.defense_rules.remove(index);
             }
         }
@@ -119,12 +120,12 @@ impl DefenseRule {
 
         let lua = &vms[self.vm_index].lua;
 
-        let table: rollback_mlua::Table = lua.registry_value(&self.table).unwrap();
+        let table: LuaTable = lua.registry_value(&self.table).unwrap();
 
         lua_api.inject_dynamic(lua, &context, |_| {
             table.raw_set("#replaced", true)?;
 
-            let callback: rollback_mlua::Function = table.get("on_replace_func")?;
+            let callback: LuaFunction = table.get("on_replace_func")?;
 
             callback.call(())?;
 
@@ -172,12 +173,14 @@ impl DefenseJudge {
 
             let lua = &vms[defense_rule.vm_index].lua;
 
-            let table: rollback_mlua::Table = lua.registry_value(&defense_rule.table).unwrap();
+            let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |lua| {
-                let callback: rollback_mlua::Function = table.get("can_block_func")?;
+                let Ok(callback): LuaResult<LuaFunction> = table.get("can_block_func") else {
+                    return Ok(());
+                };
 
-                let judge_table: rollback_mlua::Table = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
+                let judge_table: LuaTable = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
 
                 let attacker_table = create_entity_table(lua, attacker_id)?;
                 let defender_table = create_entity_table(lua, defender_id)?;
@@ -209,10 +212,12 @@ impl DefenseJudge {
 
             let lua = &vms[defense_rule.vm_index].lua;
 
-            let table: rollback_mlua::Table = lua.registry_value(&defense_rule.table).unwrap();
+            let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |_| {
-                let callback: rollback_mlua::Function = table.get("filter_statuses_func")?;
+                let Ok(callback): LuaResult<LuaFunction> = table.get("filter_statuses_func") else {
+                    return Ok(());
+                };
 
                 *props = callback.call(&*props)?;
 
