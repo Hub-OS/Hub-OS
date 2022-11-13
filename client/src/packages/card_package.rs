@@ -1,6 +1,6 @@
 use super::*;
 use crate::lua_api::create_analytical_vm;
-use crate::resources::AssetManager;
+use crate::resources::LocalAssetManager;
 use crate::{bindable::CardProperties, resources::ResourcePaths};
 use rollback_mlua::{FromLua, ToLua};
 use std::cell::RefCell;
@@ -23,7 +23,7 @@ impl Package for CardPackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &impl AssetManager, package_info: PackageInfo) -> Self {
+    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
         let package = RefCell::new(CardPackage::default());
         package.borrow_mut().package_info = package_info.clone();
 
@@ -45,7 +45,7 @@ impl Package for CardPackage {
         let table = CardProperties::default().to_lua(&lua).unwrap();
 
         lua.scope(|scope| {
-            crate::lua_api::inject_analytical_api(&lua, scope, &package)?;
+            crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
             let package_table = lua.create_table()?;

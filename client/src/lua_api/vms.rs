@@ -1,6 +1,9 @@
+use super::inject_package_management_api;
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
 use crate::packages::PackageInfo;
-use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
+use crate::resources::{
+    AssetManager, Globals, LocalAssetManager, ResourcePaths, INPUT_BUFFER_LIMIT,
+};
 use framework::prelude::GameIO;
 use std::cell::RefCell;
 
@@ -8,7 +11,7 @@ use std::cell::RefCell;
 const VM_MEMORY: usize = 1024 * 1024 / 2;
 
 pub fn create_analytical_vm(
-    assets: &impl AssetManager,
+    assets: &LocalAssetManager,
     package_info: &PackageInfo,
 ) -> rollback_mlua::Lua {
     let lua = rollback_mlua::Lua::new();
@@ -28,41 +31,20 @@ pub fn create_analytical_vm(
 
         let globals_metatable = lua.create_table().unwrap();
         globals_metatable.set("__index", lua.globals()).unwrap();
-        let globals_metatable_key = lua.create_registry_value(globals_metatable).unwrap();
-
-        // version of include that doesn't require a context
-        // real include is in include_api.rs
-        globals
-            .set(
-                "include",
-                lua.create_function(move |lua, path: String| {
-                    let env = lua.environment()?;
-                    let folder_path: String = env.get("_folder_path")?;
-
-                    let path = folder_path + &path;
-                    let source = std::fs::read_to_string(&path).unwrap_or_default();
-
-                    let metatable: rollback_mlua::Table =
-                        lua.registry_value(&globals_metatable_key)?;
-
-                    let env = lua.create_table()?;
-                    env.set_metatable(Some(metatable));
-                    env.set("_folder_path", ResourcePaths::parent(&path))?;
-
-                    lua.load(&source)
-                        .set_name(ResourcePaths::shorten(&path))?
-                        .set_environment(env)?
-                        .call::<_, rollback_mlua::Value>(())
-                })
-                .unwrap(),
-            )
+        lua.set_named_registry_value("globals", globals_metatable)
             .unwrap();
 
         // real api that does not depend on anything
         super::global_api::inject_global_api(&lua).unwrap();
     }
 
-    if let Err(e) = load_root_script(&lua, assets, package_info) {
+    let res = lua.scope(|scope| {
+        inject_package_management_api(&lua, scope, assets)?;
+
+        load_root_script(&lua, assets, package_info)
+    });
+
+    if let Err(e) = res {
         log::error!(
             "{:?} {}",
             ResourcePaths::shorten(&package_info.script_path),

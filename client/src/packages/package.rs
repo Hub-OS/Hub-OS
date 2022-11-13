@@ -1,8 +1,8 @@
 use super::PackageInfo;
-use crate::resources::AssetManager;
+use crate::resources::LocalAssetManager;
 
 pub trait Package {
-    fn load_new(assets: &impl AssetManager, package_info: PackageInfo) -> Self;
+    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self;
 
     fn package_info(&self) -> &PackageInfo;
 
