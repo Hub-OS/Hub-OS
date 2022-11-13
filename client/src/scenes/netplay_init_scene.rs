@@ -15,6 +15,8 @@ use rand::RngCore;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::pin::Pin;
 
+const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
+
 enum Event {
     AddressesFailed,
     ResolvedAddresses {
@@ -50,6 +52,7 @@ pub struct NetplayInitScene {
     missing_packages: HashSet<FileHash>,
     uploaded_packages: HashSet<FileHash>,
     player_connections: Vec<RemotePlayerConnection>,
+    last_fallback_instant: Instant,
     fallback_sender_receiver: Option<(NetplayPacketSender, NetplayPacketReceiver)>,
     event_receiver: flume::Receiver<Event>,
     ui_camera: Camera,
@@ -146,12 +149,13 @@ impl NetplayInitScene {
             data,
             background,
             statistics_callback,
-            last_heartbeat: Instant::now(),
+            last_heartbeat: game_io.frame_start_instant(),
             failed: false,
             seed: 0,
             missing_packages: HashSet::new(),
             uploaded_packages: HashSet::new(),
             player_connections: remote_player_connections,
+            last_fallback_instant: game_io.frame_start_instant(),
             fallback_sender_receiver: None,
             event_receiver,
             ui_camera: Camera::new_ui(game_io),
@@ -177,11 +181,6 @@ impl NetplayInitScene {
     }
 
     fn handle_heartbeat(&mut self) {
-        if self.fallback_sender_receiver.is_some() {
-            // the fallback will handle keeping the connection alive (ServerPacket::Heartbeat)
-            return;
-        }
-
         let now = Instant::now();
 
         if now - self.last_heartbeat >= SERVER_TICK_RATE {
@@ -202,8 +201,17 @@ impl NetplayInitScene {
                 return;
             }
 
+            if !receiver.is_empty() {
+                self.last_fallback_instant = game_io.frame_start_instant();
+            }
+
             while let Ok(packet) = receiver.try_recv() {
                 packets.push(packet);
+            }
+
+            if game_io.frame_start_instant() - self.last_fallback_instant > MAX_FALLBACK_SILENCE {
+                // remote must've disconnected in some edge case, such as leaving before connection even starts
+                self.failed = true;
             }
         } else {
             for connection in &self.player_connections {
@@ -613,6 +621,7 @@ impl Scene<Globals> for NetplayInitScene {
                     self.broadcast_package_list(game_io);
                 }
                 Event::Fallback { fallback } => {
+                    self.last_fallback_instant = game_io.frame_start_instant();
                     self.fallback_sender_receiver = Some(fallback);
                     self.broadcast_package_list(game_io);
                 }
