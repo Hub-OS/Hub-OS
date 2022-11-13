@@ -63,4 +63,12 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(COMPONENT_TABLE, "get_owner", |_, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let entity_table: rollback_mlua::Table = table.get("#entity")?;
+
+        lua.pack_multi(entity_table)
+    });
 }
