@@ -1012,8 +1012,8 @@ impl BattleSimulation {
         // draw entities, sorting by position
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);
 
-        // filter characters for blindness
-        for (id, entity) in self.entities.query_mut::<hecs::With<&Entity, &Character>>() {
+        // filter characters + obstacles for blindness
+        for (id, entity) in self.entities.query_mut::<hecs::With<&Entity, &Living>>() {
             if blind_filter.is_some() && blind_filter != Some(entity.team) {
                 continue;
             }
@@ -1024,10 +1024,7 @@ impl BattleSimulation {
         }
 
         // add everything else
-        for (id, entity) in self
-            .entities
-            .query_mut::<hecs::Without<&Entity, &Character>>()
-        {
+        for (id, entity) in self.entities.query_mut::<hecs::Without<&Entity, &Living>>() {
             if entity.on_field && entity.sprite_tree.root().visible() {
                 sorted_entities.push((id, entity.sort_key()));
             }
