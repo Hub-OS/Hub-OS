@@ -1,4 +1,4 @@
-use super::Tile;
+use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
@@ -19,8 +19,16 @@ pub struct Field {
 
 impl Field {
     pub fn new(game_io: &GameIO<Globals>, cols: usize, rows: usize) -> Self {
-        let mut tiles = Vec::new();
-        tiles.resize_with(cols * rows, Tile::new);
+        let mut tiles = Vec::with_capacity(cols * rows);
+
+        for row in 0..rows as i32 {
+            for col in 0..cols as i32 {
+                let position = (col, row);
+                let immutable_team = col <= 1 || col + 2 >= cols as i32;
+
+                tiles.push(Tile::new(position, immutable_team));
+            }
+        }
 
         let globals = game_io.globals();
         let assets = &globals.assets;
@@ -129,6 +137,13 @@ impl Field {
         center
     }
 
+    pub fn drop_entity(&mut self, id: EntityID) {
+        for tile in &mut self.tiles {
+            tile.unignore_attacker(id);
+            tile.clear_reservations_for(id);
+        }
+    }
+
     pub fn resolve_wash(&mut self) {
         for tile in &mut self.tiles {
             tile.apply_wash();
@@ -172,14 +187,76 @@ impl Field {
         }
     }
 
-    pub fn update_tile_states(&mut self) {
+    pub fn update_tile_states(&mut self, entities: &mut hecs::World) {
         for tile in &mut self.tiles {
             tile.update_state();
+        }
+
+        // sync team timers
+        for col in 0..self.cols as i32 {
+            let mut col_timer = FrameTime::MAX;
+            let mut revert_blocked = false;
+
+            // find the smallest time
+            'rows: for row in 0..self.rows as i32 {
+                let tile = self.tile_at_mut((col, row)).unwrap();
+
+                let timer = tile.team_revert_timer();
+
+                if col_timer > timer && timer > 0 {
+                    col_timer = timer;
+                }
+
+                // test reservation blocking
+                let original_team = tile.original_team();
+
+                for id in tile.reservations().iter().cloned() {
+                    if let Ok(entity) = entities.query_one_mut::<&Entity>(id.into()) {
+                        // only opponents can block team changes
+                        // checking for Team::Other prevents field obstacles such as rocks from blocking
+                        if entity.team != original_team && entity.team != Team::Other {
+                            revert_blocked = true;
+                            continue 'rows;
+                        }
+                    }
+                }
+
+                // test unresolved neighbor blocking
+
+                let neighbor_col = if tile.direction() == Direction::Right {
+                    col - 1
+                } else {
+                    col + 1
+                };
+
+                if let Some(neighbor_tile) = self.tile_at_mut((neighbor_col, row)) {
+                    // test if the neighbor must revert too
+                    revert_blocked |= neighbor_tile.original_team() == original_team
+                        && neighbor_tile.team() != original_team;
+                }
+            }
+
+            // sync the timers if one was found
+            if col_timer < FrameTime::MAX {
+                if col_timer > 1 || !revert_blocked {
+                    // prevent the timer from hitting 0 if there's a rule blocking us
+                    col_timer -= 1;
+                }
+
+                for row in 0..self.rows as i32 {
+                    let tile = self.tile_at_mut((col, row)).unwrap();
+                    tile.sync_team_revert_timer(col_timer);
+                }
+            }
         }
     }
 
     pub fn update_animations(&mut self) {
         self.time += 1;
+
+        for tile in &mut self.tiles {
+            tile.update_team_flicker();
+        }
     }
 
     pub fn draw(
@@ -226,7 +303,7 @@ impl Field {
                 self.tile_animator.set_loop_mode(AnimatorLoopMode::Loop);
                 self.tile_animator.sync_time(self.time);
 
-                let sprite = match tile.team() {
+                let sprite = match tile.visible_team() {
                     Team::Red => &mut *red_sprite,
                     Team::Blue => &mut *blue_sprite,
                     _ => &mut self.other_tile_sprite,

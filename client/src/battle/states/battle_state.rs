@@ -447,14 +447,16 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        simulation.field.reset_highlight();
+        let field = &mut simulation.field;
+
+        field.reset_highlight();
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // skip tile effect processing if time is frozen
             return;
         }
 
-        simulation.field.update_tile_states();
+        field.update_tile_states(&mut simulation.entities);
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
             if entity.ignore_tile_effects || !entity.on_field || entity.deleted {
@@ -462,7 +464,7 @@ impl BattleState {
             }
 
             let tile_pos = (entity.x, entity.y);
-            let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
+            let tile = field.tile_at_mut(tile_pos).unwrap();
 
             match tile.state() {
                 TileState::Poison => {
@@ -1282,9 +1284,8 @@ impl BattleState {
                 .query_one_mut::<&mut Entity>(id)
                 .unwrap();
 
-            let mut move_action = match entity.move_action.as_mut() {
-                Some(move_action) => move_action,
-                None => continue,
+            let Some(move_action) = entity.move_action.as_mut() else {
+                continue;
             };
 
             if move_action.progress == 0 {
@@ -1328,31 +1329,35 @@ impl BattleState {
                     .entities
                     .query_one_mut::<&mut Entity>(id)
                     .unwrap();
-                move_action = match entity.move_action.as_mut() {
-                    Some(move_action) => move_action,
-                    None => continue,
+                let Some(move_action) = entity.move_action.as_mut() else {
+                    continue;
                 };
 
                 // update tile position
                 entity.x = dest.0;
                 entity.y = dest.1;
+                move_action.success = true;
 
                 let start_tile = simulation.field.tile_at_mut(move_action.source).unwrap();
                 start_tile.unignore_attacker(entity.id);
-                start_tile.entity_count -= 1;
+                start_tile.handle_auto_reservation_removal(&simulation.card_actions, entity);
 
                 #[allow(clippy::collapsible_if)]
                 if !entity.ignore_tile_effects {
-                    if start_tile.state() == TileState::Cracked && start_tile.entity_count == 0 {
+                    if start_tile.state() == TileState::Cracked
+                        && start_tile.reservations().is_empty()
+                    {
                         start_tile.set_state(TileState::Broken);
                     }
                 }
 
                 let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
-                current_tile.entity_count += 1;
-
-                move_action.success = true;
+                current_tile.handle_auto_reservation_addition(&simulation.card_actions, entity);
             }
+
+            let Some(move_action) = entity.move_action.as_mut() else {
+                continue;
+            };
 
             if move_action.is_complete() {
                 let move_action = entity.move_action.take().unwrap();
@@ -1549,6 +1554,7 @@ impl BattleState {
                 }
 
                 card_action.executed = true;
+                card_action.old_position = (entity.x, entity.y);
             }
 
             // update callback
@@ -1594,20 +1600,13 @@ impl BattleState {
                 && animation_completed
                 && entity.card_action_index == Some(action_index)
             {
-                // async action completed animation
-
-                // unset card_action_index to allow other card actions to be used
-                entity.card_action_index = None;
-
-                // revert animation
-                if let Some(state) = card_action.prev_state.as_ref() {
-                    let animator = &mut simulation.animators[entity.animator_index];
-                    let callbacks = animator.set_state(state);
-                    simulation.pending_callbacks.extend(callbacks);
-
-                    let sprite_node = entity.sprite_tree.root_mut();
-                    animator.apply(sprite_node);
-                }
+                // async action completed sync portion
+                card_action.complete_sync(
+                    &mut simulation.animators,
+                    &mut simulation.pending_callbacks,
+                    &mut simulation.field,
+                    entity,
+                );
             }
 
             // detecting end

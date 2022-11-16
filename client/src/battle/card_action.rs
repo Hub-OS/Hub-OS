@@ -1,8 +1,7 @@
-use generational_arena::Arena;
-
-use super::{BattleAnimator, BattleCallback};
+use super::{BattleAnimator, BattleCallback, Entity, Field};
 use crate::bindable::{ActionLockout, CardProperties, EntityID, GenerationalIndex};
 use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
+use generational_arena::Arena;
 
 #[derive(Clone)]
 pub struct CardAction {
@@ -23,6 +22,7 @@ pub struct CardAction {
     pub attachments: Vec<CardActionAttachment>,
     pub lockout_type: ActionLockout,
     pub time_freeze_blackout_tiles: bool,
+    pub old_position: (i32, i32),
     pub can_move_to_callback: Option<BattleCallback<(i32, i32), bool>>,
     pub update_callback: Option<BattleCallback>,
     pub execute_callback: Option<BattleCallback>,
@@ -50,6 +50,7 @@ impl CardAction {
             attachments: Vec::new(),
             lockout_type: ActionLockout::Animation,
             time_freeze_blackout_tiles: false,
+            old_position: (0, 0),
             can_move_to_callback: None,
             update_callback: None,
             execute_callback: None,
@@ -60,6 +61,36 @@ impl CardAction {
 
     pub fn is_async(&self) -> bool {
         matches!(self.lockout_type, ActionLockout::Async(_))
+    }
+
+    pub fn complete_sync(
+        &mut self,
+        animators: &mut Arena<BattleAnimator>,
+        pending_callbacks: &mut Vec<BattleCallback>,
+        field: &mut Field,
+        entity: &mut Entity,
+    ) {
+        // unset card_action_index to allow other card actions to be used
+        entity.card_action_index = None;
+
+        // revert animation
+        if let Some(state) = self.prev_state.as_ref() {
+            let animator = &mut animators[entity.animator_index];
+            let callbacks = animator.set_state(state);
+            pending_callbacks.extend(callbacks);
+
+            let sprite_node = entity.sprite_tree.root_mut();
+            animator.apply(sprite_node);
+        }
+
+        // update reservations as they're ignored while in a sync card action
+        if entity.auto_reserves_tiles {
+            let old_tile = field.tile_at_mut(self.old_position).unwrap();
+            old_tile.remove_reservation_for(entity.id);
+
+            let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
+            current_tile.reserve_for(entity.id);
+        }
     }
 }
 

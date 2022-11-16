@@ -19,6 +19,7 @@ pub struct Entity {
     pub erased: bool,
     pub facing: Direction,
     pub share_tile: bool,
+    pub auto_reserves_tiles: bool, // should be set and never change after spawning
     pub x: i32,
     pub y: i32,
     pub height: f32,
@@ -74,6 +75,7 @@ impl Entity {
             erased: false,
             facing: Direction::None,
             share_tile: true,
+            auto_reserves_tiles: false,
             x: 0,
             y: 0,
             height: 0.0,

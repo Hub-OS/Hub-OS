@@ -281,7 +281,7 @@ impl BattleSimulation {
             entity.on_field = true;
 
             let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-            tile.entity_count += 1;
+            tile.handle_auto_reservation_addition(&self.card_actions, entity);
 
             if entity.team == Team::Unset {
                 entity.team = tile.team();
@@ -345,9 +345,7 @@ impl BattleSimulation {
             }
 
             if entity.spawned {
-                let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-                tile.unignore_attacker(entity.id);
-                tile.entity_count -= 1;
+                self.field.drop_entity(entity.id);
             }
 
             for (index, component) in &mut self.components {
@@ -484,19 +482,12 @@ impl BattleSimulation {
                 .unwrap();
 
             if entity.card_action_index == Some(*index) {
-                entity.card_action_index = None;
-
-                // revert state
-                if !entity.deleted && !card_action.interrupted {
-                    if let Some(state) = card_action.prev_state.as_ref() {
-                        let animator = &mut self.animators[entity.animator_index];
-                        let callbacks = animator.set_state(state);
-                        self.pending_callbacks.extend(callbacks);
-
-                        let sprite_node = entity.sprite_tree.root_mut();
-                        animator.apply(sprite_node);
-                    }
-                }
+                card_action.complete_sync(
+                    &mut self.animators,
+                    &mut self.pending_callbacks,
+                    &mut self.field,
+                    entity,
+                );
             }
 
             // end callback
@@ -622,6 +613,7 @@ impl BattleSimulation {
 
         // characters should own their tiles by default
         entity.share_tile = false;
+        entity.auto_reserves_tiles = true;
 
         entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
             if simulation.field.is_edge(dest) {
@@ -664,14 +656,6 @@ impl BattleSimulation {
                     .unwrap();
 
                 if !other_entity.share_tile {
-                    // another entity is reserving this tile and refusing to share
-                    return false;
-                }
-            }
-
-            // todo: should this be handled exclusively by reservations?
-            for (_, other_entity) in simulation.entities.query_mut::<&Entity>() {
-                if !other_entity.share_tile && (other_entity.x, other_entity.y) == dest {
                     // another entity is reserving this tile and refusing to share
                     return false;
                 }
@@ -899,6 +883,7 @@ impl BattleSimulation {
 
         // obstacles should own their tile by default
         entity.share_tile = false;
+        entity.auto_reserves_tiles = true;
 
         self.entities
             .insert(
@@ -1184,25 +1169,6 @@ impl BattleSimulation {
 
     #[cfg(debug_assertions)]
     fn assertions(&mut self) {
-        // verify entity counts on tiles
-        let cols = self.field.cols();
-        let rows = self.field.rows();
-
-        let mut entity_counts = vec![0; cols * rows];
-
-        for (_, entity) in self.entities.query_mut::<&Entity>() {
-            if !entity.spawned {
-                continue;
-            }
-
-            assert!(self.field.in_bounds((entity.x, entity.y)));
-            entity_counts[entity.y as usize * cols + entity.x as usize] += 1;
-        }
-
-        for ((col, row), tile) in self.field.iter_mut() {
-            assert_eq!(tile.entity_count, entity_counts[row * cols + col]);
-        }
-
         // make sure card actions are being deleted
         let held_action_count = self
             .entities

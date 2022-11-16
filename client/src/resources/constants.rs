@@ -45,6 +45,7 @@ pub const CONVEYOR_WAIT_DELAY: FrameTime = 7;
 pub const CONVEYOR_LIFETIME: FrameTime = 1800;
 pub const BROKEN_LIFETIME: FrameTime = 600;
 pub const TILE_FLICKER_DURATION: FrameTime = 60;
+pub const TEMP_TEAM_DURATION: FrameTime = 1800;
 
 // statuses
 pub const DEFAULT_STATUS_DURATION: FrameTime = 90;

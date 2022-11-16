@@ -1,24 +1,33 @@
+use super::{CardAction, Entity};
 use crate::bindable::*;
 use crate::render::FrameTime;
-use crate::resources::TILE_FLICKER_DURATION;
+use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
 
 #[derive(Default, Clone)]
 pub struct Tile {
+    position: (i32, i32),
     state: TileState,
     state_lifetime: FrameTime,
+    immutable_team: bool,
     team: Team,
+    original_team: Team,
+    team_revert_timer: FrameTime,
+    team_flicker: Option<(Team, FrameTime)>,
     direction: Direction,
     highlight: TileHighlight,
     flash_time: FrameTime,
     washed: bool, // an attack washed the state out
     ignored_attackers: Vec<EntityID>,
     reservations: Vec<EntityID>,
-    pub entity_count: usize,
 }
 
 impl Tile {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(position: (i32, i32), immutable_team: bool) -> Self {
+        Self {
+            position,
+            immutable_team,
+            ..Default::default()
+        }
     }
 
     pub fn state(&self) -> TileState {
@@ -28,6 +37,11 @@ impl Tile {
     pub fn set_state(&mut self, state: TileState) {
         if self.state == TileState::Metal && state == TileState::Cracked {
             // can't crack metal panels
+            return;
+        }
+
+        if !state.is_walkable() && !self.reservations.is_empty() {
+            // tile must be walkable for entities that are on or are moving to this tile
             return;
         }
 
@@ -43,13 +57,41 @@ impl Tile {
         self.team
     }
 
+    pub fn original_team(&self) -> Team {
+        self.original_team
+    }
+
     pub fn set_team(&mut self, team: Team) {
         if team == Team::Unset {
             return;
         }
 
-        if self.team == Team::Unset || self.entity_count == 0 {
+        if self.team == Team::Unset {
+            self.original_team = team;
             self.team = team;
+        }
+
+        if !self.reservations.is_empty() || self.immutable_team {
+            return;
+        }
+
+        self.team = team;
+
+        if self.team_revert_timer == 0 {
+            self.team_revert_timer = TEMP_TEAM_DURATION;
+        }
+    }
+
+    pub fn team_revert_timer(&self) -> FrameTime {
+        self.team_revert_timer
+    }
+
+    pub fn sync_team_revert_timer(&mut self, time: FrameTime) {
+        self.team_revert_timer = time;
+
+        if time == 0 {
+            self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
+            self.team = self.original_team;
         }
     }
 
@@ -120,9 +162,7 @@ impl Tile {
     }
 
     pub fn reserve_for(&mut self, id: EntityID) {
-        if !self.reservations.contains(&id) {
-            self.reservations.push(id);
-        }
+        self.reservations.push(id);
     }
 
     pub fn remove_reservation_for(&mut self, id: EntityID) {
@@ -136,8 +176,56 @@ impl Tile {
     }
 
     pub fn has_other_reservations(&self, exclude_id: EntityID) -> bool {
-        !self.reservations.is_empty()
-            && (self.reservations.len() > 1 || !self.reservations.contains(&exclude_id))
+        self.reservations.iter().any(|id| *id != exclude_id)
+    }
+
+    pub fn handle_auto_reservation_addition(
+        &mut self,
+        card_actions: &generational_arena::Arena<CardAction>,
+        entity: &Entity,
+    ) {
+        if !Self::can_auto_reserve(card_actions, entity) {
+            return;
+        }
+
+        self.reserve_for(entity.id);
+    }
+
+    pub fn handle_auto_reservation_removal(
+        &mut self,
+        card_actions: &generational_arena::Arena<CardAction>,
+        entity: &Entity,
+    ) {
+        if !Self::can_auto_reserve(card_actions, entity) {
+            return;
+        }
+
+        self.remove_reservation_for(entity.id);
+    }
+
+    fn can_auto_reserve(
+        card_actions: &generational_arena::Arena<CardAction>,
+        entity: &Entity,
+    ) -> bool {
+        if !entity.auto_reserves_tiles {
+            return false;
+        }
+
+        if let Some(index) = entity.card_action_index {
+            // synchronous card action
+            let card_action = &card_actions[index];
+
+            if card_action.executed {
+                // card action began, prevent automatic reservation changes
+                return false;
+            }
+        }
+
+        true
+    }
+
+    pub fn clear_reservations_for(&mut self, id: EntityID) {
+        self.reservations.retain(|stored_id| *stored_id != id);
     }
 
     pub fn horizontal_scale(&self) -> f32 {
@@ -176,6 +264,28 @@ impl Tile {
             if self.state_lifetime > max_lifetime {
                 self.state = TileState::Normal;
             }
+        }
+    }
+
+    pub fn update_team_flicker(&mut self) {
+        if let Some((_, timer)) = &mut self.team_flicker {
+            *timer -= 1;
+
+            if *timer == 0 {
+                self.team_flicker = None;
+            }
+        }
+    }
+
+    pub fn visible_team(&self) -> Team {
+        if let Some((team, timer)) = self.team_flicker {
+            if (timer / 4) % 2 == 0 {
+                self.team
+            } else {
+                team
+            }
+        } else {
+            self.team
         }
     }
 

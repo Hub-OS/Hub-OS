@@ -302,17 +302,19 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
+        let card_actions = &api_ctx.simulation.card_actions;
+
         let field = &mut api_ctx.simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
         current_tile.unignore_attacker(entity.id);
-        current_tile.entity_count -= 1;
-
-        let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.entity_count += 1;
+        current_tile.handle_auto_reservation_removal(card_actions, entity);
 
         entity.on_field = true;
         entity.x = x;
         entity.y = y;
+
+        let tile = field.tile_at_mut((x, y)).unwrap();
+        tile.handle_auto_reservation_addition(card_actions, entity);
 
         lua.pack_multi(())
     });
