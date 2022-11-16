@@ -91,7 +91,7 @@ fn update_resources() {
     }
 
     // delete old resources
-    std::fs::remove_dir_all("resources");
+    let _ = std::fs::remove_dir_all("resources");
 
     // extract zip
     zip::extract(zip_bytes, |path, mut file| {
