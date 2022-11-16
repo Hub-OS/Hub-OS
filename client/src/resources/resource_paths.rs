@@ -1,9 +1,19 @@
 pub struct ResourcePaths;
 
+#[cfg(not(target_os = "android"))]
 lazy_static::lazy_static! {
     static ref GAME_PATH: String = ResourcePaths::clean_folder(
         &std::env::current_dir()
             .unwrap_or_default()
+            .to_string_lossy()
+    );
+}
+
+#[cfg(target_os = "android")]
+lazy_static::lazy_static! {
+    static ref GAME_PATH: String = ResourcePaths::clean_folder(
+        &ndk_glue::native_activity()
+            .external_data_path()
             .to_string_lossy()
     );
 }
@@ -155,6 +165,10 @@ impl ResourcePaths {
     pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
 
     pub fn game_folder() -> &'static str {
+        &GAME_PATH
+    }
+
+    pub fn cache_folder() -> &'static str {
         &GAME_PATH
     }
 

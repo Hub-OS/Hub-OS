@@ -1,11 +1,11 @@
 use std::fs;
 use std::process::{Command, ExitCode};
 
-const CLIENT_NAME: &str = "real_pet";
+const BIN_NAME: &str = "real_pet";
 
 fn main() -> ExitCode {
     let build_output = Command::new("cargo")
-        .args(["build", "-p", CLIENT_NAME, "--release"])
+        .args(["build", "-p", BIN_NAME, "--release"])
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .output()
@@ -21,14 +21,14 @@ fn main() -> ExitCode {
 
     // windows exe
     let _ = fs::copy(
-        format!("target/release/{CLIENT_NAME}.exe"),
-        format!("dist/client/{CLIENT_NAME}.exe"),
+        format!("target/release/{BIN_NAME}.exe"),
+        format!("dist/client/{BIN_NAME}.exe"),
     );
 
     // linux exe
     let _ = fs::copy(
-        format!("target/release/{CLIENT_NAME}"),
-        format!("dist/client/{CLIENT_NAME}"),
+        format!("target/release/{BIN_NAME}"),
+        format!("dist/client/{BIN_NAME}"),
     );
 
     fs_extra::dir::copy(

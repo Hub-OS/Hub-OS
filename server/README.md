@@ -46,7 +46,7 @@ Paths
   - `/maps`
     - Generated from areas and updated every tick.
     - Stored as `[area id].txt`
-- Paths not starting with `/server` are treated as paths to client files. Files of interest are available in `resources/`
+- Paths not starting with `/server` are treated as paths to client files. Files of interest are available in `assets/`
 - PATHS ARE CASE SENSITIVE OUT OF WINDOWS, also avoid `\` as that's Windows specific
 
 ## Areas
@@ -73,9 +73,6 @@ Map:
 - Tile Height: 32
 - Tile Layer Format: CSV (required)
 - Create map in assets
-- Copy resources/ow/tiles from the client to ./tiles (relative to server folder)
-  - Server will not send assets from this folder,
-    but will translate the path relative to resources/ow/maps to make use of resources on the client
 
 Tilesets:
 

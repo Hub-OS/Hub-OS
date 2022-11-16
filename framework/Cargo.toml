@@ -50,6 +50,7 @@ sdl2 = { version = "0.35.2", features = [
   "bundled",
   "static-link"
 ], optional = true }
+ndk-sys = "0.4"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
