@@ -9,7 +9,6 @@ use crate::resources::*;
 use crate::saves::Card;
 use framework::prelude::*;
 use generational_arena::Arena;
-use num_traits::ToPrimitive;
 use packets::structures::BattleStatistics;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
@@ -1022,7 +1021,7 @@ impl BattleSimulation {
         if let Ok((entity, character)) =
             (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
         {
-            let offset: Vec2 = entity.corrected_offset(self.perspective_flipped);
+            let offset = entity.corrected_offset(self.perspective_flipped);
             let tile_center =
                 (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
             let x_difference = 2.0;
@@ -1036,8 +1035,7 @@ impl BattleSimulation {
                     code: String::new(),
                 };
                 blank_card.draw_icon(game_io, &mut sprite_queue, position);
-                position.x += x_difference;
-                position.y += x_difference;
+                position += x_difference;
             }
         }
 
