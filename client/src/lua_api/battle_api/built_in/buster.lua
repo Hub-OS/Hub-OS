@@ -40,6 +40,8 @@ local spell_erased_frame = 0
 local spell = Battle.Spell.new(user:get_team())
 local can_move = false
 
+spell:set_facing(user:get_facing())
+
 card_action.on_update_func = function()
     if spell_erased_frame == 0 and spell:will_erase_eof() then
         spell_erased_frame = elapsed_frames
