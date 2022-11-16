@@ -9,6 +9,7 @@ use crate::resources::*;
 use crate::saves::Card;
 use framework::prelude::*;
 use generational_arena::Arena;
+use num_traits::ToPrimitive;
 use packets::structures::BattleStatistics;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
@@ -978,6 +979,7 @@ impl BattleSimulation {
         if let Ok((entity, living)) =
             (self.entities).query_one_mut::<(&Entity, &Living)>(self.local_player_id.into())
         {
+            //Bool assignment. If entity is team blue set the fact that they're perspective flipped to true. -Dawn
             self.perspective_flipped = entity.team == Team::Blue;
 
             if living.status_director.remaining_status_time(HitFlag::BLIND) > 0 {
@@ -1031,6 +1033,28 @@ impl BattleSimulation {
         }
 
         sorted_entities.sort_by_key(|(_, key)| *key);
+
+        if let Ok((entity, character)) =
+            (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
+        {
+            let offset: Vec2 = entity.corrected_offset(self.perspective_flipped);
+            let tile_center =
+                (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
+            let x_difference = 2.0;
+            let mut position = vec2(
+                tile_center.x + offset.x,
+                tile_center.y - entity.height - 16.0,
+            );
+            for card in &character.cards {
+                let blank_card = Card {
+                    package_id: card.package_id.clone(),
+                    code: String::new(),
+                };
+                blank_card.draw_icon(game_io, &mut sprite_queue, position);
+                position.x += x_difference;
+                position.y += x_difference;
+            }
+        }
 
         // reusing vec to avoid realloctions
         let mut sprite_nodes_recycled = Vec::new();
