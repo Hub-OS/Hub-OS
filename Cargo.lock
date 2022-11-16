@@ -1264,6 +1264,7 @@ dependencies = [
  "instant",
  "js-sys",
  "log",
+ "ndk-sys 0.4.0",
  "pollster",
  "rand",
  "raw-window-handle 0.4.3",

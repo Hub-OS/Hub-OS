@@ -1,4 +1,5 @@
 use super::LogRecord;
+use crate::{cfg_android, cfg_desktop};
 
 pub struct DefaultLogger {
     listeners: Vec<Box<dyn Fn(LogRecord) + Send + Sync>>,
@@ -73,35 +74,62 @@ impl log::Log for DefaultLogger {
             }
         }
 
-        use std::io::Write;
-        use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
-
         if !self.enabled(record.metadata()) {
             return;
         }
 
-        let mut color_spec = ColorSpec::new();
+        cfg_desktop!({
+            use std::io::Write;
+            use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-        match record.level() {
-            log::Level::Error => {
-                color_spec.set_fg(Some(Color::Red));
+            let mut color_spec = ColorSpec::new();
+
+            match record.level() {
+                log::Level::Error => {
+                    color_spec.set_fg(Some(Color::Red));
+                }
+                log::Level::Warn => {
+                    color_spec.set_fg(Some(Color::Yellow));
+                }
+                log::Level::Info => {}
+                log::Level::Trace | log::Level::Debug => {
+                    color_spec.set_dimmed(true);
+                }
+            };
+
+            let mut stderr = StandardStream::stderr(ColorChoice::Always);
+
+            stderr.set_color(&color_spec).unwrap();
+            write!(&mut stderr, "{} ", record.level()).unwrap();
+
+            stderr.reset().unwrap();
+            writeln!(&mut stderr, "[{}] {}", record.target(), record.args()).unwrap();
+        });
+
+        cfg_android!({
+            use super::LogLevel;
+            use ndk_sys::android_LogPriority as AndroidLogPriority;
+            use std::ffi::{c_int, CString};
+
+            let priority = match record.level() {
+                LogLevel::Error => AndroidLogPriority::ANDROID_LOG_ERROR,
+                LogLevel::Warn => AndroidLogPriority::ANDROID_LOG_WARN,
+                LogLevel::Info => AndroidLogPriority::ANDROID_LOG_INFO,
+                LogLevel::Debug => AndroidLogPriority::ANDROID_LOG_DEBUG,
+                LogLevel::Trace => AndroidLogPriority::ANDROID_LOG_VERBOSE,
+            };
+
+            let tag = CString::new(record.target()).unwrap_or_default();
+            let msg = CString::new(record.args().to_string()).unwrap_or_default();
+
+            unsafe {
+                ndk_sys::__android_log_write(
+                    priority.0 as c_int,
+                    tag.as_c_str().as_ptr(),
+                    msg.as_c_str().as_ptr(),
+                );
             }
-            log::Level::Warn => {
-                color_spec.set_fg(Some(Color::Yellow));
-            }
-            log::Level::Info => {}
-            log::Level::Trace | log::Level::Debug => {
-                color_spec.set_dimmed(true);
-            }
-        };
-
-        let mut stderr = StandardStream::stderr(ColorChoice::Always);
-
-        stderr.set_color(&color_spec).unwrap();
-        write!(&mut stderr, "{} ", record.level()).unwrap();
-
-        stderr.reset().unwrap();
-        writeln!(&mut stderr, "[{}] {}", record.target(), record.args()).unwrap();
+        });
     }
 
     fn flush(&self) {}

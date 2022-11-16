@@ -52,7 +52,65 @@ pub fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg_attr(target_os = "android", ndk_glue::main())]
+#[cfg(target_os = "android")]
+#[ndk_glue::main()]
 pub fn android_main() {
+    std::env::set_current_dir(ResourcePaths::game_folder()).unwrap();
+
+    update_resources();
+
     main().unwrap()
+}
+
+#[cfg(target_os = "android")]
+fn update_resources() {
+    // instead of extracting a zip and running the exe,
+    // users are only receiving an apk for android
+    // so we're storing the resources as a zip in the apk and extracting when stored hashes differ
+    const ZIP_FILE: &str = "resources.zip";
+    const HASH_FILE: &str = "resources-hash";
+
+    use packets::structures::FileHash;
+    use std::ffi::CString;
+
+    // find the zip
+    let zip_c_name = CString::new(ZIP_FILE).unwrap();
+
+    let ndk_assets = ndk_glue::native_activity().asset_manager();
+    let mut zip_asset = ndk_assets.open(zip_c_name.as_c_str()).unwrap();
+    let zip_bytes = zip_asset.get_buffer().unwrap();
+
+    // compare hashes
+    let resources_hash = FileHash::hash(zip_bytes);
+    let resources_match = std::fs::read(HASH_FILE)
+        .map(|bytes| resources_hash.as_bytes() == bytes)
+        .unwrap_or_default();
+
+    if resources_match {
+        return;
+    }
+
+    // delete old resources
+    std::fs::remove_dir_all("resources");
+
+    // extract zip
+    zip::extract(zip_bytes, |path, mut file| {
+        use std::io::Read;
+
+        if !file.is_file() {
+            return;
+        }
+
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).unwrap();
+
+        if let Some(parent_path) = ResourcePaths::parent(&path) {
+            std::fs::create_dir_all(parent_path).unwrap();
+        }
+
+        std::fs::write(path, &bytes).unwrap();
+    });
+
+    // update stored hash
+    std::fs::write("resources-hash", resources_hash.as_bytes()).unwrap();
 }

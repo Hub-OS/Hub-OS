@@ -52,6 +52,21 @@ crate-type = ["cdylib", "rlib"]
 
 [package.metadata.android]
 build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
+assets = "cache/android_assets"
+
+[package.metadata.android.sdk]
+target_sdk_version = 29
+
+[package.metadata.android.signing.release]
+path = "debug.keystore"
+keystore_password = "android"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
 
 [package.metadata.android.application.activity]
-exported = true
+launch_mode = "singleInstance"
+orientation = "landscape"
+
+[package.metadata.android.application]
+theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
