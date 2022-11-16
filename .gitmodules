@@ -1,3 +1,0 @@
-[submodule "rollback-mlua"]
-	path = rollback-mlua
-	url = https://github.com/Real-PET/rollback-mlua
