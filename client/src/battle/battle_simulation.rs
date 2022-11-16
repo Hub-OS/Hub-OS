@@ -971,6 +971,8 @@ impl BattleSimulation {
             }
         }
 
+        let assets = &game_io.globals().assets;
+
         // draw background
         self.background.draw(game_io, render_pass);
 
@@ -987,7 +989,6 @@ impl BattleSimulation {
         if fade_alpha > 0.0 {
             const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
 
-            let assets = &game_io.globals().assets;
             let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
             fade_sprite.set_color(FADE_COLOR.multiply_alpha(fade_alpha));
             fade_sprite.set_bounds(self.camera.bounds());
@@ -1017,27 +1018,6 @@ impl BattleSimulation {
         }
 
         sorted_entities.sort_by_key(|(_, key)| *key);
-
-        if let Ok((entity, character)) =
-            (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
-        {
-            let offset = entity.corrected_offset(self.perspective_flipped);
-            let tile_center =
-                (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
-            let x_difference = 2.0;
-            let mut position = vec2(
-                tile_center.x + offset.x,
-                tile_center.y - entity.height - 16.0,
-            );
-            for card in &character.cards {
-                let blank_card = Card {
-                    package_id: card.package_id.clone(),
-                    code: String::new(),
-                };
-                blank_card.draw_icon(game_io, &mut sprite_queue, position);
-                position += x_difference;
-            }
-        }
 
         // reusing vec to avoid realloctions
         let mut sprite_nodes_recycled = Vec::new();
@@ -1155,6 +1135,40 @@ impl BattleSimulation {
                 hp_text.style.bounds.x -= text_size.x * 0.5;
                 hp_text.style.bounds.y += tile_size.y * 0.5 - text_size.y;
                 hp_text.draw(game_io, &mut sprite_queue);
+            }
+        }
+
+        // draw card icons for the local player
+        if let Ok((entity, character)) =
+            (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
+        {
+            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+
+            let offset = entity.corrected_offset(self.perspective_flipped);
+            let tile_center =
+                (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
+
+            let base_position = tile_center + vec2(offset.x, -entity.height - 16.0);
+
+            let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            border_sprite.set_color(Color::BLACK);
+            border_sprite.set_size(Vec2::new(16.0, 16.0));
+
+            for i in 0..character.cards.len() {
+                let card = &character.cards[i];
+                let blank_card = Card {
+                    package_id: card.package_id.clone(),
+                    code: String::new(),
+                };
+
+                let cards_before = character.cards.len() - i;
+                let card_offset = 2.0 * cards_before as f32;
+                let position = base_position - card_offset;
+
+                border_sprite.set_position(position - 1.0);
+                sprite_queue.draw_sprite(&border_sprite);
+
+                blank_card.draw_icon(game_io, &mut sprite_queue, position);
             }
         }
 
