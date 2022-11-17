@@ -256,10 +256,15 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
     }
 
     // dock scrolling
-    let active_dock = match scene.viewing_pack {
-        true => &mut scene.pack_dock,
-        false => &mut scene.folder_dock,
-    };
+    let (active_dock, inactive_dock);
+
+    if scene.viewing_pack {
+        active_dock = &mut scene.pack_dock;
+        inactive_dock = &mut scene.folder_dock;
+    } else {
+        active_dock = &mut scene.folder_dock;
+        inactive_dock = &mut scene.pack_dock;
+    }
 
     let scroll_tracker = &mut active_dock.scroll_tracker;
     let original_index = scroll_tracker.selected_index();
@@ -299,6 +304,9 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
 
         if let Some(index) = active_dock.scroll_tracker.forget_index() {
             dock_internal_swap(scene, game_io, index);
+        } else if let Some(inactive_index) = inactive_dock.scroll_tracker.forget_index() {
+            let active_index = active_dock.scroll_tracker.selected_index();
+            inter_dock_swap(scene, game_io, inactive_index, active_index);
         } else {
             active_dock.scroll_tracker.remember_index();
         }
@@ -436,11 +444,44 @@ fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO<Globals>, in
     }
 }
 
+fn inter_dock_swap(
+    scene: &mut FolderEditScene,
+    game_io: &GameIO<Globals>,
+    inactive_index: usize,
+    active_index: usize,
+) -> Option<()> {
+    let (folder_index, pack_index);
+
+    if scene.viewing_pack {
+        folder_index = inactive_index;
+        pack_index = active_index;
+    } else {
+        folder_index = active_index;
+        pack_index = inactive_index;
+    }
+
+    // store the index of the transferred card in case we need to move it back
+    let stored_index = transfer_to_pack(scene, folder_index)?;
+
+    let Some(index) = transfer_to_folder(scene, game_io, pack_index) else {
+        // move it back
+        let index = transfer_to_folder(scene, game_io, stored_index)?;
+        scene.folder_dock.card_items.swap(index, folder_index);
+        return None;
+    };
+
+    // move the transferred card to the correct slot
+    // otherwise it's moved to the first empty slot and not the one we're selecting
+    scene.folder_dock.card_items.swap(index, folder_index);
+
+    Some(())
+}
+
 fn transfer_to_folder(
     scene: &mut FolderEditScene,
     game_io: &GameIO<Globals>,
     from_index: usize,
-) -> Option<()> {
+) -> Option<usize> {
     let card_item = scene.pack_dock.card_items.get_mut(from_index)?.as_mut()?;
 
     let folder_card_items = &mut scene.folder_dock.card_items;
@@ -465,9 +506,11 @@ fn transfer_to_folder(
     }
 
     // search for an empty slot to insert the card into
-    let empty_slot = folder_card_items.iter_mut().find(|item| item.is_none())?;
+    let empty_index = folder_card_items
+        .iter_mut()
+        .position(|item| item.is_none())?;
 
-    *empty_slot = Some(CardListItem {
+    folder_card_items[empty_index] = Some(CardListItem {
         card: card_item.card.clone(),
         count: 1,
         show_count: false,
@@ -484,10 +527,10 @@ fn transfer_to_folder(
 
     scene.folder_dock.update_card_count();
 
-    None
+    Some(empty_index)
 }
 
-fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<()> {
+fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<usize> {
     let card = scene
         .folder_dock
         .card_items
@@ -497,24 +540,25 @@ fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<()
 
     let pack_items = &mut scene.pack_dock.card_items;
 
-    let pack_item = pack_items
+    let pack_index = pack_items
         .iter_mut()
-        .find(|item| item.as_ref().unwrap().card == card);
+        .position(|item| item.as_ref().unwrap().card == card);
 
-    match pack_item {
-        Some(Some(card_item)) => {
-            card_item.count += 1;
-        }
-        _ => {
-            pack_items.push(Some(CardListItem {
-                card,
-                count: 1,
-                show_count: true,
-            }));
-        }
-    }
+    let Some(pack_index) = pack_index else {
+        pack_items.push(Some(CardListItem {
+            card,
+            count: 1,
+            show_count: true,
+        }));
 
-    None
+        return Some(pack_items.len() - 1);
+    };
+
+    let item = pack_items[pack_index].as_mut().unwrap();
+
+    item.count += 1;
+
+    Some(pack_index)
 }
 
 struct Dock {
