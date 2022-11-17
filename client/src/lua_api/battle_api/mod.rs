@@ -22,7 +22,7 @@ pub use entity_api::create_entity_table;
 pub const GLOBAL_TABLE: &str = "_G";
 pub const ENGINE_TABLE: &str = "Engine";
 pub const SPRITE_TABLE: &str = "SpriteNode";
-pub const ANIMATION_TABLE: &str = "Animation";
+pub const ANIMATION_TABLE: &str = "Engine.Animation";
 pub const BATTLE_TABLE: &str = "Battle";
 pub const BATTLE_INIT_TABLE: &str = "Battle.BattleInit";
 pub const SPAWNER_TABLE: &str = "Battle.MobSpawner";
