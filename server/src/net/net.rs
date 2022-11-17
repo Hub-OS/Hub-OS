@@ -950,6 +950,12 @@ impl Net {
         package_path: Option<String>,
         data: Option<String>,
     ) {
+        if let Some(package_path) = package_path.as_ref() {
+            let player_ids: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
+
+            self.preload_package(&player_ids, package_path);
+        }
+
         // todo: put these clients in slow mode
 
         let remote_players: Vec<_> = ids
@@ -1096,29 +1102,15 @@ impl Net {
         );
     }
 
-    pub fn initiate_encounter(&mut self, player_id: &str, package_path: &str, data: Option<&str>) {
+    pub fn preload_package(&mut self, player_ids: &[String], package_path: &str) {
         ensure_asset(
             &mut *self.packet_orchestrator.borrow_mut(),
             self.config.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[String::from(player_id)],
+            &player_ids,
             package_path,
         );
-
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
-            return;
-        };
-
-        // update tracking
-        let tracking_info = BattleTrackingInfo {
-            plugin_index: self.active_plugin,
-            ..Default::default()
-        };
-
-        client.battle_tracker.push_back(tracking_info);
 
         // send dependencies
         let dependency_chain = self
@@ -1149,15 +1141,43 @@ impl Net {
             });
         }
 
-        packets.push(ServerPacket::InitiateEncounter {
-            package_path: package_path.to_string(),
-            data: data.map(|s| s.to_string()),
-        });
+        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+        use packets::serialize;
+        let packets: Vec<_> = packets.into_iter().map(serialize).collect();
 
-        self.packet_orchestrator.borrow_mut().send_packets(
+        for id in player_ids {
+            packet_orchestrator.send_byte_packets_by_id(
+                &id,
+                Reliability::ReliableOrdered,
+                &packets,
+            );
+        }
+    }
+
+    pub fn initiate_encounter(&mut self, player_id: &str, package_path: &str, data: Option<&str>) {
+        self.preload_package(&[player_id.to_string()], package_path);
+
+        let client = if let Some(client) = self.clients.get_mut(player_id) {
+            client
+        } else {
+            return;
+        };
+
+        // update tracking
+        let tracking_info = BattleTrackingInfo {
+            plugin_index: self.active_plugin,
+            ..Default::default()
+        };
+
+        client.battle_tracker.push_back(tracking_info);
+
+        self.packet_orchestrator.borrow_mut().send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            packets,
+            ServerPacket::InitiateEncounter {
+                package_path: package_path.to_string(),
+                data: data.map(|s| s.to_string()),
+            },
         );
     }
 
