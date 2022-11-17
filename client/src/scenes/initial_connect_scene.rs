@@ -10,7 +10,6 @@ use packets::{ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE};
 
 enum Event {
     ReceivedPayloadSize(ClientPacketSender, ServerPacketReceiver, u16),
-    Success,
     Failed { reason: Option<String> },
     Pop,
 }
@@ -178,9 +177,6 @@ impl Scene<Globals> for InitialConnectScene {
 
                     self.online_scene = Some(online_scene);
                 }
-                Event::Success => {
-                    self.success = true;
-                }
                 Event::Failed { reason } => {
                     let message = match reason {
                         Some(reason) => format!("We've been kicked: {:?}", reason),
@@ -213,6 +209,9 @@ impl Scene<Globals> for InitialConnectScene {
             for packet in std::mem::take(&mut self.deferred_packets) {
                 online_scene.handle_packet(game_io, packet);
             }
+
+            let globals = game_io.globals_mut();
+            globals.assets.remove_unused_virtual_zips();
 
             // move to the network scene if we can and the animator completed
             let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
