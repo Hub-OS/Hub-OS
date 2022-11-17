@@ -149,8 +149,21 @@ impl Card {
         let globals = game_io.globals();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
-            return;
+
+        let (icon_texture_path, short_name, element, limit);
+
+        if let Some(package) =
+            package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id)
+        {
+            icon_texture_path = package.icon_texture_path.as_str();
+            short_name = package.card_properties.short_name.as_str();
+            element = package.card_properties.element;
+            limit = package.card_properties.limit;
+        } else {
+            icon_texture_path = ResourcePaths::CARD_ICON_MISSING;
+            short_name = "?????";
+            element = Element::None;
+            limit = 0;
         };
 
         const ICON_OFFSET: Vec2 = Vec2::new(2.0, 1.0);
@@ -161,7 +174,7 @@ impl Card {
         const LIM_OFFSET: Vec2 = Vec2::new(101.0, 8.0);
 
         // icon
-        let mut icon_texture = assets.texture(game_io, &package.icon_texture_path);
+        let mut icon_texture = assets.texture(game_io, icon_texture_path);
 
         if icon_texture.size() != UVec2::new(14, 14) {
             icon_texture = assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING);
@@ -175,10 +188,10 @@ impl Card {
         let mut label = TextStyle::new(game_io, FontStyle::Thick);
         label.shadow_color = TEXT_DARK_SHADOW_COLOR;
         label.bounds.set_position(NAME_OFFSET + position);
-        label.draw(game_io, sprite_queue, &package.card_properties.short_name);
+        label.draw(game_io, sprite_queue, short_name);
 
         // element
-        let mut element_sprite = ElementSprite::new(game_io, package.card_properties.element);
+        let mut element_sprite = ElementSprite::new(game_io, element);
         element_sprite.set_position(ELEMENT_OFFSET + position);
         sprite_queue.draw_sprite(&element_sprite);
 
@@ -189,7 +202,7 @@ impl Card {
         // limit
         label.font_style = FontStyle::Wide;
         label.bounds.set_position(LIMIT_OFFSET + position);
-        let text = format!("{:>2}", package.card_properties.limit);
+        let text = format!("{:>2}", limit);
         label.color = Color::from((247, 214, 99, 255));
         label.draw(game_io, sprite_queue, &text);
 
