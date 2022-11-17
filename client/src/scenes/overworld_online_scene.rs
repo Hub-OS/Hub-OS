@@ -725,10 +725,14 @@ impl OverworldOnlineScene {
                     let _ = event_sender.send(Event::BattleStatistics(statistics));
                 });
 
+                let battle_package = package_path
+                    .and_then(|path| self.encounter_packages.get(&path))
+                    .map(|id| (PackageNamespace::Server, id.clone()));
+
                 let scene = NetplayInitScene::new(
                     game_io,
                     Some(background),
-                    package_path.map(|path| (PackageNamespace::Server, path)),
+                    battle_package,
                     data,
                     remote_players,
                     self.server_address.clone(),

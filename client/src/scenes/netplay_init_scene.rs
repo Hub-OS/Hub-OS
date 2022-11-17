@@ -515,14 +515,12 @@ impl NetplayInitScene {
             globals.assets.remove_unused_virtual_zips();
 
             // get package
-            let battle_package = self
-                .battle_package
-                .take()
-                .and_then(|(namespace, package_id)| {
-                    globals
-                        .battle_packages
-                        .package_or_fallback(namespace, &package_id)
-                });
+            let battle_package = self.battle_package.take();
+            let battle_package = battle_package.and_then(|(namespace, package_id)| {
+                globals
+                    .battle_packages
+                    .package_or_fallback(namespace, &package_id)
+            });
 
             let mut props = BattleProps::new_with_defaults(game_io, battle_package);
 
