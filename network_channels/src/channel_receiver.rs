@@ -134,100 +134,109 @@ impl<ChannelLabel: Copy> ChannelReceiver<ChannelLabel> {
                 }
             }
             Reliability::ReliableOrdered => {
-                let is_tail = fragment_type.id_is_tail(header.id);
-                let is_next = header.id == self.next_reliable_ordered;
-
-                if is_next {
-                    self.next_reliable_ordered += 1;
+                if header.id < self.next_reliable_ordered {
+                    // already handled
+                    return vec![];
                 }
 
-                if is_next && is_tail {
-                    let mut i = 0;
+                let new_id = header.id;
 
-                    // find the next gap
-                    for backed_up_packet in &self.backed_up_ordered_packets {
-                        if backed_up_packet.id > self.next_reliable_ordered {
-                            break;
-                        }
+                self.insert_reliable(header, fragment_type, body);
 
-                        if backed_up_packet.id == self.next_reliable_ordered {
-                            self.next_reliable_ordered += 1;
-                        }
+                let first_id = self.backed_up_ordered_packets[0].id;
+                let skip = (new_id - first_id) as usize;
 
-                        i += 1;
+                let mut i = skip;
+                let mut tail_i = None;
+
+                // find the furthest sequential tail
+                for backed_up_packet in self.backed_up_ordered_packets.iter().skip(skip) {
+                    let id = backed_up_packet.id;
+
+                    if id > self.next_reliable_ordered {
+                        break;
                     }
 
-                    // split backed up packets where the gap is
-                    let mut newer_packets = self.backed_up_ordered_packets.split_off(i);
-
-                    // store the packets waiting for the gap
-                    std::mem::swap(&mut self.backed_up_ordered_packets, &mut newer_packets);
-
-                    if newer_packets.is_empty() {
-                        return vec![body];
+                    if id != self.next_reliable_ordered {
+                        continue;
                     }
 
-                    // merge fragments
-                    let mut packets = vec![vec![]];
+                    if backed_up_packet.fragment_type.id_is_tail(id) {
+                        tail_i = Some(i);
+                    }
 
-                    for packet in newer_packets {
-                        match packet.fragment_type {
-                            FragmentType::Full => {
-                                *packets.last_mut().unwrap() = packet.body;
-                                packets.push(vec![]);
-                            }
-                            FragmentType::Fragment { .. } => {
-                                packets.last_mut().unwrap().extend(packet.body);
+                    self.next_reliable_ordered += 1;
 
-                                if packet.fragment_type.id_is_tail(packet.id) {
-                                    packets.push(vec![]);
-                                }
-                            }
-                        }
+                    i += 1;
+                }
 
-                        if packet.id + 1 == header.id {
-                            packets.last_mut().unwrap().extend(body.iter().cloned());
-                            // we know this packet is a tail
+                let Some(tail_i) = tail_i else {
+                    // no tail, we only have incomplete fragments
+                    return vec![];
+                };
+
+                // split backed up packets where the gap is
+                let mut newer_packets = self.backed_up_ordered_packets.split_off(tail_i + 1);
+
+                // store the packets waiting for the gap
+                std::mem::swap(&mut self.backed_up_ordered_packets, &mut newer_packets);
+
+                // merge fragments
+                let mut packets = vec![vec![]];
+
+                for packet in newer_packets {
+                    match packet.fragment_type {
+                        FragmentType::Full => {
+                            *packets.last_mut().unwrap() = packet.body;
                             packets.push(vec![]);
                         }
-                    }
+                        FragmentType::Fragment { .. } => {
+                            packets.last_mut().unwrap().extend(packet.body);
 
-                    packets.pop();
-
-                    packets
-                } else if header.id > self.next_reliable_ordered || (is_next && !is_tail) {
-                    // sorted insert
-                    let mut i = 0;
-                    let mut should_insert = true;
-
-                    for backed_up_packet in &self.backed_up_ordered_packets {
-                        if backed_up_packet.id == header.id {
-                            should_insert = false;
-                            break;
+                            if packet.fragment_type.id_is_tail(packet.id) {
+                                packets.push(vec![]);
+                            }
                         }
-                        if backed_up_packet.id > header.id {
-                            break;
-                        }
-                        i += 1;
                     }
-
-                    if should_insert {
-                        self.backed_up_ordered_packets.insert(
-                            i,
-                            BackedUpPacket {
-                                id: header.id,
-                                fragment_type,
-                                body,
-                            },
-                        );
-                    }
-
-                    vec![]
-                } else {
-                    // already handled
-                    vec![]
                 }
+
+                packets.pop();
+
+                packets
             }
+        }
+    }
+
+    fn insert_reliable(
+        &mut self,
+        header: PacketHeader<ChannelLabel>,
+        fragment_type: FragmentType,
+        body: Vec<u8>,
+    ) {
+        // sorted insert
+        let mut i = 0;
+        let mut should_insert = true;
+
+        for backed_up_packet in &self.backed_up_ordered_packets {
+            if backed_up_packet.id == header.id {
+                should_insert = false;
+                break;
+            }
+            if backed_up_packet.id > header.id {
+                break;
+            }
+            i += 1;
+        }
+
+        if should_insert {
+            self.backed_up_ordered_packets.insert(
+                i,
+                BackedUpPacket {
+                    id: header.id,
+                    fragment_type,
+                    body,
+                },
+            );
         }
     }
 }
