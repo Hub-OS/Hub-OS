@@ -1110,9 +1110,15 @@ where
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let (table, tile_table, rest): (
             rollback_mlua::Table,
-            rollback_mlua::Table,
+            Option<rollback_mlua::Table>,
             rollback_mlua::MultiValue,
         ) = lua.unpack_multi(params)?;
+
+        let Some(tile_table) = tile_table else {
+            // todo: should we only accept Table instead of an option? (would throw errors on nil tiles)
+            return lua.pack_multi(());
+        };
+
         let mut rest = rest.into_vec();
 
         let mut on_begin = None;
