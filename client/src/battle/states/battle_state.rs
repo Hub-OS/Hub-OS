@@ -78,11 +78,12 @@ impl State for BattleState {
         self.update_living(game_io, simulation, vms);
 
         // update battle step components
-        for (_, component) in &simulation.components {
-            if component.lifetime == ComponentLifetime::BattleStep {
-                simulation
-                    .pending_callbacks
-                    .push(component.update_callback.clone());
+        if !simulation.time_freeze_tracker.time_is_frozen() {
+            for (_, component) in &simulation.components {
+                if component.lifetime == ComponentLifetime::BattleStep {
+                    let callback = component.update_callback.clone();
+                    simulation.pending_callbacks.push(callback);
+                }
             }
         }
 
