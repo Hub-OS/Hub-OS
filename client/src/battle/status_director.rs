@@ -320,6 +320,8 @@ impl StatusDirector {
             }
         }
 
+        already_existing.sort();
+
         for i in already_existing.into_iter().rev() {
             self.new_statuses.remove(i);
         }
