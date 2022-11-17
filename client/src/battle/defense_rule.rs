@@ -125,9 +125,9 @@ impl DefenseRule {
         lua_api.inject_dynamic(lua, &context, |_| {
             table.raw_set("#replaced", true)?;
 
-            let callback: LuaFunction = table.get("on_replace_func")?;
-
-            callback.call(())?;
+            if let Ok(callback) = table.get::<_, LuaFunction>("on_replace_func") {
+                callback.call(())?;
+            };
 
             Ok(())
         });
