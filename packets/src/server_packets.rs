@@ -282,7 +282,7 @@ impl ServerPacket {
         asset: &'a impl AssetTrait,
     ) -> impl Iterator<Item = ServerPacket> + 'a {
         // header + packet type + data size
-        const HEADER_SIZE: usize = 32 + 2 + 2;
+        const HEADER_SIZE: usize = 56 + 2 + 2;
 
         let bytes = match &asset.data() {
             AssetData::Text(data) => data.as_bytes(),
