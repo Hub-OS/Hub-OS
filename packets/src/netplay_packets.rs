@@ -30,6 +30,9 @@ pub enum NetplayPacket {
         recipient_index: usize,
         list: Vec<FileHash>,
     },
+    ReadyForPackages {
+        index: usize,
+    },
     PackageZip {
         index: usize,
         data: Vec<u8>,
@@ -57,6 +60,7 @@ impl NetplayPacket {
             NetplayPacket::PlayerSetup { index, .. } => *index,
             NetplayPacket::PackageList { index, .. } => *index,
             NetplayPacket::MissingPackages { index, .. } => *index,
+            NetplayPacket::ReadyForPackages { index } => *index,
             NetplayPacket::PackageZip { index, .. } => *index,
             NetplayPacket::Ready { index, .. } => *index,
             NetplayPacket::Input { index, .. } => *index,

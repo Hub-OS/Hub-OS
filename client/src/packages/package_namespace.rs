@@ -1,8 +1,9 @@
 use rollback_mlua::LuaSerdeExt;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PackageNamespace {
     Local,
     Server,
@@ -35,6 +36,22 @@ impl PackageNamespace {
 impl Default for PackageNamespace {
     fn default() -> Self {
         PackageNamespace::Local
+    }
+}
+
+impl PartialOrd for PackageNamespace {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (PackageNamespace::Local, PackageNamespace::Server | PackageNamespace::Remote(_))
+            | (PackageNamespace::Server, PackageNamespace::Remote(_)) => {
+                return Some(Ordering::Less);
+            }
+            (PackageNamespace::Server, PackageNamespace::Local)
+            | (PackageNamespace::Remote(_), PackageNamespace::Local | PackageNamespace::Server) => {
+                return Some(Ordering::Greater);
+            }
+            _ => Some(Ordering::Equal),
+        }
     }
 }
 

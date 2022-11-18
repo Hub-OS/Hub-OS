@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 pub const VERSION_ID: &str = "https://github.com/ArthurCose/RealPET";
-pub const VERSION_ITERATION: u64 = 1;
+pub const VERSION_ITERATION: u64 = 2;
 pub const SERVER_TICK_RATE: Duration = Duration::from_millis(50); // 1 / 20 of a second
 
 mod client_packets;

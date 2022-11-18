@@ -33,6 +33,8 @@ struct RemotePlayerConnection {
     folder: Folder,
     // todo: blocks
     load_map: HashMap<FileHash, PackageCategory>,
+    requested_packages: Option<Vec<FileHash>>,
+    ready_for_packages: bool,
     received_package_list: bool,
     ready: bool,
     send: Option<NetplayPacketSender>,
@@ -50,7 +52,6 @@ pub struct NetplayInitScene {
     failed: bool,
     seed: u64,
     missing_packages: HashSet<FileHash>,
-    uploaded_packages: HashSet<FileHash>,
     player_connections: Vec<RemotePlayerConnection>,
     last_fallback_instant: Instant,
     fallback_sender_receiver: Option<(NetplayPacketSender, NetplayPacketReceiver)>,
@@ -135,6 +136,8 @@ impl NetplayInitScene {
                 player_package: String::new(),
                 folder: Folder::default(),
                 load_map: HashMap::new(),
+                requested_packages: None,
+                ready_for_packages: false,
                 received_package_list: false,
                 ready: false,
                 send: None,
@@ -153,7 +156,6 @@ impl NetplayInitScene {
             failed: false,
             seed: 0,
             missing_packages: HashSet::new(),
-            uploaded_packages: HashSet::new(),
             player_connections: remote_player_connections,
             last_fallback_instant: game_io.frame_start_instant(),
             fallback_sender_receiver: None,
@@ -250,6 +252,14 @@ impl NetplayInitScene {
             None => return,
         };
 
+        if !matches!(
+            packet,
+            NetplayPacket::Input { .. } | NetplayPacket::Heartbeat { .. }
+        ) {
+            let packet_name: &'static str = (&packet).into();
+            log::debug!("received {packet_name} from {index}");
+        }
+
         match packet {
             NetplayPacket::Hello { .. } => {
                 // handled earlier
@@ -269,8 +279,6 @@ impl NetplayInitScene {
                     .collect();
             }
             NetplayPacket::PackageList { index, packages } => {
-                log::debug!("received PackageList for {index}");
-
                 connection.received_package_list = true;
 
                 let globals = game_io.globals();
@@ -279,14 +287,10 @@ impl NetplayInitScene {
                 let load_list: Vec<_> = packages
                     .into_iter()
                     .filter(|(category, id, hash)| {
-                        match globals.package_or_fallback_info(
-                            *category,
-                            PackageNamespace::Server,
-                            &id,
-                        ) {
-                            Some(package_info) => package_info.hash != *hash,
-                            None => true,
-                        }
+                        globals
+                            .package_or_fallback_info(*category, PackageNamespace::Server, &id)
+                            .map(|package_info| package_info.hash != *hash) // hashes differ
+                            .unwrap_or(true) // non existent
                     })
                     .collect();
 
@@ -301,58 +305,47 @@ impl NetplayInitScene {
                     .map(|(_, _, hash)| *hash)
                     .collect();
 
+                // track missing packages
+                self.missing_packages
+                    .extend(missing_packages.iter().cloned());
+
                 if missing_packages.is_empty() {
                     if self.received_every_zip() {
                         self.broadcast_ready();
                     }
-                } else {
-                    // track missing packages
-                    self.missing_packages
-                        .extend(missing_packages.iter().cloned());
-
-                    // request missing packages
-                    self.send(
-                        index,
-                        NetplayPacket::MissingPackages {
-                            index: self.local_index,
-                            recipient_index: index,
-                            list: missing_packages,
-                        },
-                    );
                 }
+
+                // request missing packages, even if that list is empty
+                // check next block to see why
+                self.send(
+                    index,
+                    NetplayPacket::MissingPackages {
+                        index: self.local_index,
+                        recipient_index: index,
+                        list: missing_packages,
+                    },
+                );
             }
             NetplayPacket::MissingPackages {
-                index,
                 recipient_index,
                 list,
                 ..
             } => {
                 if self.local_index == recipient_index {
-                    let broadcasting = self.fallback_sender_receiver.is_some();
+                    connection.requested_packages = Some(list);
 
-                    for hash in list {
-                        // tracking what was sent if we're broadcasting, as there's no need to broadcast the same zip multiple times
-                        if !broadcasting || self.uploaded_packages.insert(hash) {
-                            let assets = &game_io.globals().assets;
-
-                            let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
-                                bytes
-                            } else {
-                                let path =
-                                    format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
-
-                                assets.binary(&path)
-                            };
-
-                            self.send(
-                                index,
-                                NetplayPacket::PackageZip {
-                                    index: self.local_index,
-                                    data,
-                                },
-                            );
-                        }
+                    if self.received_every_missing_list() {
+                        self.broadcast(NetplayPacket::ReadyForPackages {
+                            index: self.local_index,
+                        });
                     }
+                }
+            }
+            NetplayPacket::ReadyForPackages { .. } => {
+                connection.ready_for_packages = true;
+
+                if self.all_ready_for_packages() {
+                    self.share_packages(game_io);
                 }
             }
             NetplayPacket::PackageZip { data, .. } => {
@@ -377,7 +370,7 @@ impl NetplayInitScene {
                     if self.received_every_zip() {
                         self.broadcast_ready();
                     }
-                } else {
+                } else if self.fallback_sender_receiver.is_none() {
                     log::error!("received data for package that wasn't requested: {hash}");
                     self.failed = true;
                 }
@@ -386,8 +379,6 @@ impl NetplayInitScene {
                 // todo: prevent seed manipulation
                 self.seed = self.seed.max(seed);
                 connection.ready = true;
-
-                log::debug!("received Ready for {index}");
             }
             NetplayPacket::Input { pressed, .. } => {
                 use num_traits::FromPrimitive;
@@ -397,7 +388,6 @@ impl NetplayInitScene {
                 connection.input_buffer.push_back(pressed_inputs);
             }
             NetplayPacket::Disconnect { .. } => {
-                log::debug!("{} disconnected", index);
                 self.failed = true;
             }
         }
@@ -411,12 +401,26 @@ impl NetplayInitScene {
                 .all(|connection| connection.ready)
     }
 
+    fn received_every_missing_list(&self) -> bool {
+        self.player_connections
+            .iter()
+            .all(|connection| connection.requested_packages.is_some())
+    }
+
+    fn all_ready_for_packages(&self) -> bool {
+        self.player_connections
+            .iter()
+            .all(|connection| connection.ready_for_packages)
+    }
+
+    fn received_every_package_list(&self) -> bool {
+        self.player_connections
+            .iter()
+            .all(|connection| connection.received_package_list)
+    }
+
     fn received_every_zip(&self) -> bool {
-        self.missing_packages.is_empty()
-            && self
-                .player_connections
-                .iter()
-                .all(|connection| connection.received_package_list)
+        self.missing_packages.is_empty() && self.received_every_package_list()
     }
 
     fn send(&self, remote_index: usize, packet: NetplayPacket) {
@@ -482,6 +486,62 @@ impl NetplayInitScene {
             player_package: player_package_info.id.clone(),
             cards,
         })
+    }
+
+    fn share_packages(&mut self, game_io: &GameIO<Globals>) {
+        let broadcasting = self.fallback_sender_receiver.is_some();
+
+        if broadcasting {
+            // gathering all of the package requests and merging them to broadcast
+            let mut pending_upload = HashSet::new();
+
+            for connection in &mut self.player_connections {
+                pending_upload.extend(connection.requested_packages.take().unwrap_or_default());
+            }
+
+            for hash in pending_upload {
+                let assets = &game_io.globals().assets;
+
+                let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
+                    bytes
+                } else {
+                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+
+                    assets.binary(&path)
+                };
+
+                self.broadcast(NetplayPacket::PackageZip {
+                    index: self.local_index,
+                    data,
+                });
+            }
+        } else {
+            // send individually to each client
+            for i in 0..self.player_connections.len() {
+                let connection = &mut self.player_connections[i];
+                let connection_index = connection.index;
+
+                for hash in connection.requested_packages.take().unwrap() {
+                    let assets = &game_io.globals().assets;
+
+                    let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
+                        bytes
+                    } else {
+                        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+
+                        assets.binary(&path)
+                    };
+
+                    self.send(
+                        connection_index,
+                        NetplayPacket::PackageZip {
+                            index: self.local_index,
+                            data,
+                        },
+                    );
+                }
+            }
+        }
     }
 
     fn broadcast_ready(&mut self) {

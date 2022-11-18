@@ -155,8 +155,14 @@ impl BattleScene {
                 vm.namespace = package_info.namespace;
             }
 
-            // vm already exists so no need to add a new one
-            return vm_index;
+            if !vm.namespace.is_remote()
+                && !package_info.namespace.is_remote()
+                && vm.namespace != package_info.namespace
+            {
+                // vm already exists so no need to add a new one
+                // exception for two different remotes, as with 3+ players recycling is more difficult
+                return vm_index;
+            }
         }
 
         create_battle_vm(game_io, &mut self.simulation, &mut self.vms, package_info)
