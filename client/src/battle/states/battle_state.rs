@@ -1348,6 +1348,11 @@ impl BattleState {
                     if start_tile.state() == TileState::Cracked
                         && start_tile.reservations().is_empty()
                     {
+                        if !simulation.is_resimulation {
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.tile_break_sfx);
+                        }
+
                         start_tile.set_state(TileState::Broken);
                     }
                 }

@@ -42,6 +42,7 @@ impl ResourcePaths {
     pub const CARD_SELECT_CONFIRM_SFX: &str = "resources/sfx/card_select_confirm.ogg";
     pub const TURN_GAUGE_SFX: &str = "resources/sfx/turn_gauge_full.ogg";
     pub const TIME_FREEZE_SFX: &str = "resources/sfx/time_freeze.ogg";
+    pub const TILE_BREAK_SFX: &str = "resources/sfx/tile_break.ogg";
     pub const TRAP_SFX: &str = "resources/sfx/trap.ogg";
     pub const ATTACK_CHARGING_SFX: &str = "resources/sfx/attack_charging.ogg";
     pub const ATTACK_CHARGED_SFX: &str = "resources/sfx/attack_charged.ogg";
