@@ -40,10 +40,10 @@ jobs:
           key: ${{ runner.os }}-cargo
 
       - name: Install Cargo About
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-about
+        uses: baptiste0928/cargo-install@v1
+          with:
+            crate: cargo-about
+            version: "0.5"
 
       - name: MinGW Setup
         uses: egor-tensin/setup-mingw@v2
