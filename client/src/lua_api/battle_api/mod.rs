@@ -29,6 +29,7 @@ pub const SPAWNER_TABLE: &str = "Battle.MobSpawner";
 pub const MUTATOR_TABLE: &str = "Battle.Mutator";
 pub const DEFENSE_RULE_TABLE: &str = "Battle.DefenseRule";
 pub const DEFENSE_JUDGE_TABLE: &str = "Battle.DefenseJudge";
+pub const CARD_PROPERTIES_TABLE: &str = "Battle.CardProperties";
 pub const CARD_ACTION_TABLE: &str = "Battle.CardAction";
 pub const STEP_TABLE: &str = "Battle.Step";
 pub const ATTACHMENT_TABLE: &str = "Battle.Attachment";

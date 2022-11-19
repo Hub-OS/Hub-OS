@@ -17,6 +17,10 @@ pub fn inject_card_action_api(lua_api: &mut BattleLuaApi) {
     inject_step_api(lua_api);
     inject_attachment_api(lua_api);
 
+    lua_api.add_dynamic_function(CARD_PROPERTIES_TABLE, "new", move |_, lua, _| {
+        lua.pack_multi(&CardProperties::default())
+    });
+
     lua_api.add_dynamic_function(CARD_ACTION_TABLE, "new", move |api_ctx, lua, params| {
         let (entity_table, state): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
 
