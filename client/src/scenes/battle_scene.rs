@@ -350,9 +350,20 @@ impl BattleScene {
         }
 
         if self.input_synced() {
+            use std::io::Write;
+
+            let mut file = std::fs::OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open("_input_buffers.txt")
+                .unwrap();
+
+            let _ = writeln!(&mut file, "F: {}", self.synced_time);
+
             self.synced_time += 1;
 
             for controller in self.player_controllers.iter_mut() {
+                let _ = writeln!(&mut file, "  {:?}", controller.input_buffer.front());
                 controller.input_buffer.pop_front();
             }
         }
