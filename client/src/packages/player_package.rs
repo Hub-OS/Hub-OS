@@ -47,7 +47,7 @@ impl Package for PlayerPackage {
             }
         };
 
-        lua.scope(|scope| {
+        let result = lua.scope(|scope| {
             crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
@@ -156,16 +156,14 @@ impl Package for PlayerPackage {
                 })?,
             )?;
 
-            match package_init.call(package_table) {
-                Ok(()) => {}
-                Err(e) => {
-                    log::error!("{}", e);
-                }
-            };
+            package_init.call(package_table)?;
 
             Ok(())
-        })
-        .unwrap();
+        });
+
+        if let Err(e) = result {
+            log::error!("{e}");
+        }
 
         package.into_inner()
     }

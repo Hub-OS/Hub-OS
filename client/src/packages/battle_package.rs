@@ -38,7 +38,7 @@ impl Package for BattlePackage {
             }
         };
 
-        lua.scope(|scope| {
+        let res = lua.scope(|scope| {
             crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
@@ -86,8 +86,11 @@ impl Package for BattlePackage {
             };
 
             Ok(())
-        })
-        .unwrap();
+        });
+
+        if let Err(e) = res {
+            log::error!("{e}");
+        }
 
         package.into_inner()
     }

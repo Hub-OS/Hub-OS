@@ -22,13 +22,16 @@ impl Package for LibraryPackage {
 
         let package = RefCell::new(Self { package_info });
 
-        lua.scope(|scope| {
+        let result = lua.scope(|scope| {
             crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
             Ok(())
-        })
-        .unwrap();
+        });
+
+        if let Err(e) = result {
+            log::error!("{e}");
+        }
 
         package.into_inner()
     }

@@ -44,7 +44,7 @@ impl Package for CardPackage {
         // create a table for card properties
         let table = CardProperties::default().to_lua(&lua).unwrap();
 
-        lua.scope(|scope| {
+        let result = lua.scope(|scope| {
             crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
             crate::lua_api::query_dependencies(&lua);
 
@@ -92,17 +92,18 @@ impl Package for CardPackage {
                 scope.create_function(|_, _: ()| Ok(table.clone()))?,
             )?;
 
-            if let Err(e) = package_init.call::<rollback_mlua::Table, ()>(package_table) {
-                log::error!("{}", e);
-            };
+            package_init.call(package_table)?;
 
             let mut card_properties = CardProperties::from_lua(table.clone(), &lua)?;
             card_properties.package_id = package.borrow().package_info.id.clone();
 
             package.borrow_mut().card_properties = card_properties;
             Ok(())
-        })
-        .unwrap();
+        });
+
+        if let Err(e) = result {
+            log::error!("{e}");
+        }
 
         package.into_inner()
     }
