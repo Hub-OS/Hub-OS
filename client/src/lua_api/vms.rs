@@ -7,14 +7,14 @@ use crate::resources::{
 use framework::prelude::GameIO;
 use std::cell::RefCell;
 
-// 1/2 MiB
-const VM_MEMORY: usize = 1024 * 1024 / 2;
+// 1 MiB
+const VM_MEMORY: usize = 1024 * 1024;
 
 pub fn create_analytical_vm(
     assets: &LocalAssetManager,
     package_info: &PackageInfo,
 ) -> rollback_mlua::Lua {
-    let lua = rollback_mlua::Lua::new();
+    let lua = rollback_mlua::Lua::new_rollback(VM_MEMORY, 0);
     lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)
         .unwrap();
 
