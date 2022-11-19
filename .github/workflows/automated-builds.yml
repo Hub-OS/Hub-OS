@@ -41,9 +41,9 @@ jobs:
 
       - name: Install Cargo About
         uses: baptiste0928/cargo-install@v1
-          with:
-            crate: cargo-about
-            version: "0.5"
+        with:
+          crate: cargo-about
+          version: "0.5"
 
       - name: MinGW Setup
         uses: egor-tensin/setup-mingw@v2
