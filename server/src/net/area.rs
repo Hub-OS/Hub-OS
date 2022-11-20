@@ -51,7 +51,11 @@ impl Area {
     }
 
     pub(super) fn add_player(&mut self, player_id: String) {
-        self.connected_players.push(player_id);
+        if !self.connected_players.contains(&player_id) {
+            self.connected_players.push(player_id);
+        } else {
+            log::warn!("Attempt to add {player_id} twice to an area, bugged client?");
+        }
     }
 
     pub(super) fn remove_player(&mut self, player_id: &str) {
