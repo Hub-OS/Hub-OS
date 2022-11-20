@@ -12,9 +12,13 @@ use std::net::IpAddr;
 #[async_std::main]
 async fn main() {
     std::panic::set_hook(Box::new(|p| {
-        let output = format!("{p}");
+        use std::backtrace::Backtrace;
+
+        let backtrace = Backtrace::force_capture();
+        let output = format!("{p}\n{backtrace}");
+
         let _ = std::fs::write("crash.txt", &output);
-        log::error!("{p}");
+        log::error!("{output}");
     }));
 
     logger::init();

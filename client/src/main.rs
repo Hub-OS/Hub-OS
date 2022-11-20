@@ -2,9 +2,13 @@ use std::panic;
 
 fn main() {
     panic::set_hook(Box::new(|p| {
-        let output = format!("{p}");
+        use std::backtrace::Backtrace;
+
+        let backtrace = Backtrace::force_capture();
+        let output = format!("{p}\n{backtrace:?}");
+
         let _ = std::fs::write("crash.txt", &output);
-        log::error!("{p}");
+        log::error!("{output}");
     }));
 
     // check lib.rs
