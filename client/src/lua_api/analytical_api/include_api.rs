@@ -1,7 +1,7 @@
 use crate::resources::{AssetManager, LocalAssetManager, ResourcePaths};
 
 // the real include is in include_api.rs, this is just for the analytical vm
-pub fn inject_package_management_api<'lua: 'scope, 'scope: 'closure, 'closure>(
+pub fn inject_include_api<'lua: 'scope, 'scope: 'closure, 'closure>(
     lua: &'lua rollback_mlua::Lua,
     scope: &'closure rollback_mlua::Scope<'lua, 'scope>,
     assets: &'scope LocalAssetManager,

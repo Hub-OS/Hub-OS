@@ -121,12 +121,14 @@ impl<T: Package> PackageManager<T> {
             None => return false,
         };
 
-        package_info.parent_package = Some((
+        let parent_tuple = (
             child_package_info.parent_type,
             child_package_info.parent_id.clone(),
-        ));
+        );
 
         package_info.id = child_package_info.id.clone();
+        package_info.parent_package = Some(parent_tuple.clone());
+        package_info.requirements.push(parent_tuple);
 
         self.internal_load_package(assets, package_info).is_some()
     }

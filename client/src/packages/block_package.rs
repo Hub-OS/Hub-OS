@@ -42,8 +42,8 @@ impl Package for BlockPackage {
         };
 
         let result = lua.scope(|scope| {
-            crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
-            crate::lua_api::query_dependencies(&lua);
+            crate::lua_api::analytical_api::inject_analytical_api(&lua, scope, assets, &package)?;
+            crate::lua_api::analytical_api::query_dependencies(&lua);
 
             let package_table = lua.create_table()?;
 

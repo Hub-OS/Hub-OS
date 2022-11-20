@@ -23,8 +23,22 @@ impl Package for LibraryPackage {
         let package = RefCell::new(Self { package_info });
 
         let result = lua.scope(|scope| {
-            crate::lua_api::inject_analytical_api(&lua, scope, assets, &package)?;
-            crate::lua_api::query_dependencies(&lua);
+            crate::lua_api::analytical_api::inject_analytical_api(&lua, scope, assets, &package)?;
+            crate::lua_api::analytical_api::query_dependencies(&lua);
+
+            let package_init: rollback_mlua::Function = lua.globals().get("package_init")?;
+
+            let package_table = lua.create_table()?;
+
+            package_table.set(
+                "declare_package_id",
+                scope.create_function(|_, (_, id): (rollback_mlua::Table, String)| {
+                    package.borrow_mut().package_info.id = id;
+                    Ok(())
+                })?,
+            )?;
+
+            package_init.call(package_table)?;
 
             Ok(())
         });

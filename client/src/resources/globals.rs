@@ -16,6 +16,7 @@ pub struct Globals {
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
     pub battle_packages: PackageManager<BattlePackage>,
+    pub character_packages: PackageManager<CharacterPackage>,
     pub block_packages: PackageManager<BlockPackage>,
     pub library_packages: PackageManager<LibraryPackage>,
     pub battle_api: BattleLuaApi,
@@ -77,6 +78,7 @@ impl Globals {
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),
             battle_packages: PackageManager::new(PackageCategory::Battle),
+            character_packages: PackageManager::new(PackageCategory::Character),
             block_packages: PackageManager::new(PackageCategory::Block),
             library_packages: PackageManager::new(PackageCategory::Library),
             battle_api: BattleLuaApi::new(),
@@ -146,9 +148,10 @@ impl Globals {
                 self.card_packages
                     .load_virtual_package(&self.assets, namespace, hash)
             }
-            PackageCategory::Battle | PackageCategory::Character => self
-                .battle_packages
-                .load_virtual_package(&self.assets, namespace, hash),
+            PackageCategory::Battle => {
+                self.battle_packages
+                    .load_virtual_package(&self.assets, namespace, hash)
+            }
             PackageCategory::Library => {
                 self.library_packages
                     .load_virtual_package(&self.assets, namespace, hash)
@@ -157,13 +160,18 @@ impl Globals {
                 self.player_packages
                     .load_virtual_package(&self.assets, namespace, hash)
             }
+            PackageCategory::Character => {
+                log::error!("attempt to load Character package");
+                None
+            }
         }?;
 
         // load child packages
+        // character packages are the only child packages for now
         let child_packages: Vec<_> = package_info.child_packages().collect();
         let id = package_info.id.clone();
 
-        self.library_packages
+        self.character_packages
             .load_child_packages(&self.assets, namespace, child_packages);
 
         self.package_or_fallback_info(category, namespace, &id)
@@ -248,10 +256,6 @@ impl Globals {
         id: &str,
     ) -> Option<&PackageInfo> {
         match category {
-            PackageCategory::Character | PackageCategory::Library => self
-                .library_packages
-                .package_or_fallback(namespace, &id)
-                .map(|package| package.package_info()),
             PackageCategory::Battle => self
                 .battle_packages
                 .package_or_fallback(namespace, &id)
@@ -262,6 +266,14 @@ impl Globals {
                 .map(|package| package.package_info()),
             PackageCategory::Card => self
                 .card_packages
+                .package_or_fallback(namespace, &id)
+                .map(|package| package.package_info()),
+            PackageCategory::Character => self
+                .character_packages
+                .package_or_fallback(namespace, &id)
+                .map(|package| package.package_info()),
+            PackageCategory::Library => self
+                .library_packages
                 .package_or_fallback(namespace, &id)
                 .map(|package| package.package_info()),
             PackageCategory::Player => self
@@ -280,6 +292,8 @@ impl Globals {
             .chain(self.block_packages.namespaces())
             .chain(self.card_packages.namespaces())
             .chain(self.player_packages.namespaces())
+            .chain(self.character_packages.namespaces())
+            .chain(self.library_packages.namespaces())
             .filter(|ns| ns.is_remote())
             .for_each(|namespace| {
                 namespace_set.insert(namespace);
@@ -289,9 +303,6 @@ impl Globals {
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
-        self.library_packages
-            .remove_namespace(&self.assets, namespace);
-
         self.battle_packages
             .remove_namespace(&self.assets, namespace);
 
@@ -299,6 +310,12 @@ impl Globals {
             .remove_namespace(&self.assets, namespace);
 
         self.card_packages.remove_namespace(&self.assets, namespace);
+
+        self.character_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.library_packages
+            .remove_namespace(&self.assets, namespace);
 
         self.player_packages
             .remove_namespace(&self.assets, namespace);

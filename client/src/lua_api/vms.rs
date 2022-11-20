@@ -1,4 +1,4 @@
-use super::inject_package_management_api;
+use super::analytical_api::inject_include_api;
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
 use crate::packages::PackageInfo;
 use crate::resources::{
@@ -39,7 +39,7 @@ pub fn create_analytical_vm(
     }
 
     let res = lua.scope(|scope| {
-        inject_package_management_api(&lua, scope, assets)?;
+        inject_include_api(&lua, scope, assets)?;
 
         load_root_script(&lua, assets, package_info)
     });

@@ -9,49 +9,50 @@ pub fn inject_package_management_api<'lua: 'scope, 'scope: 'closure, 'closure>(
 ) -> rollback_mlua::Result<()> {
     let engine_table: rollback_mlua::Table = lua.globals().get("Engine")?;
 
-    engine_table.set(
-        "requires_card",
-        scope.create_function(|_, id: String| {
+    let generate_require_function = |package_category| {
+        scope.create_function(move |_, id: String| {
             let mut package = package.borrow_mut();
             let package_info = package.package_info_mut();
-            package_info.requirements.push((PackageCategory::Card, id));
+            package_info.requirements.push((package_category, id));
+
+            Ok(())
+        })
+    };
+
+    engine_table.set(
+        "requires_card",
+        generate_require_function(PackageCategory::Card)?,
+    )?;
+
+    engine_table.set(
+        "requires_character",
+        generate_require_function(PackageCategory::Character)?,
+    )?;
+
+    engine_table.set(
+        "requires_library",
+        generate_require_function(PackageCategory::Library)?,
+    )?;
+
+    engine_table.set(
+        "define_character",
+        scope.create_function(|lua, (id, path): (String, String)| {
+            let path = absolute_path(lua, path)?;
+
+            let mut package = package.borrow_mut();
+            let package_info = package.package_info_mut();
+
+            // add the character as a child package
+            package_info.child_id_path_pairs.push((id.clone(), path));
+
+            // add the character as a requirement
+            package_info
+                .requirements
+                .push((PackageCategory::Character, id));
 
             Ok(())
         })?,
     )?;
-
-    let requires_library = scope.create_function(|_, id: String| {
-        let mut package = package.borrow_mut();
-        let package_info = package.package_info_mut();
-        package_info
-            .requirements
-            .push((PackageCategory::Library, id));
-
-        Ok(())
-    })?;
-
-    engine_table.set("requires_character", requires_library.clone())?;
-    engine_table.set("requires_library", requires_library)?;
-
-    let define_library = scope.create_function(|lua, (id, path): (String, String)| {
-        let path = absolute_path(lua, path)?;
-
-        let mut package = package.borrow_mut();
-        let package_info = package.package_info_mut();
-
-        // add the library as a child package
-        package_info.child_id_path_pairs.push((id.clone(), path));
-
-        // add the library as a requirement
-        package_info
-            .requirements
-            .push((PackageCategory::Library, id));
-
-        Ok(())
-    })?;
-
-    engine_table.set("define_character", define_library.clone())?;
-    engine_table.set("define_library", define_library)?;
 
     Ok(())
 }

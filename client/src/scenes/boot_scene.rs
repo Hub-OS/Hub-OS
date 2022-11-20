@@ -24,6 +24,7 @@ enum Event {
     BattleManager(PackageManager<BattlePackage>),
     BlockManager(PackageManager<BlockPackage>),
     LibraryManager(PackageManager<LibraryPackage>),
+    CharacterManager(PackageManager<CharacterPackage>),
     Done,
 }
 
@@ -149,24 +150,46 @@ impl BootScene {
 
             child_packages.extend(block_packages.child_packages(PackageNamespace::Local));
 
-            sender.send(Event::BlockManager(block_packages)).unwrap();
-
             // load libraries
             let mut library_packages =
                 PackageManager::<LibraryPackage>::new(PackageCategory::Library);
+            library_packages.load_packages_in_folder(
+                &thread_assets,
+                "./mods/libraries",
+                |progress, total| {
+                    let status_update = StatusUpdate {
+                        label: "Loading Libraries",
+                        progress,
+                        total,
+                    };
 
+                    sender.send(Event::StatusUpdate(status_update)).unwrap();
+                },
+            );
+
+            child_packages.extend(library_packages.child_packages(PackageNamespace::Local));
+
+            sender
+                .send(Event::LibraryManager(library_packages))
+                .unwrap();
+
+            // load characters
+            let mut character_packages =
+                PackageManager::<CharacterPackage>::new(PackageCategory::Character);
+
+            // characters and child packages are currently the same
             let total_child_packages = child_packages.len();
 
             for (i, child_package) in child_packages.into_iter().enumerate() {
                 let status_update = StatusUpdate {
-                    label: "Loading Libraries",
+                    label: "Loading Enemies",
                     progress: i,
                     total: total_child_packages,
                 };
 
                 sender.send(Event::StatusUpdate(status_update)).unwrap();
 
-                library_packages.load_child_package(
+                character_packages.load_child_package(
                     &thread_assets,
                     PackageNamespace::Local,
                     &child_package,
@@ -174,7 +197,7 @@ impl BootScene {
             }
 
             sender
-                .send(Event::LibraryManager(library_packages))
+                .send(Event::CharacterManager(character_packages))
                 .unwrap();
 
             sender.send(Event::Done).unwrap();
@@ -252,6 +275,9 @@ impl BootScene {
                 }
                 Event::LibraryManager(library_packages) => {
                     game_io.globals_mut().library_packages = library_packages;
+                }
+                Event::CharacterManager(character_packages) => {
+                    game_io.globals_mut().character_packages = character_packages;
                 }
                 Event::Done => {
                     let mut available_players = game_io.globals().player_packages.local_packages();

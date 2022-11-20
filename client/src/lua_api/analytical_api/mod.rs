@@ -12,9 +12,9 @@ pub fn inject_analytical_api<'lua: 'scope, 'scope: 'closure, 'closure>(
     package: &'lua RefCell<impl Package + 'static>,
 ) -> rollback_mlua::Result<()> {
     package_management_api::inject_package_management_api(lua, scope, package)?;
-    include_api::inject_package_management_api(lua, scope, assets)?;
+    include_api::inject_include_api(lua, scope, assets)?;
     Ok(())
 }
 
-pub use include_api::inject_package_management_api;
+pub use include_api::inject_include_api;
 pub use package_management_api::query_dependencies;
