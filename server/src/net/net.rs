@@ -1604,18 +1604,19 @@ impl Net {
 
         area.add_player(client.actor.id.clone());
 
-        self.packet_orchestrator
-            .borrow_mut()
-            .join_room(client.socket_address, area_id.clone());
+        {
+            let packet_orchestrator = &mut *self.packet_orchestrator.borrow_mut();
+            packet_orchestrator.join_room(client.socket_address, area_id.clone());
 
-        ensure_assets(
-            &mut *self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
-            &self.asset_manager,
-            &mut self.clients,
-            area.get_connected_players(),
-            [texture_path.as_str(), animation_path.as_str()].iter(),
-        );
+            ensure_assets(
+                packet_orchestrator,
+                self.config.max_payload_size,
+                &self.asset_manager,
+                &mut self.clients,
+                area.get_connected_players(),
+                [texture_path.as_str(), animation_path.as_str()].iter(),
+            );
+        }
 
         self.send_area(player_id, &area_id);
 
