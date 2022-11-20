@@ -1,5 +1,0 @@
-imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/scenes/cust/red_cursor.png"
-
-animation state="DEFAULT"
-frame duration="0.1" x="0" y="0" w="16" h="16" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="21" y="0" w="14" h="15" originx="-1" originy="0" flipx="0" flipy="0" 

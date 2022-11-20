@@ -1,9 +1,0 @@
-imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/ui/mouse.png"
-
-animation state="DEFAULT"
-frame duration="0.1" x="0" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="8" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="16" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="24" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="32" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 
-frame duration="0.1" x="40" y="0" w="8" h="8" originx="0" originy="0" flipx="0" flipy="0" 

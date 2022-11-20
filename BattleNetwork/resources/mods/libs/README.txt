@@ -1,2 +1,0 @@
-Libs are utility and asset mods for other mods to share or can be used to make development easier. 
-After installing a mod, use the provided `include(plugin_id)` function in your scripts to start using them!

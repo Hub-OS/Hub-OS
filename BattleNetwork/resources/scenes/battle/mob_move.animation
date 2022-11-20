@@ -1,5 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/mobs/mob_move.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="0" y="0" w="32" h="41" originx="15" originy="34"
-frame duration="0.05" x="32" y="0" w="32" h="45" originx="17" originy="34"

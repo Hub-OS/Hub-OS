@@ -1,7 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/backgrounds/config/audio.png"
-
-animation state="DEFAULT"
-frame duration="0.1" x="0" y="0" w="11" h="14" originx="0" originy="0"
-frame duration="0.1" x="11" y="0" w="11" h="14" originx="0" originy="0"
-frame duration="0.1" x="22" y="0" w="11" h="14" originx="0" originy="0"
-frame duration="0.1" x="33" y="0" w="11" h="14" originx="0" originy="0"

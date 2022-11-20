@@ -1,6 +1,0 @@
-imagePath="C:/Users/seven/OneDrive/Desktop/OpenNetBattle/BattleNetwork/resources/scenes/title/prog-pulse.png"
-
-animation state="default"
-frame duration="0.1" x="0" y="0" w="26" h="42" originx="150" originy="40" flipx="0" flipy="0"
-frame duration="0.1" x="26" y="0" w="26" h="39" originx="150" originy="37" flipx="0" flipy="0"
-frame duration="0.1" x="52" y="0" w="19" h="45" originx="147" originy="43" flipx="0" flipy="0"

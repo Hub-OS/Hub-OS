@@ -1,7 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/backgrounds/lan/bg.png"
-
-animation state="BG"
-frame duration="0.15" x="0" y="0" w="64" h="64" originx="0" originy="0"
-frame duration="0.1" x="64" y="0" w="64" h="64" originx="0" originy="0"
-frame duration="0.1" x="128" y="0" w="64" h="64" originx="0" originy="0"
-frame duration="1.5" x="192" y="0" w="64" h="64" originx="0" originy="0"

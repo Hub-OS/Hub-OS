@@ -1,8 +1,0 @@
-imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/scenes/cust/ud_shadow.png"
-
-animation state="BLINK"
-frame duration="0.1" x="0" y="5" w="20" h="5" originx="0" originy="-1" flipx="0" flipy="0" 
-frame duration="0.1" x="0" y="0" w="20" h="5" originx="0" originy="-1" flipx="0" flipy="0" 
-
-animation state="DIMMED"
-frame duration="0.05" x="0" y="0" w="20" h="5" originx="0" originy="-1" flipx="0" flipy="0" 

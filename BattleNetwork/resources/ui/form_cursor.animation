@@ -1,5 +1,0 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/ui/form_cursor.png"
-
-animation state="BLINK"
-frame duration="0.1" x="0" y="0" w="72" h="18" originx="0" originy="0"
-frame duration="0.1" x="0" y="21" w="72" h="18" originx="0" originy="0"
