@@ -5,7 +5,7 @@ fn main() {
         use std::backtrace::Backtrace;
 
         let backtrace = Backtrace::force_capture();
-        let output = format!("{p}\n{backtrace:?}");
+        let output = format!("{p}\n{backtrace}");
 
         let _ = std::fs::write("crash.txt", &output);
         log::error!("{output}");
