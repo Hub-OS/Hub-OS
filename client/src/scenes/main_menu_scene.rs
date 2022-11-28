@@ -1,15 +1,12 @@
 use crate::bindable::SpriteColorMode;
 use crate::ease::inverse_lerp;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{draw_clock, UiInputTracker};
+use crate::render::ui::{NavigationMenu, SceneOption};
 use crate::render::*;
 use crate::resources::*;
-use crate::scenes::*;
 use framework::prelude::*;
-use num_derive::FromPrimitive;
 use rand::Rng;
 use std::ops::Range;
-use strum::{EnumCount, EnumIter, IntoEnumIterator};
 
 #[derive(Default)]
 struct Particle {
@@ -32,31 +29,13 @@ struct Motion {
     friction: Vec2,
 }
 
-#[derive(Clone, Copy, EnumIter, EnumCount, FromPrimitive)]
-enum MenuItem {
-    Servers,
-    Character,
-    Folders,
-    Library,
-    BattleSelect,
-    Config,
-}
-
-#[derive(Clone)]
-struct BarrelItem {
-    index: i32,
-    offset: Vec2,
-}
-
 pub struct MainMenuScene {
     camera: Camera,
     background: Background,
     character_entity: hecs::Entity,
     character_shadow_entity: hecs::Entity,
-    selected_item: i32,
-    selection_scroll: f32,
     entities: hecs::World,
-    ui_input_tracker: UiInputTracker,
+    navigation_menu: NavigationMenu,
     next_scene: NextScene<Globals>,
 }
 
@@ -74,11 +53,6 @@ impl MainMenuScene {
         let background_texture = assets.texture(game_io, ResourcePaths::MAIN_MENU_BG);
         let background_sprite = Sprite::new(background_texture, background_sampler.clone());
         let background = Background::new(Animator::new(), background_sprite);
-
-        // menu assets
-        let menu_sprite = assets.new_sprite(game_io, ResourcePaths::MAIN_MENU_PARTS);
-        let mut menu_animator =
-            Animator::load_new(assets, ResourcePaths::MAIN_MENU_PARTS_ANIMATION);
 
         // entities
         let mut entities = hecs::World::new();
@@ -136,68 +110,23 @@ impl MainMenuScene {
         character_sprite.set_color(Color::from((0, 0, 20, 20)));
         let character_shadow_entity = entities.spawn((character_sprite,));
 
-        // top bar
-        let mut top_bar_sprite = menu_sprite.clone();
-        menu_animator.set_state("TOP_BAR");
-        menu_animator.apply(&mut top_bar_sprite);
-
-        entities.spawn((top_bar_sprite,));
-
-        // menu items
-        for (i, menu_item) in MenuItem::iter().enumerate() {
-            let mut label_animator = menu_animator.clone();
-            let mut icon_animator = menu_animator.clone();
-
-            match menu_item {
-                MenuItem::Servers => {
-                    label_animator.set_state("SERVERS_LABEL");
-                    icon_animator.set_state("SERVERS");
-                }
-                MenuItem::Character => {
-                    label_animator.set_state("CHARACTER_LABEL");
-                    icon_animator.set_state("CHARACTER");
-                }
-                MenuItem::Folders => {
-                    label_animator.set_state("FOLDERS_LABEL");
-                    icon_animator.set_state("FOLDERS");
-                }
-                MenuItem::Library => {
-                    label_animator.set_state("LIBRARY_LABEL");
-                    icon_animator.set_state("LIBRARY");
-                }
-                MenuItem::BattleSelect => {
-                    label_animator.set_state("BATTLE_SELECT_LABEL");
-                    icon_animator.set_state("BATTLE_SELECT");
-                }
-                MenuItem::Config => {
-                    label_animator.set_state("CONFIG_LABEL");
-                    icon_animator.set_state("CONFIG");
-                }
-            }
-
-            menu_animator.set_loop_mode(AnimatorLoopMode::Loop);
-
-            let mut barrel_item = BarrelItem {
-                index: i as i32,
-                offset: Vec2::ZERO,
-            };
-
-            entities.spawn((menu_sprite.clone(), label_animator, barrel_item.clone()));
-
-            barrel_item.offset.x = -15.0;
-
-            entities.spawn((menu_sprite.clone(), icon_animator, barrel_item));
-        }
-
         MainMenuScene {
             camera,
             background,
             character_entity,
             character_shadow_entity,
-            selected_item: 0,
-            selection_scroll: 0.0,
             entities,
-            ui_input_tracker: UiInputTracker::new(),
+            navigation_menu: NavigationMenu::new(
+                game_io,
+                vec![
+                    SceneOption::Servers,
+                    SceneOption::Folders,
+                    SceneOption::Library,
+                    SceneOption::Character,
+                    SceneOption::BattleSelect,
+                    SceneOption::Config,
+                ],
+            ),
             next_scene: NextScene::None,
         }
     }
@@ -250,32 +179,10 @@ impl Scene<Globals> for MainMenuScene {
 
         self.background.update();
 
-        // input
-        if !game_io.is_in_transition() {
-            self.ui_input_tracker.update(game_io);
-
-            if self.ui_input_tracker.is_active(Input::Up) {
-                self.selected_item -= 1;
-
-                let globals = game_io.globals();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
-            }
-
-            if self.ui_input_tracker.is_active(Input::Down) {
-                self.selected_item += 1;
-
-                let globals = game_io.globals();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
-            }
-
-            if self.ui_input_tracker.is_active(Input::Confirm) {
-                self.select_item(game_io);
-            }
-        }
+        self.next_scene = self.navigation_menu.update(game_io);
 
         // systems
-        system_animate(self.true_selection(), &mut self.entities);
-        system_barrel(self);
+        system_animate(&mut self.entities);
         system_particle_motion(game_io, &mut self.entities);
         system_particle_stretching(&mut self.entities);
         system_age_particle(&mut self.entities);
@@ -294,130 +201,19 @@ impl Scene<Globals> for MainMenuScene {
             sprite_queue.draw_sprite(sprite);
         }
 
-        draw_clock(game_io, &mut sprite_queue);
+        self.navigation_menu.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }
 }
 
-impl MainMenuScene {
-    fn true_selection(&self) -> i32 {
-        let item_count = MenuItem::COUNT as i32;
-
-        (self.selected_item % item_count + item_count) % item_count
-    }
-
-    fn select_item(&mut self, game_io: &mut GameIO<Globals>) {
-        use crate::transitions::*;
-        use num_traits::FromPrimitive;
-
-        let true_selection = self.true_selection();
-
-        let scene: Option<Box<dyn Scene<Globals>>> =
-            match MenuItem::from_i32(true_selection).unwrap() {
-                MenuItem::Servers => Some(ServerListScene::new(game_io)),
-                MenuItem::Folders => Some(FolderListScene::new(game_io)),
-                MenuItem::Library => Some(LibraryScene::new(game_io)),
-                MenuItem::BattleSelect => Some(BattleSelectScene::new(game_io)),
-                _ => None,
-            };
-
-        let globals = game_io.globals();
-
-        if let Some(scene) = scene {
-            globals.audio.play_sound(&globals.cursor_select_sfx);
-
-            let transition = PushTransition::new(
-                game_io,
-                game_io.globals().default_sampler.clone(),
-                Direction::Right,
-                DEFAULT_PUSH_DURATION,
-            );
-
-            self.next_scene = NextScene::Push {
-                scene,
-                transition: Some(Box::new(transition)),
-            };
-        } else {
-            globals.audio.play_sound(&globals.cursor_error_sfx);
-            log::warn!("Not implemented");
-        }
-    }
-}
-
-fn system_animate(true_selection: i32, entities: &mut hecs::World) {
+fn system_animate(entities: &mut hecs::World) {
     for (_, (particle, sprite, animator)) in
         entities.query_mut::<(&Particle, &mut Sprite, &mut Animator)>()
     {
         animator.sync_time(particle.lifetime);
         animator.apply(sprite);
     }
-
-    for (_, (sprite, animator, barrel_item)) in
-        entities.query_mut::<(&mut Sprite, &mut Animator, &BarrelItem)>()
-    {
-        if barrel_item.index == true_selection {
-            animator.set_frame(1);
-        } else {
-            animator.set_frame(0);
-        }
-
-        animator.apply(sprite);
-    }
-}
-
-fn system_barrel(scene: &mut MainMenuScene) {
-    use std::f32::consts::PI;
-
-    const RADIUS: f32 = 50.0;
-    const SCALE: Vec2 = Vec2::new(1.3, 1.0);
-    const OFFSET: Vec2 = Vec2::new(RESOLUTION_F.x - RESOLUTION_F.x / 10.0, RESOLUTION_F.y * 0.5);
-    const ANGLE_RANGE: f32 = PI;
-
-    let selection_f32 = scene.selected_item as f32;
-
-    scene.selection_scroll =
-        scene.selection_scroll + (selection_f32 - scene.selection_scroll) * 0.2;
-
-    let item_count_f = MenuItem::COUNT as f32;
-    let relative_scroll = (scene.selection_scroll % item_count_f + item_count_f) % item_count_f;
-
-    for (_, (sprite, barrel_item)) in scene.entities.query_mut::<(&mut Sprite, &BarrelItem)>() {
-        let relative_index =
-            calc_relative_index(barrel_item.index as f32, relative_scroll, item_count_f);
-        let angle_scalar = (relative_index as f32) / item_count_f;
-
-        // calculate scale + color effect
-        let abs_dist = angle_scalar.abs();
-
-        let scale = 1.0 - abs_dist * 1.5;
-        sprite.set_scale(Vec2::new(scale, scale));
-
-        let mut color = sprite.color();
-        color.a = 1.0 - abs_dist;
-        sprite.set_color(color);
-
-        // calculate position
-        let angle = -ANGLE_RANGE * angle_scalar + PI;
-
-        let position =
-            (Vec2::from_angle(angle) * RADIUS + barrel_item.offset * scale) * SCALE + OFFSET;
-        sprite.set_position(position);
-    }
-}
-
-fn calc_relative_index<T>(a: T, b: T, len: T) -> T
-where
-    T: num_traits::NumOps + num_traits::Signed + std::cmp::PartialOrd + Copy,
-{
-    let two = T::one() + T::one();
-    let mut relative_index = a - b;
-
-    if relative_index.abs() > len / two {
-        relative_index = -relative_index.signum() * len + relative_index
-    }
-
-    relative_index
 }
 
 fn system_particle_motion(game_io: &GameIO<Globals>, entities: &mut hecs::World) {
