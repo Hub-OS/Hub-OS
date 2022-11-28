@@ -6,9 +6,9 @@ use framework::prelude::*;
 
 const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
 const TEXT_SHADOW_OFFSET: f32 = 1.0;
+const MARGIN: f32 = 2.0;
 
 pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
-    const SHADOW_OFFSET: f32 = 1.0;
     const MARGIN: f32 = 2.0;
 
     // generate initial text
@@ -16,7 +16,7 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
     let is_afternoon = time.hour() >= 12;
     let show_colon = time.timestamp_subsec_millis() > 500;
 
-    let mut time_style = TextStyle::new(game_io, FontStyle::Thick);
+    let mut time_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
     let format = match show_colon {
         false => "%I %M %p",
         true => "%I:%M %p",
@@ -39,7 +39,7 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
     time_style.draw(game_io, sprite_queue, &full_text);
 
     // draw the time in white
-    time_style.bounds -= Vec2::new(SHADOW_OFFSET, SHADOW_OFFSET);
+    time_style.bounds -= Vec2::new(TEXT_SHADOW_OFFSET, TEXT_SHADOW_OFFSET);
 
     time_style.color = Color::WHITE;
     time_style.draw(game_io, sprite_queue, white_str);
@@ -55,4 +55,14 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
 
     time_style.color = am_pm_color;
     time_style.draw(game_io, sprite_queue, am_pm_str);
+}
+
+pub fn draw_date(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    let mut time_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+    time_style.shadow_color = TEXT_SHADOW_COLOR;
+    time_style.bounds.set_position(Vec2::new(MARGIN, MARGIN));
+
+    let time = chrono::Local::now();
+    let text = time.format("%x").to_string();
+    time_style.draw(game_io, sprite_queue, &text);
 }

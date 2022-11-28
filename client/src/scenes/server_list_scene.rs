@@ -427,7 +427,8 @@ impl Scene<Globals> for ServerListScene {
 
                 if matches!(status, ServerStatus::Pending | ServerStatus::Online) {
                     // try connecting to the server
-                    let scene = InitialConnectScene::new(game_io, server_info.address.clone());
+                    let scene =
+                        InitialConnectScene::new(game_io, server_info.address.clone(), None, true);
                     let transition =
                         ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
 

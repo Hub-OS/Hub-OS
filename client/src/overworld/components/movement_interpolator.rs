@@ -1,5 +1,4 @@
-use crate::overworld::{RUN_SPEED, WALK_SPEED};
-use crate::resources::Globals;
+use crate::resources::{Globals, OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
 use framework::prelude::*;
 use packets::structures::Direction;
 use packets::SERVER_TICK_RATE;
@@ -12,7 +11,7 @@ const WINDOW_LEN_F: f32 = WINDOW_LEN as f32;
 const K: f32 = SMOOTHING / (1.0 + WINDOW_LEN as f32);
 
 const MAX_IDLE_MOVEMENT_SQR: f32 = 1.0;
-const MIN_TELEPORT_DIST_SQR: f32 = RUN_SPEED * RUN_SPEED * 60.0 * 60.0;
+const MIN_TELEPORT_DIST_SQR: f32 = OVERWORLD_RUN_SPEED * OVERWORLD_RUN_SPEED * 60.0 * 60.0;
 
 // todo: move to packets/lib.rs? need to make sure the server uses it too
 const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);
@@ -82,7 +81,7 @@ impl MovementInterpolator {
             self.force_position(self.target_position);
             direction = self.idle_direction;
             movement_state = MovementState::Idle;
-        } else if distance_sqr <= WALK_SPEED * self.average {
+        } else if distance_sqr <= OVERWORLD_WALK_SPEED * self.average {
             direction = Direction::from_offset(delta.xy().into());
             movement_state = MovementState::Walking;
         } else {

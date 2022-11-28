@@ -19,6 +19,7 @@ pub struct InitialConnectScene {
     bg_sprite: Sprite,
     bg_animator: Animator,
     address: String,
+    data: Option<String>,
     online_scene: Option<OverworldOnlineScene>,
     task: AsyncTask<()>,
     event_sender: flume::Sender<Event>,
@@ -30,7 +31,12 @@ pub struct InitialConnectScene {
 }
 
 impl InitialConnectScene {
-    pub fn new(game_io: &GameIO<Globals>, address: String) -> Self {
+    pub fn new(
+        game_io: &GameIO<Globals>,
+        address: String,
+        data: Option<String>,
+        animate: bool,
+    ) -> Self {
         let globals = game_io.globals();
         let assets = &globals.assets;
 
@@ -94,12 +100,24 @@ impl InitialConnectScene {
             }
         });
 
+        let mut bg_sprite;
+        let mut bg_animator = Animator::new();
+
+        if animate {
+            bg_sprite = assets.new_sprite(game_io, ResourcePaths::INITIAL_CONNECT_BG);
+            bg_animator.load(assets, ResourcePaths::INITIAL_CONNECT_BG_ANIMATION);
+            bg_animator.set_state("DEFAULT");
+        } else {
+            bg_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            bg_sprite.set_size(RESOLUTION_F);
+        }
+
         Self {
             camera: Camera::new_ui(game_io),
-            bg_sprite: assets.new_sprite(game_io, ResourcePaths::INITIAL_CONNECT_BG),
-            bg_animator: Animator::load_new(assets, ResourcePaths::INITIAL_CONNECT_BG_ANIMATION)
-                .with_state("DEFAULT"),
+            bg_sprite,
+            bg_animator,
             address,
+            data,
             online_scene: None,
             task,
             event_sender,
@@ -173,7 +191,7 @@ impl Scene<Globals> for InitialConnectScene {
                         packet_receiver,
                     );
 
-                    online_scene.start_connection(game_io);
+                    online_scene.start_connection(game_io, self.data.take());
 
                     self.online_scene = Some(online_scene);
                 }

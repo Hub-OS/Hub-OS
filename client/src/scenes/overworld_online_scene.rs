@@ -1,7 +1,10 @@
 use super::{NetplayInitScene, OverworldSceneBase};
 use crate::battle::BattleProps;
 use crate::bindable::Emotion;
-use crate::overworld::{components::*, movement_interpolation_system, CameraAction};
+use crate::overworld::components::*;
+use crate::overworld::{
+    movement_interpolation_system, CameraAction, ObjectData, ObjectType, OverworldBaseEvent,
+};
 use crate::overworld::{Item, ServerAssetManager};
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
@@ -51,6 +54,12 @@ pub struct OverworldOnlineScene {
     loaded_zips: HashMap<String, FileHash>,      // server_path -> hash
 }
 
+impl Drop for OverworldOnlineScene {
+    fn drop(&mut self) {
+        (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::Logout);
+    }
+}
+
 impl OverworldOnlineScene {
     pub fn new(
         game_io: &mut GameIO<Globals>,
@@ -94,11 +103,14 @@ impl OverworldOnlineScene {
         }
     }
 
-    pub fn start_connection(&self, game_io: &GameIO<Globals>) {
+    pub fn start_connection(&self, game_io: &GameIO<Globals>, data: Option<String>) {
         let globals = game_io.globals();
         let global_save = &globals.global_save;
 
         let send_packet = &self.send_packet;
+
+        let data =
+            data.unwrap_or_else(|| address_parsing::slice_data(&self.server_address).to_string());
 
         // send login packet
         send_packet(
@@ -106,7 +118,7 @@ impl OverworldOnlineScene {
             ClientPacket::Login {
                 username: global_save.nickname.clone(),
                 identity: String::new(),
-                data: address_parsing::slice_data(&self.server_address).to_string(),
+                data,
             },
         );
 
@@ -223,7 +235,7 @@ impl OverworldOnlineScene {
                         player_entity,
                         spawn_position,
                         spawn_direction,
-                        || {},
+                        |_, _| {},
                     );
                 } else {
                     let (position, direction) = entities
@@ -242,7 +254,7 @@ impl OverworldOnlineScene {
                 let player_entity = self.base_scene.player_data.entity;
                 let send_packet = self.send_packet.clone();
 
-                WarpEffect::warp_out(game_io, &mut self.base_scene, player_entity, move || {
+                WarpEffect::warp_out(game_io, &mut self.base_scene, player_entity, move |_, _| {
                     send_packet(Reliability::ReliableOrdered, ClientPacket::TransferredOut);
                 });
             }
@@ -266,7 +278,7 @@ impl OverworldOnlineScene {
                         player_entity,
                         position,
                         direction,
-                        move || {},
+                        move |_, _| {},
                     );
                 }
 
@@ -460,7 +472,7 @@ impl OverworldOnlineScene {
                         player_entity,
                         position,
                         direction,
-                        || {},
+                        |_, _| {},
                     );
                 } else {
                     let entities = &mut self.base_scene.entities;
@@ -816,7 +828,7 @@ impl OverworldOnlineScene {
                             .unwrap();
 
                         animator.set_state(&state);
-                        movement_animator.enabled = false;
+                        movement_animator.set_enabled(false);
                     }
 
                     if warp_in {
@@ -827,7 +839,7 @@ impl OverworldOnlineScene {
                             entity,
                             position,
                             initial_direction,
-                            || {},
+                            |_, _| {},
                         );
                     }
 
@@ -839,9 +851,14 @@ impl OverworldOnlineScene {
                     if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                         let event_sender = self.event_sender.clone();
 
-                        WarpEffect::warp_out(game_io, &mut self.base_scene, *entity, move || {
-                            event_sender.send(Event::RemoveActor { actor_id }).unwrap();
-                        });
+                        WarpEffect::warp_out(
+                            game_io,
+                            &mut self.base_scene,
+                            *entity,
+                            move |_, _| {
+                                event_sender.send(Event::RemoveActor { actor_id }).unwrap();
+                            },
+                        );
                     }
                 } else {
                     self.event_sender
@@ -921,7 +938,7 @@ impl OverworldOnlineScene {
                         animator.set_loop_mode(AnimatorLoopMode::Loop);
                     }
 
-                    movement_animator.enabled = false;
+                    movement_animator.set_enabled(false);
                 }
             }
             ServerPacket::ActorPropertyKeyFrames {
@@ -969,7 +986,39 @@ impl OverworldOnlineScene {
             .push_textbox_interface(doorstop_interface);
     }
 
+    fn handle_base_events(&mut self) {
+        let map = &mut self.base_scene.map;
+
+        while let Some(event) = self.base_scene.events.pop_back() {
+            match event {
+                OverworldBaseEvent::PendingWarp { entity } => {
+                    let query_result = map
+                        .object_entities_mut()
+                        .query_one_mut::<&ObjectData>(entity);
+
+                    if let Ok(data) = query_result {
+                        match data.object_type {
+                            ObjectType::CustomWarp | ObjectType::CustomServerWarp => {
+                                (self.send_packet)(
+                                    Reliability::Reliable,
+                                    ClientPacket::CustomWarp {
+                                        tile_object_id: data.id,
+                                    },
+                                );
+                            }
+                            _ => {
+                                log::error!("unhandled {:?}", data.object_type);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fn handle_events(&mut self, game_io: &GameIO<Globals>) {
+        self.handle_base_events();
+
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::BattleStatistics(statistics) => {
@@ -1037,11 +1086,9 @@ impl OverworldOnlineScene {
         if input_util.was_just_pressed(Input::ShoulderR) {
             self.base_scene.menu_manager.use_player_avatar(game_io);
             let event_sender = self.event_sender.clone();
-            let send_packet = self.send_packet.clone();
 
             let interface = TextboxQuestion::new(String::from("Jack out?"), move |response| {
                 if response {
-                    send_packet(Reliability::ReliableOrdered, ClientPacket::Logout);
                     event_sender.send(Event::Leave).unwrap();
                 }
             });

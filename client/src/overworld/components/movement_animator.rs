@@ -10,8 +10,9 @@ pub enum MovementState {
 }
 
 pub struct MovementAnimator {
-    pub enabled: bool,
-    pub state: MovementState,
+    enabled: bool,
+    movement_enabled: bool,
+    state: MovementState,
     direction_queue: VecDeque<Direction>,
 }
 
@@ -23,13 +24,44 @@ impl MovementAnimator {
 
         Self {
             enabled: true,
+            movement_enabled: false,
             state: MovementState::Idle,
             direction_queue,
         }
     }
 
-    pub fn queue_direction(&mut self, direction: Direction) -> Direction {
-        self.direction_queue.push_back(direction);
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+    }
+
+    pub fn movement_enabled(&self) -> bool {
+        self.enabled && self.movement_enabled
+    }
+
+    pub fn set_movement_enabled(&mut self, enabled: bool) {
+        self.movement_enabled = enabled;
+    }
+
+    pub fn state(&self) -> MovementState {
+        self.state
+    }
+
+    pub fn set_state(&mut self, state: MovementState) {
+        self.state = state;
+    }
+
+    pub fn queue_direction(&mut self, direction: Direction) {
+        if let Some(value) = self.direction_queue.back_mut() {
+            *value = direction;
+        }
+    }
+
+    pub fn advance_direction(&mut self) -> Direction {
+        self.direction_queue.push_back(Direction::None);
         self.direction_queue.pop_front().unwrap()
     }
 }

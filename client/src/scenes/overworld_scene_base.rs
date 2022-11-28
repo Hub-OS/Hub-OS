@@ -5,21 +5,23 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 pub struct OverworldSceneBase {
     pub world_camera: Camera,
     pub ui_camera: Camera,
-    world_time: FrameTime,
     pub player_data: OverworldPlayerData,
     pub entities: hecs::World,
     pub map: Map,
+    pub menu_manager: MenuManager,
+    pub events: VecDeque<OverworldBaseEvent>,
+    pub next_scene: NextScene<Globals>,
+    world_time: FrameTime,
+    input_locks: usize,
     background: Background,
     foreground: Background,
-    pub menu_manager: MenuManager,
-    input_locks: usize,
     camera_controller: CameraController,
-    pub next_scene: NextScene<Globals>,
 }
 
 impl OverworldSceneBase {
@@ -37,19 +39,26 @@ impl OverworldSceneBase {
         let player_entity =
             Self::spawn_player_actor_direct(&mut entities, game_io, texture, animator, Vec3::ZERO);
 
+        // enable the movement animator to actually move the player
+        let movement_animator = entities
+            .query_one_mut::<&mut MovementAnimator>(player_entity)
+            .unwrap();
+        movement_animator.set_movement_enabled(true);
+
         Self {
             world_camera: Camera::new(game_io),
             ui_camera: Camera::new_ui(game_io),
-            world_time: 0,
             player_data: OverworldPlayerData::new(player_entity),
             entities,
-            background: Background::new_blank(game_io),
-            foreground: Background::new_blank(game_io),
             map: Map::new(0, 0, 0, 0),
             menu_manager: MenuManager::new(game_io),
-            input_locks: 0,
-            camera_controller: CameraController::new(player_entity),
+            events: VecDeque::new(),
             next_scene: NextScene::None,
+            world_time: 0,
+            input_locks: 0,
+            background: Background::new_blank(game_io),
+            foreground: Background::new_blank(game_io),
+            camera_controller: CameraController::new(player_entity),
         }
     }
 
@@ -122,6 +131,18 @@ impl OverworldSceneBase {
             || self.menu_manager.is_open()
             || self.camera_controller.is_locked()
             || self.input_locks > 0
+            || self.player_is_warping()
+    }
+
+    fn player_is_warping(&self) -> bool {
+        let entities = &self.entities;
+        let player_entity = self.player_data.entity;
+        let mut query = entities
+            .query_one::<&WarpController>(player_entity)
+            .unwrap();
+        let warp_controller = query.get().unwrap();
+
+        warp_controller.warp_entity.is_some()
     }
 
     pub fn add_input_lock(&mut self) {
@@ -151,8 +172,10 @@ impl Scene<Globals> for OverworldSceneBase {
         system_animate(self);
         system_position(self);
         system_player_interaction(game_io, self);
+        system_warp_effect(game_io, self);
+        system_warp(game_io, self);
         system_movement_animation(self);
-        system_warp_effect(self);
+        system_movement(self);
 
         self.map.update(self.world_time);
         self.update_backgrounds();

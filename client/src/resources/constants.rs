@@ -53,6 +53,10 @@ pub const DEFAULT_INTANGIBILITY_DURATION: FrameTime = 120;
 pub const DRAG_PER_TILE_DURATION: FrameTime = 4;
 pub const DRAG_LOCKOUT: FrameTime = 22;
 
+// overworld
+pub const OVERWORLD_WALK_SPEED: f32 = 80.0 / 60.0;
+pub const OVERWORLD_RUN_SPEED: f32 = 140.0 / 60.0;
+
 // text colors
 pub const TEXT_TRANSPARENT_SHADOW_COLOR: Color = Color::new(0.4, 0.4, 0.4, 0.3);
 pub const TEXT_DARK_SHADOW_COLOR: Color = Color::new(0.32, 0.388, 0.45, 1.0);
