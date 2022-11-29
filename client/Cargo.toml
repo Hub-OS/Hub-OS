@@ -7,7 +7,9 @@ license = "GPL-3.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 packets = { path = "../packets" }
-framework = { path = "../framework" }
+framework = { path = "../framework", default-features = false, features = [
+    "sdl"
+] }
 anyhow = "1.0"
 bytemuck = "1.12"
 chrono = "0.4"
