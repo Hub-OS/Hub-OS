@@ -351,8 +351,11 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::Health { health, max_health } => {
-                self.base_scene.player_data.health = health as i32;
-                self.base_scene.player_data.max_health = max_health as i32;
+                let player_data = &mut self.base_scene.player_data;
+                player_data.health = health as i32;
+                player_data.max_health = max_health as i32;
+
+                self.base_scene.menu_manager.update_player_data(player_data);
             }
             ServerPacket::Emotion { emotion } => {
                 use num_traits::FromPrimitive;
@@ -362,7 +365,10 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::Money { money } => {
-                self.base_scene.player_data.money = money;
+                let player_data = &mut self.base_scene.player_data;
+                player_data.money = money;
+
+                self.base_scene.menu_manager.update_player_data(player_data);
             }
             ServerPacket::AddItem {
                 id,

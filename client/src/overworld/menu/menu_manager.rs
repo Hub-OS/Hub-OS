@@ -1,10 +1,12 @@
 use super::BBS;
 use crate::bindable::Input;
 use crate::ease::inverse_lerp;
+use crate::overworld::OverworldPlayerData;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::transitions::DEFAULT_FADE_DURATION;
+use framework::prelude::NextScene;
 use framework::prelude::{Color, GameIO, Sprite};
 
 enum Event {
@@ -18,7 +20,7 @@ pub trait Menu {
     fn is_fullscreen(&self) -> bool;
     fn is_open(&self) -> bool;
     fn open(&mut self);
-    fn handle_input(&self, game_io: &GameIO<Globals>);
+    fn handle_input(&mut self, game_io: &mut GameIO<Globals>);
     fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue);
 }
 
@@ -31,6 +33,7 @@ pub struct MenuManager {
     fade_time: FrameTime,
     max_fade_time: FrameTime,
     fade_sprite: Sprite,
+    navigation_menu: NavigationMenu,
     menus: Vec<Box<dyn Menu>>,
     menu_bindings: Vec<(Input, usize)>,
     active_menu: Option<usize>,
@@ -50,6 +53,21 @@ impl MenuManager {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
+        let navigation_menu = NavigationMenu::new(
+            game_io,
+            vec![
+                SceneOption::Folders,
+                // SceneOption::Items,
+                SceneOption::Library,
+                SceneOption::Character,
+                // SceneOption::Email,
+                // SceneOption::KeyItems,
+                SceneOption::BattleSelect,
+                SceneOption::Config,
+            ],
+        )
+        .as_overlay(true);
+
         Self {
             selection_needs_ack: false,
             textbox: Textbox::new_overworld(game_io),
@@ -59,6 +77,7 @@ impl MenuManager {
             fade_time: max_fade_time,
             max_fade_time,
             fade_sprite,
+            navigation_menu,
             menus: Vec::new(),
             menu_bindings: Vec::new(),
             active_menu: None,
@@ -68,7 +87,14 @@ impl MenuManager {
     }
 
     pub fn is_open(&self) -> bool {
-        self.active_menu.is_some() || self.textbox.is_open() || self.bbs.is_some()
+        self.active_menu.is_some()
+            || self.textbox.is_open()
+            || self.bbs.is_some()
+            || self.navigation_menu.is_open()
+    }
+
+    pub fn is_blocking_hud(&self) -> bool {
+        self.navigation_menu.is_open()
     }
 
     pub fn bbs_mut(&mut self) -> Option<&mut BBS> {
@@ -161,7 +187,11 @@ impl MenuManager {
         self.textbox.open();
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    pub fn update_player_data(&mut self, player_data: &OverworldPlayerData) {
+        self.navigation_menu.update_info(player_data);
+    }
+
+    pub fn update(&mut self, game_io: &mut GameIO<Globals>) -> NextScene<Globals> {
         if self.fade_time < self.max_fade_time {
             self.fade_time += 1;
 
@@ -204,6 +234,8 @@ impl MenuManager {
             }
         }
 
+        let mut handle_input = !self.navigation_menu.is_open();
+
         // update the active registered menu
         if let Some(index) = self.active_menu {
             let menu = &mut self.menus[index];
@@ -211,8 +243,8 @@ impl MenuManager {
             if menu.is_open() {
                 menu.handle_input(game_io);
 
-                // skip other updates and input checks while a registered menu is open
-                return;
+                // skip other input checks while a registered menu is open
+                handle_input = false;
             } else {
                 self.active_menu = None;
             }
@@ -223,22 +255,32 @@ impl MenuManager {
             self.textbox.close();
         }
 
-        self.textbox.update(game_io);
+        if handle_input {
+            self.textbox.update(game_io);
+        }
+
+        if self.textbox.is_open() {
+            // skip other input checks while a textbox is open
+            handle_input = false;
+        }
 
         // update bbs
         if let Some(bbs) = &mut self.bbs {
-            if !self.textbox.is_open()
-                && self.fade_time == self.max_fade_time
-                && !self.selection_needs_ack
-            {
+            if handle_input && self.fade_time == self.max_fade_time && !self.selection_needs_ack {
                 bbs.handle_input(game_io);
             }
 
             bbs.update();
+
+            // skip other input checks while a bbs is open
+            handle_input = false;
         }
 
         if let Some(bbs) = &mut self.old_bbs {
             bbs.update();
+
+            // skip other input checks while a bbs is open
+            handle_input = false;
         }
 
         // try opening a menu if there's no menu open
@@ -249,9 +291,21 @@ impl MenuManager {
                 if input_util.was_just_pressed(input) {
                     self.active_menu = Some(index);
                     self.menus[index].open();
+
+                    // skip other input checks while a menu is opening
+                    handle_input = false;
+                    break;
                 }
             }
+
+            if handle_input && input_util.was_just_pressed(Input::Pause) {
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.card_select_open_sfx);
+                self.navigation_menu.open();
+            }
         }
+
+        self.navigation_menu.update(game_io)
     }
 
     pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
@@ -278,5 +332,7 @@ impl MenuManager {
         if let Some(index) = self.active_menu {
             self.menus[index].draw(game_io, sprite_queue);
         }
+
+        self.navigation_menu.draw(game_io, sprite_queue);
     }
 }

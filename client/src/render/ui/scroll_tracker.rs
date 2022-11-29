@@ -12,6 +12,7 @@ pub struct ScrollTracker {
     total_items: usize,
     selected_index: usize,
     top_index: usize,
+    wrap: bool,
     scroll_start: Vec2,
     scroll_end: Vec2,
     scroll_thumb_sprite: Sprite,
@@ -51,6 +52,7 @@ impl ScrollTracker {
             total_items: 0,
             selected_index: 0,
             top_index: 0,
+            wrap: false,
             scroll_start: Vec2::ZERO,
             scroll_end: Vec2::ZERO,
             scroll_thumb_sprite,
@@ -62,6 +64,11 @@ impl ScrollTracker {
             remembered_animator,
             vertical: true,
         }
+    }
+
+    pub fn with_wrap(mut self, wrap: bool) -> Self {
+        self.wrap = wrap;
+        self
     }
 
     pub fn set_idle(&mut self, idle: bool) {
@@ -240,11 +247,27 @@ impl ScrollTracker {
     }
 
     pub fn move_up(&mut self) {
-        self.set_selected_index(self.selected_index.max(1) - 1);
+        let new_index = if self.selected_index > 0 {
+            self.selected_index - 1
+        } else {
+            if self.wrap {
+                self.total_items.max(1) - 1
+            } else {
+                0
+            }
+        };
+
+        self.set_selected_index(new_index);
     }
 
     pub fn move_down(&mut self) {
-        self.set_selected_index(self.selected_index + 1);
+        let mut new_index = self.selected_index + 1;
+
+        if self.wrap {
+            new_index %= self.total_items;
+        }
+
+        self.set_selected_index(new_index);
     }
 
     pub fn move_view_up(&mut self) {

@@ -45,13 +45,17 @@ impl OverworldSceneBase {
             .unwrap();
         movement_animator.set_movement_enabled(true);
 
+        let player_data = OverworldPlayerData::new(player_entity);
+        let mut menu_manager = MenuManager::new(game_io);
+        menu_manager.update_player_data(&player_data);
+
         Self {
             world_camera: Camera::new(game_io),
             ui_camera: Camera::new_ui(game_io),
-            player_data: OverworldPlayerData::new(player_entity),
+            player_data,
             entities,
             map: Map::new(0, 0, 0, 0),
-            menu_manager: MenuManager::new(game_io),
+            menu_manager,
             events: VecDeque::new(),
             next_scene: NextScene::None,
             world_time: 0,
@@ -166,7 +170,7 @@ impl Scene<Globals> for OverworldSceneBase {
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
         self.world_time += 1;
 
-        self.menu_manager.update(game_io);
+        self.next_scene = self.menu_manager.update(game_io);
 
         system_player_movement(game_io, self);
         system_animate(self);
@@ -210,9 +214,9 @@ impl Scene<Globals> for OverworldSceneBase {
 
         // draw ui
         sprite_queue.update_camera(&self.ui_camera);
-        draw_clock(game_io, &mut sprite_queue);
 
-        if !self.menu_manager.is_open() {
+        if !self.menu_manager.is_blocking_hud() {
+            draw_clock(game_io, &mut sprite_queue);
             draw_map_name(game_io, &mut sprite_queue, &self.map);
         }
 
