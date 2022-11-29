@@ -207,10 +207,14 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "enable_parent_shader", |node, _, enable| {
-        node.set_using_parent_shader(enable);
-        Ok(())
-    });
+    setter(
+        lua_api,
+        "enable_parent_shader",
+        |node, _, enable: Option<bool>| {
+            node.set_using_parent_shader(enable.unwrap_or(true));
+            Ok(())
+        },
+    );
 }
 
 pub fn create_sprite_table(
