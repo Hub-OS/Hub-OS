@@ -1,5 +1,5 @@
 [workspace]
-members = ["client", "packets", "scripts", "server", "framework"]
+members = ["client", "packets", "scripts", "server"]
 resolver = "2"
 
 [profile.dev]

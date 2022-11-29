@@ -7,7 +7,7 @@ license = "GPL-3.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 packets = { path = "../packets" }
-framework = { path = "../framework", default-features = false, features = [
+framework = { git = "https://github.com/Real-PET/framework", default-features = false, features = [
     "sdl"
 ] }
 anyhow = "1.0"
