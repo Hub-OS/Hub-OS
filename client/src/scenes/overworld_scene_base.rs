@@ -22,6 +22,7 @@ pub struct OverworldSceneBase {
     background: Background,
     foreground: Background,
     camera_controller: CameraController,
+    health_ui: PlayerHealthUI,
 }
 
 impl OverworldSceneBase {
@@ -63,6 +64,7 @@ impl OverworldSceneBase {
             background: Background::new_blank(game_io),
             foreground: Background::new_blank(game_io),
             camera_controller: CameraController::new(player_entity),
+            health_ui: PlayerHealthUI::new(game_io),
         }
     }
 
@@ -171,6 +173,8 @@ impl Scene<Globals> for OverworldSceneBase {
         self.world_time += 1;
 
         self.next_scene = self.menu_manager.update(game_io);
+        self.health_ui.set_health(self.player_data.health);
+        self.health_ui.update();
 
         system_player_movement(game_io, self);
         system_animate(self);
@@ -218,6 +222,7 @@ impl Scene<Globals> for OverworldSceneBase {
         if !self.menu_manager.is_blocking_hud() {
             draw_clock(game_io, &mut sprite_queue);
             draw_map_name(game_io, &mut sprite_queue, &self.map);
+            self.health_ui.draw(game_io, &mut sprite_queue);
         }
 
         self.menu_manager.draw(game_io, &mut sprite_queue);
