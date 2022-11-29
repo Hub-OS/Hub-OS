@@ -6,22 +6,22 @@ license = "Zlib"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-log = { version = "0.4.17", features = ["std"] }
+log = { version = "0.4", features = ["std"] }
 # using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "0.14.0", features = ["webgl"] }
-bytemuck = { version = "1.11.0", features = ["derive"] }
-glam = { version = "0.21.2", features = ["bytemuck"] }
-image = "0.24.3"
+wgpu = { version = "0.14", features = ["webgl"] }
+bytemuck = { version = "1.11", features = ["derive"] }
+glam = { version = "0.21", features = ["bytemuck"] }
+image = "0.24"
 raw-window-handle = "0.5"
 raw-window-handle-0-4 = { package = "raw-window-handle", version = "0.4" }
-anyhow = "1.0.58"
-instant = "0.1.12"
-async-executor = "1.4.1"
-async-task = "4.3.0"
-pollster = "0.2.5"
-strum = { version = "0.24.1", features = ["derive"] }
-termcolor = "1.1.3"
-clipboard = "0.5.0"
+anyhow = "1.0"
+instant = "0.1"
+async-executor = "1.4"
+async-task = "4.3"
+pollster = "0.2"
+strum = { version = "0.24", features = ["derive"] }
+termcolor = "1.1"
+clipboard = "0.5"
 
 [features]
 default = ["winit"]
@@ -30,22 +30,22 @@ winit = ["dep:winit", "dep:gilrs"]
 
 # native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-simple_logger = { version = "2.2.0", default-features = false, features = [
+simple_logger = { version = "2.2", default-features = false, features = [
   "colors"
 ] }
-winit = { version = "0.27.3", optional = true }
-gilrs = { version = "0.9.0", optional = true }
-async-io = { version = "1.7.0" }
+winit = { version = "0.27", optional = true }
+gilrs = { version = "0.9", optional = true }
+async-io = { version = "1.7" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-sdl2 = { version = "0.35.2", features = [
+sdl2 = { version = "0.35", features = [
   "raw-window-handle",
   "bundled"
 ], optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
-sdl2 = { version = "0.35.2", features = [
+sdl2 = { version = "0.35", features = [
   "raw-window-handle",
   "bundled",
   "static-link"
@@ -54,9 +54,9 @@ ndk-sys = "0.4"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-winit = "0.27.1"
-console_error_panic_hook = "0.1.7"
-web-sys = { version = "0.3.59", features = [
+winit = "0.27"
+console_error_panic_hook = "0.1"
+web-sys = { version = "0.3", features = [
   "console",
   "Window",
   "Document",
@@ -64,13 +64,13 @@ web-sys = { version = "0.3.59", features = [
   "HtmlCanvasElement",
   "CssStyleDeclaration",
 ] }
-wasm-bindgen = "0.2.82"
-wasm-bindgen-futures = "0.4.32"
-js-sys = "0.3.59"
-gilrs = "0.9.0"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+gilrs = "0.9"
 
 # dependencies for examples
 [dev-dependencies]
-pollster = "0.2.5"
-rand = "0.8.5"
-simple-easing = "1.0.0"
+pollster = "0.2"
+rand = "0.8"
+simple-easing = "1.0"
