@@ -52,7 +52,10 @@ pub fn system_movement(scene: &mut OverworldSceneBase) {
             .unwrap();
 
         *position = final_position;
-        *direction = final_direction;
+
+        if !final_direction.is_none() {
+            *direction = final_direction;
+        }
     }
 }
 

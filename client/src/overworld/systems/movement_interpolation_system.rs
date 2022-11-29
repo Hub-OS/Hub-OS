@@ -17,7 +17,11 @@ pub fn movement_interpolation_system(game_io: &GameIO<Globals>, scene: &mut Over
     )>() {
         let (new_position, new_direction, new_state) = interpolater.update(game_io);
         *position = new_position;
-        *direction = new_direction;
+
+        if !new_direction.is_none() {
+            *direction = new_direction;
+        }
+
         movement_animator.set_state(new_state);
     }
 }

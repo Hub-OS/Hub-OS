@@ -46,7 +46,7 @@ impl MovementInterpolator {
         let delay_duration = game_io.frame_start_instant() - self.last_push;
         let delay = delay_duration.as_secs_f32();
 
-        if delay_duration <= MAX_IDLE_DURATION {
+        if delay_duration <= MAX_IDLE_DURATION && !delay_duration.is_zero() {
             self.average = delay * K + self.average * (1.0 - K);
         }
 
