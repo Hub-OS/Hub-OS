@@ -161,6 +161,10 @@ impl NavigationMenu {
     pub fn open(&mut self) {
         self.open_state = OpenState::Opening;
         self.animation_time = 0;
+
+        let prev_index = self.scroll_tracker.selected_index();
+        self.scroll_tracker.set_selected_index(0);
+        self.update_item_sprites(prev_index);
     }
 
     pub fn close(&mut self) {
