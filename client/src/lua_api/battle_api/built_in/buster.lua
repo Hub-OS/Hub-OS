@@ -57,19 +57,19 @@ card_action.on_update_func = function()
         local motion_x = 0
         local motion_y = 0
 
-        if user:has_input(Input.Left) then
+        if user:input_has(Input.Held.Left) then
             motion_x = motion_x - 1
         end
 
-        if user:has_input(Input.Right) then
+        if user:input_has(Input.Held.Right) then
             motion_x = motion_x + 1
         end
 
-        if user:has_input(Input.Up) then
+        if user:input_has(Input.Held.Up) then
             motion_y = motion_y - 1
         end
 
-        if user:has_input(Input.Down) then
+        if user:input_has(Input.Held.Down) then
             motion_y = motion_y + 1
         end
 

@@ -338,18 +338,34 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     )?;
     globals.set("Shadow", shadow_table)?;
 
-    use crate::bindable::Input;
+    use crate::bindable::{Input, InputQuery};
 
     let input_table = lua.create_table()?;
-    input_table.set("Up", Input::Up)?;
-    input_table.set("Left", Input::Left)?;
-    input_table.set("Right", Input::Right)?;
-    input_table.set("Down", Input::Down)?;
-    input_table.set("Use", Input::UseCard)?;
-    input_table.set("Special", Input::Special)?;
-    input_table.set("Shoot", Input::Shoot)?;
-    input_table.set("Left_Shoulder", Input::ShoulderL)?;
-    input_table.set("Right_Shoulder", Input::ShoulderR)?;
+
+    let held_table = lua.create_table()?;
+    held_table.set("Up", InputQuery::Held(Input::Up))?;
+    held_table.set("Left", InputQuery::Held(Input::Left))?;
+    held_table.set("Right", InputQuery::Held(Input::Right))?;
+    held_table.set("Down", InputQuery::Held(Input::Down))?;
+    held_table.set("Use", InputQuery::Held(Input::UseCard))?;
+    held_table.set("Special", InputQuery::Held(Input::Special))?;
+    held_table.set("Shoot", InputQuery::Held(Input::Shoot))?;
+    held_table.set("LeftShoulder", InputQuery::Held(Input::ShoulderL))?;
+    held_table.set("RightShoulder", InputQuery::Held(Input::ShoulderR))?;
+    input_table.set("Held", held_table)?;
+
+    let pressed_table = lua.create_table()?;
+    pressed_table.set("Up", InputQuery::JustPressed(Input::Up))?;
+    pressed_table.set("Left", InputQuery::JustPressed(Input::Left))?;
+    pressed_table.set("Right", InputQuery::JustPressed(Input::Right))?;
+    pressed_table.set("Down", InputQuery::JustPressed(Input::Down))?;
+    pressed_table.set("Use", InputQuery::JustPressed(Input::UseCard))?;
+    pressed_table.set("Special", InputQuery::JustPressed(Input::Special))?;
+    pressed_table.set("Shoot", InputQuery::JustPressed(Input::Shoot))?;
+    pressed_table.set("LeftShoulder", InputQuery::JustPressed(Input::ShoulderL))?;
+    pressed_table.set("RightShoulder", InputQuery::JustPressed(Input::ShoulderR))?;
+    input_table.set("Pressed", pressed_table)?;
+
     globals.set("Input", input_table)?;
 
     Ok(())

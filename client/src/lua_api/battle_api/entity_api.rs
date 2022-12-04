@@ -849,8 +849,8 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(ENTITY_TABLE, "has_input", |api_ctx, lua, params| {
-        let (table, input): (rollback_mlua::Table, Input) = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(ENTITY_TABLE, "input_has", |api_ctx, lua, params| {
+        let (table, input_query): (rollback_mlua::Table, InputQuery) = lua.unpack_multi(params)?;
 
         let id: EntityID = table.raw_get("#id")?;
 
@@ -859,7 +859,14 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let entities = &mut simulation.entities;
 
         if let Ok(player) = entities.query_one_mut::<&mut Player>(id.into()) {
-            lua.pack_multi(simulation.inputs[player.index].is_down(input))
+            let player_input = &simulation.inputs[player.index];
+
+            let result = match input_query {
+                InputQuery::JustPressed(input) => player_input.was_just_pressed(input),
+                InputQuery::Held(input) => player_input.is_down(input),
+            };
+
+            lua.pack_multi(result)
         } else {
             lua.pack_multi(false)
         }
