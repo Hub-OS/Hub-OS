@@ -14,7 +14,6 @@ const GRACE_TIME: FrameTime = 5;
 
 #[derive(Clone)]
 pub struct BattleState {
-    time: FrameTime,
     complete: bool,
     message: Option<(&'static str, FrameTime)>,
 }
@@ -39,7 +38,7 @@ impl State for BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        simulation.update_animations();
+        self.update_animations(simulation);
 
         self.detect_battle_start(game_io, simulation, vms);
 
@@ -98,7 +97,6 @@ impl State for BattleState {
 
         // other players may still be in battle, and some components make use of this
         simulation.battle_time += 1;
-        self.time += 1;
 
         self.detect_success_or_failure(simulation);
         self.update_turn_gauge(game_io, simulation);
@@ -163,7 +161,6 @@ impl State for BattleState {
 impl BattleState {
     pub fn new() -> Self {
         Self {
-            time: 0,
             complete: false,
             message: None,
         }
@@ -286,16 +283,29 @@ impl BattleState {
             return;
         }
 
-        if time_freeze_tracker.freeze_should_start() {
-            // freeze all entities
-            for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-                entity.time_is_frozen = true;
+        // update fade color
+        const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
+
+        let fade_alpha = time_freeze_tracker.fade_alpha();
+        let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
+        simulation.fade_sprite.set_color(fade_color);
+
+        // detect freeze start
+        if time_freeze_tracker.should_freeze() {
+            // freeze non artifacts
+            let entities = &mut simulation.entities;
+
+            for (_, entity) in entities.query_mut::<hecs::Without<&mut Entity, &Artifact>>() {
+                entity.time_frozen_count += 1;
             }
 
-            // play sfx
-            simulation.play_sound(game_io, &game_io.globals().time_freeze_sfx);
+            if time_freeze_tracker.is_action_freeze() {
+                // play sfx
+                simulation.play_sound(game_io, &game_io.globals().time_freeze_sfx);
+            }
         }
 
+        // detect time freeze counter
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
         if time_freeze_tracker.can_counter() {
@@ -340,6 +350,7 @@ impl BattleState {
             }
         }
 
+        // detect action start
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
         if time_freeze_tracker.action_should_start() {
@@ -353,7 +364,7 @@ impl BattleState {
                     .entities
                     .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
                 {
-                    entity.time_is_frozen = false;
+                    entity.time_frozen_count = 0;
 
                     // back up their data
                     let animator = &mut simulation.animators[entity.animator_index];
@@ -385,6 +396,7 @@ impl BattleState {
             }
         }
 
+        // detect action end
         if let Some(index) = time_freeze_tracker.active_action() {
             if simulation.card_actions.get(index).is_none() {
                 // action completed, update tracking
@@ -392,6 +404,7 @@ impl BattleState {
             }
         }
 
+        // detect expiration
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
@@ -403,7 +416,7 @@ impl BattleState {
                     .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
                 {
                     // freeze the entity again
-                    entity.time_is_frozen = true;
+                    entity.time_frozen_count = 1;
 
                     entity.card_action_index = action_index;
 
@@ -420,10 +433,51 @@ impl BattleState {
             time_freeze_tracker.advance_action();
         }
 
-        if !time_freeze_tracker.time_is_frozen() {
+        // detect completion
+        if time_freeze_tracker.should_defrost() {
             // unfreeze all entities
             for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-                entity.time_is_frozen = false;
+                if entity.time_frozen_count > 0 {
+                    entity.time_frozen_count -= 1;
+                }
+            }
+        }
+    }
+
+    pub fn update_animations(&self, simulation: &mut BattleSimulation) {
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
+            if entity.time_frozen_count > 0 {
+                continue;
+            }
+
+            if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
+                if living.status_director.is_inactionable() {
+                    continue;
+                }
+            }
+
+            let animator = &mut simulation.animators[entity.animator_index];
+            simulation.pending_callbacks.extend(animator.update());
+        }
+
+        for (_, action) in &mut simulation.card_actions {
+            if !action.executed {
+                continue;
+            }
+
+            let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+                continue;
+            };
+
+            if entity.time_frozen_count > 0 || (time_is_frozen && !action.properties.time_freeze) {
+                continue;
+            }
+
+            for attachment in &mut action.attachments {
+                let animator = &mut simulation.animators[attachment.animator_index];
+                simulation.pending_callbacks.extend(animator.update());
             }
         }
     }
@@ -565,7 +619,7 @@ impl BattleState {
                 tile.set_highlight(spell.requested_highlight);
             }
 
-            if entity.time_is_frozen || entity.updated || !entity.spawned || entity.deleted {
+            if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
@@ -592,8 +646,10 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        for (_, living) in simulation.entities.query_mut::<&mut Living>() {
-            living.hit = false;
+        for (_, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
+            if entity.time_frozen_count == 0 {
+                living.hit = false;
+            }
         }
 
         // interactions between attack boxes and tiles
@@ -1172,69 +1228,65 @@ impl BattleState {
             .entities
             .query_mut::<(&mut Entity, &mut Living)>()
         {
-            if !entity.time_is_frozen && !entity.updated && entity.spawned && !entity.deleted {
-                if !living.status_director.is_inactionable() {
-                    callbacks.push(entity.update_callback.clone());
-
-                    for index in entity.local_components.iter().cloned() {
-                        let component = simulation.components.get(index).unwrap();
-
-                        callbacks.push(component.update_callback.clone());
-                    }
-                }
-
-                entity.updated = true;
-
-                if living.status_director.is_dragged() && entity.move_action.is_none() {
-                    // let the status director know we're no longer being dragged
-                    living.status_director.end_drag()
-                }
-
-                // process statuses as long as the entity isn't being dragged
-                if !living.status_director.is_dragged() {
-                    living.status_director.update(&simulation.inputs);
-
-                    // status callbacks
-                    for hit_flag in living.status_director.take_new_statuses() {
-                        if hit_flag & HitFlag::FLASH != HitFlag::NONE {
-                            // apply intangible
-
-                            // callback will keep the status director in sync when intangibility is pierced
-                            let callback = BattleCallback::new(move |_, simulation, _, _| {
-                                let living = simulation
-                                    .entities
-                                    .query_one_mut::<&mut Living>(id)
-                                    .unwrap();
-
-                                living.status_director.remove_status(hit_flag)
-                            });
-
-                            living.intangibility.enable(IntangibleRule {
-                                duration: living.status_director.remaining_status_time(hit_flag),
-                                deactivate_callback: Some(callback),
-                                ..Default::default()
-                            });
-                        }
-
-                        // call registered status callbacks
-                        if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
-                            callbacks.extend(status_callbacks.iter().cloned());
-                        }
-                    }
-                }
-
-                // update intangibility
-                living.intangibility.update();
-
-                let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
-                callbacks.extend(deactivate_callbacks);
+            if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
+                continue;
             }
 
-            if living.hit {
-                let root_node = entity.sprite_tree.root_mut();
-                root_node.set_color(Color::WHITE);
-                root_node.set_color_mode(SpriteColorMode::Add);
+            if !living.status_director.is_inactionable() {
+                callbacks.push(entity.update_callback.clone());
+
+                for index in entity.local_components.iter().cloned() {
+                    let component = simulation.components.get(index).unwrap();
+
+                    callbacks.push(component.update_callback.clone());
+                }
             }
+
+            entity.updated = true;
+
+            if living.status_director.is_dragged() && entity.move_action.is_none() {
+                // let the status director know we're no longer being dragged
+                living.status_director.end_drag()
+            }
+
+            // process statuses as long as the entity isn't being dragged
+            if !living.status_director.is_dragged() {
+                living.status_director.update(&simulation.inputs);
+
+                // status callbacks
+                for hit_flag in living.status_director.take_new_statuses() {
+                    if hit_flag & HitFlag::FLASH != HitFlag::NONE {
+                        // apply intangible
+
+                        // callback will keep the status director in sync when intangibility is pierced
+                        let callback = BattleCallback::new(move |_, simulation, _, _| {
+                            let living = simulation
+                                .entities
+                                .query_one_mut::<&mut Living>(id)
+                                .unwrap();
+
+                            living.status_director.remove_status(hit_flag)
+                        });
+
+                        living.intangibility.enable(IntangibleRule {
+                            duration: living.status_director.remaining_status_time(hit_flag),
+                            deactivate_callback: Some(callback),
+                            ..Default::default()
+                        });
+                    }
+
+                    // call registered status callbacks
+                    if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
+                        callbacks.extend(status_callbacks.iter().cloned());
+                    }
+                }
+            }
+
+            // update intangibility
+            living.intangibility.update();
+
+            let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
+            callbacks.extend(deactivate_callbacks);
         }
 
         // execute update functions
@@ -1263,7 +1315,8 @@ impl BattleState {
         let mut moving_entities = Vec::new();
 
         for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
-            let mut update_progress = entity.spawned && !entity.deleted && !entity.time_is_frozen;
+            let mut update_progress =
+                entity.spawned && !entity.deleted && entity.time_frozen_count == 0;
 
             if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
                 if living.status_director.is_immobile() {
@@ -1459,7 +1512,7 @@ impl BattleState {
                 continue;
             };
 
-            if !entity.spawned || entity.deleted || entity.time_is_frozen {
+            if !entity.spawned || entity.deleted || entity.time_frozen_count > 0 {
                 continue;
             }
 
@@ -1678,6 +1731,12 @@ impl BattleState {
             if status_director.is_shaking() {
                 entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
                 status_director.decrement_shake_time();
+            }
+
+            if living.hit {
+                let root_node = entity.sprite_tree.root_mut();
+                root_node.set_color(Color::WHITE);
+                root_node.set_color_mode(SpriteColorMode::Add);
             }
 
             status_director.update_status_sprites(game_io, shared_assets, entity);

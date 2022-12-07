@@ -7,10 +7,11 @@ use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
 use framework::prelude::{Color, GameIO, Vec2};
 
 const FADE_DURATION: FrameTime = 10;
+const DECROSS_DURATION: FrameTime = 30;
 const COUNTER_DURATION: FrameTime = 60;
 const MAX_ACTION_DURATION: FrameTime = 60 * 15;
 
-#[derive(Default, Clone, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 enum TimeFreezeState {
     #[default]
     Thawed,
@@ -18,6 +19,7 @@ enum TimeFreezeState {
     Counterable,
     Action,
     FadeOut,
+    Decross,
 }
 
 #[derive(Default, Clone)]
@@ -26,6 +28,8 @@ pub struct TimeFreezeTracker {
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
+    revert_state: (TimeFreezeState, FrameTime),
+    should_defrost: bool,
     character_backup: Option<(
         EntityID,
         Option<generational_arena::Index>,
@@ -43,6 +47,10 @@ impl TimeFreezeTracker {
         self.state != TimeFreezeState::Thawed
     }
 
+    pub fn is_action_freeze(&self) -> bool {
+        self.time_is_frozen() && self.state != TimeFreezeState::Decross
+    }
+
     pub fn fade_alpha(&self) -> f32 {
         let state_elapsed_time = self.active_time - self.state_start_time;
 
@@ -51,6 +59,7 @@ impl TimeFreezeTracker {
             TimeFreezeState::FadeIn => inverse_lerp!(0, FADE_DURATION, state_elapsed_time),
             TimeFreezeState::Counterable | TimeFreezeState::Action => 1.0,
             TimeFreezeState::FadeOut => inverse_lerp!(FADE_DURATION, 0, state_elapsed_time),
+            TimeFreezeState::Decross => 0.0,
         }
     }
 
@@ -70,8 +79,23 @@ impl TimeFreezeTracker {
         self.chain.push((team, action_index));
     }
 
+    pub fn start_decross(&mut self) {
+        if self.state == TimeFreezeState::Decross {
+            return;
+        }
+
+        if !self.time_is_frozen() {
+            self.active_time = 0;
+        }
+
+        self.revert_state = (self.state, self.state_start_time);
+        self.state = TimeFreezeState::Decross;
+        self.state_start_time = self.active_time;
+    }
+
     pub fn increment_time(&mut self) {
         self.active_time += 1;
+        self.should_defrost = false;
 
         let state_elapsed_time = self.active_time - self.state_start_time;
 
@@ -93,6 +117,14 @@ impl TimeFreezeTracker {
                 if state_elapsed_time >= FADE_DURATION {
                     self.state = TimeFreezeState::Thawed;
                     self.state_start_time = self.active_time;
+                    self.should_defrost = true;
+                }
+            }
+            TimeFreezeState::Decross => {
+                if state_elapsed_time >= DECROSS_DURATION {
+                    self.state = self.revert_state.0;
+                    self.state_start_time = self.revert_state.1 + state_elapsed_time;
+                    self.should_defrost = true;
                 }
             }
         };
@@ -106,8 +138,15 @@ impl TimeFreezeTracker {
         self.state == TimeFreezeState::Counterable
     }
 
-    pub fn freeze_should_start(&self) -> bool {
-        self.state == TimeFreezeState::FadeIn && self.active_time == 0
+    pub fn should_freeze(&self) -> bool {
+        matches!(
+            self.state,
+            TimeFreezeState::FadeIn | TimeFreezeState::Decross
+        ) && self.active_time - self.state_start_time == 0
+    }
+
+    pub fn should_defrost(&self) -> bool {
+        self.should_defrost
     }
 
     pub fn action_should_start(&self) -> bool {

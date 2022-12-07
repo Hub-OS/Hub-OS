@@ -3,7 +3,9 @@ use super::errors::action_aready_used;
 use super::errors::card_action_not_found;
 use super::errors::entity_not_found;
 use super::errors::mismatched_entity;
+use super::errors::too_many_forms;
 use super::field_api::get_field_table;
+use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
 use super::tile_api::create_tile_table;
 use super::*;
@@ -927,6 +929,33 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
     // todo: mod_max_health
     // todo: get_max_health_mod
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "create_form", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityID = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        if player.forms.len() >= 5 {
+            return Err(too_many_forms());
+        }
+
+        let index = player.forms.len();
+
+        player.forms.push(PlayerForm::default());
+
+        let form_table = create_player_form_table(lua, table, index)?;
+
+        lua.pack_multi(form_table)
+    });
+
     // todo: create_form
     // todo: create_sync_node
     // todo: remove_sync_node

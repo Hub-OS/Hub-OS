@@ -23,6 +23,8 @@ pub struct Player {
     pub charge_animator: Animator,
     pub charged_color: Color,
     pub slide_when_moving: bool,
+    pub forms: Vec<PlayerForm>,
+    pub active_form: Option<usize>,
     pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub special_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
@@ -69,10 +71,19 @@ impl Player {
             charge_animator: Animator::load_new(assets, ResourcePaths::BATTLE_CHARGE_ANIMATION),
             charged_color: Color::MAGENTA,
             slide_when_moving: false,
+            forms: Vec::new(),
+            active_form: None,
             normal_attack_callback: BattleCallback::stub(None),
             charged_attack_callback: BattleCallback::stub(None),
             special_attack_callback: BattleCallback::stub(None),
         }
+    }
+
+    pub fn available_forms(&self) -> impl Iterator<Item = (usize, &PlayerForm)> {
+        self.forms
+            .iter()
+            .enumerate()
+            .filter(|(_, form)| !form.activated)
     }
 
     pub fn namespace(&self) -> PackageNamespace {

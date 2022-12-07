@@ -5,6 +5,13 @@ use crate::resources::*;
 use framework::prelude::*;
 use generational_arena::Arena;
 
+#[derive(Clone, Copy)]
+pub struct FullEntityPosition {
+    pub tile_position: IVec2,
+    pub offset: Vec2,
+    pub tile_offset: Vec2,
+}
+
 #[derive(Clone)]
 pub struct Entity {
     pub updated: bool,
@@ -30,7 +37,7 @@ pub struct Entity {
     pub offset: Vec2,      // does not flip with teams, only perspective
     pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
-    pub time_is_frozen: bool,
+    pub time_frozen_count: usize,
     pub ignore_hole_tiles: bool,
     pub ignore_tile_effects: bool,
     pub move_action: Option<MoveAction>,
@@ -89,7 +96,7 @@ impl Entity {
                 aggressor: id,
                 ..Default::default()
             },
-            time_is_frozen: false,
+            time_frozen_count: 0,
             ignore_hole_tiles: false,
             ignore_tile_effects: false,
             move_action: None,
@@ -114,6 +121,21 @@ impl Entity {
             }),
             delete_callbacks: Vec::new(),
         }
+    }
+
+    pub fn full_position(&self) -> FullEntityPosition {
+        FullEntityPosition {
+            tile_position: IVec2::new(self.x, self.y),
+            offset: self.offset,
+            tile_offset: self.tile_offset,
+        }
+    }
+
+    pub fn copy_full_position(&mut self, full_position: FullEntityPosition) {
+        self.x = full_position.tile_position.x;
+        self.y = full_position.tile_position.y;
+        self.offset = full_position.offset;
+        self.tile_offset = full_position.tile_offset;
     }
 
     pub fn set_shadow(&mut self, game_io: &GameIO<Globals>, path: String) {

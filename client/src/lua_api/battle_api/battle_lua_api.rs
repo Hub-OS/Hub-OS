@@ -78,6 +78,7 @@ impl BattleLuaApi {
         super::include_api::inject_include_api(&mut lua_api);
         super::engine_api::inject_engine_api(&mut lua_api);
         super::entity_api::inject_entity_api(&mut lua_api);
+        super::player_form_api::inject_player_form_api(&mut lua_api);
         super::component_api::inject_component_api(&mut lua_api);
         super::card_action_api::inject_card_action_api(&mut lua_api);
         super::field_api::inject_field_api(&mut lua_api);

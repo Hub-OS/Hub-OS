@@ -16,6 +16,10 @@ impl AnimationFrame {
         self.bounds.size().abs()
     }
 
+    pub fn point(&self, name: &str) -> Option<Vec2> {
+        self.points.get(&name.to_uppercase()).cloned()
+    }
+
     pub fn apply(&self, sprite: &mut Sprite) {
         if self.valid {
             sprite.set_origin(self.origin);

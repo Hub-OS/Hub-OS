@@ -11,6 +11,7 @@ mod errors;
 mod field_api;
 mod include_api;
 mod math_api;
+mod player_form_api;
 mod sprite_api;
 mod tile_api;
 
@@ -38,6 +39,7 @@ pub const FIELD_TABLE: &str = "Battle.Field";
 pub const TILE_TABLE: &str = "Battle.Tile";
 pub const ENTITY_TABLE: &str = "Battle.Entity";
 pub const PLAYER_TABLE: &str = "Battle.Player";
+pub const PLAYER_FORM_TABLE: &str = "Battle.PlayerForm";
 pub const CHARACTER_TABLE: &str = "Battle.Character";
 pub const OBSTACLE_TABLE: &str = "Battle.Obstacle";
 pub const SPELL_TABLE: &str = "Battle.Spell";

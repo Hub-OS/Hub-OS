@@ -30,6 +30,7 @@ pub struct BattleSimulation {
     pub battle_time: FrameTime,
     pub camera: Camera,
     pub background: Background,
+    pub fade_sprite: Sprite,
     pub turn_gauge: TurnGauge,
     pub field: Field,
     pub entities: hecs::World,
@@ -61,6 +62,8 @@ impl BattleSimulation {
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
+        let assets = &game_io.globals().assets;
+
         Self {
             battle_started: false,
             statistics: BattleStatistics::new(),
@@ -70,6 +73,7 @@ impl BattleSimulation {
             inputs: vec![PlayerInput::new(); player_count],
             camera,
             background,
+            fade_sprite: assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
             entities: hecs::World::new(),
@@ -136,6 +140,7 @@ impl BattleSimulation {
             battle_time: self.battle_time.clone(),
             camera: self.camera.clone(game_io),
             background: self.background.clone(),
+            fade_sprite: self.fade_sprite.clone(),
             turn_gauge: self.turn_gauge.clone(),
             field: self.field.clone(),
             entities,
@@ -199,6 +204,9 @@ impl BattleSimulation {
         // update bg
         self.background.update();
 
+        // reset fade
+        self.fade_sprite.set_color(Color::TRANSPARENT);
+
         // spawn pending entities
         self.spawn_pending();
 
@@ -229,44 +237,6 @@ impl BattleSimulation {
         self.field.update_animations();
 
         self.time += 1;
-    }
-
-    pub fn update_animations(&mut self) {
-        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
-
-        for (id, entity) in self.entities.query::<&Entity>().into_iter() {
-            if entity.time_is_frozen {
-                continue;
-            }
-
-            if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_inactionable() {
-                    continue;
-                }
-            }
-
-            let animator = &mut self.animators[entity.animator_index];
-            self.pending_callbacks.extend(animator.update());
-        }
-
-        for (_, action) in &mut self.card_actions {
-            if !action.executed {
-                continue;
-            }
-
-            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
-                continue;
-            };
-
-            if entity.time_is_frozen || (time_is_frozen && !action.properties.time_freeze) {
-                continue;
-            }
-
-            for attachment in &mut action.attachments {
-                let animator = &mut self.animators[attachment.animator_index];
-                self.pending_callbacks.extend(animator.update());
-            }
-        }
     }
 
     fn spawn_pending(&mut self) {
@@ -398,7 +368,7 @@ impl BattleSimulation {
                 return false;
             };
 
-            if entity.time_is_frozen {
+            if entity.time_frozen_count > 0 {
                 return false;
             }
         }
@@ -772,6 +742,63 @@ impl BattleSimulation {
             }),
         );
 
+        // hit callback for decross
+        living.register_hit_callback(BattleCallback::new(
+            move |game_io, simulation, _, hit_props: HitProperties| {
+                if hit_props.damage == 0 {
+                    return;
+                }
+
+                let (entity, living, player) = simulation
+                    .entities
+                    .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
+                    .unwrap();
+
+                if living.health <= 0 || entity.deleted {
+                    // skip decross if we're already deleted
+                    return;
+                }
+
+                if !entity.element.is_weak_to(hit_props.element)
+                    && !entity.element.is_weak_to(hit_props.secondary_element)
+                {
+                    // not super effective
+                    return;
+                }
+
+                // deactivate form
+                let Some(index) = player.active_form.take() else {
+                    return;
+                };
+
+                simulation.time_freeze_tracker.start_decross();
+
+                let form = &mut player.forms[index];
+                form.deactivated = true;
+
+                if let Some(callback) = form.deactivate_callback.clone() {
+                    simulation.pending_callbacks.push(callback);
+                }
+
+                // spawn shine fx
+                let mut full_position = entity.full_position();
+                full_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+
+                let shine_id = simulation.create_transformation_shine(game_io);
+                let shine_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(shine_id.into())
+                    .unwrap();
+
+                shine_entity.copy_full_position(full_position);
+                shine_entity.pending_spawn = true;
+
+                // play revert sfx
+                let revert_sfx = &&game_io.globals().transform_revert_sfx;
+                simulation.play_sound(game_io, revert_sfx);
+            },
+        ));
+
         self.entities
             .insert(
                 id.into(),
@@ -948,6 +975,14 @@ impl BattleSimulation {
         id
     }
 
+    pub fn create_transformation_shine(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+        self.create_animated_artifact(
+            game_io,
+            ResourcePaths::BATTLE_TRANSFORM_SHINE,
+            ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION,
+        )
+    }
+
     pub fn create_splash(&mut self, game_io: &GameIO<Globals>) -> EntityID {
         self.create_animated_artifact(
             game_io,
@@ -984,16 +1019,10 @@ impl BattleSimulation {
             .draw(game_io, &mut sprite_queue, self.perspective_flipped);
 
         // draw dramatic fade
-        let fade_alpha = self.time_freeze_tracker.fade_alpha();
+        if self.fade_sprite.color().a > 0.0 {
+            self.fade_sprite.set_bounds(self.camera.bounds());
 
-        if fade_alpha > 0.0 {
-            const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
-
-            let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-            fade_sprite.set_color(FADE_COLOR.multiply_alpha(fade_alpha));
-            fade_sprite.set_bounds(self.camera.bounds());
-
-            sprite_queue.draw_sprite(&fade_sprite);
+            sprite_queue.draw_sprite(&self.fade_sprite);
         }
 
         // draw entities, sorting by position
@@ -1110,7 +1139,7 @@ impl BattleSimulation {
             for (_, (entity, living, ..)) in self.entities.query_mut::<Query>() {
                 if entity.deleted
                     || !entity.on_field
-                    || living.health == 0
+                    || living.health <= 0
                     || !entity.sprite_tree.root().visible()
                     || entity.id == self.local_player_id
                 {

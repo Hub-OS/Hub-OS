@@ -1,6 +1,6 @@
 use super::{BattleCallback, BattleSimulation, Component, Entity, Living};
 use crate::bindable::EntityID;
-use crate::resources::{Globals, ResourcePaths};
+use crate::resources::Globals;
 use framework::prelude::GameIO;
 
 /// requires Living component
@@ -33,7 +33,7 @@ pub fn delete_player_animation(
     // create transformation shine artifact
     Component::new_player_deletion(simulation, id);
 
-    let artifact_id = simulation.create_artifact(game_io);
+    let artifact_id = simulation.create_transformation_shine(game_io);
     let artifact_entity = simulation
         .entities
         .query_one_mut::<&mut Entity>(artifact_id.into())
@@ -43,12 +43,7 @@ pub fn delete_player_animation(
     artifact_entity.y = y;
     artifact_entity.pending_spawn = true;
 
-    let root_node = artifact_entity.sprite_tree.root_mut();
-    root_node.set_texture(game_io, ResourcePaths::BATTLE_TRANSFORM_SHINE.to_string());
-
     let animator = &mut simulation.animators[artifact_entity.animator_index];
-    animator.load(game_io, ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION);
-    let _ = animator.set_state("DEFAULT");
 
     animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
         let artifact_entity = simulation

@@ -18,6 +18,7 @@ pub struct Living {
     pub flinch_anim_state: Option<String>,
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
+    pub hit_callbacks: Vec<BattleCallback<HitProperties>>,
 }
 
 impl Default for Living {
@@ -35,6 +36,7 @@ impl Default for Living {
             flinch_anim_state: None,
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
+            hit_callbacks: Vec::new(),
         }
     }
 }
@@ -58,6 +60,10 @@ impl Living {
         }
     }
 
+    pub fn register_hit_callback(&mut self, callback: BattleCallback<HitProperties>) {
+        self.hit_callbacks.push(callback);
+    }
+
     pub fn process_hit(
         game_io: &GameIO<Globals>,
         simulation: &mut BattleSimulation,
@@ -69,7 +75,7 @@ impl Living {
             .query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
             .unwrap();
 
-        let time_is_frozen = entity.time_is_frozen;
+        let time_is_frozen = entity.time_frozen_count > 0;
         let tile_pos = (entity.x, entity.y);
 
         let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
@@ -118,6 +124,9 @@ impl Living {
         // apply statuses
         living.status_director.apply_hit_flags(hit_props.flags);
 
+        // store callbacks
+        let hit_callbacks = living.hit_callbacks.clone();
+
         // handle drag
         if hit_props.drags() && entity.move_action.is_none() {
             let can_move_to_callback = entity.can_move_to_callback.clone();
@@ -147,6 +156,10 @@ impl Living {
 
                 entity.move_action = Some(MoveAction::slide(dest.into(), duration));
             }
+        }
+
+        for callback in hit_callbacks {
+            callback.call(game_io, simulation, vms, hit_props);
         }
     }
 }

@@ -66,6 +66,14 @@ impl Default for StatusDirector {
 }
 
 impl StatusDirector {
+    pub fn clear_statuses(&mut self) {
+        self.statuses.clear();
+        self.new_statuses.clear();
+        self.dragged = false;
+        self.remaining_drag_lockout = 0;
+        self.remaining_shake_time = 0;
+    }
+
     pub fn set_input_index(&mut self, input_index: usize) {
         self.input_index = Some(input_index);
     }

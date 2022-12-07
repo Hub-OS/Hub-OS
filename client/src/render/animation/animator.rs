@@ -518,10 +518,7 @@ impl Animator {
     }
 
     pub fn point(&self, name: &str) -> Option<Vec2> {
-        self.current_frame()?
-            .points
-            .get(&name.to_uppercase())
-            .cloned()
+        self.current_frame()?.point(name)
     }
 
     pub fn apply(&self, sprite: &mut Sprite) {

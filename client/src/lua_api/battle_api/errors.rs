@@ -2,6 +2,14 @@ pub fn entity_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("entity deleted or incompatible"))
 }
 
+pub fn form_not_found() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("form invalid"))
+}
+
+pub fn too_many_forms() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("too many forms"))
+}
+
 pub fn sprite_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("sprite deleted"))
 }

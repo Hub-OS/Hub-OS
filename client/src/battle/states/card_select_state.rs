@@ -1,6 +1,7 @@
 use super::State;
 use crate::battle::*;
 use crate::bindable::*;
+use crate::ease::inverse_lerp;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -8,13 +9,16 @@ use crate::saves::Card;
 use framework::prelude::*;
 use std::sync::Arc;
 
+const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
+
 #[derive(Clone, Default)]
 struct Selection {
     col: i32,
     row: i32,
-    form_index: usize,
+    form_row: usize,
     selected_form_index: Option<usize>,
     selected_card_indices: Vec<usize>,
+    form_open_time: Option<FrameTime>,
     confirm_time: FrameTime,
     animating_slide: bool,
     erased: bool,
@@ -44,10 +48,12 @@ pub struct CardSelectState {
     sprites: Tree<SpriteNode>,
     texture: Arc<Texture>,
     view_index: GenerationalIndex,
+    form_list_index: GenerationalIndex,
     animator: Animator,
     card_start: Vec2,
     confirm_point: Vec2,
     preview_point: Vec2,
+    form_list_start: Vec2,
     selected_card_start: Vec2,
     player_selections: Vec<Selection>,
     time: FrameTime,
@@ -61,7 +67,7 @@ impl State for CardSelectState {
 
     fn next_state(&self, _: &GameIO<Globals>) -> Option<Box<dyn State>> {
         if self.completed {
-            Some(Box::new(BattleState::new()))
+            Some(Box::new(FormActivateState::new()))
         } else {
             None
         }
@@ -114,84 +120,10 @@ impl State for CardSelectState {
             }
 
             let input = &simulation.inputs[player.index];
-
-            let previous_item = resolve_selected_item(player, selection);
-
-            if previous_item == SelectedItem::None {
-                // select Confirm as a safety net
-                selection.col = 5;
-                selection.row = 0;
-            }
-
-            if input.is_active(Input::Left) {
-                move_card_selection(player, selection, -1, 0);
-            }
-
-            if input.is_active(Input::Right) {
-                move_card_selection(player, selection, 1, 0);
-            }
-
-            if input.is_active(Input::Up) {
-                move_card_selection(player, selection, 0, -1);
-            }
-
-            if input.is_active(Input::Down) {
-                move_card_selection(player, selection, 0, 1);
-            }
-
-            let selected_item = resolve_selected_item(player, selection);
-
-            // sfx
-            if previous_item != selected_item && selection.local && !simulation.is_resimulation {
-                let globals = game_io.globals();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
-            }
-
-            if input.was_just_pressed(Input::Confirm) {
-                match selected_item {
-                    SelectedItem::Confirm => {
-                        selection.confirm_time = self.time;
-
-                        // sfx
-                        if selection.local && !simulation.is_resimulation {
-                            let globals = game_io.globals();
-                            globals.audio.play_sound(&globals.card_select_confirm_sfx);
-                        }
-                    }
-                    SelectedItem::Card(index) => {
-                        if !selection.selected_card_indices.contains(&index)
-                            && can_player_select(player, selection, index)
-                        {
-                            selection.selected_card_indices.push(index);
-
-                            // sfx
-                            if selection.local && !simulation.is_resimulation {
-                                let globals = game_io.globals();
-                                globals.audio.play_sound(&globals.cursor_select_sfx);
-                            }
-                        } else if selection.local && !simulation.is_resimulation {
-                            // error sfx
-                            let globals = game_io.globals();
-                            globals.audio.play_sound(&globals.cursor_error_sfx);
-                        }
-                    }
-                    _ => {}
-                }
-            }
-
-            if input.was_just_pressed(Input::Cancel) && !selection.selected_card_indices.is_empty()
-            {
-                selection.selected_card_indices.pop();
-
-                // sfx
-                if selection.local && !simulation.is_resimulation {
-                    let globals = game_io.globals();
-                    globals.audio.play_sound(&globals.cursor_cancel_sfx);
-                }
-            }
-
-            // todo: form selection
+            self.handle_input(game_io, player, input, simulation.is_resimulation);
         }
+
+        self.animate_form_list(simulation);
 
         for i in 0..self.player_selections.len() {
             self.animate_slide(simulation, i);
@@ -291,65 +223,135 @@ impl State for CardSelectState {
             card.draw_icon(game_io, sprite_queue, position);
         }
 
-        // draw cursor
-        let selected_item = resolve_selected_item(player, selection);
+        if let Some(time) = selection.form_open_time {
+            // draw form selection
 
-        if selection.confirm_time == 0 {
-            match selected_item {
-                SelectedItem::Card(_) => {
-                    self.animator.set_state("CARD_CURSOR");
-                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    self.animator.sync_time(self.time);
+            if self.time > time + FORM_LIST_ANIMATION_TIME {
+                // draw frames
+                self.animator.set_state("FORM_FRAME");
+                self.animator.apply(&mut recycled_sprite);
 
-                    let offset = self.calculate_icon_position(selection.col, selection.row);
+                let row_height = recycled_sprite.bounds().height;
+                let mut offset = self.form_list_start;
 
-                    self.animator.apply(&mut recycled_sprite);
+                for _ in player.available_forms() {
                     recycled_sprite.set_position(offset);
                     sprite_queue.draw_sprite(&recycled_sprite);
+
+                    offset.y += row_height;
                 }
-                SelectedItem::Confirm => {
-                    self.animator.set_state("SIDE_CURSOR");
-                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    self.animator.sync_time(self.time);
 
-                    self.animator.apply(&mut recycled_sprite);
-                    recycled_sprite.set_position(self.confirm_point);
-                    sprite_queue.draw_sprite(&recycled_sprite);
+                // draw mugs
+                let mut mug_sprite = Sprite::new(
+                    recycled_sprite.texture().clone(),
+                    recycled_sprite.sampler().clone(),
+                );
+
+                let mut offset = self.form_list_start;
+
+                for (row, (_, form)) in player.available_forms().enumerate() {
+                    // default to greyscale
+                    sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
+
+                    if selection.form_row == row {
+                        // hovered form color and effect depends on selection
+                        if selection.selected_form_index.is_some() {
+                            mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
+                        } else {
+                            sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
+                            mug_sprite.set_color(Color::WHITE);
+                        }
+                    } else {
+                        // default color darkens the image
+                        mug_sprite.set_color(Color::new(0.61, 0.68, 0.71, 1.0));
+                    }
+
+                    if let Some(texture) = form.mug_texture.as_ref() {
+                        mug_sprite.set_texture(texture.clone());
+                        mug_sprite.set_position(offset);
+                        sprite_queue.draw_sprite(&mug_sprite);
+                    }
+
+                    offset.y += row_height;
                 }
-                _ => {}
-            }
-        }
 
-        // draw preview icon
-        let preview_point = self.preview_point + self.sprites.root().offset();
+                // draw cursor
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
-        match selected_item {
-            SelectedItem::Card(i) => {
-                let card = &player.cards[i];
-                card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
-                card.draw_preview_title(game_io, sprite_queue, preview_point);
-            }
-            SelectedItem::Confirm => {
-                let player_selection = self.player_selections.get(player.index);
-                let selected_a_card = player_selection
-                    .map(|selection| !selection.selected_card_indices.is_empty())
-                    .unwrap_or_default();
+                let mut offset = self.form_list_start;
+                offset.y += row_height * selection.form_row as f32;
 
-                if selected_a_card {
-                    self.animator.set_state("CONFIRM_MESSAGE");
-                } else {
-                    self.animator.set_state("EMPTY_MESSAGE");
-                }
+                self.animator.set_state("FORM_CURSOR");
+                self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                self.animator.sync_time(self.time);
 
                 self.animator.apply(&mut recycled_sprite);
-                recycled_sprite.set_position(preview_point);
+                recycled_sprite.set_position(offset);
                 sprite_queue.draw_sprite(&recycled_sprite);
             }
-            SelectedItem::CardButton
-            | SelectedItem::WideButton
-            | SelectedItem::SpecialButton
-            | SelectedItem::None => {
-                // unreachable, currently
+        } else {
+            // draw card selection
+
+            // draw cursor
+            let selected_item = resolve_selected_item(player, selection);
+
+            if selection.confirm_time == 0 {
+                match selected_item {
+                    SelectedItem::Card(_) => {
+                        self.animator.set_state("CARD_CURSOR");
+                        self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                        self.animator.sync_time(self.time);
+
+                        let offset = self.calculate_icon_position(selection.col, selection.row);
+
+                        self.animator.apply(&mut recycled_sprite);
+                        recycled_sprite.set_position(offset);
+                        sprite_queue.draw_sprite(&recycled_sprite);
+                    }
+                    SelectedItem::Confirm => {
+                        self.animator.set_state("SIDE_CURSOR");
+                        self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                        self.animator.sync_time(self.time);
+
+                        self.animator.apply(&mut recycled_sprite);
+                        recycled_sprite.set_position(self.confirm_point);
+                        sprite_queue.draw_sprite(&recycled_sprite);
+                    }
+                    _ => {}
+                }
+            }
+
+            // draw preview icon
+            let preview_point = self.preview_point + self.sprites.root().offset();
+
+            match selected_item {
+                SelectedItem::Card(i) => {
+                    let card = &player.cards[i];
+                    card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
+                    card.draw_preview_title(game_io, sprite_queue, preview_point);
+                }
+                SelectedItem::Confirm => {
+                    let player_selection = self.player_selections.get(player.index);
+                    let selected_a_card = player_selection
+                        .map(|selection| !selection.selected_card_indices.is_empty())
+                        .unwrap_or_default();
+
+                    if selected_a_card {
+                        self.animator.set_state("CONFIRM_MESSAGE");
+                    } else {
+                        self.animator.set_state("EMPTY_MESSAGE");
+                    }
+
+                    self.animator.apply(&mut recycled_sprite);
+                    recycled_sprite.set_position(preview_point);
+                    sprite_queue.draw_sprite(&recycled_sprite);
+                }
+                SelectedItem::CardButton
+                | SelectedItem::WideButton
+                | SelectedItem::SpecialButton
+                | SelectedItem::None => {
+                    // unreachable, currently
+                }
             }
         }
 
@@ -438,6 +440,7 @@ impl CardSelectState {
         let root_node = sprites.root_mut();
         root_node.set_texture_direct(texture.clone());
         animator.set_state("ROOT");
+        root_node.set_layer(-1);
         root_node.apply_animation(&animator);
 
         // points
@@ -451,10 +454,25 @@ impl CardSelectState {
         let origin = animator.origin();
         let preview_point = animator.point("preview").unwrap_or_default() - origin;
 
-        let mut card_frame_node = root_node.clone();
+        let mut card_frame_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
         card_frame_node.set_texture_direct(texture.clone());
         card_frame_node.apply_animation(&animator);
         let view_index = sprites.insert_root_child(card_frame_node);
+
+        // form list frame, just grabbing the start position for the list
+        animator.set_state("FORM_LIST_FRAME");
+
+        let origin = animator.origin();
+        let form_list_start = animator.point("start").unwrap_or_default() - origin;
+
+        // start form list frame as the tab
+        animator.set_state("FORM_TAB");
+
+        let mut form_list_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+        form_list_node.set_texture_direct(texture.clone());
+        form_list_node.apply_animation(&animator);
+        form_list_node.set_visible(false);
+        let form_list_index = sprites.insert_root_child(form_list_node);
 
         // selection
         animator.set_state("SELECTION_FRAME");
@@ -472,14 +490,211 @@ impl CardSelectState {
             sprites,
             texture,
             view_index,
+            form_list_index,
             animator,
             card_start,
             confirm_point,
             preview_point,
+            form_list_start,
             selected_card_start,
             player_selections: Vec::new(),
             time: 0,
             completed: false,
+        }
+    }
+
+    fn handle_input(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        player: &Player,
+        input: &PlayerInput,
+        is_resimulation: bool,
+    ) {
+        let selection = &mut self.player_selections[player.index];
+
+        if selection.form_open_time.is_some() {
+            self.handle_form_input(game_io, player, input, is_resimulation);
+        } else {
+            self.handle_card_input(game_io, player, input, is_resimulation);
+        }
+    }
+
+    fn handle_form_input(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        player: &Player,
+        input: &PlayerInput,
+        is_resimulation: bool,
+    ) {
+        let selection = &mut self.player_selections[player.index];
+
+        if selection.selected_form_index.is_none() {
+            // can only move cursor if no forms are selected
+
+            let prev_row = selection.form_row;
+            let available_form_count = player.available_forms().count();
+
+            if input.is_active(Input::Up) {
+                if selection.form_row == 0 {
+                    selection.form_row = available_form_count.max(1) - 1;
+                } else {
+                    selection.form_row -= 1;
+                }
+            }
+
+            if input.is_active(Input::Down) {
+                selection.form_row += 1;
+
+                if selection.form_row >= available_form_count {
+                    selection.form_row = 0;
+                }
+            }
+
+            if prev_row != selection.form_row && selection.local && !is_resimulation {
+                // cursor move sfx
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.cursor_move_sfx);
+            }
+        }
+
+        if input.was_just_pressed(Input::Confirm) {
+            // select form
+            // todo: animate for local
+            if let Some((index, _)) = player.available_forms().skip(selection.form_row).next() {
+                selection.selected_form_index = Some(index);
+            }
+
+            // close menu
+            selection.form_open_time = None;
+
+            // sfx
+            if selection.local && !is_resimulation {
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.cursor_select_sfx);
+            }
+        }
+
+        if input.was_just_pressed(Input::Cancel) {
+            // close form select
+            selection.form_open_time = None;
+
+            // sfx
+            if selection.local && !is_resimulation {
+                // todo: use the right sfx, the form list seems to have a special one
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.menu_close_sfx);
+            }
+        }
+    }
+
+    fn handle_card_input(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        player: &Player,
+        input: &PlayerInput,
+        is_resimulation: bool,
+    ) {
+        let selection = &mut self.player_selections[player.index];
+
+        let previous_item = resolve_selected_item(player, selection);
+
+        if previous_item == SelectedItem::None {
+            // select Confirm as a safety net
+            selection.col = 5;
+            selection.row = 0;
+        }
+
+        if input.is_active(Input::Up) && selection.row == 0 && player.available_forms().count() > 0
+        {
+            // open form select
+            selection.form_open_time = Some(self.time);
+
+            // todo: use the right sfx, the form list seems to have a special one
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_move_sfx);
+            return;
+        }
+
+        if input.is_active(Input::Left) {
+            move_card_selection(player, selection, -1, 0);
+        }
+
+        if input.is_active(Input::Right) {
+            move_card_selection(player, selection, 1, 0);
+        }
+
+        if input.is_active(Input::Up) {
+            move_card_selection(player, selection, 0, -1);
+        }
+
+        if input.is_active(Input::Down) {
+            move_card_selection(player, selection, 0, 1);
+        }
+
+        let selected_item = resolve_selected_item(player, selection);
+
+        // sfx
+        if previous_item != selected_item && selection.local && !is_resimulation {
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_move_sfx);
+        }
+
+        if input.was_just_pressed(Input::Confirm) {
+            match selected_item {
+                SelectedItem::Confirm => {
+                    selection.confirm_time = self.time;
+
+                    // sfx
+                    if selection.local && !is_resimulation {
+                        let globals = game_io.globals();
+                        globals.audio.play_sound(&globals.card_select_confirm_sfx);
+                    }
+                }
+                SelectedItem::Card(index) => {
+                    if !selection.selected_card_indices.contains(&index)
+                        && can_player_select(player, selection, index)
+                    {
+                        selection.selected_card_indices.push(index);
+
+                        // sfx
+                        if selection.local && !is_resimulation {
+                            let globals = game_io.globals();
+                            globals.audio.play_sound(&globals.cursor_select_sfx);
+                        }
+                    } else if selection.local && !is_resimulation {
+                        // error sfx
+                        let globals = game_io.globals();
+                        globals.audio.play_sound(&globals.cursor_error_sfx);
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        if input.was_just_pressed(Input::Cancel) {
+            let globals = game_io.globals();
+            let mut applied = false;
+
+            if !selection.selected_card_indices.is_empty() {
+                selection.selected_card_indices.pop();
+                applied = true;
+            } else if selection.selected_form_index.is_some() {
+                selection.selected_form_index = None;
+                applied = true;
+
+                if selection.local && !is_resimulation {
+                    globals.audio.play_sound(&globals.transform_revert_sfx);
+                }
+            }
+
+            // sfx
+            if selection.local && !is_resimulation {
+                if applied {
+                    globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                } else {
+                    globals.audio.play_sound(&globals.cursor_error_sfx);
+                }
+            }
         }
     }
 
@@ -490,6 +705,11 @@ impl CardSelectState {
             (simulation.entities).query_mut::<(&mut Player, &mut Character)>()
         {
             let selection = &mut self.player_selections[player.index];
+
+            if selection.selected_form_index.is_some() {
+                // change form
+                player.active_form = selection.selected_form_index;
+            }
 
             if selection.selected_card_indices.is_empty() {
                 // if no cards were selected, we keep cards from the previous selection
@@ -525,10 +745,44 @@ impl CardSelectState {
         self.completed = true;
     }
 
+    fn animate_form_list(&mut self, simulation: &mut BattleSimulation) {
+        let Some(selection) = self.player_selections.iter().find(|selection| selection.local) else {
+            return;
+        };
+
+        let form_list_node = &mut self.sprites[self.form_list_index];
+
+        // make visible if there's forms available
+        if let Ok(player) = simulation
+            .entities
+            .query_one_mut::<&Player>(simulation.local_player_id.into())
+        {
+            if player.available_forms().next().is_some() {
+                form_list_node.set_visible(true);
+            } else {
+                // no need to animate
+                return;
+            }
+        };
+
+        let Some(time) = selection.form_open_time else {
+            self.animator.set_state("FORM_TAB");
+            form_list_node.apply_animation(&self.animator);
+            return;
+        };
+
+        self.animator.set_state("FORM_LIST_FRAME");
+        form_list_node.apply_animation(&self.animator);
+
+        // animate origin
+        let inital_origin = self.animator.point("initial_origin").unwrap_or_default();
+        let progress = inverse_lerp!(time, time + FORM_LIST_ANIMATION_TIME, self.time);
+        let origin = inital_origin.lerp(self.animator.origin(), progress);
+        form_list_node.set_origin(origin)
+    }
+
     fn animate_slide(&mut self, simulation: &mut BattleSimulation, player_index: usize) {
         const ANIMATION_DURATION: f32 = 10.0;
-
-        use crate::ease::inverse_lerp;
 
         let selection = &mut self.player_selections[player_index];
 
