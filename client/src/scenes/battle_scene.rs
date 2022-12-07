@@ -366,6 +366,20 @@ impl BattleScene {
                 let _ = writeln!(&mut file, "  {:?}", controller.input_buffer.front());
                 controller.input_buffer.pop_front();
             }
+
+            let _ = writeln!(&mut file, "Archetypes: [");
+
+            for archetype in self.simulation.entities.archetypes() {
+                let _ = write!(&mut file, "(");
+
+                for t in archetype.component_types() {
+                    let _ = write!(&mut file, "{:?}, ", t);
+                }
+
+                let _ = write!(&mut file, "), ");
+            }
+
+            let _ = writeln!(&mut file, "]");
         }
     }
 
