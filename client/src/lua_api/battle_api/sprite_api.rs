@@ -28,7 +28,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             )
             .ok_or_else(sprite_not_found)?;
 
-        let child_table = create_sprite_table(lua, id, child_index)?;
+        let child_table = create_sprite_table(lua, id, child_index, None)?;
 
         lua.pack_multi(child_table)
     });
@@ -82,7 +82,8 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
         let entity = entities
             .query_one_mut::<&mut Entity>(id.into())
@@ -94,6 +95,12 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             .ok_or_else(sprite_not_found)?;
 
         sprite_node.set_texture(api_ctx.game_io, path);
+
+        if let Ok(animator_index) = table.raw_get::<_, GenerationalIndex>("#anim") {
+            if let Some(animator) = simulation.animators.get_mut(animator_index.into()) {
+                animator.apply(sprite_node);
+            }
+        }
 
         lua.pack_multi(())
     });
@@ -221,10 +228,16 @@ pub fn create_sprite_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityID,
     index: GenerationalIndex,
+    animator_index: Option<generational_arena::Index>,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     table.raw_set("#id", entity_id)?;
     table.raw_set("#index", index)?;
+
+    if let Some(index) = animator_index {
+        table.raw_set("#anim", GenerationalIndex::from(index))?;
+    }
+
     inherit_metatable(lua, SPRITE_TABLE, &table)?;
 
     Ok(table)

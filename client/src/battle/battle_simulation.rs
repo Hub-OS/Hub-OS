@@ -528,11 +528,13 @@ impl BattleSimulation {
     }
 
     fn create_entity(&mut self, game_io: &GameIO<Globals>) -> EntityID {
-        let mut animator = BattleAnimator::new();
-        animator.disable();
-        let animator_index = self.animators.insert(animator);
-
         let id: EntityID = self.entities.reserve_entity().into();
+
+        let mut animator = BattleAnimator::new();
+        animator.set_target(id, GenerationalIndex::tree_root());
+        animator.disable();
+
+        let animator_index = self.animators.insert(animator);
 
         self.entities
             .spawn_at(id.into(), (Entity::new(game_io, id, animator_index),));

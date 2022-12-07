@@ -374,7 +374,12 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
 
         let sprite_index = attachment.sprite_index;
 
-        lua.pack_multi(create_sprite_table(lua, card_action.entity, sprite_index)?)
+        lua.pack_multi(create_sprite_table(
+            lua,
+            card_action.entity,
+            sprite_index,
+            Some(attachment.animator_index),
+        )?)
     });
 
     lua_api.add_dynamic_function(ATTACHMENT_TABLE, "get_animation", |api_ctx, lua, params| {
@@ -441,6 +446,7 @@ fn shared_attachment_constructor<'lua>(
 
     // create animator
     let mut animator = BattleAnimator::new();
+    animator.set_target(card_action.entity, sprite_index);
 
     if !card_action.executed {
         // disable to prevent updates during card action startup frames

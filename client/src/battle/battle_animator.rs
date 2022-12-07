@@ -1,5 +1,5 @@
-use super::BattleCallback;
-use crate::bindable::AnimatorPlaybackMode;
+use super::{BattleCallback, Entity};
+use crate::bindable::{AnimatorPlaybackMode, EntityID, GenerationalIndex};
 use crate::render::{Animator, AnimatorLoopMode, DerivedFrame, SpriteNode};
 use crate::resources::Globals;
 use framework::prelude::{GameIO, Vec2};
@@ -7,6 +7,7 @@ use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct BattleAnimator {
+    target: Option<(hecs::Entity, GenerationalIndex)>,
     complete_callbacks: Vec<BattleCallback>,
     interrupt_callbacks: Vec<BattleCallback>,
     frame_callbacks: HashMap<usize, Vec<(BattleCallback, bool)>>,
@@ -18,6 +19,7 @@ pub struct BattleAnimator {
 impl BattleAnimator {
     pub fn new() -> Self {
         Self {
+            target: None,
             complete_callbacks: Vec::new(),
             interrupt_callbacks: Vec::new(),
             frame_callbacks: HashMap::new(),
@@ -25,6 +27,23 @@ impl BattleAnimator {
             first_run: true,
             enabled: true,
         }
+    }
+
+    pub fn set_target(&mut self, entity: EntityID, sprite_index: GenerationalIndex) {
+        self.target = Some((entity.into(), sprite_index));
+    }
+
+    pub fn find_and_apply_to_target(&self, entities: &mut hecs::World) {
+        if let Some(sprite_node) = self.find_target(entities) {
+            self.apply(sprite_node)
+        }
+    }
+
+    fn find_target<'a>(&self, entities: &'a mut hecs::World) -> Option<&'a mut SpriteNode> {
+        let (entity_id, sprite_index) = self.target?;
+        let entity = entities.query_one_mut::<&mut Entity>(entity_id).ok()?;
+
+        entity.sprite_tree.get_mut(sprite_index)
     }
 
     pub fn disable(&mut self) {

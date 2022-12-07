@@ -47,6 +47,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         let other_animator = other_animator.ok_or_else(animator_not_found)?;
 
         let callbacks = animator.copy_from(other_animator);
+        animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
@@ -240,6 +241,8 @@ where
             .ok_or_else(animator_not_found)?;
 
         let callbacks = callback(animator, game_io, lua, param)?;
+
+        animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(game_io, api_ctx.vms);

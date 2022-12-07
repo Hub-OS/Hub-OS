@@ -145,6 +145,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             lua,
             entity.id,
             entity.sprite_tree.root_index(),
+            Some(entity.animator_index),
         )?)
     });
 
@@ -362,14 +363,17 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let id: EntityID = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
         let entity = entities
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
         let game_io = &api_ctx.game_io;
-        entity.sprite_tree.root_mut().set_texture(game_io, path);
+        let sprite_node = entity.sprite_tree.root_mut();
+        sprite_node.set_texture(game_io, path);
+        simulation.animators[entity.animator_index].apply(sprite_node);
 
         lua.pack_multi(())
     });
@@ -460,7 +464,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .sprite_tree
             .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
 
-        let sprite_table = create_sprite_table(lua, id, sprite_index);
+        let sprite_table = create_sprite_table(lua, id, sprite_index, None);
 
         lua.pack_multi(sprite_table)
     });
