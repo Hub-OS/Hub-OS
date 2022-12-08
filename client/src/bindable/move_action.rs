@@ -120,10 +120,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
             }
         };
 
-        let dest_table: rollback_mlua::Table = table.get("dest")?;
+        let dest_table: rollback_mlua::Table = table.get("dest_tile")?;
         let dest = (dest_table.raw_get("#x")?, dest_table.raw_get("#y")?);
 
-        let on_begin: Option<rollback_mlua::Function> = table.get("on_begin")?;
+        let on_begin: Option<rollback_mlua::Function> = table.get("on_begin_func")?;
         let vm_index = lua.named_registry_value("vm_index")?;
         let on_begin = on_begin
             .map(|func| BattleCallback::new_lua_callback(lua, vm_index, func))
