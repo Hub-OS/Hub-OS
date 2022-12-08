@@ -14,6 +14,10 @@ pub fn sprite_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("sprite deleted"))
 }
 
+pub fn invalid_sync_node() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("invalid sync node"))
+}
+
 pub fn component_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("component deleted"))
 }

@@ -1,5 +1,7 @@
 use super::{BattleState, State};
-use crate::battle::{BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets};
+use crate::battle::{
+    BattleAnimator, BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets,
+};
 use crate::bindable::{EntityID, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::{AnimatorLoopMode, FrameTime};
@@ -94,6 +96,8 @@ impl FormActivateState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
+        let mut updated_animators = Vec::new();
+
         // deactivate previous forms, and activate new forms
         for (_, (entity, living, player)) in simulation
             .entities
@@ -118,6 +122,8 @@ impl FormActivateState {
             let callbacks = animator.set_state(Player::IDLE_STATE);
             animator.set_loop_mode(AnimatorLoopMode::Loop);
             simulation.pending_callbacks.extend(callbacks);
+
+            updated_animators.push(entity.animator_index);
 
             // deactivate previous forms
             for form in &player.forms {

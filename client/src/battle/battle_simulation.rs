@@ -197,7 +197,7 @@ impl BattleSimulation {
         }
     }
 
-    pub fn pre_update(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM]) {
+    pub fn pre_update(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM], state: &dyn State) {
         #[cfg(debug_assertions)]
         self.assertions();
 
@@ -206,6 +206,11 @@ impl BattleSimulation {
 
         // reset fade
         self.fade_sprite.set_color(Color::TRANSPARENT);
+
+        if state.allows_animation_updates() {
+            // update animations
+            self.update_animations();
+        }
 
         // spawn pending entities
         self.spawn_pending();
@@ -226,6 +231,8 @@ impl BattleSimulation {
             }
         }
 
+        self.update_sync_nodes();
+
         // should this be called every time we invoke lua?
         self.call_pending_callbacks(game_io, vms);
 
@@ -237,6 +244,44 @@ impl BattleSimulation {
         self.field.update_animations();
 
         self.time += 1;
+    }
+
+    pub fn update_animations(&mut self) {
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
+
+        for (id, entity) in self.entities.query::<&Entity>().into_iter() {
+            if entity.time_frozen_count > 0 {
+                continue;
+            }
+
+            if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
+                if living.status_director.is_inactionable() {
+                    continue;
+                }
+            }
+
+            let animator = &mut self.animators[entity.animator_index];
+            self.pending_callbacks.extend(animator.update());
+        }
+
+        for (_, action) in &mut self.card_actions {
+            if !action.executed {
+                continue;
+            }
+
+            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+                continue;
+            };
+
+            if entity.time_frozen_count > 0 || (time_is_frozen && !action.properties.time_freeze) {
+                continue;
+            }
+
+            for attachment in &mut action.attachments {
+                let animator = &mut self.animators[attachment.animator_index];
+                self.pending_callbacks.extend(animator.update());
+            }
+        }
     }
 
     fn spawn_pending(&mut self) {
@@ -292,6 +337,23 @@ impl BattleSimulation {
             for attachment in &mut action.attachments {
                 attachment.apply_animation(&mut entity.sprite_tree, &mut self.animators);
             }
+        }
+    }
+
+    fn update_sync_nodes(&mut self) {
+        let syncers: Vec<_> = (self.animators)
+            .iter()
+            .filter(|(_, animator)| animator.has_synced_animators())
+            .map(|(index, _)| index)
+            .collect();
+
+        for animator_index in syncers {
+            BattleAnimator::sync_animators(
+                &mut self.animators,
+                &mut self.entities,
+                &mut self.pending_callbacks,
+                animator_index,
+            );
         }
     }
 
@@ -452,10 +514,10 @@ impl BattleSimulation {
 
             if entity.card_action_index == Some(*index) {
                 card_action.complete_sync(
+                    &mut self.entities,
                     &mut self.animators,
                     &mut self.pending_callbacks,
                     &mut self.field,
-                    entity,
                 );
             }
 
@@ -682,10 +744,20 @@ impl BattleSimulation {
         living.status_director.set_input_index(index);
 
         // derive states
-        let animator = &mut self.animators[entity.animator_index];
+        let move_anim_state = BattleAnimator::derive_state(
+            &mut self.animators,
+            "PLAYER_MOVE",
+            Player::MOVE_FRAMES.to_vec(),
+            entity.animator_index,
+        );
 
-        let move_anim_state = animator.derive_state("PLAYER_MOVE", Player::MOVE_FRAMES.to_vec());
-        let flinch_anim_state = animator.derive_state("PLAYER_HIT", Player::HIT_FRAMES.to_vec());
+        let flinch_anim_state = BattleAnimator::derive_state(
+            &mut self.animators,
+            "PLAYER_HIT",
+            Player::HIT_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
         entity.move_anim_state = Some(move_anim_state);
         living.flinch_anim_state = Some(flinch_anim_state);
 

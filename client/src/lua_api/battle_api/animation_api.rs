@@ -115,24 +115,34 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         Ok(animator.set_state(&state))
     });
 
-    setter(
-        lua_api,
-        "derive_state",
-        |animator, lua, (state, frame_data): (String, Vec<Vec<usize>>)| {
-            let derived_frames = frame_data
-                .into_iter()
-                .flat_map(|item| {
-                    let frame_index = *item.first()?;
-                    let duration = *item.get(1)? as FrameTime;
+    lua_api.add_dynamic_function(ANIMATION_TABLE, "derive_state", |api_ctx, lua, params| {
+        let (table, state, frame_data): (rollback_mlua::Table, String, Vec<Vec<usize>>) =
+            lua.unpack_multi(params)?;
+        let derived_frames = frame_data
+            .into_iter()
+            .flat_map(|item| {
+                let frame_index = *item.first()?;
+                let duration = *item.get(1)? as FrameTime;
 
-                    Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
-                })
-                .collect();
+                Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
+            })
+            .collect();
 
-            let derived_state = animator.derive_state(&state, derived_frames);
-            lua.pack_multi(derived_state)
-        },
-    );
+        let id: GenerationalIndex = table.raw_get("#id")?;
+        let animator_index = id.into();
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let animators = &mut api_ctx.simulation.animators;
+
+        if !animators.contains(animator_index) {
+            return Err(animator_not_found());
+        }
+
+        let derived_state =
+            BattleAnimator::derive_state(animators, &state, derived_frames, animator_index);
+
+        lua.pack_multi(derived_state)
+    });
 
     getter(lua_api, "has_point", |animator, lua, name: String| {
         lua.pack_multi(animator.point(&name).is_some())

@@ -31,6 +31,10 @@ impl State for BattleState {
         }
     }
 
+    fn allows_animation_updates(&self) -> bool {
+        true
+    }
+
     fn update(
         &mut self,
         game_io: &GameIO<Globals>,
@@ -38,8 +42,6 @@ impl State for BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        self.update_animations(simulation);
-
         self.detect_battle_start(game_io, simulation, vms);
 
         // reset frame temporary variables
@@ -440,44 +442,6 @@ impl BattleState {
                 if entity.time_frozen_count > 0 {
                     entity.time_frozen_count -= 1;
                 }
-            }
-        }
-    }
-
-    pub fn update_animations(&self, simulation: &mut BattleSimulation) {
-        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
-
-        for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
-            if entity.time_frozen_count > 0 {
-                continue;
-            }
-
-            if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_inactionable() {
-                    continue;
-                }
-            }
-
-            let animator = &mut simulation.animators[entity.animator_index];
-            simulation.pending_callbacks.extend(animator.update());
-        }
-
-        for (_, action) in &mut simulation.card_actions {
-            if !action.executed {
-                continue;
-            }
-
-            let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
-                continue;
-            };
-
-            if entity.time_frozen_count > 0 || (time_is_frozen && !action.properties.time_freeze) {
-                continue;
-            }
-
-            for attachment in &mut action.attachments {
-                let animator = &mut simulation.animators[attachment.animator_index];
-                simulation.pending_callbacks.extend(animator.update());
             }
         }
     }
@@ -1539,9 +1503,15 @@ impl BattleState {
                 card_action.prev_state = animator.current_state().map(String::from);
 
                 if let Some(derived_frames) = card_action.derived_frames.take() {
-                    card_action.state = animator.derive_state(&card_action.state, derived_frames);
+                    card_action.state = BattleAnimator::derive_state(
+                        &mut simulation.animators,
+                        &card_action.state,
+                        derived_frames,
+                        animator_index,
+                    );
                 }
 
+                let animator = &mut simulation.animators[animator_index];
                 let callbacks = animator.set_state(&card_action.state);
                 simulation.pending_callbacks.extend(callbacks);
 
@@ -1661,10 +1631,10 @@ impl BattleState {
             {
                 // async action completed sync portion
                 card_action.complete_sync(
+                    &mut simulation.entities,
                     &mut simulation.animators,
                     &mut simulation.pending_callbacks,
                     &mut simulation.field,
-                    entity,
                 );
             }
 

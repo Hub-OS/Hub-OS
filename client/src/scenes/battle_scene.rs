@@ -456,7 +456,7 @@ impl BattleScene {
             self.state = state;
         }
 
-        self.simulation.pre_update(game_io, &self.vms);
+        self.simulation.pre_update(game_io, &self.vms, &*self.state);
         self.state.update(
             game_io,
             &mut self.shared_assets,

@@ -65,11 +65,14 @@ impl CardAction {
 
     pub fn complete_sync(
         &mut self,
+        entities: &mut hecs::World,
         animators: &mut Arena<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         field: &mut Field,
-        entity: &mut Entity,
     ) {
+        let entity_id = self.entity.into();
+        let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
+
         // unset card_action_index to allow other card actions to be used
         entity.card_action_index = None;
 

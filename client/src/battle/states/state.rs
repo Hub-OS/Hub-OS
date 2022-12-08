@@ -8,6 +8,10 @@ pub trait State {
 
     fn next_state(&self, game_io: &GameIO<Globals>) -> Option<Box<dyn State>>;
 
+    fn allows_animation_updates(&self) -> bool {
+        false
+    }
+
     fn update(
         &mut self,
         game_io: &GameIO<Globals>,

@@ -2,11 +2,13 @@ use super::animation_api::create_animation_table;
 use super::errors::action_aready_used;
 use super::errors::card_action_not_found;
 use super::errors::entity_not_found;
+use super::errors::invalid_sync_node;
 use super::errors::mismatched_entity;
 use super::errors::too_many_forms;
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
+use super::sync_node_api::create_sync_node_table;
 use super::tile_api::create_tile_table;
 use super::*;
 use crate::battle::*;
@@ -471,6 +473,85 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let sprite_table = create_sprite_table(lua, id, sprite_index, None);
 
         lua.pack_multi(sprite_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityID = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_index = entity
+            .sprite_tree
+            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
+
+        // copy derived states
+        let entity_animator = &simulation.animators[entity.animator_index];
+        let derived_states = entity_animator.derived_states().to_vec();
+
+        // create and setup the new animator
+        let mut animator = BattleAnimator::new();
+        animator.set_target(id, sprite_index);
+        animator.copy_derive_states(derived_states);
+        let animator_index = simulation.animators.insert(animator);
+
+        // add the new animator to the sync list
+        let entity_animator = &mut simulation.animators[entity.animator_index];
+        entity_animator.add_synced_animator(animator_index);
+
+        let sync_node_table = create_sync_node_table(lua, id, sprite_index, animator_index);
+
+        lua.pack_multi(sync_node_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_sync_node", |api_ctx, lua, params| {
+        let (table, sync_node_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityID = table.raw_get("#id")?;
+        let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
+        let animator_index = animator_index.into();
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        if let Some(animator) = simulation.animators.get(animator_index) {
+            let Some(sprite_index) = animator.target_sprite_index() else {
+                return Err(invalid_sync_node());
+            };
+
+            if animator.target_entity_id() != Some(id) {
+                return Err(mismatched_entity());
+            }
+
+            if sprite_index == GenerationalIndex::tree_root() {
+                // prevent scripters from targeting entity.animator_index
+                // we use [] to access entity.animator_index, deletion without deleting the entity would cause a crash
+                return Err(invalid_sync_node());
+            }
+
+            // remove sprite and animator from the simulation
+            entity.sprite_tree.remove(sprite_index);
+            simulation.animators.remove(animator_index);
+        }
+
+        // remove animator from the sync list
+        let entity_animator = &mut simulation.animators[entity.animator_index];
+        entity_animator.remove_synced_animator(animator_index);
+
+        lua.pack_multi(())
     });
 
     getter(lua_api, "get_context", |entity: &Entity, lua, _: ()| {
@@ -963,10 +1044,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(form_table)
     });
-
-    // todo: create_form
-    // todo: create_sync_node
-    // todo: remove_sync_node
 
     getter(
         lua_api,

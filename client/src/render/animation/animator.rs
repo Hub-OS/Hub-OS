@@ -28,10 +28,10 @@ impl DerivedFrame {
 }
 
 #[derive(Clone)]
-struct DerivedState {
-    state: String,
-    original_state: String,
-    frame_derivation: Vec<DerivedFrame>,
+pub struct DerivedState {
+    pub state: String,
+    pub original_state: String,
+    pub frame_derivation: Vec<DerivedFrame>,
 }
 
 #[derive(Clone)]
@@ -358,6 +358,10 @@ impl Animator {
         value
     }
 
+    pub fn derived_states(&self) -> &[DerivedState] {
+        &self.derived_states
+    }
+
     fn rederive_states(&mut self) {
         for data in &self.derived_states {
             let frame_list = self
@@ -424,6 +428,10 @@ impl Animator {
         self.states.insert(state, frame_list);
     }
 
+    pub fn loop_mode(&self) -> AnimatorLoopMode {
+        self.loop_mode
+    }
+
     pub fn set_loop_mode(&mut self, loop_mode: AnimatorLoopMode) {
         if loop_mode != AnimatorLoopMode::Once {
             // looping, can't be completed anymore
@@ -435,6 +443,10 @@ impl Animator {
 
     pub fn loop_count(&self) -> usize {
         self.loop_count
+    }
+
+    pub fn reversed(&self) -> bool {
+        self.reversed
     }
 
     pub fn set_reversed(&mut self, reversed: bool) {
