@@ -1,7 +1,5 @@
 use super::{BattleState, State};
-use crate::battle::{
-    BattleAnimator, BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets,
-};
+use crate::battle::{BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets};
 use crate::bindable::{EntityID, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::{AnimatorLoopMode, FrameTime};
