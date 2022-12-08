@@ -943,7 +943,7 @@ impl BattleSimulation {
 
         // load animation
         let animator = &mut self.animators[entity.animator_index];
-        animator.load(game_io, animation_path);
+        let _ = animator.load(game_io, animation_path);
         let _ = animator.set_state("DEFAULT");
 
         // delete when the animation completes

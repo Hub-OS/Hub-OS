@@ -250,7 +250,14 @@ impl Animator {
         self.rederive_states();
 
         if let Some(current_state) = self.current_state.take() {
+            // retain previous settings
+            let loop_mode = self.loop_mode;
+            let reversed = self.reversed;
+
             self.set_state(&current_state);
+
+            self.loop_mode = loop_mode;
+            self.reversed = reversed;
         }
     }
 

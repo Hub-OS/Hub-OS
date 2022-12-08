@@ -439,7 +439,11 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let callbacks = simulation.animators[entity.animator_index].load(api_ctx.game_io, &path);
+        let animator = &mut simulation.animators[entity.animator_index];
+        let callbacks = animator.load(api_ctx.game_io, &path);
+
+        let root_node = entity.sprite_tree.root_mut();
+        animator.apply(root_node);
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);

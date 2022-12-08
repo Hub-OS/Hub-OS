@@ -1,6 +1,6 @@
 use super::{BattleCallback, Entity};
 use crate::bindable::{AnimatorPlaybackMode, EntityID, GenerationalIndex};
-use crate::render::{Animator, AnimatorLoopMode, DerivedFrame, SpriteNode};
+use crate::render::{Animator, AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode};
 use crate::resources::Globals;
 use framework::prelude::{GameIO, Vec2};
 use std::collections::HashMap;
@@ -12,6 +12,7 @@ pub struct BattleAnimator {
     interrupt_callbacks: Vec<BattleCallback>,
     frame_callbacks: HashMap<usize, Vec<(BattleCallback, bool)>>,
     animator: Animator,
+    time: FrameTime,
     first_run: bool,
     enabled: bool,
 }
@@ -24,6 +25,7 @@ impl BattleAnimator {
             interrupt_callbacks: Vec::new(),
             frame_callbacks: HashMap::new(),
             animator: Animator::new(),
+            time: 0,
             first_run: true,
             enabled: true,
         }
@@ -60,13 +62,24 @@ impl BattleAnimator {
         self.interrupt_callbacks.clear();
     }
 
+    #[must_use]
     pub fn load(&mut self, game_io: &GameIO<Globals>, path: &str) -> Vec<BattleCallback> {
+        let had_state = self.animator.current_state().is_some();
+        let completed = self.animator.is_complete();
+
         self.animator.load(&game_io.globals().assets, path);
+        self.animator.sync_time(self.time);
 
-        self.complete_callbacks.clear();
-        self.frame_callbacks.clear();
+        if !completed && had_state && self.animator.current_state().is_none() {
+            // lost state, treat as interrupted
+            self.complete_callbacks.clear();
+            self.frame_callbacks.clear();
 
-        std::mem::take(&mut self.interrupt_callbacks)
+            std::mem::take(&mut self.interrupt_callbacks)
+        } else {
+            // state retained
+            Vec::new()
+        }
     }
 
     #[must_use]
@@ -151,6 +164,7 @@ impl BattleAnimator {
     #[must_use]
     pub fn set_state(&mut self, state: &str) -> Vec<BattleCallback> {
         self.animator.set_state(state);
+        self.time = 0;
         self.first_run = true;
 
         self.complete_callbacks.clear();
@@ -194,6 +208,7 @@ impl BattleAnimator {
         }
 
         self.animator.update();
+        self.time += 1;
 
         let current_frame = self.animator.current_frame_index();
 
