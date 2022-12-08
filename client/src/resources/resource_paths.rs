@@ -40,6 +40,8 @@ impl ResourcePaths {
     pub const APPEAR_SFX: &str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &str = "resources/sfx/card_select_open.ogg";
     pub const CARD_SELECT_CONFIRM_SFX: &str = "resources/sfx/card_select_confirm.ogg";
+    pub const FORM_SELECT_OPEN_SFX: &str = "resources/sfx/form_select_open.ogg";
+    pub const FORM_SELECT_CLOSE_SFX: &str = "resources/sfx/form_select_close.ogg";
     pub const TURN_GAUGE_SFX: &str = "resources/sfx/turn_gauge_full.ogg";
     pub const TIME_FREEZE_SFX: &str = "resources/sfx/time_freeze.ogg";
     pub const TILE_BREAK_SFX: &str = "resources/sfx/tile_break.ogg";

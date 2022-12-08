@@ -617,9 +617,8 @@ impl CardSelectState {
 
             // sfx
             if selection.local && !is_resimulation {
-                // todo: use the right sfx, the form list seems to have a special one
                 let globals = game_io.globals();
-                globals.audio.play_sound(&globals.menu_close_sfx);
+                globals.audio.play_sound(&globals.form_select_close_sfx);
             }
         }
     }
@@ -646,9 +645,8 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            // todo: use the right sfx, the form list seems to have a special one
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.form_select_open_sfx);
             return;
         }
 
