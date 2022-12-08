@@ -252,18 +252,17 @@ impl State for CardSelectState {
 
                 let mut offset = self.form_list_start;
 
-                for (row, (_, form)) in player.available_forms().enumerate() {
+                for (row, (index, form)) in player.available_forms().enumerate() {
                     // default to greyscale
                     sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
 
-                    if selection.form_row == row {
-                        // hovered form color and effect depends on selection
-                        if selection.selected_form_index.is_some() {
-                            mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
-                        } else {
-                            sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-                            mug_sprite.set_color(Color::WHITE);
-                        }
+                    if selection.selected_form_index == Some(index) {
+                        // selected color
+                        mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
+                    } else if selection.form_row == row {
+                        // hovered option is plain
+                        sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
+                        mug_sprite.set_color(Color::WHITE);
                     } else {
                         // default color darkens the image
                         mug_sprite.set_color(Color::new(0.61, 0.68, 0.71, 1.0));
@@ -568,40 +567,42 @@ impl CardSelectState {
     ) {
         let selection = &mut self.player_selections[player.index];
 
-        if selection.selected_form_index.is_none() {
-            // can only move cursor if no forms are selected
+        let prev_row = selection.form_row;
+        let available_form_count = player.available_forms().count();
 
-            let prev_row = selection.form_row;
-            let available_form_count = player.available_forms().count();
-
-            if input.is_active(Input::Up) {
-                if selection.form_row == 0 {
-                    selection.form_row = available_form_count.max(1) - 1;
-                } else {
-                    selection.form_row -= 1;
-                }
+        if input.is_active(Input::Up) {
+            if selection.form_row == 0 {
+                selection.form_row = available_form_count.max(1) - 1;
+            } else {
+                selection.form_row -= 1;
             }
+        }
 
-            if input.is_active(Input::Down) {
-                selection.form_row += 1;
+        if input.is_active(Input::Down) {
+            selection.form_row += 1;
 
-                if selection.form_row >= available_form_count {
-                    selection.form_row = 0;
-                }
+            if selection.form_row >= available_form_count {
+                selection.form_row = 0;
             }
+        }
 
-            if prev_row != selection.form_row && selection.local && !is_resimulation {
-                // cursor move sfx
-                let globals = game_io.globals();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
-            }
+        if prev_row != selection.form_row && selection.local && !is_resimulation {
+            // cursor move sfx
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
         if input.was_just_pressed(Input::Confirm) {
             // select form
             if let Some((index, _)) = player.available_forms().skip(selection.form_row).next() {
-                selection.selected_form_index = Some(index);
-                selection.form_select_time = Some(self.time);
+                if selection.selected_form_index == Some(index) {
+                    // deselect the form if the player reselected it
+                    selection.selected_form_index = None;
+                } else {
+                    // select new form
+                    selection.selected_form_index = Some(index);
+                    selection.form_select_time = Some(self.time);
+                }
             }
 
             // sfx
