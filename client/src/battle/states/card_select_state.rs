@@ -10,12 +10,15 @@ use framework::prelude::*;
 use std::sync::Arc;
 
 const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
+const FORM_FADE_DELAY: FrameTime = 10;
+const FORM_FADE_TIME: FrameTime = 20;
 
 #[derive(Clone, Default)]
 struct Selection {
     col: i32,
     row: i32,
     form_row: usize,
+    form_select_time: Option<FrameTime>,
     selected_form_index: Option<usize>,
     selected_card_indices: Vec<usize>,
     form_open_time: Option<FrameTime>,
@@ -275,19 +278,22 @@ impl State for CardSelectState {
                     offset.y += row_height;
                 }
 
-                // draw cursor
+                // reset shader effect
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
-                let mut offset = self.form_list_start;
-                offset.y += row_height * selection.form_row as f32;
+                // draw cursor
+                if selection.form_select_time.is_none() {
+                    let mut offset = self.form_list_start;
+                    offset.y += row_height * selection.form_row as f32;
 
-                self.animator.set_state("FORM_CURSOR");
-                self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                self.animator.sync_time(self.time);
+                    self.animator.set_state("FORM_CURSOR");
+                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    self.animator.sync_time(self.time);
 
-                self.animator.apply(&mut recycled_sprite);
-                recycled_sprite.set_position(offset);
-                sprite_queue.draw_sprite(&recycled_sprite);
+                    self.animator.apply(&mut recycled_sprite);
+                    recycled_sprite.set_position(offset);
+                    sprite_queue.draw_sprite(&recycled_sprite);
+                }
             }
         } else {
             // draw card selection
@@ -425,6 +431,21 @@ impl State for CardSelectState {
                 style.draw(game_io, sprite_queue, TEXT);
             }
         }
+
+        // draw fade sprite
+        if let Some(time) = selection.form_select_time {
+            let elapsed = self.time - time;
+            let progress =
+                inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
+            let a = crate::ease::quadratic(progress);
+
+            let assets = &game_io.globals().assets;
+
+            let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
+            fade_sprite.set_color(Color::WHITE.multiply_alpha(a));
+            sprite_queue.draw_sprite(&fade_sprite);
+        }
     }
 }
 
@@ -512,6 +533,25 @@ impl CardSelectState {
     ) {
         let selection = &mut self.player_selections[player.index];
 
+        if let Some(time) = selection.form_select_time {
+            let elapsed = self.time - time;
+
+            match elapsed {
+                20 => {
+                    // close menu
+                    selection.form_open_time = None;
+
+                    // todo: play sfx
+                    return;
+                }
+                40.. => {
+                    // unblock input
+                    selection.form_select_time = None;
+                }
+                _ => return,
+            }
+        }
+
         if selection.form_open_time.is_some() {
             self.handle_form_input(game_io, player, input, is_resimulation);
         } else {
@@ -559,13 +599,10 @@ impl CardSelectState {
 
         if input.was_just_pressed(Input::Confirm) {
             // select form
-            // todo: animate for local
             if let Some((index, _)) = player.available_forms().skip(selection.form_row).next() {
                 selection.selected_form_index = Some(index);
+                selection.form_select_time = Some(self.time);
             }
-
-            // close menu
-            selection.form_open_time = None;
 
             // sfx
             if selection.local && !is_resimulation {
