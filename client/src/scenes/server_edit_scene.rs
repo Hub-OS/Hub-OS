@@ -78,11 +78,10 @@ impl ServerEditScene {
         let input_style = UiStyle {
             margin_bottom: Dimension::Points(2.0),
             padding_top: 1.0,
-            padding_bottom: -1.0,
             padding_left: 3.0,
             padding_right: 3.0,
-            min_height: Dimension::Points(24.0),
-            max_height: Dimension::Points(24.0),
+            min_height: Dimension::Points(20.0),
+            max_height: Dimension::Points(20.0),
             max_width: Dimension::Percent(1.0),
             nine_patch: Some(input_9patch.clone()),
             ..Default::default()
@@ -95,17 +94,12 @@ impl ServerEditScene {
             Rect::new(8.0, 20.0, RESOLUTION_F.x - 16.0, RESOLUTION_F.y - 28.0),
             vec![
                 // name input
-                UiLayoutNode::new(
-                    Text::new(game_io, FontStyle::Thick)
-                        .with_str("Name")
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
-                )
-                .with_style(label_style.clone()),
+                UiLayoutNode::new(Text::new(game_io, FontStyle::Thick).with_str("Name"))
+                    .with_style(label_style.clone()),
                 UiLayoutNode::new(
                     TextInput::new(game_io, FontStyle::Thin)
                         .with_str(&server_info.name)
                         .with_character_limit(20)
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                         .on_change({
                             let sender = ui_sender.clone();
 
