@@ -37,7 +37,7 @@ impl FullCard {
 
         // description_style
         let mut description_style = TextStyle::new(game_io, FontStyle::Thin);
-        description_style.line_spacing = 0.0;
+        description_style.line_spacing = 4.0;
         description_style.color = Color::BLACK;
         description_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 

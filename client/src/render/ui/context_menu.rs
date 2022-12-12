@@ -55,7 +55,8 @@ impl<T: Copy + 'static> ContextMenu<T> {
         let body_style = UiStyle {
             flex_direction: FlexDirection::Column,
             nine_patch: Some(body_9patch),
-            padding_bottom: 1.0,
+            padding_right: 1.0,
+            padding_bottom: 3.0,
             ..Default::default()
         };
 
@@ -123,6 +124,11 @@ impl<T: Copy + 'static> ContextMenu<T> {
     }
 
     pub fn set_options(&mut self, game_io: &GameIO<Globals>, options: &[(&str, T)]) {
+        let option_style = UiStyle {
+            margin_top: Dimension::Points(3.0),
+            ..Default::default()
+        };
+
         let mut nodes: VecDeque<_> = options
             .iter()
             .map(|(label, option)| {
@@ -136,6 +142,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
                             sender.send(option).unwrap();
                         }),
                 )
+                .with_style(option_style.clone())
             })
             .collect();
 

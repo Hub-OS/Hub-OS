@@ -205,6 +205,7 @@ impl BBS {
         text_style.color = Color::from((74, 65, 74));
         text_style.shadow_color = Color::from((0, 0, 0, 25));
         text_style.bounds.set_position(self.list_point);
+        text_style.bounds.y += 3.0;
 
         for i in self.scroll_tracker.view_range() {
             let post = &self.posts[i];
@@ -212,7 +213,7 @@ impl BBS {
             if !post.read {
                 let mut unread_position = text_style.bounds.position();
                 unread_position.x = self.list_point.x + 8.0;
-                unread_position.y += self.scroll_tracker.cursor_multiplier() * 0.5;
+                unread_position.y += self.scroll_tracker.cursor_multiplier() * 0.5 - 3.0;
 
                 self.unread_sprite.set_position(unread_position);
                 sprite_queue.draw_sprite(&self.unread_sprite);

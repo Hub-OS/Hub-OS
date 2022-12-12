@@ -44,8 +44,8 @@ frame duration="6f" x="3" y="178" w="75" h="16" originx="0" originy="0" flipx="0
 
 animation state="INFO"
 frame duration="50f" x="1" y="195" w="88" h="54" originx="-8" originy="-98" flipx="0" flipy="0"
-point label="HP" x="7" y="9"
-point label="Money" x="7" y="33"
+point label="HP" x="7" y="12"
+point label="Money" x="7" y="36"
 
 animation state="TOP_BAR"
 frame duration="50f" x="0" y="0" w="240" h="17" originx="0" originy="0" flipx="0" flipy="0"

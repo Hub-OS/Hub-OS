@@ -480,7 +480,7 @@ impl Scene<Globals> for ServerListScene {
 
         const HEIGHT: f32 = 16.0;
         const INDICATOR_LEFT_MARGIN: f32 = 210.0;
-        const TEXT_LEFT_MARGIN: f32 = 10.0;
+        const TEXT_OFFSET: Vec2 = Vec2::new(10.0, 3.0);
 
         let mut y = self.list_start.y;
         let mut status_sprite = Sprite::new(
@@ -494,7 +494,7 @@ impl Scene<Globals> for ServerListScene {
             let name = &server_list[i].name;
             let (_address, status) = &self.statuses[i];
 
-            (text_style.bounds).set_position(Vec2::new(self.list_start.x + TEXT_LEFT_MARGIN, y));
+            (text_style.bounds).set_position(Vec2::new(self.list_start.x, y) + TEXT_OFFSET);
             text_style.draw(game_io, &mut sprite_queue, name);
 
             // draw status indicator

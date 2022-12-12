@@ -110,7 +110,8 @@ impl Textbox {
             text_offset: text_bounds.position(),
             text_style: TextStyle::new(game_io, FontStyle::Thin)
                 .with_bounds(text_bounds)
-                .with_color(Color::BLACK),
+                .with_color(Color::BLACK)
+                .with_line_spacing(3.0),
             effect_processor: TextboxEffectProcessor::new(),
         };
 

@@ -5,8 +5,8 @@ imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/
 animation state="IDLE"
 frame duration="0f" x="0" y="0" w="236" h="64" originx="118" originy="28" flipx="0" flipy="0"
 point label="AVATAR" x="3" y="8"
-point label="TEXT_TOP_LEFT" x="49" y="8"
-point label="TEXT_BOTTOM_RIGHT" x="229" y="56"
+point label="TEXT_TOP_LEFT" x="49" y="10"
+point label="TEXT_BOTTOM_RIGHT" x="229" y="55"
 point label="NEXT" x="232" y="57"
 
 animation state="OPEN"

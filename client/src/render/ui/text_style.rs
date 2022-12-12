@@ -72,6 +72,11 @@ impl TextStyle {
         self
     }
 
+    pub fn with_line_spacing(mut self, line_spacing: f32) -> Self {
+        self.line_spacing = line_spacing;
+        self
+    }
+
     pub fn line_height(&self) -> f32 {
         let frame = self.character_frame("A");
         frame.size().y * self.scale.y + self.line_spacing

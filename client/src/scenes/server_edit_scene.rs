@@ -77,6 +77,8 @@ impl ServerEditScene {
 
         let input_style = UiStyle {
             margin_bottom: Dimension::Points(2.0),
+            padding_top: 1.0,
+            padding_bottom: -1.0,
             padding_left: 3.0,
             padding_right: 3.0,
             min_height: Dimension::Points(24.0),
