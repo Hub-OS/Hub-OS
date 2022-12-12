@@ -72,6 +72,8 @@ impl Globals {
         let font_texture = assets.texture(game_io, ResourcePaths::FONTS);
 
         let config = Config::load(&assets);
+        let music_volume = config.music_volume();
+        let sfx_volume = config.sfx_volume();
 
         if config.fullscreen {
             game_io.window_mut().set_fullscreen(true);
@@ -89,7 +91,9 @@ impl Globals {
             battle_api: BattleLuaApi::new(),
 
             // sounds
-            audio: AudioManager::new(),
+            audio: AudioManager::new()
+                .with_music_volume(music_volume)
+                .with_sfx_volume(sfx_volume),
             battle_music: assets.audio(ResourcePaths::BATTLE_MUSIC),
             cursor_move_sfx: assets.audio(ResourcePaths::CURSOR_MOVE_SFX),
             cursor_select_sfx: assets.audio(ResourcePaths::CURSOR_SELECT_SFX),

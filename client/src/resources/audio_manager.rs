@@ -29,8 +29,14 @@ impl AudioManager {
         }
     }
 
-    pub fn set_sfx_volume(&mut self, volume: f32) {
-        self.sfx_volume = volume;
+    pub fn with_music_volume(mut self, volume: f32) -> Self {
+        self.set_music_volume(volume);
+        self
+    }
+
+    pub fn with_sfx_volume(mut self, volume: f32) -> Self {
+        self.set_sfx_volume(volume);
+        self
     }
 
     pub fn set_music_volume(&mut self, volume: f32) {
@@ -39,6 +45,10 @@ impl AudioManager {
         if let Some(music_sink) = self.music_sink.get_mut() {
             music_sink.set_volume(volume);
         }
+    }
+
+    pub fn set_sfx_volume(&mut self, volume: f32) {
+        self.sfx_volume = volume;
     }
 
     pub fn is_music_playing(&self) -> bool {
