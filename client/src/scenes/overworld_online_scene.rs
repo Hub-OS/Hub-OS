@@ -618,6 +618,10 @@ impl OverworldOnlineScene {
                     on_select,
                     on_close,
                 );
+
+                if let Some(bbs) = self.base_scene.menu_manager.bbs_mut() {
+                    bbs.append_posts(None, posts);
+                }
             }
             ServerPacket::PrependPosts { reference, posts } => {
                 if let Some(bbs) = self.base_scene.menu_manager.bbs_mut() {
