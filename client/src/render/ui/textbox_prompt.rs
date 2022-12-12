@@ -10,6 +10,7 @@ pub struct TextboxPrompt {
     ui_input_tracker: UiInputTracker,
     text_sender: flume::Sender<String>,
     text_receiver: flume::Receiver<String>,
+    filter: Option<Box<dyn Fn(&str) -> bool>>,
     callback: Option<Box<dyn FnOnce(String)>>,
 }
 
@@ -24,6 +25,7 @@ impl TextboxPrompt {
             ui_input_tracker: UiInputTracker::new(),
             text_sender,
             text_receiver,
+            filter: None,
             callback: Some(Box::new(callback)),
         }
     }
@@ -35,6 +37,11 @@ impl TextboxPrompt {
 
     pub fn with_character_limit(mut self, limit: usize) -> Self {
         self.character_limit = Some(limit);
+        self
+    }
+
+    pub fn with_filter(mut self, callback: impl Fn(&str) -> bool + 'static) -> Self {
+        self.filter = Some(Box::new(callback));
         self
     }
 }
@@ -66,6 +73,10 @@ impl TextboxInterface for TextboxPrompt {
                 .with_silent(true)
                 .with_active(true)
                 .on_change(move |value| sender.send(value.to_string()).unwrap());
+
+            if let Some(filter) = self.filter.take() {
+                text_input = text_input.with_filter(filter);
+            }
 
             if let Some(character_limit) = self.character_limit {
                 text_input = text_input.with_character_limit(character_limit);

@@ -315,9 +315,12 @@ impl ConfigScene {
                 Event::RequestNicknameChange => {
                     let event_sender = self.event_sender.clone();
                     let interface = TextboxPrompt::new(move |name| {
-                        let _ = event_sender.send(Event::ChangeNickname { name });
+                        if !name.is_empty() {
+                            let _ = event_sender.send(Event::ChangeNickname { name });
+                        }
                     })
                     .with_str(&game_io.globals().global_save.nickname)
+                    .with_filter(|grapheme| grapheme != "\n" && grapheme != "\t")
                     .with_character_limit(8);
 
                     self.textbox.push_interface(interface);

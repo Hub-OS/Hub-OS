@@ -19,6 +19,7 @@ pub struct TextInput {
     lines_per_page: usize,
     cached_metrics: TextMetrics,
     sizing_dirty: bool,
+    filter_callback: Box<dyn Fn(&str) -> bool>,
     change_callback: Box<dyn Fn(&str)>,
 }
 
@@ -44,6 +45,7 @@ impl TextInput {
                 line_ranges: vec![0..0],
             },
             sizing_dirty: false,
+            filter_callback: Box::new(|_| true),
             change_callback: Box::new(|_| {}),
         }
     }
@@ -77,6 +79,11 @@ impl TextInput {
 
     pub fn with_active(mut self, active: bool) -> Self {
         self.init_active = active;
+        self
+    }
+
+    pub fn with_filter(mut self, callback: impl Fn(&str) -> bool + 'static) -> Self {
+        self.filter_callback = Box::new(callback);
         self
     }
 
@@ -263,6 +270,10 @@ impl TextInput {
 
     fn insert_text(&mut self, game_io: &GameIO<Globals>, text: &str, holding_ctrl: bool) {
         for grapheme in text.graphemes(true) {
+            if !(self.filter_callback)(grapheme) {
+                continue;
+            }
+
             match grapheme {
                 // BACKSPACE
                 "\u{8}" => {
