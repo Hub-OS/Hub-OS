@@ -51,6 +51,7 @@ struct Page {
 pub struct Textbox {
     is_open: bool,
     accept_input: bool,
+    hide_avatar: bool,
     avatar_queue: VecDeque<(Animator, Sprite, usize)>,
     animator: Animator,
     sprite: Sprite,
@@ -93,6 +94,7 @@ impl Textbox {
         let textbox = Self {
             is_open: false,
             accept_input: true,
+            hide_avatar: false,
             avatar_queue: VecDeque::new(),
             animator,
             sprite,
@@ -326,6 +328,8 @@ impl Textbox {
                 interface.update(game_io, &self.text_style, page.lines);
             }
 
+            self.hide_avatar = interface.hides_avatar();
+
             if interface.is_complete() {
                 self.advance_interface(game_io);
             }
@@ -466,13 +470,7 @@ impl Textbox {
             return;
         }
 
-        let hide_avatar = self
-            .interface_queue
-            .front_mut()
-            .map(|interface| interface.hides_avatar())
-            .unwrap_or_default();
-
-        if !hide_avatar {
+        if !self.hide_avatar {
             if let Some((animator, sprite, _)) = self.avatar_queue.front_mut() {
                 // render avatar
                 let point =
