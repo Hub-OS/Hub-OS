@@ -644,6 +644,10 @@ impl UiNode for UiVolume {
             return;
         }
 
+        let up = self.ui_input_tracker.is_active(Input::Up);
+        let down = self.ui_input_tracker.is_active(Input::Down);
+
+        // adjusting volume
         let mut config = self.config.borrow_mut();
         let level = if self.sfx {
             &mut config.sfx
@@ -653,12 +657,30 @@ impl UiNode for UiVolume {
 
         let original_level = *level;
 
-        if left && *level > 0 {
+        // nudge by 1
+        if (left || down) && *level > 0 {
             *level -= 1;
         }
 
-        if right && *level < MAX_VOLUME {
+        if (right || up) && *level < MAX_VOLUME {
             *level += 1;
+        }
+
+        // nudge by 10
+        if self.ui_input_tracker.is_active(Input::ShoulderL) {
+            if *level >= 10 {
+                *level -= 10;
+            } else {
+                *level = 0;
+            }
+        }
+
+        if self.ui_input_tracker.is_active(Input::ShoulderR) {
+            if *level <= MAX_VOLUME - 10 {
+                *level += 10;
+            } else {
+                *level = MAX_VOLUME;
+            }
         }
 
         if *level == original_level {
