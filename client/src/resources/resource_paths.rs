@@ -65,8 +65,8 @@ impl ResourcePaths {
     pub const SELECT_CURSOR: &str = "resources/scenes/shared/select_cursor.png";
     pub const SELECT_CURSOR_ANIMATION: &str = "resources/scenes/shared/select_cursor.animation";
     pub const SCROLLBAR_THUMB: &str = "resources/scenes/shared/scrollbar.png";
-    pub const CONTEXT_MENU: &str = "resources/scenes/shared/context_menu.png";
-    pub const CONTEXT_MENU_ANIMATION: &str = "resources/scenes/shared/context_menu.animation";
+    pub const UI_NINE_PATCHES: &str = "resources/scenes/shared/ui_nine_patches.png";
+    pub const UI_NINE_PATCHES_ANIMATION: &str = "resources/scenes/shared/ui_nine_patches.animation";
     pub const ELEMENTS: &str = "resources/scenes/shared/elements.png";
     pub const CARD_ICON_MISSING: &str = "resources/scenes/shared/card_icon_missing.png";
     pub const CARD_PREVIEW_MISSING: &str = "resources/scenes/shared/card_missing.png";
@@ -169,6 +169,10 @@ impl ResourcePaths {
     pub const BATTLE_SPLASH_ANIMATION: &str = "resources/scenes/battle/splash.animation";
     pub const BATTLE_STATUSES: &str = "resources/scenes/battle/statuses.png";
     pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
+
+    // ConfigScene
+    pub const CONFIG_BG: &str = "resources/scenes/config/bg.png";
+    pub const CONFIG_BG_ANIMATION: &str = "resources/scenes/config/bg.animation";
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH

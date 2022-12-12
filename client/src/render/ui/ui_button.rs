@@ -6,6 +6,8 @@ use framework::prelude::*;
 pub struct UiButton<'a> {
     text: Text,
     activate_callback: Box<dyn Fn() + 'a>,
+    focus_callback: Option<Box<dyn Fn()>>,
+    was_focused: bool,
 }
 
 impl<'a> UiButton<'a> {
@@ -15,6 +17,8 @@ impl<'a> UiButton<'a> {
                 .with_str(text)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
             activate_callback: Box::new(|| {}),
+            focus_callback: None,
+            was_focused: false,
         }
     }
 
@@ -32,6 +36,11 @@ impl<'a> UiButton<'a> {
         self.activate_callback = Box::new(callback);
         self
     }
+
+    pub fn on_focus(mut self, callback: impl Fn() + 'static) -> Self {
+        self.focus_callback = Some(Box::new(callback));
+        self
+    }
 }
 
 impl<'a> UiNode for UiButton<'a> {
@@ -41,7 +50,16 @@ impl<'a> UiNode for UiButton<'a> {
 
     fn update(&mut self, game_io: &mut GameIO<Globals>, _bounds: Rect, focused: bool) {
         if !focused {
+            self.was_focused = false;
             return;
+        }
+
+        if !self.was_focused {
+            self.was_focused = true;
+
+            if let Some(callback) = &self.focus_callback {
+                callback();
+            }
         }
 
         let input_util = InputUtil::new(game_io);

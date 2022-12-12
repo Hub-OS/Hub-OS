@@ -24,9 +24,7 @@ pub struct ServerEditScene {
     server_info: ServerInfo,
     bg_sprite: Sprite,
     button_9patch: NinePatch,
-    focused_button_9patch: NinePatch,
     input_9patch: NinePatch,
-    focused_input_9patch: NinePatch,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     ui_input_tracker: UiInputTracker,
@@ -58,12 +56,10 @@ impl ServerEditScene {
         animator.apply(&mut bg_sprite);
 
         // define styles
-        let button_9patch = build_9patch!(game_io, texture.clone(), &animator, "BUTTON");
-        let focused_button_9patch =
-            build_9patch!(game_io, texture.clone(), &animator, "FOCUSED_BUTTON");
-
-        let input_9patch = build_9patch!(game_io, texture.clone(), &animator, "TEXT_INPUT");
-        let focused_input_9patch = build_9patch!(game_io, texture, &animator, "FOCUSED_TEXT_INPUT");
+        let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
+        let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
+        let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
+        let input_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "TEXT_INPUT");
 
         let label_style = UiStyle {
             align_self: AlignSelf::FlexStart,
@@ -75,10 +71,6 @@ impl ServerEditScene {
         let button_style = UiStyle {
             margin_top: Dimension::Auto,
             margin_right: Dimension::Points(2.0),
-            padding_left: 4.0,
-            padding_right: 4.0,
-            padding_top: 1.0,
-            padding_bottom: 1.0,
             nine_patch: Some(button_9patch.clone()),
             ..Default::default()
         };
@@ -188,9 +180,7 @@ impl ServerEditScene {
             server_info,
             bg_sprite,
             button_9patch,
-            focused_button_9patch,
             input_9patch,
-            focused_input_9patch,
             cursor_sprite,
             cursor_animator,
             ui_input_tracker: UiInputTracker::new(),

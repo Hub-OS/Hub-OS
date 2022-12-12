@@ -74,7 +74,7 @@ impl GlobalSave {
 impl Default for GlobalSave {
     fn default() -> Self {
         Self {
-            nickname: String::from("Anonymous"),
+            nickname: String::from("Anon"),
             selected_character: String::new(),
             folders: Vec::new(),
             selected_folder: 0,

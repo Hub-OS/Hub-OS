@@ -31,6 +31,16 @@ impl Background {
         }
     }
 
+    pub fn new_static(sprite: Sprite) -> Self {
+        Self::new(Animator::new(), sprite)
+    }
+
+    pub fn load_static(game_io: &GameIO<Globals>, texture_path: &str) -> Self {
+        let assets = &game_io.globals().assets;
+        let sprite = assets.new_sprite(game_io, texture_path);
+        Self::new_static(sprite)
+    }
+
     pub fn new_blank(game_io: &GameIO<Globals>) -> Self {
         let globals = game_io.globals();
         let assets = &globals.assets;

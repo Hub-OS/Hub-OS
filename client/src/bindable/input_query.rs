@@ -1,28 +1,4 @@
-use num_derive::FromPrimitive;
-use std::hash::Hash;
-use strum::EnumIter;
-
-#[repr(u8)]
-#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug, EnumIter, FromPrimitive)]
-pub enum Input {
-    Up,
-    Down,
-    Left,
-    Right,
-    Shoot,
-    UseCard,
-    Special,
-    Pause,
-    Confirm,
-    Cancel,
-    Option,
-    Sprint,
-    ShoulderL,
-    ShoulderR,
-    Minimap,
-    AdvanceFrame,
-    RewindFrame,
-}
+use crate::resources::Input;
 
 #[derive(Clone, Copy)]
 pub enum InputQuery {

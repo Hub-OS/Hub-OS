@@ -35,17 +35,17 @@ impl<T: Copy + 'static> ContextMenu<T> {
         cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         // resources
-        let texture = assets.texture(game_io, ResourcePaths::CONTEXT_MENU);
-        let mut animator = Animator::load_new(assets, ResourcePaths::CONTEXT_MENU_ANIMATION);
+        let texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
+        let mut animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
 
         // arrow sprite
         let mut arrow_sprite = Sprite::new(texture.clone(), globals.default_sampler.clone());
-        animator.set_state("RIGHT_ARROW");
+        animator.set_state("CONTEXT_RIGHT_ARROW");
         animator.apply(&mut arrow_sprite);
 
         // styles
-        let label_9patch = build_9patch!(game_io, texture.clone(), &animator, "LABEL");
-        let body_9patch = build_9patch!(game_io, texture, &animator, "BODY");
+        let label_9patch = build_9patch!(game_io, texture.clone(), &animator, "CONTEXT_LABEL");
+        let body_9patch = build_9patch!(game_io, texture, &animator, "CONTEXT_BODY");
 
         let label_style = UiStyle {
             nine_patch: Some(label_9patch),

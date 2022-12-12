@@ -6,7 +6,8 @@ pub struct AudioManager {
     stream: Option<rodio::OutputStream>,
     stream_handle: Option<rodio::OutputStreamHandle>,
     music_sink: RefCell<Option<rodio::Sink>>,
-    volume: f32,
+    music_volume: f32,
+    sfx_volume: f32,
 }
 
 impl AudioManager {
@@ -23,12 +24,17 @@ impl AudioManager {
             stream,
             stream_handle,
             music_sink: RefCell::new(None),
-            volume: 1.0,
+            music_volume: 1.0,
+            sfx_volume: 1.0,
         }
     }
 
+    pub fn set_sfx_volume(&mut self, volume: f32) {
+        self.sfx_volume = volume;
+    }
+
     pub fn set_music_volume(&mut self, volume: f32) {
-        self.volume = volume;
+        self.music_volume = volume;
 
         if let Some(music_sink) = self.music_sink.get_mut() {
             music_sink.set_volume(volume);
@@ -107,7 +113,7 @@ impl AudioManager {
             }
         };
 
-        let res = stream_handle.play_raw(decoder.convert_samples());
+        let res = stream_handle.play_raw(decoder.convert_samples().amplify(self.sfx_volume));
 
         if let Err(e) = res {
             log::error!("{e}");

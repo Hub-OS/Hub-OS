@@ -342,7 +342,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     )?;
     globals.set("Shadow", shadow_table)?;
 
-    use crate::bindable::{Input, InputQuery};
+    use crate::bindable::InputQuery;
+    use crate::resources::Input;
 
     let input_table = lua.create_table()?;
 

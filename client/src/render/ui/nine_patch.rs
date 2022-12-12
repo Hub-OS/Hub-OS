@@ -142,6 +142,22 @@ impl NinePatch {
             .and_then(|frame_list| frame_list.frame(0).cloned());
     }
 
+    pub fn body_bounds(&self, mut rect: Rect) -> Rect {
+        let left = self.left_width();
+        let right = self.right_width();
+
+        rect.x += left;
+        rect.width = (rect.width - left - right).max(0.0);
+
+        let top = self.top_height();
+        let bottom = self.bottom_height();
+
+        rect.y += top;
+        rect.height = (rect.height - top - bottom).max(0.0);
+
+        rect
+    }
+
     pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue, rect: Rect) {
         let top_left = rect.top_left();
         let top_right = rect.top_right();
@@ -227,6 +243,8 @@ impl NinePatch {
 
 macro_rules! build_9patch {
     ($game_io:expr, $texture:expr, $animator:expr, $state_prefix:literal) => {{
+        use crate::render::ui::NinePatch;
+
         let mut nine_patch = NinePatch::new($game_io);
         let animator = $animator;
 

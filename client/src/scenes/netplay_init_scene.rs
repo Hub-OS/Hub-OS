@@ -1,6 +1,6 @@
 use super::BattleScene;
 use crate::battle::{BattleProps, BattleStatisticsCallback, PlayerSetup};
-use crate::bindable::{Input, SpriteColorMode};
+use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;

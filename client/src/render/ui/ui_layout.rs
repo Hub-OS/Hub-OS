@@ -165,6 +165,7 @@ pub struct UiLayout {
     tree: Tree<InternalUiElement>,
     bounds: Rect,
     calculated: bool,
+    focused: bool,
     focused_index: Option<GenerationalIndex>,
     wrap_selection: bool,
 }
@@ -192,20 +193,13 @@ impl UiLayout {
             tree: Tree::new(root),
             bounds,
             calculated: false,
+            focused: true,
             focused_index: None,
             wrap_selection: false,
         };
 
         ui_layout.set_children(ui_layout.tree.root_index(), root_nodes);
-
-        // find the first focused element
-        // using tree.nodes() as the order will be insertion order as long as elements are not removed
-        for node in ui_layout.tree.nodes() {
-            if node.value().content.focusable() {
-                ui_layout.focused_index = Some(node.index());
-                break;
-            }
-        }
+        ui_layout.focus_default();
 
         ui_layout
     }
@@ -316,6 +310,25 @@ impl UiLayout {
         self.calculated = false;
     }
 
+    pub fn focused(&self) -> bool {
+        self.focused
+    }
+
+    pub fn set_focused(&mut self, focused: bool) {
+        self.focused = focused;
+    }
+
+    pub fn focus_default(&mut self) {
+        // find the first focused element
+        // using tree.nodes() as the order will be insertion order as long as elements are not removed
+        for node in self.tree.nodes() {
+            if node.value().content.focusable() {
+                self.focused_index = Some(node.index());
+                break;
+            }
+        }
+    }
+
     pub fn set_focused_index(&mut self, index: Option<GenerationalIndex>) {
         let index = match index {
             Some(index) => index,
@@ -367,7 +380,7 @@ impl UiLayout {
             let node_index = node.index();
             let element = node.value_mut();
 
-            let focused = Some(node_index) == self.focused_index;
+            let focused = self.focused && Some(node_index) == self.focused_index;
             element.content.update(game_io, element.bounds, focused);
 
             if element.content.ui_size_dirty() {
@@ -376,14 +389,16 @@ impl UiLayout {
             }
         }
 
-        let old_index = self.focused_index;
+        if self.focused {
+            let old_index = self.focused_index;
 
-        // update focus after to make sure is_focus_locked is up to date
-        self.update_focus(ui_input_tracker);
+            // update focus after to make sure is_focus_locked is up to date
+            self.update_focus(ui_input_tracker);
 
-        if old_index != self.focused_index {
-            let globals = game_io.globals();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            if old_index != self.focused_index {
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.cursor_move_sfx);
+            }
         }
     }
 

@@ -1,5 +1,4 @@
 use super::BBS;
-use crate::bindable::Input;
 use crate::ease::inverse_lerp;
 use crate::overworld::OverworldPlayerData;
 use crate::render::ui::*;

@@ -1,11 +1,15 @@
-use crate::resources::{AssetManager, Input};
+use crate::resources::{AssetManager, Input, MAX_VOLUME};
 use framework::input::{Button, Key};
 use std::collections::HashMap;
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct Config {
     pub fullscreen: bool,
+    pub lock_aspect_ratio: bool,
     pub music: u8,
     pub sfx: u8,
+    pub mute_music: bool,
+    pub mute_sfx: bool,
     pub key_bindings: HashMap<Input, Key>,
     pub controller_bindings: HashMap<Input, Button>,
     pub controller_index: usize,
@@ -16,12 +20,28 @@ impl Config {
         Config::validate_bindings(&self.key_bindings)
     }
 
+    pub fn music_volume(&self) -> f32 {
+        if self.mute_music {
+            return 0.0;
+        }
+
+        self.music as f32 / MAX_VOLUME as f32
+    }
+
+    pub fn sfx_volume(&self) -> f32 {
+        if self.mute_sfx {
+            return 0.0;
+        }
+
+        self.sfx as f32 / MAX_VOLUME as f32
+    }
+
     pub fn load(assets: &impl AssetManager) -> Self {
         let config_text = assets.text("config.ini");
 
         if config_text.is_empty() {
             let default_config = Config::default();
-            let _ = std::fs::write("config.ini", default_config.to_string());
+            default_config.save();
             return default_config;
         }
 
@@ -36,21 +56,12 @@ impl Config {
         config
     }
 
-    fn validate_bindings<K: std::cmp::PartialEq>(bindings: &HashMap<Input, K>) -> bool {
-        const REQUIRED_INPUTS: [Input; 10] = [
-            Input::Up,
-            Input::Down,
-            Input::Left,
-            Input::Right,
-            Input::Cancel,
-            Input::Confirm,
-            Input::Pause,
-            Input::Option,
-            Input::ShoulderL,
-            Input::ShoulderR,
-        ];
+    pub fn save(&self) {
+        let _ = std::fs::write("config.ini", self.to_string());
+    }
 
-        let required_bindings = REQUIRED_INPUTS
+    fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {
+        let required_bindings = Input::REQUIRED_INPUTS
             .iter()
             .map(|input| bindings.get(input))
             .collect::<Vec<_>>();
@@ -111,8 +122,11 @@ impl Default for Config {
 
         Config {
             fullscreen: false,
-            music: 3,
-            sfx: 3,
+            lock_aspect_ratio: true,
+            music: MAX_VOLUME,
+            sfx: MAX_VOLUME,
+            mute_music: false,
+            mute_sfx: false,
             key_bindings,
             controller_bindings,
             controller_index: 0,
@@ -128,8 +142,11 @@ impl From<&str> for Config {
 
         let mut config = Config {
             fullscreen: false,
-            music: 3,
-            sfx: 3,
+            lock_aspect_ratio: true,
+            music: MAX_VOLUME,
+            sfx: MAX_VOLUME,
+            mute_music: false,
+            mute_sfx: false,
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
             controller_index: 0,
@@ -147,11 +164,14 @@ impl From<&str> for Config {
 
         if let Some(properties) = ini.section(Some("Video")) {
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
+            config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
         }
 
         if let Some(properties) = ini.section(Some("Audio")) {
-            config.music = parse_or_default::<u8>(properties.get("Music")).min(3);
-            config.sfx = parse_or_default::<u8>(properties.get("SFX")).min(3);
+            config.music = parse_or_default::<u8>(properties.get("Music")).min(MAX_VOLUME);
+            config.sfx = parse_or_default::<u8>(properties.get("SFX")).min(MAX_VOLUME);
+            config.mute_music = parse_or_default(properties.get("MuteMusic"));
+            config.mute_sfx = parse_or_default(properties.get("MuteSFX"));
         }
 
         if let Some(properties) = ini.section(Some("Keyboard")) {
@@ -202,10 +222,13 @@ impl ToString for Config {
 
             writeln!(s, "[Video]")?;
             writeln!(s, "Fullscreen = {}", self.fullscreen)?;
+            writeln!(s, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
 
             writeln!(s, "[Audio]")?;
             writeln!(s, "Music = {}", self.music)?;
             writeln!(s, "SFX = {}", self.sfx)?;
+            writeln!(s, "MuteMusic = {}", self.mute_music)?;
+            writeln!(s, "MuteSFX = {}", self.mute_sfx)?;
 
             writeln!(s, "[Keyboard]")?;
             for input in Input::iter() {
