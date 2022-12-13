@@ -72,11 +72,11 @@ impl State for BattleState {
         // process 0 HP
         self.mark_deleted(game_io, simulation, vms);
 
-        // update artifacts
-        self.update_artifacts(game_io, simulation, vms);
-
         // new: update living, processes statuses
         self.update_living(game_io, simulation, vms);
+
+        // update artifacts
+        self.update_artifacts(game_io, simulation, vms);
 
         // update battle step components
         if !simulation.time_freeze_tracker.time_is_frozen() {
