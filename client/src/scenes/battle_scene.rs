@@ -441,8 +441,15 @@ impl BattleScene {
                 vm.lua.snap();
             }
 
+            let mut simulation_clone = self.simulation.clone(game_io);
+
+            // use the clone as self.simulation
+            // gives us a fresh Archetype order for hecs::World
+            // should keep all clients in sync for Archetypes
+            std::mem::swap(&mut simulation_clone, &mut self.simulation);
+
             self.backups.push_back(Backup {
-                simulation: self.simulation.clone(game_io),
+                simulation: simulation_clone,
                 state: self.state.clone_box(),
             });
         }
