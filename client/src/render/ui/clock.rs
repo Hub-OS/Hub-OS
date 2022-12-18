@@ -4,6 +4,7 @@ use crate::resources::*;
 use chrono::Timelike;
 use framework::prelude::*;
 
+const FONT_STYLE: FontStyle = FontStyle::Thick;
 const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
 const TEXT_SHADOW_OFFSET: f32 = 1.0;
 const MARGIN: f32 = 2.0;
@@ -16,7 +17,7 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
     let is_afternoon = time.hour() >= 12;
     let show_colon = time.timestamp_subsec_millis() > 500;
 
-    let mut time_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+    let mut time_style = TextStyle::new_monospace(game_io, FONT_STYLE);
     let format = match show_colon {
         false => "%I %M %p",
         true => "%I:%M %p",
@@ -58,7 +59,7 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
 }
 
 pub fn draw_date(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
-    let mut time_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+    let mut time_style = TextStyle::new_monospace(game_io, FONT_STYLE);
     time_style.shadow_color = TEXT_SHADOW_COLOR;
     time_style.bounds.set_position(Vec2::new(MARGIN, MARGIN));
 
