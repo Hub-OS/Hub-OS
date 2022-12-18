@@ -63,7 +63,7 @@ impl GlobalSave {
         game_io
             .globals()
             .player_packages
-            .package(PackageNamespace::Local, player_id)
+            .package_or_fallback(PackageNamespace::Server, player_id)
     }
 
     pub fn active_folder(&self) -> Option<&Folder> {

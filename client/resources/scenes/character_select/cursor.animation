@@ -1,0 +1,7 @@
+# @frame_rate 60
+
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/character_select/cursor.png"
+
+animation state="DEFAULT"
+frame duration="8f" x="0" y="0" w="22" h="28" originx="1" originy="2" flipx="0" flipy="0"
+frame duration="8f" x="23" y="0" w="22" h="28" originx="1" originy="2" flipx="0" flipy="0"

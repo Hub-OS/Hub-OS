@@ -71,6 +71,16 @@ impl ScrollTracker {
         self
     }
 
+    pub fn with_total_items(mut self, total_items: usize) -> Self {
+        self.set_total_items(total_items);
+        self
+    }
+
+    pub fn with_selected_index(mut self, index: usize) -> Self {
+        self.set_selected_index(index);
+        self
+    }
+
     pub fn set_idle(&mut self, idle: bool) {
         let state = if idle { "IDLE" } else { "DEFAULT" };
 
@@ -213,6 +223,16 @@ impl ScrollTracker {
 
         if ui_input_tracker.is_active(Input::ShoulderR) {
             self.page_down();
+        }
+    }
+
+    pub fn handle_horizontal_input(&mut self, ui_input_tracker: &UiInputTracker) {
+        if ui_input_tracker.is_active(Input::Left) {
+            self.move_up();
+        }
+
+        if ui_input_tracker.is_active(Input::Right) {
+            self.move_down();
         }
     }
 

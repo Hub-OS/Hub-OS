@@ -246,9 +246,9 @@ impl NavigationMenu {
             SceneOption::Servers => Some(ServerListScene::new(game_io)),
             SceneOption::Folders => Some(FolderListScene::new(game_io)),
             SceneOption::Library => Some(LibraryScene::new(game_io)),
+            SceneOption::Character => Some(CharacterSelectScene::new(game_io)),
             SceneOption::BattleSelect => Some(BattleSelectScene::new(game_io)),
             SceneOption::Config => Some(ConfigScene::new(game_io)),
-            _ => None,
         };
 
         let globals = game_io.globals();
@@ -315,8 +315,8 @@ impl NavigationMenu {
 }
 
 fn system_scroll(menu: &mut NavigationMenu) {
-    const OFFSET: Vec2 = Vec2::new(RESOLUTION_F.x - 80.0, 28.0);
-    const ITEM_OFFSET: f32 = 21.0;
+    const OFFSET: Vec2 = Vec2::new(RESOLUTION_F.x - 80.0, 24.0);
+    const ITEM_OFFSET: f32 = 22.0;
 
     let target_scroll_top = menu.scroll_tracker.top_index() as f32;
 
