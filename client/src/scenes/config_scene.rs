@@ -630,11 +630,20 @@ impl UiNode for UiVolume {
 
         if !self.locking_focus {
             if left || right || confirm {
+                // focus, play sfx, update, and continue
+                let globals = game_io.globals();
+                globals.audio.play_sound(&globals.cursor_select_sfx);
+
                 self.locking_focus = true;
             } else {
+                // no focus
                 return;
             }
         } else if confirm || input_util.was_just_pressed(Input::Cancel) {
+            // unfocus and play sfx
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_select_sfx);
+
             self.locking_focus = false;
             return;
         }
