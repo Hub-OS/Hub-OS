@@ -29,6 +29,8 @@ struct Motion {
     friction: Vec2,
 }
 
+const SHADOW_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
+
 pub struct MainMenuScene {
     camera: Camera,
     background: Background,
@@ -103,12 +105,14 @@ impl MainMenuScene {
         }
 
         // load the player character
-        let mut character_sprite = load_character_sprite(game_io);
-        let character_entity = entities.spawn((character_sprite.clone(),));
+        let character_sprite = load_character_sprite(game_io);
+        let mut character_shadow_sprite = character_sprite.clone();
 
-        character_sprite.set_origin(Vec2::new(20.0, 0.0));
-        character_sprite.set_color(Color::from((0, 0, 20, 20)));
-        let character_shadow_entity = entities.spawn((character_sprite,));
+        character_shadow_sprite.set_origin(Vec2::new(20.0, 0.0));
+        character_shadow_sprite.set_color(SHADOW_COLOR);
+
+        let character_shadow_entity = entities.spawn((character_shadow_sprite,));
+        let character_entity = entities.spawn((character_sprite.clone(),));
 
         MainMenuScene {
             camera,
@@ -171,7 +175,7 @@ impl Scene<Globals> for MainMenuScene {
             .query_one_mut::<&mut Sprite>(self.character_shadow_entity)
             .unwrap();
         *shadow_sprite = character_sprite;
-        shadow_sprite.set_color(Color::from((0, 0, 20, 20)));
+        shadow_sprite.set_color(SHADOW_COLOR);
     }
 
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
