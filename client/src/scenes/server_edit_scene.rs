@@ -94,8 +94,12 @@ impl ServerEditScene {
             Rect::new(8.0, 20.0, RESOLUTION_F.x - 16.0, RESOLUTION_F.y - 28.0),
             vec![
                 // name input
-                UiLayoutNode::new(Text::new(game_io, FontStyle::Thick).with_str("Name"))
-                    .with_style(label_style.clone()),
+                UiLayoutNode::new(
+                    Text::new(game_io, FontStyle::Thick)
+                        .with_str("Name")
+                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
+                )
+                .with_style(label_style.clone()),
                 UiLayoutNode::new(
                     TextInput::new(game_io, FontStyle::Thin)
                         .with_str(&server_info.name)
