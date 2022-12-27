@@ -2,7 +2,6 @@ use crate::overworld::components::{WarpController, WarpEffect};
 use crate::overworld::{ObjectData, ObjectType, OverworldBaseEvent};
 use crate::resources::Globals;
 use crate::scenes::{InitialConnectScene, OverworldSceneBase};
-use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
 use framework::prelude::*;
 use packets::structures::Direction;
 
@@ -50,13 +49,11 @@ pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
 
             let callback = move |game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase| {
                 // todo: use push and fix infinite warp issues
+                let transition = crate::transitions::new_connect(game_io);
+
                 scene.next_scene =
                     NextScene::new_swap(InitialConnectScene::new(game_io, address, data, false))
-                        .with_transition(ColorFadeTransition::new(
-                            game_io,
-                            Color::WHITE,
-                            DEFAULT_FADE_DURATION,
-                        ));
+                        .with_transition(transition);
             };
 
             WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
@@ -79,8 +76,7 @@ pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
         }
         ObjectType::HomeWarp => {
             let callback = |game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase| {
-                let transition =
-                    ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+                let transition = crate::transitions::new_connect(game_io);
                 scene.next_scene = NextScene::new_pop().with_transition(transition);
             };
 

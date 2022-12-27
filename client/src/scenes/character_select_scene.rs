@@ -264,13 +264,7 @@ impl CharacterSelectScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
-            globals.audio.play_sound(&globals.menu_close_sfx);
-
-            use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
-
-            let transition = ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
-
+            let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
     }

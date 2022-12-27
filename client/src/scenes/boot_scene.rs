@@ -3,7 +3,6 @@ use crate::packages::*;
 use crate::render::ui::{FontStyle, Text, TextStyle};
 use crate::render::*;
 use crate::resources::*;
-use crate::transitions::SwipeInTransition;
 use framework::logging::LogRecord;
 use framework::prelude::*;
 
@@ -315,16 +314,8 @@ impl Scene<Globals> for BootScene {
 
         // transfer to the next scene
         if self.done && input_util.latest_input().is_some() {
-            let sampler = game_io.globals().default_sampler.clone();
-
             let scene = MainMenuScene::new(game_io);
-            let transition = SwipeInTransition::new(
-                game_io,
-                sampler,
-                Direction::Down,
-                Duration::from_secs_f32(0.5),
-            );
-
+            let transition = crate::transitions::new_boot(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }
     }

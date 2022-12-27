@@ -83,15 +83,7 @@ impl LibraryScene {
 
         // cancelling
         if input_util.was_just_pressed(Input::Cancel) {
-            use crate::transitions::*;
-
-            let transition = PushTransition::new(
-                game_io,
-                game_io.globals().default_sampler.clone(),
-                Direction::Left,
-                DEFAULT_PUSH_DURATION,
-            );
-
+            let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
             let globals = game_io.globals();

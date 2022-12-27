@@ -5,7 +5,6 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Folder};
-use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
@@ -563,7 +562,7 @@ impl NetplayInitScene {
                 callback(None);
             }
 
-            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+            let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
             return;
         }
@@ -639,7 +638,7 @@ impl NetplayInitScene {
 
             // create scene
             let scene = BattleScene::new(game_io, props);
-            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+            let transition = crate::transitions::new_battle(game_io);
 
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }

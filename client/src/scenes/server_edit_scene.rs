@@ -3,7 +3,6 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::ServerInfo;
-use crate::transitions::*;
 use framework::prelude::*;
 
 pub enum ServerEditProp {
@@ -255,7 +254,7 @@ impl Scene<Globals> for ServerEditScene {
         }
 
         if leaving {
-            let transition = ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
+            let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
     }

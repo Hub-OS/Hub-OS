@@ -357,15 +357,8 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
         let globals = game_io.globals();
         globals.audio.play_sound(&globals.menu_close_sfx);
 
-        use crate::transitions::{PushTransition, DEFAULT_PUSH_DURATION};
-
-        let sampler = game_io.globals().default_sampler.clone();
-        let transition =
-            PushTransition::new(game_io, sampler, Direction::Left, DEFAULT_PUSH_DURATION);
-
-        scene.next_scene = NextScene::Pop {
-            transition: Some(Box::new(transition)),
-        };
+        let transition = crate::transitions::new_scene_pop(game_io);
+        scene.next_scene = NextScene::new_pop().with_transition(transition);
         return;
     }
 
@@ -402,16 +395,10 @@ fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO<G
 
     match selection {
         FolderOption::Edit => {
-            use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
-
-            let transition = ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
-
             let folder_index = scene.folder_scroll_tracker.selected_index();
 
-            scene.next_scene = NextScene::Push {
-                scene: FolderEditScene::new(game_io, folder_index),
-                transition: Some(Box::new(transition)),
-            };
+            scene.next_scene = NextScene::new_push(FolderEditScene::new(game_io, folder_index))
+                .with_transition(crate::transitions::new_sub_scene(game_io));
         }
         FolderOption::Equip => {
             global_save.selected_folder = scene.folder_scroll_tracker.selected_index();

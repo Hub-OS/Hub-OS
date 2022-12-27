@@ -3,7 +3,6 @@ use crate::bindable::SpriteColorMode;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::transitions::*;
 use framework::prelude::*;
 use packets::{ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE};
 
@@ -290,16 +289,14 @@ impl ServerListScene {
             MenuOption::Edit => {
                 let index = self.scroll_tracker.selected_index();
                 let scene = ServerEditScene::new(game_io, ServerEditProp::Edit(index));
-                let transition =
-                    ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
+                let transition = crate::transitions::new_sub_scene(game_io);
 
                 self.next_scene = NextScene::new_push(scene).with_transition(transition);
             }
             MenuOption::New => {
                 let index = self.scroll_tracker.selected_index();
                 let scene = ServerEditScene::new(game_io, ServerEditProp::InsertAfter(index));
-                let transition =
-                    ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
+                let transition = crate::transitions::new_sub_scene(game_io);
 
                 self.next_scene = NextScene::new_push(scene).with_transition(transition);
             }
@@ -429,8 +426,7 @@ impl Scene<Globals> for ServerListScene {
                     // try connecting to the server
                     let scene =
                         InitialConnectScene::new(game_io, server_info.address.clone(), None, true);
-                    let transition =
-                        ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+                    let transition = crate::transitions::new_connect(game_io);
 
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
@@ -452,13 +448,7 @@ impl Scene<Globals> for ServerListScene {
             } else {
                 globals.audio.play_sound(&globals.menu_close_sfx);
 
-                let transition = PushTransition::new(
-                    game_io,
-                    game_io.globals().default_sampler.clone(),
-                    Direction::Left,
-                    DEFAULT_PUSH_DURATION,
-                );
-
+                let transition = crate::transitions::new_scene_pop(game_io);
                 self.next_scene = NextScene::new_pop().with_transition(transition);
             }
         }

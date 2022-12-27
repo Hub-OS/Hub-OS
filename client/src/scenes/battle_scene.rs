@@ -542,8 +542,6 @@ impl Scene<Globals> for BattleScene {
         self.simulation.camera.update(game_io);
 
         if !self.exiting && self.detect_exit_request() {
-            use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
-
             self.exiting = true;
             self.broadcast(NetplayPacket::Disconnect {
                 index: self.local_index,
@@ -553,7 +551,7 @@ impl Scene<Globals> for BattleScene {
                 statistics_callback(Some(self.simulation.statistics.clone()));
             }
 
-            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+            let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
     }

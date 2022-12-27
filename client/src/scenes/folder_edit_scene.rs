@@ -42,7 +42,7 @@ pub struct FolderEditScene {
 }
 
 impl FolderEditScene {
-    pub fn new(game_io: &mut GameIO<Globals>, folder_index: usize) -> Box<Self> {
+    pub fn new(game_io: &mut GameIO<Globals>, folder_index: usize) -> Self {
         let globals = game_io.globals();
         let assets = &globals.assets;
 
@@ -81,7 +81,7 @@ impl FolderEditScene {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
-        Box::new(Self {
+        Self {
             folder_index,
             camera,
             background: Background::new(background_animator, background_sprite),
@@ -109,14 +109,11 @@ impl FolderEditScene {
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
-        })
+        }
     }
 
     fn leave(&mut self, game_io: &mut GameIO<Globals>, equip_folder: bool) {
-        use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
-
-        let transition = ColorFadeTransition::new(game_io, Color::BLACK, DEFAULT_FADE_DURATION);
-
+        let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);
 
         // save

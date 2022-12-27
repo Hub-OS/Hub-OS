@@ -14,7 +14,6 @@ use crate::render::ui::{
 use crate::render::AnimatorLoopMode;
 use crate::resources::*;
 use crate::scenes::BattleScene;
-use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION, DRAMATIC_FADE_DURATION};
 use bimap::BiMap;
 use framework::prelude::*;
 use packets::structures::{BattleStatistics, FileHash};
@@ -722,8 +721,7 @@ impl OverworldOnlineScene {
 
                     // create scene
                     let scene = BattleScene::new(game_io, props);
-                    let transition =
-                        ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION);
+                    let transition = crate::transitions::new_battle(game_io);
 
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
                     self.next_scene_queue.push_back(next_scene);
@@ -761,9 +759,7 @@ impl OverworldOnlineScene {
                     Some(statistics_callback),
                 );
 
-                let transition =
-                    ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION);
-
+                let transition = crate::transitions::new_battle(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
                 self.next_scene_queue.push_back(next_scene);
             }
@@ -1082,9 +1078,9 @@ impl OverworldOnlineScene {
                     self.connected = false;
                 }
                 Event::Leave => {
-                    *self.base_scene.next_scene() = NextScene::new_pop().with_transition(
-                        ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION),
-                    );
+                    let transition = crate::transitions::new_connect(game_io);
+                    *self.base_scene.next_scene() =
+                        NextScene::new_pop().with_transition(transition);
                 }
             }
         }

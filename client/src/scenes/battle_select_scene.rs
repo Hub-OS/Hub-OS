@@ -120,8 +120,6 @@ impl Scene<Globals> for BattleSelectScene {
         }
 
         if input_util.was_just_pressed(Input::Confirm) && !self.package_ids.is_empty() {
-            use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
-
             let globals = game_io.globals();
 
             let package_id = &self.package_ids[self.selection];
@@ -130,9 +128,9 @@ impl Scene<Globals> for BattleSelectScene {
                 .package_or_fallback(PackageNamespace::Server, package_id);
 
             let props = BattleProps::new_with_defaults(game_io, battle_package);
-            let scene = BattleScene::new(game_io, props);
-            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
 
+            let scene = BattleScene::new(game_io, props);
+            let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
         }
 
@@ -140,12 +138,7 @@ impl Scene<Globals> for BattleSelectScene {
             let globals = game_io.globals();
             globals.audio.play_sound(&globals.menu_close_sfx);
 
-            use crate::transitions::{PushTransition, DEFAULT_PUSH_DURATION};
-
-            let sampler = game_io.globals().default_sampler.clone();
-            let transition =
-                PushTransition::new(game_io, sampler, Direction::Left, DEFAULT_PUSH_DURATION);
-
+            let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
     }

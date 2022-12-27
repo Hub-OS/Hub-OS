@@ -238,8 +238,6 @@ impl NavigationMenu {
     }
 
     fn select_item(&mut self, game_io: &mut GameIO<Globals>) -> NextScene<Globals> {
-        use crate::transitions::*;
-
         let selection = self.scroll_tracker.selected_index();
 
         let scene: Option<Box<dyn Scene<Globals>>> = match self.items[selection].target_scene {
@@ -256,13 +254,7 @@ impl NavigationMenu {
         if let Some(scene) = scene {
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
-            let transition = PushTransition::new(
-                game_io,
-                game_io.globals().default_sampler.clone(),
-                Direction::Right,
-                DEFAULT_PUSH_DURATION,
-            );
-
+            let transition = crate::transitions::new_navigation(game_io);
             NextScene::Push {
                 scene,
                 transition: Some(Box::new(transition)),

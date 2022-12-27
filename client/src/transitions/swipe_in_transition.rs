@@ -14,7 +14,7 @@ pub struct SwipeInTransition {
 
 impl SwipeInTransition {
     pub fn new<Globals>(
-        game_io: &mut GameIO<Globals>,
+        game_io: &GameIO<Globals>,
         sampler: Arc<TextureSampler>,
         direction: Direction,
         duration: Duration,

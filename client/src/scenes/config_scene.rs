@@ -8,7 +8,6 @@ use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQ
 use crate::resources::*;
 use crate::saves::Config;
 use framework::prelude::*;
-use packets::structures::Direction;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -350,15 +349,7 @@ impl ConfigScene {
                         game_io.window_mut().set_fullscreen(fullscreen);
                     }
 
-                    use crate::transitions::{PushTransition, DEFAULT_PUSH_DURATION};
-
-                    let sampler = game_io.globals().default_sampler.clone();
-                    let transition = PushTransition::new(
-                        game_io,
-                        sampler,
-                        Direction::Left,
-                        DEFAULT_PUSH_DURATION,
-                    );
+                    let transition = crate::transitions::new_scene_pop(game_io);
 
                     self.next_scene = NextScene::new_pop().with_transition(transition);
                 }

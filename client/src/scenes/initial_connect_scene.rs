@@ -4,7 +4,6 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::transitions::{ColorFadeTransition, DEFAULT_FADE_DURATION};
 use framework::prelude::*;
 use packets::{ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE};
 
@@ -209,8 +208,7 @@ impl Scene<Globals> for InitialConnectScene {
                     self.textbox.push_interface(textbox_interface);
                 }
                 Event::Pop => {
-                    let transition =
-                        ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
+                    let transition = crate::transitions::new_connect(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
 
                     self.textbox.close();
@@ -232,8 +230,7 @@ impl Scene<Globals> for InitialConnectScene {
             globals.assets.remove_unused_virtual_zips();
 
             // move to the network scene if we can and the animator completed
-            let transition = ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION);
-
+            let transition = crate::transitions::new_connect(game_io);
             self.next_scene = NextScene::new_swap(online_scene).with_transition(transition);
         }
     }
