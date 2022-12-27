@@ -411,7 +411,7 @@ impl ConfigScene {
             // no changes, no need to ask if we should save
             let _ = self.event_sender.send(Event::Leave { save: false });
 
-            globals.audio.play_sound(&globals.menu_close_sfx);
+            globals.audio.play_sound(&globals.cursor_cancel_sfx);
             return;
         }
 

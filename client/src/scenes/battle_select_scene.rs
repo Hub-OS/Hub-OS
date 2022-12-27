@@ -136,7 +136,7 @@ impl Scene<Globals> for BattleSelectScene {
 
         if input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.globals();
-            globals.audio.play_sound(&globals.menu_close_sfx);
+            globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);

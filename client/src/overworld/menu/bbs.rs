@@ -177,7 +177,7 @@ impl BBS {
 
             (self.on_select)(&post.id);
         } else if input_util.was_just_pressed(Input::Cancel) {
-            globals.audio.play_sound(&globals.menu_close_sfx);
+            globals.audio.play_sound(&globals.cursor_cancel_sfx);
             self.close();
         }
     }

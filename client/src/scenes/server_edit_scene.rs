@@ -250,6 +250,9 @@ impl Scene<Globals> for ServerEditScene {
         let input_util = InputUtil::new(game_io);
 
         if !self.ui_layout.is_focus_locked() && input_util.was_just_pressed(Input::Cancel) {
+            let globals = game_io.globals();
+            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+
             leaving = true;
         }
 

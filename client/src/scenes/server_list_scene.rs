@@ -446,7 +446,7 @@ impl Scene<Globals> for ServerListScene {
 
                 self.scroll_tracker.forget_index();
             } else {
-                globals.audio.play_sound(&globals.menu_close_sfx);
+                globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
                 let transition = crate::transitions::new_scene_pop(game_io);
                 self.next_scene = NextScene::new_pop().with_transition(transition);
