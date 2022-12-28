@@ -15,7 +15,7 @@ pub struct TextboxQuiz {
 impl TextboxQuiz {
     pub fn new(options: &[&str; 3], callback: impl FnOnce(usize) + 'static) -> Self {
         Self {
-            message: format!("  {}\n  {}\n  {}", options[0], options[1], options[2]),
+            message: format!("\x02  {}\n  {}\n  {}", options[0], options[1], options[2]),
             complete: false,
             selection: 0,
             callback: Some(Box::new(callback)),
