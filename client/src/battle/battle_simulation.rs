@@ -277,6 +277,12 @@ impl BattleSimulation {
                 continue;
             }
 
+            if let Ok(living) = self.entities.query_one_mut::<&Living>(action.entity.into()) {
+                if living.status_director.is_inactionable() {
+                    continue;
+                }
+            }
+
             for attachment in &mut action.attachments {
                 let animator = &mut self.animators[attachment.animator_index];
                 self.pending_callbacks.extend(animator.update());
