@@ -22,8 +22,15 @@ impl PageArrows {
         Self { sprite, animator }
     }
 
-    pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
+    pub fn set_position(&mut self, position: Vec2) {
+        self.sprite.set_position(position);
+    }
+
+    pub fn update(&mut self) {
         self.animator.update();
+    }
+
+    pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
         self.animator.apply(&mut self.sprite);
 
         self.sprite.set_scale(Vec2::new(1.0, 1.0));

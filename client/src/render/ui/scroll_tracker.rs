@@ -112,6 +112,10 @@ impl ScrollTracker {
             .set_texture(assets.texture(game_io, texture_path));
     }
 
+    pub fn cursor_definition(&self) -> (Vec2, f32) {
+        (self.cursor_start, self.cursor_multiplier)
+    }
+
     pub fn define_cursor(&mut self, start: Vec2, multiplier: f32) {
         self.cursor_start = start;
         self.cursor_multiplier = multiplier;
@@ -123,6 +127,10 @@ impl ScrollTracker {
 
     pub fn cursor_multiplier(&self) -> f32 {
         self.cursor_multiplier
+    }
+
+    pub fn scrollbar_definition(&self) -> (Vec2, Vec2) {
+        (self.scroll_start, self.scroll_end)
     }
 
     pub fn define_scrollbar(&mut self, start: Vec2, end: Vec2) {

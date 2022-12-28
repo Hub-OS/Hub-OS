@@ -28,8 +28,7 @@ pub struct FolderEditScene {
     background: Background,
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
-    camera_x: f32,
-    viewing_pack: bool,
+    page_tracker: PageTracker,
     context_menu: ContextMenu<FolderSorting>,
     last_sort: Option<FolderSorting>,
     folder_dock: Dock,
@@ -87,8 +86,7 @@ impl FolderEditScene {
             background: Background::new(background_animator, background_sprite),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
-            camera_x: 0.0,
-            viewing_pack: false,
+            page_tracker: PageTracker::new(game_io, 2),
             context_menu: ContextMenu::new(game_io, "SORT", Vec2::ZERO).with_options(
                 game_io,
                 &[
@@ -146,22 +144,8 @@ impl Scene<Globals> for FolderEditScene {
     fn update(&mut self, game_io: &mut GameIO<Globals>) {
         self.scene_time += 1;
 
-        // update camera
-        if self.viewing_pack {
-            self.camera_x += 1.0 / (60.0 * 0.33);
-        } else {
-            self.camera_x -= 1.0 / (60.0 * 0.33);
-        }
+        self.page_tracker.update();
 
-        self.camera_x = self.camera_x.clamp(0.0, 1.0);
-        self.camera.snap(Vec2::new(
-            (self.camera_x + 0.5) * RESOLUTION_F.x,
-            RESOLUTION_F.y * 0.5,
-        ));
-        self.camera.update(game_io);
-
-        let textbox_position = Vec2::new(self.camera.position().x, self.textbox.position().y);
-        self.textbox.set_position(textbox_position);
         self.textbox.update(game_io);
 
         // input
@@ -189,10 +173,16 @@ impl Scene<Globals> for FolderEditScene {
         SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
 
         // draw folder size
+        let offset = Vec2::new(self.page_tracker.page_offset(0), 0.0);
+        let original_size_position = self.folder_size_sprite.position();
+        let adjusted_size_position = original_size_position + offset;
+
+        self.folder_size_sprite.set_position(adjusted_size_position);
         sprite_queue.draw_sprite(&self.folder_size_sprite);
+        self.folder_size_sprite.set_position(original_size_position);
 
         let mut count_text = Text::new(game_io, FontStyle::Wide);
-        (count_text.style.bounds).set_position(self.folder_size_sprite.position());
+        (count_text.style.bounds).set_position(adjusted_size_position);
         count_text.style.bounds.x += 10.0;
         count_text.style.bounds.y -= 3.0;
 
@@ -209,19 +199,26 @@ impl Scene<Globals> for FolderEditScene {
         count_text.draw(game_io, &mut sprite_queue);
 
         // draw docks
-        self.folder_dock.draw(game_io, &mut sprite_queue);
-        self.pack_dock.draw(game_io, &mut sprite_queue);
+        for (page, offset) in self.page_tracker.visible_pages() {
+            let dock = match page {
+                0 => &mut self.folder_dock,
+                1 => &mut self.pack_dock,
+                _ => unreachable!(),
+            };
 
-        if !self.context_menu.is_open() {
-            self.folder_dock.draw_cursor(&mut sprite_queue);
-            self.pack_dock.draw_cursor(&mut sprite_queue);
+            dock.draw(game_io, &mut sprite_queue, offset);
+
+            if !self.context_menu.is_open() {
+                dock.draw_cursor(&mut sprite_queue, offset);
+            }
         }
 
         // draw context menu
         if self.context_menu.is_open() {
-            let active_dock = match self.viewing_pack {
-                true => &mut self.pack_dock,
-                false => &mut self.folder_dock,
+            let active_dock = match self.page_tracker.active_page() {
+                0 => &mut self.folder_dock,
+                1 => &mut self.pack_dock,
+                _ => unreachable!(),
             };
 
             // context menu
@@ -255,12 +252,12 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
     // dock scrolling
     let (active_dock, inactive_dock);
 
-    if scene.viewing_pack {
-        active_dock = &mut scene.pack_dock;
-        inactive_dock = &mut scene.folder_dock;
-    } else {
+    if scene.page_tracker.active_page() == 0 {
         active_dock = &mut scene.folder_dock;
         inactive_dock = &mut scene.pack_dock;
+    } else {
+        active_dock = &mut scene.pack_dock;
+        inactive_dock = &mut scene.folder_dock;
     }
 
     let scroll_tracker = &mut active_dock.scroll_tracker;
@@ -278,21 +275,12 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
     // selecting dock
     let input_util = InputUtil::new(game_io);
 
-    let was_viewing_pack = scene.viewing_pack;
+    let previous_page = scene.page_tracker.active_page();
 
-    if !scene.viewing_pack && input_util.was_just_pressed(Input::Right) {
+    scene.page_tracker.handle_input(game_io);
+
+    if previous_page != scene.page_tracker.active_page() {
         scene.last_sort = None;
-        scene.viewing_pack = true;
-    }
-
-    if scene.viewing_pack && input_util.was_just_pressed(Input::Left) {
-        scene.last_sort = None;
-        scene.viewing_pack = false;
-    }
-
-    if was_viewing_pack != scene.viewing_pack {
-        let globals = game_io.globals();
-        globals.audio.play_sound(&globals.page_turn_sfx);
     }
 
     if input_util.was_just_pressed(Input::Confirm) {
@@ -358,9 +346,10 @@ fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO<G
     };
 
     let card_manager = &game_io.globals().card_packages;
-    let card_items = match scene.viewing_pack {
-        true => &mut scene.pack_dock.card_items,
-        false => &mut scene.folder_dock.card_items,
+    let card_items = match scene.page_tracker.active_page() {
+        0 => &mut scene.folder_dock.card_items,
+        1 => &mut scene.pack_dock.card_items,
+        _ => unreachable!(),
     };
 
     match selected_option {
@@ -422,21 +411,21 @@ where
 }
 
 fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO<Globals>, index: usize) {
-    if scene.viewing_pack {
-        let selected_index = scene.pack_dock.scroll_tracker.selected_index();
-
-        if index == selected_index {
-            transfer_to_folder(scene, game_io, index);
-        } else {
-            scene.pack_dock.card_items.swap(selected_index, index);
-        }
-    } else {
+    if scene.page_tracker.active_page() == 0 {
         let selected_index = scene.folder_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
             transfer_to_pack(scene, index);
         } else {
             scene.folder_dock.card_items.swap(selected_index, index);
+        }
+    } else {
+        let selected_index = scene.pack_dock.scroll_tracker.selected_index();
+
+        if index == selected_index {
+            transfer_to_folder(scene, game_io, index);
+        } else {
+            scene.pack_dock.card_items.swap(selected_index, index);
         }
     }
 }
@@ -449,12 +438,12 @@ fn inter_dock_swap(
 ) -> Option<()> {
     let (folder_index, pack_index);
 
-    if scene.viewing_pack {
-        folder_index = inactive_index;
-        pack_index = active_index;
-    } else {
+    if scene.page_tracker.active_page() == 0 {
         folder_index = active_index;
         pack_index = inactive_index;
+    } else {
+        folder_index = inactive_index;
+        pack_index = active_index;
     }
 
     // store the index of the transferred card in case we need to move it back
@@ -567,7 +556,6 @@ struct Dock {
     card_preview: FullCard,
     list_position: Vec2,
     context_menu_position: Vec2,
-    page_arrows: Option<PageArrows>,
 }
 
 impl Dock {
@@ -614,11 +602,6 @@ impl Dock {
         let cursor_start = list_position + Vec2::new(-7.0, 3.0);
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
-        // page_arrows
-        let page_arrows = dock_animator
-            .point("page_arrows")
-            .map(|point| PageArrows::new(game_io, dock_offset + point));
-
         let mut dock = Self {
             card_items,
             card_count: 0,
@@ -628,7 +611,6 @@ impl Dock {
             card_preview,
             list_position,
             context_menu_position,
-            page_arrows,
         };
 
         dock.update_preview();
@@ -672,13 +654,28 @@ impl Dock {
         None
     }
 
-    fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    fn draw(
+        &mut self,
+        game_io: &GameIO<Globals>,
+        sprite_queue: &mut SpriteColorQueue,
+        offset_x: f32,
+    ) {
+        let offset = Vec2::new(offset_x, 0.0);
+
         self.dock_animator.update();
         self.dock_animator.apply(&mut self.dock_sprite);
+        self.dock_sprite.set_position(offset);
         sprite_queue.draw_sprite(&self.dock_sprite);
+
+        // draw card preview using offset
+        let card_position = self.card_preview.position();
+        self.card_preview.set_position(card_position + offset);
 
         self.card_preview.draw(game_io, sprite_queue);
 
+        self.card_preview.set_position(card_position);
+
+        // draw list items
         for i in self.scroll_tracker.view_range() {
             let card_item = match &self.card_items[i] {
                 Some(card_item) => card_item,
@@ -687,21 +684,30 @@ impl Dock {
 
             let relative_index = i - self.scroll_tracker.top_index();
 
-            let mut position = self.list_position;
+            let mut position = self.list_position + offset;
             position.y += relative_index as f32 * self.scroll_tracker.cursor_multiplier();
 
             card_item.draw_list_item(game_io, sprite_queue, position);
         }
 
+        // draw scrollbar
+        let (start, end) = self.scroll_tracker.scrollbar_definition();
+        self.scroll_tracker
+            .define_scrollbar(start + offset, end + offset);
+
         self.scroll_tracker.draw_scrollbar(sprite_queue);
 
-        if let Some(page_arrows) = self.page_arrows.as_mut() {
-            page_arrows.draw(sprite_queue);
-        }
+        self.scroll_tracker.define_scrollbar(start, end);
     }
 
-    fn draw_cursor(&mut self, sprite_queue: &mut SpriteColorQueue) {
+    fn draw_cursor(&mut self, sprite_queue: &mut SpriteColorQueue, offset: f32) {
+        let (start, multiplier) = self.scroll_tracker.cursor_definition();
+        self.scroll_tracker
+            .define_cursor(start + Vec2::new(offset, 0.0), multiplier);
+
         self.scroll_tracker.draw_cursor(sprite_queue);
+
+        self.scroll_tracker.define_cursor(start, multiplier);
     }
 }
 

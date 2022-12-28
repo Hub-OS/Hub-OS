@@ -62,6 +62,20 @@ impl FullCard {
         }
     }
 
+    pub fn position(&self) -> Vec2 {
+        self.position
+    }
+
+    pub fn set_position(&mut self, position: Vec2) {
+        let preview_offset = self.preview_position - self.position;
+        let description_offset = self.description_style.bounds.position() - self.position;
+
+        self.position = position;
+        self.card_sprite.set_position(position);
+        self.preview_position = position + preview_offset;
+        (self.description_style.bounds).set_position(description_offset + position);
+    }
+
     pub fn card(&self) -> Option<&Card> {
         self.current_card.as_ref()
     }
