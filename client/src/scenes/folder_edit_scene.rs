@@ -86,7 +86,8 @@ impl FolderEditScene {
             background: Background::new(background_animator, background_sprite),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
-            page_tracker: PageTracker::new(game_io, 2),
+            page_tracker: PageTracker::new(game_io, 2)
+                .with_page_arrow_offset(0, pack_dock.page_arrow_offset),
             context_menu: ContextMenu::new(game_io, "SORT", Vec2::ZERO).with_options(
                 game_io,
                 &[
@@ -212,6 +213,9 @@ impl Scene<Globals> for FolderEditScene {
                 dock.draw_cursor(&mut sprite_queue, offset);
             }
         }
+
+        // draw page_arrows
+        self.page_tracker.draw_page_arrows(&mut sprite_queue);
 
         // draw context menu
         if self.context_menu.is_open() {
@@ -568,6 +572,7 @@ struct Dock {
     card_preview: FullCard,
     list_position: Vec2,
     context_menu_position: Vec2,
+    page_arrow_offset: Vec2,
 }
 
 impl Dock {
@@ -594,6 +599,9 @@ impl Dock {
 
         let context_menu_point = dock_animator.point("context_menu").unwrap_or_default();
         let context_menu_position = dock_offset + context_menu_point;
+
+        let page_arrow_point = dock_animator.point("page_arrows").unwrap_or_default();
+        let page_arrow_offset = dock_offset + page_arrow_point;
 
         // card sprite
         let card_offset = dock_animator.point("card").unwrap_or_default();
@@ -623,6 +631,7 @@ impl Dock {
             card_preview,
             list_position,
             context_menu_position,
+            page_arrow_offset,
         };
 
         dock.update_preview();

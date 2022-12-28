@@ -11,7 +11,7 @@ pub struct PageTracker {
     page_width: f32,
     current_offset: f32,
     page_arrows: PageArrows,
-    page_arrow_positions: Vec<Vec2>,
+    page_arrow_offsets: Vec<Vec2>,
 }
 
 impl PageTracker {
@@ -22,15 +22,17 @@ impl PageTracker {
             page_width: RESOLUTION_F.x,
             current_offset: 0.0,
             page_arrows: PageArrows::new(game_io, Vec2::ZERO),
-            page_arrow_positions: (1..=page_count)
-                .into_iter()
-                .map(|i| Vec2::new(RESOLUTION_F.x * i as f32, RESOLUTION_F.y * 0.5))
-                .collect(),
+            page_arrow_offsets: vec![Vec2::new(0.0, RESOLUTION_F.y * 0.5); page_count.max(1) - 1],
         }
     }
 
-    pub fn with_page_count(mut self, width: f32) -> Self {
+    pub fn with_page_width(mut self, width: f32) -> Self {
         self.page_width = width;
+        self
+    }
+
+    pub fn with_page_arrow_offset(mut self, index: usize, offset: Vec2) -> Self {
+        self.page_arrow_offsets[index] = offset;
         self
     }
 
@@ -66,6 +68,10 @@ impl PageTracker {
     }
 
     pub fn handle_input(&mut self, game_io: &GameIO<Globals>) {
+        if self.animating() {
+            return;
+        }
+
         let input_util = InputUtil::new(game_io);
         let original_page = self.active_page;
 
@@ -107,14 +113,22 @@ impl PageTracker {
     pub fn draw_page_arrows(&mut self, sprite_queue: &mut SpriteColorQueue) {
         let mut first_run = true;
 
-        for (page, _) in self.visible_pages() {
+        for (page, offset_x) in self.visible_pages() {
+            let offset = Vec2::new(self.page_width + offset_x, 0.0);
+
             if first_run && page > 0 {
-                let position = self.page_arrow_positions[page - 1];
+                let mut position = self.page_arrow_offsets[page - 1] + offset;
+                position.x -= self.page_width;
+
                 self.page_arrows.set_position(position);
                 self.page_arrows.draw(sprite_queue);
             }
 
-            let position = self.page_arrow_positions[page];
+            let Some(arrow_offset) = self.page_arrow_offsets.get(page).cloned() else {
+                continue;
+            };
+
+            let position = arrow_offset + offset;
             self.page_arrows.set_position(position);
             self.page_arrows.draw(sprite_queue);
 
