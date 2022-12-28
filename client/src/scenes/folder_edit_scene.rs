@@ -447,18 +447,25 @@ fn inter_dock_swap(
     }
 
     // store the index of the transferred card in case we need to move it back
-    let stored_index = transfer_to_pack(scene, folder_index)?;
+    let stored_index = transfer_to_pack(scene, folder_index);
 
     let Some(index) = transfer_to_folder(scene, game_io, pack_index) else {
-        // move it back
-        let index = transfer_to_folder(scene, game_io, stored_index)?;
-        scene.folder_dock.card_items.swap(index, folder_index);
+        if let Some(stored_index) = stored_index {
+            // move it back
+            let index = transfer_to_folder(scene, game_io, stored_index)?;
+            scene.folder_dock.card_items.swap(index, folder_index);
+        }
+
         return None;
     };
 
     // move the transferred card to the correct slot
     // otherwise it's moved to the first empty slot and not the one we're selecting
     scene.folder_dock.card_items.swap(index, folder_index);
+
+    scene.folder_dock.update_card_count();
+    scene.folder_dock.update_preview();
+    scene.pack_dock.update_preview();
 
     Some(())
 }
@@ -512,6 +519,8 @@ fn transfer_to_folder(
     }
 
     scene.folder_dock.update_card_count();
+    scene.folder_dock.update_preview();
+    scene.pack_dock.update_preview();
 
     Some(empty_index)
 }
@@ -523,6 +532,9 @@ fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<us
         .get_mut(from_index)?
         .take()?
         .card;
+
+    scene.folder_dock.update_card_count();
+    scene.folder_dock.update_preview();
 
     let pack_items = &mut scene.pack_dock.card_items;
 
