@@ -1,8 +1,12 @@
 use super::*;
+use crate::battle::{BattleSimulation, Entity};
 use crate::bindable::Element;
-use crate::lua_api::create_analytical_vm;
-use crate::resources::{LocalAssetManager, ResourcePaths};
+use crate::lua_api::{create_analytical_vm, create_battle_vm};
+use crate::render::{Animator, Background};
+use crate::resources::{AssetManager, Globals, LocalAssetManager, ResourcePaths};
+use framework::prelude::{GameIO, Texture};
 use std::cell::RefCell;
+use std::sync::Arc;
 
 #[derive(Default, Clone)]
 pub struct PlayerPackage {
@@ -18,6 +22,59 @@ pub struct PlayerPackage {
     pub mugshot_texture_path: String,
     pub mugshot_animation_path: String,
     pub emotions_texture_path: String,
+}
+
+impl PlayerPackage {
+    pub fn resolve_battle_sprite(&self, game_io: &GameIO<Globals>) -> (Arc<Texture>, Animator) {
+        let globals = game_io.globals();
+        let package_info = &self.package_info;
+
+        // create simulation
+        let background = Background::new_blank(game_io);
+        let mut simulation = BattleSimulation::new(game_io, background, 1);
+
+        // load vms
+        let mut vms = Vec::new();
+
+        let inital_iter = std::iter::once((
+            PackageCategory::Player,
+            package_info.namespace,
+            package_info.id.clone(),
+        ));
+
+        for package_info in globals.package_dependency_iter(inital_iter) {
+            create_battle_vm(game_io, &mut simulation, &mut vms, package_info);
+        }
+
+        // load player into the simulation
+        let Ok(entity_id) = simulation.load_player(
+            game_io,
+            &vms,
+            &self.package_info.id,
+            self.package_info.namespace,
+            0,
+            true,
+            vec![],
+        ) else {
+            return (globals.assets.texture(game_io, ResourcePaths::BLANK), Animator::new())
+        };
+
+        // grab the entitiy
+        let entity = simulation
+            .entities
+            .query_one_mut::<&Entity>(entity_id.into())
+            .unwrap();
+
+        // clone the texture
+        let sprite_node = entity.sprite_tree.root();
+        let texture = sprite_node.texture().clone();
+
+        // clone the animator
+        let battle_animator = &simulation.animators[entity.animator_index];
+        let animator = battle_animator.animator().clone();
+
+        (texture, animator)
+    }
 }
 
 impl Package for PlayerPackage {

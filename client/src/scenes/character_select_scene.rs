@@ -36,18 +36,13 @@ pub struct CharacterSelectScene {
 }
 
 impl CharacterSelectScene {
-    pub fn new(game_io: &GameIO<Globals>) -> Box<Self> {
+    pub fn new(game_io: &GameIO<Globals>) -> Self {
         let globals = game_io.globals();
         let assets = &globals.assets;
         let character_id = &globals.global_save.selected_character;
 
         let mut package_ids: Vec<_> = globals.player_packages.local_packages().collect();
         package_ids.sort();
-
-        let c = package_ids.clone();
-        for _ in 0..16 {
-            package_ids.extend(c.clone());
-        }
 
         // selection
         let selected_index = package_ids
@@ -116,7 +111,7 @@ impl CharacterSelectScene {
         // name_position
         let name_position = bg_animator.point("NAME").unwrap_or_default();
 
-        Box::new(Self {
+        Self {
             camera: Camera::new_ui(game_io),
             background: Background::new(bg_animator, bg_sprite),
             overlay_sprites,
@@ -139,7 +134,7 @@ impl CharacterSelectScene {
             ui_input_tracker: UiInputTracker::new(),
             textbox: Textbox::new_navigation(game_io),
             next_scene: NextScene::None,
-        })
+        }
     }
 
     fn get_player_package<'a>(

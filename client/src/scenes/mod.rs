@@ -1,6 +1,7 @@
 mod battle_scene;
 mod battle_select_scene;
 mod boot_scene;
+mod character_scene;
 mod character_select_scene;
 mod config_scene;
 mod folder_edit_scene;
@@ -18,6 +19,7 @@ mod server_list_scene;
 pub use battle_scene::*;
 pub use battle_select_scene::*;
 pub use boot_scene::*;
+pub use character_scene::*;
 pub use character_select_scene::*;
 pub use config_scene::*;
 pub use folder_edit_scene::*;

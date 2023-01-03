@@ -36,6 +36,10 @@ impl PageTracker {
         self
     }
 
+    pub fn set_page_arrow_offset(&mut self, index: usize, offset: Vec2) {
+        self.page_arrow_offsets[index] = offset;
+    }
+
     pub fn active_page(&self) -> usize {
         self.active_page
     }

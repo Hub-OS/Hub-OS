@@ -147,6 +147,11 @@ impl Textbox {
         self
     }
 
+    pub fn with_interface(mut self, interface: impl TextboxInterface + 'static) -> Self {
+        self.push_interface(interface);
+        self
+    }
+
     pub fn position(&self) -> Vec2 {
         self.sprite.position()
     }

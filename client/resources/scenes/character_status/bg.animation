@@ -1,0 +1,4 @@
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/character_status/bg.png"
+
+animation state="DEFAULT"
+frame duration="0" x="0" y="0" w="240" h="160" originx="0" originy="0" flipx="0" flipy="0"

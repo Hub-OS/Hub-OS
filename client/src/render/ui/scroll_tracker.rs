@@ -154,6 +154,13 @@ impl ScrollTracker {
         self.view_size
     }
 
+    pub fn set_view_size(&mut self, view_size: usize) {
+        self.view_size = view_size;
+
+        // refresh selected_index to recalculate top_index
+        self.set_selected_index(self.selected_index);
+    }
+
     pub fn view_range(&self) -> Range<usize> {
         Range {
             start: self.top_index,

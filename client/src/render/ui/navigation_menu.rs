@@ -244,7 +244,7 @@ impl NavigationMenu {
             SceneOption::Servers => Some(ServerListScene::new(game_io)),
             SceneOption::Folders => Some(FolderListScene::new(game_io)),
             SceneOption::Library => Some(LibraryScene::new(game_io)),
-            SceneOption::Character => Some(CharacterSelectScene::new(game_io)),
+            SceneOption::Character => Some(CharacterScene::new(game_io)),
             SceneOption::BattleSelect => Some(BattleSelectScene::new(game_io)),
             SceneOption::Config => Some(ConfigScene::new(game_io)),
         };

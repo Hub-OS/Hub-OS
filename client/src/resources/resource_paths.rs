@@ -140,6 +140,12 @@ impl ResourcePaths {
     pub const LIBRARY_DOCK: &str = "resources/scenes/library/dock.png";
     pub const LIBRARY_DOCK_ANIMATION: &str = "resources/scenes/library/dock.animation";
 
+    // CharacterScene
+    pub const CHARACTER_BG: &str = "resources/scenes/character_status/bg.png";
+    pub const CHARACTER_BG_ANIMATION: &str = "resources/scenes/character_status/bg.animation";
+    pub const CHARACTER_PAGES: &str = "resources/scenes/character_status/pages.png";
+    pub const CHARACTER_PAGES_ANIMATION: &str = "resources/scenes/character_status/pages.animation";
+
     // CharacterSelectScene
     pub const CHARACTER_SELECT_BG_ANIMATION: &str =
         "resources/scenes/character_select/bg.animation";

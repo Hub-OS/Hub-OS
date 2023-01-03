@@ -4,6 +4,7 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 
 pub struct ScrollableFrame {
+    bounds: Rect,
     body_bounds: Rect,
     scroll_start: Vec2,
     scroll_end: Vec2,
@@ -29,6 +30,7 @@ impl ScrollableFrame {
         let nine_patch = build_9patch!(game_io, label_sprite.texture().clone(), &animator, "LIST");
 
         let mut frame = Self {
+            bounds,
             body_bounds: Rect::ZERO,
             scroll_start: Vec2::ZERO,
             scroll_end: Vec2::ZERO,
@@ -53,6 +55,7 @@ impl ScrollableFrame {
     }
 
     pub fn update_bounds(&mut self, bounds: Rect) {
+        self.bounds = bounds;
         self.body_bounds = self.nine_patch.body_bounds(bounds);
         self.label_sprite.set_position(self.body_bounds.top_left());
 
@@ -71,6 +74,10 @@ impl ScrollableFrame {
             .unwrap_or_default();
 
         self.scroll_end = self.body_bounds.bottom_right() + end_offset;
+    }
+
+    pub fn bounds(&self) -> Rect {
+        self.bounds
     }
 
     pub fn body_bounds(&self) -> Rect {

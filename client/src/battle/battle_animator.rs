@@ -33,6 +33,10 @@ impl BattleAnimator {
         }
     }
 
+    pub fn animator(&self) -> &Animator {
+        &self.animator
+    }
+
     pub fn set_target(&mut self, entity_id: EntityID, sprite_index: GenerationalIndex) {
         self.target = Some((entity_id.into(), sprite_index));
     }

@@ -156,6 +156,10 @@ impl SpriteNode {
         self.palette_path = path;
     }
 
+    pub fn texture(&self) -> &Arc<Texture> {
+        self.sprite.texture()
+    }
+
     pub fn texture_path(&self) -> &str {
         &self.texture_path
     }

@@ -1,0 +1,19 @@
+imagePath="pages.png"
+
+animation state="PAGE_1"
+frame x="0" y="0" w="240" h="160"
+point label="ELEMENT" x="88" y="17"
+point label="HEALTH" x="10" y="16"
+point label="PLAYER" x="55" y="84"
+point label="ATTACK_TEXT" x="137" y="29"
+point label="SPEED_TEXT" x="137" y="45"
+point label="CHARGE_TEXT" x="137" y="61"
+point label="POWER_CHARGE_TEXT" x="137" y="77"
+
+animation state="PAGE_2"
+blank
+point label="FOLDER_START" x="18" y="20"
+point label="FOLDER_END" x="125" y="94"
+point label="BLOCKS_START" x="129" y="20"
+point label="BLOCKS_END" x="230" y="94"
+point label="PAGE_ARROWS" x="2" y="56"

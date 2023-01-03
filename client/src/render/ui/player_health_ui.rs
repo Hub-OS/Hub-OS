@@ -47,6 +47,10 @@ impl PlayerHealthUI {
         self.text.text = format!("{:>4}", self.current_health);
     }
 
+    pub fn position(&mut self) -> Vec2 {
+        self.frame_sprite.position()
+    }
+
     pub fn set_position(&mut self, position: Vec2) {
         self.frame_sprite.set_position(position);
         (self.text.style.bounds).set_position(position + self.text_offset);
