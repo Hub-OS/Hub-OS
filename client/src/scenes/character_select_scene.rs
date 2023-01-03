@@ -102,7 +102,7 @@ impl CharacterSelectScene {
         // health_ui
         let mut health_ui = PlayerHealthUI::new(game_io);
         health_ui.set_position(bg_animator.point("HP").unwrap_or_default());
-        health_ui.set_health(player_package.health);
+        health_ui.snap_health(player_package.health);
 
         // element_sprite
         let mut element_sprite = ElementSprite::new(game_io, player_package.element);
