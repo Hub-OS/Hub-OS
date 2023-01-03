@@ -67,7 +67,7 @@ impl CharacterSelectScene {
 
         let row_count = icon_rows.len();
         let col_count = icon_rows
-            .first()
+            .get(v_index)
             .map(|row| row.package_count())
             .unwrap_or_default();
 
