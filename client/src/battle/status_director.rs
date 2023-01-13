@@ -2,7 +2,7 @@ use super::{Entity, PlayerInput, SharedBattleAssets};
 use crate::bindable::{HitFlag, HitFlags, SpriteColorMode};
 use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::{
-    Globals, BATTLE_INPUTS, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
+    BATTLE_INPUTS, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
 };
 use framework::prelude::GameIO;
 
@@ -166,7 +166,7 @@ impl StatusDirector {
 
     pub fn update_status_sprites(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         shared_assets: &mut SharedBattleAssets,
         entity: &mut Entity,
     ) {
@@ -177,7 +177,7 @@ impl StatusDirector {
 
     fn update_status_sprite(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         shared_assets: &mut SharedBattleAssets,
         entity: &mut Entity,
         status_flag: HitFlags,

@@ -11,7 +11,7 @@ pub struct ScrollableList {
 }
 
 impl ScrollableList {
-    pub fn new(game_io: &GameIO<Globals>, bounds: Rect, item_height: f32) -> Self {
+    pub fn new(game_io: &GameIO, bounds: Rect, item_height: f32) -> Self {
         let frame = ScrollableFrame::new(game_io, bounds);
         let inner_bounds = frame.body_bounds();
 
@@ -106,7 +106,7 @@ impl ScrollableList {
         self.scroll_tracker.page_down();
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>, ui_input_tracker: &UiInputTracker) {
+    pub fn update(&mut self, game_io: &mut GameIO, ui_input_tracker: &UiInputTracker) {
         // update selection
         if self.focused && !self.is_focus_locked() {
             let previous_index = self.scroll_tracker.selected_index();
@@ -114,7 +114,7 @@ impl ScrollableList {
             self.scroll_tracker.handle_vertical_input(ui_input_tracker);
 
             if self.scroll_tracker.selected_index() != previous_index {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_move_sfx);
             }
         }
@@ -135,7 +135,7 @@ impl ScrollableList {
         }
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         // draw frame
         self.frame.draw(game_io, sprite_queue);
 

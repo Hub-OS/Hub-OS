@@ -8,8 +8,8 @@ pub struct PageArrows {
 }
 
 impl PageArrows {
-    pub fn new(game_io: &GameIO<Globals>, position: Vec2) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, position: Vec2) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::PAGE_ARROW);

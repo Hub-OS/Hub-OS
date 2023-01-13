@@ -33,8 +33,8 @@ enum Event {
 
 pub struct OverworldOnlineScene {
     base_scene: OverworldSceneBase,
-    next_scene: NextScene<Globals>,
-    next_scene_queue: VecDeque<NextScene<Globals>>,
+    next_scene: NextScene,
+    next_scene_queue: VecDeque<NextScene>,
     connected: bool,
     server_address: String,
     max_payload_size: u16,
@@ -61,7 +61,7 @@ impl Drop for OverworldOnlineScene {
 
 impl OverworldOnlineScene {
     pub fn new(
-        game_io: &mut GameIO<Globals>,
+        game_io: &mut GameIO,
         address: String,
         max_payload_size: u16,
         send_packet: ClientPacketSender,
@@ -102,8 +102,8 @@ impl OverworldOnlineScene {
         }
     }
 
-    pub fn start_connection(&self, game_io: &GameIO<Globals>, data: Option<String>) {
-        let globals = game_io.globals();
+    pub fn start_connection(&self, game_io: &GameIO, data: Option<String>) {
+        let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
 
         let send_packet = &self.send_packet;
@@ -177,7 +177,7 @@ impl OverworldOnlineScene {
         &self.packet_receiver
     }
 
-    pub fn handle_packets(&mut self, game_io: &mut GameIO<Globals>) {
+    pub fn handle_packets(&mut self, game_io: &mut GameIO) {
         while let Ok(packet) = self.packet_receiver.try_recv() {
             self.handle_packet(game_io, packet);
         }
@@ -193,7 +193,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    pub fn handle_packet(&mut self, game_io: &mut GameIO<Globals>, packet: ServerPacket) {
+    pub fn handle_packet(&mut self, game_io: &mut GameIO, packet: ServerPacket) {
         if self.synchronizing_packets {
             self.stored_packets.push(packet);
             return;
@@ -389,7 +389,8 @@ impl OverworldOnlineScene {
             }
             ServerPacket::PlaySound { path } => {
                 let sound = self.assets.audio(&path);
-                game_io.globals().audio.play_sound(&sound);
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&sound);
             }
             ServerPacket::ExcludeObject { id } => {
                 log::warn!("ExcludeObject hasn't been implemented")
@@ -664,7 +665,7 @@ impl OverworldOnlineScene {
             } => {
                 let namespace = PackageNamespace::Server;
 
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 let assets = &globals.assets;
 
                 let hash = match self.loaded_zips.get(&package_path) {
@@ -680,7 +681,7 @@ impl OverworldOnlineScene {
                     }
                 };
 
-                let globals = game_io.globals_mut();
+                let globals = game_io.resource_mut::<Globals>().unwrap();
 
                 if let Some(package_info) = globals.load_virtual_package(category, namespace, hash)
                 {
@@ -696,7 +697,7 @@ impl OverworldOnlineScene {
                 log::warn!("ModBlacklist hasn't been implemented")
             }
             ServerPacket::InitiateEncounter { package_path, data } => {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
                     // get package
@@ -1022,7 +1023,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    fn handle_events(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_events(&mut self, game_io: &GameIO) {
         self.handle_base_events();
 
         while let Ok(event) = self.event_receiver.try_recv() {
@@ -1086,7 +1087,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_input(&mut self, game_io: &mut GameIO) {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::ShoulderR) {
@@ -1147,7 +1148,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    fn send_ready_packet(&self, game_io: &GameIO<Globals>) {
+    fn send_ready_packet(&self, game_io: &GameIO) {
         (self.send_packet)(
             Reliability::ReliableOrdered,
             ClientPacket::Ready {
@@ -1156,7 +1157,7 @@ impl OverworldOnlineScene {
         );
     }
 
-    fn send_position(&mut self, game_io: &GameIO<Globals>) {
+    fn send_position(&mut self, game_io: &GameIO) {
         if !self.connected {
             return;
         }
@@ -1189,7 +1190,7 @@ impl OverworldOnlineScene {
         self.last_position_send = instant;
     }
 
-    fn handle_next_scene(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_next_scene(&mut self, game_io: &GameIO) {
         let base_scene_next_scene = self.base_scene.next_scene().take();
 
         if base_scene_next_scene.is_some() {
@@ -1204,18 +1205,18 @@ impl OverworldOnlineScene {
     }
 }
 
-impl Scene<Globals> for OverworldOnlineScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for OverworldOnlineScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+    fn enter(&mut self, game_io: &mut GameIO) {
         // handle events triggered from other scenes
         // should be called before handling packets, but it's not necessary to do this every frame
         self.handle_events(game_io);
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
 
         self.base_scene.update(game_io);
@@ -1230,12 +1231,12 @@ impl Scene<Globals> for OverworldOnlineScene {
         self.handle_next_scene(game_io);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         self.base_scene.draw(game_io, render_pass)
     }
 }
 
-fn ms_time(game_io: &GameIO<Globals>) -> u64 {
+fn ms_time(game_io: &GameIO) -> u64 {
     let duration = game_io.frame_start_instant() - game_io.game_start_instant();
 
     duration.as_millis() as u64

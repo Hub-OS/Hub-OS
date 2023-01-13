@@ -19,8 +19,8 @@ pub trait Menu {
     fn is_fullscreen(&self) -> bool;
     fn is_open(&self) -> bool;
     fn open(&mut self);
-    fn handle_input(&mut self, game_io: &mut GameIO<Globals>);
-    fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue);
+    fn handle_input(&mut self, game_io: &mut GameIO);
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue);
 }
 
 pub struct MenuManager {
@@ -41,8 +41,8 @@ pub struct MenuManager {
 }
 
 impl MenuManager {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn new(game_io: &GameIO) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         fade_sprite.set_color(Color::BLACK);
         fade_sprite.set_size(RESOLUTION_F);
@@ -122,7 +122,7 @@ impl MenuManager {
 
     pub fn open_bbs(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         topic: String,
         color: Color,
         transition: bool,
@@ -164,7 +164,7 @@ impl MenuManager {
 
     pub fn set_next_avatar(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         assets: &impl AssetManager,
         texture_path: &str,
         animation_path: &str,
@@ -173,7 +173,7 @@ impl MenuManager {
             .set_next_avatar(game_io, assets, texture_path, animation_path);
     }
 
-    pub fn use_player_avatar(&mut self, game_io: &GameIO<Globals>) {
+    pub fn use_player_avatar(&mut self, game_io: &GameIO) {
         self.textbox.use_player_avatar(game_io);
     }
 
@@ -190,7 +190,7 @@ impl MenuManager {
         self.navigation_menu.update_info(player_data);
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>) -> NextScene<Globals> {
+    pub fn update(&mut self, game_io: &mut GameIO) -> NextScene {
         if self.fade_time < self.max_fade_time {
             self.fade_time += 1;
 
@@ -298,7 +298,7 @@ impl MenuManager {
             }
 
             if handle_input && input_util.was_just_pressed(Input::Pause) {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.card_select_open_sfx);
                 self.navigation_menu.open();
             }
@@ -307,7 +307,7 @@ impl MenuManager {
         self.navigation_menu.update(game_io)
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
 
         if fade_progress < 0.5 {

@@ -4,12 +4,12 @@ use crate::battle::{BattleScriptContext, Entity};
 use crate::bindable::{CharacterRank, EntityID};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::{Animator, Background};
-use crate::resources::AssetManager;
+use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
 pub fn battle_init(context: BattleScriptContext) {
-    let globals = context.game_io.globals();
+    let globals = context.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
     let vm = &context.vms[context.vm_index];
@@ -99,7 +99,7 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
             let animation_path = absolute_path(lua, animation_path)?;
 
             let mut api_ctx = &mut *api_ctx.borrow_mut();
-            let globals = api_ctx.game_io.globals();
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let assets = &globals.assets;
 
             let animator = Animator::load_new(assets, &animation_path);

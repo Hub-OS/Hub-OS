@@ -24,11 +24,11 @@ pub struct CharacterScene {
     page_tracker: PageTracker,
     pages: Vec<StatusPage>,
     input_tracker: UiInputTracker,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl CharacterScene {
-    pub fn new(game_io: &GameIO<Globals>) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Box<Self> {
         let (event_sender, event_receiver) = flume::unbounded();
 
         Box::new(Self {
@@ -44,11 +44,12 @@ impl CharacterScene {
         })
     }
 
-    fn load_pages(&mut self, game_io: &GameIO<Globals>) {
-        let global_save = &game_io.globals().global_save;
+    fn load_pages(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
-        let assets = &game_io.globals().assets;
+        let assets = &globals.assets;
 
         let mut page_animator =
             Animator::load_new(assets, ResourcePaths::CHARACTER_PAGES_ANIMATION);
@@ -71,7 +72,7 @@ impl CharacterScene {
         }
     }
 
-    fn reload_textbox(&mut self, game_io: &GameIO<Globals>) {
+    fn reload_textbox(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
         let interface = TextboxCharacterNavigation::new(move |i| {
             let event = if i == 0 {
@@ -88,7 +89,7 @@ impl CharacterScene {
             .with_interface(interface);
     }
 
-    fn handle_input(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_input(&mut self, game_io: &GameIO) {
         self.input_tracker.update(game_io);
         self.page_tracker.handle_input(game_io);
 
@@ -100,7 +101,7 @@ impl CharacterScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             let transition = crate::transitions::new_scene_pop(game_io);
@@ -109,17 +110,17 @@ impl CharacterScene {
     }
 }
 
-impl Scene<Globals> for CharacterScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for CharacterScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+    fn enter(&mut self, game_io: &mut GameIO) {
         self.load_pages(game_io);
         self.reload_textbox(game_io);
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.textbox.update(game_io);
         self.page_tracker.update();
 
@@ -143,7 +144,7 @@ impl Scene<Globals> for CharacterScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         self.background.draw(game_io, render_pass);
 
         let mut sprite_queue =
@@ -176,7 +177,7 @@ struct StatusPage {
 
 impl StatusPage {
     fn new(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         layout_animator: &Animator,
         mut page_sprite: Sprite,
         player_package: &PlayerPackage,
@@ -209,8 +210,7 @@ impl StatusPage {
         if let Some(point) = layout_animator.point("PLAYER") {
             let (texture, mut animator) = player_package.resolve_battle_sprite(game_io);
 
-            let sampler = game_io.globals().default_sampler.clone();
-            let mut sprite = Sprite::new(texture, sampler);
+            let mut sprite = Sprite::new(game_io, texture);
             sprite.set_position(point);
 
             animator.set_state("PLAYER_IDLE");
@@ -290,7 +290,7 @@ impl StatusPage {
         page
     }
 
-    fn handle_input(&mut self, game_io: &GameIO<Globals>, input_tracker: &UiInputTracker) {
+    fn handle_input(&mut self, game_io: &GameIO, input_tracker: &UiInputTracker) {
         let mut scrolled = false;
 
         for list in &mut self.lists {
@@ -308,7 +308,7 @@ impl StatusPage {
         }
 
         if scrolled {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
     }
@@ -320,12 +320,7 @@ impl StatusPage {
         }
     }
 
-    fn draw(
-        &mut self,
-        game_io: &GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-        offset_x: f32,
-    ) {
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, offset_x: f32) {
         let offset = Vec2::new(offset_x, 0.0);
 
         for player_health_ui in &mut self.player_health_ui {

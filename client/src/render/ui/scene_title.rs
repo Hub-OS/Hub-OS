@@ -1,6 +1,5 @@
 use super::*;
 use crate::render::*;
-use crate::resources::*;
 use framework::prelude::*;
 
 pub struct SceneTitle {
@@ -11,7 +10,7 @@ impl SceneTitle {
         Self { title }
     }
 
-    pub fn draw(&self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         let mut style = TextStyle::new_monospace(game_io, FontStyle::Wide);
         style.letter_spacing = 0.0;
         style.bounds.set_position(Vec2::new(16.0, 5.0));

@@ -1,6 +1,5 @@
 use super::Map;
 use crate::render::Camera;
-use crate::resources::Globals;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -73,7 +72,7 @@ impl CameraController {
 
     pub fn update(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         map: &Map,
         entities: &mut hecs::World,
         camera: &mut Camera,

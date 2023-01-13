@@ -66,7 +66,7 @@ pub struct ServerAssetManager {
 }
 
 impl ServerAssetManager {
-    pub fn new(game_io: &GameIO<Globals>, address: &str) -> Self {
+    pub fn new(game_io: &GameIO, address: &str) -> Self {
         let address = packets::address_parsing::strip_data(address).replace(':', "_p");
         let address = uri_encode(&address);
 
@@ -80,7 +80,7 @@ impl ServerAssetManager {
         // setup texture map
         let mut textures = HashMap::new();
 
-        let local_assets = &game_io.globals().assets;
+        let local_assets = &game_io.resource::<Globals>().unwrap().assets;
         textures.insert(
             ResourcePaths::BLANK.to_string(),
             local_assets.texture(game_io, ResourcePaths::BLANK),
@@ -188,7 +188,7 @@ impl ServerAssetManager {
         });
     }
 
-    pub fn receive_download_data(&mut self, game_io: &GameIO<Globals>, data: Vec<u8>) {
+    pub fn receive_download_data(&mut self, game_io: &GameIO, data: Vec<u8>) {
         let download = match &mut self.current_download {
             Some(download) => download,
             None => {
@@ -317,7 +317,7 @@ impl AssetManager for ServerAssetManager {
         res.unwrap_or_default()
     }
 
-    fn texture(&self, game_io: &GameIO<Globals>, path: &str) -> Arc<Texture> {
+    fn texture(&self, game_io: &GameIO, path: &str) -> Arc<Texture> {
         let mut textures = self.textures.borrow_mut();
 
         if let Some(texture) = textures.get(path) {

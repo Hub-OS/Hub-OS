@@ -20,8 +20,8 @@ pub struct FullCard {
 }
 
 impl FullCard {
-    pub fn new(game_io: &GameIO<Globals>, position: Vec2) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, position: Vec2) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // card
@@ -86,7 +86,7 @@ impl FullCard {
         self.time = 0;
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.time += 1;
 
         let progress = (self.time as f32 / 5.0).clamp(0.0, 1.0);
@@ -127,8 +127,8 @@ impl FullCard {
     }
 }
 
-fn package<'a>(game_io: &'a GameIO<Globals>, card: &Card) -> Option<&'a CardPackage> {
-    let globals = game_io.globals();
+fn package<'a>(game_io: &'a GameIO, card: &Card) -> Option<&'a CardPackage> {
+    let globals = game_io.resource::<Globals>().unwrap();
     let package_manager = &globals.card_packages;
 
     package_manager.package_or_fallback(PackageNamespace::Server, &card.package_id)

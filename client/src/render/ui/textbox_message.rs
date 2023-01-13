@@ -1,6 +1,5 @@
 use super::{TextStyle, TextboxInterface};
 use crate::render::*;
-use crate::resources::*;
 use framework::prelude::*;
 
 pub struct TextboxMessage {
@@ -63,11 +62,11 @@ impl TextboxInterface for TextboxMessage {
         }
     }
 
-    fn update(&mut self, _game_io: &mut GameIO<Globals>, _text_style: &TextStyle, _lines: usize) {}
+    fn update(&mut self, _game_io: &mut GameIO, _text_style: &TextStyle, _lines: usize) {}
 
     fn draw(
         &mut self,
-        _game_io: &framework::prelude::GameIO<Globals>,
+        _game_io: &framework::prelude::GameIO,
         _sprite_queue: &mut SpriteColorQueue,
     ) {
     }

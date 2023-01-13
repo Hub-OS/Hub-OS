@@ -22,7 +22,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let mut internal_camera = OrthoCamera::new(game_io, RESOLUTION_F);
         internal_camera.invert_y(true);
 
@@ -46,7 +46,7 @@ impl Camera {
         }
     }
 
-    pub fn new_ui(game_io: &GameIO<Globals>) -> Self {
+    pub fn new_ui(game_io: &GameIO) -> Self {
         let mut camera = Self::new(game_io);
 
         camera.snap(RESOLUTION_F * 0.5);
@@ -66,7 +66,7 @@ impl Camera {
         self.internal_camera.bounds()
     }
 
-    pub fn update(&mut self, game_io: &GameIO<Globals>) {
+    pub fn update(&mut self, game_io: &GameIO) {
         let last_frame_secs = (game_io.frame_duration() + game_io.sleep_duration()).as_secs_f32();
         self.slide_progress += last_frame_secs;
         self.shake_progress += last_frame_secs;
@@ -162,7 +162,7 @@ impl Camera {
         self.current_color
     }
 
-    pub fn clone(&self, game_io: &GameIO<Globals>) -> Self {
+    pub fn clone(&self, game_io: &GameIO) -> Self {
         let mut internal_camera = OrthoCamera::new(game_io, RESOLUTION_F);
         internal_camera.invert_y(true);
 

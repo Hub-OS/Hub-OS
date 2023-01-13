@@ -9,7 +9,7 @@ const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
 const TEXT_SHADOW_OFFSET: f32 = 1.0;
 const MARGIN: f32 = 2.0;
 
-pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+pub fn draw_clock(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     const MARGIN: f32 = 2.0;
 
     // generate initial text
@@ -58,7 +58,7 @@ pub fn draw_clock(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue
     time_style.draw(game_io, sprite_queue, am_pm_str);
 }
 
-pub fn draw_date(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+pub fn draw_date(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
     let mut time_style = TextStyle::new_monospace(game_io, FONT_STYLE);
     time_style.shadow_color = TEXT_SHADOW_COLOR;
     time_style.bounds.set_position(Vec2::new(MARGIN, MARGIN));

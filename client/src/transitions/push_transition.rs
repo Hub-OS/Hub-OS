@@ -1,25 +1,17 @@
 use crate::bindable::Direction;
 use framework::prelude::*;
-use std::sync::Arc;
 
 pub struct PushTransition {
     start_instant: Option<Instant>,
     direction: Direction,
     duration: Duration,
     targets: Option<(RenderTarget, RenderTarget)>,
-    render_pipeline: SpritePipeline<SpriteInstanceData>,
-    sampler: Arc<TextureSampler>,
     camera: OrthoCamera,
 }
 
 impl PushTransition {
     /// * direction - The direction to enter from
-    pub fn new<Globals>(
-        game_io: &GameIO<Globals>,
-        sampler: Arc<TextureSampler>,
-        direction: Direction,
-        duration: Duration,
-    ) -> Self {
+    pub fn new(game_io: &GameIO, direction: Direction, duration: Duration) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
         camera.invert_y(true);
 
@@ -28,20 +20,18 @@ impl PushTransition {
             direction,
             duration,
             targets: None,
-            sampler,
-            render_pipeline: SpritePipeline::new(game_io, true),
             camera,
         }
     }
 }
 
-impl<Globals> Transition<Globals> for PushTransition {
+impl Transition for PushTransition {
     fn draw(
         &mut self,
-        game_io: &mut GameIO<Globals>,
+        game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene<Globals>>,
-        next_scene: &mut Box<dyn Scene<Globals>>,
+        previous_scene: &mut Box<dyn Scene>,
+        next_scene: &mut Box<dyn Scene>,
     ) {
         let target_size = render_pass.target_size();
 
@@ -87,14 +77,18 @@ impl<Globals> Transition<Globals> for PushTransition {
             .set_position(Vec3::new(vec.x + 0.5, vec.y + 0.5, 0.0));
 
         // render transition
-        let mut sprite_queue =
-            SpriteQueue::new(game_io, &self.render_pipeline, [self.camera.as_binding()]);
+        let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
 
-        let mut sprite_a = Sprite::new(target_a.texture().clone(), self.sampler.clone());
+        let mut sprite_queue =
+            SpriteQueue::new(game_io, &render_pipeline, [self.camera.as_binding()])
+                .with_inverted_y(true);
+
+        let mut sprite_a = Sprite::new(game_io, target_a.texture().clone());
         sprite_a.set_size(Vec2::ONE);
         sprite_queue.draw_sprite(&sprite_a);
 
-        let mut sprite_b = Sprite::new(target_b.texture().clone(), self.sampler.clone());
+        let mut sprite_b = Sprite::new(game_io, target_b.texture().clone());
         sprite_b.set_size(Vec2::ONE);
         sprite_b.set_position(b_offset);
         sprite_queue.draw_sprite(&sprite_b);

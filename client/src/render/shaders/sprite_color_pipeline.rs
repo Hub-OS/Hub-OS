@@ -15,7 +15,7 @@ pub struct SpritePipelineCollection {
 }
 
 impl SpritePipelineCollection {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let device = game_io.graphics().device();
         let shared_shader = device.create_shader_module(include_wgsl!("sprite_color_shader.wgsl"));
         let palette_shader =
@@ -68,7 +68,7 @@ impl SpritePipelineCollection {
 }
 
 fn create_pipeline(
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     shader: &wgpu::ShaderModule,
     fragment_main: &str,
 ) -> SpritePipeline<SpriteInstanceData> {
@@ -83,11 +83,11 @@ fn create_pipeline(
         .build::<SpriteVertex, SpriteInstanceData>()
         .unwrap();
 
-    SpritePipeline::from_custom_pipeline(render_pipeline, true)
+    SpritePipeline::from_custom_pipeline(render_pipeline)
 }
 
 fn create_palette_pipeline(
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     vertex_shader: &wgpu::ShaderModule,
     palette_shader: &wgpu::ShaderModule,
     fragment_main: &str,
@@ -106,7 +106,7 @@ fn create_palette_pipeline(
         .build::<SpriteVertex, SpriteInstanceData>()
         .unwrap();
 
-    SpritePipeline::from_custom_pipeline(render_pipeline, true)
+    SpritePipeline::from_custom_pipeline(render_pipeline)
 }
 
 /// RenderQueues only render when consumed by a RenderPass
@@ -122,23 +122,20 @@ pub struct SpriteColorQueue<'a> {
     updated_camera: bool,
     palette: Option<Arc<Texture>>,
     previous_palette_ptr: Option<*const Texture>,
-    game_io: &'a GameIO<Globals>,
+    game_io: &'a GameIO,
 }
 
 impl<'a> SpriteColorQueue<'a> {
-    pub fn new(
-        game_io: &'a GameIO<Globals>,
-        camera: &'a Camera,
-        color_mode: SpriteColorMode,
-    ) -> Self {
+    pub fn new(game_io: &'a GameIO, camera: &'a Camera, color_mode: SpriteColorMode) -> Self {
         let shader_effect = SpriteShaderEffect::Default;
         let uniforms = [camera.as_binding()];
 
-        let pipeline_collection = &game_io.globals().sprite_pipeline_collection;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let pipeline_collection = &globals.sprite_pipeline_collection;
         let pipeline = pipeline_collection.pipeline_for_config(shader_effect, color_mode);
 
         Self {
-            sprite_queue: SpriteQueue::new(game_io, pipeline, uniforms),
+            sprite_queue: SpriteQueue::new(game_io, pipeline, uniforms).with_inverted_y(true),
             queue_draw_count: 0,
             operation_vec: Vec::new(),
             shader_effect,
@@ -203,11 +200,13 @@ impl<'a> SpriteColorQueue<'a> {
 
             if requires_shader_change {
                 // need to swap render pipelines
-                let pipeline_collection = &self.game_io.globals().sprite_pipeline_collection;
+                let globals = self.game_io.resource::<Globals>().unwrap();
+                let pipeline_collection = &globals.sprite_pipeline_collection;
                 let pipeline =
                     pipeline_collection.pipeline_for_config(self.shader_effect, self.color_mode);
 
-                let new_queue = SpriteQueue::new(self.game_io, pipeline, uniforms);
+                let new_queue =
+                    SpriteQueue::new(self.game_io, pipeline, uniforms).with_inverted_y(true);
                 let old_queue = std::mem::replace(&mut self.sprite_queue, new_queue);
 
                 if self.queue_draw_count > 0 {

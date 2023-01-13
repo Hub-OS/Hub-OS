@@ -1,5 +1,5 @@
 use super::{BattleLuaApi, GLOBAL_TABLE};
-use crate::resources::{AssetManager, ResourcePaths};
+use crate::resources::{AssetManager, Globals, ResourcePaths};
 
 pub fn inject_include_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(GLOBAL_TABLE, "include", |api_ctx, lua, params| {
@@ -12,7 +12,8 @@ pub fn inject_include_api(lua_api: &mut BattleLuaApi) {
 
         let source = {
             let api_ctx = api_ctx.borrow();
-            api_ctx.game_io.globals().assets.text(&path)
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            globals.assets.text(&path)
         };
 
         let metatable = lua.globals().get_metatable();

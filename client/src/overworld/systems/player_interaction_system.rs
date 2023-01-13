@@ -4,7 +4,7 @@ use crate::resources::*;
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 
-pub fn system_player_interaction(game_io: &mut GameIO<Globals>, scene: &mut OverworldSceneBase) {
+pub fn system_player_interaction(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     let player_data = &mut scene.player_data;
 
     player_data.actor_interaction = None;

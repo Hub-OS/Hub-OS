@@ -2,7 +2,7 @@ use super::{BattleLuaApi, ENGINE_TABLE};
 use crate::battle::TurnGauge;
 use crate::lua_api::helpers::absolute_path;
 use crate::render::*;
-use crate::resources::AssetManager;
+use crate::resources::{AssetManager, Globals};
 
 pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENGINE_TABLE, "load_texture", |api_ctx, lua, params| {
@@ -11,7 +11,8 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         // cache the texture
         let api_ctx = api_ctx.borrow();
         let game_io = api_ctx.game_io;
-        game_io.globals().assets.texture(game_io, &path);
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.assets.texture(game_io, &path);
 
         // pass the string right back since passing pointers is not safe
         lua.pack_multi(path)
@@ -22,7 +23,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         // cache the sound
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.globals();
+        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
         globals.assets.audio(&path);
 
         lua.pack_multi(path)
@@ -36,7 +37,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
 
-        let sound_buffer = game_io.globals().assets.audio(&path);
+        let sound_buffer = game_io.resource::<Globals>().unwrap().assets.audio(&path);
         simulation.play_sound(game_io, &sound_buffer);
 
         lua.pack_multi(())
@@ -50,7 +51,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let loops = loops.unwrap_or(true);
 
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.globals();
+        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
         let sound_buffer = globals.assets.audio(&path);
         globals.audio.play_music(sound_buffer, loops);
 

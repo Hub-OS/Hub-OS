@@ -37,12 +37,12 @@ pub struct FolderEditScene {
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl FolderEditScene {
-    pub fn new(game_io: &mut GameIO<Globals>, folder_index: usize) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &mut GameIO, folder_index: usize) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -111,12 +111,12 @@ impl FolderEditScene {
         }
     }
 
-    fn leave(&mut self, game_io: &mut GameIO<Globals>, equip_folder: bool) {
+    fn leave(&mut self, game_io: &mut GameIO, equip_folder: bool) {
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);
 
         // save
-        let global_save = &mut game_io.globals_mut().global_save;
+        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
 
         if equip_folder {
             global_save.selected_folder = self.folder_index;
@@ -137,12 +137,12 @@ impl FolderEditScene {
     }
 }
 
-impl Scene<Globals> for FolderEditScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for FolderEditScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.scene_time += 1;
 
         self.page_tracker.update();
@@ -163,7 +163,7 @@ impl Scene<Globals> for FolderEditScene {
         handle_input(self, game_io);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw background
         self.background.draw(game_io, render_pass);
 
@@ -238,14 +238,14 @@ impl Scene<Globals> for FolderEditScene {
     }
 }
 
-fn handle_events(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
+fn handle_events(scene: &mut FolderEditScene, game_io: &mut GameIO) {
     if let Ok(Event::Leave(equip)) = scene.event_receiver.try_recv() {
         scene.leave(game_io, equip);
         scene.textbox.close();
     }
 }
 
-fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
+fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
     scene.ui_input_tracker.update(game_io);
 
     if scene.context_menu.is_open() {
@@ -272,7 +272,7 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
     if original_index != scroll_tracker.selected_index() {
         active_dock.update_preview();
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_move_sfx);
     }
 
@@ -288,7 +288,7 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
     }
 
     if input_util.was_just_pressed(Input::Confirm) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_select_sfx);
 
         if let Some(index) = active_dock.scroll_tracker.forget_index() {
@@ -303,7 +303,7 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
 
     // cancelling
     if input_util.was_just_pressed(Input::Cancel) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
         let cancel_handled = scene.folder_dock.scroll_tracker.forget_index().is_some()
@@ -336,20 +336,20 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
 
     // context menu
     if input_util.was_just_pressed(Input::Option) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_select_sfx);
 
         scene.context_menu.open();
     }
 }
 
-fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO<Globals>) {
+fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
     let selected_option = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
         Some(option) => option,
         None => return,
     };
 
-    let card_manager = &game_io.globals().card_packages;
+    let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
     let card_items = match scene.page_tracker.active_page() {
         0 => &mut scene.folder_dock.card_items,
         1 => &mut scene.pack_dock.card_items,
@@ -414,7 +414,7 @@ where
     card_items.sort_by_cached_key(move |item| item.as_ref().map(key_function));
 }
 
-fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO<Globals>, index: usize) {
+fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usize) {
     if scene.page_tracker.active_page() == 0 {
         let selected_index = scene.folder_dock.scroll_tracker.selected_index();
 
@@ -436,7 +436,7 @@ fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO<Globals>, in
 
 fn inter_dock_swap(
     scene: &mut FolderEditScene,
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     inactive_index: usize,
     active_index: usize,
 ) -> Option<()> {
@@ -476,7 +476,7 @@ fn inter_dock_swap(
 
 fn transfer_to_folder(
     scene: &mut FolderEditScene,
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     from_index: usize,
 ) -> Option<usize> {
     let card_item = scene.pack_dock.card_items.get_mut(from_index)?.as_mut()?;
@@ -493,7 +493,7 @@ fn transfer_to_folder(
         })
         .count();
 
-    let card_manager = &game_io.globals().card_packages;
+    let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
     let package =
         card_manager.package_or_fallback(PackageNamespace::Server, &card_item.card.package_id)?;
 
@@ -577,12 +577,12 @@ struct Dock {
 
 impl Dock {
     fn new(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         card_items: Vec<Option<CardListItem>>,
         texture_path: &str,
         animation_path: &str,
     ) -> Self {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // dock
@@ -675,12 +675,7 @@ impl Dock {
         None
     }
 
-    fn draw(
-        &mut self,
-        game_io: &GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-        offset_x: f32,
-    ) {
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, offset_x: f32) {
         let offset = Vec2::new(offset_x, 0.0);
 
         self.dock_animator.update();
@@ -758,8 +753,8 @@ impl CardListItem {
         card_items
     }
 
-    pub fn vec_from_packages(game_io: &GameIO<Globals>) -> Vec<Option<CardListItem>> {
-        let package_manager = &game_io.globals().card_packages;
+    pub fn vec_from_packages(game_io: &GameIO) -> Vec<Option<CardListItem>> {
+        let package_manager = &game_io.resource::<Globals>().unwrap().card_packages;
 
         // todo: allow use of server packages as well?
         package_manager
@@ -784,7 +779,7 @@ impl CardListItem {
 
     pub fn draw_list_item(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
     ) {

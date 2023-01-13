@@ -4,37 +4,37 @@ pub struct ColorFadeTransition {
     start_instant: Option<Instant>,
     color: Color,
     duration: Duration,
-    render_pipeline: FlatShapePipeline,
-    model: FlatShapeModel,
+    render_pipeline: FlatPipeline,
+    model: FlatModel,
     camera: OrthoCamera,
 }
 
 impl ColorFadeTransition {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, color: Color, duration: Duration) -> Self {
+    pub fn new(game_io: &GameIO, color: Color, duration: Duration) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
         camera.invert_y(false);
 
-        let mesh = FlatShapeModel::new_square_mesh();
-        let model = FlatShapeModel::new(mesh);
+        let mesh = FlatModel::new_square_mesh();
+        let model = FlatModel::new(mesh);
 
         Self {
             start_instant: None,
             color,
             duration,
-            render_pipeline: FlatShapePipeline::new(game_io),
+            render_pipeline: FlatPipeline::new(game_io),
             model,
             camera,
         }
     }
 }
 
-impl<Globals> Transition<Globals> for ColorFadeTransition {
+impl Transition for ColorFadeTransition {
     fn draw(
         &mut self,
-        game_io: &mut GameIO<Globals>,
+        game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene<Globals>>,
-        next_scene: &mut Box<dyn Scene<Globals>>,
+        previous_scene: &mut Box<dyn Scene>,
+        next_scene: &mut Box<dyn Scene>,
     ) {
         let start_instant = match &self.start_instant {
             Some(instant) => instant,
@@ -55,13 +55,13 @@ impl<Globals> Transition<Globals> for ColorFadeTransition {
         }
 
         // render a flat shape to color the screen
-        let mut flat_queue =
-            RenderQueue::new(game_io, &self.render_pipeline, [self.camera.as_binding()]);
+        let render_pipeline = game_io.resource::<FlatPipeline>().unwrap();
+        let mut flat_queue = RenderQueue::new(game_io, render_pipeline, [self.camera.as_binding()]);
 
         let mut color = self.color;
 
         // symmetric quart
-        color.a = 1.0 - (progress * 2.0 - 1.0).powf(4.0).abs();
+        color.a = 1.0 - (progress * 2.0 - 1.0).powf(4.0);
 
         self.model.set_color(color);
 

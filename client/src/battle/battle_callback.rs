@@ -11,8 +11,7 @@ where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
 {
-    callback:
-        Arc<dyn Fn(&GameIO<Globals>, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send>,
+    callback: Arc<dyn Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send>,
 }
 
 impl<P, R> BattleCallback<P, R>
@@ -21,10 +20,7 @@ where
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
 {
     pub fn new(
-        callback: impl Fn(&GameIO<Globals>, &mut BattleSimulation, &[RollbackVM], P) -> R
-            + Sync
-            + Send
-            + 'static,
+        callback: impl Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send + 'static,
     ) -> Self {
         Self {
             callback: Arc::new(callback),
@@ -61,7 +57,7 @@ where
                     simulation,
                 });
 
-                let lua_api = &game_io.globals().battle_api;
+                let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
                 let mut result = Default::default();
 
@@ -87,7 +83,7 @@ where
 
     pub fn call(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         params: P,

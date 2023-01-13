@@ -40,11 +40,11 @@ pub struct BattleScene {
     already_snapped: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl BattleScene {
-    pub fn new(game_io: &GameIO<Globals>, mut props: BattleProps) -> Self {
+    pub fn new(game_io: &GameIO, mut props: BattleProps) -> Self {
         props.player_setups.sort_by_key(|setup| setup.index);
 
         let mut scene = Self {
@@ -130,8 +130,9 @@ impl BattleScene {
         scene
     }
 
-    fn load_vms(&mut self, game_io: &GameIO<Globals>, props: &BattleProps) {
-        let dependencies = game_io.globals().battle_dependencies(props);
+    fn load_vms(&mut self, game_io: &GameIO, props: &BattleProps) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let dependencies = globals.battle_dependencies(props);
 
         for package_info in dependencies {
             self.load_vm(game_io, package_info);
@@ -144,7 +145,7 @@ impl BattleScene {
             .position(|vm| vm.path == package_info.script_path)
     }
 
-    fn load_vm(&mut self, game_io: &GameIO<Globals>, package_info: &PackageInfo) -> usize {
+    fn load_vm(&mut self, game_io: &GameIO, package_info: &PackageInfo) -> usize {
         let existing_vm = self.find_vm(package_info);
 
         if let Some(vm_index) = existing_vm {
@@ -172,7 +173,7 @@ impl BattleScene {
         self.player_controllers.len() == 1
     }
 
-    fn handle_packets(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_packets(&mut self, game_io: &GameIO) {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
 
@@ -226,7 +227,7 @@ impl BattleScene {
         }
     }
 
-    fn handle_packet(&mut self, game_io: &GameIO<Globals>, packet: NetplayPacket) {
+    fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
         use num_traits::FromPrimitive;
 
         match packet {
@@ -296,7 +297,7 @@ impl BattleScene {
             .all(|controller| !controller.connected || !controller.input_buffer.is_empty())
     }
 
-    fn handle_local_input(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_local_input(&mut self, game_io: &GameIO) {
         if self.exiting {
             return;
         }
@@ -383,7 +384,7 @@ impl BattleScene {
         }
     }
 
-    fn resimulate(&mut self, game_io: &GameIO<Globals>, start_time: FrameTime) {
+    fn resimulate(&mut self, game_io: &GameIO, start_time: FrameTime) {
         let local_time = self.simulation.time;
 
         if start_time >= local_time {
@@ -406,7 +407,7 @@ impl BattleScene {
         self.simulation.is_resimulation = false;
     }
 
-    fn rewind(&mut self, game_io: &GameIO<Globals>, mut steps: usize) {
+    fn rewind(&mut self, game_io: &GameIO, mut steps: usize) {
         // taking an extra step back as we'll resimulate one step forward again
         // this ensures the snapshot is popped as repeated self.rollback(1) has no effect
         steps += 1;
@@ -420,7 +421,7 @@ impl BattleScene {
         self.synced_time = self.simulation.time;
     }
 
-    fn rollback(&mut self, game_io: &GameIO<Globals>, steps: usize) {
+    fn rollback(&mut self, game_io: &GameIO, steps: usize) {
         for vm in &mut self.vms {
             vm.lua.rollback(steps);
         }
@@ -435,7 +436,7 @@ impl BattleScene {
         self.already_snapped = true;
     }
 
-    fn simulate(&mut self, game_io: &GameIO<Globals>) {
+    fn simulate(&mut self, game_io: &GameIO) {
         if !self.already_snapped {
             for vm in &mut self.vms {
                 vm.lua.snap();
@@ -485,20 +486,20 @@ impl BattleScene {
     }
 }
 
-impl Scene<Globals> for BattleScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for BattleScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
-        let globals = game_io.globals();
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         if !globals.audio.is_music_playing() {
             globals.audio.play_music(globals.battle_music.clone(), true);
         }
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
 
         let input_util = InputUtil::new(game_io);
@@ -556,7 +557,7 @@ impl Scene<Globals> for BattleScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw simulation
         self.simulation.draw(game_io, render_pass);
 

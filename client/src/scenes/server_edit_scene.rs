@@ -29,12 +29,12 @@ pub struct ServerEditScene {
     ui_input_tracker: UiInputTracker,
     ui_layout: UiLayout,
     ui_receiver: flume::Receiver<UiMessage>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl ServerEditScene {
-    pub fn new(game_io: &GameIO<Globals>, edit_prop: ServerEditProp) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, edit_prop: ServerEditProp) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         let server_info = match edit_prop {
             ServerEditProp::Edit(index) => globals.global_save.server_list[index].clone(),
@@ -51,7 +51,7 @@ impl ServerEditScene {
         let texture = assets.texture(game_io, ResourcePaths::SERVER_LIST_SHEET);
 
         animator.set_state("BG");
-        let mut bg_sprite = Sprite::new(texture.clone(), globals.default_sampler.clone());
+        let mut bg_sprite = Sprite::new(game_io, texture.clone());
         animator.apply(&mut bg_sprite);
 
         // define styles
@@ -190,12 +190,12 @@ impl ServerEditScene {
     }
 }
 
-impl Scene<Globals> for ServerEditScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for ServerEditScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         // update cursor
         let focused_index = self.ui_layout.focused_index().unwrap();
         let focused_bounds = self.ui_layout.get_bounds(focused_index).unwrap();
@@ -223,7 +223,7 @@ impl Scene<Globals> for ServerEditScene {
                 UiMessage::AddressUpdated(address) => self.server_info.address = address,
                 UiMessage::Cancel => leaving = true,
                 UiMessage::Save => {
-                    let global_save = &mut game_io.globals_mut().global_save;
+                    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
 
                     match self.edit_prop {
                         ServerEditProp::Edit(index) => {
@@ -250,7 +250,7 @@ impl Scene<Globals> for ServerEditScene {
         let input_util = InputUtil::new(game_io);
 
         if !self.ui_layout.is_focus_locked() && input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             leaving = true;
@@ -262,7 +262,7 @@ impl Scene<Globals> for ServerEditScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 

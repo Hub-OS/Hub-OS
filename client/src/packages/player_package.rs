@@ -25,8 +25,8 @@ pub struct PlayerPackage {
 }
 
 impl PlayerPackage {
-    pub fn resolve_battle_sprite(&self, game_io: &GameIO<Globals>) -> (Arc<Texture>, Animator) {
-        let globals = game_io.globals();
+    pub fn resolve_battle_sprite(&self, game_io: &GameIO) -> (Arc<Texture>, Animator) {
+        let globals = game_io.resource::<Globals>().unwrap();
         let package_info = &self.package_info;
 
         // create simulation

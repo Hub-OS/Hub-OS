@@ -7,6 +7,7 @@ use crate::battle::{
     BattleCallback, BattleScriptContext, Character, Entity, Living, Obstacle, Player, Spell,
 };
 use crate::bindable::EntityID;
+use crate::resources::Globals;
 use std::cell::RefCell;
 
 pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
@@ -153,7 +154,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         let callback_key = lua.create_registry_value(callback)?;
         let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
-            let lua_api = &game_io.globals().battle_api;
+            let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
             let lua = &vms[vm_index].lua;
 

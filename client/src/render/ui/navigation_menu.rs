@@ -73,8 +73,8 @@ pub struct NavigationMenu {
 }
 
 impl NavigationMenu {
-    pub fn new(game_io: &GameIO<Globals>, items: Vec<SceneOption>) -> NavigationMenu {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, items: Vec<SceneOption>) -> NavigationMenu {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // menu assets
@@ -177,7 +177,7 @@ impl NavigationMenu {
         self.money_text = format!("{:>8}$", player_data.money);
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>) -> NextScene<Globals> {
+    pub fn update(&mut self, game_io: &mut GameIO) -> NextScene {
         let mut next_scene = NextScene::None;
 
         self.ui_input_tracker.update(game_io);
@@ -201,7 +201,7 @@ impl NavigationMenu {
             input_util.was_just_pressed(Input::Pause) || input_util.was_just_pressed(Input::Cancel);
 
         if self.overlay && requesting_close {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.menu_close_sfx);
             self.close();
         }
@@ -213,7 +213,7 @@ impl NavigationMenu {
             .handle_vertical_input(&self.ui_input_tracker);
 
         if prev_index != self.scroll_tracker.selected_index() {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
             self.update_item_sprites(prev_index);
         }
@@ -237,10 +237,10 @@ impl NavigationMenu {
         self.animator.apply(&mut item.sprite);
     }
 
-    fn select_item(&mut self, game_io: &mut GameIO<Globals>) -> NextScene<Globals> {
+    fn select_item(&mut self, game_io: &mut GameIO) -> NextScene {
         let selection = self.scroll_tracker.selected_index();
 
-        let scene: Option<Box<dyn Scene<Globals>>> = match self.items[selection].target_scene {
+        let scene: Option<Box<dyn Scene>> = match self.items[selection].target_scene {
             SceneOption::Servers => Some(ServerListScene::new(game_io)),
             SceneOption::Folders => Some(FolderListScene::new(game_io)),
             SceneOption::Library => Some(LibraryScene::new(game_io)),
@@ -249,7 +249,7 @@ impl NavigationMenu {
             SceneOption::Config => Some(ConfigScene::new(game_io)),
         };
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
 
         if let Some(scene) = scene {
             globals.audio.play_sound(&globals.cursor_select_sfx);
@@ -266,7 +266,7 @@ impl NavigationMenu {
         }
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         if self.open_state == OpenState::Closed {
             return;
         }

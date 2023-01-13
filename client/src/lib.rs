@@ -41,11 +41,13 @@ pub fn main() -> anyhow::Result<()> {
         let _ = log_sender.send(log);
     });
 
-    let game = Game::new("Personal Terminal", TRUE_RESOLUTION.into(), |game_io| {
-        Globals::new(game_io, args)
-    })
-    .with_resizable(true)
-    .with_overlay(|game_io| Overlay::new(game_io));
+    let game = Game::new("Personal Terminal", TRUE_RESOLUTION.into())
+        .with_resizable(true)
+        .with_setup(|game_io| {
+            let globals = Globals::new(game_io, args);
+            game_io.set_resource(globals);
+        })
+        .with_overlay(|game_io| Overlay::new(game_io));
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 

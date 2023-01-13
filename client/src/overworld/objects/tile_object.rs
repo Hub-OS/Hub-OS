@@ -3,7 +3,6 @@
 use super::ObjectData;
 use crate::overworld::{Map, Tile};
 use crate::parse_util::parse_or_default;
-use crate::resources::Globals;
 use framework::graphics::Sprite;
 use framework::math::Vec2;
 use framework::prelude::GameIO;
@@ -21,12 +20,7 @@ impl TileObject {
         }
     }
 
-    pub fn create_sprite(
-        &self,
-        game_io: &GameIO<Globals>,
-        map: &Map,
-        layer_index: usize,
-    ) -> Option<Sprite> {
+    pub fn create_sprite(&self, game_io: &GameIO, map: &Map, layer_index: usize) -> Option<Sprite> {
         if !self.data.visible {
             return None;
         }
@@ -36,10 +30,7 @@ impl TileObject {
             _ => return None,
         };
 
-        let mut sprite = Sprite::new(
-            tile_meta.tileset.texture.clone(),
-            game_io.globals().default_sampler.clone(),
-        );
+        let mut sprite = Sprite::new(game_io, tile_meta.tileset.texture.clone());
 
         tile_meta.animator.apply(&mut sprite);
 

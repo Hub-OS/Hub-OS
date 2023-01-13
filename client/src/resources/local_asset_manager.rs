@@ -26,7 +26,7 @@ pub struct LocalAssetManager {
 }
 
 impl LocalAssetManager {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let text = HashMap::from([(ResourcePaths::BLANK.to_string(), String::new())]);
 
         let textures = HashMap::from([(
@@ -112,7 +112,7 @@ impl LocalAssetManager {
     /// Returns path prefix for the virtual zip
     pub fn load_virtual_zip(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         hash: FileHash,
         bytes: Vec<u8>,
     ) -> VirtualZipMeta {
@@ -241,7 +241,7 @@ impl AssetManager for LocalAssetManager {
         }
     }
 
-    fn texture(&self, game_io: &GameIO<Globals>, path: &str) -> Arc<Texture> {
+    fn texture(&self, game_io: &GameIO, path: &str) -> Arc<Texture> {
         let mut texture_cache = self.texture_cache.borrow_mut();
 
         if let Some(texture) = texture_cache.get(path) {

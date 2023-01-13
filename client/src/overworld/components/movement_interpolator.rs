@@ -1,4 +1,4 @@
-use crate::resources::{Globals, OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
+use crate::resources::{OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
 use framework::prelude::*;
 use packets::structures::Direction;
 use packets::SERVER_TICK_RATE;
@@ -26,7 +26,7 @@ pub struct MovementInterpolator {
 }
 
 impl MovementInterpolator {
-    pub fn new(game_io: &GameIO<Globals>, position: Vec3, direction: Direction) -> Self {
+    pub fn new(game_io: &GameIO, position: Vec3, direction: Direction) -> Self {
         Self {
             last_push: game_io.frame_start_instant(),
             average: SERVER_TICK_RATE.as_secs_f32(),
@@ -41,7 +41,7 @@ impl MovementInterpolator {
         position.distance_squared(self.current_position) >= MIN_TELEPORT_DIST_SQR * self.average
     }
 
-    pub fn push(&mut self, game_io: &GameIO<Globals>, position: Vec3, direction: Direction) {
+    pub fn push(&mut self, game_io: &GameIO, position: Vec3, direction: Direction) {
         // uses EMA - exponential moving average
         let delay_duration = game_io.frame_start_instant() - self.last_push;
         let delay = delay_duration.as_secs_f32();
@@ -62,7 +62,7 @@ impl MovementInterpolator {
         self.target_position = position;
     }
 
-    pub fn update(&mut self, game_io: &GameIO<Globals>) -> (Vec3, Direction, MovementState) {
+    pub fn update(&mut self, game_io: &GameIO) -> (Vec3, Direction, MovementState) {
         let delta_instant = game_io.frame_start_instant() - self.last_push;
         let delta = self.target_position - self.last_position;
 

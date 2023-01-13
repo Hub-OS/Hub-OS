@@ -1,6 +1,5 @@
 use crate::overworld::{components::*, Map, ObjectData};
 use crate::render::FrameTime;
-use crate::resources::Globals;
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::{GameIO, Vec3Swizzles};
 
@@ -8,7 +7,7 @@ const WARP_IN_REVEAL_FRAME: usize = 4;
 const WARP_OUT_HIDE_FRAME: usize = 0;
 const WALK_OUT_TIME: FrameTime = 8;
 
-pub fn system_warp_effect(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
+pub fn system_warp_effect(game_io: &GameIO, scene: &mut OverworldSceneBase) {
     let entities = &mut scene.entities;
     let map = &mut scene.map;
     let mut pending_action = Vec::new();

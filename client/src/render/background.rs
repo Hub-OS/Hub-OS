@@ -35,22 +35,19 @@ impl Background {
         Self::new(Animator::new(), sprite)
     }
 
-    pub fn load_static(game_io: &GameIO<Globals>, texture_path: &str) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn load_static(game_io: &GameIO, texture_path: &str) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let sprite = assets.new_sprite(game_io, texture_path);
         Self::new_static(sprite)
     }
 
-    pub fn new_blank(game_io: &GameIO<Globals>) -> Self {
-        let globals = game_io.globals();
+    pub fn new_blank(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         Self {
             animator: Animator::new(),
-            sprite: Sprite::new(
-                assets.texture(game_io, ResourcePaths::BLANK),
-                globals.default_sampler.clone(),
-            ),
+            sprite: Sprite::new(game_io, assets.texture(game_io, ResourcePaths::BLANK)),
             position: Vec2::ZERO,
             offset: Vec2::ZERO,
             velocity: Vec2::ZERO,
@@ -96,8 +93,8 @@ impl Background {
         self.position += self.velocity;
     }
 
-    pub fn draw(&self, game_io: &GameIO<Globals>, render_pass: &mut RenderPass) {
-        let pipeline = &game_io.globals().background_pipeline;
+    pub fn draw(&self, game_io: &GameIO, render_pass: &mut RenderPass) {
+        let pipeline = &game_io.resource::<Globals>().unwrap().background_pipeline;
         let mut queue = BackgroundQueue::new(game_io, pipeline);
 
         queue.draw_background(self);

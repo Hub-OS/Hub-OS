@@ -37,9 +37,9 @@ pub trait TextboxInterface {
     fn handle_completed(&mut self) {}
 
     /// Updates for custom ui. Called only when there's no more text
-    fn update(&mut self, game_io: &mut GameIO<Globals>, text_style: &TextStyle, lines: usize);
+    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, lines: usize);
 
-    fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue);
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue);
 }
 
 #[derive(Default, Clone)]
@@ -68,8 +68,8 @@ pub struct Textbox {
 }
 
 impl Textbox {
-    fn new(game_io: &GameIO<Globals>, texture_path: &str, animation_path: &str) -> Self {
-        let globals = game_io.globals();
+    fn new(game_io: &GameIO, texture_path: &str, animation_path: &str) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut animator = Animator::load_new(assets, animation_path);
@@ -118,7 +118,7 @@ impl Textbox {
         textbox.with_position(Vec2::new(RESOLUTION_F.x * 0.5, y))
     }
 
-    pub fn new_navigation(game_io: &GameIO<Globals>) -> Self {
+    pub fn new_navigation(game_io: &GameIO) -> Self {
         let mut textbox = Self::new(
             game_io,
             ResourcePaths::NAVIGATION_TEXTBOX,
@@ -129,7 +129,7 @@ impl Textbox {
         textbox
     }
 
-    pub fn new_overworld(game_io: &GameIO<Globals>) -> Self {
+    pub fn new_overworld(game_io: &GameIO) -> Self {
         Self::new(
             game_io,
             ResourcePaths::OVERWORLD_TEXTBOX,
@@ -214,13 +214,13 @@ impl Textbox {
         }
     }
 
-    pub fn use_player_avatar(&mut self, game_io: &GameIO<Globals>) {
-        let globals = game_io.globals();
+    pub fn use_player_avatar(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
         let player_package = globals.global_save.player_package(game_io).unwrap();
 
         self.set_next_avatar(
             game_io,
-            &game_io.globals().assets,
+            &game_io.resource::<Globals>().unwrap().assets,
             &player_package.mugshot_texture_path,
             &player_package.mugshot_animation_path,
         );
@@ -228,7 +228,7 @@ impl Textbox {
 
     pub fn set_next_avatar(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         assets: &impl AssetManager,
         texture_path: &str,
         animation_path: &str,
@@ -247,7 +247,7 @@ impl Textbox {
         self.avatar_queue.push_back((animator, sprite, 0));
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    pub fn update(&mut self, game_io: &mut GameIO) {
         if !self.is_open {
             return;
         }
@@ -363,7 +363,7 @@ impl Textbox {
         }
     }
 
-    fn update_avatar(&mut self, game_io: &GameIO<Globals>) {
+    fn update_avatar(&mut self, game_io: &GameIO) {
         let text = match self.interface_queue.front() {
             Some(interface) => interface.text(),
             None => "",
@@ -376,7 +376,7 @@ impl Textbox {
             || current_char.is_punctuation();
 
         if !silent_char {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.text_blip_sfx);
         }
 
@@ -395,7 +395,7 @@ impl Textbox {
         }
     }
 
-    fn advance_page(&mut self, game_io: &GameIO<Globals>) {
+    fn advance_page(&mut self, game_io: &GameIO) {
         if self.page_queue.len() > 1 {
             self.page_queue.pop_front();
             self.text_index = self.page_queue.front().unwrap().range.start;
@@ -407,7 +407,7 @@ impl Textbox {
         }
     }
 
-    pub fn advance_interface(&mut self, game_io: &GameIO<Globals>) {
+    pub fn advance_interface(&mut self, game_io: &GameIO) {
         if let Some(mut interface) = self.interface_queue.pop_front() {
             interface.handle_completed();
 
@@ -460,7 +460,7 @@ impl Textbox {
         self.process_effects();
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         if !self.is_open {
             return;
         }

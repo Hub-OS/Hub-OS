@@ -22,16 +22,11 @@ pub trait UiNode {
         false
     }
 
-    fn update(&mut self, _game_io: &mut GameIO<Globals>, _bounds: Rect, _focused: bool) {}
+    fn update(&mut self, _game_io: &mut GameIO, _bounds: Rect, _focused: bool) {}
 
-    fn draw_bounded(
-        &mut self,
-        game_io: &GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-        bounds: Rect,
-    );
+    fn draw_bounded(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, bounds: Rect);
 
-    fn measure_ui_size(&mut self, game_io: &GameIO<Globals>) -> Vec2;
+    fn measure_ui_size(&mut self, game_io: &GameIO) -> Vec2;
 
     fn ui_size_dirty(&self) -> bool {
         false
@@ -39,11 +34,11 @@ pub trait UiNode {
 }
 
 impl UiNode for () {
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
 
-    fn draw_bounded(&mut self, _: &GameIO<Globals>, _: &mut SpriteColorQueue, _: Rect) {}
+    fn draw_bounded(&mut self, _: &GameIO, _: &mut SpriteColorQueue, _: Rect) {}
 }
 
 #[derive(Clone)]
@@ -373,7 +368,7 @@ impl UiLayout {
         Some(bounds)
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO<Globals>, ui_input_tracker: &UiInputTracker) {
+    pub fn update(&mut self, game_io: &mut GameIO, ui_input_tracker: &UiInputTracker) {
         self.recalculate(game_io);
 
         for node in self.tree.nodes_mut() {
@@ -396,7 +391,7 @@ impl UiLayout {
             self.update_focus(ui_input_tracker);
 
             if old_index != self.focused_index {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_move_sfx);
             }
         }
@@ -594,7 +589,7 @@ impl UiLayout {
         }
     }
 
-    fn recalculate(&mut self, game_io: &GameIO<Globals>) {
+    fn recalculate(&mut self, game_io: &GameIO) {
         if self.calculated {
             return;
         }
@@ -646,7 +641,7 @@ impl UiLayout {
         self.calculated = true;
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.recalculate(game_io);
 
         for element in self.tree.values_mut() {

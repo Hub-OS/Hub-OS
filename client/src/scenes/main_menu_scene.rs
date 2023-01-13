@@ -13,8 +13,8 @@ struct CharacterData {
 }
 
 impl CharacterData {
-    fn load(game_io: &GameIO<Globals>, text_style: &TextStyle) -> Self {
-        let globals = game_io.globals();
+    fn load(game_io: &GameIO, text_style: &TextStyle) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let player_id = &globals.global_save.selected_character;
@@ -55,12 +55,12 @@ pub struct MainMenuScene {
     scrolling_text_offset: f32,
     character_data: CharacterData,
     navigation_menu: NavigationMenu,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl MainMenuScene {
-    pub fn new(game_io: &mut GameIO<Globals>) -> MainMenuScene {
-        let globals = game_io.globals();
+    pub fn new(game_io: &mut GameIO) -> MainMenuScene {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let background_sampler = &globals.background_sampler;
 
@@ -70,7 +70,8 @@ impl MainMenuScene {
 
         // background
         let background_texture = assets.texture(game_io, ResourcePaths::MAIN_MENU_BG);
-        let background_sprite = Sprite::new(background_texture, background_sampler.clone());
+        let background_sprite =
+            Sprite::new_with_sampler(background_texture, background_sampler.clone());
         let background = Background::new(Animator::new(), background_sprite);
 
         // scrolling text
@@ -102,17 +103,17 @@ impl MainMenuScene {
     }
 }
 
-impl Scene<Globals> for MainMenuScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for MainMenuScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+    fn enter(&mut self, game_io: &mut GameIO) {
         // reload character
         self.character_data = CharacterData::load(game_io, &self.scrolling_text_style);
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.camera.update(game_io);
 
         self.background.update();
@@ -123,7 +124,7 @@ impl Scene<Globals> for MainMenuScene {
         self.next_scene = self.navigation_menu.update(game_io);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw background
         self.background.draw(game_io, render_pass);
 

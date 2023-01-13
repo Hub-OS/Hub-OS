@@ -105,11 +105,11 @@ impl DefenseRule {
 
     fn call_on_replace(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        let lua_api = &game_io.globals().battle_api;
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
         let context = RefCell::new(BattleScriptContext {
             vm_index: self.vm_index,
@@ -149,7 +149,7 @@ impl DefenseJudge {
     }
 
     pub fn judge(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         defender_id: EntityID,
@@ -157,7 +157,7 @@ impl DefenseJudge {
         defense_rules: &[DefenseRule],
         collision_only: bool,
     ) {
-        let lua_api = &game_io.globals().battle_api;
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
         for defense_rule in defense_rules {
             if defense_rule.collision_only != collision_only {
@@ -195,13 +195,13 @@ impl DefenseJudge {
     }
 
     pub fn filter_statuses(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         props: &mut HitProperties,
         defense_rules: &[DefenseRule],
     ) {
-        let lua_api = &game_io.globals().battle_api;
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
         let no_counter = props.flags & HitFlag::NO_COUNTER;
 
         for defense_rule in defense_rules {

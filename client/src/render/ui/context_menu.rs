@@ -19,15 +19,15 @@ pub struct ContextMenu<T: Copy + 'static> {
 }
 
 impl<T: Copy + 'static> ContextMenu<T> {
-    pub fn new(game_io: &GameIO<Globals>, label: &str, position: Vec2) -> Self {
+    pub fn new(game_io: &GameIO, label: &str, position: Vec2) -> Self {
         let bounds = Rect::new(position.x, position.y, RESOLUTION_F.x, RESOLUTION_F.y);
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // cursor
         let cursor_texture = assets.texture(game_io, ResourcePaths::SELECT_CURSOR);
-        let cursor_sprite = Sprite::new(cursor_texture, globals.default_sampler.clone());
+        let cursor_sprite = Sprite::new(game_io, cursor_texture);
 
         let mut cursor_animator =
             Animator::load_new(assets, ResourcePaths::SELECT_CURSOR_ANIMATION);
@@ -39,7 +39,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         let mut animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
 
         // arrow sprite
-        let mut arrow_sprite = Sprite::new(texture.clone(), globals.default_sampler.clone());
+        let mut arrow_sprite = Sprite::new(game_io, texture.clone());
         animator.set_state("CONTEXT_RIGHT_ARROW");
         animator.apply(&mut arrow_sprite);
 
@@ -97,7 +97,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         }
     }
 
-    pub fn with_options(mut self, game_io: &GameIO<Globals>, options: &[(&str, T)]) -> Self {
+    pub fn with_options(mut self, game_io: &GameIO, options: &[(&str, T)]) -> Self {
         self.set_options(game_io, options);
         self
     }
@@ -123,7 +123,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.open = false;
     }
 
-    pub fn set_options(&mut self, game_io: &GameIO<Globals>, options: &[(&str, T)]) {
+    pub fn set_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
         let option_style = UiStyle {
             margin_top: Dimension::Points(3.0),
             ..Default::default()
@@ -158,11 +158,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         }
     }
 
-    pub fn update(
-        &mut self,
-        game_io: &mut GameIO<Globals>,
-        ui_input_tracker: &UiInputTracker,
-    ) -> Option<T> {
+    pub fn update(&mut self, game_io: &mut GameIO, ui_input_tracker: &UiInputTracker) -> Option<T> {
         if !self.open {
             return None;
         }
@@ -174,7 +170,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
         if input_util.was_just_pressed(Input::Cancel) {
             // closed
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.menu_close_sfx);
 
             self.open = false;
@@ -190,7 +186,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.ui_layout.set_position(position);
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         if !self.open {
             return;
         }

@@ -18,7 +18,7 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new(game_io: &GameIO<Globals>, cols: usize, rows: usize) -> Self {
+    pub fn new(game_io: &GameIO, cols: usize, rows: usize) -> Self {
         let mut tiles = Vec::with_capacity(cols * rows);
 
         for row in 0..rows as i32 {
@@ -30,7 +30,7 @@ impl Field {
             }
         }
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut red_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_RED_TILES);
@@ -56,14 +56,14 @@ impl Field {
 
     pub fn set_sprites(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         red_texture_path: &str,
         blue_texture_path: &str,
         other_texture_path: &str,
         animation_path: &str,
         spacing: Vec2,
     ) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let red_tile_texture = assets.texture(game_io, red_texture_path);
@@ -259,12 +259,7 @@ impl Field {
         }
     }
 
-    pub fn draw(
-        &mut self,
-        game_io: &GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-        flipped: bool,
-    ) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, flipped: bool) {
         sprite_queue.set_color_mode(SpriteColorMode::Add);
 
         self.tile_animator.sync_time(self.time);
@@ -330,7 +325,7 @@ impl Field {
         // draw tile highlight separately to reduce switching shaders
         sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut highlight_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         highlight_sprite.set_color(Color::YELLOW);
         highlight_sprite.set_size(self.tile_size);

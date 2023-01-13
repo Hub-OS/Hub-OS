@@ -7,8 +7,7 @@ use std::collections::VecDeque;
 
 pub struct Overlay {
     camera: Camera,
-    pipeline: FlatShapePipeline,
-    rectangle: FlatShapeModel,
+    rectangle: FlatModel,
     history: VecDeque<f32>,
     visible: bool,
 }
@@ -18,25 +17,24 @@ const RECT_HEIGHT: usize = 16;
 const ALPHA: f32 = 0.95;
 
 impl Overlay {
-    pub fn new(game_io: &GameIO<Globals>) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        let mut rectangle = FlatShapeModel::new_square_model();
+        let mut rectangle = FlatModel::new_square_model();
         rectangle.set_origin(Vec2::new(-0.5, 0.5));
 
-        Box::new(Self {
+        Self {
             camera,
-            pipeline: FlatShapePipeline::new(game_io),
             rectangle,
             history: VecDeque::new(),
             visible: false,
-        })
+        }
     }
 }
 
-impl SceneOverlay<Globals> for Overlay {
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+impl SceneOverlay for Overlay {
+    fn update(&mut self, game_io: &mut GameIO) {
         let frame_duration = game_io.frame_duration();
         let target_duration = game_io.target_duration();
         let scale = frame_duration.as_secs_f32() / target_duration.as_secs_f32();
@@ -50,16 +48,16 @@ impl SceneOverlay<Globals> for Overlay {
         if game_io.input().was_key_just_pressed(Key::F3) {
             self.visible = !self.visible;
         }
-
-        game_io.globals_mut().tick();
+        game_io.resource_mut::<Globals>().unwrap().tick();
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         if !self.visible {
             return;
         }
 
-        let mut queue = RenderQueue::new(game_io, &self.pipeline, [self.camera.as_binding()]);
+        let render_pipeline = game_io.resource::<FlatPipeline>().unwrap();
+        let mut queue = RenderQueue::new(game_io, render_pipeline, [self.camera.as_binding()]);
 
         // draw history
         for (i, scale) in self.history.iter().enumerate() {

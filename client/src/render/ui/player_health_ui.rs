@@ -14,8 +14,8 @@ pub struct PlayerHealthUI {
 }
 
 impl PlayerHealthUI {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // use animation to load placement information
@@ -90,7 +90,7 @@ impl PlayerHealthUI {
         self.text.text = format!("{:>4}", self.current_health);
     }
 
-    pub fn draw(&self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         sprite_queue.draw_sprite(&self.frame_sprite);
         self.text.draw(game_io, sprite_queue);
     }

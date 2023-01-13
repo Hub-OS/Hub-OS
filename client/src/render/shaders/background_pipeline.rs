@@ -3,12 +3,12 @@ use framework::prelude::*;
 use std::sync::Arc;
 
 pub struct BackgroundPipeline {
-    render_pipeline: RenderPipeline<FlatShapeVertex, BackgroundInstanceData>,
-    mesh: Arc<Mesh<FlatShapeVertex>>,
+    render_pipeline: RenderPipeline<Vec2, BackgroundInstanceData>,
+    mesh: Arc<Mesh<Vec2>>,
 }
 
 impl BackgroundPipeline {
-    pub fn new<Globals>(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("background_shader.wgsl"));
@@ -20,7 +20,7 @@ impl BackgroundPipeline {
             ])
             .with_vertex_shader(&shader, "vs_main")
             .with_fragment_shader(&shader, "fs_main")
-            .build::<FlatShapeVertex, BackgroundInstanceData>()
+            .build::<Vec2, BackgroundInstanceData>()
             .unwrap();
 
         Self {
@@ -29,25 +29,25 @@ impl BackgroundPipeline {
         }
     }
 
-    fn create_mesh() -> Arc<Mesh<FlatShapeVertex>> {
+    fn create_mesh() -> Arc<Mesh<Vec2>> {
         Mesh::new(
             &[
-                FlatShapeVertex { vertex: [0.0, 0.0] },
-                FlatShapeVertex { vertex: [0.0, 1.0] },
-                FlatShapeVertex { vertex: [1.0, 1.0] },
-                FlatShapeVertex { vertex: [1.0, 0.0] },
+                Vec2::new(0.0, 0.0),
+                Vec2::new(0.0, 1.0),
+                Vec2::new(1.0, 1.0),
+                Vec2::new(1.0, 0.0),
             ],
             &[0, 1, 2, 2, 0, 3],
         )
     }
 
-    pub fn mesh(&self) -> &Arc<Mesh<FlatShapeVertex>> {
+    pub fn mesh(&self) -> &Arc<Mesh<Vec2>> {
         &self.mesh
     }
 }
 
-impl AsRef<RenderPipeline<FlatShapeVertex, BackgroundInstanceData>> for BackgroundPipeline {
-    fn as_ref(&self) -> &RenderPipeline<FlatShapeVertex, BackgroundInstanceData> {
+impl AsRef<RenderPipeline<Vec2, BackgroundInstanceData>> for BackgroundPipeline {
+    fn as_ref(&self) -> &RenderPipeline<Vec2, BackgroundInstanceData> {
         &self.render_pipeline
     }
 }
@@ -55,14 +55,11 @@ impl AsRef<RenderPipeline<FlatShapeVertex, BackgroundInstanceData>> for Backgrou
 /// RenderQueues only render when consumed by a RenderPass
 pub struct BackgroundQueue<'a> {
     render_pipeline: &'a BackgroundPipeline,
-    render_queue: RenderQueue<'a, FlatShapeVertex, BackgroundInstanceData>,
+    render_queue: RenderQueue<'a, Vec2, BackgroundInstanceData>,
 }
 
 impl<'a> BackgroundQueue<'a> {
-    pub fn new<Globals>(
-        game_io: &'a GameIO<Globals>,
-        background_pipeline: &'a BackgroundPipeline,
-    ) -> Self {
+    pub fn new(game_io: &'a GameIO, background_pipeline: &'a BackgroundPipeline) -> Self {
         Self {
             render_pipeline: background_pipeline,
             render_queue: RenderQueue::new(game_io, background_pipeline, vec![]),

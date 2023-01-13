@@ -3,7 +3,7 @@ use crate::resources::*;
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 
-pub fn system_player_movement(game_io: &mut GameIO<Globals>, scene: &mut OverworldSceneBase) {
+pub fn system_player_movement(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     let input_util = InputUtil::new(game_io);
 
     let input_direction = if scene.is_input_locked(game_io) {

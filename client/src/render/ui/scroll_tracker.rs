@@ -26,8 +26,8 @@ pub struct ScrollTracker {
 }
 
 impl ScrollTracker {
-    pub fn new(game_io: &GameIO<Globals>, view_size: usize) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, view_size: usize) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // scroller
@@ -92,11 +92,11 @@ impl ScrollTracker {
 
     pub fn use_custom_cursor(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         animation_path: &str,
         texture_path: &str,
     ) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut cursor_animator = Animator::load_new(assets, animation_path);

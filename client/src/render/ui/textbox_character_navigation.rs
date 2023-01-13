@@ -21,7 +21,7 @@ impl TextboxCharacterNavigation {
         }
     }
 
-    fn handle_input(&mut self, game_io: &GameIO<Globals>) {
+    fn handle_input(&mut self, game_io: &GameIO) {
         let input_util = InputUtil::new(game_io);
         self.input_tracker.update(game_io);
 
@@ -38,12 +38,12 @@ impl TextboxCharacterNavigation {
         self.selection %= 2;
 
         if self.selection != old_selection {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
             (self.callback)(self.selection);
@@ -60,7 +60,7 @@ impl TextboxInterface for TextboxCharacterNavigation {
         false
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, text_style: &TextStyle, _lines: usize) {
+    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, _lines: usize) {
         if self.cursor.is_none() {
             self.cursor = Some(TextboxCursor::new(game_io));
         }
@@ -81,7 +81,7 @@ impl TextboxInterface for TextboxCharacterNavigation {
         cursor.update();
     }
 
-    fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         if game_io.is_in_transition() {
             return;
         }

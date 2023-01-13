@@ -36,17 +36,14 @@ pub struct BootScene {
     log_records: Vec<LogRecord>,
     event_receiver: flume::Receiver<Event>,
     done: bool,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl BootScene {
-    pub fn new(
-        game_io: &mut GameIO<Globals>,
-        log_receiver: flume::Receiver<LogRecord>,
-    ) -> Box<BootScene> {
+    pub fn new(game_io: &mut GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
         game_io.graphics_mut().set_clear_color(Color::BLACK);
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // logo
@@ -202,7 +199,7 @@ impl BootScene {
             sender.send(Event::Done).unwrap();
         });
 
-        Box::new(BootScene {
+        BootScene {
             camera: Camera::new(game_io),
             logo_sprite,
             status_label: Text::new(game_io, FontStyle::Small),
@@ -212,10 +209,10 @@ impl BootScene {
             event_receiver: receiver,
             done: false,
             next_scene: NextScene::None,
-        })
+        }
     }
 
-    fn handle_thread_messages(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
         use framework::logging::LogLevel;
 
         while let Ok(record) = self.log_receiver.try_recv() {
@@ -245,7 +242,7 @@ impl BootScene {
                     self.status_label.text = format!("{} {}%", status_update.label, percentage);
                 }
                 Event::PlayerManager(player_packages) => {
-                    let globals = game_io.globals_mut();
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     globals.player_packages = player_packages;
 
@@ -264,22 +261,24 @@ impl BootScene {
                     }
                 }
                 Event::CardManager(card_packages) => {
-                    game_io.globals_mut().card_packages = card_packages;
+                    game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
                 }
                 Event::BattleManager(battle_packages) => {
-                    game_io.globals_mut().battle_packages = battle_packages;
+                    game_io.resource_mut::<Globals>().unwrap().battle_packages = battle_packages;
                 }
                 Event::BlockManager(block_packages) => {
-                    game_io.globals_mut().block_packages = block_packages;
+                    game_io.resource_mut::<Globals>().unwrap().block_packages = block_packages;
                 }
                 Event::LibraryManager(library_packages) => {
-                    game_io.globals_mut().library_packages = library_packages;
+                    game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;
                 }
                 Event::CharacterManager(character_packages) => {
-                    game_io.globals_mut().character_packages = character_packages;
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.character_packages = character_packages;
                 }
                 Event::Done => {
-                    let mut available_players = game_io.globals().player_packages.local_packages();
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let mut available_players = globals.player_packages.local_packages();
 
                     if available_players.next().is_some() {
                         self.status_label.text = String::from("BOOT OK. Press Any Button");
@@ -296,12 +295,12 @@ impl BootScene {
     }
 }
 
-impl Scene<Globals> for BootScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for BootScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.handle_thread_messages(game_io);
 
         self.camera.update(game_io);
@@ -320,7 +319,7 @@ impl Scene<Globals> for BootScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw ui
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);

@@ -8,7 +8,7 @@ use hecs::EntityBuilder;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-pub fn load_map<A: AssetManager>(game_io: &GameIO<Globals>, assets: &A, data: &str) -> Option<Map> {
+pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Option<Map> {
     let doc = match roxmltree::Document::parse(data) {
         Ok(doc) => doc,
         Err(err) => {
@@ -212,7 +212,7 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO<Globals>, assets: &A, data: &s
 }
 
 fn parse_tileset<A: AssetManager>(
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     assets: &A,
     tileset_element: &roxmltree::Node,
     first_gid: u32,

@@ -57,11 +57,12 @@ impl GlobalSave {
         }
     }
 
-    pub fn player_package<'a>(&self, game_io: &'a GameIO<Globals>) -> Option<&'a PlayerPackage> {
+    pub fn player_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a PlayerPackage> {
         let player_id = &self.selected_character;
 
-        game_io
-            .globals()
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        globals
             .player_packages
             .package_or_fallback(PackageNamespace::Server, player_id)
     }

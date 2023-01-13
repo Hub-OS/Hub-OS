@@ -11,7 +11,7 @@ pub struct UiButton<'a> {
 }
 
 impl<'a> UiButton<'a> {
-    pub fn new(game_io: &GameIO<Globals>, font_style: FontStyle, text: &str) -> Self {
+    pub fn new(game_io: &GameIO, font_style: FontStyle, text: &str) -> Self {
         Self {
             text: Text::new(game_io, font_style)
                 .with_str(text)
@@ -48,7 +48,7 @@ impl<'a> UiNode for UiButton<'a> {
         true
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, _bounds: Rect, focused: bool) {
+    fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
         if !focused {
             self.was_focused = false;
             return;
@@ -65,20 +65,20 @@ impl<'a> UiNode for UiButton<'a> {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
             (self.activate_callback)();
         }
     }
 
-    fn measure_ui_size(&mut self, game_io: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, game_io: &GameIO) -> Vec2 {
         self.text.measure_ui_size(game_io)
     }
 
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {

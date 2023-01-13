@@ -65,7 +65,7 @@ impl Living {
     }
 
     pub fn process_hit(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         entity_id: EntityID,

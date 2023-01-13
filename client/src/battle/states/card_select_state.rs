@@ -68,7 +68,7 @@ impl State for CardSelectState {
         Box::new(self.clone())
     }
 
-    fn next_state(&self, _: &GameIO<Globals>) -> Option<Box<dyn State>> {
+    fn next_state(&self, _: &GameIO) -> Option<Box<dyn State>> {
         if self.completed {
             Some(Box::new(FormActivateState::new()))
         } else {
@@ -78,7 +78,7 @@ impl State for CardSelectState {
 
     fn update(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         _shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
@@ -88,7 +88,7 @@ impl State for CardSelectState {
             simulation.turn_gauge.set_time(0);
 
             // sfx
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.card_select_open_sfx);
 
             // initialize selections
@@ -145,7 +145,7 @@ impl State for CardSelectState {
 
     fn draw_ui<'a>(
         &mut self,
-        game_io: &'a GameIO<Globals>,
+        game_io: &'a GameIO,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -163,15 +163,11 @@ impl State for CardSelectState {
         let player_team = entity.team;
         let selection = &self.player_selections[player.index];
 
-        // create queue
-        let globals = game_io.globals();
-        let default_sampler = globals.default_sampler.clone();
-
         // draw sprite tree
         self.sprites.draw(sprite_queue);
 
-        let mut recycled_sprite = Sprite::new(self.texture.clone(), default_sampler);
         // drawing hand
+        let mut recycled_sprite = Sprite::new(game_io, self.texture.clone());
 
         // draw icons
         self.animator.set_state("ICON_FRAME");
@@ -245,10 +241,7 @@ impl State for CardSelectState {
                 }
 
                 // draw mugs
-                let mut mug_sprite = Sprite::new(
-                    recycled_sprite.texture().clone(),
-                    recycled_sprite.sampler().clone(),
-                );
+                let mut mug_sprite = Sprite::new(game_io, recycled_sprite.texture().clone());
 
                 let mut offset = self.form_list_start;
 
@@ -438,7 +431,7 @@ impl State for CardSelectState {
                 inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
             let a = crate::ease::quadratic(progress);
 
-            let assets = &game_io.globals().assets;
+            let assets = &game_io.resource::<Globals>().unwrap().assets;
 
             let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
             fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
@@ -449,10 +442,10 @@ impl State for CardSelectState {
 }
 
 impl CardSelectState {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let mut sprites = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Multiply));
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let mut animator = Animator::load_new(assets, ResourcePaths::BATTLE_CARD_SELECT_ANIMATION);
         let texture = assets.texture(game_io, ResourcePaths::BATTLE_CARD_SELECT);
@@ -525,7 +518,7 @@ impl CardSelectState {
 
     fn handle_input(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -560,7 +553,7 @@ impl CardSelectState {
 
     fn handle_form_input(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -588,7 +581,7 @@ impl CardSelectState {
 
         if prev_row != selection.form_row && selection.local && !is_resimulation {
             // cursor move sfx
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
@@ -607,7 +600,7 @@ impl CardSelectState {
 
             // sfx
             if selection.local && !is_resimulation {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_select_sfx);
             }
         }
@@ -618,7 +611,7 @@ impl CardSelectState {
 
             // sfx
             if selection.local && !is_resimulation {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.form_select_close_sfx);
             }
         }
@@ -626,7 +619,7 @@ impl CardSelectState {
 
     fn handle_card_input(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -646,7 +639,7 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.form_select_open_sfx);
             return;
         }
@@ -671,7 +664,7 @@ impl CardSelectState {
 
         // sfx
         if previous_item != selected_item && selection.local && !is_resimulation {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
@@ -682,7 +675,7 @@ impl CardSelectState {
 
                     // sfx
                     if selection.local && !is_resimulation {
-                        let globals = game_io.globals();
+                        let globals = game_io.resource::<Globals>().unwrap();
                         globals.audio.play_sound(&globals.card_select_confirm_sfx);
                     }
                 }
@@ -694,12 +687,12 @@ impl CardSelectState {
 
                         // sfx
                         if selection.local && !is_resimulation {
-                            let globals = game_io.globals();
+                            let globals = game_io.resource::<Globals>().unwrap();
                             globals.audio.play_sound(&globals.cursor_select_sfx);
                         }
                     } else if selection.local && !is_resimulation {
                         // error sfx
-                        let globals = game_io.globals();
+                        let globals = game_io.resource::<Globals>().unwrap();
                         globals.audio.play_sound(&globals.cursor_error_sfx);
                     }
                 }
@@ -708,7 +701,7 @@ impl CardSelectState {
         }
 
         if input.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             let mut applied = false;
 
             if !selection.selected_card_indices.is_empty() {
@@ -734,8 +727,8 @@ impl CardSelectState {
         }
     }
 
-    fn complete(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
-        let card_packages = &game_io.globals().card_packages;
+    fn complete(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+        let card_packages = &game_io.resource::<Globals>().unwrap().card_packages;
 
         for (_, (player, character)) in
             (simulation.entities).query_mut::<(&mut Player, &mut Character)>()

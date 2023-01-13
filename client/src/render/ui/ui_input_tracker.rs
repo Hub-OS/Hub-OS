@@ -52,7 +52,7 @@ impl UiInputTracker {
         value
     }
 
-    pub fn update(&mut self, game_io: &GameIO<Globals>) {
+    pub fn update(&mut self, game_io: &GameIO) {
         use strum::IntoEnumIterator;
 
         let input_util = InputUtil::new(game_io);

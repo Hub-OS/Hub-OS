@@ -47,13 +47,13 @@ impl Player {
     pub const HIT_FRAMES: [DerivedFrame; 2] = [DerivedFrame::new(0, 15), DerivedFrame::new(1, 7)];
 
     pub fn new(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         index: usize,
         local: bool,
         charge_sprite_index: TreeIndex,
         cards: Vec<Card>,
     ) -> Self {
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
             index,

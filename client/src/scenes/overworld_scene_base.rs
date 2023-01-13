@@ -16,7 +16,7 @@ pub struct OverworldSceneBase {
     pub map: Map,
     pub menu_manager: MenuManager,
     pub events: VecDeque<OverworldBaseEvent>,
-    pub next_scene: NextScene<Globals>,
+    pub next_scene: NextScene,
     world_time: FrameTime,
     input_locks: usize,
     background: Background,
@@ -26,8 +26,8 @@ pub struct OverworldSceneBase {
 }
 
 impl OverworldSceneBase {
-    pub fn new(game_io: &mut GameIO<Globals>) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &mut GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut entities = hecs::World::new();
@@ -70,7 +70,7 @@ impl OverworldSceneBase {
 
     fn spawn_player_actor_direct(
         entities: &mut hecs::World,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         texture: Arc<Texture>,
         mut animator: Animator,
         position: Vec3,
@@ -78,7 +78,7 @@ impl OverworldSceneBase {
         animator.set_state("IDLE_D");
 
         entities.spawn((
-            Sprite::new(texture, game_io.globals().default_sampler.clone()),
+            Sprite::new(game_io, texture),
             animator,
             PlayerMinimapMarker::new_player(),
             MovementAnimator::new(),
@@ -94,7 +94,7 @@ impl OverworldSceneBase {
 
     pub fn spawn_player_actor(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         texture: Arc<Texture>,
         animator: Animator,
         position: Vec3,
@@ -104,19 +104,16 @@ impl OverworldSceneBase {
 
     pub fn spawn_artifact(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         texture: Arc<Texture>,
         animator: Animator,
         position: Vec3,
     ) -> hecs::Entity {
-        self.entities.spawn((
-            Sprite::new(texture, game_io.globals().default_sampler.clone()),
-            animator,
-            position,
-        ))
+        self.entities
+            .spawn((Sprite::new(game_io, texture), animator, position))
     }
 
-    pub fn set_world(&mut self, game_io: &GameIO<Globals>, assets: &impl AssetManager, map: Map) {
+    pub fn set_world(&mut self, game_io: &GameIO, assets: &impl AssetManager, map: Map) {
         if self.map.background_properties() != map.background_properties() {
             self.background = map
                 .background_properties()
@@ -132,7 +129,7 @@ impl OverworldSceneBase {
         self.map = map;
     }
 
-    pub fn is_input_locked(&self, game_io: &GameIO<Globals>) -> bool {
+    pub fn is_input_locked(&self, game_io: &GameIO) -> bool {
         game_io.is_in_transition()
             || self.menu_manager.is_open()
             || self.camera_controller.is_locked()
@@ -164,12 +161,12 @@ impl OverworldSceneBase {
     }
 }
 
-impl Scene<Globals> for OverworldSceneBase {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for OverworldSceneBase {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.world_time += 1;
 
         self.next_scene = self.menu_manager.update(game_io);
@@ -197,7 +194,7 @@ impl Scene<Globals> for OverworldSceneBase {
         );
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw background
         self.background.draw(game_io, render_pass);
 
@@ -252,7 +249,7 @@ impl OverworldSceneBase {
 
 const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
 
-fn draw_map_name(game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue, map: &Map) {
+fn draw_map_name(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, map: &Map) {
     const MARGIN: Vec2 = Vec2::new(1.0, 3.0);
 
     let mut label = Text::new(game_io, FontStyle::Thick);

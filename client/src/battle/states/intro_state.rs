@@ -23,7 +23,7 @@ impl State for IntroState {
         Box::new(self.clone())
     }
 
-    fn next_state(&self, game_io: &GameIO<Globals>) -> Option<Box<dyn State>> {
+    fn next_state(&self, game_io: &GameIO) -> Option<Box<dyn State>> {
         if self.completed {
             Some(Box::new(CardSelectState::new(game_io)))
         } else {
@@ -33,7 +33,7 @@ impl State for IntroState {
 
     fn update(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         _shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
@@ -77,7 +77,7 @@ impl State for IntroState {
 
         if simulation.time > self.animation_delay {
             if self.animation_time == 0 {
-                let appear_sfx = &game_io.globals().appear_sfx;
+                let appear_sfx = &game_io.resource::<Globals>().unwrap().appear_sfx;
                 simulation.play_sound(game_io, appear_sfx);
             }
 

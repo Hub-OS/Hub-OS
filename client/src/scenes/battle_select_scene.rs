@@ -14,12 +14,12 @@ pub struct BattleSelectScene {
     package_ids: Vec<String>,
     preview_sprite: Sprite,
     textbox: Textbox,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl BattleSelectScene {
-    pub fn new(game_io: &mut GameIO<Globals>) -> Box<Self> {
-        let globals = game_io.globals();
+    pub fn new(game_io: &mut GameIO) -> Box<Self> {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -57,14 +57,14 @@ impl BattleSelectScene {
 }
 
 impl BattleSelectScene {
-    fn update_preview(&mut self, game_io: &GameIO<Globals>) {
+    fn update_preview(&mut self, game_io: &GameIO) {
         if self.package_ids.is_empty() {
             return;
         }
 
         let package_id = &self.package_ids[self.selection];
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let battle_manager = &globals.battle_packages;
 
@@ -83,12 +83,12 @@ impl BattleSelectScene {
     }
 }
 
-impl Scene<Globals> for BattleSelectScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for BattleSelectScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.camera.update(game_io);
 
         self.textbox.update(game_io);
@@ -115,12 +115,12 @@ impl Scene<Globals> for BattleSelectScene {
         if old_selection != self.selection {
             self.update_preview(game_io);
 
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
         if input_util.was_just_pressed(Input::Confirm) && !self.package_ids.is_empty() {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
 
             let package_id = &self.package_ids[self.selection];
             let battle_package = globals
@@ -135,7 +135,7 @@ impl Scene<Globals> for BattleSelectScene {
         }
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             let transition = crate::transitions::new_scene_pop(game_io);
@@ -143,7 +143,7 @@ impl Scene<Globals> for BattleSelectScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw background
         self.background.draw(game_io, render_pass);
 

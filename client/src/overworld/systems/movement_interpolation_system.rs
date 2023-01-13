@@ -1,10 +1,9 @@
 use crate::overworld::components::{MovementAnimator, MovementInterpolator};
-use crate::resources::Globals;
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn movement_interpolation_system(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
+pub fn movement_interpolation_system(game_io: &GameIO, scene: &mut OverworldSceneBase) {
     let entities = &mut scene.entities;
 
     // todo: disable if property animator is animating position?

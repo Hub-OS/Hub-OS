@@ -1,7 +1,6 @@
 use super::{CardClass, Element, HitFlags};
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
-use crate::resources::Globals;
 use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone)]
@@ -49,7 +48,7 @@ impl Default for CardProperties {
 impl CardProperties {
     pub fn draw_summary(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
         center: bool,

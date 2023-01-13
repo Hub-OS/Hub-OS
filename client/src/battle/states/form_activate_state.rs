@@ -21,7 +21,7 @@ impl State for FormActivateState {
         Box::new(self.clone())
     }
 
-    fn next_state(&self, _game_io: &GameIO<Globals>) -> Option<Box<dyn State>> {
+    fn next_state(&self, _game_io: &GameIO) -> Option<Box<dyn State>> {
         if self.completed {
             Some(Box::new(BattleState::new()))
         } else {
@@ -31,7 +31,7 @@ impl State for FormActivateState {
 
     fn update(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         _shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
@@ -90,7 +90,7 @@ impl FormActivateState {
 
     fn activate_forms(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -147,7 +147,7 @@ impl FormActivateState {
         self.spawn_shine(game_io, simulation);
     }
 
-    fn spawn_shine(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+    fn spawn_shine(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
         let mut relevant_ids = Vec::new();
 
         for (id, player) in simulation.entities.query_mut::<&Player>() {
@@ -183,16 +183,18 @@ impl FormActivateState {
         }
 
         // play sfx
-        let shine_sfx = &game_io.globals().shine_sfx;
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let shine_sfx = &globals.shine_sfx;
         simulation.play_sound(game_io, shine_sfx);
 
-        let transform_sfx = &game_io.globals().transform_sfx;
+        let transform_sfx = &globals.transform_sfx;
         simulation.play_sound(game_io, transform_sfx);
     }
 
     fn detect_animation_end(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {

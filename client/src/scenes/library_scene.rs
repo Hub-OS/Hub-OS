@@ -14,12 +14,12 @@ pub struct LibraryScene {
     ui_input_tracker: UiInputTracker,
     active_dock: usize,
     docks: Vec<Dock>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl LibraryScene {
-    pub fn new(game_io: &mut GameIO<Globals>) -> Box<Self> {
-        let globals = game_io.globals();
+    pub fn new(game_io: &mut GameIO) -> Box<Self> {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -53,7 +53,7 @@ impl LibraryScene {
         scene
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_input(&mut self, game_io: &mut GameIO) {
         self.ui_input_tracker.update(game_io);
 
         // dock scrolling
@@ -67,7 +67,7 @@ impl LibraryScene {
         if original_index != scroll_tracker.selected_index() {
             self.update_preview();
 
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
@@ -86,7 +86,7 @@ impl LibraryScene {
             let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
         }
     }
@@ -103,12 +103,12 @@ impl LibraryScene {
     }
 }
 
-impl Scene<Globals> for LibraryScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for LibraryScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         // update camera
         self.camera.update(game_io);
 
@@ -118,7 +118,7 @@ impl Scene<Globals> for LibraryScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw background
         self.background.draw(game_io, render_pass);
 
@@ -148,8 +148,8 @@ struct Dock {
 }
 
 impl Dock {
-    fn new(game_io: &GameIO<Globals>, card_class: CardClass) -> Self {
-        let globals = game_io.globals();
+    fn new(game_io: &GameIO, card_class: CardClass) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // todo: display server card packages as well?
@@ -220,7 +220,7 @@ impl Dock {
         }
     }
 
-    fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.dock_animator.update();
         self.dock_animator.apply(&mut self.dock_sprite);
         sprite_queue.draw_sprite(&self.dock_sprite);

@@ -34,7 +34,7 @@ impl TextboxInterface for TextboxQuiz {
         self.complete
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, text_style: &TextStyle, _lines: usize) {
+    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, _lines: usize) {
         if self.complete {
             return;
         }
@@ -65,12 +65,12 @@ impl TextboxInterface for TextboxQuiz {
         }
 
         if self.selection != old_selection {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
             self.complete = true;
@@ -93,11 +93,7 @@ impl TextboxInterface for TextboxQuiz {
         cursor.update();
     }
 
-    fn draw(
-        &mut self,
-        _game_io: &framework::prelude::GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-    ) {
+    fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
         let cursor = match &mut self.cursor {
             Some(cursor) => cursor,
             None => return,

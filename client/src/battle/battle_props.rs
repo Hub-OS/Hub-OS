@@ -16,8 +16,8 @@ pub struct PlayerSetup<'a> {
 }
 
 impl<'a> PlayerSetup<'a> {
-    pub fn from_globals(game_io: &'a GameIO<Globals>) -> Self {
-        let globals = game_io.globals();
+    pub fn from_globals(game_io: &'a GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
 
         let player_package = global_save.player_package(game_io).unwrap();
@@ -48,10 +48,10 @@ pub struct BattleProps<'a> {
 
 impl<'a> BattleProps<'a> {
     pub fn new_with_defaults(
-        game_io: &'a GameIO<Globals>,
+        game_io: &'a GameIO,
         battle_package: Option<&'a BattlePackage>,
     ) -> Self {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let background_animator = Animator::load_new(assets, ResourcePaths::BATTLE_BG_ANIMATION);

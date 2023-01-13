@@ -15,13 +15,8 @@ pub struct Card {
 
 impl Card {
     // used in netplay, luckily we shouldnt see what remotes have, so using server namespace is fine
-    pub fn draw_icon(
-        &self,
-        game_io: &GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-        position: Vec2,
-    ) {
-        let globals = game_io.globals();
+    pub fn draw_icon(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, position: Vec2) {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
         let package =
@@ -40,18 +35,18 @@ impl Card {
             None => assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING),
         };
 
-        let mut sprite = Sprite::new(icon_texture, globals.default_sampler.clone());
+        let mut sprite = Sprite::new(game_io, icon_texture);
         sprite.set_position(position);
         sprite_queue.draw_sprite(&sprite);
     }
 
     pub fn draw_preview_title(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
     ) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let package_manager = &globals.card_packages;
         let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
             return;
@@ -69,12 +64,12 @@ impl Card {
 
     pub fn draw_preview(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
         scale: f32,
     ) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
         let Some(package) = package_manager.package_or_fallback(PackageNamespace::Server, &self.package_id) else {
@@ -96,7 +91,7 @@ impl Card {
             preview_texture = assets.texture(game_io, ResourcePaths::CARD_PREVIEW_MISSING);
         }
 
-        let mut sprite = Sprite::new(preview_texture, globals.default_sampler.clone());
+        let mut sprite = Sprite::new(game_io, preview_texture);
         sprite.set_origin(-PREVIEW_OFFSET + sprite.size() * 0.5);
         sprite.set_position(position);
         sprite.set_scale(scale);
@@ -142,11 +137,11 @@ impl Card {
 
     pub fn draw_list_item(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
     ) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
@@ -180,7 +175,7 @@ impl Card {
             icon_texture = assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING);
         }
 
-        let mut sprite = Sprite::new(icon_texture, globals.default_sampler.clone());
+        let mut sprite = Sprite::new(game_io, icon_texture);
         sprite.set_position(ICON_OFFSET + position);
         sprite_queue.draw_sprite(&sprite);
 

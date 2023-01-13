@@ -51,7 +51,7 @@ pub struct BattleSimulation {
 }
 
 impl BattleSimulation {
-    pub fn new(game_io: &GameIO<Globals>, background: Background, player_count: usize) -> Self {
+    pub fn new(game_io: &GameIO, background: Background, player_count: usize) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(Vec2::new(0.0, 10.0));
 
@@ -62,7 +62,7 @@ impl BattleSimulation {
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
             battle_started: false,
@@ -98,7 +98,7 @@ impl BattleSimulation {
         self.rng = Xoshiro256PlusPlus::seed_from_u64(seed);
     }
 
-    pub fn clone(&mut self, game_io: &GameIO<Globals>) -> Self {
+    pub fn clone(&mut self, game_io: &GameIO) -> Self {
         let mut entities = hecs::World::new();
 
         // starting with Entity as every entity will have Entity
@@ -191,13 +191,14 @@ impl BattleSimulation {
         }
     }
 
-    pub fn play_sound(&self, game_io: &GameIO<Globals>, sound_buffer: &SoundBuffer) {
+    pub fn play_sound(&self, game_io: &GameIO, sound_buffer: &SoundBuffer) {
         if !self.is_resimulation {
-            game_io.globals().audio.play_sound(sound_buffer);
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(sound_buffer);
         }
     }
 
-    pub fn pre_update(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM], state: &dyn State) {
+    pub fn pre_update(&mut self, game_io: &GameIO, vms: &[RollbackVM], state: &dyn State) {
         #[cfg(debug_assertions)]
         self.assertions();
 
@@ -222,7 +223,7 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
-    pub fn post_update(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM]) {
+    pub fn post_update(&mut self, game_io: &GameIO, vms: &[RollbackVM]) {
         // update scene components
         for (_, component) in &self.components {
             if component.lifetime == ComponentLifetime::Scene {
@@ -363,7 +364,7 @@ impl BattleSimulation {
         }
     }
 
-    pub fn call_pending_callbacks(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM]) {
+    pub fn call_pending_callbacks(&mut self, game_io: &GameIO, vms: &[RollbackVM]) {
         let callbacks = std::mem::take(&mut self.pending_callbacks);
 
         for callback in callbacks {
@@ -450,7 +451,7 @@ impl BattleSimulation {
 
     pub fn use_card_action(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         entity_id: EntityID,
         index: generational_arena::Index,
     ) -> bool {
@@ -482,7 +483,7 @@ impl BattleSimulation {
 
             if time_is_frozen && !self.is_resimulation {
                 // must be countering, play sfx
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.trap_sfx);
             }
 
@@ -496,7 +497,7 @@ impl BattleSimulation {
 
     pub fn delete_card_actions(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         vms: &[RollbackVM],
         delete_indices: &[generational_arena::Index],
     ) {
@@ -553,7 +554,7 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
-    pub fn delete_entity(&mut self, game_io: &GameIO<Globals>, vms: &[RollbackVM], id: EntityID) {
+    pub fn delete_entity(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityID) {
         let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
             Ok(entity) => entity,
             _ => return,
@@ -595,7 +596,7 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
-    fn create_entity(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    fn create_entity(&mut self, game_io: &GameIO) -> EntityID {
         let id: EntityID = self.entities.reserve_entity().into();
 
         let mut animator = BattleAnimator::new();
@@ -632,7 +633,7 @@ impl BattleSimulation {
 
     fn create_character(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         rank: CharacterRank,
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<EntityID> {
@@ -712,7 +713,7 @@ impl BattleSimulation {
 
     pub fn load_player(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         vms: &[RollbackVM],
         package_id: &str,
         package_namespace: PackageNamespace,
@@ -740,7 +741,8 @@ impl BattleSimulation {
         entity.pending_spawn = true;
 
         // use preloaded package properties
-        let player_package = (game_io.globals().player_packages)
+        let globals = game_io.resource::<Globals>().unwrap();
+        let player_package = (globals.player_packages)
             .package_or_fallback(package_namespace, package_id)
             .unwrap();
 
@@ -817,7 +819,7 @@ impl BattleSimulation {
                     simulation.call_pending_callbacks(game_io, vms);
                 }));
 
-                simulation.play_sound(game_io, &game_io.globals().hurt_sfx);
+                simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().hurt_sfx);
                 simulation.call_pending_callbacks(game_io, vms);
             }),
         );
@@ -874,7 +876,7 @@ impl BattleSimulation {
                 shine_entity.pending_spawn = true;
 
                 // play revert sfx
-                let revert_sfx = &&game_io.globals().transform_revert_sfx;
+                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
                 simulation.play_sound(game_io, revert_sfx);
             },
         ));
@@ -897,7 +899,7 @@ impl BattleSimulation {
             simulation: self,
         });
 
-        let lua_api = &game_io.globals().battle_api;
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
         lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
             let table = create_entity_table(lua, id)?;
@@ -909,7 +911,7 @@ impl BattleSimulation {
 
     pub fn load_character(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         vms: &[RollbackVM],
         package_id: &str,
         namespace: PackageNamespace,
@@ -931,7 +933,7 @@ impl BattleSimulation {
             simulation: self,
         });
 
-        let lua_api = &game_io.globals().battle_api;
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
         lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
             let table = create_entity_table(lua, id)?;
@@ -941,7 +943,7 @@ impl BattleSimulation {
         Ok(id)
     }
 
-    pub fn create_artifact(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_artifact(&mut self, game_io: &GameIO) -> EntityID {
         let id = self.create_entity(game_io);
 
         self.entities
@@ -960,7 +962,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_spell(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_spell(&mut self, game_io: &GameIO) -> EntityID {
         let id = self.create_entity(game_io);
 
         self.entities
@@ -979,7 +981,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_obstacle(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_obstacle(&mut self, game_io: &GameIO) -> EntityID {
         let id = self.create_entity(game_io);
 
         let entity = self
@@ -1003,7 +1005,7 @@ impl BattleSimulation {
 
     pub fn create_animated_artifact(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         texture_path: &str,
         animation_path: &str,
     ) -> EntityID {
@@ -1036,7 +1038,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_explosion(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_explosion(&mut self, game_io: &GameIO) -> EntityID {
         let id = self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_EXPLOSION,
@@ -1049,13 +1051,13 @@ impl BattleSimulation {
             .unwrap();
 
         entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
-            simulation.play_sound(game_io, &game_io.globals().explode_sfx);
+            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().explode_sfx);
         });
 
         id
     }
 
-    pub fn create_transformation_shine(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_transformation_shine(&mut self, game_io: &GameIO) -> EntityID {
         self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_TRANSFORM_SHINE,
@@ -1063,7 +1065,7 @@ impl BattleSimulation {
         )
     }
 
-    pub fn create_splash(&mut self, game_io: &GameIO<Globals>) -> EntityID {
+    pub fn create_splash(&mut self, game_io: &GameIO) -> EntityID {
         self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_SPLASH,
@@ -1071,7 +1073,7 @@ impl BattleSimulation {
         )
     }
 
-    pub fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    pub fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let mut blind_filter = None;
 
         // resolve perspective
@@ -1086,7 +1088,7 @@ impl BattleSimulation {
             }
         }
 
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         // draw background
         self.background.draw(game_io, render_pass);
@@ -1284,7 +1286,7 @@ impl BattleSimulation {
         render_pass.consume_queue(sprite_queue);
     }
 
-    pub fn draw_ui(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.local_health_ui.draw(game_io, sprite_queue);
     }
 

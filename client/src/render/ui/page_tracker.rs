@@ -15,7 +15,7 @@ pub struct PageTracker {
 }
 
 impl PageTracker {
-    pub fn new(game_io: &GameIO<Globals>, page_count: usize) -> Self {
+    pub fn new(game_io: &GameIO, page_count: usize) -> Self {
         Self {
             active_page: 0,
             page_count,
@@ -71,7 +71,7 @@ impl PageTracker {
         }
     }
 
-    pub fn handle_input(&mut self, game_io: &GameIO<Globals>) {
+    pub fn handle_input(&mut self, game_io: &GameIO) {
         if self.animating() {
             return;
         }
@@ -88,7 +88,7 @@ impl PageTracker {
         }
 
         if self.active_page != original_page {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.page_turn_sfx);
         }
     }

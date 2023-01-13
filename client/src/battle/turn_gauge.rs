@@ -14,8 +14,8 @@ pub struct TurnGauge {
 impl TurnGauge {
     pub const DEFAULT_MAX_TIME: FrameTime = 512;
 
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn new(game_io: &GameIO) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         let sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TURN_GAUGE);
         let mut container_sprite = sprite.clone();

@@ -1,6 +1,5 @@
 use super::TextboxInterface;
 use crate::render::*;
-use crate::resources::*;
 
 pub type TextboxDoorstopRemover = Box<dyn FnOnce()>;
 
@@ -39,7 +38,7 @@ impl TextboxInterface for TextboxDoorstop {
 
     fn update(
         &mut self,
-        _game_io: &mut framework::prelude::GameIO<Globals>,
+        _game_io: &mut framework::prelude::GameIO,
         _text_style: &super::TextStyle,
         _lines: usize,
     ) {
@@ -50,7 +49,7 @@ impl TextboxInterface for TextboxDoorstop {
 
     fn draw(
         &mut self,
-        _game_io: &framework::prelude::GameIO<Globals>,
+        _game_io: &framework::prelude::GameIO,
         _sprite_queue: &mut SpriteColorQueue,
     ) {
         // no ui

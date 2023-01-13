@@ -1,7 +1,6 @@
 use super::components::*;
 use super::*;
 use crate::render::*;
-use crate::resources::*;
 use framework::prelude::*;
 use hecs::Entity;
 use std::rc::Rc;
@@ -490,7 +489,7 @@ impl Map {
 
     pub fn iterate_visible_tiles<F>(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         camera: &Camera,
         layer_index: usize,
         mut callback: F,
@@ -501,8 +500,6 @@ impl Map {
             Some(layer) => layer,
             _ => return,
         };
-
-        let globals = game_io.globals();
 
         let mut tile_sprite: Option<Sprite> = None;
 
@@ -548,10 +545,7 @@ impl Map {
                         tile_sprite
                     }
                     None => {
-                        tile_sprite = Some(Sprite::new(
-                            tile_meta.tileset.texture.clone(),
-                            globals.default_sampler.clone(),
-                        ));
+                        tile_sprite = Some(Sprite::new(game_io, tile_meta.tileset.texture.clone()));
                         tile_sprite.as_mut().unwrap()
                     }
                 };
@@ -594,7 +588,7 @@ impl Map {
 
     pub fn draw_tile_layer(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         camera: &Camera,
         layer_index: usize,

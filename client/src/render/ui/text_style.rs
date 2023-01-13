@@ -34,8 +34,8 @@ pub struct TextStyle {
 }
 
 impl TextStyle {
-    pub fn new(game_io: &GameIO<Globals>, font_style: FontStyle) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         Self {
             font_animator: globals.font_animator.clone(),
@@ -50,7 +50,7 @@ impl TextStyle {
         }
     }
 
-    pub fn new_monospace(game_io: &GameIO<Globals>, font_style: FontStyle) -> Self {
+    pub fn new_monospace(game_io: &GameIO, font_style: FontStyle) -> Self {
         let mut style = Self::new(game_io, font_style);
         style.monospace = true;
 
@@ -86,24 +86,21 @@ impl TextStyle {
         self.iterate(text, |_, _| {})
     }
 
-    pub fn draw(&self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue, text: &str) {
+    pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, text: &str) {
         self.draw_slice(game_io, sprite_queue, text, 0..text.len());
     }
 
     pub fn draw_slice(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         text: &str,
         range: Range<usize>,
     ) {
         let prev_color_mode = sprite_queue.color_mode();
 
-        let globals = game_io.globals();
-        let mut sprite = Sprite::new(
-            globals.font_texture.clone(),
-            globals.default_sampler.clone(),
-        );
+        let globals = game_io.resource::<Globals>().unwrap();
+        let mut sprite = Sprite::new(game_io, globals.font_texture.clone());
 
         sprite.set_scale(self.scale);
 

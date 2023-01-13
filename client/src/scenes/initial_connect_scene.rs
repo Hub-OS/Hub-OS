@@ -26,17 +26,12 @@ pub struct InitialConnectScene {
     deferred_packets: Vec<ServerPacket>,
     textbox: Textbox,
     success: bool,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl InitialConnectScene {
-    pub fn new(
-        game_io: &GameIO<Globals>,
-        address: String,
-        data: Option<String>,
-        animate: bool,
-    ) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, address: String, data: Option<String>, animate: bool) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -129,12 +124,12 @@ impl InitialConnectScene {
     }
 }
 
-impl Scene<Globals> for InitialConnectScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for InitialConnectScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.bg_animator.update();
         self.bg_animator.apply(&mut self.bg_sprite);
 
@@ -217,7 +212,7 @@ impl Scene<Globals> for InitialConnectScene {
         }
 
         if self.bg_animator.is_complete() && self.success {
-            let globals = game_io.globals_mut();
+            let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.remove_namespace(PackageNamespace::Server);
 
             let mut online_scene = self.online_scene.take().unwrap();
@@ -226,7 +221,7 @@ impl Scene<Globals> for InitialConnectScene {
                 online_scene.handle_packet(game_io, packet);
             }
 
-            let globals = game_io.globals_mut();
+            let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.assets.remove_unused_virtual_zips();
 
             // move to the network scene if we can and the animator completed
@@ -235,7 +230,7 @@ impl Scene<Globals> for InitialConnectScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 

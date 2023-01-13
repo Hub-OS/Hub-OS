@@ -1,6 +1,5 @@
 use super::*;
 use crate::render::*;
-use crate::resources::*;
 use framework::prelude::*;
 
 #[derive(Clone)]
@@ -10,14 +9,14 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(game_io: &GameIO<Globals>, font_style: FontStyle) -> Self {
+    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
         Self {
             text: String::new(),
             style: TextStyle::new(game_io, font_style),
         }
     }
 
-    pub fn new_monospace(game_io: &GameIO<Globals>, font_style: FontStyle) -> Self {
+    pub fn new_monospace(game_io: &GameIO, font_style: FontStyle) -> Self {
         let mut text = Self::new(game_io, font_style);
         text.style.monospace = true;
 
@@ -57,19 +56,19 @@ impl Text {
         self.style.measure(&self.text)
     }
 
-    pub fn draw(&self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.style.draw(game_io, sprite_queue, &self.text);
     }
 }
 
 impl UiNode for Text {
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         self.measure().size
     }
 
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {

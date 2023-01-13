@@ -205,7 +205,7 @@ impl TimeFreezeTracker {
 
     pub fn draw_ui(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &BattleSimulation,
         sprite_queue: &mut SpriteColorQueue,
     ) {
@@ -252,7 +252,7 @@ impl TimeFreezeTracker {
         let elapsed_time = self.active_time - self.state_start_time;
         let width_multiplier = inverse_lerp!(COUNTER_DURATION, 0, elapsed_time);
 
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         sprite.set_width(BAR_WIDTH * width_multiplier);
         sprite.set_height(2.0);

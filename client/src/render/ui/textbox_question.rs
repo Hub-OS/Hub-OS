@@ -42,7 +42,7 @@ impl TextboxInterface for TextboxQuestion {
         self.complete
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, text_style: &TextStyle, lines: usize) {
+    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, lines: usize) {
         if self.complete {
             return;
         }
@@ -73,21 +73,21 @@ impl TextboxInterface for TextboxQuestion {
         self.input_tracker.update(game_io);
 
         if self.input_tracker.is_active(Input::Left) || self.input_tracker.is_active(Input::Right) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
 
             self.selection = !self.selection;
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
             self.complete = true;
         }
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             self.selection = false;
@@ -100,11 +100,7 @@ impl TextboxInterface for TextboxQuestion {
         }
     }
 
-    fn draw(
-        &mut self,
-        _game_io: &framework::prelude::GameIO<Globals>,
-        sprite_queue: &mut SpriteColorQueue,
-    ) {
+    fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
         let render_data = match &mut self.render_data {
             Some(render_data) => render_data,
             None => return,

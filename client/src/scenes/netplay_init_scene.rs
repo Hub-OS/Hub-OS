@@ -58,12 +58,12 @@ pub struct NetplayInitScene {
     ui_camera: Camera,
     sprite: Sprite,
     communication_future: Option<Pin<Box<dyn Future<Output = ()>>>>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl NetplayInitScene {
     pub fn new(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         background: Option<Background>,
         battle_package: Option<(PackageNamespace, String)>,
         data: Option<String>,
@@ -75,7 +75,7 @@ impl NetplayInitScene {
 
         log::debug!("assigned player index {}", local_index);
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let network = &globals.network;
 
         let remote_index_map: Vec<_> = remote_players.iter().map(|info| info.index).collect();
@@ -193,7 +193,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_packets(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_packets(&mut self, game_io: &mut GameIO) {
         let mut packets = Vec::new();
 
         if let Some((_, receiver)) = &self.fallback_sender_receiver {
@@ -238,7 +238,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_packet(&mut self, game_io: &mut GameIO<Globals>, packet: NetplayPacket) {
+    fn handle_packet(&mut self, game_io: &mut GameIO, packet: NetplayPacket) {
         let index = packet.index();
 
         let connection = self
@@ -280,7 +280,7 @@ impl NetplayInitScene {
             NetplayPacket::PackageList { index, packages } => {
                 connection.received_package_list = true;
 
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
 
                 // track what needs to be loaded once downloaded
                 let load_list: Vec<_> = packages
@@ -353,11 +353,11 @@ impl NetplayInitScene {
                 log::debug!("received zip for {hash}");
 
                 if self.missing_packages.remove(&hash) {
-                    let globals = game_io.globals();
+                    let globals = game_io.resource::<Globals>().unwrap();
                     let assets = &globals.assets;
                     assets.load_virtual_zip(game_io, hash, data);
 
-                    let globals = game_io.globals_mut();
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
@@ -451,9 +451,10 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast_package_list(&self, game_io: &GameIO<Globals>) {
+    fn broadcast_package_list(&self, game_io: &GameIO) {
         let props = BattleProps::new_with_defaults(game_io, None);
-        let dependencies = game_io.globals().battle_dependencies(&props);
+        let globals = game_io.resource::<Globals>().unwrap();
+        let dependencies = globals.battle_dependencies(&props);
 
         let packages = dependencies
             .iter()
@@ -487,7 +488,7 @@ impl NetplayInitScene {
         })
     }
 
-    fn share_packages(&mut self, game_io: &GameIO<Globals>) {
+    fn share_packages(&mut self, game_io: &GameIO) {
         let broadcasting = self.fallback_sender_receiver.is_some();
 
         if broadcasting {
@@ -499,7 +500,7 @@ impl NetplayInitScene {
             }
 
             for hash in pending_upload {
-                let assets = &game_io.globals().assets;
+                let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                 let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
                     bytes
@@ -521,7 +522,7 @@ impl NetplayInitScene {
                 let connection_index = connection.index;
 
                 for hash in connection.requested_packages.take().unwrap() {
-                    let assets = &game_io.globals().assets;
+                    let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                     let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
                         bytes
@@ -556,7 +557,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_transition(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_transition(&mut self, game_io: &mut GameIO) {
         if self.failed {
             if let Some(callback) = self.statistics_callback.take() {
                 callback(None);
@@ -568,7 +569,7 @@ impl NetplayInitScene {
         }
 
         if self.all_ready() {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
 
             // clean up zips
             globals.assets.remove_unused_virtual_zips();
@@ -645,13 +646,13 @@ impl NetplayInitScene {
     }
 }
 
-impl Scene<Globals> for NetplayInitScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for NetplayInitScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
-        let globals = game_io.globals_mut();
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
 
         for namespace in globals.remote_namespaces() {
             globals.remove_namespace(namespace);
@@ -662,7 +663,7 @@ impl Scene<Globals> for NetplayInitScene {
         }
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::AddressesFailed => {
@@ -695,7 +696,7 @@ impl Scene<Globals> for NetplayInitScene {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.ui_camera, SpriteColorMode::Multiply);
 

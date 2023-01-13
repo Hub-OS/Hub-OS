@@ -4,7 +4,6 @@ use crate::battle::{BattleAnimator, BattleCallback, Entity};
 use crate::bindable::{EntityID, GenerationalIndex, LuaVector};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::{DerivedFrame, FrameTime};
-use crate::resources::Globals;
 use framework::prelude::GameIO;
 
 pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
@@ -230,7 +229,7 @@ where
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(
             &mut BattleAnimator,
-            &GameIO<Globals>,
+            &GameIO,
             &'lua rollback_mlua::Lua,
             P,
         ) -> rollback_mlua::Result<Vec<BattleCallback>>

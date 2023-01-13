@@ -160,11 +160,12 @@ impl BattleAnimator {
     }
 
     #[must_use]
-    pub fn load(&mut self, game_io: &GameIO<Globals>, path: &str) -> Vec<BattleCallback> {
+    pub fn load(&mut self, game_io: &GameIO, path: &str) -> Vec<BattleCallback> {
         let had_state = self.animator.current_state().is_some();
         let completed = self.animator.is_complete();
 
-        self.animator.load(&game_io.globals().assets, path);
+        self.animator
+            .load(&game_io.resource::<Globals>().unwrap().assets, path);
         self.animator.sync_time(self.time);
 
         if !completed && had_state && self.animator.current_state().is_none() {

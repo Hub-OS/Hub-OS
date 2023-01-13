@@ -38,14 +38,14 @@ pub struct FolderListScene {
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl FolderListScene {
-    pub fn new(game_io: &mut GameIO<Globals>) -> Box<Self> {
+    pub fn new(game_io: &mut GameIO) -> Box<Self> {
         move_selected_folder(game_io);
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -122,8 +122,8 @@ impl FolderListScene {
     }
 }
 
-fn move_selected_folder(game_io: &mut GameIO<Globals>) {
-    let globals = game_io.globals_mut();
+fn move_selected_folder(game_io: &mut GameIO) {
+    let globals = game_io.resource_mut::<Globals>().unwrap();
     let save = &mut globals.global_save;
 
     if save.selected_folder == 0 {
@@ -135,13 +135,13 @@ fn move_selected_folder(game_io: &mut GameIO<Globals>) {
     save.selected_folder = 0;
 }
 
-impl Scene<Globals> for FolderListScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for FolderListScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
-        let folders = &game_io.globals().global_save.folders;
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let folders = &game_io.resource::<Globals>().unwrap().global_save.folders;
 
         self.folder_scroll_tracker.set_total_items(folders.len());
 
@@ -153,7 +153,7 @@ impl Scene<Globals> for FolderListScene {
         }
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.scene_time += 1;
         self.camera.update(game_io);
 
@@ -172,8 +172,8 @@ impl Scene<Globals> for FolderListScene {
         handle_input(self, game_io);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
-        let globals = game_io.globals();
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+        let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
 
         // draw background
@@ -249,8 +249,8 @@ impl Scene<Globals> for FolderListScene {
     }
 }
 
-fn handle_events(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
-    let global_save = &mut game_io.globals_mut().global_save;
+fn handle_events(scene: &mut FolderListScene, game_io: &mut GameIO) {
+    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
 
     match scene.event_receiver.try_recv() {
         Ok(Event::Rename(name)) => {
@@ -290,7 +290,7 @@ fn handle_events(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
     }
 }
 
-fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
+fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
     scene.ui_input_tracker.update(game_io);
 
     if scene.context_menu.is_open() {
@@ -298,7 +298,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
         return;
     }
 
-    let globals = game_io.globals();
+    let globals = game_io.resource::<Globals>().unwrap();
 
     // folder scroll
     let folders = &globals.global_save.folders;
@@ -318,7 +318,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
         let folder_index = scene.folder_scroll_tracker.selected_index();
 
         if previous_folder_index != folder_index {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
 
             let count = folders[folder_index].cards.len();
@@ -346,7 +346,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
     }
 
     if previous_card_index != scene.card_scroll_tracker.selected_index() {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_move_sfx);
     }
 
@@ -354,7 +354,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
     let input_util = InputUtil::new(game_io);
 
     if input_util.was_just_pressed(Input::Cancel) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
         let transition = crate::transitions::new_scene_pop(game_io);
@@ -363,7 +363,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
     }
 
     if input_util.was_just_pressed(Input::Confirm) {
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_select_sfx);
 
         let options: &[(&str, FolderOption)] = if total_folders == 0 {
@@ -384,13 +384,13 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
     }
 }
 
-fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO<Globals>) {
+fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
     let selection = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
         Some(selection) => selection,
         None => return,
     };
 
-    let globals = game_io.globals_mut();
+    let globals = game_io.resource_mut::<Globals>().unwrap();
     let global_save = &mut globals.global_save;
 
     match selection {

@@ -42,13 +42,15 @@ pub struct ConfigScene {
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
     config: Rc<RefCell<Config>>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl ConfigScene {
-    pub fn new(game_io: &GameIO<Globals>) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Box<Self> {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
         // cursor
-        let assets = &game_io.globals().assets;
         let cursor_sprite = assets.new_sprite(game_io, ResourcePaths::SELECT_CURSOR);
 
         let mut cursor_animator =
@@ -60,7 +62,7 @@ impl ConfigScene {
         let (event_sender, event_receiver) = flume::unbounded();
 
         // config
-        let config = game_io.globals().config.clone();
+        let config = globals.config.clone();
         let config = Rc::new(RefCell::new(config));
 
         // layout positioning
@@ -97,11 +99,11 @@ impl ConfigScene {
     }
 
     fn generate_category_menu(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         event_sender: flume::Sender<Event>,
         start: Vec2,
     ) -> UiLayout {
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
         let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
@@ -144,7 +146,7 @@ impl ConfigScene {
     }
 
     fn generate_submenu(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         config: &Rc<RefCell<Config>>,
         category: ConfigCategory,
         event_sender: flume::Sender<Event>,
@@ -202,7 +204,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.mute_music = !config.mute_music;
 
-                    let audio = &mut game_io.globals_mut().audio;
+                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
                     audio.set_music_volume(config.music_volume());
 
                     config.mute_music
@@ -215,7 +217,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.mute_sfx = !config.mute_sfx;
 
-                    let audio = &mut game_io.globals_mut().audio;
+                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
                     audio.set_sfx_volume(config.sfx_volume());
 
                     config.mute_sfx
@@ -241,7 +243,7 @@ impl ConfigScene {
     }
 
     fn generate_misc_menu(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         event_sender: flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         vec![Box::new(
@@ -258,18 +260,18 @@ impl ConfigScene {
     }
 }
 
-impl Scene<Globals> for ConfigScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for ConfigScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         self.update_cursor();
         self.handle_input(game_io);
         self.handle_events(game_io);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         self.background.draw(game_io, render_pass);
 
         let mut sprite_queue =
@@ -291,7 +293,7 @@ impl Scene<Globals> for ConfigScene {
 }
 
 impl ConfigScene {
-    fn handle_events(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_events(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::CategoryChange(category) => {
@@ -318,7 +320,7 @@ impl ConfigScene {
                             let _ = event_sender.send(Event::ChangeNickname { name });
                         }
                     })
-                    .with_str(&game_io.globals().global_save.nickname)
+                    .with_str(&game_io.resource::<Globals>().unwrap().global_save.nickname)
                     .with_filter(|grapheme| grapheme != "\n" && grapheme != "\t")
                     .with_character_limit(8);
 
@@ -326,12 +328,12 @@ impl ConfigScene {
                     self.textbox.open();
                 }
                 Event::ChangeNickname { name } => {
-                    let global_save = &mut game_io.globals_mut().global_save;
+                    let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
                     global_save.nickname = name;
                     global_save.save();
                 }
                 Event::Leave { save } => {
-                    let globals = game_io.globals_mut();
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     if save {
                         // save new config
@@ -374,7 +376,7 @@ impl ConfigScene {
         self.cursor_sprite.set_position(cursor_position);
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_input(&mut self, game_io: &mut GameIO) {
         self.ui_input_tracker.update(game_io);
 
         if self.textbox.is_complete() {
@@ -394,7 +396,7 @@ impl ConfigScene {
         }
     }
 
-    fn handle_tab_input(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_tab_input(&mut self, game_io: &mut GameIO) {
         self.primary_layout.update(game_io, &self.ui_input_tracker);
 
         let input_util = InputUtil::new(game_io);
@@ -404,7 +406,7 @@ impl ConfigScene {
             return;
         }
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
         let config = self.config.borrow();
 
         if *config == globals.config {
@@ -437,7 +439,7 @@ impl ConfigScene {
         self.textbox.open();
     }
 
-    fn handle_submenu_input(&mut self, game_io: &mut GameIO<Globals>) {
+    fn handle_submenu_input(&mut self, game_io: &mut GameIO) {
         let focused_was_locked = self.secondary_layout.is_focus_locked();
 
         self.secondary_layout
@@ -450,7 +452,7 @@ impl ConfigScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
             self.primary_layout.set_focused(true);
@@ -463,7 +465,7 @@ struct UiConfigToggle {
     name: &'static str,
     value: bool,
     config: Rc<RefCell<Config>>,
-    callback: Box<dyn Fn(&mut GameIO<Globals>, RefMut<Config>) -> bool>,
+    callback: Box<dyn Fn(&mut GameIO, RefMut<Config>) -> bool>,
 }
 
 impl UiConfigToggle {
@@ -471,7 +473,7 @@ impl UiConfigToggle {
         name: &'static str,
         value: bool,
         config: Rc<RefCell<Config>>,
-        callback: impl Fn(&mut GameIO<Globals>, RefMut<Config>) -> bool + 'static,
+        callback: impl Fn(&mut GameIO, RefMut<Config>) -> bool + 'static,
     ) -> Self {
         Self {
             name,
@@ -485,7 +487,7 @@ impl UiConfigToggle {
 impl UiNode for UiConfigToggle {
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
@@ -504,11 +506,11 @@ impl UiNode for UiConfigToggle {
         text_style.draw(game_io, sprite_queue, text);
     }
 
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, _bounds: Rect, focused: bool) {
+    fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
         if !focused {
             return;
         }
@@ -526,7 +528,7 @@ impl UiNode for UiConfigToggle {
         let original_value = self.value;
         self.value = (self.callback)(game_io, self.config.borrow_mut());
 
-        let globals = game_io.globals();
+        let globals = game_io.resource::<Globals>().unwrap();
 
         if self.value == original_value {
             // toggle failed
@@ -578,7 +580,7 @@ impl UiVolume {
 impl UiNode for UiVolume {
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
@@ -598,7 +600,7 @@ impl UiNode for UiVolume {
         text_style.draw(game_io, sprite_queue, &self.level_text);
     }
 
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
 
@@ -606,7 +608,7 @@ impl UiNode for UiVolume {
         self.locking_focus
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, _bounds: Rect, focused: bool) {
+    fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
         self.ui_input_tracker.update(game_io);
 
         if !focused {
@@ -622,7 +624,7 @@ impl UiNode for UiVolume {
         if !self.locking_focus {
             if left || right || confirm {
                 // focus, play sfx, update, and continue
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_select_sfx);
 
                 self.locking_focus = true;
@@ -632,7 +634,7 @@ impl UiNode for UiVolume {
             }
         } else if confirm || input_util.was_just_pressed(Input::Cancel) {
             // unfocus and play sfx
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_select_sfx);
 
             self.locking_focus = false;
@@ -698,7 +700,7 @@ impl UiNode for UiVolume {
             config.music_volume()
         };
 
-        let globals = game_io.globals_mut();
+        let globals = game_io.resource_mut::<Globals>().unwrap();
         let audio = &mut globals.audio;
 
         if self.sfx {
@@ -772,7 +774,7 @@ impl UiInputBinder {
 impl UiNode for UiInputBinder {
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
@@ -809,7 +811,7 @@ impl UiNode for UiInputBinder {
         text_style.draw(game_io, sprite_queue, text);
     }
 
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
 
@@ -821,7 +823,7 @@ impl UiNode for UiInputBinder {
         self.binding
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, _bounds: Rect, focused: bool) {
+    fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
         if !focused {
             return;
         }
@@ -831,7 +833,7 @@ impl UiNode for UiInputBinder {
 
             // erase binding
             if input_util.was_just_pressed(Input::Option) {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
                 let mut config = self.config.borrow_mut();
@@ -845,7 +847,7 @@ impl UiNode for UiInputBinder {
 
             // begin new binding
             if input_util.was_just_pressed(Input::Confirm) {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_select_sfx);
 
                 self.binding = true;

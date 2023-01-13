@@ -9,8 +9,8 @@ pub struct SharedBattleAssets {
 }
 
 impl SharedBattleAssets {
-    pub fn new(game_io: &GameIO<Globals>) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn new(game_io: &GameIO) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
             statuses_texture: assets.texture(game_io, ResourcePaths::BATTLE_STATUSES),

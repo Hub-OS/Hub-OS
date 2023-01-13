@@ -56,12 +56,12 @@ pub fn create_analytical_vm(
 }
 
 pub fn create_battle_vm(
-    game_io: &GameIO<Globals>,
+    game_io: &GameIO,
     simulation: &mut BattleSimulation,
     vms: &mut Vec<RollbackVM>,
     package_info: &PackageInfo,
 ) -> usize {
-    let globals = game_io.globals();
+    let globals = game_io.resource::<Globals>().unwrap();
 
     let lua = rollback_mlua::Lua::new_rollback(VM_MEMORY, INPUT_BUFFER_LIMIT);
     lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)

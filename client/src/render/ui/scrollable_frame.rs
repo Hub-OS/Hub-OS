@@ -15,8 +15,8 @@ pub struct ScrollableFrame {
 }
 
 impl ScrollableFrame {
-    pub fn new(game_io: &GameIO<Globals>, bounds: Rect) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn new(game_io: &GameIO, bounds: Rect) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
 
         // label
@@ -92,7 +92,7 @@ impl ScrollableFrame {
         self.scroll_end
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.nine_patch.draw(sprite_queue, self.body_bounds);
 
         if let Some(text) = &self.label_text {

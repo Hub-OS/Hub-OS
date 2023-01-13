@@ -21,14 +21,14 @@ pub struct BBS {
 
 impl BBS {
     pub fn new(
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         topic: String,
         color: Color,
         on_select: impl Fn(&str) + 'static,
         on_close: impl Fn() + 'static,
     ) -> Self {
         let mut scroll_tracker = ScrollTracker::new(game_io, 8);
-        let assets = &game_io.globals().assets;
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_BBS_ANIMATION);
         let mut bg_sprite = assets.new_sprite(game_io, ResourcePaths::OVERWORLD_BBS);
@@ -151,8 +151,8 @@ impl BBS {
         }
     }
 
-    pub fn handle_input(&mut self, game_io: &GameIO<Globals>) {
-        let globals = game_io.globals();
+    pub fn handle_input(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         self.ui_input_tracker.update(game_io);
 
@@ -186,7 +186,7 @@ impl BBS {
         self.unread_animator.update();
     }
 
-    pub fn draw(&mut self, game_io: &GameIO<Globals>, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         for sprite in &self.static_sprites {
             sprite_queue.draw_sprite(sprite);
         }

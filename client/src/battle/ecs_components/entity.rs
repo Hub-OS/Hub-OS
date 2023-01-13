@@ -1,7 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
-use crate::resources::*;
 use framework::prelude::*;
 use generational_arena::Arena;
 
@@ -57,11 +56,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(
-        game_io: &GameIO<Globals>,
-        id: EntityID,
-        animator_index: generational_arena::Index,
-    ) -> Self {
+    pub fn new(game_io: &GameIO, id: EntityID, animator_index: generational_arena::Index) -> Self {
         let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
 
         let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
@@ -138,7 +133,7 @@ impl Entity {
         self.tile_offset = full_position.tile_offset;
     }
 
-    pub fn set_shadow(&mut self, game_io: &GameIO<Globals>, path: String) {
+    pub fn set_shadow(&mut self, game_io: &GameIO, path: String) {
         let sprite_node = &mut self.sprite_tree[self.shadow_index];
         sprite_node.set_texture(game_io, path);
 

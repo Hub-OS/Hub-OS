@@ -3,7 +3,7 @@ use super::{BattleLuaApi, PLAYER_FORM_TABLE};
 use crate::battle::{BattleCallback, Player, PlayerForm};
 use crate::bindable::EntityID;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::resources::AssetManager;
+use crate::resources::{AssetManager, Globals};
 use std::sync::Arc;
 
 pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
@@ -26,7 +26,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
             let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
 
             let game_io = &api_ctx.game_io;
-            let assets = &game_io.globals().assets;
+            let assets = &game_io.resource::<Globals>().unwrap().assets;
             form.mug_texture = Some(assets.texture(game_io, &path));
 
             lua.pack_multi(())

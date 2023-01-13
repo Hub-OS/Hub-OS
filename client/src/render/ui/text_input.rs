@@ -24,8 +24,8 @@ pub struct TextInput {
 }
 
 impl TextInput {
-    pub fn new(game_io: &GameIO<Globals>, font_style: FontStyle) -> Self {
-        let globals = game_io.globals();
+    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         Self {
             view_offset: Vec2::ZERO,
@@ -109,13 +109,13 @@ impl UiNode for TextInput {
         self.active
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>, bounds: Rect, focused: bool) {
+    fn update(&mut self, game_io: &mut GameIO, bounds: Rect, focused: bool) {
         if !self.active {
             let input_util = InputUtil::new(game_io);
 
             if focused && (self.init_active || input_util.was_just_pressed(Input::Confirm)) {
                 if !self.silent {
-                    let globals = game_io.globals();
+                    let globals = game_io.resource::<Globals>().unwrap();
                     globals.audio.play_sound(&globals.cursor_select_sfx);
                 }
 
@@ -141,7 +141,7 @@ impl UiNode for TextInput {
             input.end_text_input();
 
             if !self.silent {
-                let globals = game_io.globals();
+                let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.cursor_move_sfx);
             }
 
@@ -200,7 +200,7 @@ impl UiNode for TextInput {
 
     fn draw_bounded(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
@@ -232,7 +232,7 @@ impl UiNode for TextInput {
         self.sizing_dirty
     }
 
-    fn measure_ui_size(&mut self, _: &GameIO<Globals>) -> Vec2 {
+    fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         if self.paged {
             Vec2::new(
                 self.text_style.bounds.width,
@@ -268,7 +268,7 @@ impl TextInput {
         bounds.position() + caret_offset
     }
 
-    fn insert_text(&mut self, game_io: &GameIO<Globals>, text: &str, holding_ctrl: bool) {
+    fn insert_text(&mut self, game_io: &GameIO, text: &str, holding_ctrl: bool) {
         for grapheme in text.graphemes(true) {
             if !(self.filter_callback)(grapheme) {
                 continue;

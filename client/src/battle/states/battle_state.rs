@@ -23,7 +23,7 @@ impl State for BattleState {
         Box::new(self.clone())
     }
 
-    fn next_state(&self, game_io: &GameIO<Globals>) -> Option<Box<dyn State>> {
+    fn next_state(&self, game_io: &GameIO) -> Option<Box<dyn State>> {
         if self.complete {
             Some(Box::new(CardSelectState::new(game_io)))
         } else {
@@ -37,7 +37,7 @@ impl State for BattleState {
 
     fn update(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
@@ -106,7 +106,7 @@ impl State for BattleState {
 
     fn draw_ui<'a>(
         &mut self,
-        game_io: &'a GameIO<Globals>,
+        game_io: &'a GameIO,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -168,7 +168,7 @@ impl BattleState {
         }
     }
 
-    fn update_turn_gauge(&mut self, game_io: &GameIO<Globals>, simulation: &mut BattleSimulation) {
+    fn update_turn_gauge(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
         if simulation.time_freeze_tracker.time_is_frozen() {
             return;
         }
@@ -184,7 +184,7 @@ impl BattleState {
 
         if previously_incomplete {
             // just completed, play a sfx
-            let globals = game_io.globals();
+            let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.turn_gauge_sfx);
         }
 
@@ -254,7 +254,7 @@ impl BattleState {
 
     fn detect_battle_start(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -275,7 +275,7 @@ impl BattleState {
 
     pub fn update_time_freeze(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -303,7 +303,10 @@ impl BattleState {
 
             if time_freeze_tracker.is_action_freeze() {
                 // play sfx
-                simulation.play_sound(game_io, &game_io.globals().time_freeze_sfx);
+                simulation.play_sound(
+                    game_io,
+                    &game_io.resource::<Globals>().unwrap().time_freeze_sfx,
+                );
             }
         }
 
@@ -462,7 +465,7 @@ impl BattleState {
 
     pub fn update_field(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -572,7 +575,7 @@ impl BattleState {
 
     fn update_spells(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -606,7 +609,7 @@ impl BattleState {
 
     fn execute_attacks(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -775,7 +778,7 @@ impl BattleState {
 
     fn mark_deleted(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -796,7 +799,7 @@ impl BattleState {
 
     fn update_artifacts(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -827,7 +830,7 @@ impl BattleState {
 
     fn process_input(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -837,7 +840,7 @@ impl BattleState {
 
     fn process_action_input(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -931,7 +934,7 @@ impl BattleState {
                     charge_sprite_node.set_visible(true);
 
                     if !simulation.is_resimulation {
-                        let globals = game_io.globals();
+                        let globals = game_io.resource::<Globals>().unwrap();
                         globals.audio.play_sound(&globals.attack_charging_sfx);
                     }
                 } else if player.charging_time == player.max_charging_time + Player::CHARGE_DELAY {
@@ -941,7 +944,7 @@ impl BattleState {
                     charge_sprite_node.set_color(player.charged_color);
 
                     if !simulation.is_resimulation {
-                        let globals = game_io.globals();
+                        let globals = game_io.resource::<Globals>().unwrap();
                         globals.audio.play_sound(&globals.attack_charged_sfx);
                     }
                 }
@@ -967,7 +970,7 @@ impl BattleState {
 
     fn use_character_card(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         entity_id: EntityID,
@@ -1007,7 +1010,7 @@ impl BattleState {
                 simulation,
             });
 
-            let lua_api = &game_io.globals().battle_api;
+            let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
             let mut id: Option<GenerationalIndex> = None;
 
             lua_api.inject_dynamic(lua, &api_ctx, |lua| {
@@ -1038,7 +1041,7 @@ impl BattleState {
 
     fn generate_card_action(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         id: hecs::Entity,
@@ -1051,7 +1054,7 @@ impl BattleState {
 
     fn process_movement_input(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -1182,7 +1185,7 @@ impl BattleState {
 
     fn update_living(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -1261,7 +1264,7 @@ impl BattleState {
 
     fn process_action_queues(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -1271,7 +1274,7 @@ impl BattleState {
 
     fn process_movement(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -1366,7 +1369,7 @@ impl BattleState {
                         && start_tile.reservations().is_empty()
                     {
                         if !simulation.is_resimulation {
-                            let globals = game_io.globals();
+                            let globals = game_io.resource::<Globals>().unwrap();
                             globals.audio.play_sound(&globals.tile_break_sfx);
                         }
 
@@ -1446,7 +1449,7 @@ impl BattleState {
 
     fn process_card_actions(
         &mut self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
@@ -1658,7 +1661,7 @@ impl BattleState {
 
     fn apply_status_vfx(
         &self,
-        game_io: &GameIO<Globals>,
+        game_io: &GameIO,
         shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
     ) {

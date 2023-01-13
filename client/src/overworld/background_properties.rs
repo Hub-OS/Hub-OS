@@ -11,11 +11,7 @@ pub struct BackgroundProperties {
 }
 
 impl BackgroundProperties {
-    pub fn generate_background(
-        &self,
-        game_io: &GameIO<Globals>,
-        assets: &impl AssetManager,
-    ) -> Background {
+    pub fn generate_background(&self, game_io: &GameIO, assets: &impl AssetManager) -> Background {
         let sprite = assets.new_sprite(game_io, &self.texture_path);
         let animator = Animator::from(&assets.text(&self.animation_path));
 

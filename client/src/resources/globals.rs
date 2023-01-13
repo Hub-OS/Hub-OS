@@ -56,10 +56,8 @@ pub struct Globals {
     pub font_animator: Arc<Animator>,
 
     // shaders
-    pub sprite_pipeline: SpritePipeline<SpriteInstanceData>,
     pub sprite_pipeline_collection: SpritePipelineCollection,
     pub background_pipeline: BackgroundPipeline,
-    pub default_sampler: Arc<TextureSampler>,
     pub background_sampler: Arc<TextureSampler>,
 
     // networking
@@ -67,7 +65,7 @@ pub struct Globals {
 }
 
 impl Globals {
-    pub fn new(game_io: &mut GameIO<Globals>, args: Args) -> Self {
+    pub fn new(game_io: &mut GameIO, args: Args) -> Self {
         let assets = LocalAssetManager::new(game_io);
         let font_texture = assets.texture(game_io, ResourcePaths::FONTS);
 
@@ -127,10 +125,8 @@ impl Globals {
             assets,
 
             // shaders
-            sprite_pipeline: SpritePipeline::new(game_io, true),
             sprite_pipeline_collection: SpritePipelineCollection::new(game_io),
             background_pipeline: BackgroundPipeline::new(game_io),
-            default_sampler: Sprite::new_sampler(game_io),
             background_sampler: TextureSampler::new(
                 game_io,
                 SamplingFilter::Nearest,

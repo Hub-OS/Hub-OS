@@ -22,8 +22,8 @@ pub struct SpriteNode {
 }
 
 impl SpriteNode {
-    pub fn new(game_io: &GameIO<Globals>, color_mode: SpriteColorMode) -> Self {
-        let assets = &game_io.globals().assets;
+    pub fn new(game_io: &GameIO, color_mode: SpriteColorMode) -> Self {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
         sprite.set_color(color_mode.default_color());
@@ -150,8 +150,8 @@ impl SpriteNode {
         self.palette.as_ref()
     }
 
-    pub fn set_palette(&mut self, game_io: &GameIO<Globals>, path: String) {
-        let assets = &game_io.globals().assets;
+    pub fn set_palette(&mut self, game_io: &GameIO, path: String) {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
         self.palette = Some(assets.texture(game_io, &path));
         self.palette_path = path;
     }
@@ -164,8 +164,8 @@ impl SpriteNode {
         &self.texture_path
     }
 
-    pub fn set_texture(&mut self, game_io: &GameIO<Globals>, path: String) {
-        let globals = game_io.globals();
+    pub fn set_texture(&mut self, game_io: &GameIO, path: String) {
+        let globals = game_io.resource::<Globals>().unwrap();
 
         self.sprite
             .set_texture(globals.assets.texture(game_io, &path));

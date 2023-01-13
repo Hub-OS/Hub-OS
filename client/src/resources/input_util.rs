@@ -10,10 +10,10 @@ pub struct InputUtil<'a> {
 }
 
 impl<'a> InputUtil<'a> {
-    pub fn new(game_io: &'a GameIO<Globals>) -> Self {
+    pub fn new(game_io: &'a GameIO) -> Self {
         Self {
             input_manager: game_io.input(),
-            config: &game_io.globals().config,
+            config: &game_io.resource::<Globals>().unwrap().config,
         }
     }
 

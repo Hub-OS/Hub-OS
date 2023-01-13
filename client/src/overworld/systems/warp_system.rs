@@ -1,11 +1,10 @@
 use crate::overworld::components::{WarpController, WarpEffect};
 use crate::overworld::{ObjectData, ObjectType, OverworldBaseEvent};
-use crate::resources::Globals;
 use crate::scenes::{InitialConnectScene, OverworldSceneBase};
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
+pub fn system_warp(game_io: &GameIO, scene: &mut OverworldSceneBase) {
     let player_data = &scene.player_data;
     let entities = &mut scene.entities;
     let map = &mut scene.map;
@@ -35,7 +34,7 @@ pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
 
     match data.object_type {
         ObjectType::CustomWarp | ObjectType::CustomServerWarp => {
-            let callback = move |_: &GameIO<Globals>, scene: &mut OverworldSceneBase| {
+            let callback = move |_: &GameIO, scene: &mut OverworldSceneBase| {
                 let event = OverworldBaseEvent::PendingWarp { entity };
                 scene.events.push_back(event);
             };
@@ -47,7 +46,7 @@ pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
             let data = data.custom_properties.get("data").to_string();
             let data = if data.is_empty() { None } else { Some(data) };
 
-            let callback = move |game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase| {
+            let callback = move |game_io: &GameIO, scene: &mut OverworldSceneBase| {
                 // todo: use push and fix infinite warp issues
                 let transition = crate::transitions::new_connect(game_io);
 
@@ -75,7 +74,7 @@ pub fn system_warp(game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase) {
             );
         }
         ObjectType::HomeWarp => {
-            let callback = |game_io: &GameIO<Globals>, scene: &mut OverworldSceneBase| {
+            let callback = |game_io: &GameIO, scene: &mut OverworldSceneBase| {
                 let transition = crate::transitions::new_connect(game_io);
                 scene.next_scene = NextScene::new_pop().with_transition(transition);
             };
