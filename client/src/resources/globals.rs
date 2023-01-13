@@ -77,6 +77,10 @@ impl Globals {
             game_io.window_mut().set_fullscreen(true);
         }
 
+        if config.lock_aspect_ratio {
+            game_io.window_mut().lock_resolution(TRUE_RESOLUTION.into());
+        }
+
         Self {
             config,
             global_save: GlobalSave::load(&assets),

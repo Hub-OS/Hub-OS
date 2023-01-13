@@ -176,18 +176,20 @@ impl ConfigScene {
             )),
             Box::new(UiConfigToggle::new(
                 "Lock Aspect",
-                // config.borrow().lock_aspect_ratio,
-                false,
+                config.borrow().lock_aspect_ratio,
                 config.clone(),
-                |_game_io, _config| {
-                    // config.lock_aspect_ratio = !config.lock_aspect_ratio;
+                |game_io, mut config| {
+                    config.lock_aspect_ratio = !config.lock_aspect_ratio;
 
-                    // game_io
-                    //     .window_mut()
-                    //     .set_fullscreen(config.lock_aspect_ratio);
+                    let window = game_io.window_mut();
 
-                    // config.lock_aspect_ratio
-                    false
+                    if config.lock_aspect_ratio {
+                        window.lock_resolution(TRUE_RESOLUTION.into());
+                    } else {
+                        window.unlock_resolution()
+                    }
+
+                    config.lock_aspect_ratio
                 },
             )),
         ]
