@@ -350,7 +350,16 @@ impl ConfigScene {
                         audio.set_sfx_volume(config.sfx_volume());
 
                         let fullscreen = config.fullscreen;
-                        game_io.window_mut().set_fullscreen(fullscreen);
+                        let lock_aspect_ratio = config.lock_aspect_ratio;
+                        let window = game_io.window_mut();
+
+                        window.set_fullscreen(fullscreen);
+
+                        if lock_aspect_ratio {
+                            window.lock_resolution(TRUE_RESOLUTION.into());
+                        } else {
+                            window.unlock_resolution();
+                        }
                     }
 
                     let transition = crate::transitions::new_scene_pop(game_io);
