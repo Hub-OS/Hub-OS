@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
     build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, Textbox,
-    TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigToggle, UiConfigVolume,
+    TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigPercentage, UiConfigToggle,
     UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -196,8 +196,31 @@ impl ConfigScene {
 
     fn generate_audio_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
         vec![
-            Box::new(UiConfigVolume::new_music(config.clone())),
-            Box::new(UiConfigVolume::new_sfx(config.clone())),
+            Box::new(UiConfigPercentage::new(
+                "Music",
+                config.borrow().music,
+                config.clone(),
+                |game_io, mut config, value| {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let audio = &mut globals.audio;
+
+                    config.music = value;
+                    audio.set_music_volume(value as f32 * 0.01);
+                },
+            )),
+            Box::new(UiConfigPercentage::new(
+                "SFX",
+                config.borrow().sfx,
+                config.clone(),
+                |game_io, mut config, value| {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let audio = &mut globals.audio;
+
+                    config.sfx = value;
+                    audio.set_sfx_volume(value as f32 * 0.01);
+                    audio.play_sound(&globals.cursor_move_sfx);
+                },
+            )),
             Box::new(UiConfigToggle::new(
                 "Mute Music",
                 config.borrow().mute_music,
