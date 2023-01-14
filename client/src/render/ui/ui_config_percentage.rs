@@ -12,6 +12,7 @@ pub struct UiConfigPercentage {
     value_text: String,
     lower_bound: u8,
     upper_bound: u8,
+    auditory_feedback: bool,
     locking_focus: bool,
     ui_input_tracker: UiInputTracker,
     config: Rc<RefCell<Config>>,
@@ -31,6 +32,7 @@ impl UiConfigPercentage {
             value_text: Self::generate_value_text(value),
             lower_bound: 0,
             upper_bound: 100,
+            auditory_feedback: true,
             locking_focus: false,
             ui_input_tracker: UiInputTracker::new(),
             config,
@@ -45,6 +47,11 @@ impl UiConfigPercentage {
 
     pub fn with_lower_bound(mut self, value: u8) -> Self {
         self.lower_bound = value;
+        self
+    }
+
+    pub fn with_auditory_feedback(mut self, enabled: bool) -> Self {
+        self.auditory_feedback = enabled;
         self
     }
 
@@ -161,5 +168,11 @@ impl UiNode for UiConfigPercentage {
         self.value_text = Self::generate_value_text(self.value);
 
         (self.callback)(game_io, self.config.borrow_mut(), self.value);
+
+        // play sfx after callback in case the sfx volume is adjusted
+        if self.auditory_feedback {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.cursor_move_sfx);
+        }
     }
 }

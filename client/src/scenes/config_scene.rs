@@ -252,18 +252,21 @@ impl ConfigScene {
 
     fn generate_audio_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
         vec![
-            Box::new(UiConfigPercentage::new(
-                "Music",
-                config.borrow().music,
-                config.clone(),
-                |game_io, mut config, value| {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
-                    let audio = &mut globals.audio;
+            Box::new(
+                UiConfigPercentage::new(
+                    "Music",
+                    config.borrow().music,
+                    config.clone(),
+                    |game_io, mut config, value| {
+                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        let audio = &mut globals.audio;
 
-                    config.music = value;
-                    audio.set_music_volume(value as f32 * 0.01);
-                },
-            )),
+                        config.music = value;
+                        audio.set_music_volume(value as f32 * 0.01);
+                    },
+                )
+                .with_auditory_feedback(false),
+            ),
             Box::new(UiConfigPercentage::new(
                 "SFX",
                 config.borrow().sfx,
@@ -274,7 +277,6 @@ impl ConfigScene {
 
                     config.sfx = value;
                     audio.set_sfx_volume(value as f32 * 0.01);
-                    audio.play_sound(&globals.cursor_move_sfx);
                 },
             )),
             Box::new(UiConfigToggle::new(
