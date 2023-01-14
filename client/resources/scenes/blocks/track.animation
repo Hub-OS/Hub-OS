@@ -1,7 +1,0 @@
-imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/scenes/cust/track.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="0" y="0" w="102" h="22" originx="0" originy="0"
-
-animation state="DIMMED"
-frame duration="0.05" x="0" y="22" w="102" h="22" originx="0" originy="0"

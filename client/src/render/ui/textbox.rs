@@ -137,7 +137,7 @@ impl Textbox {
         )
     }
 
-    fn with_position(mut self, position: Vec2) -> Self {
+    pub fn with_position(mut self, position: Vec2) -> Self {
         self.set_position(position);
         self
     }

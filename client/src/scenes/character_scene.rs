@@ -1,3 +1,4 @@
+use super::{CharacterSelectScene, CustomizeScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
@@ -7,8 +8,6 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
 use framework::prelude::*;
-
-use super::CharacterSelectScene;
 
 enum Event {
     BlockCustomization,
@@ -130,7 +129,11 @@ impl Scene for CharacterScene {
 
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
-                Event::BlockCustomization => {}
+                Event::BlockCustomization => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(CustomizeScene::new(game_io))
+                        .with_transition(transition)
+                }
                 Event::CharacterSelect => {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     self.next_scene = NextScene::new_push(CharacterSelectScene::new(game_io))

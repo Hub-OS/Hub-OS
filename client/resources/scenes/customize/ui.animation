@@ -1,0 +1,71 @@
+# @frame_rate 60
+
+imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/customize/ui.png"
+
+animation state="GRID"
+frame duration="3f" x="1" y="0" w="127" h="130" originx="-10" originy="-17" flipx="0" flipy="0"
+point label="GRID_START" x="-7" y="3"
+point label="GRID_NEXT" x="20" y="20"
+
+animation state="GRID_DIM"
+frame duration="3f" x="129" y="0" w="127" h="130" originx="-10" originy="-17" flipx="0" flipy="0"
+
+animation state="RAIL"
+frame duration="0f" x="11" y="131" w="102" h="22" originx="-21" originy="-78" flipx="0" flipy="0"
+
+animation state="RAIL_DIM"
+frame duration="0f" x="11" y="154" w="102" h="22" originx="-21" originy="-78" flipx="0" flipy="0"
+
+animation state="GRID_CURSOR"
+frame duration="4f" x="1" y="177" w="16" h="16" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="4f" x="18" y="177" w="14" h="14" originx="-2" originy="-2" flipx="0" flipy="0"
+frame duration="4f" x="33" y="177" w="12" h="12" originx="-3" originy="-3" flipx="0" flipy="0"
+frame duration="4f" x="18" y="177" w="14" h="14" originx="-2" originy="-2" flipx="0" flipy="0"
+
+animation state="CLAW_CURSOR"
+frame duration="8f" x="37" y="194" w="14" h="14" originx="1" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="20" y="194" w="16" h="13" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="6f" x="1" y="194" w="18" h="11" originx="-1" originy="1" flipx="0" flipy="0"
+
+animation state="CLAW_GRIP"
+frame duration="50f" x="37" y="194" w="14" h="14" originx="-1" originy="1" flipx="0" flipy="0"
+
+animation state="TEXTBOX_CURSOR"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="9" originy="-2" flipx="0" flipy="0"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="10" originy="-2" flipx="0" flipy="0"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="11" originy="-2" flipx="0" flipy="0"
+
+animation state="TEXTBOX"
+frame duration="50f" x="163" y="131" w="92" h="60" originx="-140" originy="-94" flipx="0" flipy="0"
+point label="TEXT_START" x="4" y="12"
+point label="TEXT_END" x="88" y="56"
+
+animation state="V_BORDER_OVERLAP"
+frame duration="50f" x="114" y="131" w="5" h="18" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="V_BORDER_OVERLAP_DIM"
+frame duration="50f" x="120" y="131" w="5" h="18" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="H_BORDER_OVERLAP"
+frame duration="50f" x="126" y="131" w="18" h="5" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="H_BORDER_OVERLAP_DIM"
+frame duration="50f" x="126" y="137" w="18" h="5" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="RUN"
+frame duration="50f" x="182" y="192" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="RUN_BLINK"
+frame duration="9f" x="182" y="212" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="9f" x="182" y="192" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="OPTION"
+frame duration="50f" x="108" y="192" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
+point label="START" x="144" y="0"
+point label="NEXT" x="0" y="18"
+point label="TEXT_START" x="4" y="4"
+point label="TEXT_END" x="69" y="18"
+
+animation state="OPTION_BLINK"
+frame duration="9f" x="108" y="212" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="9f" x="108" y="192" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"

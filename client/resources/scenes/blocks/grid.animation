@@ -1,7 +1,0 @@
-imagePath="C:/Users/Proto/Documents/Code/OpenNetBattle/BattleNetwork/resources/scenes/cust/grid.png"
-
-animation state="DEFAULT"
-frame duration="0.05" x="127" y="0" w="127" h="130" originx="0" originy="0" flipx="0" flipy="0" 
-
-animation state="DIMMED"
-frame duration="0.05" x="0" y="0" w="127" h="130" originx="0" originy="0" flipx="0" flipy="0" 

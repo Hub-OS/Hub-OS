@@ -9,6 +9,7 @@ use std::ops::Range;
 
 pub struct ScrollTracker {
     view_size: usize,
+    view_margin: usize,
     total_items: usize,
     selected_index: usize,
     top_index: usize,
@@ -49,6 +50,7 @@ impl ScrollTracker {
 
         Self {
             view_size,
+            view_margin: 0,
             total_items: 0,
             selected_index: 0,
             top_index: 0,
@@ -66,6 +68,11 @@ impl ScrollTracker {
         }
     }
 
+    pub fn with_view_margin(mut self, view_margin: usize) -> Self {
+        self.view_margin = view_margin;
+        self
+    }
+
     pub fn with_wrap(mut self, wrap: bool) -> Self {
         self.wrap = wrap;
         self
@@ -78,6 +85,16 @@ impl ScrollTracker {
 
     pub fn with_selected_index(mut self, index: usize) -> Self {
         self.set_selected_index(index);
+        self
+    }
+
+    pub fn with_custom_cursor(
+        mut self,
+        game_io: &GameIO,
+        animation_path: &str,
+        texture_path: &str,
+    ) -> Self {
+        self.use_custom_cursor(game_io, animation_path, texture_path);
         self
     }
 
@@ -110,6 +127,24 @@ impl ScrollTracker {
 
         self.cursor_sprite
             .set_texture(assets.texture(game_io, texture_path));
+    }
+
+    pub fn selected_cursor_position(&self) -> Vec2 {
+        self.internal_cursor_position(self.selected_index)
+    }
+
+    pub fn internal_cursor_position(&self, index: usize) -> Vec2 {
+        let mut position = self.cursor_start;
+
+        let offset = (index - self.top_index) as f32 * self.cursor_multiplier;
+
+        if self.vertical {
+            position.y += offset;
+        } else {
+            position.x += offset;
+        }
+
+        position
     }
 
     pub fn cursor_definition(&self) -> (Vec2, f32) {
@@ -163,8 +198,8 @@ impl ScrollTracker {
 
     pub fn view_range(&self) -> Range<usize> {
         Range {
-            start: self.top_index,
-            end: (self.top_index + self.view_size).min(self.total_items),
+            start: self.top_index.max(self.view_margin) - self.view_margin,
+            end: (self.top_index + self.view_size + self.view_margin).min(self.total_items),
         }
     }
 
@@ -346,16 +381,7 @@ impl ScrollTracker {
         animator.update();
         animator.apply(&mut self.cursor_sprite);
 
-        let mut position = self.cursor_start;
-
-        let offset = (index - self.top_index) as f32 * self.cursor_multiplier;
-
-        if self.vertical {
-            position.y += offset;
-        } else {
-            position.x += offset;
-        }
-
+        let position = self.internal_cursor_position(index);
         self.cursor_sprite.set_position(position);
         sprite_queue.draw_sprite(&self.cursor_sprite);
     }
