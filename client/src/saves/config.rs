@@ -1,3 +1,4 @@
+use crate::render::PostProcessColorBlindness;
 use crate::resources::{AssetManager, Input, MAX_VOLUME};
 use framework::input::{Button, Key};
 use std::collections::HashMap;
@@ -9,6 +10,7 @@ pub struct Config {
     pub brightness: u8,
     pub saturation: u8,
     pub ghosting: u8,
+    pub color_blindness: u8,
     pub music: u8,
     pub sfx: u8,
     pub mute_music: bool,
@@ -129,6 +131,7 @@ impl Default for Config {
             brightness: 100,
             saturation: 100,
             ghosting: 0,
+            color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
             mute_music: false,
@@ -152,6 +155,7 @@ impl From<&str> for Config {
             brightness: 100,
             saturation: 100,
             ghosting: 0,
+            color_blindness: PostProcessColorBlindness::TOTAL_OPTIONS,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
             mute_music: false,
@@ -177,6 +181,10 @@ impl From<&str> for Config {
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
             config.ghosting = parse_or_default(properties.get("Ghosting"));
+            config.color_blindness = parse_or(
+                properties.get("ColorBlindness"),
+                PostProcessColorBlindness::TOTAL_OPTIONS,
+            );
         }
 
         if let Some(properties) = ini.section(Some("Audio")) {
@@ -238,6 +246,7 @@ impl ToString for Config {
             writeln!(s, "Brightness = {}", self.brightness)?;
             writeln!(s, "Saturation = {}", self.saturation)?;
             writeln!(s, "Ghosting = {}", self.ghosting)?;
+            writeln!(s, "ColorBlindness = {}", self.color_blindness)?;
 
             writeln!(s, "[Audio]")?;
             writeln!(s, "Music = {}", self.music)?;

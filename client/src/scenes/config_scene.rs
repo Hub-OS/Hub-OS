@@ -1,12 +1,12 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
     build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, Textbox,
-    TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigPercentage, UiConfigToggle,
-    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle, UiConfigPercentage,
+    UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
-    PostProcessGhosting, SpriteColorQueue,
+    PostProcessColorBlindness, PostProcessGhosting, SpriteColorQueue,
 };
 use crate::resources::*;
 use crate::saves::Config;
@@ -247,6 +247,27 @@ impl ConfigScene {
                 )
                 .with_upper_bound(98),
             ),
+            Box::new(UiConfigCycle::new(
+                "Color Sim",
+                config.borrow().color_blindness,
+                config.clone(),
+                &[
+                    ("Prot", 0),
+                    ("Deut", 1),
+                    ("Trit", 2),
+                    ("Off", PostProcessColorBlindness::TOTAL_OPTIONS),
+                ],
+                |game_io, mut config, value| {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                    config.color_blindness = value;
+                    globals.post_process_color_blindness = value;
+
+                    let enable = value < PostProcessColorBlindness::TOTAL_OPTIONS;
+                    let graphics = game_io.graphics_mut();
+                    graphics.set_post_process_enabled::<PostProcessColorBlindness>(enable);
+                },
+            )),
         ]
     }
 
@@ -438,6 +459,8 @@ impl ConfigScene {
 
                         let enable_adjustment = globals.post_process_adjust_config.should_enable();
                         let enable_ghosting = config.ghosting > 0;
+                        let enable_color_blindness =
+                            config.color_blindness < PostProcessColorBlindness::TOTAL_OPTIONS;
 
                         // window
                         let fullscreen = config.fullscreen;
@@ -456,6 +479,9 @@ impl ConfigScene {
                         let graphics = game_io.graphics_mut();
                         graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
                         graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
+                        graphics.set_post_process_enabled::<PostProcessColorBlindness>(
+                            enable_color_blindness,
+                        );
                     }
 
                     let transition = crate::transitions::new_scene_pop(game_io);

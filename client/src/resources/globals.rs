@@ -3,8 +3,8 @@ use crate::battle::BattleProps;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
 use crate::render::{
-    Animator, BackgroundPipeline, PostProcessAdjust, PostProcessAdjustConfig, PostProcessGhosting,
-    SpritePipelineCollection,
+    Animator, BackgroundPipeline, PostProcessAdjust, PostProcessAdjustConfig,
+    PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
 use crate::saves::{Config, GlobalSave};
@@ -17,6 +17,7 @@ pub struct Globals {
     pub config: Config,
     pub post_process_adjust_config: PostProcessAdjustConfig,
     pub post_process_ghosting: f32,
+    pub post_process_color_blindness: u8,
     pub global_save: GlobalSave,
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
@@ -88,18 +89,24 @@ impl Globals {
 
         let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);
         let post_process_ghosting = config.ghosting as f32 * 0.01;
+        let post_process_color_blindness = config.color_blindness;
 
         let graphics = game_io.graphics_mut();
 
         let enable_adjustment = post_process_adjust_config.should_enable();
         let enable_ghosting = config.ghosting > 0;
+        let enable_color_blindness =
+            config.color_blindness < PostProcessColorBlindness::TOTAL_OPTIONS;
+
         graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
         graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
+        graphics.set_post_process_enabled::<PostProcessColorBlindness>(enable_color_blindness);
 
         Self {
             config,
             post_process_adjust_config,
             post_process_ghosting,
+            post_process_color_blindness,
             global_save: GlobalSave::load(&assets),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),

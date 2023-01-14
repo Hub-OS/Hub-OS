@@ -27,6 +27,7 @@ mod zip;
 
 use crate::args::Args;
 use crate::render::PostProcessAdjust;
+use crate::render::PostProcessColorBlindness;
 use crate::render::PostProcessGhosting;
 use crate::resources::*;
 use crate::scenes::BootScene;
@@ -51,6 +52,7 @@ pub fn main() -> anyhow::Result<()> {
         })
         .with_post_process(|game_io| PostProcessGhosting::new(game_io))
         .with_post_process(|game_io| PostProcessAdjust::new(game_io))
+        .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))
         .with_overlay(|game_io| Overlay::new(game_io));
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
