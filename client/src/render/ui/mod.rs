@@ -24,6 +24,9 @@ mod textbox_prompt;
 mod textbox_question;
 mod textbox_quiz;
 mod ui_button;
+mod ui_config_binding;
+mod ui_config_toggle;
+mod ui_config_volume;
 mod ui_input_tracker;
 mod ui_layout;
 
@@ -53,5 +56,8 @@ pub use textbox_prompt::*;
 pub use textbox_question::*;
 pub use textbox_quiz::*;
 pub use ui_button::*;
+pub use ui_config_binding::*;
+pub use ui_config_toggle::*;
+pub use ui_config_volume::*;
 pub use ui_input_tracker::*;
 pub use ui_layout::*;
