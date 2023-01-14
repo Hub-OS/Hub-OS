@@ -4,7 +4,6 @@ pub struct ColorFadeTransition {
     start_instant: Option<Instant>,
     color: Color,
     duration: Duration,
-    render_pipeline: FlatPipeline,
     model: FlatModel,
     camera: OrthoCamera,
 }
@@ -21,7 +20,6 @@ impl ColorFadeTransition {
             start_instant: None,
             color,
             duration,
-            render_pipeline: FlatPipeline::new(game_io),
             model,
             camera,
         }

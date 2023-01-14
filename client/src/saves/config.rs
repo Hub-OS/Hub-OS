@@ -6,6 +6,9 @@ use std::collections::HashMap;
 pub struct Config {
     pub fullscreen: bool,
     pub lock_aspect_ratio: bool,
+    pub brightness: u8,
+    pub saturation: u8,
+    pub ghosting: u8,
     pub music: u8,
     pub sfx: u8,
     pub mute_music: bool,
@@ -123,6 +126,9 @@ impl Default for Config {
         Config {
             fullscreen: false,
             lock_aspect_ratio: true,
+            brightness: 100,
+            saturation: 100,
+            ghosting: 0,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
             mute_music: false,
@@ -136,13 +142,16 @@ impl Default for Config {
 
 impl From<&str> for Config {
     fn from(s: &str) -> Self {
-        use crate::parse_util::parse_or_default;
+        use crate::parse_util::*;
         use std::str::FromStr;
         use strum::IntoEnumIterator;
 
         let mut config = Config {
             fullscreen: false,
             lock_aspect_ratio: true,
+            brightness: 100,
+            saturation: 100,
+            ghosting: 0,
             music: MAX_VOLUME,
             sfx: MAX_VOLUME,
             mute_music: false,
@@ -165,6 +174,9 @@ impl From<&str> for Config {
         if let Some(properties) = ini.section(Some("Video")) {
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
+            config.brightness = parse_or(properties.get("Brightness"), 100);
+            config.saturation = parse_or(properties.get("Saturation"), 100);
+            config.ghosting = parse_or_default(properties.get("Ghosting"));
         }
 
         if let Some(properties) = ini.section(Some("Audio")) {
@@ -223,6 +235,9 @@ impl ToString for Config {
             writeln!(s, "[Video]")?;
             writeln!(s, "Fullscreen = {}", self.fullscreen)?;
             writeln!(s, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
+            writeln!(s, "Brightness = {}", self.brightness)?;
+            writeln!(s, "Saturation = {}", self.saturation)?;
+            writeln!(s, "Ghosting = {}", self.ghosting)?;
 
             writeln!(s, "[Audio]")?;
             writeln!(s, "Music = {}", self.music)?;

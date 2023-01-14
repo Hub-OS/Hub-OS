@@ -4,7 +4,10 @@ use crate::render::ui::{
     TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigPercentage, UiConfigToggle,
     UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
-use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
+use crate::render::{
+    Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
+    PostProcessGhosting, SpriteColorQueue,
+};
 use crate::resources::*;
 use crate::saves::Config;
 use framework::prelude::*;
@@ -191,6 +194,59 @@ impl ConfigScene {
                     config.lock_aspect_ratio
                 },
             )),
+            Box::new(
+                UiConfigPercentage::new(
+                    "Brightness",
+                    config.borrow().brightness,
+                    config.clone(),
+                    |game_io, mut config, value| {
+                        let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                        config.brightness = value;
+                        globals.post_process_adjust_config =
+                            PostProcessAdjustConfig::from_config(&config);
+
+                        let enable = globals.post_process_adjust_config.should_enable();
+                        let graphics = game_io.graphics_mut();
+                        graphics.set_post_process_enabled::<PostProcessAdjust>(enable);
+                    },
+                )
+                .with_lower_bound(10),
+            ),
+            Box::new(UiConfigPercentage::new(
+                "Saturation",
+                config.borrow().saturation,
+                config.clone(),
+                |game_io, mut config, value| {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                    config.saturation = value;
+                    globals.post_process_adjust_config =
+                        PostProcessAdjustConfig::from_config(&config);
+
+                    let enable = globals.post_process_adjust_config.should_enable();
+                    let graphics = game_io.graphics_mut();
+                    graphics.set_post_process_enabled::<PostProcessAdjust>(enable);
+                },
+            )),
+            Box::new(
+                UiConfigPercentage::new(
+                    "Ghosting",
+                    config.borrow().ghosting,
+                    config.clone(),
+                    |game_io, mut config, value| {
+                        let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                        config.ghosting = value;
+                        globals.post_process_ghosting = value as f32 * 0.01;
+
+                        let enable = value > 0;
+                        let graphics = game_io.graphics_mut();
+                        graphics.set_post_process_enabled::<PostProcessGhosting>(enable);
+                    },
+                )
+                .with_upper_bound(98),
+            ),
         ]
     }
 
@@ -366,11 +422,22 @@ impl ConfigScene {
                     } else {
                         // reapply previous config
                         let config = &globals.config;
+
+                        // audio
                         let audio = &mut globals.audio;
 
                         audio.set_music_volume(config.music_volume());
                         audio.set_sfx_volume(config.sfx_volume());
 
+                        // post processing
+                        globals.post_process_adjust_config =
+                            PostProcessAdjustConfig::from_config(config);
+                        globals.post_process_ghosting = config.ghosting as f32 * 0.01;
+
+                        let enable_adjustment = globals.post_process_adjust_config.should_enable();
+                        let enable_ghosting = config.ghosting > 0;
+
+                        // window
                         let fullscreen = config.fullscreen;
                         let lock_aspect_ratio = config.lock_aspect_ratio;
                         let window = game_io.window_mut();
@@ -382,6 +449,11 @@ impl ConfigScene {
                         } else {
                             window.unlock_resolution();
                         }
+
+                        // post processing again
+                        let graphics = game_io.graphics_mut();
+                        graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
+                        graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
                     }
 
                     let transition = crate::transitions::new_scene_pop(game_io);

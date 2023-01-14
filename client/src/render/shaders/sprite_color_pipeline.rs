@@ -73,11 +73,11 @@ fn create_pipeline(
     fragment_main: &str,
 ) -> SpritePipeline<SpriteInstanceData> {
     let render_pipeline = RenderPipelineBuilder::new(game_io)
-        .with_uniform_bind_group(vec![OrthoCamera::bind_group_layout_entry(0)])
-        .with_instance_bind_group_layout(vec![
-            Texture::bind_group_layout_entry(0),
-            TextureSampler::bind_group_layout_entry(1),
-        ])
+        .with_uniform_bind_group(&[BindGroupLayoutEntry {
+            visibility: wgpu::ShaderStages::VERTEX,
+            binding_type: OrthoCamera::binding_type(),
+        }])
+        .with_instance_bind_group(SpritePipeline::<()>::instance_bind_group_layout())
         .with_vertex_shader(shader, "vs_main")
         .with_fragment_shader(shader, fragment_main)
         .build::<SpriteVertex, SpriteInstanceData>()
@@ -93,14 +93,21 @@ fn create_palette_pipeline(
     fragment_main: &str,
 ) -> SpritePipeline<SpriteInstanceData> {
     let render_pipeline = RenderPipelineBuilder::new(game_io)
-        .with_uniform_bind_group(vec![
-            OrthoCamera::bind_group_layout_entry(0),
-            Texture::bind_group_layout_entry(1),
+        .with_uniform_bind_group(&[
+            BindGroupLayoutEntry {
+                visibility: wgpu::ShaderStages::VERTEX,
+                binding_type: OrthoCamera::binding_type(),
+            },
+            BindGroupLayoutEntry {
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                binding_type: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+            },
         ])
-        .with_instance_bind_group_layout(vec![
-            Texture::bind_group_layout_entry(0),
-            TextureSampler::bind_group_layout_entry(1),
-        ])
+        .with_instance_bind_group(SpritePipeline::<()>::instance_bind_group_layout())
         .with_vertex_shader(vertex_shader, "vs_main")
         .with_fragment_shader(palette_shader, fragment_main)
         .build::<SpriteVertex, SpriteInstanceData>()

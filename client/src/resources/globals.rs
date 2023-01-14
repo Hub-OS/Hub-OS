@@ -2,7 +2,10 @@ use crate::args::Args;
 use crate::battle::BattleProps;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
-use crate::render::{Animator, BackgroundPipeline, SpritePipelineCollection};
+use crate::render::{
+    Animator, BackgroundPipeline, PostProcessAdjust, PostProcessAdjustConfig, PostProcessGhosting,
+    SpritePipelineCollection,
+};
 use crate::resources::*;
 use crate::saves::{Config, GlobalSave};
 use framework::prelude::*;
@@ -12,6 +15,8 @@ use std::sync::Arc;
 
 pub struct Globals {
     pub config: Config,
+    pub post_process_adjust_config: PostProcessAdjustConfig,
+    pub post_process_ghosting: f32,
     pub global_save: GlobalSave,
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
@@ -81,8 +86,20 @@ impl Globals {
             game_io.window_mut().lock_resolution(TRUE_RESOLUTION.into());
         }
 
+        let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);
+        let post_process_ghosting = config.ghosting as f32 * 0.01;
+
+        let graphics = game_io.graphics_mut();
+
+        let enable_adjustment = post_process_adjust_config.should_enable();
+        let enable_ghosting = config.ghosting > 0;
+        graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
+        graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
+
         Self {
             config,
+            post_process_adjust_config,
+            post_process_ghosting,
             global_save: GlobalSave::load(&assets),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),

@@ -26,6 +26,8 @@ mod transitions;
 mod zip;
 
 use crate::args::Args;
+use crate::render::PostProcessAdjust;
+use crate::render::PostProcessGhosting;
 use crate::resources::*;
 use crate::scenes::BootScene;
 use crate::scenes::Overlay;
@@ -47,6 +49,8 @@ pub fn main() -> anyhow::Result<()> {
             let globals = Globals::new(game_io, args);
             game_io.set_resource(globals);
         })
+        .with_post_process(|game_io| PostProcessGhosting::new(game_io))
+        .with_post_process(|game_io| PostProcessAdjust::new(game_io))
         .with_overlay(|game_io| Overlay::new(game_io));
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;

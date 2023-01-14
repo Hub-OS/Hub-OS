@@ -1248,7 +1248,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Real-PET/framework#ac8c6ad4dfda893dad0c128f54b168169294824a"
+source = "git+https://github.com/Real-PET/framework#524d145282be8784a7164a2a42866e43292c6998"
 dependencies = [
  "anyhow",
  "arboard",

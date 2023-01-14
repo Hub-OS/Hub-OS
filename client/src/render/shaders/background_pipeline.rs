@@ -14,10 +14,7 @@ impl BackgroundPipeline {
         let shader = device.create_shader_module(include_wgsl!("background_shader.wgsl"));
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
-            .with_instance_bind_group_layout(vec![
-                Texture::bind_group_layout_entry(0),
-                TextureSampler::bind_group_layout_entry(1),
-            ])
+            .with_instance_bind_group(SpritePipeline::<()>::instance_bind_group_layout())
             .with_vertex_shader(&shader, "vs_main")
             .with_fragment_shader(&shader, "fs_main")
             .build::<Vec2, BackgroundInstanceData>()

@@ -10,6 +10,8 @@ pub struct UiConfigPercentage {
     name: &'static str,
     value: u8,
     value_text: String,
+    lower_bound: u8,
+    upper_bound: u8,
     locking_focus: bool,
     ui_input_tracker: UiInputTracker,
     config: Rc<RefCell<Config>>,
@@ -27,11 +29,23 @@ impl UiConfigPercentage {
             name,
             value,
             value_text: Self::generate_value_text(value),
+            lower_bound: 0,
+            upper_bound: 100,
             locking_focus: false,
             ui_input_tracker: UiInputTracker::new(),
             config,
             callback: Box::new(callback),
         }
+    }
+
+    pub fn with_upper_bound(mut self, value: u8) -> Self {
+        self.upper_bound = value;
+        self
+    }
+
+    pub fn with_lower_bound(mut self, value: u8) -> Self {
+        self.lower_bound = value;
+        self
     }
 
     fn generate_value_text(level: u8) -> String {
@@ -113,28 +127,28 @@ impl UiNode for UiConfigPercentage {
         let original_level = self.value;
 
         // nudge by 1
-        if (left || down) && self.value > 0 {
+        if (left || down) && self.value > self.lower_bound {
             self.value -= 1;
         }
 
-        if (right || up) && self.value < 100 {
+        if (right || up) && self.value < self.upper_bound {
             self.value += 1;
         }
 
         // nudge by 10
         if self.ui_input_tracker.is_active(Input::ShoulderL) {
-            if self.value >= 10 {
+            if self.value >= self.lower_bound + 10 {
                 self.value -= 10;
             } else {
-                self.value = 0;
+                self.value = self.lower_bound;
             }
         }
 
         if self.ui_input_tracker.is_active(Input::ShoulderR) {
-            if self.value <= 100 - 10 {
+            if self.value <= self.upper_bound - 10 {
                 self.value += 10;
             } else {
-                self.value = 100;
+                self.value = self.upper_bound;
             }
         }
 
