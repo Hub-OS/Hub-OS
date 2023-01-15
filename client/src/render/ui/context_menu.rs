@@ -123,6 +123,10 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.open = false;
     }
 
+    pub fn bounds(&self) -> Rect {
+        self.ui_layout.get_bounds(TreeIndex::tree_root()).unwrap()
+    }
+
     pub fn set_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
         let option_style = UiStyle {
             margin_top: Dimension::Points(3.0),

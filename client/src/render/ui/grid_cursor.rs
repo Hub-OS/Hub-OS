@@ -38,6 +38,7 @@ impl GridCursor {
         self.animator.set_state(state);
         self.animator.set_loop_mode(AnimatorLoopMode::Loop);
         self.animator.sync_time(self.time);
+        self.sprite.set_color(Color::WHITE);
     }
 
     pub fn use_grid_cursor(&mut self) {
@@ -54,6 +55,14 @@ impl GridCursor {
 
     pub fn use_claw_grip_cursor(&mut self) {
         self.set_animator_state("CLAW_GRIP");
+    }
+
+    pub fn hide(&mut self) {
+        self.sprite.set_color(Color::TRANSPARENT);
+    }
+
+    pub fn target(&self) -> Vec2 {
+        self.target_position
     }
 
     pub fn position(&self) -> Vec2 {

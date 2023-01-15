@@ -14,6 +14,23 @@ pub struct BlockPackage {
     pub shape: [bool; 5 * 5],
 }
 
+impl BlockPackage {
+    pub fn exists_at(&self, rotation: u8, position: (usize, usize)) -> bool {
+        if position.0 >= 5 || position.1 >= 5 {
+            return false;
+        }
+
+        let (x, y) = match rotation {
+            1 => (position.1, 4 - position.0),
+            2 => (4 - position.0, 4 - position.1),
+            3 => (4 - position.1, position.0),
+            _ => (position.0, position.1),
+        };
+
+        self.shape.get(y * 5 + x) == Some(&true)
+    }
+}
+
 impl Package for BlockPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
@@ -66,8 +83,8 @@ impl Package for BlockPackage {
 
             package_table.set(
                 "set_description",
-                scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().description = package_info.base_path.to_string() + &path;
+                scope.create_function(|_, (_, description): (rollback_mlua::Table, String)| {
+                    package.borrow_mut().description = description;
                     Ok(())
                 })?,
             )?;
@@ -85,21 +102,18 @@ impl Package for BlockPackage {
 
             package_table.set(
                 "set_shape",
-                scope.create_function(|_, (_, mut bools): (rollback_mlua::Table, Vec<bool>)| {
-                    bools.resize(5 * 5, false);
+                scope.create_function(|_, (_, mut bools): (rollback_mlua::Table, Vec<i32>)| {
+                    bools.resize(5 * 5, 0);
 
                     let mut package = package.borrow_mut();
 
                     for (i, bool) in bools.into_iter().enumerate() {
-                        package.shape[i] = bool;
+                        package.shape[i] = bool != 0;
                     }
 
                     Ok(())
                 })?,
             )?;
-
-            // stub
-            package_table.set("set_mutator", scope.create_function(|_, _: ()| Ok(()))?)?;
 
             package_init.call(package_table)?;
 

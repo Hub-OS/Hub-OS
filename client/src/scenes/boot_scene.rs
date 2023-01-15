@@ -146,6 +146,8 @@ impl BootScene {
 
             child_packages.extend(block_packages.child_packages(PackageNamespace::Local));
 
+            sender.send(Event::BlockManager(block_packages)).unwrap();
+
             // load libraries
             let mut library_packages =
                 PackageManager::<LibraryPackage>::new(PackageCategory::Library);
