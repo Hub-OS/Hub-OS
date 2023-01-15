@@ -333,8 +333,6 @@ impl CustomizeScene {
                 } else if self.input_tracker.is_active(Input::Confirm) && !prev_held && has_block {
                     self.state = State::BlockContext { x: old_x, y: old_y };
 
-                    globals.audio.play_sound(&globals.cursor_select_sfx);
-
                     self.block_context_menu.open();
                     self.block_context_menu.update(game_io, &self.input_tracker);
 
