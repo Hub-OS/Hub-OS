@@ -79,20 +79,14 @@ impl CharacterSelectScene {
 
         cursor_animator.apply(&mut cursor_sprite);
 
-        // bg and overlays
+        // overlays
+        let frame = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_FRAME);
+        let overlay_sprites = vec![frame];
+
+        // bg + layout
         let bg_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_BG);
         let mut bg_animator =
             Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_BG_ANIMATION);
-
-        let mut top_bar = bg_sprite.clone();
-        bg_animator.set_state("TOP_BAR_OVERLAY");
-        bg_animator.apply(&mut top_bar);
-
-        let mut bottom_bar = bg_sprite.clone();
-        bg_animator.set_state("BOTTOM_BAR_OVERLAY");
-        bg_animator.apply(&mut bottom_bar);
-
-        let overlay_sprites = vec![top_bar, bottom_bar];
 
         bg_animator.set_state("DEFAULT");
 

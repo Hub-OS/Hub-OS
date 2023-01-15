@@ -156,6 +156,7 @@ impl ResourcePaths {
     pub const CHARACTER_SELECT_BG_ANIMATION: &str =
         "resources/scenes/character_select/bg.animation";
     pub const CHARACTER_SELECT_BG: &str = "resources/scenes/character_select/bg.png";
+    pub const CHARACTER_SELECT_FRAME: &str = "resources/scenes/character_select/frame.png";
     pub const CHARACTER_SELECT_CURSOR: &str = "resources/scenes/character_select/cursor.png";
     pub const CHARACTER_SELECT_CURSOR_ANIMATION: &str =
         "resources/scenes/character_select/cursor.animation";

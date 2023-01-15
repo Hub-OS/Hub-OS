@@ -2,13 +2,7 @@ imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/
 
 animation state="DEFAULT"
 frame duration="0" x="0" y="0" w="240" h="160" originx="0" originy="0" flipx="0" flipy="0"
-point label="LIST_START" x="152" y="20"
-point label="HP" x="106" y="138"
-point label="ELEMENT" x="2" y="140"
-point label="NAME" x="18" y="142"
-
-animation state="TOP_BAR_OVERLAY"
-frame duration="0.005" x="0" y="0" w="240" h="14" originx="0" originy="0" flipx="0" flipy="0"
-
-animation state="BOTTOM_BAR_OVERLAY"
-frame duration="0.005" x="0" y="155" w="240" h="5" originx="0" originy="-155" flipx="0" flipy="0"
+point label="LIST_START" x="147" y="20"
+point label="HP" x="101" y="137"
+point label="ELEMENT" x="7" y="139"
+point label="NAME" x="23" y="141"
