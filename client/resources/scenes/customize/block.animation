@@ -1,4 +1,4 @@
-imagePath="block_0.png"
+imagePath="block_white.png"
 
 animation state="FLAT"
 frame duration="0" x="0" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
@@ -6,7 +6,7 @@ frame duration="0" x="0" y="0" w="20" h="20" originx="0" originy="0" flipx="0" f
 animation state="FLAT_DIM"
 frame duration="0" x="0" y="20" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
-animation state="FLAT_INSERT"
+animation state="FLAT_HELD"
 frame duration="0" x="40" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PLUS"
@@ -15,7 +15,7 @@ frame duration="0" x="20" y="0" w="20" h="20" originx="0" originy="0" flipx="0" 
 animation state="PLUS_DIM"
 frame duration="0" x="20" y="20" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
-animation state="PLUS_INSERT"
+animation state="PLUS_HELD"
 frame duration="0" x="40" y="20" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="COLOR_INDICATOR"
