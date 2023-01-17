@@ -1,3 +1,3 @@
-animation state="default"
+animation state="DEFAULT"
 frame x="0" y="0" w="240" h="60"
-point label="card" x="8" y="15"
+point label="CARD" x="8" y="17"

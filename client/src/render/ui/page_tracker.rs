@@ -9,6 +9,7 @@ pub struct PageTracker {
     active_page: usize,
     page_count: usize,
     page_width: f32,
+    page_start: Vec2,
     current_offset: f32,
     page_arrows: PageArrows,
     page_arrow_offsets: Vec<Vec2>,
@@ -20,6 +21,7 @@ impl PageTracker {
             active_page: 0,
             page_count,
             page_width: RESOLUTION_F.x,
+            page_start: Vec2::ZERO,
             current_offset: 0.0,
             page_arrows: PageArrows::new(game_io, Vec2::ZERO),
             page_arrow_offsets: vec![Vec2::new(0.0, RESOLUTION_F.y * 0.5); page_count.max(1) - 1],
@@ -28,6 +30,11 @@ impl PageTracker {
 
     pub fn with_page_width(mut self, width: f32) -> Self {
         self.page_width = width;
+        self
+    }
+
+    pub fn with_page_start(mut self, position: Vec2) -> Self {
+        self.page_start = position;
         self
     }
 
@@ -118,7 +125,7 @@ impl PageTracker {
         let mut first_run = true;
 
         for (page, offset_x) in self.visible_pages() {
-            let offset = Vec2::new(self.page_width + offset_x, 0.0);
+            let offset = self.page_start + Vec2::new(self.page_width + offset_x, 0.0);
 
             if first_run && page > 0 {
                 let mut position = self.page_arrow_offsets[page - 1] + offset;
