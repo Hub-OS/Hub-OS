@@ -47,6 +47,7 @@ pub struct CustomizeScene {
     information_text: Text,
     input_tracker: UiInputTracker,
     scroll_tracker: ScrollTracker,
+    colors: Vec<BlockColor>,
     grid: BlockGrid,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
@@ -159,6 +160,7 @@ impl CustomizeScene {
             information_text,
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
+            colors: Vec::new(),
             grid: BlockGrid::new(),
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
@@ -174,6 +176,22 @@ impl CustomizeScene {
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
+        }
+    }
+
+    fn update_colors(&mut self) {
+        // retain colors that are on the grid
+        self.colors.retain(|color| {
+            self.grid
+                .installed_blocks()
+                .any(|block| block.color == *color)
+        });
+
+        // add colors missing from our list
+        for block in self.grid.installed_blocks() {
+            if !self.colors.contains(&block.color) {
+                self.colors.push(block.color);
+            }
         }
     }
 
@@ -244,6 +262,7 @@ impl CustomizeScene {
                 if success {
                     globals.audio.play_sound(&globals.cursor_select_sfx);
                     self.held_block = None;
+                    self.update_colors();
                 } else {
                     globals.audio.play_sound(&globals.cursor_error_sfx);
                 }
@@ -439,6 +458,7 @@ impl CustomizeScene {
             },
         );
         self.scroll_tracker.set_total_items(self.packages.len() + 1);
+        self.update_colors();
     }
 
     fn update_cursor_sprite(&mut self) {
@@ -540,6 +560,30 @@ impl Scene for CustomizeScene {
 
         // draw grid
         sprite_queue.draw_sprite(&self.grid_sprite);
+
+        // draw colors
+        let mut color_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
+
+        self.animator.set_state("GRID");
+        let mut color_position =
+            self.animator.point("COLORS_START").unwrap_or_default() - self.grid_sprite.origin();
+        let color_next = self.animator.point("COLOR_NEXT").unwrap_or_default();
+
+        for (i, color) in self.colors.iter().enumerate() {
+            if i == 4 {
+                color_position.x += 1.0;
+            } else if i > 4 {
+                color_position.x -= 1.0;
+            }
+
+            self.animator.set_state(color.state());
+            self.animator.apply(&mut color_sprite);
+
+            color_sprite.set_position(color_position);
+            sprite_queue.draw_sprite(&color_sprite);
+
+            color_position += color_next;
+        }
 
         // draw grid blocks
         let mut block_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());

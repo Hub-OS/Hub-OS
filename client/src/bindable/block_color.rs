@@ -14,6 +14,17 @@ pub enum BlockColor {
 }
 
 impl BlockColor {
+    pub fn state(&self) -> &'static str {
+        match self {
+            BlockColor::White => "WHITE_INDICATOR",
+            BlockColor::Red => "RED_INDICATOR",
+            BlockColor::Green => "GREEN_INDICATOR",
+            BlockColor::Blue => "BLUE_INDICATOR",
+            BlockColor::Pink => "PINK_INDICATOR",
+            BlockColor::Yellow => "YELLOW_INDICATOR",
+        }
+    }
+
     pub fn flat_state(&self) -> &'static str {
         match self {
             BlockColor::White => "WHITE_FLAT",

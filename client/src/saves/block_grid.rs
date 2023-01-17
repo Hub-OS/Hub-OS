@@ -28,6 +28,22 @@ impl BlockGrid {
         }
     }
 
+    pub fn count_colors(&self) -> usize {
+        let mut colors = Vec::new();
+
+        for (_, block) in &self.blocks {
+            if !colors.contains(&block.color) {
+                colors.push(block.color);
+            }
+        }
+
+        colors.len()
+    }
+
+    pub fn installed_blocks(&self) -> impl Iterator<Item = &InstalledBlock> {
+        self.blocks.iter().map(|(_, block)| block)
+    }
+
     /// Failed placement will provide a list of overlapping positions
     pub fn install_block(
         &mut self,
