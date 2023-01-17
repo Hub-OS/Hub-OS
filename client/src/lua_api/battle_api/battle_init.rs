@@ -161,8 +161,7 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
 
 fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(SPAWNER_TABLE, "spawn_at", |api_ctx, lua, params| {
-        let (table, x, y, intro_state): (rollback_mlua::Table, i32, i32, Option<String>) =
-            lua.unpack_multi(params)?;
+        let (table, x, y): (rollback_mlua::Table, i32, i32) = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
