@@ -86,6 +86,7 @@ impl CharacterScene {
         self.textbox = Textbox::new_navigation(game_io)
             .begin_open()
             .with_interface(interface);
+        self.textbox.skip_animation(game_io);
     }
 
     fn handle_input(&mut self, game_io: &GameIO) {

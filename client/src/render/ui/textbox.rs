@@ -315,8 +315,7 @@ impl Textbox {
 
             if pressed_skip && self.text_index != page.range.end {
                 // checked after testing for page completion to prevent Confirm from skipping + advancing same frame
-                self.text_index = page.range.end;
-                self.update_avatar(game_io);
+                self.skip_animation(game_io);
             }
         } else {
             // try advancing page
@@ -393,6 +392,26 @@ impl Textbox {
             animator.set_state(state);
             animator.set_loop_mode(AnimatorLoopMode::Loop);
         }
+    }
+
+    pub fn skip_animation(&mut self, game_io: &GameIO) {
+        let Some(page) = self.page_queue.front() else {
+            return;
+        };
+
+        // process remaining effects
+        let text = match self.interface_queue.front() {
+            Some(interface) => interface.text(),
+            None => "",
+        };
+
+        while self.text_index < page.range.end {
+            let current_char = char_at(text, self.text_index);
+            self.effect_processor.process_char(current_char);
+            self.text_index += current_char.len_utf8();
+        }
+
+        self.update_avatar(game_io);
     }
 
     fn advance_page(&mut self, game_io: &GameIO) {

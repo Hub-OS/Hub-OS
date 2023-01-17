@@ -65,7 +65,9 @@ impl TextboxInterface for TextboxCharacterNavigation {
             self.cursor = Some(TextboxCursor::new(game_io));
         }
 
-        self.handle_input(game_io);
+        if !game_io.is_in_transition() {
+            self.handle_input(game_io);
+        }
 
         let cursor = self.cursor.as_mut().unwrap();
 

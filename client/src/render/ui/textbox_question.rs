@@ -69,6 +69,10 @@ impl TextboxInterface for TextboxQuestion {
             self.render_data = Some(render_data);
         }
 
+        if game_io.is_in_transition() {
+            return;
+        }
+
         let input_util = InputUtil::new(game_io);
         self.input_tracker.update(game_io);
 

@@ -23,26 +23,21 @@ impl TextboxQuiz {
             input_tracker: UiInputTracker::new(),
         }
     }
-}
 
-impl TextboxInterface for TextboxQuiz {
-    fn text(&self) -> &str {
-        &self.message
+    fn update_cursor(&mut self, text_style: &TextStyle) {
+        let cursor = self.cursor.as_mut().unwrap();
+
+        let line_height = text_style.line_height();
+        let relative_position = Vec2::new(
+            text_style.measure("  ").size.x,
+            line_height * 0.5 + line_height * self.selection as f32,
+        );
+
+        cursor.set_position(text_style.bounds.position() + relative_position);
+        cursor.update();
     }
 
-    fn is_complete(&self) -> bool {
-        self.complete
-    }
-
-    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, _lines: usize) {
-        if self.complete {
-            return;
-        }
-
-        if self.cursor.is_none() {
-            self.cursor = Some(TextboxCursor::new(game_io));
-        }
-
+    fn handle_input(&mut self, game_io: &GameIO, text_style: &TextStyle) {
         let input_util = InputUtil::new(game_io);
         self.input_tracker.update(game_io);
 
@@ -67,6 +62,7 @@ impl TextboxInterface for TextboxQuiz {
         if self.selection != old_selection {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
+            self.update_cursor(text_style);
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
@@ -80,17 +76,31 @@ impl TextboxInterface for TextboxQuiz {
             let callback = self.callback.take().unwrap();
             callback(self.selection);
         }
+    }
+}
 
-        let cursor = self.cursor.as_mut().unwrap();
+impl TextboxInterface for TextboxQuiz {
+    fn text(&self) -> &str {
+        &self.message
+    }
 
-        let line_height = text_style.line_height();
-        let relative_position = Vec2::new(
-            text_style.measure("  ").size.x,
-            line_height * 0.5 + line_height * self.selection as f32,
-        );
+    fn is_complete(&self) -> bool {
+        self.complete
+    }
 
-        cursor.set_position(text_style.bounds.position() + relative_position);
-        cursor.update();
+    fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, _lines: usize) {
+        if self.complete {
+            return;
+        }
+
+        if self.cursor.is_none() {
+            self.cursor = Some(TextboxCursor::new(game_io));
+            self.update_cursor(text_style);
+        }
+
+        if !game_io.is_in_transition() {
+            self.handle_input(game_io, text_style);
+        }
     }
 
     fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
