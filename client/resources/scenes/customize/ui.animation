@@ -5,9 +5,9 @@ imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/
 animation state="GRID"
 frame duration="3f" x="1" y="0" w="127" h="130" originx="-10" originy="-17" flipx="0" flipy="0"
 point label="GRID_START" x="-8" y="2"
-point label="GRID_NEXT" x="20" y="20"
+point label="GRID_STEP" x="20" y="20"
 point label="COLORS_START" x="9" y="3"
-point label="COLOR_NEXT" x="15" y="0"
+point label="COLORS_STEP" x="15" y="0"
 
 animation state="RAIL"
 frame duration="0f" x="5" y="131" w="117" h="22" originx="-15" originy="-78" flipx="0" flipy="0"

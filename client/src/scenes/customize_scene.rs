@@ -96,7 +96,7 @@ impl CustomizeScene {
         animator.apply(&mut grid_sprite);
 
         let grid_start = animator.point("GRID_START").unwrap_or_default() - grid_sprite.origin();
-        let grid_increment = animator.point("GRID_NEXT").unwrap_or_default();
+        let grid_step = animator.point("GRID_STEP").unwrap_or_default();
 
         // rail sprite
         let mut rail_sprite = grid_sprite.clone();
@@ -154,7 +154,7 @@ impl CustomizeScene {
             top_bar,
             grid_sprite,
             grid_start,
-            grid_increment,
+            grid_increment: grid_step,
             rail_sprite,
             information_box_sprite,
             information_text,
@@ -567,7 +567,7 @@ impl Scene for CustomizeScene {
         self.animator.set_state("GRID");
         let mut color_position =
             self.animator.point("COLORS_START").unwrap_or_default() - self.grid_sprite.origin();
-        let color_next = self.animator.point("COLOR_NEXT").unwrap_or_default();
+        let color_step = self.animator.point("COLORS_STEP").unwrap_or_default();
 
         for (i, color) in self.colors.iter().enumerate() {
             if i == 4 {
@@ -582,7 +582,7 @@ impl Scene for CustomizeScene {
             color_sprite.set_position(color_position);
             sprite_queue.draw_sprite(&color_sprite);
 
-            color_position += color_next;
+            color_position += color_step;
         }
 
         // draw grid blocks
