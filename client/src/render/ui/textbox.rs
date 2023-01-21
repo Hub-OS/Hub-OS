@@ -329,7 +329,10 @@ impl Textbox {
         }
 
         if let Some(interface) = self.interface_queue.front_mut() {
-            if is_last_page && page_completed {
+            let prev_completed = page_completed;
+            let page_completed = self.text_index == page.range.end;
+
+            if is_last_page && page_completed && prev_completed {
                 interface.update(game_io, &self.text_style, page.lines);
             }
 
