@@ -451,6 +451,9 @@ fn inter_dock_swap(
         pack_index = active_index;
     }
 
+    let pack_item = scene.pack_dock.card_items[pack_index].as_ref();
+    let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
+
     // store the index of the transferred card in case we need to move it back
     let stored_index = transfer_to_pack(scene, folder_index);
 
@@ -464,7 +467,21 @@ fn inter_dock_swap(
         return None;
     };
 
-    // move the transferred card to the correct slot
+    if let Some(stored_index) = stored_index {
+        if pack_card_count == 1 {
+            let merged_item = scene.pack_dock.card_items[stored_index - 1].as_ref();
+            let merged_card_count = merged_item.unwrap().count;
+
+            if merged_card_count == 1 {
+                // move the card transferred to the pack into the pack slot
+                scene.pack_dock.card_items.insert(pack_index, None);
+                scene.pack_dock.card_items.swap(stored_index, pack_index);
+                scene.pack_dock.card_items.pop();
+            }
+        }
+    }
+
+    // move the card transferred to the folder to the correct slot
     // otherwise it's moved to the first empty slot and not the one we're selecting
     scene.folder_dock.card_items.swap(index, folder_index);
 
