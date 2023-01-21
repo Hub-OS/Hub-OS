@@ -1,12 +1,13 @@
 use super::{CharacterSelectScene, CustomizeScene};
 use crate::bindable::SpriteColorMode;
-use crate::packages::PlayerPackage;
+use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::ui::{
     ElementSprite, FontStyle, PageTracker, PlayerHealthUI, SceneTitle, ScrollableList, Text,
-    Textbox, TextboxCharacterNavigation, UiInputTracker,
+    Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
+use crate::saves::BlockGrid;
 use framework::prelude::*;
 
 enum Event {
@@ -186,6 +187,9 @@ impl StatusPage {
         mut page_sprite: Sprite,
         player_package: &PlayerPackage,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+
         let mut page = Self {
             text: Vec::new(),
             sprites: Vec::new(),
@@ -284,9 +288,28 @@ impl StatusPage {
             let end_point = layout_animator.point("BLOCKS_END").unwrap_or_default();
             let bounds = Rect::from_corners(start_point, end_point);
 
+            let blocks = global_save
+                .installed_blocks
+                .get(&global_save.selected_character)
+                .cloned()
+                .unwrap_or_default();
+
+            let grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+
             let list = ScrollableList::new(game_io, bounds, 15.0)
                 .with_label_str("BLOCKS")
-                .with_focus(false);
+                .with_focus(false)
+                .with_children(
+                    grid.installed_packages(game_io)
+                        .map(|package| -> Box<dyn UiNode> {
+                            Box::new(
+                                Text::new(game_io, FontStyle::Thin)
+                                    .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+                                    .with_str(&package.name),
+                            )
+                        })
+                        .collect(),
+                );
 
             page.lists.push(list);
         }
