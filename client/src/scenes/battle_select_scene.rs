@@ -11,7 +11,7 @@ pub struct BattleSelectScene {
     camera: Camera,
     background: Background,
     selection: usize,
-    package_ids: Vec<String>,
+    package_ids: Vec<PackageId>,
     preview_sprite: Sprite,
     textbox: Textbox,
     next_scene: NextScene,

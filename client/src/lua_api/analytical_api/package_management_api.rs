@@ -1,5 +1,5 @@
 use crate::lua_api::helpers::absolute_path;
-use crate::packages::{Package, PackageCategory};
+use crate::packages::{Package, PackageCategory, PackageId};
 use std::cell::RefCell;
 
 pub fn inject_package_management_api<'lua: 'scope, 'scope: 'closure, 'closure>(
@@ -10,9 +10,10 @@ pub fn inject_package_management_api<'lua: 'scope, 'scope: 'closure, 'closure>(
     let engine_table: rollback_mlua::Table = lua.globals().get("Engine")?;
 
     let generate_require_function = |package_category| {
-        scope.create_function(move |_, id: String| {
+        scope.create_function(move |_, id: PackageId| {
             let mut package = package.borrow_mut();
             let package_info = package.package_info_mut();
+
             package_info.requirements.push((package_category, id));
 
             Ok(())
@@ -36,7 +37,7 @@ pub fn inject_package_management_api<'lua: 'scope, 'scope: 'closure, 'closure>(
 
     engine_table.set(
         "define_character",
-        scope.create_function(|lua, (id, path): (String, String)| {
+        scope.create_function(|lua, (id, path): (PackageId, String)| {
             let path = absolute_path(lua, path)?;
 
             let mut package = package.borrow_mut();

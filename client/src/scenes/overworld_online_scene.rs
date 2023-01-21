@@ -6,7 +6,7 @@ use crate::overworld::{
     movement_interpolation_system, CameraAction, ObjectData, ObjectType, OverworldBaseEvent,
 };
 use crate::overworld::{Item, ServerAssetManager};
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage, TextboxPrompt,
     TextboxQuestion, TextboxQuiz,
@@ -49,8 +49,8 @@ pub struct OverworldOnlineScene {
     custom_emotes_path: String,
     actor_id_map: BiMap<String, hecs::Entity>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
-    encounter_packages: HashMap<String, String>, // server_path -> package_id
-    loaded_zips: HashMap<String, FileHash>,      // server_path -> hash
+    encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
+    loaded_zips: HashMap<String, FileHash>,         // server_path -> hash
 }
 
 impl Drop for OverworldOnlineScene {

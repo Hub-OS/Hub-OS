@@ -2,6 +2,7 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
+use crate::packages::PackageId;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -41,8 +42,11 @@ enum SelectedItem {
 #[derive(Clone, Copy)]
 enum CardRestriction<'a> {
     Code(&'a str),
-    Package(&'a str),
-    Mixed { package_id: &'a str, code: &'a str },
+    Package(&'a PackageId),
+    Mixed {
+        package_id: &'a PackageId,
+        code: &'a str,
+    },
     Any,
 }
 
@@ -952,9 +956,9 @@ fn can_player_select(player: &Player, selection: &Selection, index: usize) -> bo
 fn does_restriction_allow_card(restriction: CardRestriction, card: &Card) -> bool {
     match restriction {
         CardRestriction::Code(code) => card.code == code || card.code == "*",
-        CardRestriction::Package(package_id) => card.package_id == package_id,
+        CardRestriction::Package(package_id) => card.package_id == *package_id,
         CardRestriction::Mixed { package_id, code } => {
-            card.package_id == package_id || card.code == code || card.code == "*"
+            card.package_id == *package_id || card.code == code || card.code == "*"
         }
         CardRestriction::Any => true,
     }
@@ -965,7 +969,7 @@ fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> Ca
         return CardRestriction::Any;
     }
 
-    let mut first_package_id: Option<&str> = None;
+    let mut first_package_id: Option<&PackageId> = None;
     let mut code_restriction: Option<&str> = None;
 
     let mut same_package_id = true;
@@ -975,7 +979,7 @@ fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> Ca
         let card = &player.cards[i];
 
         if let Some(package_id) = first_package_id {
-            same_package_id &= card.package_id == package_id;
+            same_package_id &= card.package_id == *package_id;
         } else {
             first_package_id = Some(&card.package_id);
         }

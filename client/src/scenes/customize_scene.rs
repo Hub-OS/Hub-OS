@@ -1,6 +1,6 @@
 use crate::bindable::{BlockColor, SpriteColorMode};
 use crate::ease::inverse_lerp;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle, ScrollTracker,
     Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
@@ -24,7 +24,7 @@ enum BlockOption {
 }
 
 struct CompactPackageInfo {
-    id: String,
+    id: PackageId,
     name: String,
     color: BlockColor,
 }

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Card {
-    pub package_id: String,
+    pub package_id: PackageId,
     pub code: String,
 }
 

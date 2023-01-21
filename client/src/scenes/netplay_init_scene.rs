@@ -1,7 +1,7 @@
 use super::BattleScene;
 use crate::battle::{BattleProps, BattleStatisticsCallback, PlayerSetup};
 use crate::bindable::SpriteColorMode;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Folder};
@@ -28,7 +28,7 @@ enum Event {
 
 struct RemotePlayerConnection {
     index: usize,
-    player_package: String,
+    player_package: PackageId,
     folder: Folder,
     // todo: blocks
     load_map: HashMap<FileHash, PackageCategory>,
@@ -43,7 +43,7 @@ struct RemotePlayerConnection {
 
 pub struct NetplayInitScene {
     local_index: usize,
-    battle_package: Option<(PackageNamespace, String)>,
+    battle_package: Option<(PackageNamespace, PackageId)>,
     data: Option<String>,
     background: Option<Background>,
     statistics_callback: Option<BattleStatisticsCallback>,
@@ -65,7 +65,7 @@ impl NetplayInitScene {
     pub fn new(
         game_io: &GameIO,
         background: Option<Background>,
-        battle_package: Option<(PackageNamespace, String)>,
+        battle_package: Option<(PackageNamespace, PackageId)>,
         data: Option<String>,
         remote_players: Vec<RemotePlayerInfo>,
         fallback_address: String,
@@ -132,7 +132,7 @@ impl NetplayInitScene {
             .iter()
             .map(|info| RemotePlayerConnection {
                 index: info.index,
-                player_package: String::new(),
+                player_package: PackageId::new_blank(),
                 folder: Folder::default(),
                 load_map: HashMap::new(),
                 requested_packages: None,
@@ -271,10 +271,13 @@ impl NetplayInitScene {
                 cards,
                 ..
             } => {
-                connection.player_package = player_package;
+                connection.player_package = player_package.into();
                 connection.folder.cards = cards
                     .into_iter()
-                    .map(|(package_id, code)| Card { package_id, code })
+                    .map(|(package_id, code)| Card {
+                        package_id: package_id.into(),
+                        code,
+                    })
                     .collect();
             }
             NetplayPacket::PackageList { index, packages } => {
@@ -285,6 +288,7 @@ impl NetplayInitScene {
                 // track what needs to be loaded once downloaded
                 let load_list: Vec<_> = packages
                     .into_iter()
+                    .map(|(category, id, hash)| (category, PackageId::from(id), hash))
                     .filter(|(category, id, hash)| {
                         globals
                             .package_or_fallback_info(*category, PackageNamespace::Server, &id)
@@ -461,7 +465,7 @@ impl NetplayInitScene {
             .map(|package_info| {
                 (
                     package_info.package_category,
-                    package_info.id.clone(),
+                    package_info.id.clone().into(),
                     package_info.hash,
                 )
             })
@@ -478,12 +482,12 @@ impl NetplayInitScene {
             .folder
             .cards
             .iter()
-            .map(|card| (card.package_id.clone(), card.code.clone()))
+            .map(|card| (card.package_id.clone().into(), card.code.clone()))
             .collect();
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
-            player_package: player_package_info.id.clone(),
+            player_package: player_package_info.id.clone().into(),
             cards,
         })
     }

@@ -112,7 +112,7 @@ impl Package for PlayerPackage {
 
             package_table.set(
                 "declare_package_id",
-                scope.create_function(|_, (_, id): (rollback_mlua::Table, String)| {
+                scope.create_function(|_, (_, id): (rollback_mlua::Table, PackageId)| {
                     package.borrow_mut().package_info.id = id;
                     Ok(())
                 })?,

@@ -3,6 +3,7 @@ use super::{create_entity_table, BattleLuaApi, BATTLE_INIT_TABLE, MUTATOR_TABLE,
 use crate::battle::{BattleScriptContext, Entity};
 use crate::bindable::{CharacterRank, EntityID};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
+use crate::packages::PackageId;
 use crate::render::{Animator, Background};
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
@@ -165,7 +166,7 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let package_id: rollback_mlua::String = table.get("#package_id")?;
+        let package_id: PackageId = table.get("#package_id")?;
         let rank = table.get("#rank")?;
 
         let namespace = api_ctx.vms[api_ctx.vm_index].namespace;
@@ -173,7 +174,7 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
         let id = api_ctx.simulation.load_character(
             api_ctx.game_io,
             api_ctx.vms,
-            package_id.to_str()?,
+            &package_id,
             namespace,
             rank,
         )?;

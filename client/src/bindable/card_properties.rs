@@ -1,11 +1,12 @@
 use super::{CardClass, Element, HitFlags};
+use crate::packages::PackageId;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone)]
 pub struct CardProperties {
-    pub package_id: String,
+    pub package_id: PackageId,
     // action: String, // ????
     pub short_name: String,
     pub description: String,
@@ -26,7 +27,7 @@ pub struct CardProperties {
 impl Default for CardProperties {
     fn default() -> Self {
         Self {
-            package_id: String::new(),
+            package_id: PackageId::new_blank(),
             short_name: String::from("?????"),
             description: String::new(),
             long_description: String::new(),

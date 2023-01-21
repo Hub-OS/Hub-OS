@@ -1,9 +1,10 @@
 use crate::bindable::BlockColor;
+use crate::packages::PackageId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct InstalledBlock {
-    pub package_id: String,
+    pub package_id: PackageId,
     pub rotation: u8,
     pub color: BlockColor,
     pub position: (usize, usize),

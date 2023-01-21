@@ -1,4 +1,4 @@
-use super::{ChildPackageInfo, Package, PackageInfo, PackageNamespace};
+use super::{ChildPackageInfo, Package, PackageId, PackageInfo, PackageNamespace};
 use crate::resources::{LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
 use std::collections::HashMap;
@@ -7,8 +7,8 @@ pub use packets::structures::PackageCategory;
 
 pub struct PackageManager<T> {
     package_category: PackageCategory,
-    package_maps: HashMap<PackageNamespace, HashMap<String, T>>,
-    package_ids: Vec<String>,
+    package_maps: HashMap<PackageNamespace, HashMap<PackageId, T>>,
+    package_ids: Vec<PackageId>,
 }
 
 impl<T: Package> PackageManager<T> {
@@ -24,18 +24,18 @@ impl<T: Package> PackageManager<T> {
         self.package_maps.keys().cloned()
     }
 
-    pub fn local_packages(&self) -> impl Iterator<Item = &String> + '_ {
+    pub fn local_packages(&self) -> impl Iterator<Item = &PackageId> + '_ {
         self.package_maps
             .get(&PackageNamespace::Local)
             .into_iter()
             .flat_map(|packages| packages.keys())
     }
 
-    pub fn package(&self, ns: PackageNamespace, id: &str) -> Option<&T> {
+    pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         self.package_maps.get(&ns)?.get(id)
     }
 
-    pub fn package_or_fallback(&self, ns: PackageNamespace, id: &str) -> Option<&T> {
+    pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         let package = self.package(ns, id);
 
         match ns {
@@ -189,7 +189,7 @@ impl<T: Package> PackageManager<T> {
         };
 
         Some(PackageInfo {
-            id: String::new(),
+            id: PackageId::new_blank(),
             hash: FileHash::ZERO,
             package_category: self.package_category,
             namespace,
@@ -270,9 +270,9 @@ impl<T: Package> PackageManager<T> {
         let package = T::load_new(assets, package_info);
 
         let package_info = package.package_info();
-        let package_id = package_info.id.to_string();
+        let package_id = package_info.id.clone();
 
-        if package_id.is_empty() {
+        if package_id.is_blank() {
             log::error!(
                 "package is missing a package_id {:?}",
                 ResourcePaths::shorten(&package_info.script_path)

@@ -189,7 +189,7 @@ struct Dock {
 }
 
 impl Dock {
-    fn new(game_io: &GameIO, card_class: CardClass, available_packages: &[String]) -> Self {
+    fn new(game_io: &GameIO, card_class: CardClass, available_packages: &[PackageId]) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 

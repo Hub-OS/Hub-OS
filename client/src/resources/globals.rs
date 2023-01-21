@@ -253,17 +253,18 @@ impl Globals {
 
     pub fn package_dependency_iter<I>(&self, iter: I) -> Vec<&PackageInfo>
     where
-        I: IntoIterator<Item = (PackageCategory, PackageNamespace, String)>,
+        I: IntoIterator<Item = (PackageCategory, PackageNamespace, PackageId)>,
     {
         let mut resolved = HashSet::new();
 
-        let mut is_unresolved = move |triplet: &(PackageCategory, PackageNamespace, String)| {
+        let mut is_unresolved = move |triplet: &(PackageCategory, PackageNamespace, PackageId)| {
             resolved.insert(triplet.clone())
         };
 
-        let resolve = |(package_category, ns, id): (PackageCategory, PackageNamespace, String)| {
-            self.package_or_fallback_info(package_category, ns, &id)
-        };
+        let resolve =
+            |(package_category, ns, id): (PackageCategory, PackageNamespace, PackageId)| {
+                self.package_or_fallback_info(package_category, ns, &id)
+            };
 
         let mut package_infos = Vec::new();
         let mut prev_package_infos: Vec<&PackageInfo> = iter
@@ -299,7 +300,7 @@ impl Globals {
         &self,
         category: PackageCategory,
         namespace: PackageNamespace,
-        id: &str,
+        id: &PackageId,
     ) -> Option<&PackageInfo> {
         match category {
             PackageCategory::Battle => self

@@ -52,7 +52,7 @@ impl Package for CardPackage {
 
             package_table.set(
                 "declare_package_id",
-                scope.create_function(|_, (_, id): (rollback_mlua::Table, String)| {
+                scope.create_function(|_, (_, id): (rollback_mlua::Table, PackageId)| {
                     let mut package = package.borrow_mut();
                     package.package_info.id = id;
 

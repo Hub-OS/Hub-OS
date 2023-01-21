@@ -1,5 +1,5 @@
 use crate::bindable::SpriteColorMode;
-use crate::packages::{PackageNamespace, PlayerPackage};
+use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
     ElementSprite, FontStyle, PlayerHealthUI, SceneTitle, ScrollTracker, TextStyle, Textbox,
     TextboxMessage, UiInputTracker,
@@ -131,7 +131,7 @@ impl CharacterSelectScene {
         }
     }
 
-    fn get_player_package<'a>(game_io: &'a GameIO, character_id: &str) -> &'a PlayerPackage {
+    fn get_player_package<'a>(game_io: &'a GameIO, character_id: &PackageId) -> &'a PlayerPackage {
         let globals = game_io.resource::<Globals>().unwrap();
 
         globals
@@ -150,7 +150,7 @@ impl CharacterSelectScene {
         sprite
     }
 
-    fn selected_package_id(&self) -> &str {
+    fn selected_package_id(&self) -> &PackageId {
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
 
@@ -243,7 +243,7 @@ impl CharacterSelectScene {
             self.h_scroll_tracker.remember_index();
 
             let package_id = self.selected_package_id();
-            globals.global_save.selected_character = package_id.to_string();
+            globals.global_save.selected_character = package_id.clone();
             globals.global_save.save();
         }
 
@@ -361,7 +361,7 @@ impl Scene for CharacterSelectScene {
 }
 
 struct CompactPackageInfo {
-    package_id: String,
+    package_id: PackageId,
     name: String,
     texture_path: String,
     animation_path: String,
@@ -373,7 +373,7 @@ struct IconRow {
 }
 
 impl IconRow {
-    fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a String>) -> Self {
+    fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a PackageId>) -> Self {
         let player_packages = &game_io.resource::<Globals>().unwrap().player_packages;
         let compact_package_data = package_ids
             .map(|id| player_packages.package_or_fallback(PackageNamespace::Server, id))
@@ -392,7 +392,7 @@ impl IconRow {
         }
     }
 
-    fn get_package_id(&self, index: usize) -> &str {
+    fn get_package_id(&self, index: usize) -> &PackageId {
         &self.compact_package_data[index].package_id
     }
 
@@ -434,7 +434,7 @@ impl IconRow {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         mut offset: Vec2,
-        saved_package_id: &str,
+        saved_package_id: &PackageId,
     ) {
         self.ensure_sprites(game_io);
 

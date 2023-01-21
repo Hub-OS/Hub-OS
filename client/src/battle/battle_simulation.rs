@@ -2,7 +2,7 @@ use super::rollback_vm::RollbackVM;
 use super::*;
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
 use crate::resources::*;
@@ -613,13 +613,13 @@ impl BattleSimulation {
 
     pub fn find_vm(
         vms: &[RollbackVM],
-        package_id: &str,
+        package_id: &PackageId,
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
         let vm_index = namespace
             .find_with_fallback(|namespace| {
                 vms.iter()
-                    .position(|vm| vm.package_id == package_id && vm.namespace == namespace)
+                    .position(|vm| vm.package_id == *package_id && vm.namespace == namespace)
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
@@ -715,7 +715,7 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
-        package_id: &str,
+        package_id: &PackageId,
         package_namespace: PackageNamespace,
         index: usize,
         local: bool,
@@ -913,7 +913,7 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
-        package_id: &str,
+        package_id: &PackageId,
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityID> {

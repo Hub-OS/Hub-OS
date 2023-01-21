@@ -9,11 +9,11 @@ use std::collections::HashMap;
 #[serde(default)]
 pub struct GlobalSave {
     pub nickname: String,
-    pub selected_character: String,
+    pub selected_character: PackageId,
     pub folders: Vec<Folder>,
     pub selected_folder: usize,
     pub server_list: Vec<ServerInfo>,
-    pub installed_blocks: HashMap<String, Vec<InstalledBlock>>,
+    pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
 }
 
 impl GlobalSave {
@@ -79,7 +79,7 @@ impl Default for GlobalSave {
     fn default() -> Self {
         Self {
             nickname: String::from("Anon"),
-            selected_character: String::new(),
+            selected_character: PackageId::new_blank(),
             folders: Vec::new(),
             selected_folder: 0,
             server_list: Vec::new(),

@@ -256,8 +256,7 @@ impl BootScene {
                         let selected_id = &globals.global_save.selected_character;
 
                         if !playable_characters.contains(selected_id) {
-                            globals.global_save.selected_character =
-                                playable_characters[0].to_string();
+                            globals.global_save.selected_character = playable_characters[0].clone();
                             globals.global_save.save();
                         }
                     }
