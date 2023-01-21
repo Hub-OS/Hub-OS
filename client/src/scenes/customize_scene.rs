@@ -627,6 +627,7 @@ impl Scene for CustomizeScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         self.update_text(game_io);
+        self.update_grid_sprite();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
