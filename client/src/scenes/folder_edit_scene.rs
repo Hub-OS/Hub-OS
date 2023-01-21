@@ -554,6 +554,8 @@ fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<us
             show_count: true,
         }));
 
+        scene.pack_dock.scroll_tracker.set_total_items(pack_items.len());
+
         return Some(pack_items.len() - 1);
     };
 
