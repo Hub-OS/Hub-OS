@@ -233,20 +233,22 @@ impl CustomizeScene {
             }
             State::Applying => match self.arrow.status() {
                 GridArrowStatus::Block { position, progress } => {
-                    if let Some(block) = self.grid.get_block(position) {
+                    let block_name = if let Some(block) = self.grid.get_block(position) {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let package = globals
                             .block_packages
                             .package_or_fallback(PackageNamespace::Server, &block.package_id)
                             .unwrap();
 
-                        let text_progress = inverse_lerp!(0.0, 0.8, progress);
-                        let len = (package.name.len() as f32 * text_progress) as usize;
-
-                        self.information_text.text = format!("RUN...\n{}", &package.name[0..len]);
+                        &package.name
                     } else {
-                        self.information_text.text = String::from("RUN...\nNone");
-                    }
+                        "None"
+                    };
+
+                    let text_progress = inverse_lerp!(0.0, 0.8, progress);
+                    let len = (block_name.len() as f32 * text_progress) as usize;
+
+                    self.information_text.text = format!("RUN...\n{}", &block_name[0..len]);
                 }
                 _ => {
                     self.information_text.text = String::from("OK");
