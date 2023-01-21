@@ -32,9 +32,8 @@ impl ResourcePaths {
     pub const CURSOR_SELECT_SFX: &str = "resources/sfx/cursor_select.ogg";
     pub const CURSOR_CANCEL_SFX: &str = "resources/sfx/cursor_cancel.ogg";
     pub const CURSOR_ERROR_SFX: &str = "resources/sfx/cursor_error.ogg";
-    pub const MENU_OPEN_SFX: &str = "resources/sfx/menu_open.ogg";
     pub const MENU_CLOSE_SFX: &str = "resources/sfx/menu_close.ogg";
-    pub const PAGE_TURN_SFX: &str = "resources/sfx/cursor_move.ogg";
+    pub const PAGE_TURN_SFX: &str = "resources/sfx/page_open.ogg";
     pub const TEXT_BLIP_SFX: &str = "resources/sfx/text.ogg";
     pub const CUSTOMIZE_START_SFX: &str = "resources/sfx/customize_start.ogg";
     pub const CUSTOMIZE_EMPTY_SFX: &str = "resources/sfx/customize_empty.ogg";
@@ -44,8 +43,8 @@ impl ResourcePaths {
     pub const APPEAR_SFX: &str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &str = "resources/sfx/card_select_open.ogg";
     pub const CARD_SELECT_CONFIRM_SFX: &str = "resources/sfx/card_select_confirm.ogg";
-    pub const FORM_SELECT_OPEN_SFX: &str = "resources/sfx/form_select_open.ogg";
-    pub const FORM_SELECT_CLOSE_SFX: &str = "resources/sfx/form_select_close.ogg";
+    pub const FORM_SELECT_OPEN_SFX: &str = "resources/sfx/page_open.ogg";
+    pub const FORM_SELECT_CLOSE_SFX: &str = "resources/sfx/page_close.ogg";
     pub const TURN_GAUGE_SFX: &str = "resources/sfx/turn_gauge_full.ogg";
     pub const TIME_FREEZE_SFX: &str = "resources/sfx/time_freeze.ogg";
     pub const TILE_BREAK_SFX: &str = "resources/sfx/tile_break.ogg";
