@@ -36,6 +36,10 @@ impl ResourcePaths {
     pub const MENU_CLOSE_SFX: &str = "resources/sfx/menu_close.ogg";
     pub const PAGE_TURN_SFX: &str = "resources/sfx/cursor_move.ogg";
     pub const TEXT_BLIP_SFX: &str = "resources/sfx/text.ogg";
+    pub const CUSTOMIZE_START_SFX: &str = "resources/sfx/customize_start.ogg";
+    pub const CUSTOMIZE_EMPTY_SFX: &str = "resources/sfx/customize_empty.ogg";
+    pub const CUSTOMIZE_BLOCK_SFX: &str = "resources/sfx/customize_block.ogg";
+    pub const CUSTOMIZE_COMPLETE_SFX: &str = "resources/sfx/customize_complete.ogg";
     pub const WARP_SFX: &str = "resources/sfx/warp.ogg";
     pub const APPEAR_SFX: &str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &str = "resources/sfx/card_select_open.ogg";

@@ -1,8 +1,9 @@
 use crate::bindable::{BlockColor, SpriteColorMode};
+use crate::ease::inverse_lerp;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    ContextMenu, FontStyle, GridCursor, SceneTitle, ScrollTracker, Text, TextStyle, Textbox,
-    TextboxQuestion, UiInputTracker,
+    ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle, ScrollTracker,
+    Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
@@ -13,6 +14,7 @@ const DIM_COLOR: Color = Color::new(0.75, 0.75, 0.75, 1.0);
 
 enum Event {
     Leave,
+    Applied,
 }
 
 #[derive(Clone, Copy)]
@@ -32,6 +34,7 @@ enum State {
     ListSelection,
     GridSelection { x: usize, y: usize },
     BlockContext { x: usize, y: usize },
+    Applying,
 }
 
 pub struct CustomizeScene {
@@ -49,6 +52,7 @@ pub struct CustomizeScene {
     scroll_tracker: ScrollTracker,
     colors: Vec<BlockColor>,
     grid: BlockGrid,
+    arrow: GridArrow,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
     cursor: GridCursor,
@@ -162,6 +166,7 @@ impl CustomizeScene {
             scroll_tracker,
             colors: Vec::new(),
             grid: BlockGrid::new(),
+            arrow: GridArrow::new(game_io),
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
                 &[("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
@@ -226,6 +231,27 @@ impl CustomizeScene {
                     self.information_text.text = String::from("RUN?");
                 }
             }
+            State::Applying => match self.arrow.status() {
+                GridArrowStatus::Block { position, progress } => {
+                    if let Some(block) = self.grid.get_block(position) {
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        let package = globals
+                            .block_packages
+                            .package_or_fallback(PackageNamespace::Server, &block.package_id)
+                            .unwrap();
+
+                        let text_progress = inverse_lerp!(0.0, 0.8, progress);
+                        let len = (package.name.len() as f32 * text_progress) as usize;
+
+                        self.information_text.text = format!("RUN...\n{}", &package.name[0..len]);
+                    } else {
+                        self.information_text.text = String::from("RUN...\nNone");
+                    }
+                }
+                _ => {
+                    self.information_text.text = String::from("OK");
+                }
+            },
             _ => {}
         }
     }
@@ -321,9 +347,8 @@ impl CustomizeScene {
                     }
 
                     if self.input_tracker.is_active(Input::Confirm) {
-                        self.state = State::GridSelection { x: 2, y: 2 };
-
                         if self.packages.get(selected_index).is_some() {
+                            // selected a block
                             let package = self.packages.remove(selected_index);
                             self.scroll_tracker.set_total_items(self.packages.len() + 1);
 
@@ -336,6 +361,12 @@ impl CustomizeScene {
                             self.block_returns_to_grid = false;
 
                             globals.audio.play_sound(&globals.cursor_select_sfx);
+                            self.state = State::GridSelection { x: 2, y: 2 };
+                        } else {
+                            // selected APPLY
+                            self.state = State::Applying;
+
+                            globals.audio.play_sound(&globals.customize_start_sfx);
                         }
                     }
                 }
@@ -426,6 +457,52 @@ impl CustomizeScene {
                     self.state = State::GridSelection { x, y };
                 }
             }
+            State::Applying => {
+                let prev_status = self.arrow.status();
+
+                self.arrow.update();
+
+                let current_status = self.arrow.status();
+
+                if prev_status != current_status {
+                    self.update_text(game_io);
+
+                    // sfx
+                    match current_status {
+                        GridArrowStatus::Block { position, progress } => {
+                            if progress == 0.0 {
+                                if self.grid.get_block(position).is_some() {
+                                    globals.audio.play_sound(&globals.customize_block_sfx);
+                                } else {
+                                    globals.audio.play_sound(&globals.customize_empty_sfx);
+                                }
+                            }
+                        }
+                        GridArrowStatus::Fading => {
+                            globals.audio.play_sound(&globals.customize_complete_sfx);
+                        }
+                        _ => {}
+                    }
+                }
+
+                if self.arrow.status() == GridArrowStatus::Complete {
+                    let interface = TextboxMessage::new(String::from("OK!\nRUN complete!"));
+                    self.textbox.push_interface(interface);
+
+                    let event_sender = self.event_sender.clone();
+                    let interface =
+                        TextboxQuestion::new(String::from("Quit the customizer?"), move |yes| {
+                            if yes {
+                                event_sender.send(Event::Leave).unwrap();
+                            } else {
+                                event_sender.send(Event::Applied).unwrap();
+                            }
+                        });
+                    self.textbox.push_interface(interface);
+
+                    self.textbox.open();
+                }
+            }
         }
 
         if self.state != prev_state || prev_held != self.held_block.is_some() {
@@ -477,6 +554,9 @@ impl CustomizeScene {
                 }
             }
             State::ListSelection => self.cursor.use_textbox_cursor(),
+            State::Applying => {
+                self.cursor.hide();
+            }
             _ => {}
         }
 
@@ -518,8 +598,23 @@ impl CustomizeScene {
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
                 }
+                Event::Applied => {
+                    self.arrow.reset();
+                    self.state = State::ListSelection;
+                    self.update_cursor_sprite();
+                    self.update_text(game_io);
+                }
             }
         }
+    }
+
+    fn resolve_flashing_blocks(&self) -> Vec<(usize, usize)> {
+        let (end_x, y) = self.arrow.current_block();
+
+        (0..=end_x)
+            .flat_map(|x| self.grid.get_block((x, y)))
+            .map(|block| block.position)
+            .collect()
     }
 }
 
@@ -587,16 +682,25 @@ impl Scene for CustomizeScene {
 
         // draw grid blocks
         let mut block_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
+        let flashing_blocks = self.resolve_flashing_blocks();
 
-        if !matches!(self.state, State::GridSelection { .. }) {
-            block_sprite.set_color(DIM_COLOR);
-        }
+        let default_block_color = if !matches!(self.state, State::GridSelection { .. }) {
+            DIM_COLOR
+        } else {
+            Color::WHITE
+        };
 
         for y in 0..BlockGrid::SIDE_LEN {
             for x in 0..BlockGrid::SIDE_LEN {
                 let Some(block) = self.grid.get_block((x, y)) else {
                     continue;
                 };
+
+                if flashing_blocks.contains(&block.position) {
+                    block_sprite.set_color(Color::WHITE);
+                } else {
+                    block_sprite.set_color(default_block_color);
+                }
 
                 let position =
                     Vec2::new(x as f32, y as f32) * self.grid_increment + self.grid_start;
@@ -667,13 +771,13 @@ impl Scene for CustomizeScene {
             offset += offset_jump;
 
             if i == self.packages.len() {
-                // draw RUN button
+                // draw APPLY button
                 if Some(i) == selected_index {
-                    self.animator.set_state("RUN_BLINK");
+                    self.animator.set_state("APPLY_BLINK");
                     self.animator.set_loop_mode(AnimatorLoopMode::Loop);
                     self.animator.sync_time(self.time);
                 } else {
-                    self.animator.set_state("RUN");
+                    self.animator.set_state("APPLY");
                 }
 
                 self.animator.apply(&mut recycled_sprite);
@@ -734,6 +838,9 @@ impl Scene for CustomizeScene {
                 }
             }
         }
+
+        // draw grid arrow
+        self.arrow.draw(&mut sprite_queue);
 
         // draw cursor
         self.cursor.draw(&mut sprite_queue);
