@@ -71,6 +71,14 @@ impl CustomizeScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
+        // installed blocks
+        let global_save = &globals.global_save;
+        let blocks = global_save
+            .installed_blocks
+            .get(&global_save.selected_character)
+            .cloned()
+            .unwrap_or_default();
+
         // load block packages
         let mut packages: Vec<_> = globals
             .block_packages
@@ -86,6 +94,13 @@ impl CustomizeScene {
                     name: package.name.clone(),
                     color: package.block_color,
                 }
+            })
+            .filter(|compact_package_info| {
+                // only include blocks that are not already on the grid
+                !blocks.iter().any(|block| {
+                    block.package_id == compact_package_info.id
+                        && block.color == compact_package_info.color
+                })
             })
             .collect();
 
@@ -165,7 +180,7 @@ impl CustomizeScene {
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
             colors: Vec::new(),
-            grid: BlockGrid::new(),
+            grid: BlockGrid::new().with_blocks(game_io, blocks),
             arrow: GridArrow::new(game_io),
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
@@ -369,6 +384,17 @@ impl CustomizeScene {
                             self.state = State::Applying;
 
                             globals.audio.play_sound(&globals.customize_start_sfx);
+
+                            // save blocks
+                            let globals = game_io.resource_mut::<Globals>().unwrap();
+                            let global_save = &mut globals.global_save;
+
+                            global_save.installed_blocks.insert(
+                                global_save.selected_character.clone(),
+                                self.grid.installed_blocks().cloned().collect(),
+                            );
+
+                            global_save.save();
                         }
                     }
                 }

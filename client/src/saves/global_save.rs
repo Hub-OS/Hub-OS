@@ -1,16 +1,19 @@
-use super::{Folder, ServerInfo};
+use super::{Folder, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::GameIO;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct GlobalSave {
     pub nickname: String,
     pub selected_character: String,
     pub folders: Vec<Folder>,
     pub selected_folder: usize,
     pub server_list: Vec<ServerInfo>,
+    pub installed_blocks: HashMap<String, Vec<InstalledBlock>>,
 }
 
 impl GlobalSave {
@@ -80,6 +83,7 @@ impl Default for GlobalSave {
             folders: Vec::new(),
             selected_folder: 0,
             server_list: Vec::new(),
+            installed_blocks: HashMap::new(),
         }
     }
 }

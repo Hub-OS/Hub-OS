@@ -28,6 +28,11 @@ impl BlockGrid {
         }
     }
 
+    pub fn with_blocks(mut self, game_io: &GameIO, blocks: Vec<InstalledBlock>) -> Self {
+        self.install_blocks(game_io, blocks);
+        self
+    }
+
     pub fn count_colors(&self) -> usize {
         let mut colors = Vec::new();
 
@@ -42,6 +47,18 @@ impl BlockGrid {
 
     pub fn installed_blocks(&self) -> impl Iterator<Item = &InstalledBlock> {
         self.blocks.iter().map(|(_, block)| block)
+    }
+
+    pub fn install_blocks(&mut self, game_io: &GameIO, blocks: Vec<InstalledBlock>) {
+        for block in blocks {
+            let Some(conflicts) = self.install_block(game_io, block) else {
+                continue;
+            };
+
+            for conflict in conflicts {
+                self.remove_block(conflict);
+            }
+        }
     }
 
     /// Failed placement will provide a list of overlapping positions
