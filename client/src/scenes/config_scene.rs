@@ -522,6 +522,10 @@ impl ConfigScene {
             return;
         }
 
+        if game_io.is_in_transition() {
+            return;
+        }
+
         if self.primary_layout.focused() {
             self.handle_tab_input(game_io);
         } else {
