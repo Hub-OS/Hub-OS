@@ -7,7 +7,7 @@ use crate::resources::*;
 use framework::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Card {
     pub package_id: String,
     pub code: String,

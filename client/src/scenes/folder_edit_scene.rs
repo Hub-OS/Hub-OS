@@ -5,6 +5,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Folder};
 use framework::prelude::*;
+use std::collections::HashMap;
 
 enum Event {
     Leave(bool),
@@ -65,7 +66,7 @@ impl FolderEditScene {
         // pack_dock
         let pack_dock = Dock::new(
             game_io,
-            CardListItem::vec_from_packages(game_io),
+            CardListItem::pack_vec_from_packages(game_io, folder),
             ResourcePaths::FOLDER_PACK_DOCK,
             ResourcePaths::FOLDER_PACK_DOCK_ANIMATION,
         );
@@ -640,8 +641,6 @@ impl Dock {
     }
 
     fn update_card_count(&mut self) {
-        use std::collections::HashMap;
-
         let mut counts = HashMap::new();
 
         for card_item in &self.card_items {
@@ -753,8 +752,20 @@ impl CardListItem {
         card_items
     }
 
-    pub fn vec_from_packages(game_io: &GameIO) -> Vec<Option<CardListItem>> {
+    pub fn pack_vec_from_packages(
+        game_io: &GameIO,
+        active_folder: &Folder,
+    ) -> Vec<Option<CardListItem>> {
         let package_manager = &game_io.resource::<Globals>().unwrap().card_packages;
+
+        let mut use_counts = HashMap::new();
+
+        for card in &active_folder.cards {
+            use_counts
+                .entry(card)
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+        }
 
         // todo: allow use of server packages as well?
         package_manager
@@ -763,16 +774,26 @@ impl CardListItem {
             .flat_map(|package| {
                 let package_info = package.package_info();
 
-                package.default_codes.iter().map(|code| {
-                    Some(CardListItem {
-                        card: Card {
+                package
+                    .default_codes
+                    .iter()
+                    .map(|code| {
+                        let card = Card {
                             package_id: package_info.id.clone(),
                             code: code.clone(),
-                        },
-                        count: package.card_properties.limit,
-                        show_count: true,
+                        };
+
+                        let use_count = use_counts.get(&card).cloned().unwrap_or_default();
+                        let count = package.card_properties.limit.max(use_count) - use_count;
+
+                        CardListItem {
+                            card,
+                            count,
+                            show_count: true,
+                        }
                     })
-                })
+                    .filter(|item| item.count != 0)
+                    .map(Some)
             })
             .collect()
     }
