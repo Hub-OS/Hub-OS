@@ -1,10 +1,15 @@
-use std::ops::Range;
-
-use crate::{packages::PackageNamespace, resources::Globals, saves::InstalledBlock};
+use crate::{
+    packages::{BlockPackage, PackageNamespace},
+    resources::Globals,
+    saves::InstalledBlock,
+};
 use framework::prelude::GameIO;
 use generational_arena::Arena;
+use itertools::Itertools;
+use std::ops::Range;
 
 pub struct BlockGrid {
+    namespace: PackageNamespace,
     blocks: Arena<InstalledBlock>,
     grid: [Option<generational_arena::Index>; Self::SIDE_LEN * Self::SIDE_LEN],
 }
@@ -21,11 +26,17 @@ impl BlockGrid {
         !Self::MAIN_RANGE.contains(&x) && !Self::MAIN_RANGE.contains(&y)
     }
 
-    pub fn new() -> Self {
+    pub fn new(namespace: PackageNamespace) -> Self {
         Self {
+            namespace,
             blocks: Arena::new(),
             grid: [None; Self::SIDE_LEN * Self::SIDE_LEN],
         }
+    }
+
+    pub fn with_namespace(mut self, namespace: PackageNamespace) -> Self {
+        self.namespace = namespace;
+        self
     }
 
     pub fn with_blocks(mut self, game_io: &GameIO, blocks: Vec<InstalledBlock>) -> Self {
@@ -69,7 +80,7 @@ impl BlockGrid {
     ) -> Option<Vec<(usize, usize)>> {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let Some(package) = globals.block_packages.package_or_fallback(PackageNamespace::Server, &block.package_id) else {
+        let Some(package) = globals.block_packages.package_or_fallback(self.namespace, &block.package_id) else {
             return Some(Vec::new());
         };
 
@@ -167,5 +178,45 @@ impl BlockGrid {
         let block_index = slot?;
 
         self.blocks.get(block_index)
+    }
+
+    pub fn installed_packages<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = &'a BlockPackage> {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        self.blocks
+            .iter()
+            .map(|(_, block)| block)
+            .flat_map(|block| {
+                globals
+                    .block_packages
+                    .package_or_fallback(self.namespace, &block.package_id)
+            })
+    }
+
+    pub fn valid_flat_packages<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = &'a BlockPackage> {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        (0..Self::SIDE_LEN)
+            .flat_map(|x| self.get_block((x, 4)))
+            .unique_by(|block| block.position)
+            .flat_map(|block| {
+                globals
+                    .block_packages
+                    .package_or_fallback(self.namespace, &block.package_id)
+            })
+            .filter(|package| package.is_program)
+    }
+
+    pub fn valid_plus_packages<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = &'a BlockPackage> {
+        self.installed_packages(game_io)
     }
 }

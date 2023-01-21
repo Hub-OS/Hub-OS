@@ -180,7 +180,7 @@ impl CustomizeScene {
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
             colors: Vec::new(),
-            grid: BlockGrid::new().with_blocks(game_io, blocks),
+            grid: BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks),
             arrow: GridArrow::new(game_io),
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
