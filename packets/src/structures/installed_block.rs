@@ -1,5 +1,4 @@
-use crate::bindable::BlockColor;
-use crate::packages::PackageId;
+use super::{BlockColor, PackageId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize)]

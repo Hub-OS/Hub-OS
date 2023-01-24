@@ -1,12 +1,10 @@
 mod action_lockout;
 mod animator_playback_mode;
-mod block_color;
 mod card_class;
 mod card_properties;
 mod character_rank;
 mod component_lifetime;
 mod defense_priority;
-mod direction;
 mod drag;
 mod element;
 mod emotion;
@@ -27,13 +25,11 @@ mod tile_state;
 
 pub use action_lockout::*;
 pub use animator_playback_mode::*;
-pub use block_color::*;
 pub use card_class::*;
 pub use card_properties::*;
 pub use character_rank::*;
 pub use component_lifetime::*;
 pub use defense_priority::*;
-pub use direction::*;
 pub use drag::*;
 pub use element::*;
 pub use emotion::*;
@@ -51,3 +47,6 @@ pub use sprite_color_mode::*;
 pub use team::*;
 pub use tile_highlight::*;
 pub use tile_state::*;
+
+pub use packets::structures::BlockColor;
+pub use packets::structures::Direction;
