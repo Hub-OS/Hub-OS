@@ -196,7 +196,7 @@ impl BlockGrid {
             })
     }
 
-    pub fn valid_flat_packages<'a>(
+    fn valid_flat_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
     ) -> impl Iterator<Item = &'a BlockPackage> {
@@ -213,10 +213,19 @@ impl BlockGrid {
             .filter(|package| package.is_program)
     }
 
-    pub fn valid_plus_packages<'a>(
+    fn valid_plus_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
     ) -> impl Iterator<Item = &'a BlockPackage> {
         self.installed_packages(game_io)
+            .filter(|package| !package.is_program)
+    }
+
+    pub fn valid_packages<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = &'a BlockPackage> {
+        self.valid_flat_packages(game_io)
+            .chain(self.valid_plus_packages(game_io))
     }
 }

@@ -6,7 +6,7 @@ use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Card;
+use crate::saves::{BlockGrid, Card};
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::{BattleStatistics, InstalledBlock};
@@ -631,6 +631,39 @@ impl BattleSimulation {
         Ok(vm_index)
     }
 
+    pub fn call_global<'lua, F, M>(
+        &mut self,
+        game_io: &GameIO,
+        vms: &'lua [RollbackVM],
+        vm_index: usize,
+        fn_name: &str,
+        param_generator: F,
+    ) -> rollback_mlua::Result<()>
+    where
+        F: FnOnce(&'lua rollback_mlua::Lua) -> rollback_mlua::Result<M>,
+        M: rollback_mlua::ToLuaMulti<'lua>,
+    {
+        let lua = &vms[vm_index].lua;
+
+        let global_fn: rollback_mlua::Function = lua.globals().get(fn_name)?;
+
+        let api_ctx = RefCell::new(BattleScriptContext {
+            vm_index,
+            vms,
+            game_io,
+            simulation: self,
+        });
+
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+
+        lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
+            let params = param_generator(lua)?;
+            global_fn.call(params)
+        });
+
+        Ok(())
+    }
+
     fn create_character(
         &mut self,
         game_io: &GameIO,
@@ -720,10 +753,8 @@ impl BattleSimulation {
         index: usize,
         local: bool,
         cards: Vec<Card>,
-        _blocks: Vec<InstalledBlock>,
+        blocks: Vec<InstalledBlock>,
     ) -> rollback_mlua::Result<EntityID> {
-        let vm_index = Self::find_vm(vms, package_id, package_namespace)?;
-
         // namespace for using cards / attacks
         let namespace = if local {
             PackageNamespace::Local
@@ -890,22 +921,26 @@ impl BattleSimulation {
             .unwrap();
 
         // call init function
-        let lua = &vms[vm_index].lua;
-        let player_init: rollback_mlua::Function = lua.globals().get("player_init")?;
+        let vm_index = Self::find_vm(vms, package_id, package_namespace)?;
+        self.call_global(game_io, vms, vm_index, "player_init", move |lua| {
+            create_entity_table(lua, id)
+        })?;
 
-        let api_ctx = RefCell::new(BattleScriptContext {
-            vm_index,
-            vms,
-            game_io,
-            simulation: self,
-        });
+        // blocks
+        let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
 
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        for package in grid.valid_packages(game_io) {
+            let package_info = &package.package_info;
+            let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
 
-        lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
-            let table = create_entity_table(lua, id)?;
-            player_init.call(table)
-        });
+            let result = self.call_global(game_io, vms, vm_index, "block_init", move |lua| {
+                create_entity_table(lua, id)
+            });
+
+            if let Err(e) = result {
+                log::error!("{e}");
+            }
+        }
 
         Ok(id)
     }
@@ -918,28 +953,12 @@ impl BattleSimulation {
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityID> {
-        let vm_index = Self::find_vm(vms, package_id, namespace)?;
         let id = self.create_character(game_io, rank, namespace)?;
 
-        let lua = &vms[vm_index].lua;
-        let character_init: rollback_mlua::Function = lua
-            .globals()
-            .get("character_init")
-            .or_else(|_| lua.globals().get("package_init"))?;
-
-        let api_ctx = RefCell::new(BattleScriptContext {
-            vm_index,
-            vms,
-            game_io,
-            simulation: self,
-        });
-
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
-
-        lua_api.inject_dynamic(lua, &api_ctx, move |lua| {
-            let table = create_entity_table(lua, id)?;
-            character_init.call(table)
-        });
+        let vm_index = Self::find_vm(vms, package_id, namespace)?;
+        self.call_global(game_io, vms, vm_index, "package_init", move |lua| {
+            create_entity_table(lua, id)
+        })?;
 
         Ok(id)
     }

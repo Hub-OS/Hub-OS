@@ -115,6 +115,19 @@ impl Package for BlockPackage {
                 })?,
             )?;
 
+            package_table.set(
+                "as_program",
+                scope.create_function(
+                    |_, (_, is_program): (rollback_mlua::Table, Option<bool>)| {
+                        let mut package = package.borrow_mut();
+
+                        package.is_program = is_program.unwrap_or(true);
+
+                        Ok(())
+                    },
+                )?,
+            )?;
+
             package_init.call(package_table)?;
 
             Ok(())
