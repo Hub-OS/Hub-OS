@@ -109,6 +109,7 @@ impl BattleScene {
                 setup.index,
                 setup.local,
                 std::mem::take(&mut setup.folder.cards),
+                std::mem::take(&mut setup.blocks),
             );
 
             if let Err(e) = result {

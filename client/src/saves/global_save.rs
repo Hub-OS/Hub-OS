@@ -73,6 +73,10 @@ impl GlobalSave {
     pub fn active_folder(&self) -> Option<&Folder> {
         self.folders.get(self.selected_folder)
     }
+
+    pub fn active_blocks(&self) -> Option<&Vec<InstalledBlock>> {
+        self.installed_blocks.get(&self.selected_character)
+    }
 }
 
 impl Default for GlobalSave {

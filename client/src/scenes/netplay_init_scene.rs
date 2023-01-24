@@ -7,7 +7,7 @@ use crate::resources::*;
 use crate::saves::{Card, Folder};
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
+use packets::structures::{FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
 use packets::{NetplayPacket, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -30,7 +30,7 @@ struct RemotePlayerConnection {
     index: usize,
     player_package: PackageId,
     folder: Folder,
-    // todo: blocks
+    blocks: Vec<InstalledBlock>,
     load_map: HashMap<FileHash, PackageCategory>,
     requested_packages: Option<Vec<FileHash>>,
     ready_for_packages: bool,
@@ -134,6 +134,7 @@ impl NetplayInitScene {
                 index: info.index,
                 player_package: PackageId::new_blank(),
                 folder: Folder::default(),
+                blocks: Vec::new(),
                 load_map: HashMap::new(),
                 requested_packages: None,
                 ready_for_packages: false,
@@ -269,6 +270,7 @@ impl NetplayInitScene {
             NetplayPacket::PlayerSetup {
                 player_package,
                 cards,
+                blocks,
                 ..
             } => {
                 connection.player_package = player_package.into();
@@ -279,6 +281,7 @@ impl NetplayInitScene {
                         code,
                     })
                     .collect();
+                connection.blocks = blocks;
             }
             NetplayPacket::PackageList { index, packages } => {
                 connection.received_package_list = true;
@@ -484,11 +487,13 @@ impl NetplayInitScene {
             .iter()
             .map(|card| (card.package_id.clone().into(), card.code.clone()))
             .collect();
+        let blocks = player_setup.blocks.clone();
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
             player_package: player_package_info.id.clone().into(),
             cards,
+            blocks,
         })
     }
 
@@ -622,6 +627,7 @@ impl NetplayInitScene {
                 props.player_setups.push(PlayerSetup {
                     player_package,
                     folder: connection.folder.clone(),
+                    blocks: connection.blocks.clone(),
                     index: connection.index,
                     local: false,
                     input_buffer: std::mem::take(&mut connection.input_buffer),

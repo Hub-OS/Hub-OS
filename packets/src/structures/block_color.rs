@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
-#[derive(Default, Clone, Copy, PartialEq, Eq, FromPrimitive, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, Serialize, Deserialize)]
 pub enum BlockColor {
     #[default]
     White,

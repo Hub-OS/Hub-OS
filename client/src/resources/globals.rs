@@ -230,14 +230,17 @@ impl Globals {
             .map(|setup| setup.player_package.package_info.triplet());
 
         let card_package_iter = props.player_setups.iter().flat_map(|setup| {
-            let ns = if setup.local {
-                PackageNamespace::Local
-            } else {
-                PackageNamespace::Remote(setup.index)
-            };
+            let ns = setup.namespace();
 
             let card_iter = setup.folder.cards.iter();
             card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
+        });
+
+        let block_package_iter = props.player_setups.iter().flat_map(|setup| {
+            let ns = setup.namespace();
+
+            let block_iter = setup.blocks.iter();
+            block_iter.map(move |block| (PackageCategory::Block, ns, block.package_id.clone()))
         });
 
         let battle_package_iter = std::iter::once(props.battle_package)
@@ -246,6 +249,7 @@ impl Globals {
 
         let package_iter = player_package_iter
             .chain(card_package_iter)
+            .chain(block_package_iter)
             .chain(battle_package_iter);
 
         self.package_dependency_iter(package_iter)

@@ -3,30 +3,40 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Folder;
 use framework::prelude::*;
-use packets::structures::BattleStatistics;
+use packets::structures::{BattleStatistics, InstalledBlock};
 use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
     pub player_package: &'a PlayerPackage,
     pub folder: Folder,
-    // todo: blocks
+    pub blocks: Vec<InstalledBlock>,
     pub index: usize,
     pub local: bool,
     pub input_buffer: VecDeque<Vec<Input>>,
 }
 
 impl<'a> PlayerSetup<'a> {
+    pub fn namespace(&self) -> PackageNamespace {
+        if self.local {
+            PackageNamespace::Local
+        } else {
+            PackageNamespace::Remote(self.index)
+        }
+    }
+
     pub fn from_globals(game_io: &'a GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
 
         let player_package = global_save.player_package(game_io).unwrap();
         let folder = global_save.active_folder().cloned().unwrap_or_default();
+        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
 
         Self {
             player_package,
             index: 0,
             folder,
+            blocks,
             local: true,
             input_buffer: VecDeque::new(),
         }

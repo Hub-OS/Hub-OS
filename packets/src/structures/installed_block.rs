@@ -1,7 +1,7 @@
 use super::{BlockColor, PackageId};
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InstalledBlock {
     pub package_id: PackageId,
     pub rotation: u8,

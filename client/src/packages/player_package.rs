@@ -55,6 +55,7 @@ impl PlayerPackage {
             0,
             true,
             vec![],
+            vec![],
         ) else {
             return (globals.assets.texture(game_io, ResourcePaths::BLANK), Animator::new())
         };

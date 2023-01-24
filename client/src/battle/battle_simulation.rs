@@ -9,7 +9,7 @@ use crate::resources::*;
 use crate::saves::Card;
 use framework::prelude::*;
 use generational_arena::Arena;
-use packets::structures::BattleStatistics;
+use packets::structures::{BattleStatistics, InstalledBlock};
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
@@ -720,6 +720,7 @@ impl BattleSimulation {
         index: usize,
         local: bool,
         cards: Vec<Card>,
+        _blocks: Vec<InstalledBlock>,
     ) -> rollback_mlua::Result<EntityID> {
         let vm_index = Self::find_vm(vms, package_id, package_namespace)?;
 

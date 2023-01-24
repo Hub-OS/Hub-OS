@@ -1,4 +1,4 @@
-use crate::structures::{FileHash, PackageCategory};
+use crate::structures::{FileHash, InstalledBlock, PackageCategory};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -18,7 +18,7 @@ pub enum NetplayPacket {
         player_package: String,
         // package_id, code
         cards: Vec<(String, String)>,
-        // todo: blocks
+        blocks: Vec<InstalledBlock>,
     },
     PackageList {
         index: usize,

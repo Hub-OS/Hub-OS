@@ -73,11 +73,7 @@ impl CustomizeScene {
 
         // installed blocks
         let global_save = &globals.global_save;
-        let blocks = global_save
-            .installed_blocks
-            .get(&global_save.selected_character)
-            .cloned()
-            .unwrap_or_default();
+        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
 
         // load block packages
         let mut packages: Vec<_> = globals
