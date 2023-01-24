@@ -80,6 +80,8 @@ impl AudioManager {
             }
         };
 
+        music_sink.set_volume(self.music_volume);
+
         use std::io::{BufReader, Cursor};
         let cursor = Cursor::new(buffer);
         let reader = BufReader::new(cursor);
