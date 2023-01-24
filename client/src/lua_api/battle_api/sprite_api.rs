@@ -173,22 +173,16 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "get_width", |node, _, _: ()| {
-        // update scale
-        Ok(node.size().x)
-    });
+    setter(lua_api, "get_width", |node, _, _: ()| Ok(node.size().x));
     setter(lua_api, "set_width", |node, _, width| {
         let height = node.size().y;
         node.set_size(Vec2::new(width, height));
         Ok(())
     });
 
-    setter(lua_api, "get_height", |node, _, _: ()| {
-        // update scale
-        Ok(node.size().y)
-    });
+    setter(lua_api, "get_height", |node, _, _: ()| Ok(node.size().y));
     setter(lua_api, "set_height", |node, _, height| {
-        let width = node.size().y;
+        let width = node.size().x;
         node.set_size(Vec2::new(width, height));
         Ok(())
     });
