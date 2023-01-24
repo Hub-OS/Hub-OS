@@ -203,7 +203,7 @@ impl BlockGrid {
         let globals = game_io.resource::<Globals>().unwrap();
 
         (0..Self::SIDE_LEN)
-            .flat_map(|x| self.get_block((x, 4)))
+            .flat_map(|x| self.get_block((x, 3)))
             .unique_by(|block| block.position)
             .flat_map(|block| {
                 globals
