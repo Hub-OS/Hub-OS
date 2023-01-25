@@ -451,7 +451,8 @@ fn inter_dock_swap(
         pack_index = active_index;
     }
 
-    let pack_item = scene.pack_dock.card_items[pack_index].as_ref();
+    let pack_items = &scene.pack_dock.card_items;
+    let pack_item = pack_items.get(pack_index).and_then(|o| o.as_ref());
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
