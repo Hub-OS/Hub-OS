@@ -593,12 +593,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "closure"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6173fd61b610d15a7566dd7b7620775627441c4ab9dac8906e17cb93a24b782"
-
-[[package]]
 name = "cmake"
 version = "0.1.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2899,7 +2893,6 @@ dependencies = [
  "base64",
  "byteorder",
  "clap",
- "closure",
  "flate2",
  "flume",
  "futures",
@@ -2913,6 +2906,7 @@ dependencies = [
  "packets",
  "rand",
  "termcolor",
+ "toml 0.6.0",
  "uuid",
  "zip",
 ]

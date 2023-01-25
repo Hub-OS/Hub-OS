@@ -1080,7 +1080,7 @@ impl Net {
                 continue;
             };
 
-            let package_info = if let Some(package_info) = asset.resolve_package_info() {
+            let package_info = if let Some(package_info) = asset.package_info() {
                 package_info
             } else {
                 log::warn!("{:?} is not a package", asset_path);
@@ -1128,7 +1128,7 @@ impl Net {
                 continue;
             };
 
-            let package_category = if let Some(package_info) = asset.resolve_package_info() {
+            let package_category = if let Some(package_info) = asset.package_info() {
                 package_info.category
             } else {
                 log::warn!("{:?} is not a package", asset_path);

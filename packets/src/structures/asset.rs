@@ -24,7 +24,7 @@ impl AssetDataType {
             "png" | "bmp" => Self::Texture,
             "flac" | "mp3" | "wav" | "mid" | "midi" | "ogg" => Self::Audio,
             "zip" => Self::Data,
-            "lua" | "animation" => Self::Text,
+            "toml" | "lua" | "animation" => Self::Text,
             _ => Self::Unknown,
         }
     }

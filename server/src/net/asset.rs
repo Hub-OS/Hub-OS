@@ -119,7 +119,7 @@ impl Asset {
 
         match extension {
             "tsx" => self.resolve_tsx_dependencies(),
-            "zip" => self.resolve_zip_dependencies(path),
+            "zip" => self.resolve_zip_meta(),
             _ => {}
         }
     }
@@ -186,262 +186,126 @@ impl Asset {
         }
     }
 
-    fn resolve_zip_dependencies(&mut self, path: &std::path::Path) {
-        let data = if let AssetData::Data(data) = &self.data {
-            data
-        } else {
+    fn resolve_zip_meta(&mut self) {
+        let AssetData::Data(data) = &self.data else {
             return;
         };
 
+        let Some(meta_text) = Self::load_package_meta(data) else {
+            return;
+        };
+
+        let Ok(meta_table) = meta_text.parse::<toml::Table>() else {
+            return;
+        };
+
+        let Some(package_info) = Self::resolve_package_info(&meta_table) else {
+            return;
+        };
+
+        self.alternate_names.push(AssetID::Package(package_info));
+
+        if let Some(ids) = Self::resolve_package_defines(&meta_table) {
+            self.alternate_names.extend(ids);
+        }
+
+        if let Some(ids) = Self::resolve_package_dependencies(&meta_table) {
+            self.dependencies.extend(ids);
+        };
+    }
+
+    fn load_package_meta(zip_bytes: &[u8]) -> Option<String> {
         use std::io::Cursor;
+        use std::io::Read;
         use zip::ZipArchive;
 
-        let data_cursor = Cursor::new(data);
+        let data_cursor = Cursor::new(zip_bytes);
 
-        let mut archive = if let Ok(archive) = ZipArchive::new(data_cursor) {
-            archive
-        } else {
-            return;
+        let mut archive = ZipArchive::new(data_cursor).ok()?;
+        let mut meta_file = archive.by_name("package.toml").ok()?;
+
+        let mut meta_text = String::new();
+        meta_file.read_to_string(&mut meta_text).ok()?;
+
+        Some(meta_text)
+    }
+
+    fn resolve_package_info(meta_table: &toml::Table) -> Option<PackageInfo> {
+        let Some(package) = meta_table.get("package") else {
+            return None;
         };
 
-        if let Ok(mut encounter_file) = archive.by_name("entry.lua") {
-            use std::io::Read;
+        let id = get_str(&package, "id");
+        let name = get_str(&package, "name");
+        let category = get_str(&package, "category");
 
-            let mut entry_script = String::new();
+        Some(PackageInfo {
+            name: name.to_string(),
+            id: id.to_string(),
+            category: category.into(),
+        })
+    }
 
-            if encounter_file.read_to_string(&mut entry_script).is_ok() {
-                Asset::resolve_package_dependencies(
-                    &mut self.alternate_names,
-                    &mut self.dependencies,
-                    path,
-                    entry_script,
-                );
-            }
-        };
+    fn resolve_package_defines(
+        meta_table: &toml::Table,
+    ) -> Option<impl Iterator<Item = AssetID> + '_> {
+        let defines = meta_table.get("defines")?;
+
+        let characters = defines.get("characters")?.as_array()?;
+
+        Some(
+            characters
+                .iter()
+                .map(|define| PackageInfo {
+                    name: get_str(define, "name").to_string(),
+                    id: get_str(define, "id").to_string(),
+                    category: PackageCategory::Character,
+                })
+                .map(AssetID::Package),
+        )
     }
 
     fn resolve_package_dependencies(
-        alternate_names: &mut Vec<AssetID>,
-        dependencies: &mut Vec<AssetID>,
-        path: &std::path::Path,
-        entry_script: String,
-    ) {
-        use closure::closure;
-        use std::cell::RefCell;
+        meta_table: &toml::Table,
+    ) -> Option<impl Iterator<Item = AssetID> + '_> {
+        let dependencies = meta_table.get("dependencies")?;
 
-        let lua_ctx = mlua::Lua::new();
+        let char_iter = Self::resolve_dependency_category(
+            &dependencies,
+            "characters",
+            PackageCategory::Character,
+        );
 
-        let alternate_names = RefCell::new(alternate_names);
-        let dependencies = RefCell::new(dependencies);
-        let package_info = RefCell::new(PackageInfo {
-            name: String::new(),
-            id: String::new(),
-            category: PackageCategory::Library,
-        });
+        let card_iter =
+            Self::resolve_dependency_category(&dependencies, "cards", PackageCategory::Card);
 
-        let result = (|| -> mlua::Result<()> {
-            lua_ctx.scope(|scope| -> mlua::Result<()> {
-                let globals = lua_ctx.globals();
+        let lib_iter =
+            Self::resolve_dependency_category(&dependencies, "libraries", PackageCategory::Library);
 
-                globals.set("_card_props", lua_ctx.create_table()?)?;
-
-                let engine_table = lua_ctx.create_table()?;
-
-                // subpackage resolution
-                let create_define_func = |category: PackageCategory| {
-                    scope.create_function_mut(
-                        closure!(move category, ref alternate_names, |_, id: String| {
-                          let package_info = PackageInfo{ name: String::new(), id, category };
-
-                          alternate_names
-                            .borrow_mut()
-                            .push(AssetID::Package(package_info));
-
-                          Ok(())
-                        }),
-                    )
-                };
-
-                engine_table.set("define_card", create_define_func(PackageCategory::Card)?)?;
-                engine_table.set(
-                    "define_character",
-                    create_define_func(PackageCategory::Character)?,
-                )?;
-                engine_table.set(
-                    "define_library",
-                    create_define_func(PackageCategory::Library)?,
-                )?;
-
-                // dependency resolution
-                let create_require_func = |category: PackageCategory| {
-                    scope.create_function_mut(
-                        closure!(move category, ref dependencies, |_, id: String| {
-                          let package_info = PackageInfo{ name: String::new(), id, category };
-
-                          dependencies.borrow_mut().push(AssetID::Package(package_info));
-
-                          Ok(())
-                        }),
-                    )
-                };
-
-                engine_table.set("requires_card", create_require_func(PackageCategory::Card)?)?;
-                engine_table.set(
-                    "requires_character",
-                    create_require_func(PackageCategory::Character)?,
-                )?;
-                engine_table.set(
-                    "requires_library",
-                    create_require_func(PackageCategory::Library)?,
-                )?;
-
-                // id resolution
-                let package_table = lua_ctx.create_table()?;
-
-                package_table.set(
-                    "declare_package_id",
-                    scope.create_function_mut(|_, (_, id): (mlua::Table, String)| {
-                        package_info.borrow_mut().id = id;
-                        Ok(())
-                    })?,
-                )?;
-
-                // name resolution
-                package_table.set(
-                    "set_name",
-                    scope.create_function_mut(|_, (_, name): (mlua::Table, String)| {
-                        package_info.borrow_mut().name = name;
-                        Ok(())
-                    })?,
-                )?;
-
-                // resolving category
-                let create_category_stub = |category: PackageCategory| {
-                    scope.create_function_mut(
-                        closure!(move category, ref package_info, |_, _: mlua::MultiValue| {
-                          package_info.borrow_mut().category = category;
-
-                          Ok(())
-                        }),
-                    )
-                };
-
-                package_table.set("set_mutator", create_category_stub(PackageCategory::Block)?)?;
-
-                package_table.set("set_codes", create_category_stub(PackageCategory::Card)?)?;
-                package_table.set(
-                    "get_card_props",
-                    scope.create_function_mut(|lua_ctx, _: mlua::Table| {
-                        package_info.borrow_mut().category = PackageCategory::Card;
-
-                        let card_props: mlua::Table = lua_ctx.globals().get("_card_props")?;
-
-                        Ok(card_props)
-                    })?,
-                )?;
-
-                package_table.set(
-                    "set_overworld_animation_path",
-                    create_category_stub(PackageCategory::Player)?,
-                )?;
-                package_table.set(
-                    "set_overworld_texture_path",
-                    create_category_stub(PackageCategory::Player)?,
-                )?;
-                package_table.set(
-                    "set_mugshot_texture_path",
-                    create_category_stub(PackageCategory::Player)?,
-                )?;
-                package_table.set(
-                    "set_mugshot_animation_path",
-                    create_category_stub(PackageCategory::Player)?,
-                )?;
-
-                // stubs
-                let create_nil_stub = || scope.create_function_mut(|_, _: mlua::MultiValue| Ok(()));
-                let create_table_stub = || {
-                    scope.create_function_mut(|lua_ctx, _: mlua::MultiValue| lua_ctx.create_table())
-                };
-
-                globals.set("_game_folder_path", "")?;
-                globals.set("_folder_path", "")?;
-                globals.set("include", create_nil_stub()?)?;
-
-                globals.set("Blocks", lua_ctx.create_table()?)?;
-                globals.set("Element", lua_ctx.create_table()?)?;
-                globals.set("CardClass", lua_ctx.create_table()?)?;
-                globals.set("TileState", lua_ctx.create_table()?)?;
-                globals.set("Team", lua_ctx.create_table()?)?;
-                globals.set("Rank", lua_ctx.create_table()?)?;
-
-                let color_table = lua_ctx.create_table()?;
-                color_table.set("new", create_table_stub()?)?;
-                globals.set("Color", color_table)?;
-
-                engine_table.set("load_texture", create_nil_stub()?)?;
-                engine_table.set("load_audio", create_nil_stub()?)?;
-                globals.set("Engine", engine_table)?;
-
-                package_table.set("set_description", create_nil_stub()?)?;
-                package_table.set("set_color", create_nil_stub()?)?;
-                package_table.set("set_shape", create_nil_stub()?)?;
-                package_table.set("as_program", create_nil_stub()?)?;
-                package_table.set("set_special_description", create_nil_stub()?)?;
-                package_table.set("set_preview_texture_path", create_nil_stub()?)?;
-                package_table.set("set_icon_texture_path", create_nil_stub()?)?;
-                package_table.set("set_speed", create_nil_stub()?)?;
-                package_table.set("set_attack", create_nil_stub()?)?;
-                package_table.set("set_health", create_nil_stub()?)?;
-                package_table.set("set_charged_attack", create_nil_stub()?)?;
-
-                // execution
-
-                lua_ctx.load(&entry_script).exec()?;
-
-                if let Ok(requires_scripts_func) =
-                    globals.get::<&str, mlua::Function>("package_requires_scripts")
-                {
-                    requires_scripts_func.call(())?;
-                }
-
-                let init_func: mlua::Function = globals.get("package_init")?;
-                init_func.call(package_table)?;
-
-                // encounter detection
-                let package_build_func: mlua::Value = globals.get("package_build")?;
-
-                if let mlua::Value::Function(_) = package_build_func {
-                    package_info.borrow_mut().category = PackageCategory::Battle;
-                }
-
-                // name resolution
-                let card_props: mlua::Table = lua_ctx.globals().get("_card_props")?;
-
-                if let Ok(card_name) = card_props.get("shortname") {
-                    package_info.borrow_mut().name = card_name;
-                }
-
-                Ok(())
-            })?;
-
-            // prepend the alternate name to make the first result when resolving the category
-            alternate_names
-                .into_inner()
-                .insert(0, AssetID::Package(package_info.into_inner()));
-
-            Ok(())
-        })();
-
-        if let Err(e) = result {
-            log::error!(
-                "Failed to load \"entry.lua\" in {:?}:\n{}",
-                path.display(),
-                e
-            );
-        }
+        Some(char_iter.chain(card_iter).chain(lib_iter))
     }
 
-    pub fn resolve_package_info(&self) -> Option<&PackageInfo> {
+    fn resolve_dependency_category<'a>(
+        dependencies: &'a toml::Value,
+        key: &str,
+        category: PackageCategory,
+    ) -> impl Iterator<Item = AssetID> + 'a {
+        dependencies
+            .get(key)
+            .map(|value| value.as_array())
+            .into_iter()
+            .flatten()
+            .flatten()
+            .flat_map(|id| id.as_str())
+            .map(move |id| PackageInfo {
+                name: String::new(),
+                id: id.to_string(),
+                category,
+            })
+            .map(AssetID::Package)
+    }
+
+    pub fn package_info(&self) -> Option<&PackageInfo> {
         self.alternate_names
             .iter()
             .find_map(|asset_id| match asset_id {
@@ -449,6 +313,13 @@ impl Asset {
                 _ => None,
             })
     }
+}
+
+fn get_str<'a>(table: &'a toml::Value, key: &str) -> &'a str {
+    table
+        .get(key)
+        .map(|v| v.as_str().unwrap_or_default())
+        .unwrap_or_default()
 }
 
 pub fn get_player_texture_path(player_id: &str) -> String {

@@ -16,11 +16,7 @@ pub fn battle_init(context: BattleScriptContext) {
     let vm = &context.vms[context.vm_index];
     let lua = &vm.lua;
 
-    let battle_init: rollback_mlua::Function = match lua
-        .globals()
-        .get("battle_init")
-        .or_else(|_| lua.globals().get("package_build"))
-    {
+    let battle_init: rollback_mlua::Function = match lua.globals().get("battle_init") {
         Ok(battle_init) => battle_init,
         _ => {
             log::error!("missing battle_init() in {:?}", vm.path);
