@@ -107,17 +107,19 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
 
         Ok(CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
-            short_name: table.get("shortname").unwrap_or_default(),
+            short_name: table
+                .get("shortname")
+                .unwrap_or_else(|_| String::from("?????")),
             description: table.get("description").unwrap_or_default(),
             long_description: table.get("long_description").unwrap_or_default(),
             damage: table.get("damage").unwrap_or_default(),
             element: table.get("element").unwrap_or_default(),
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
-            limit: table.get("limit").unwrap_or_default(),
+            limit: table.get("limit").unwrap_or(5),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
-            can_boost: table.get("can_boost").unwrap_or_default(),
-            counterable: table.get("counterable").unwrap_or_default(),
+            can_boost: table.get("can_boost").unwrap_or(true),
+            counterable: table.get("counterable").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
             meta_classes: table.get("meta_classes").unwrap_or_default(),

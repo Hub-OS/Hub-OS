@@ -34,6 +34,30 @@ impl Element {
     }
 }
 
+impl From<String> for Element {
+    fn from(s: String) -> Self {
+        Self::from(s.as_str())
+    }
+}
+
+impl From<&str> for Element {
+    fn from(s: &str) -> Element {
+        match s.to_lowercase().as_str() {
+            "Fire" => Element::Fire,
+            "Aqua" => Element::Aqua,
+            "Elec" => Element::Elec,
+            "Wood" => Element::Wood,
+            "Sword" => Element::Sword,
+            "Wind" => Element::Wind,
+            "Cursor" => Element::Cursor,
+            "Summon" => Element::Summon,
+            "Plus" => Element::Plus,
+            "Break" => Element::Break,
+            _ => Element::None,
+        }
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for Element {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,

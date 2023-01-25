@@ -70,6 +70,25 @@ impl BlockColor {
     }
 }
 
+impl From<String> for BlockColor {
+    fn from(text: String) -> Self {
+        text.as_str().into()
+    }
+}
+
+impl From<&str> for BlockColor {
+    fn from(text: &str) -> Self {
+        match text.to_lowercase().as_str() {
+            "red" => BlockColor::Red,
+            "green" => BlockColor::Green,
+            "blue" => BlockColor::Blue,
+            "pink" => BlockColor::Pink,
+            "yellow" => BlockColor::Yellow,
+            _ => BlockColor::White,
+        }
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for BlockColor {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,

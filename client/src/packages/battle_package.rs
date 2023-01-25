@@ -1,7 +1,14 @@
 use super::*;
-use crate::lua_api::create_analytical_vm;
-use crate::resources::{LocalAssetManager, ResourcePaths};
-use std::cell::RefCell;
+use serde::Deserialize;
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct BattleMeta {
+    category: String,
+    name: String,
+    description: String,
+    preview_texture_path: String,
+}
 
 #[derive(Default, Clone)]
 pub struct BattlePackage {
@@ -20,78 +27,33 @@ impl Package for BattlePackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
-        let package = RefCell::new(BattlePackage::default());
-        package.borrow_mut().package_info = package_info.clone();
+    fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
+        let mut package = BattlePackage {
+            package_info,
+            ..Default::default()
+        };
 
-        let lua = create_analytical_vm(assets, &package_info);
-
-        let globals = lua.globals();
-        let package_init: rollback_mlua::Function = match globals.get("package_init") {
-            Ok(package_init) => package_init,
-            _ => {
-                log::error!(
-                    "missing package_init() in {:?}",
-                    ResourcePaths::shorten(&package_info.script_path)
-                );
-                return package.into_inner();
+        let meta: BattleMeta = match package_table.try_into() {
+            Ok(toml) => toml,
+            Err(e) => {
+                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                return package;
             }
         };
 
-        let res = lua.scope(|scope| {
-            crate::lua_api::analytical_api::inject_analytical_api(&lua, scope, assets, &package)?;
-            crate::lua_api::analytical_api::query_dependencies(&lua);
-
-            let package_table = lua.create_table()?;
-
-            package_table.set(
-                "declare_package_id",
-                scope.create_function(|_, (_, id): (rollback_mlua::Table, PackageId)| {
-                    package.borrow_mut().package_info.id = id;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_name",
-                scope.create_function(|_, (_, name): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().name = name;
-
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_description",
-                scope.create_function(|_, (_, description): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().description = description;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_preview_texture_path",
-                scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().preview_texture_path =
-                        package_info.base_path.to_string() + &path;
-                    Ok(())
-                })?,
-            )?;
-
-            match package_init.call(package_table) {
-                Ok(()) => {}
-                Err(e) => {
-                    log::error!("{}", e);
-                }
-            };
-
-            Ok(())
-        });
-
-        if let Err(e) = res {
-            log::error!("{e}");
+        if meta.category != "battle" {
+            log::error!(
+                "missing `category = \"battle\"` in {:?}",
+                package.package_info.toml_path
+            );
         }
 
-        package.into_inner()
+        let base_path = &package.package_info.base_path;
+
+        package.name = meta.name;
+        package.description = meta.description;
+        package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
+
+        package
     }
 }

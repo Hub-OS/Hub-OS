@@ -5,7 +5,6 @@
 const PRIMARY_TABLE: &str = "Engine";
 
 use crate::battle::BattleScriptContext;
-use crate::lua_api::global_api::inject_global_api;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -72,7 +71,7 @@ impl BattleLuaApi {
             table_paths: Vec::new(),
         };
 
-        lua_api.add_static_injector(inject_global_api);
+        lua_api.add_static_injector(super::global_api::inject_global_api);
 
         super::math_api::inject_math_api(&mut lua_api);
         super::include_api::inject_include_api(&mut lua_api);

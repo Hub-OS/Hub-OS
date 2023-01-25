@@ -1,5 +1,4 @@
 use super::*;
-use crate::resources::LocalAssetManager;
 
 #[derive(Default, Clone)]
 pub struct CharacterPackage {
@@ -15,7 +14,7 @@ impl Package for CharacterPackage {
         &mut self.package_info
     }
 
-    fn load_new(_assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
+    fn load_new(package_info: PackageInfo, _package_table: toml::Table) -> Self {
         Self { package_info }
     }
 }

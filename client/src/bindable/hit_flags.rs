@@ -42,6 +42,28 @@ pub mod HitFlag {
         CONFUSE,
     ];
 
+    pub fn from_str(s: &str) -> HitFlags {
+        match s.to_lowercase().replace('_', "").as_str() {
+            "retainintangible" => RETAIN_INTANGIBLE,
+            "freeze" => FREEZE,
+            "pierceinvis" => PIERCE_INVIS,
+            "flinch" => FLINCH,
+            "shake" => SHAKE,
+            "paralyze" => PARALYZE,
+            "flash" => FLASH,
+            "pierceguard" => PIERCE_GUARD,
+            "impact" => IMPACT,
+            "drag" => DRAG,
+            "bubble" => BUBBLE,
+            "nocounter" => NO_COUNTER,
+            "root" => ROOT,
+            "blind" => BLIND,
+            "confuse" => CONFUSE,
+            "pierceground" => PIERCE_GROUND,
+            _ => NONE,
+        }
+    }
+
     pub const STATUS_LIST: [HitFlags; 6] = [FREEZE, PARALYZE, BUBBLE, ROOT, BLIND, CONFUSE];
 
     pub fn status_animation_state(flag: HitFlags, height: f32) -> &'static str {

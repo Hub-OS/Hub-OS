@@ -218,7 +218,7 @@ impl Globals {
         let id = package_info.id.clone();
 
         self.character_packages
-            .load_child_packages(&self.assets, namespace, child_packages);
+            .load_child_packages(namespace, child_packages);
 
         self.package_or_fallback_info(category, namespace, &id)
     }

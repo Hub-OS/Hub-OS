@@ -9,6 +9,7 @@ mod engine_api;
 mod entity_api;
 mod errors;
 mod field_api;
+mod global_api;
 mod include_api;
 mod math_api;
 mod player_form_api;

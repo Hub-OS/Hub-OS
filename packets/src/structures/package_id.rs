@@ -13,6 +13,12 @@ impl PackageId {
     }
 }
 
+impl From<&str> for PackageId {
+    fn from(id: &str) -> Self {
+        Self(id.to_string())
+    }
+}
+
 impl From<String> for PackageId {
     fn from(id: String) -> Self {
         Self(id)

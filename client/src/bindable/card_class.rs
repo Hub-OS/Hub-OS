@@ -10,6 +10,23 @@ pub enum CardClass {
     Dark,
 }
 
+impl From<String> for CardClass {
+    fn from(s: String) -> Self {
+        Self::from(s.as_str())
+    }
+}
+
+impl From<&str> for CardClass {
+    fn from(s: &str) -> CardClass {
+        match s.to_lowercase().as_str() {
+            "Mega" => CardClass::Mega,
+            "Giga" => CardClass::Giga,
+            "Dark" => CardClass::Dark,
+            _ => CardClass::Standard,
+        }
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for CardClass {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,

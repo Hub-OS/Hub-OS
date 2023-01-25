@@ -1,59 +1,11 @@
-use super::analytical_api::inject_include_api;
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
 use crate::packages::PackageInfo;
-use crate::resources::{
-    AssetManager, Globals, LocalAssetManager, ResourcePaths, INPUT_BUFFER_LIMIT,
-};
+use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
 use framework::prelude::GameIO;
 use std::cell::RefCell;
 
 // 1 MiB
 const VM_MEMORY: usize = 1024 * 1024;
-
-pub fn create_analytical_vm(
-    assets: &LocalAssetManager,
-    package_info: &PackageInfo,
-) -> rollback_mlua::Lua {
-    let lua = rollback_mlua::Lua::new_rollback(VM_MEMORY, 0);
-    lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)
-        .unwrap();
-
-    {
-        let globals = lua.globals();
-
-        let stub = lua.create_function(|_, ()| Ok(())).unwrap();
-
-        // engine stubs
-        let engine_table = lua.create_table().unwrap();
-        engine_table.set("load_texture", stub.clone()).unwrap();
-        engine_table.set("load_audio", stub).unwrap();
-        globals.set("Engine", engine_table).unwrap();
-
-        let globals_metatable = lua.create_table().unwrap();
-        globals_metatable.set("__index", lua.globals()).unwrap();
-        lua.set_named_registry_value("globals", globals_metatable)
-            .unwrap();
-
-        // real api that does not depend on anything
-        super::global_api::inject_global_api(&lua).unwrap();
-    }
-
-    let res = lua.scope(|scope| {
-        inject_include_api(&lua, scope, assets)?;
-
-        load_root_script(&lua, assets, package_info)
-    });
-
-    if let Err(e) = res {
-        log::error!(
-            "{:?} {}",
-            ResourcePaths::shorten(&package_info.script_path),
-            e
-        );
-    }
-
-    lua
-}
 
 pub fn create_battle_vm(
     game_io: &GameIO,

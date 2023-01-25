@@ -1,6 +1,6 @@
 [package]
 name = "real_pet"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "GPL-3.0"
 
@@ -42,6 +42,7 @@ zip = { version = "0.6", features = [
 path-clean = "0.1"
 futures = "0.3"
 walkdir = "2.3"
+toml = "0.6"
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk-glue = "0.7"

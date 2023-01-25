@@ -1,9 +1,31 @@
 use super::*;
-use crate::lua_api::create_analytical_vm;
-use crate::resources::LocalAssetManager;
-use crate::{bindable::CardProperties, resources::ResourcePaths};
-use rollback_mlua::{FromLua, ToLua};
-use std::cell::RefCell;
+use crate::bindable::{CardProperties, HitFlag};
+use serde::Deserialize;
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct CardMeta {
+    category: String,
+    icon_texture_path: String,
+    preview_texture_path: String,
+    codes: Vec<String>,
+
+    // card properties
+    name: String,
+    description: String,
+    long_description: String,
+    damage: i32,
+    element: String,
+    secondary_element: String,
+    card_class: String,
+    limit: Option<usize>,
+    hit_flags: Option<Vec<String>>,
+    can_boost: Option<bool>,
+    counterable: Option<bool>,
+    time_freeze: bool,
+    skip_time_freeze_intro: bool,
+    meta_classes: Vec<String>,
+}
 
 #[derive(Default, Clone)]
 pub struct CardPackage {
@@ -23,88 +45,63 @@ impl Package for CardPackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
-        let package = RefCell::new(CardPackage::default());
-        package.borrow_mut().package_info = package_info.clone();
+    fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
+        let mut package = CardPackage {
+            package_info,
+            ..Default::default()
+        };
 
-        let lua = create_analytical_vm(assets, &package_info);
-
-        let globals = lua.globals();
-        let package_init: rollback_mlua::Function = match globals.get("package_init") {
-            Ok(package_init) => package_init,
-            _ => {
-                log::error!(
-                    "missing package_init() in {:?}",
-                    ResourcePaths::shorten(&package_info.script_path)
-                );
-                return package.into_inner();
+        let meta: CardMeta = match package_table.try_into() {
+            Ok(toml) => toml,
+            Err(e) => {
+                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                return package;
             }
         };
 
-        // create a table for card properties
-        let table = CardProperties::default().to_lua(&lua).unwrap();
-
-        let result = lua.scope(|scope| {
-            crate::lua_api::analytical_api::inject_analytical_api(&lua, scope, assets, &package)?;
-            crate::lua_api::analytical_api::query_dependencies(&lua);
-
-            let package_table = lua.create_table()?;
-
-            package_table.set(
-                "declare_package_id",
-                scope.create_function(|_, (_, id): (rollback_mlua::Table, PackageId)| {
-                    let mut package = package.borrow_mut();
-                    package.package_info.id = id;
-
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_codes",
-                scope.create_function(|_, (_, codes): (rollback_mlua::Table, Vec<String>)| {
-                    package.borrow_mut().default_codes = codes;
-
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_icon_texture_path",
-                scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().icon_texture_path =
-                        package_info.base_path.to_string() + &path;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_preview_texture_path",
-                scope.create_function(|_, (_, path): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().preview_texture_path =
-                        package_info.base_path.to_string() + &path;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "get_card_props",
-                scope.create_function(|_, _: ()| Ok(table.clone()))?,
-            )?;
-
-            package_init.call(package_table)?;
-
-            let mut card_properties = CardProperties::from_lua(table.clone(), &lua)?;
-            card_properties.package_id = package.borrow().package_info.id.clone();
-
-            package.borrow_mut().card_properties = card_properties;
-            Ok(())
-        });
-
-        if let Err(e) = result {
-            log::error!("{e}");
+        if meta.category != "card" {
+            log::error!(
+                "missing `category = \"card\"` in {:?}",
+                package.package_info.toml_path
+            );
         }
 
-        package.into_inner()
+        let base_path = &package.package_info.base_path;
+
+        package.icon_texture_path = base_path.clone() + &meta.icon_texture_path;
+        package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
+        package.default_codes = meta.codes;
+
+        // card properties
+        package.card_properties.short_name = meta.name;
+        package.card_properties.description = meta.description;
+        package.card_properties.long_description = meta.long_description;
+        package.card_properties.damage = meta.damage;
+        package.card_properties.element = meta.element.into();
+        package.card_properties.secondary_element = meta.secondary_element.into();
+        package.card_properties.card_class = meta.card_class.into();
+        package.card_properties.limit = meta.limit.unwrap_or(package.card_properties.limit);
+
+        if let Some(hit_flags) = meta.hit_flags {
+            package.card_properties.hit_flags = hit_flags
+                .into_iter()
+                .map(|flag| HitFlag::from_str(&flag))
+                .reduce(|acc, item| acc | item)
+                .unwrap_or_default();
+        }
+
+        if let Some(can_boost) = meta.can_boost {
+            package.card_properties.can_boost = can_boost;
+        }
+
+        if let Some(counterable) = meta.counterable {
+            package.card_properties.counterable = counterable;
+        }
+
+        package.card_properties.time_freeze = meta.time_freeze;
+        package.card_properties.skip_time_freeze_intro = meta.skip_time_freeze_intro;
+        package.card_properties.meta_classes = meta.meta_classes;
+
+        package
     }
 }

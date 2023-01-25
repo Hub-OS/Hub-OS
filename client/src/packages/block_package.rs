@@ -1,8 +1,17 @@
 use super::*;
 use crate::bindable::BlockColor;
-use crate::lua_api::create_analytical_vm;
-use crate::resources::{LocalAssetManager, ResourcePaths};
-use std::cell::RefCell;
+use serde::Deserialize;
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct BlockMeta {
+    category: String,
+    name: String,
+    description: String,
+    color: String,
+    flat: bool,
+    shape: Vec<Vec<u8>>,
+}
 
 #[derive(Default, Clone)]
 pub struct BlockPackage {
@@ -40,103 +49,45 @@ impl Package for BlockPackage {
         &mut self.package_info
     }
 
-    fn load_new(assets: &LocalAssetManager, package_info: PackageInfo) -> Self {
-        let package = RefCell::new(BlockPackage::default());
-        package.borrow_mut().package_info = package_info.clone();
+    fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
+        let mut package = BlockPackage {
+            package_info,
+            ..Default::default()
+        };
 
-        let lua = create_analytical_vm(assets, &package_info);
-
-        let globals = lua.globals();
-        let package_init: rollback_mlua::Function = match globals.get("package_init") {
-            Ok(package_init) => package_init,
-            _ => {
-                log::error!(
-                    "missing package_init() in {:?}",
-                    ResourcePaths::shorten(&package_info.script_path)
-                );
-                return package.into_inner();
+        let meta: BlockMeta = match package_table.try_into() {
+            Ok(toml) => toml,
+            Err(e) => {
+                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                return package;
             }
         };
 
-        let result = lua.scope(|scope| {
-            crate::lua_api::analytical_api::inject_analytical_api(&lua, scope, assets, &package)?;
-            crate::lua_api::analytical_api::query_dependencies(&lua);
-
-            let package_table = lua.create_table()?;
-
-            package_table.set(
-                "declare_package_id",
-                scope.create_function(|_, (_, id): (rollback_mlua::Table, PackageId)| {
-                    package.borrow_mut().package_info.id = id;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_name",
-                scope.create_function(|_, (_, name): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().name = name;
-
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_description",
-                scope.create_function(|_, (_, description): (rollback_mlua::Table, String)| {
-                    package.borrow_mut().description = description;
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_color",
-                scope.create_function(|_, (_, block_color): (rollback_mlua::Table, u8)| {
-                    use num_traits::FromPrimitive;
-
-                    package.borrow_mut().block_color =
-                        BlockColor::from_u8(block_color).unwrap_or_default();
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "set_shape",
-                scope.create_function(|_, (_, mut bools): (rollback_mlua::Table, Vec<i32>)| {
-                    bools.resize(5 * 5, 0);
-
-                    let mut package = package.borrow_mut();
-
-                    for (i, bool) in bools.into_iter().enumerate() {
-                        package.shape[i] = bool != 0;
-                    }
-
-                    Ok(())
-                })?,
-            )?;
-
-            package_table.set(
-                "as_program",
-                scope.create_function(
-                    |_, (_, is_program): (rollback_mlua::Table, Option<bool>)| {
-                        let mut package = package.borrow_mut();
-
-                        package.is_program = is_program.unwrap_or(true);
-
-                        Ok(())
-                    },
-                )?,
-            )?;
-
-            package_init.call(package_table)?;
-
-            Ok(())
-        });
-
-        if let Err(e) = result {
-            log::error!("{e}");
+        if meta.category != "block" {
+            log::error!(
+                "missing `category = \"block\"` in {:?}",
+                package.package_info.toml_path
+            );
         }
 
-        package.into_inner()
+        package.name = meta.name;
+        package.description = meta.description;
+        package.block_color = meta.color.into();
+        package.is_program = meta.flat;
+
+        let flattened_shape: Vec<_> = meta.shape.into_iter().flatten().collect();
+
+        if flattened_shape.len() != package.shape.len() {
+            log::error!(
+                "expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
+                package.package_info.toml_path
+            );
+        }
+
+        for (i, n) in flattened_shape.into_iter().enumerate() {
+            package.shape[i] = n != 0;
+        }
+
+        package
     }
 }

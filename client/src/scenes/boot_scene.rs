@@ -187,11 +187,7 @@ impl BootScene {
 
                 sender.send(Event::StatusUpdate(status_update)).unwrap();
 
-                character_packages.load_child_package(
-                    &thread_assets,
-                    PackageNamespace::Local,
-                    &child_package,
-                );
+                character_packages.load_child_package(PackageNamespace::Local, &child_package);
             }
 
             sender

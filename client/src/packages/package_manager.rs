@@ -96,22 +96,17 @@ impl<T: Package> PackageManager<T> {
         }
     }
 
-    pub fn load_child_packages<I>(
-        &mut self,
-        assets: &LocalAssetManager,
-        namespace: PackageNamespace,
-        child_packages: I,
-    ) where
+    pub fn load_child_packages<I>(&mut self, namespace: PackageNamespace, child_packages: I)
+    where
         I: std::iter::IntoIterator<Item = ChildPackageInfo>,
     {
         for child_package_info in child_packages.into_iter() {
-            self.load_child_package(assets, namespace, &child_package_info);
+            self.load_child_package(namespace, &child_package_info);
         }
     }
 
     pub fn load_child_package(
         &mut self,
-        assets: &LocalAssetManager,
         namespace: PackageNamespace,
         child_package_info: &ChildPackageInfo,
     ) -> bool {
@@ -130,7 +125,8 @@ impl<T: Package> PackageManager<T> {
         package_info.parent_package = Some(parent_tuple.clone());
         package_info.requirements.push(parent_tuple);
 
-        self.internal_load_package(assets, package_info).is_some()
+        self.internal_load_package(package_info, toml::Table::new())
+            .is_some()
     }
 
     pub fn load_package(
@@ -144,7 +140,8 @@ impl<T: Package> PackageManager<T> {
         let mut package_info = self.generate_package_info(namespace, &path_string)?;
         package_info.hash = Self::zip_and_hash(&package_info)?;
 
-        self.internal_load_package(assets, package_info)
+        let package_table = package_info.parse_toml(assets)?;
+        self.internal_load_package(package_info, package_table)
     }
 
     pub fn load_virtual_package(
@@ -164,7 +161,8 @@ impl<T: Package> PackageManager<T> {
         let mut package_info = self.generate_package_info(namespace, &zip_meta.virtual_prefix)?;
         package_info.hash = hash;
 
-        let package_info = self.internal_load_package(assets, package_info)?;
+        let package_table = package_info.parse_toml(assets)?;
+        let package_info = self.internal_load_package(package_info, package_table)?;
 
         // increment usage after we're certain it's in use
         assets.add_virtual_zip_use(&hash);
@@ -193,8 +191,9 @@ impl<T: Package> PackageManager<T> {
             hash: FileHash::ZERO,
             package_category: self.package_category,
             namespace,
-            base_path,
+            base_path: base_path.clone(),
             script_path,
+            toml_path: base_path + "package.toml",
             parent_package: None,
             child_id_path_pairs: Vec::new(),
             requirements: Vec::new(),
@@ -264,10 +263,10 @@ impl<T: Package> PackageManager<T> {
 
     fn internal_load_package<'a>(
         &'a mut self,
-        assets: &LocalAssetManager,
         package_info: PackageInfo,
+        package_table: toml::Table,
     ) -> Option<&'a PackageInfo> {
-        let package = T::load_new(assets, package_info);
+        let package = T::load_new(package_info, package_table);
 
         let package_info = package.package_info();
         let package_id = package_info.id.clone();
