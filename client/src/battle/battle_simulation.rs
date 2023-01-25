@@ -983,7 +983,7 @@ impl BattleSimulation {
         let id = self.create_character(game_io, rank, namespace)?;
 
         let vm_index = Self::find_vm(vms, package_id, namespace)?;
-        self.call_global(game_io, vms, vm_index, "package_init", move |lua| {
+        self.call_global(game_io, vms, vm_index, "character_init", move |lua| {
             create_entity_table(lua, id)
         })?;
 
