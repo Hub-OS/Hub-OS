@@ -34,6 +34,7 @@ pub struct BattleSimulation {
     pub turn_gauge: TurnGauge,
     pub field: Field,
     pub entities: hecs::World,
+    pub generation_tracking: Vec<hecs::Entity>,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
     pub animators: Arena<BattleAnimator>,
@@ -77,6 +78,7 @@ impl BattleSimulation {
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
             entities: hecs::World::new(),
+            generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
             animators: Arena::new(),
@@ -100,6 +102,16 @@ impl BattleSimulation {
 
     pub fn clone(&mut self, game_io: &GameIO) -> Self {
         let mut entities = hecs::World::new();
+
+        // spawn + remove blank entities to restore generations on dead entities
+        // otherwise if there's no living entity holding an id
+        // a new entity can spawn reusing an id a script may be tracking
+        // the most obvious sign of this is seeing the camera flip after a player dies and enemy spawns
+        // (enemy reuses the player id, making the engine think the player changed teams)
+        for id in self.generation_tracking.iter().cloned() {
+            entities.spawn_at(id, ());
+            let _ = entities.despawn(id);
+        }
 
         // starting with Entity as every entity will have Entity
         for (id, entity) in self.entities.query_mut::<&Entity>() {
@@ -144,6 +156,7 @@ impl BattleSimulation {
             turn_gauge: self.turn_gauge.clone(),
             field: self.field.clone(),
             entities,
+            generation_tracking: self.generation_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
             defense_judge: self.defense_judge.clone(),
             animators: self.animators.clone(),
@@ -596,8 +609,22 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
+    fn reserve_entity(&mut self) -> EntityID {
+        let id = self.entities.reserve_entity();
+
+        let match_id = |stored: &&mut hecs::Entity| stored.id() == id.id();
+
+        if let Some(stored) = self.generation_tracking.iter_mut().find(match_id) {
+            *stored = id;
+        } else {
+            self.generation_tracking.push(id);
+        }
+
+        id.into()
+    }
+
     fn create_entity(&mut self, game_io: &GameIO) -> EntityID {
-        let id: EntityID = self.entities.reserve_entity().into();
+        let id: EntityID = self.reserve_entity().into();
 
         let mut animator = BattleAnimator::new();
         animator.set_target(id, GenerationalIndex::tree_root());
