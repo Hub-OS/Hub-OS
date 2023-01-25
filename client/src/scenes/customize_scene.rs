@@ -85,12 +85,17 @@ impl CustomizeScene {
                     .package_or_fallback(PackageNamespace::Server, id)
                     .unwrap();
 
-                CompactPackageInfo {
-                    id: id.clone(),
-                    name: package.name.clone(),
-                    color: package.block_color,
-                }
+                package
+                    .block_colors
+                    .iter()
+                    .cloned()
+                    .map(|color| CompactPackageInfo {
+                        id: id.clone(),
+                        name: package.name.clone(),
+                        color,
+                    })
             })
+            .flatten()
             .filter(|compact_package_info| {
                 // only include blocks that are not already on the grid
                 !blocks.iter().any(|block| {

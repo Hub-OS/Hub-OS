@@ -8,7 +8,7 @@ struct BlockMeta {
     category: String,
     name: String,
     description: String,
-    color: String,
+    colors: Vec<String>,
     flat: bool,
     shape: Vec<Vec<u8>>,
 }
@@ -19,7 +19,7 @@ pub struct BlockPackage {
     pub name: String,
     pub description: String,
     pub is_program: bool,
-    pub block_color: BlockColor,
+    pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
 }
 
@@ -72,7 +72,7 @@ impl Package for BlockPackage {
 
         package.name = meta.name;
         package.description = meta.description;
-        package.block_color = meta.color.into();
+        package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.is_program = meta.flat;
 
         let flattened_shape: Vec<_> = meta.shape.into_iter().flatten().collect();
