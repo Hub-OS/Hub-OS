@@ -28,6 +28,11 @@ impl Text {
         self
     }
 
+    pub fn with_string(mut self, text: String) -> Self {
+        self.text = text;
+        self
+    }
+
     pub fn with_text_style(mut self, style: TextStyle) -> Self {
         self.style = style;
         self

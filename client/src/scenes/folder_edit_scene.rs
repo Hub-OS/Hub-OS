@@ -1,11 +1,15 @@
+use crate::bindable::CardClass;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::BlockGrid;
 use crate::saves::{Card, Folder};
 use framework::prelude::*;
 use std::collections::HashMap;
+
+const NAMESPACE: PackageNamespace = PackageNamespace::Server;
 
 enum Event {
     Leave(bool),
@@ -25,6 +29,8 @@ enum FolderSorting {
 
 pub struct FolderEditScene {
     folder_index: usize,
+    mega_limit: usize,
+    giga_limit: usize,
     camera: Camera,
     background: Background,
     ui_input_tracker: UiInputTracker,
@@ -44,6 +50,21 @@ pub struct FolderEditScene {
 impl FolderEditScene {
     pub fn new(game_io: &mut GameIO, folder_index: usize) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
+
+        // limits
+        let global_save = &globals.global_save;
+        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
+        let block_grid = BlockGrid::new(NAMESPACE).with_blocks(game_io, blocks);
+
+        let mut mega_limit = MAX_MEGA as isize;
+        let mut giga_limit = MAX_GIGA as isize;
+
+        for package in block_grid.valid_packages(game_io) {
+            mega_limit += package.mega_boost;
+            giga_limit += package.giga_boost;
+        }
+
+        // ui
         let assets = &globals.assets;
 
         let mut camera = Camera::new(game_io);
@@ -83,6 +104,8 @@ impl FolderEditScene {
 
         Self {
             folder_index,
+            mega_limit: mega_limit.max(0) as usize,
+            giga_limit: giga_limit.max(0) as usize,
             camera,
             background: Background::new(background_animator, background_sprite),
             ui_input_tracker: UiInputTracker::new(),
@@ -130,7 +153,7 @@ impl FolderEditScene {
 
     fn clone_cards(&self) -> Vec<Card> {
         self.folder_dock
-            .card_items
+            .card_slots
             .iter()
             .flatten()
             .map(|item| item.card.clone())
@@ -351,46 +374,46 @@ fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO) 
     };
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
-    let card_items = match scene.page_tracker.active_page() {
-        0 => &mut scene.folder_dock.card_items,
-        1 => &mut scene.pack_dock.card_items,
+    let card_slots = match scene.page_tracker.active_page() {
+        0 => &mut scene.folder_dock.card_slots,
+        1 => &mut scene.pack_dock.card_slots,
         _ => unreachable!(),
     };
 
     match selected_option {
-        FolderSorting::Id => sort_card_items(card_items, |item: &CardListItem| {
+        FolderSorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
             item.card.package_id.clone()
         }),
-        FolderSorting::Alphabetical => sort_card_items(card_items, |item: &CardListItem| {
+        FolderSorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(PackageNamespace::Server, &item.card.package_id)
+                .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.short_name.clone()
         }),
         FolderSorting::Code => {
-            sort_card_items(card_items, |item: &CardListItem| item.card.code.clone())
+            sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone())
         }
-        FolderSorting::Damage => sort_card_items(card_items, |item: &CardListItem| {
+        FolderSorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(PackageNamespace::Server, &item.card.package_id)
+                .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             -package.card_properties.damage
         }),
-        FolderSorting::Element => sort_card_items(card_items, |item: &CardListItem| {
+        FolderSorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(PackageNamespace::Server, &item.card.package_id)
+                .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.element as u8
         }),
         FolderSorting::Number => {
-            sort_card_items(card_items, |item: &CardListItem| -(item.count as isize))
+            sort_card_items(card_slots, |item: &CardListItem| -(item.count as isize))
         }
-        FolderSorting::Class => sort_card_items(card_items, |item: &CardListItem| {
+        FolderSorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(PackageNamespace::Server, &item.card.package_id)
+                .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.card_class as u8
@@ -398,21 +421,21 @@ fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO) 
     }
 
     if scene.last_sort.take() == Some(selected_option) {
-        card_items.reverse();
+        card_slots.reverse();
     } else {
         scene.last_sort = Some(selected_option);
     }
 
     // blanks should always be at the bottom
-    card_items.sort_by_key(|item| !item.is_some());
+    card_slots.sort_by_key(|item| !item.is_some());
 }
 
-fn sort_card_items<F, K>(card_items: &mut [Option<CardListItem>], key_function: F)
+fn sort_card_items<F, K>(card_slots: &mut [Option<CardListItem>], key_function: F)
 where
     F: FnMut(&CardListItem) -> K + Copy,
     K: std::cmp::Ord,
 {
-    card_items.sort_by_cached_key(move |item| item.as_ref().map(key_function));
+    card_slots.sort_by_cached_key(move |slot| slot.as_ref().map(key_function));
 }
 
 fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usize) {
@@ -422,7 +445,7 @@ fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usiz
         if index == selected_index {
             transfer_to_pack(scene, index);
         } else {
-            scene.folder_dock.card_items.swap(selected_index, index);
+            scene.folder_dock.card_slots.swap(selected_index, index);
         }
     } else {
         let selected_index = scene.pack_dock.scroll_tracker.selected_index();
@@ -430,7 +453,7 @@ fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usiz
         if index == selected_index {
             transfer_to_folder(scene, game_io, index);
         } else {
-            scene.pack_dock.card_items.swap(selected_index, index);
+            scene.pack_dock.card_slots.swap(selected_index, index);
         }
     }
 }
@@ -451,8 +474,8 @@ fn inter_dock_swap(
         pack_index = active_index;
     }
 
-    let pack_items = &scene.pack_dock.card_items;
-    let pack_item = pack_items.get(pack_index).and_then(|o| o.as_ref());
+    let pack_slots = &scene.pack_dock.card_slots;
+    let pack_item = pack_slots.get(pack_index).and_then(|o| o.as_ref());
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
@@ -462,7 +485,7 @@ fn inter_dock_swap(
         if let Some(stored_index) = stored_index {
             // move it back
             let index = transfer_to_folder(scene, game_io, stored_index)?;
-            scene.folder_dock.card_items.swap(index, folder_index);
+            scene.folder_dock.card_slots.swap(index, folder_index);
         }
 
         return None;
@@ -470,21 +493,21 @@ fn inter_dock_swap(
 
     if let Some(stored_index) = stored_index {
         if pack_card_count == 1 {
-            let merged_item = scene.pack_dock.card_items[stored_index - 1].as_ref();
+            let merged_item = scene.pack_dock.card_slots[stored_index - 1].as_ref();
             let merged_card_count = merged_item.unwrap().count;
 
             if merged_card_count == 1 {
                 // move the card transferred to the pack into the pack slot
-                scene.pack_dock.card_items.insert(pack_index, None);
-                scene.pack_dock.card_items.swap(stored_index, pack_index);
-                scene.pack_dock.card_items.pop();
+                scene.pack_dock.card_slots.insert(pack_index, None);
+                scene.pack_dock.card_slots.swap(stored_index, pack_index);
+                scene.pack_dock.card_slots.pop();
             }
         }
     }
 
     // move the card transferred to the folder to the correct slot
     // otherwise it's moved to the first empty slot and not the one we're selecting
-    scene.folder_dock.card_items.swap(index, folder_index);
+    scene.folder_dock.card_slots.swap(index, folder_index);
 
     scene.folder_dock.update_card_count();
     scene.folder_dock.update_preview();
@@ -498,35 +521,56 @@ fn transfer_to_folder(
     game_io: &GameIO,
     from_index: usize,
 ) -> Option<usize> {
-    let card_item = scene.pack_dock.card_items.get_mut(from_index)?.as_mut()?;
+    let card_item = scene.pack_dock.card_slots.get_mut(from_index)?.as_mut()?;
 
-    let folder_card_items = &mut scene.folder_dock.card_items;
+    let folder_dock = &mut scene.folder_dock;
 
-    // maintain limit requirement
-    let existing_count = folder_card_items
-        .iter()
-        .filter(|item| {
-            item.as_ref()
-                .map(|item| item.card.package_id == card_item.card.package_id)
-                .unwrap_or_default()
-        })
+    // maintain duplicate limit requirement
+    let duplicate_count = folder_dock
+        .card_items()
+        .filter(|item| item.card.package_id == card_item.card.package_id)
         .count();
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
-    let package =
-        card_manager.package_or_fallback(PackageNamespace::Server, &card_item.card.package_id)?;
+    let package = card_manager.package_or_fallback(NAMESPACE, &card_item.card.package_id)?;
 
-    if existing_count >= package.card_properties.limit {
+    if duplicate_count >= package.card_properties.limit {
         // folder already has too many
         return None;
     }
 
-    // search for an empty slot to insert the card into
-    let empty_index = folder_card_items
-        .iter_mut()
-        .position(|item| item.is_none())?;
+    match package.card_properties.card_class {
+        CardClass::Mega => {
+            let mega_count = folder_dock
+                .card_items()
+                .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
+                .filter(|package| package.card_properties.card_class == CardClass::Mega)
+                .count();
 
-    folder_card_items[empty_index] = Some(CardListItem {
+            if mega_count >= scene.mega_limit {
+                return None;
+            }
+        }
+        CardClass::Giga => {
+            let giga_count = folder_dock
+                .card_items()
+                .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
+                .filter(|package| package.card_properties.card_class == CardClass::Giga)
+                .count();
+
+            if giga_count >= scene.giga_limit {
+                return None;
+            }
+        }
+        _ => {}
+    };
+
+    // search for an empty slot to insert the card into
+    let folder_slots = &mut scene.folder_dock.card_slots;
+
+    let empty_index = folder_slots.iter_mut().position(|item| item.is_none())?;
+
+    folder_slots[empty_index] = Some(CardListItem {
         card: card_item.card.clone(),
         count: 1,
         show_count: false,
@@ -535,9 +579,9 @@ fn transfer_to_folder(
     card_item.count -= 1;
 
     if card_item.count == 0 {
-        scene.pack_dock.card_items.remove(from_index);
+        scene.pack_dock.card_slots.remove(from_index);
 
-        let pack_size = scene.pack_dock.card_items.len();
+        let pack_size = scene.pack_dock.card_slots.len();
         scene.pack_dock.scroll_tracker.set_total_items(pack_size);
     }
 
@@ -551,7 +595,7 @@ fn transfer_to_folder(
 fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<usize> {
     let card = scene
         .folder_dock
-        .card_items
+        .card_slots
         .get_mut(from_index)?
         .take()?
         .card;
@@ -559,25 +603,25 @@ fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<us
     scene.folder_dock.update_card_count();
     scene.folder_dock.update_preview();
 
-    let pack_items = &mut scene.pack_dock.card_items;
+    let pack_slots = &mut scene.pack_dock.card_slots;
 
-    let pack_index = pack_items
+    let pack_index = pack_slots
         .iter_mut()
         .position(|item| item.as_ref().unwrap().card == card);
 
     let Some(pack_index) = pack_index else {
-        pack_items.push(Some(CardListItem {
+        pack_slots.push(Some(CardListItem {
             card,
             count: 1,
             show_count: true,
         }));
 
-        scene.pack_dock.scroll_tracker.set_total_items(pack_items.len());
+        scene.pack_dock.scroll_tracker.set_total_items(pack_slots.len());
 
-        return Some(pack_items.len() - 1);
+        return Some(pack_slots.len() - 1);
     };
 
-    let item = pack_items[pack_index].as_mut().unwrap();
+    let item = pack_slots[pack_index].as_mut().unwrap();
 
     item.count += 1;
 
@@ -585,7 +629,7 @@ fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<us
 }
 
 struct Dock {
-    card_items: Vec<Option<CardListItem>>,
+    card_slots: Vec<Option<CardListItem>>,
     card_count: usize,
     scroll_tracker: ScrollTracker,
     dock_sprite: Sprite,
@@ -599,7 +643,7 @@ struct Dock {
 impl Dock {
     fn new(
         game_io: &GameIO,
-        card_items: Vec<Option<CardListItem>>,
+        card_slots: Vec<Option<CardListItem>>,
         texture_path: &str,
         animation_path: &str,
     ) -> Self {
@@ -630,7 +674,7 @@ impl Dock {
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
-        scroll_tracker.set_total_items(card_items.len());
+        scroll_tracker.set_total_items(card_slots.len());
 
         let scroll_start_point = dock_animator.point("scroll_start").unwrap_or_default();
         let scroll_end_point = dock_animator.point("scroll_end").unwrap_or_default();
@@ -644,7 +688,7 @@ impl Dock {
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
         let mut dock = Self {
-            card_items,
+            card_slots,
             card_count: 0,
             scroll_tracker,
             dock_sprite,
@@ -660,33 +704,18 @@ impl Dock {
         dock
     }
 
+    fn card_items(&self) -> impl Iterator<Item = &CardListItem> {
+        self.card_slots.iter().flat_map(|item| item.as_ref())
+    }
+
     fn update_card_count(&mut self) {
-        let mut counts = HashMap::new();
-
-        for card_item in &self.card_items {
-            let card = match card_item {
-                Some(card_item) => &card_item.card,
-                None => continue,
-            };
-
-            if let Some(count) = counts.get_mut(&card.package_id) {
-                *count += 1;
-            } else {
-                counts.insert(card.package_id.clone(), 1);
-            }
-        }
-
-        for card_item in self.card_items.iter_mut().flatten() {
-            card_item.count = *counts.get(&card_item.card.package_id).unwrap();
-        }
-
-        self.card_count = self.card_items.iter().filter(|item| item.is_some()).count();
+        self.card_count = self.card_slots.iter().filter(|item| item.is_some()).count();
     }
 
     fn update_preview(&mut self) -> Option<()> {
         let selected_index = self.scroll_tracker.selected_index();
 
-        let card_list_item = self.card_items.get(selected_index)?;
+        let card_list_item = self.card_slots.get(selected_index)?;
         let card = card_list_item.as_ref().map(|item| &item.card);
 
         self.card_preview.set_card(card.cloned());
@@ -712,7 +741,7 @@ impl Dock {
 
         // draw list items
         for i in self.scroll_tracker.view_range() {
-            let card_item = match &self.card_items[i] {
+            let card_item = match &self.card_slots[i] {
                 Some(card_item) => card_item,
                 None => continue,
             };
@@ -787,10 +816,9 @@ impl CardListItem {
                 .or_insert(1);
         }
 
-        // todo: allow use of server packages as well?
         package_manager
             .local_packages()
-            .filter_map(|id| package_manager.package_or_fallback(PackageNamespace::Server, id))
+            .filter_map(|id| package_manager.package_or_fallback(NAMESPACE, id))
             .flat_map(|package| {
                 let package_info = package.package_info();
 
