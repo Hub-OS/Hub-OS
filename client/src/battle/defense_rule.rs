@@ -1,6 +1,6 @@
 use super::{rollback_vm::RollbackVM, BattleScriptContext};
 use super::{BattleSimulation, Living};
-use crate::bindable::{DefensePriority, EntityID, HitFlag, HitProperties};
+use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties};
 use crate::lua_api::create_entity_table;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
@@ -21,7 +21,7 @@ impl DefenseRule {
         api_ctx: &mut BattleScriptContext,
         lua: &rollback_mlua::Lua,
         defense_table: LuaTable,
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) -> LuaResult<()> {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
@@ -76,7 +76,7 @@ impl DefenseRule {
         api_ctx: &mut BattleScriptContext,
         lua: &rollback_mlua::Lua,
         defense_table: LuaTable,
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) -> LuaResult<()> {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
@@ -152,8 +152,8 @@ impl DefenseJudge {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        defender_id: EntityID,
-        attacker_id: EntityID,
+        defender_id: EntityId,
+        attacker_id: EntityId,
         defense_rules: &[DefenseRule],
         collision_only: bool,
     ) {

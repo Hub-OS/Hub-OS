@@ -10,8 +10,8 @@ pub struct PackageInfo {
 #[derive(Clone, Debug)]
 pub struct Asset {
     pub data: AssetData,
-    pub alternate_names: Vec<AssetID>,
-    pub dependencies: Vec<AssetID>,
+    pub alternate_names: Vec<AssetId>,
+    pub dependencies: Vec<AssetId>,
     pub last_modified: u64,
     pub cachable: bool, // allows the server to know if it should update other clients with this asset, clients will cache in memory
     pub cache_to_disk: bool, // allows the client to know if they should cache this asset for rejoins or if it's dynamic
@@ -32,7 +32,7 @@ impl packets::structures::AssetTrait for Asset {
 }
 
 #[derive(Clone, Debug)]
-pub enum AssetID {
+pub enum AssetId {
     AssetPath(String),
     Package(PackageInfo),
 }
@@ -139,7 +139,7 @@ impl Asset {
 
                         if source.starts_with("/server/") {
                             self.dependencies
-                                .push(AssetID::AssetPath(source.to_string()))
+                                .push(AssetId::AssetPath(source.to_string()))
                         }
                     }
                     "tile" => {
@@ -178,7 +178,7 @@ impl Asset {
 
                     if value.starts_with("/server/") {
                         self.dependencies
-                            .push(AssetID::AssetPath(value.to_string()));
+                            .push(AssetId::AssetPath(value.to_string()));
                     }
                 }
                 _ => {}
@@ -203,7 +203,7 @@ impl Asset {
             return;
         };
 
-        self.alternate_names.push(AssetID::Package(package_info));
+        self.alternate_names.push(AssetId::Package(package_info));
 
         if let Some(ids) = Self::resolve_package_defines(&meta_table) {
             self.alternate_names.extend(ids);
@@ -248,7 +248,7 @@ impl Asset {
 
     fn resolve_package_defines(
         meta_table: &toml::Table,
-    ) -> Option<impl Iterator<Item = AssetID> + '_> {
+    ) -> Option<impl Iterator<Item = AssetId> + '_> {
         let defines = meta_table.get("defines")?;
 
         let characters = defines.get("characters")?.as_array()?;
@@ -261,13 +261,13 @@ impl Asset {
                     id: get_str(define, "id").to_string(),
                     category: PackageCategory::Character,
                 })
-                .map(AssetID::Package),
+                .map(AssetId::Package),
         )
     }
 
     fn resolve_package_dependencies(
         meta_table: &toml::Table,
-    ) -> Option<impl Iterator<Item = AssetID> + '_> {
+    ) -> Option<impl Iterator<Item = AssetId> + '_> {
         let dependencies = meta_table.get("dependencies")?;
 
         let char_iter = Self::resolve_dependency_category(
@@ -289,7 +289,7 @@ impl Asset {
         dependencies: &'a toml::Value,
         key: &str,
         category: PackageCategory,
-    ) -> impl Iterator<Item = AssetID> + 'a {
+    ) -> impl Iterator<Item = AssetId> + 'a {
         dependencies
             .get(key)
             .map(|value| value.as_array())
@@ -302,14 +302,14 @@ impl Asset {
                 id: id.to_string(),
                 category,
             })
-            .map(AssetID::Package)
+            .map(AssetId::Package)
     }
 
     pub fn package_info(&self) -> Option<&PackageInfo> {
         self.alternate_names
             .iter()
             .find_map(|asset_id| match asset_id {
-                AssetID::Package(info) => Some(info),
+                AssetId::Package(info) => Some(info),
                 _ => None,
             })
     }

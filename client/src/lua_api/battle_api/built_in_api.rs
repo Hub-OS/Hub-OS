@@ -1,6 +1,6 @@
 use crate::{
     battle::{AttackBox, BattleCallback, Entity, Spell},
-    bindable::EntityID,
+    bindable::EntityId,
     lua_api::create_entity_table,
     render::FrameTime,
 };
@@ -38,7 +38,7 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
         let (entity_table, lifetime): (rollback_mlua::Table, Option<FrameTime>) =
             lua.unpack_multi(params)?;
 
-        let parent_id: EntityID = entity_table.raw_get("#id")?;
+        let parent_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;

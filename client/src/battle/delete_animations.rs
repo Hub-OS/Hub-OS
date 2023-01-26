@@ -1,10 +1,10 @@
 use super::{BattleCallback, BattleSimulation, Component, Entity, Living};
-use crate::bindable::EntityID;
+use crate::bindable::EntityId;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
 
 /// requires Living component
-pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulation, id: EntityID) {
+pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulation, id: EntityId) {
     let player_deleted_sfx = &game_io.resource::<Globals>().unwrap().player_deleted_sfx;
     simulation.play_sound(game_io, player_deleted_sfx);
 
@@ -53,7 +53,7 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
 pub fn delete_character_animation(
     simulation: &mut BattleSimulation,
-    id: EntityID,
+    id: EntityId,
     explosion_count: Option<usize>,
 ) {
     let explosion_count = explosion_count.unwrap_or(2);

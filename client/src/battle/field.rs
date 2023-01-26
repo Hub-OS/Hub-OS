@@ -137,7 +137,7 @@ impl Field {
         center
     }
 
-    pub fn drop_entity(&mut self, id: EntityID) {
+    pub fn drop_entity(&mut self, id: EntityId) {
         for tile in &mut self.tiles {
             tile.unignore_attacker(id);
             tile.clear_reservations_for(id);

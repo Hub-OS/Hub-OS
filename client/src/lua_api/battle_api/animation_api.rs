@@ -1,7 +1,7 @@
 use super::errors::{animator_not_found, entity_not_found, sprite_not_found};
 use super::{BattleLuaApi, ANIMATION_TABLE};
 use crate::battle::{BattleAnimator, BattleCallback, Entity};
-use crate::bindable::{EntityID, GenerationalIndex, LuaVector};
+use crate::bindable::{EntityId, GenerationalIndex, LuaVector};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::{DerivedFrame, FrameTime};
 use framework::prelude::GameIO;
@@ -66,7 +66,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
             .get_mut(id.into())
             .ok_or_else(animator_not_found)?;
 
-        let sprite_entity_id: EntityID = sprite_table.raw_get("#id")?;
+        let sprite_entity_id: EntityId = sprite_table.raw_get("#id")?;
         let sprite_index: GenerationalIndex = sprite_table.raw_get("#index")?;
 
         let entities = &mut api_ctx.simulation.entities;

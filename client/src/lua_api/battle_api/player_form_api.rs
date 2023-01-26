@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{BattleLuaApi, PLAYER_FORM_TABLE};
 use crate::battle::{BattleCallback, Player, PlayerForm};
-use crate::bindable::EntityID;
+use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
 use std::sync::Arc;
@@ -14,7 +14,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
             let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
             let path = absolute_path(lua, path)?;
 
-            let entity_id: EntityID = table.raw_get("#entity_id")?;
+            let entity_id: EntityId = table.raw_get("#entity_id")?;
             let index: usize = table.raw_get("#index")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
@@ -114,7 +114,7 @@ fn callback_setter<G, P, F, R>(
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let entity_id: EntityID = table.raw_get("#entity_id")?;
+        let entity_id: EntityId = table.raw_get("#entity_id")?;
         let index: usize = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -146,7 +146,7 @@ pub fn create_player_form_table<'lua>(
     entity_table: rollback_mlua::Table,
     index: usize,
 ) -> rollback_mlua::Result<rollback_mlua::Table<'lua>> {
-    let entity_id: EntityID = entity_table.get("#id")?;
+    let entity_id: EntityId = entity_table.get("#id")?;
 
     let table = lua.create_table()?;
     table.raw_set("#entity", entity_table)?;

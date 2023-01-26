@@ -1,6 +1,6 @@
 use super::State;
 use crate::battle::*;
-use crate::bindable::EntityID;
+use crate::bindable::EntityId;
 use crate::render::FrameTime;
 use crate::resources::Globals;
 use crate::transitions::DEFAULT_FADE_DURATION;
@@ -15,7 +15,7 @@ pub struct IntroState {
     completed: bool,
     animation_delay: FrameTime,
     animation_time: FrameTime, // animation time for the current entity
-    tracked_entities: VecDeque<EntityID>,
+    tracked_entities: VecDeque<EntityId>,
 }
 
 impl State for IntroState {

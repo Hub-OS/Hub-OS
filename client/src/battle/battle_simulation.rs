@@ -42,7 +42,7 @@ pub struct BattleSimulation {
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: Arena<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
-    pub local_player_id: EntityID,
+    pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUI,
     pub player_spawn_positions: Vec<(i32, i32)>,
     pub perspective_flipped: bool,
@@ -86,7 +86,7 @@ impl BattleSimulation {
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Arena::new(),
             pending_callbacks: Vec::new(),
-            local_player_id: EntityID::DANGLING,
+            local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUI::new(game_io),
             player_spawn_positions,
             perspective_flipped: false,
@@ -440,7 +440,7 @@ impl BattleSimulation {
         self.local_health_ui.update();
     }
 
-    pub fn is_entity_actionable(&mut self, entity_id: EntityID) -> bool {
+    pub fn is_entity_actionable(&mut self, entity_id: EntityId) -> bool {
         let entities = &mut self.entities;
 
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
@@ -465,7 +465,7 @@ impl BattleSimulation {
     pub fn use_card_action(
         &mut self,
         game_io: &GameIO,
-        entity_id: EntityID,
+        entity_id: EntityId,
         index: generational_arena::Index,
     ) -> bool {
         let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
@@ -567,7 +567,7 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
-    pub fn delete_entity(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityID) {
+    pub fn delete_entity(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityId) {
         let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
             Ok(entity) => entity,
             _ => return,
@@ -608,7 +608,7 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
-    pub fn request_entity_spawn(&mut self, id: EntityID, (x, y): (i32, i32)) {
+    pub fn request_entity_spawn(&mut self, id: EntityId, (x, y): (i32, i32)) {
         let entity = self
             .entities
             .query_one_mut::<&mut Entity>(id.into())
@@ -619,7 +619,7 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
-    fn reserve_entity(&mut self) -> EntityID {
+    fn reserve_entity(&mut self) -> EntityId {
         let id = self.entities.reserve_entity();
 
         let match_id = |stored: &&mut hecs::Entity| stored.id() == id.id();
@@ -633,8 +633,8 @@ impl BattleSimulation {
         id.into()
     }
 
-    fn create_entity(&mut self, game_io: &GameIO) -> EntityID {
-        let id: EntityID = self.reserve_entity().into();
+    fn create_entity(&mut self, game_io: &GameIO) -> EntityId {
+        let id: EntityId = self.reserve_entity().into();
 
         let mut animator = BattleAnimator::new();
         animator.set_target(id, GenerationalIndex::tree_root());
@@ -706,7 +706,7 @@ impl BattleSimulation {
         game_io: &GameIO,
         rank: CharacterRank,
         namespace: PackageNamespace,
-    ) -> rollback_mlua::Result<EntityID> {
+    ) -> rollback_mlua::Result<EntityId> {
         let id = self.create_entity(game_io);
 
         self.entities
@@ -791,7 +791,7 @@ impl BattleSimulation {
         local: bool,
         cards: Vec<Card>,
         blocks: Vec<InstalledBlock>,
-    ) -> rollback_mlua::Result<EntityID> {
+    ) -> rollback_mlua::Result<EntityId> {
         // namespace for using cards / attacks
         let namespace = if local {
             PackageNamespace::Local
@@ -995,7 +995,7 @@ impl BattleSimulation {
         package_id: &PackageId,
         namespace: PackageNamespace,
         rank: CharacterRank,
-    ) -> rollback_mlua::Result<EntityID> {
+    ) -> rollback_mlua::Result<EntityId> {
         let id = self.create_character(game_io, rank, namespace)?;
 
         let vm_index = Self::find_vm(vms, package_id, namespace)?;
@@ -1006,7 +1006,7 @@ impl BattleSimulation {
         Ok(id)
     }
 
-    pub fn create_artifact(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_artifact(&mut self, game_io: &GameIO) -> EntityId {
         let id = self.create_entity(game_io);
 
         self.entities
@@ -1025,7 +1025,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_spell(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_spell(&mut self, game_io: &GameIO) -> EntityId {
         let id = self.create_entity(game_io);
 
         self.entities
@@ -1044,7 +1044,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_obstacle(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_obstacle(&mut self, game_io: &GameIO) -> EntityId {
         let id = self.create_entity(game_io);
 
         let entity = self
@@ -1071,7 +1071,7 @@ impl BattleSimulation {
         game_io: &GameIO,
         texture_path: &str,
         animation_path: &str,
-    ) -> EntityID {
+    ) -> EntityId {
         let id = self.create_artifact(game_io);
 
         let entity = self
@@ -1101,7 +1101,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_explosion(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_explosion(&mut self, game_io: &GameIO) -> EntityId {
         let id = self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_EXPLOSION,
@@ -1120,7 +1120,7 @@ impl BattleSimulation {
         id
     }
 
-    pub fn create_transformation_shine(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_transformation_shine(&mut self, game_io: &GameIO) -> EntityId {
         self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_TRANSFORM_SHINE,
@@ -1128,7 +1128,7 @@ impl BattleSimulation {
         )
     }
 
-    pub fn create_splash(&mut self, game_io: &GameIO) -> EntityID {
+    pub fn create_splash(&mut self, game_io: &GameIO) -> EntityId {
         self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_SPLASH,

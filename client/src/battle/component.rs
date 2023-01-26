@@ -1,18 +1,18 @@
 use super::{BattleCallback, BattleSimulation, Entity};
-use crate::bindable::{ComponentLifetime, EntityID};
+use crate::bindable::{ComponentLifetime, EntityId};
 use crate::render::FrameTime;
 use framework::prelude::{Color, Vec2};
 use rand::Rng;
 
 #[derive(Clone)]
 pub struct Component {
-    pub entity: EntityID,
+    pub entity: EntityId,
     pub lifetime: ComponentLifetime,
     pub update_callback: BattleCallback,
 }
 
 impl Component {
-    pub fn new(entity: EntityID, lifetime: ComponentLifetime) -> Self {
+    pub fn new(entity: EntityId, lifetime: ComponentLifetime) -> Self {
         Self {
             entity,
             lifetime,
@@ -20,7 +20,7 @@ impl Component {
         }
     }
 
-    pub fn new_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityID) {
+    pub fn new_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityId) {
         const START_DELAY: FrameTime = 25;
         const TOTAL_DURATION: FrameTime = 50;
 
@@ -59,7 +59,7 @@ impl Component {
 
     pub fn new_character_deletion(
         simulation: &mut BattleSimulation,
-        entity_id: EntityID,
+        entity_id: EntityId,
         explosion_count: usize,
     ) {
         const END_DELAY: FrameTime = 4;

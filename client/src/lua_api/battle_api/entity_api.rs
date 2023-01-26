@@ -47,7 +47,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_id", |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         lua.pack_multi(id)
     });
@@ -72,7 +72,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, direction, count): (rollback_mlua::Table, Option<Direction>, Option<i32>) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -186,7 +186,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let entity = entities
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
@@ -210,7 +210,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
 
         let card_action = (simulation.card_actions)
@@ -289,7 +289,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "delete", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -304,7 +304,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-            let id: EntityID = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -330,7 +330,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             let (table, explosion_count): (rollback_mlua::Table, Option<usize>) =
                 lua.unpack_multi(params)?;
 
-            let id: EntityID = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -363,7 +363,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -391,7 +391,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -413,7 +413,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_animation", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -432,7 +432,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -457,7 +457,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -479,7 +479,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -516,7 +516,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, sync_node_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
         let animator_index = animator_index.into();
 
@@ -563,7 +563,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -581,7 +581,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "show_shadow", |api_ctx, lua, params| {
         let (table, visible): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -647,7 +647,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (entity_table, lifetime): (rollback_mlua::Table, ComponentLifetime) =
             lua.unpack_multi(params)?;
 
-        let entity_id: EntityID = entity_table.get("#id")?;
+        let entity_id: EntityId = entity_table.get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -779,7 +779,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     // lua_api.add_dynamic_function(ENTITY_TABLE, "can_attack", |api_ctx, lua, params| {
     //     let entity_table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-    //     let entity_id: EntityID = entity_table.get("#id")?;
+    //     let entity_id: EntityId = entity_table.get("#id")?;
 
     //     let api_ctx = &mut *api_ctx.borrow_mut();
     //     let entities = &mut api_ctx.simulation.entities;
@@ -825,7 +825,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_hit_props", |api_ctx, lua, params| {
         let (table, props): (rollback_mlua::Table, HitProperties) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -907,7 +907,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         let (table, defense_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         DefenseRule::add(api_ctx, lua, defense_table, id)?;
@@ -922,7 +922,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             let (table, defense_table): (rollback_mlua::Table, rollback_mlua::Table) =
                 lua.unpack_multi(params)?;
 
-            let id: EntityID = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             DefenseRule::remove(api_ctx, lua, defense_table, id)?;
@@ -945,7 +945,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "input_has", |api_ctx, lua, params| {
         let (table, input_query): (rollback_mlua::Table, InputQuery) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -971,7 +971,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let (table, color): (rollback_mlua::Table, LuaColor) = lua.unpack_multi(params)?;
 
-            let id: EntityID = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -993,7 +993,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let (table, x, y): (rollback_mlua::Table, f32, f32) = lua.unpack_multi(params)?;
 
-            let id: EntityID = table.raw_get("#id")?;
+            let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -1031,7 +1031,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_form", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -1123,7 +1123,7 @@ where
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -1149,7 +1149,7 @@ where
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -1171,7 +1171,7 @@ where
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -1208,7 +1208,7 @@ fn callback_setter<C, G, P, F, R>(
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -1282,7 +1282,7 @@ fn attempt_movement<'lua>(
     table: rollback_mlua::Table,
     movement: MoveAction,
 ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>> {
-    let id: EntityID = table.raw_get("#id")?;
+    let id: EntityId = table.raw_get("#id")?;
 
     let simulation = &mut api_ctx.simulation;
 
@@ -1321,7 +1321,7 @@ fn attempt_movement<'lua>(
 
 fn generate_constructor_fn<F>(lua_api: &mut BattleLuaApi, table_name: &str, constructor: F)
 where
-    F: Fn(&mut BattleScriptContext) -> rollback_mlua::Result<EntityID> + 'static,
+    F: Fn(&mut BattleScriptContext) -> rollback_mlua::Result<EntityId> + 'static,
 {
     lua_api.add_dynamic_function(table_name, "new", move |api_ctx, lua, params| {
         let team: Option<Team> = lua.unpack_multi(params)?;
@@ -1344,7 +1344,7 @@ fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str
     lua_api.add_dynamic_function(table_name, "from", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
@@ -1359,7 +1359,7 @@ fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str
 
 pub fn create_entity_table(
     lua: &rollback_mlua::Lua,
-    id: EntityID,
+    id: EntityId,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     inherit_metatable(lua, ENTITY_TABLE, &table)?;

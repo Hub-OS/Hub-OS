@@ -1,9 +1,9 @@
 use super::{Entity, Spell};
-use crate::bindable::{EntityID, HitProperties, Team, TileHighlight};
+use crate::bindable::{EntityId, HitProperties, Team, TileHighlight};
 
 #[derive(Clone)]
 pub struct AttackBox {
-    pub attacker_id: EntityID,
+    pub attacker_id: EntityId,
     pub team: Team,
     pub x: i32,
     pub y: i32,

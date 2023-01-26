@@ -1,7 +1,7 @@
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, BATTLE_INIT_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
 use crate::battle::{BattleScriptContext, Entity};
-use crate::bindable::{CharacterRank, EntityID};
+use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{Animator, Background};
@@ -206,7 +206,7 @@ pub fn inject_mutator_api(lua_api: &mut BattleLuaApi) {
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.get("#entity_id")?;
+        let id: EntityId = table.get("#entity_id")?;
 
         let table = create_entity_table(lua, id)?;
         callback.call(table)?;
@@ -217,7 +217,7 @@ pub fn inject_mutator_api(lua_api: &mut BattleLuaApi) {
 
 fn create_mutator(
     lua: &rollback_mlua::Lua,
-    id: EntityID,
+    id: EntityId,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     table.set("#entity_id", id)?;

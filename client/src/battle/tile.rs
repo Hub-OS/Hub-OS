@@ -17,8 +17,8 @@ pub struct Tile {
     highlight: TileHighlight,
     flash_time: FrameTime,
     washed: bool, // an attack washed the state out
-    ignored_attackers: Vec<EntityID>,
-    reservations: Vec<EntityID>,
+    ignored_attackers: Vec<EntityId>,
+    reservations: Vec<EntityId>,
 }
 
 impl Tile {
@@ -141,17 +141,17 @@ impl Tile {
         );
     }
 
-    pub fn ignoring_attacker(&self, id: EntityID) -> bool {
+    pub fn ignoring_attacker(&self, id: EntityId) -> bool {
         self.ignored_attackers.contains(&id)
     }
 
-    pub fn ignore_attacker(&mut self, id: EntityID) {
+    pub fn ignore_attacker(&mut self, id: EntityId) {
         if !self.ignored_attackers.contains(&id) {
             self.ignored_attackers.push(id)
         }
     }
 
-    pub fn unignore_attacker(&mut self, id: EntityID) {
+    pub fn unignore_attacker(&mut self, id: EntityId) {
         if let Some(i) = self
             .ignored_attackers
             .iter()
@@ -161,21 +161,21 @@ impl Tile {
         }
     }
 
-    pub fn reserve_for(&mut self, id: EntityID) {
+    pub fn reserve_for(&mut self, id: EntityId) {
         self.reservations.push(id);
     }
 
-    pub fn remove_reservation_for(&mut self, id: EntityID) {
+    pub fn remove_reservation_for(&mut self, id: EntityId) {
         if let Some(index) = (self.reservations.iter()).position(|reservation| *reservation == id) {
             self.reservations.swap_remove(index);
         }
     }
 
-    pub fn reservations(&self) -> &[EntityID] {
+    pub fn reservations(&self) -> &[EntityId] {
         &self.reservations
     }
 
-    pub fn has_other_reservations(&self, exclude_id: EntityID) -> bool {
+    pub fn has_other_reservations(&self, exclude_id: EntityId) -> bool {
         self.reservations.iter().any(|id| *id != exclude_id)
     }
 
@@ -224,7 +224,7 @@ impl Tile {
         true
     }
 
-    pub fn clear_reservations_for(&mut self, id: EntityID) {
+    pub fn clear_reservations_for(&mut self, id: EntityId) {
         self.reservations.retain(|stored_id| *stored_id != id);
     }
 

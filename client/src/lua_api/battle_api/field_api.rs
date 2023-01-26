@@ -6,7 +6,7 @@ use super::{create_entity_table, BattleLuaApi, FIELD_TABLE};
 use crate::battle::{
     BattleCallback, BattleScriptContext, Character, Entity, Living, Obstacle, Player, Spell,
 };
-use crate::bindable::EntityID;
+use crate::bindable::EntityId;
 use crate::resources::Globals;
 use std::cell::RefCell;
 
@@ -59,7 +59,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let id: EntityID = entity_table.raw_get("#id")?;
+        let id: EntityId = entity_table.raw_get("#id")?;
 
         let entities = &mut api_ctx.simulation.entities;
         let entity = entities
@@ -78,7 +78,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "get_entity", |api_ctx, lua, params| {
-        let (_, id): (rollback_mlua::Table, EntityID) = lua.unpack_multi(params)?;
+        let (_, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
         let api_ctx = api_ctx.borrow();
 
@@ -138,8 +138,8 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(FIELD_TABLE, "notify_on_delete", |api_ctx, lua, params| {
         let (_, target_id, observer_id, callback): (
             rollback_mlua::Table,
-            EntityID,
-            EntityID,
+            EntityId,
+            EntityId,
             rollback_mlua::Function,
         ) = lua.unpack_multi(params)?;
 
@@ -191,7 +191,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "callback_on_delete", |api_ctx, lua, params| {
-        let (_, id, callback): (rollback_mlua::Table, EntityID, rollback_mlua::Function) =
+        let (_, id, callback): (rollback_mlua::Table, EntityId, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -303,7 +303,7 @@ fn generate_find_nearest_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi,
             let mut api_ctx = api_ctx.borrow_mut();
             let entities = &mut api_ctx.simulation.entities;
 
-            let ref_id: EntityID = ref_table.raw_get("#id")?;
+            let ref_id: EntityId = ref_table.raw_get("#id")?;
             let ref_entity = entities
                 .query_one_mut::<&Entity>(ref_id.into())
                 .map_err(|_| entity_not_found())?;

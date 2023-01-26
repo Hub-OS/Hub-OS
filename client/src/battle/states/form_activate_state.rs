@@ -1,6 +1,6 @@
 use super::{BattleState, State};
 use crate::battle::{BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets};
-use crate::bindable::{EntityID, SpriteColorMode};
+use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::{AnimatorLoopMode, FrameTime};
 use crate::resources::Globals;
@@ -12,7 +12,7 @@ const FADE_TIME: FrameTime = 15;
 pub struct FormActivateState {
     time: FrameTime,
     target_complete_time: Option<FrameTime>,
-    artifact_entities: Vec<EntityID>,
+    artifact_entities: Vec<EntityId>,
     completed: bool,
 }
 

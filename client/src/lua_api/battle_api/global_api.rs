@@ -109,7 +109,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     move_event_table.set("new", lua.create_function(|lua, _: ()| lua.create_table())?)?;
     globals.set("MoveAction", move_event_table)?;
 
-    use crate::bindable::{EntityID, HitContext, HitFlags, HitProperties};
+    use crate::bindable::{EntityId, HitContext, HitFlags, HitProperties};
 
     let hit_props_table = lua.create_table()?;
     hit_props_table.set(
@@ -146,7 +146,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
                 flags,
                 element,
                 secondary_element,
-                aggressor: EntityID::default(),
+                aggressor: EntityId::default(),
                 drag,
                 context: context.unwrap_or_default(),
             })

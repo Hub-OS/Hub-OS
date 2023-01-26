@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
 use crate::battle::{AttackBox, Character, Entity, Field, Living, Obstacle, Spell, Tile};
-use crate::bindable::{Direction, EntityID, Team, TileHighlight, TileState};
+use crate::bindable::{Direction, EntityId, Team, TileHighlight, TileState};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
@@ -109,7 +109,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
-        let (table, exclude_list): (rollback_mlua::Table, Vec<EntityID>) =
+        let (table, exclude_list): (rollback_mlua::Table, Vec<EntityId>) =
             lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -129,7 +129,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         TILE_TABLE,
         "reserve_entity_by_id",
         |api_ctx, lua, params| {
-            let (table, id): (rollback_mlua::Table, EntityID) = lua.unpack_multi(params)?;
+            let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
             let tile = tile_from(&mut api_ctx.simulation.field, table)?;
@@ -214,7 +214,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let entities = &mut api_ctx.simulation.entities;
 
         let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
-        let entity_id: EntityID = entity_table.raw_get("#id")?;
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         if tile.ignoring_attacker(entity_id) {
             return lua.pack_multi(());
@@ -245,7 +245,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        let entity_id: EntityID = entity_table.raw_get("#id")?;
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let entity = entities
             .query_one_mut::<&Entity>(entity_id.into())
@@ -257,7 +257,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "remove_entity_by_id", |api_ctx, lua, params| {
-        let (table, entity_id): (rollback_mlua::Table, EntityID) = lua.unpack_multi(params)?;
+        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
         let x: i32 = table.raw_get("#x")?;
         let y: i32 = table.raw_get("#y")?;
@@ -292,7 +292,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        let entity_id: EntityID = entity_table.raw_get("#id")?;
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let entity = entities
             .query_one_mut::<&mut Entity>(entity_id.into())

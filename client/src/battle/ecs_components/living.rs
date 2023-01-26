@@ -12,7 +12,7 @@ pub struct Living {
     pub health: i32,
     pub max_health: i32,
     pub ignore_common_aggressor: bool,
-    pub aggressor: Option<EntityID>,
+    pub aggressor: Option<EntityId>,
     pub intangibility: Intangibility,
     pub defense_rules: Vec<DefenseRule>,
     pub flinch_anim_state: Option<String>,
@@ -68,7 +68,7 @@ impl Living {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        entity_id: EntityID,
+        entity_id: EntityId,
         mut hit_props: HitProperties,
     ) {
         let (entity, living) = (simulation.entities)

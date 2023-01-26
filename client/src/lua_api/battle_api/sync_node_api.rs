@@ -1,7 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, SYNC_NODE_TABLE};
-use crate::bindable::{EntityID, GenerationalIndex};
+use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_sync_node_api(lua_api: &mut BattleLuaApi) {
@@ -22,7 +22,7 @@ pub fn inject_sync_node_api(lua_api: &mut BattleLuaApi) {
 
 pub fn create_sync_node_table(
     lua: &rollback_mlua::Lua,
-    entity_id: EntityID,
+    entity_id: EntityId,
     sprite_index: GenerationalIndex,
     animator_index: generational_arena::Index,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {

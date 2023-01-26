@@ -128,7 +128,7 @@ impl Player {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) {
         let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
@@ -153,7 +153,7 @@ impl Player {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) {
         let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
@@ -178,7 +178,7 @@ impl Player {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) {
         let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;

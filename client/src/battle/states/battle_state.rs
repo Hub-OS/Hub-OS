@@ -970,7 +970,7 @@ impl BattleState {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
-        entity_id: EntityID,
+        entity_id: EntityId,
     ) {
         let character = simulation
             .entities

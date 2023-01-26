@@ -17,7 +17,7 @@ pub struct Entity {
     pub pending_spawn: bool,
     pub spawned: bool,
     pub on_field: bool,
-    pub id: EntityID,
+    pub id: EntityId,
     pub name: String,
     pub team: Team,
     pub element: Element,
@@ -46,8 +46,8 @@ pub struct Entity {
     pub local_components: Vec<generational_arena::Index>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub update_callback: BattleCallback,
-    pub collision_callback: BattleCallback<EntityID>,
-    pub attack_callback: BattleCallback<EntityID>,
+    pub collision_callback: BattleCallback<EntityId>,
+    pub attack_callback: BattleCallback<EntityId>,
     pub spawn_callback: BattleCallback,
     pub battle_start_callback: BattleCallback,
     pub battle_end_callback: BattleCallback,
@@ -56,7 +56,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(game_io: &GameIO, id: EntityID, animator_index: generational_arena::Index) -> Self {
+    pub fn new(game_io: &GameIO, id: EntityId, animator_index: generational_arena::Index) -> Self {
         let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
 
         let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);

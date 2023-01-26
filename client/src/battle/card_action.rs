@@ -1,5 +1,5 @@
 use super::{BattleAnimator, BattleCallback, Entity, Field};
-use crate::bindable::{ActionLockout, CardProperties, EntityID, GenerationalIndex};
+use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex};
 use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
 use generational_arena::Arena;
 
@@ -10,7 +10,7 @@ pub struct CardAction {
     pub executed: bool,
     pub used: bool,
     pub interrupted: bool,
-    pub entity: EntityID,
+    pub entity: EntityId,
     pub state: String,
     pub prev_state: Option<String>,
     pub frame_callbacks: Vec<(usize, BattleCallback)>,
@@ -31,7 +31,7 @@ pub struct CardAction {
 }
 
 impl CardAction {
-    pub fn new(entity: EntityID, state: String, sprite_index: GenerationalIndex) -> Self {
+    pub fn new(entity: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
         Self {
             active_frames: 0,
             deleted: false,

@@ -6,7 +6,7 @@ use super::{
     NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
 use crate::battle::{AbilityModifier, BattleCallback, Player};
-use crate::bindable::{EntityID, GenerationalIndex};
+use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
@@ -19,7 +19,7 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ABILITY_MOD_TABLE, "get_owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
 
         lua.pack_multi(create_entity_table(lua, id)?)
     });
@@ -64,7 +64,7 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
 
 pub fn create_ability_mod_table(
     lua: &rollback_mlua::Lua,
-    entity_id: EntityID,
+    entity_id: EntityId,
     index: generational_arena::Index,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
@@ -86,7 +86,7 @@ where
     lua_api.add_dynamic_function(ABILITY_MOD_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -115,7 +115,7 @@ where
     lua_api.add_dynamic_function(ABILITY_MOD_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -157,7 +157,7 @@ fn callback_setter<G, P, F, R>(
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();

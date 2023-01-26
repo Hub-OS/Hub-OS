@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, sprite_not_found};
 use super::{BattleLuaApi, SPRITE_TABLE};
 use crate::battle::Entity;
-use crate::bindable::{EntityID, GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
+use crate::bindable::{EntityId, GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::SpriteNode;
 use framework::prelude::Vec2;
@@ -10,7 +10,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(SPRITE_TABLE, "create_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -37,10 +37,10 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let (table, child_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
-        let child_id: EntityID = child_table.raw_get("#id")?;
+        let child_id: EntityId = child_table.raw_get("#id")?;
         let child_index: GenerationalIndex = child_table.raw_get("#index")?;
 
         if id != child_id {
@@ -78,7 +78,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -220,7 +220,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
 
 pub fn create_sprite_table(
     lua: &rollback_mlua::Lua,
-    entity_id: EntityID,
+    entity_id: EntityId,
     index: GenerationalIndex,
     animator_index: Option<generational_arena::Index>,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
@@ -246,7 +246,7 @@ where
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -272,7 +272,7 @@ where
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityID = table.raw_get("#id")?;
+        let id: EntityId = table.raw_get("#id")?;
         let index: GenerationalIndex = table.raw_get("#index")?;
 
         let mut api_ctx = api_ctx.borrow_mut();

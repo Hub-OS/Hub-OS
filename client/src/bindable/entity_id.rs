@@ -1,29 +1,29 @@
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-pub struct EntityID(hecs::Entity);
+pub struct EntityId(hecs::Entity);
 
-impl EntityID {
-    pub const DANGLING: EntityID = EntityID(hecs::Entity::DANGLING);
+impl EntityId {
+    pub const DANGLING: EntityId = EntityId(hecs::Entity::DANGLING);
 }
 
-impl Default for EntityID {
+impl Default for EntityId {
     fn default() -> Self {
         Self(hecs::Entity::DANGLING)
     }
 }
 
-impl From<hecs::Entity> for EntityID {
+impl From<hecs::Entity> for EntityId {
     fn from(entity: hecs::Entity) -> Self {
-        EntityID(entity)
+        EntityId(entity)
     }
 }
 
-impl From<EntityID> for hecs::Entity {
-    fn from(id: EntityID) -> Self {
+impl From<EntityId> for hecs::Entity {
+    fn from(id: EntityId) -> Self {
         id.0
     }
 }
 
-impl<'lua> rollback_mlua::FromLua<'lua> for EntityID {
+impl<'lua> rollback_mlua::FromLua<'lua> for EntityId {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
         _lua: &'lua rollback_mlua::Lua,
@@ -33,7 +33,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for EntityID {
             _ => {
                 return Err(rollback_mlua::Error::FromLuaConversionError {
                     from: lua_value.type_name(),
-                    to: "EntityID",
+                    to: "EntityId",
                     message: None,
                 })
             }
@@ -48,11 +48,11 @@ impl<'lua> rollback_mlua::FromLua<'lua> for EntityID {
             }
         };
 
-        Ok(EntityID(id))
+        Ok(EntityId(id))
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for EntityID {
+impl<'lua> rollback_mlua::ToLua<'lua> for EntityId {
     fn to_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,

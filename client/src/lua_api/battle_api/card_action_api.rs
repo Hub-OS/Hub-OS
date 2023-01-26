@@ -7,7 +7,7 @@ use super::sprite_api::create_sprite_table;
 use super::tile_api::create_tile_table;
 use super::*;
 use crate::battle::*;
-use crate::bindable::{CardProperties, EntityID, GenerationalIndex, SpriteColorMode};
+use crate::bindable::{CardProperties, EntityId, GenerationalIndex, SpriteColorMode};
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::{DerivedFrame, FrameTime, SpriteNode};
 use rollback_mlua::LuaSerdeExt;
@@ -24,7 +24,7 @@ pub fn inject_card_action_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(CARD_ACTION_TABLE, "new", move |api_ctx, lua, params| {
         let (entity_table, state): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
 
-        let entity_id: EntityID = entity_table.raw_get("#id")?;
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;

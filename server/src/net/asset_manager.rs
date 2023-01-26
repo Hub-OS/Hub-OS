@@ -1,4 +1,4 @@
-use super::{Asset, AssetID, PackageInfo};
+use super::{Asset, AssetId, PackageInfo};
 use std::collections::HashMap;
 
 pub struct AssetManager {
@@ -44,7 +44,7 @@ impl AssetManager {
         for alternate_name in &asset.alternate_names {
             #[allow(clippy::single_match)]
             match alternate_name {
-                AssetID::Package(PackageInfo {
+                AssetId::Package(PackageInfo {
                     name: _,
                     id,
                     category: _,
@@ -77,7 +77,7 @@ impl AssetManager {
         for alternate_name in asset.alternate_names {
             #[allow(clippy::single_match)]
             match alternate_name {
-                AssetID::Package(PackageInfo {
+                AssetId::Package(PackageInfo {
                     name: _,
                     id,
                     category: _,
@@ -117,14 +117,14 @@ impl AssetManager {
         }
     }
 
-    fn resolve_dependency_path<'a>(&'a self, dependency: &'a AssetID) -> Option<&'a str> {
+    fn resolve_dependency_path<'a>(&'a self, dependency: &'a AssetId) -> Option<&'a str> {
         let get_as_option_str = |paths: &'a HashMap<String, String>, name| -> Option<&'a str> {
             paths.get(name).map(|path: &String| path.as_str())
         };
 
         match dependency {
-            AssetID::AssetPath(path) => Some(path),
-            AssetID::Package(PackageInfo {
+            AssetId::AssetPath(path) => Some(path),
+            AssetId::Package(PackageInfo {
                 name: _,
                 id,
                 category: _,

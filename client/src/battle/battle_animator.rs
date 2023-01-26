@@ -1,5 +1,5 @@
 use super::{BattleCallback, Entity};
-use crate::bindable::{AnimatorPlaybackMode, EntityID, GenerationalIndex};
+use crate::bindable::{AnimatorPlaybackMode, EntityId, GenerationalIndex};
 use crate::render::{
     Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameTime, SpriteNode,
 };
@@ -37,11 +37,11 @@ impl BattleAnimator {
         &self.animator
     }
 
-    pub fn set_target(&mut self, entity_id: EntityID, sprite_index: GenerationalIndex) {
+    pub fn set_target(&mut self, entity_id: EntityId, sprite_index: GenerationalIndex) {
         self.target = Some((entity_id.into(), sprite_index));
     }
 
-    pub fn target_entity_id(&self) -> Option<EntityID> {
+    pub fn target_entity_id(&self) -> Option<EntityId> {
         self.target.map(|(entity_id, _)| entity_id.into())
     }
 

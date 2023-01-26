@@ -6,7 +6,7 @@ pub struct HitProperties {
     pub flags: HitFlags,
     pub element: Element,
     pub secondary_element: Element,
-    pub aggressor: EntityID,
+    pub aggressor: EntityId,
     pub drag: Drag, // only used if HitFlags::Drag is set
     pub context: HitContext,
 }
@@ -18,7 +18,7 @@ impl Default for HitProperties {
             flags: HitFlag::FLINCH | HitFlag::IMPACT,
             element: Element::None,
             secondary_element: Element::None,
-            aggressor: EntityID::DANGLING,
+            aggressor: EntityId::DANGLING,
             drag: Drag::default(),
             context: HitContext::default(),
         }
@@ -32,7 +32,7 @@ impl HitProperties {
             flags: 0,
             element: Element::None,
             secondary_element: Element::None,
-            aggressor: EntityID::DANGLING,
+            aggressor: EntityId::DANGLING,
             drag: Drag::default(),
             context: HitContext::default(),
         }

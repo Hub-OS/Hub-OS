@@ -1,8 +1,8 @@
-use super::{EntityID, HitFlags};
+use super::{EntityId, HitFlags};
 
 #[derive(Default, Clone, Copy)]
 pub struct HitContext {
-    pub aggressor: EntityID,
+    pub aggressor: EntityId,
     pub flags: HitFlags,
 }
 
