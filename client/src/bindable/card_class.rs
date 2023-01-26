@@ -19,9 +19,9 @@ impl From<String> for CardClass {
 impl From<&str> for CardClass {
     fn from(s: &str) -> CardClass {
         match s.to_lowercase().as_str() {
-            "Mega" => CardClass::Mega,
-            "Giga" => CardClass::Giga,
-            "Dark" => CardClass::Dark,
+            "mega" => CardClass::Mega,
+            "giga" => CardClass::Giga,
+            "dark" => CardClass::Dark,
             _ => CardClass::Standard,
         }
     }
