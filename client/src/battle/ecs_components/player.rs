@@ -13,9 +13,9 @@ pub struct Player {
     pub local: bool,
     pub cards: Vec<Card>,
     pub card_use_requested: bool,
-    pub charge_boost: u8,
     pub attack_boost: u8,
     pub speed_boost: u8,
+    pub charge_boost: u8,
     pub card_view_size: u8,
     pub modded_hp: i32,
     pub charging_time: FrameTime,
@@ -62,9 +62,9 @@ impl Player {
             local,
             cards,
             card_use_requested: false,
-            charge_boost: 0,
             attack_boost: 0,
             speed_boost: 0,
+            charge_boost: 0,
             card_view_size: 5,
             modded_hp: 0,
             charging_time: 0,
@@ -97,15 +97,6 @@ impl Player {
         }
     }
 
-    pub fn charge_level(&self) -> u8 {
-        let modifier_iter = self.modifiers.iter();
-        let base_charge = modifier_iter
-            .fold(1, |acc, (_, m)| acc + m.charge_boost as i32)
-            .clamp(1, 5) as u8;
-
-        base_charge + self.charge_boost
-    }
-
     pub fn attack_level(&self) -> u8 {
         let modifier_iter = self.modifiers.iter();
         let base_attack = modifier_iter
@@ -122,6 +113,15 @@ impl Player {
             .clamp(1, 5) as u8;
 
         base_speed + self.speed_boost
+    }
+
+    pub fn charge_level(&self) -> u8 {
+        let modifier_iter = self.modifiers.iter();
+        let base_charge = modifier_iter
+            .fold(1, |acc, (_, m)| acc + m.charge_boost as i32)
+            .clamp(1, 5) as u8;
+
+        base_charge + self.charge_boost
     }
 
     pub fn use_normal_attack(

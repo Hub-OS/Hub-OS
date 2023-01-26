@@ -1068,6 +1068,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter(lua_api, "get_speed_level", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.speed_level())
+    });
+    setter(
+        lua_api,
+        "boost_speed_level",
+        |player: &mut Player, _, level: i8| {
+            player.speed_boost = (player.speed_boost as i8 + level).clamp(0, 5) as u8;
+            Ok(())
+        },
+    );
+
     getter(
         lua_api,
         "get_charge_level",
@@ -1078,18 +1090,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         "boost_charge_level",
         |player: &mut Player, _, level: i8| {
             player.charge_boost = (player.charge_boost as i8 + level).clamp(0, 5) as u8;
-            Ok(())
-        },
-    );
-
-    getter(lua_api, "get_speed_level", |player: &Player, lua, _: ()| {
-        lua.pack_multi(player.speed_level())
-    });
-    setter(
-        lua_api,
-        "boost_speed_level",
-        |player: &mut Player, _, level: i8| {
-            player.speed_boost = (player.speed_boost as i8 + level).clamp(0, 5) as u8;
             Ok(())
         },
     );

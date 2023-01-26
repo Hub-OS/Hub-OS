@@ -9,9 +9,9 @@ struct BlockMeta {
     name: String,
     description: String,
     health_boost: i32,
-    charge_boost: i8,
     attack_boost: i8,
     speed_boost: i8,
+    charge_boost: i8,
     colors: Vec<String>,
     flat: bool,
     shape: Vec<Vec<u8>>,
@@ -23,9 +23,9 @@ pub struct BlockPackage {
     pub name: String,
     pub description: String,
     pub health_boost: i32,
-    pub charge_boost: i8,
     pub attack_boost: i8,
     pub speed_boost: i8,
+    pub charge_boost: i8,
     pub is_program: bool,
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
@@ -81,9 +81,9 @@ impl Package for BlockPackage {
         package.name = meta.name;
         package.description = meta.description;
         package.health_boost = meta.health_boost;
-        package.charge_boost = meta.charge_boost;
         package.attack_boost = meta.attack_boost;
         package.speed_boost = meta.speed_boost;
+        package.charge_boost = meta.charge_boost;
         package.is_program = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
 
