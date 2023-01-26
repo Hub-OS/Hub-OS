@@ -46,9 +46,6 @@ impl CharacterScene {
 
     fn load_pages(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
-        let global_save = &globals.global_save;
-        let player_package = global_save.player_package(game_io).unwrap();
-
         let assets = &globals.assets;
 
         let mut page_animator =
@@ -57,13 +54,15 @@ impl CharacterScene {
 
         self.pages.clear();
 
+        let data = StatusData::new(game_io);
+
         for (i, state) in ["PAGE_1", "PAGE_2"].into_iter().enumerate() {
             page_animator.set_state(state);
             self.pages.push(StatusPage::new(
                 game_io,
                 &page_animator,
                 page_sprite.clone(),
-                player_package,
+                &data,
             ));
 
             if let Some(point) = page_animator.point("PAGE_ARROWS") {
@@ -172,6 +171,48 @@ impl Scene for CharacterScene {
     }
 }
 
+struct StatusData<'a> {
+    player_package: &'a PlayerPackage,
+    block_grid: BlockGrid,
+    charge_level: i8,
+    attack_level: i8,
+    speed_level: i8,
+}
+
+impl<'a> StatusData<'a> {
+    fn new(game_io: &'a GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+        let player_package = global_save.player_package(game_io).unwrap();
+
+        let blocks = global_save
+            .installed_blocks
+            .get(&global_save.selected_character)
+            .cloned()
+            .unwrap_or_default();
+
+        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+
+        let mut attack_level = 1;
+        let mut speed_level = 1;
+        let mut charge_level = 1;
+
+        for package in block_grid.valid_packages(game_io) {
+            attack_level += package.attack_boost;
+            speed_level += package.speed_boost;
+            charge_level += package.charge_boost;
+        }
+
+        Self {
+            player_package,
+            block_grid,
+            attack_level: attack_level.clamp(1, 5),
+            speed_level: speed_level.clamp(1, 5),
+            charge_level: charge_level.clamp(1, 5),
+        }
+    }
+}
+
 struct StatusPage {
     text: Vec<Text>,
     sprites: Vec<Sprite>,
@@ -185,11 +226,8 @@ impl StatusPage {
         game_io: &GameIO,
         layout_animator: &Animator,
         mut page_sprite: Sprite,
-        player_package: &PlayerPackage,
+        data: &StatusData,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let global_save = &globals.global_save;
-
         let mut page = Self {
             text: Vec::new(),
             sprites: Vec::new(),
@@ -202,21 +240,21 @@ impl StatusPage {
         page.sprites.push(page_sprite);
 
         if let Some(point) = layout_animator.point("ELEMENT") {
-            let mut sprite = ElementSprite::new(game_io, player_package.element);
+            let mut sprite = ElementSprite::new(game_io, data.player_package.element);
             sprite.set_position(point);
             page.sprites.push(sprite);
         }
 
         if let Some(point) = layout_animator.point("HEALTH") {
             let mut player_health_ui = PlayerHealthUI::new(game_io);
-            player_health_ui.snap_health(player_package.health);
+            player_health_ui.snap_health(data.player_package.health);
             player_health_ui.set_position(point);
 
             page.player_health_ui.push(player_health_ui);
         }
 
         if let Some(point) = layout_animator.point("PLAYER") {
-            let (texture, mut animator) = player_package.resolve_battle_sprite(game_io);
+            let (texture, mut animator) = data.player_package.resolve_battle_sprite(game_io);
 
             let mut sprite = Sprite::new(game_io, texture);
             sprite.set_position(point);
@@ -232,9 +270,9 @@ impl StatusPage {
         }
 
         let stat_text_associations = [
-            ("ATTACK_TEXT", "Attack LV ", 1),
-            ("SPEED_TEXT", "Speed  LV ", 1),
-            ("CHARGE_TEXT", "Charge LV ", 1),
+            ("ATTACK_TEXT", "Attack LV ", data.attack_level),
+            ("SPEED_TEXT", "Speed  LV ", data.speed_level),
+            ("CHARGE_TEXT", "Charge LV ", data.charge_level),
         ];
 
         for (label, prefix, value) in stat_text_associations {
@@ -288,19 +326,12 @@ impl StatusPage {
             let end_point = layout_animator.point("BLOCKS_END").unwrap_or_default();
             let bounds = Rect::from_corners(start_point, end_point);
 
-            let blocks = global_save
-                .installed_blocks
-                .get(&global_save.selected_character)
-                .cloned()
-                .unwrap_or_default();
-
-            let grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
-
             let list = ScrollableList::new(game_io, bounds, 15.0)
                 .with_label_str("BLOCKS")
                 .with_focus(false)
                 .with_children(
-                    grid.installed_packages(game_io)
+                    data.block_grid
+                        .installed_packages(game_io)
                         .map(|package| -> Box<dyn UiNode> {
                             Box::new(
                                 Text::new(game_io, FontStyle::Thin)
