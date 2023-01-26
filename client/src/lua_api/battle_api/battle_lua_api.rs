@@ -80,6 +80,7 @@ impl BattleLuaApi {
         super::player_form_api::inject_player_form_api(&mut lua_api);
         super::component_api::inject_component_api(&mut lua_api);
         super::card_action_api::inject_card_action_api(&mut lua_api);
+        super::ability_modifier_api::inject_ability_mod_api(&mut lua_api);
         super::field_api::inject_field_api(&mut lua_api);
         super::tile_api::inject_tile_api(&mut lua_api);
         super::sprite_api::inject_sprite_api(&mut lua_api);

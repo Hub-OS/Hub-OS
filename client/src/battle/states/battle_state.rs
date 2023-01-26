@@ -914,9 +914,7 @@ impl BattleState {
                 // using a card
                 player.card_use_requested = true;
             } else if input.was_just_pressed(Input::Special) {
-                let callback = player.special_attack_callback.clone();
-
-                self.generate_card_action(game_io, simulation, vms, id, callback);
+                Player::use_special_attack(game_io, simulation, vms, id.into());
                 continue;
             }
 
@@ -953,17 +951,16 @@ impl BattleState {
                 charge_sprite_node.apply_animation(&player.charge_animator);
             } else if previously_charging {
                 // shooting
-                let callback =
-                    if player.charging_time < player.max_charging_time + Player::CHARGE_DELAY {
-                        // uncharged
-                        player.normal_attack_callback.clone()
-                    } else {
-                        // charged
-                        player.charged_attack_callback.clone()
-                    };
+                let fully_charged =
+                    player.charging_time >= player.max_charging_time + Player::CHARGE_DELAY;
 
                 player.charging_time = 0;
-                self.generate_card_action(game_io, simulation, vms, id, callback);
+
+                if fully_charged {
+                    Player::use_charged_attack(game_io, simulation, vms, id.into());
+                } else {
+                    Player::use_normal_attack(game_io, simulation, vms, id.into())
+                }
             }
         }
     }

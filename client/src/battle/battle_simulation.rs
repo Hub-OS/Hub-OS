@@ -1,7 +1,7 @@
 use super::rollback_vm::RollbackVM;
 use super::*;
 use crate::bindable::*;
-use crate::lua_api::create_entity_table;
+use crate::lua_api::{create_ability_mod_table, create_entity_table};
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
@@ -577,7 +577,7 @@ impl BattleSimulation {
             return;
         }
 
-        let delete_indices: Vec<_> = (self.card_actions)
+        let card_indices: Vec<_> = (self.card_actions)
             .iter()
             .filter(|(_, action)| action.entity == id && action.used)
             .map(|(index, _)| index)
@@ -585,14 +585,24 @@ impl BattleSimulation {
 
         entity.deleted = true;
 
-        let callbacks = std::mem::take(&mut entity.delete_callbacks);
+        let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
         let delete_callback = entity.delete_callback.clone();
 
+        // delete player modifiers
+        if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
+            let modifier_iter = player.modifiers.iter();
+            let modifier_callbacks =
+                modifier_iter.map(|(_, modifier)| modifier.delete_callback.clone());
+
+            self.pending_callbacks.extend(modifier_callbacks);
+            self.call_pending_callbacks(game_io, vms);
+        }
+
         // delete card actions
-        self.delete_card_actions(game_io, vms, &delete_indices);
+        self.delete_card_actions(game_io, vms, &card_indices);
 
         // call delete callbacks after
-        self.pending_callbacks.extend(callbacks);
+        self.pending_callbacks.extend(listener_callbacks);
         self.pending_callbacks.push(delete_callback);
 
         self.call_pending_callbacks(game_io, vms);
@@ -960,8 +970,14 @@ impl BattleSimulation {
             let package_info = &package.package_info;
             let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
 
+            let player = self
+                .entities
+                .query_one_mut::<&mut Player>(id.into())
+                .unwrap();
+            let index = player.modifiers.insert(AbilityModifier::from(package));
+
             let result = self.call_global(game_io, vms, vm_index, "block_init", move |lua| {
-                create_entity_table(lua, id)
+                create_ability_mod_table(lua, id, index)
             });
 
             if let Err(e) = result {

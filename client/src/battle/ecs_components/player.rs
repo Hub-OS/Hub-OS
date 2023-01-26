@@ -5,6 +5,7 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
 use framework::prelude::*;
+use generational_arena::Arena;
 
 #[derive(Clone)]
 pub struct Player {
@@ -12,9 +13,9 @@ pub struct Player {
     pub local: bool,
     pub cards: Vec<Card>,
     pub card_use_requested: bool,
-    pub charge: u8,
-    pub attack: u8,
-    pub speed: u8,
+    pub charge_boost: u8,
+    pub attack_boost: u8,
+    pub speed_boost: u8,
     pub card_view_size: u8,
     pub modded_hp: i32,
     pub charging_time: FrameTime,
@@ -25,6 +26,7 @@ pub struct Player {
     pub slide_when_moving: bool,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
+    pub modifiers: Arena<AbilityModifier>,
     pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub special_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
@@ -60,9 +62,9 @@ impl Player {
             local,
             cards,
             card_use_requested: false,
-            charge: 1,
-            attack: 1,
-            speed: 1,
+            charge_boost: 0,
+            attack_boost: 0,
+            speed_boost: 0,
             card_view_size: 5,
             modded_hp: 0,
             charging_time: 0,
@@ -73,6 +75,7 @@ impl Player {
             slide_when_moving: false,
             forms: Vec::new(),
             active_form: None,
+            modifiers: Arena::new(),
             normal_attack_callback: BattleCallback::stub(None),
             charged_attack_callback: BattleCallback::stub(None),
             special_attack_callback: BattleCallback::stub(None),
@@ -91,6 +94,108 @@ impl Player {
             PackageNamespace::Local
         } else {
             PackageNamespace::Remote(self.index)
+        }
+    }
+
+    pub fn charge_level(&self) -> u8 {
+        let modifier_iter = self.modifiers.iter();
+        let base_charge = modifier_iter
+            .fold(1, |acc, (_, m)| acc + m.charge_boost as i32)
+            .clamp(1, 5) as u8;
+
+        base_charge + self.charge_boost
+    }
+
+    pub fn attack_level(&self) -> u8 {
+        let modifier_iter = self.modifiers.iter();
+        let base_attack = modifier_iter
+            .fold(1, |acc, (_, m)| acc + m.attack_boost as i32)
+            .clamp(1, 5) as u8;
+
+        base_attack + self.attack_boost
+    }
+
+    pub fn speed_level(&self) -> u8 {
+        let modifier_iter = self.modifiers.iter();
+        let base_speed = modifier_iter
+            .fold(1, |acc, (_, m)| acc + m.speed_boost as i32)
+            .clamp(1, 5) as u8;
+
+        base_speed + self.speed_boost
+    }
+
+    pub fn use_normal_attack(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityID,
+    ) {
+        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let modifier_iter = entity.modifiers.iter();
+        let mut callbacks: Vec<_> = modifier_iter
+            .flat_map(|(_, modifier)| modifier.normal_attack_callback.clone())
+            .collect();
+
+        callbacks.push(entity.normal_attack_callback.clone());
+
+        for callback in callbacks {
+            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
+                simulation.use_card_action(game_io, entity_id, index.into());
+                return;
+            }
+        }
+    }
+
+    pub fn use_charged_attack(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityID,
+    ) {
+        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let modifier_iter = entity.modifiers.iter();
+        let mut callbacks: Vec<_> = modifier_iter
+            .flat_map(|(_, modifier)| modifier.charged_attack_callback.clone())
+            .collect();
+
+        callbacks.push(entity.charged_attack_callback.clone());
+
+        for callback in callbacks {
+            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
+                simulation.use_card_action(game_io, entity_id, index.into());
+                return;
+            }
+        }
+    }
+
+    pub fn use_special_attack(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityID,
+    ) {
+        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let modifier_iter = entity.modifiers.iter();
+        let mut callbacks: Vec<_> = modifier_iter
+            .flat_map(|(_, modifier)| modifier.special_attack_callback.clone())
+            .collect();
+
+        callbacks.push(entity.special_attack_callback.clone());
+
+        for callback in callbacks {
+            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
+                simulation.use_card_action(game_io, entity_id, index.into());
+                return;
+            }
         }
     }
 }

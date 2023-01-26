@@ -1018,8 +1018,15 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    // todo: mod_max_health
-    // todo: get_max_health_mod
+    setter(
+        lua_api,
+        "boost_max_health",
+        |living: &mut Living, _, health: i32| {
+            living.max_health += health;
+            living.health = living.health.min(living.max_health);
+            Ok(())
+        },
+    );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_form", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -1050,13 +1057,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     getter(
         lua_api,
         "get_attack_level",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.attack),
+        |player: &Player, lua, _: ()| lua.pack_multi(player.attack_level()),
     );
     setter(
         lua_api,
-        "set_attack_level",
-        |player: &mut Player, _, level| {
-            player.attack = level;
+        "boost_attack_level",
+        |player: &mut Player, _, level: i8| {
+            player.attack_boost = (player.attack_boost as i8 + level).clamp(0, 5) as u8;
             Ok(())
         },
     );
@@ -1064,25 +1071,25 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     getter(
         lua_api,
         "get_charge_level",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.charge),
+        |player: &Player, lua, _: ()| lua.pack_multi(player.charge_level()),
     );
     setter(
         lua_api,
-        "set_charge_level",
-        |player: &mut Player, _, level| {
-            player.charge = level;
+        "boost_charge_level",
+        |player: &mut Player, _, level: i8| {
+            player.charge_boost = (player.charge_boost as i8 + level).clamp(0, 5) as u8;
             Ok(())
         },
     );
 
     getter(lua_api, "get_speed_level", |player: &Player, lua, _: ()| {
-        lua.pack_multi(player.speed)
+        lua.pack_multi(player.speed_level())
     });
     setter(
         lua_api,
-        "set_speed_level",
-        |player: &mut Player, _, level| {
-            player.speed = level;
+        "boost_speed_level",
+        |player: &mut Player, _, level: i8| {
+            player.speed_boost = (player.speed_boost as i8 + level).clamp(0, 5) as u8;
             Ok(())
         },
     );
