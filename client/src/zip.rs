@@ -6,7 +6,7 @@ use walkdir::WalkDir;
 use zip::read::ZipFile;
 use zip::result::ZipResult;
 use zip::write::FileOptions as ZipFileOptions;
-use zip::{CompressionMethod, ZipWriter};
+use zip::ZipWriter;
 
 use super::ResourcePaths;
 
@@ -45,7 +45,7 @@ pub fn compress<S>(path: &S) -> ZipResult<Vec<u8>>
 where
     S: AsRef<Path>,
 {
-    let file_options = ZipFileOptions::default().compression_method(CompressionMethod::Zstd);
+    let file_options = ZipFileOptions::default();
 
     let mut data = Vec::new();
 
