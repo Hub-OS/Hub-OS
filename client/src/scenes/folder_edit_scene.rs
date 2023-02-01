@@ -70,10 +70,6 @@ impl FolderEditScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        // background
-        let background_animator = Animator::new();
-        let background_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDER_BG);
-
         // folder_dock
         let folder = &globals.global_save.folders[folder_index];
         let mut folder_dock = Dock::new(
@@ -107,7 +103,7 @@ impl FolderEditScene {
             mega_limit: mega_limit.max(0) as usize,
             giga_limit: giga_limit.max(0) as usize,
             camera,
-            background: Background::new(background_animator, background_sprite),
+            background: Background::new_sub_scene(game_io),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
             page_tracker: PageTracker::new(game_io, 2)

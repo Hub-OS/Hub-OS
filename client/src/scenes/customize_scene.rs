@@ -3,7 +3,7 @@ use crate::ease::inverse_lerp;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle, ScrollTracker,
-    Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
+    SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
@@ -40,8 +40,8 @@ enum State {
 pub struct CustomizeScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     animator: Animator,
-    top_bar: Sprite,
     grid_sprite: Sprite,
     grid_start: Vec2,
     grid_increment: Vec2,
@@ -136,15 +136,6 @@ impl CustomizeScene {
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
-        // bg
-        let mut bg_animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_BG_ANIMATION);
-        let bg_sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_BG);
-
-        // bg top bar
-        let mut top_bar = bg_sprite.clone();
-        bg_animator.set_state("TOP_BAR_OVERLAY");
-        bg_animator.apply(&mut top_bar);
-
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 4)
             .with_view_margin(1)
@@ -169,9 +160,9 @@ impl CustomizeScene {
 
         Self {
             camera: Camera::new_ui(game_io),
-            background: Background::new(bg_animator, bg_sprite),
+            background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_everything(true),
             animator,
-            top_bar,
             grid_sprite,
             grid_start,
             grid_increment: grid_step,
@@ -878,12 +869,12 @@ impl Scene for CustomizeScene {
         // draw context menu
         self.block_context_menu.draw(game_io, &mut sprite_queue);
 
+        // draw frame
+        self.frame.draw(&mut sprite_queue);
+        SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
+
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
-
-        // draw top bar over everything
-        sprite_queue.draw_sprite(&self.top_bar);
-        SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }

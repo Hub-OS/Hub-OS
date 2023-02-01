@@ -19,9 +19,10 @@ enum UiMessage {
 
 pub struct ServerEditScene {
     camera: Camera,
+    background: Background,
+    frame: SubSceneFrame,
     edit_prop: ServerEditProp,
     server_info: ServerInfo,
-    bg_sprite: Sprite,
     button_9patch: NinePatch,
     input_9patch: NinePatch,
     cursor_sprite: Sprite,
@@ -46,13 +47,6 @@ impl ServerEditScene {
 
         // ui
         let assets = &globals.assets;
-
-        let mut animator = Animator::load_new(assets, ResourcePaths::SERVER_LIST_SHEET_ANIMATION);
-        let texture = assets.texture(game_io, ResourcePaths::SERVER_LIST_SHEET);
-
-        animator.set_state("BG");
-        let mut bg_sprite = Sprite::new(game_io, texture.clone());
-        animator.apply(&mut bg_sprite);
 
         // define styles
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
@@ -175,9 +169,10 @@ impl ServerEditScene {
 
         Self {
             camera: Camera::new_ui(game_io),
+            background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_arms(true),
             edit_prop,
             server_info,
-            bg_sprite,
             button_9patch,
             input_9patch,
             cursor_sprite,
@@ -267,12 +262,14 @@ impl Scene for ServerEditScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw static pieces
+        self.background.draw(game_io, render_pass);
+
         let scene_title = match self.edit_prop {
             ServerEditProp::Edit(_) => "EDIT SERVER",
             _ => "NEW SERVER",
         };
 
-        sprite_queue.draw_sprite(&self.bg_sprite);
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new(scene_title).draw(game_io, &mut sprite_queue);
 
         // draw ui

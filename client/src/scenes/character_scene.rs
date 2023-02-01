@@ -33,7 +33,7 @@ impl CharacterScene {
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),
-            background: Background::load_static(game_io, ResourcePaths::CHARACTER_BG),
+            background: Background::new_sub_scene(game_io),
             textbox: Textbox::new_navigation(game_io).begin_open(),
             event_sender,
             event_receiver,

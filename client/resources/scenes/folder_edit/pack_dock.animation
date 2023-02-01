@@ -1,6 +1,6 @@
 animation state="DEFAULT"
 frame x="0" y="0" w="239" h="136" originx="0" originy="-16"
-point label="card" x="159" y="1"
+point label="card" x="158" y="1"
 point label="list" x="7" y="16"
 point label="scroll_start" x="150" y="21"
 point label="scroll_end" x="150" y="123"

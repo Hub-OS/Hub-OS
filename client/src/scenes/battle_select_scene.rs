@@ -25,10 +25,6 @@ impl BattleSelectScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        // background
-        let background_animator = Animator::new();
-        let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_BG);
-
         // preview
         let mut preview_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
         preview_sprite.set_position(Vec2::new(12.0 + 44.0, 36.0 + 28.0));
@@ -40,7 +36,7 @@ impl BattleSelectScene {
 
         let mut scene = Box::new(Self {
             camera,
-            background: Background::new(background_animator, background_sprite),
+            background: Background::new_sub_scene(game_io),
             selection: 0,
             package_ids,
             preview_sprite,

@@ -52,30 +52,24 @@ impl FolderListScene {
         camera.snap(RESOLUTION_F * 0.5);
 
         // background
-        let mut background_animator =
-            Animator::load_new(assets, ResourcePaths::FOLDERS_BG_ANIMATION);
-        background_animator.set_state("default");
-
-        let background_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDERS_BG);
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::FOLDERS_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
 
         // card scroll tracker
         let mut card_scroll_tracker = ScrollTracker::new(game_io, 5);
 
-        let card_list_position = background_animator.point("list").unwrap_or_default();
+        let card_list_position = layout_animator.point("LIST").unwrap_or_default();
 
-        let scroll_start = background_animator
-            .point("scroll_start")
-            .unwrap_or_default();
-        let scroll_end = background_animator.point("scroll_end").unwrap_or_default();
+        let scroll_start = layout_animator.point("SCROLL_START").unwrap_or_default();
+        let scroll_end = layout_animator.point("SCROLL_END").unwrap_or_default();
 
         card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
         // folder sprites
         let folder_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDERS_ENABLED);
 
-        let folder_start_position = background_animator
-            .point("folder_start")
-            .unwrap_or_default();
+        let folder_start_position = layout_animator.point("FOLDER_START").unwrap_or_default();
 
         // folder cursor sprite
         let mut folder_scroll_tracker = ScrollTracker::new(game_io, 3);
@@ -101,7 +95,7 @@ impl FolderListScene {
 
         Box::new(Self {
             camera,
-            background: Background::new(background_animator, background_sprite),
+            background: Background::load_static(game_io, ResourcePaths::FOLDERS_BG),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
             equipped_sprite,

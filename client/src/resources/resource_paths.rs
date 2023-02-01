@@ -63,6 +63,8 @@ impl ResourcePaths {
     pub const WHITE_PIXEL: &str = "resources/scenes/shared/white_pixel.png";
     pub const FONTS: &str = "resources/fonts/fonts_compressed.png";
     pub const FONTS_ANIMATION: &str = "resources/fonts/fonts_compressed.animation";
+    pub const SUB_SCENE: &str = "resources/scenes/shared/sub_scene.png";
+    pub const SUB_SCENE_ANIMATION: &str = "resources/scenes/shared/sub_scene.animation";
     pub const PAGE_ARROW: &str = "resources/scenes/shared/page_arrow.png";
     pub const PAGE_ARROW_ANIMATION: &str = "resources/scenes/shared/page_arrow.animation";
     pub const SELECT_CURSOR: &str = "resources/scenes/shared/select_cursor.png";
@@ -102,8 +104,9 @@ impl ResourcePaths {
     pub const MAIN_MENU_WINDOWS_ANIMATION: &str = "resources/scenes/main_menu/windows.animation";
 
     // ServerListScene
-    pub const SERVER_LIST_SHEET: &str = "resources/scenes/server_list/sheet.png";
-    pub const SERVER_LIST_SHEET_ANIMATION: &str = "resources/scenes/server_list/sheet.animation";
+    pub const SERVER_LIST_STATUS: &str = "resources/scenes/server_list/status.png";
+    pub const SERVER_LIST_STATUS_ANIMATION: &str = "resources/scenes/server_list/status.animation";
+    pub const SERVER_LIST_LAYOUT_ANIMATION: &str = "resources/scenes/server_list/layout.animation";
 
     // InitialConnectScene
     pub const INITIAL_CONNECT_BG: &str = "resources/scenes/initial_connection/bg.png";
@@ -120,7 +123,7 @@ impl ResourcePaths {
 
     // FoldersScene
     pub const FOLDERS_BG: &str = "resources/scenes/folder_list/bg.png";
-    pub const FOLDERS_BG_ANIMATION: &str = "resources/scenes/folder_list/bg.animation";
+    pub const FOLDERS_LAYOUT_ANIMATION: &str = "resources/scenes/folder_list/layout.animation";
     pub const FOLDERS_ENABLED: &str = "resources/scenes/folder_list/enabled.png";
     pub const FOLDERS_DISABLED: &str = "resources/scenes/folder_list/disabled.png";
     pub const FOLDERS_CURSOR: &str = "resources/scenes/folder_list/cursor.png";
@@ -129,7 +132,6 @@ impl ResourcePaths {
     pub const FOLDERS_EQUIPPED_ANIMATION: &str = "resources/scenes/folder_list/equip.animation";
 
     // FolderScene
-    pub const FOLDER_BG: &str = "resources/scenes/folder_edit/bg.png";
     pub const FOLDER_SIZE: &str = "resources/scenes/folder_edit/size.png";
     pub const FOLDER_DOCK: &str = "resources/scenes/folder_edit/dock.png";
     pub const FOLDER_DOCK_ANIMATION: &str = "resources/scenes/folder_edit/dock.animation";
@@ -138,8 +140,7 @@ impl ResourcePaths {
     pub const FOLDER_SORT_MENU: &str = "resources/scenes/folder_edit/sort.png";
 
     // LibraryScene
-    pub const LIBRARY_BG: &str = "resources/scenes/library/bg.png";
-    pub const LIBRARY_BG_ANIMATION: &str = "resources/scenes/library/bg.animation";
+    pub const LIBRARY_LAYOUT_ANIMATION: &str = "resources/scenes/library/layout.animation";
     pub const LIBRARY_DOCK: &str = "resources/scenes/library/dock.png";
     pub const LIBRARY_DOCK_ANIMATION: &str = "resources/scenes/library/dock.animation";
 
@@ -156,16 +157,13 @@ impl ResourcePaths {
     pub const CUSTOMIZE_UI_ANIMATION: &str = "resources/scenes/customize/ui.animation";
 
     // CharacterSelectScene
-    pub const CHARACTER_SELECT_BG_ANIMATION: &str =
-        "resources/scenes/character_select/bg.animation";
-    pub const CHARACTER_SELECT_BG: &str = "resources/scenes/character_select/bg.png";
-    pub const CHARACTER_SELECT_FRAME: &str = "resources/scenes/character_select/frame.png";
+    pub const CHARACTER_SELECT_LAYOUT_ANIMATION: &str =
+        "resources/scenes/character_select/layout.animation";
     pub const CHARACTER_SELECT_CURSOR: &str = "resources/scenes/character_select/cursor.png";
     pub const CHARACTER_SELECT_CURSOR_ANIMATION: &str =
         "resources/scenes/character_select/cursor.animation";
 
     // BattleSelectScene
-    pub const BATTLE_SELECT_BG: &str = "resources/scenes/battle_select/bg.png";
 
     // BattleScene
     pub const BATTLE_BG: &str = "resources/scenes/battle/bg.png";
@@ -195,8 +193,7 @@ impl ResourcePaths {
     pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
 
     // ConfigScene
-    pub const CONFIG_BG: &str = "resources/scenes/config/bg.png";
-    pub const CONFIG_BG_ANIMATION: &str = "resources/scenes/config/bg.animation";
+    pub const CONFIG_LAYOUT_ANIMATION: &str = "resources/scenes/config/layout.animation";
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH

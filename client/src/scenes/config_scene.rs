@@ -1,8 +1,8 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
-    build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, Textbox,
-    TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle, UiConfigPercentage,
-    UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, SubSceneFrame,
+    Textbox, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle,
+    UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -35,6 +35,7 @@ enum ConfigCategory {
 pub struct ConfigScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     primary_layout: UiLayout,
     secondary_layout: ScrollableList,
@@ -68,8 +69,8 @@ impl ConfigScene {
         let config = Rc::new(RefCell::new(config));
 
         // layout positioning
-        let layout_animator =
-            Animator::load_new(assets, ResourcePaths::CONFIG_BG_ANIMATION).with_state("DEFAULT");
+        let layout_animator = Animator::load_new(assets, ResourcePaths::CONFIG_LAYOUT_ANIMATION)
+            .with_state("DEFAULT");
 
         let primary_layout_start = layout_animator.point("primary").unwrap_or_default();
 
@@ -79,7 +80,8 @@ impl ConfigScene {
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),
-            background: Background::load_static(game_io, ResourcePaths::CONFIG_BG),
+            background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             primary_layout: Self::generate_category_menu(
                 game_io,
@@ -380,6 +382,7 @@ impl Scene for ConfigScene {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new("CONFIG").draw(game_io, &mut sprite_queue);
 
         self.primary_layout.draw(game_io, &mut sprite_queue);

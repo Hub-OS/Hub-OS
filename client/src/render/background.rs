@@ -54,6 +54,16 @@ impl Background {
         }
     }
 
+    pub fn new_sub_scene(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION);
+        let sprite = assets.new_sprite(game_io, ResourcePaths::SUB_SCENE);
+
+        Self::new(animator, sprite)
+    }
+
     pub fn animator(&self) -> &Animator {
         &self.animator
     }

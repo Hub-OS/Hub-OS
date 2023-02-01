@@ -1,0 +1,16 @@
+# @frame_rate 60
+
+imagePath="status.png"
+
+animation state="ONLINE"
+frame duration="0f" x="24" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+
+animation state="ERROR"
+frame duration="0f" x="16" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+
+animation state="PENDING"
+frame duration="18f" x="0" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+frame duration="18f" x="8" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"
+
+animation state="OFFLINE"
+frame duration="50f" x="0" y="0" w="7" h="7" originx="0" originy="-6" flipx="0" flipy="0"

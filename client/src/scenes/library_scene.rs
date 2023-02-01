@@ -27,11 +27,9 @@ impl LibraryScene {
         camera.snap(RESOLUTION_F * 0.5);
 
         // background
-        let mut background_animator =
-            Animator::load_new(assets, ResourcePaths::LIBRARY_BG_ANIMATION);
-        background_animator.set_state("default");
-
-        let background_sprite = assets.new_sprite(game_io, ResourcePaths::LIBRARY_BG);
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::LIBRARY_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
 
         // docks
         // todo: display server card packages as well?
@@ -63,11 +61,11 @@ impl LibraryScene {
         }
 
         // card
-        let card_position = background_animator.point("CARD").unwrap_or_default();
+        let card_position = layout_animator.point("CARD").unwrap_or_default();
 
         let mut scene = Box::new(Self {
             camera,
-            background: Background::new(background_animator, background_sprite),
+            background: Background::new_sub_scene(game_io),
             ui_input_tracker: UiInputTracker::new(),
             card_preview: FullCard::new(game_io, card_position),
             page_tracker,

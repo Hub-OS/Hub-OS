@@ -20,13 +20,13 @@ enum ServerStatus {
 impl ServerStatus {
     fn state(self) -> &'static str {
         match self {
-            ServerStatus::Pending => "PENDING_BADGE",
-            ServerStatus::Online => "ONLINE_BADGE",
-            ServerStatus::Offline => "OFFLINE_BADGE",
+            ServerStatus::Pending => "PENDING",
+            ServerStatus::Online => "ONLINE",
+            ServerStatus::Offline => "OFFLINE",
             ServerStatus::TooOld
             | ServerStatus::TooNew
             | ServerStatus::Incompatible
-            | ServerStatus::InvalidAddress => "ERROR_BADGE",
+            | ServerStatus::InvalidAddress => "ERROR",
         }
     }
 
@@ -66,10 +66,10 @@ enum Event {
 
 pub struct ServerListScene {
     camera: Camera,
-    bg_sprite: Sprite,
-    animator: Animator,
-    list_box_sprite: Sprite,
-    list_start: Vec2,
+    background: Background,
+    scrollable_frame: ScrollableFrame,
+    status_animator: Animator,
+    status_sprite: Sprite,
     statuses: Vec<(String, ServerStatus)>, // address, statuses
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
@@ -87,36 +87,30 @@ impl ServerListScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut animator = Animator::load_new(assets, ResourcePaths::SERVER_LIST_SHEET_ANIMATION);
-        let texture = assets.texture(game_io, ResourcePaths::SERVER_LIST_SHEET);
-
-        // bg
-        animator.set_state("PAGED_BG");
-        let mut bg_sprite = Sprite::new(game_io, texture.clone());
-        animator.apply(&mut bg_sprite);
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::SERVER_LIST_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
 
         // list box
-        let box_pos = animator.point("LIST_START").unwrap_or_default();
-        animator.set_state("LIST_BOX");
+        let frame_bounds = Rect::from_corners(
+            layout_animator.point("LIST_START").unwrap_or_default(),
+            layout_animator.point("LIST_END").unwrap_or_default(),
+        );
 
-        let list_start = animator.point("LIST_START").unwrap_or_default() + box_pos;
-
-        let mut list_box_sprite = Sprite::new(game_io, texture);
-        list_box_sprite.set_position(box_pos);
-        animator.apply(&mut list_box_sprite);
+        let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);
 
         // scroll tracker
-        let scroll_start = animator.point("SCROLL_START").unwrap_or_default() + box_pos;
-        let scroll_end = animator.point("SCROLL_END").unwrap_or_default() + box_pos;
-
-        let cursor_start = list_start + Vec2::new(0.0, 5.0);
+        let cursor_start = scrollable_frame.body_bounds().top_left() + Vec2::new(0.0, 5.0);
 
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.define_cursor(cursor_start, 16.0);
-        scroll_tracker.define_scrollbar(scroll_start, scroll_end);
+        scroll_tracker.define_scrollbar(
+            scrollable_frame.scroll_start(),
+            scrollable_frame.scroll_end(),
+        );
 
         // context menu
-        let context_position = animator.point("CONTEXT_MENU").unwrap_or_default() + box_pos;
+        let context_position = layout_animator.point("CONTEXT_MENU").unwrap_or_default();
         let context_menu = ContextMenu::new(game_io, "OPTIONS", context_position);
 
         // events
@@ -124,10 +118,13 @@ impl ServerListScene {
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),
-            bg_sprite,
-            animator,
-            list_box_sprite,
-            list_start,
+            background: Background::new_sub_scene(game_io),
+            scrollable_frame,
+            status_animator: Animator::load_new(
+                assets,
+                ResourcePaths::SERVER_LIST_STATUS_ANIMATION,
+            ),
+            status_sprite: assets.new_sprite(game_io, ResourcePaths::SERVER_LIST_STATUS),
             statuses: Vec::new(),
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
@@ -459,9 +456,11 @@ impl Scene for ServerListScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // render static pieces
-        sprite_queue.draw_sprite(&self.bg_sprite);
+        self.background.draw(game_io, render_pass);
+
         SceneTitle::new("SERVERS").draw(game_io, &mut sprite_queue);
-        sprite_queue.draw_sprite(&self.list_box_sprite);
+
+        self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
         // render rows
         let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thin)
@@ -471,8 +470,8 @@ impl Scene for ServerListScene {
         const INDICATOR_LEFT_MARGIN: f32 = 210.0;
         const TEXT_OFFSET: Vec2 = Vec2::new(10.0, 3.0);
 
-        let mut y = self.list_start.y;
-        let mut status_sprite = Sprite::new(game_io, self.bg_sprite.texture().clone());
+        let list_start = self.scrollable_frame.body_bounds().top_left();
+        let mut y = list_start.y;
 
         for i in self.scroll_tracker.view_range() {
             let globals = game_io.resource::<Globals>().unwrap();
@@ -481,16 +480,18 @@ impl Scene for ServerListScene {
             let name = &server_list[i].name;
             let (_address, status) = &self.statuses[i];
 
-            (text_style.bounds).set_position(Vec2::new(self.list_start.x, y) + TEXT_OFFSET);
+            (text_style.bounds).set_position(Vec2::new(list_start.x, y) + TEXT_OFFSET);
             text_style.draw(game_io, &mut sprite_queue, name);
 
             // draw status indicator
-            self.animator.set_state(status.state());
-            self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-            self.animator.sync_time(self.time - i as FrameTime * 3);
-            self.animator.apply(&mut status_sprite);
-            status_sprite.set_position(Vec2::new(INDICATOR_LEFT_MARGIN, y));
-            sprite_queue.draw_sprite(&status_sprite);
+            self.status_animator.set_state(status.state());
+            self.status_animator.set_loop_mode(AnimatorLoopMode::Loop);
+            self.status_animator
+                .sync_time(self.time - i as FrameTime * 3);
+            self.status_animator.apply(&mut self.status_sprite);
+            self.status_sprite
+                .set_position(Vec2::new(INDICATOR_LEFT_MARGIN, y));
+            sprite_queue.draw_sprite(&self.status_sprite);
 
             y += HEIGHT;
         }

@@ -1,8 +1,8 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PlayerHealthUI, SceneTitle, ScrollTracker, TextStyle, Textbox,
-    TextboxMessage, UiInputTracker,
+    ElementSprite, FontStyle, PlayerHealthUI, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
+    Textbox, TextboxMessage, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
@@ -18,7 +18,7 @@ const SCROLL_STEP: f32 = 0.2;
 pub struct CharacterSelectScene {
     camera: Camera,
     background: Background,
-    overlay_sprites: Vec<Sprite>,
+    frame: SubSceneFrame,
     preview_sprite: Sprite,
     health_ui: PlayerHealthUI,
     element_sprite: Sprite,
@@ -79,36 +79,30 @@ impl CharacterSelectScene {
 
         cursor_animator.apply(&mut cursor_sprite);
 
-        // overlays
-        let frame = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_FRAME);
-        let overlay_sprites = vec![frame];
-
-        // bg + layout
-        let bg_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_BG);
-        let mut bg_animator =
-            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_BG_ANIMATION);
-
-        bg_animator.set_state("DEFAULT");
+        // layout
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
 
         // offset
-        let icon_start_offset = bg_animator.point("LIST_START").unwrap_or_default();
+        let icon_start_offset = layout_animator.point("LIST_START").unwrap_or_default();
 
         // health_ui
         let mut health_ui = PlayerHealthUI::new(game_io);
-        health_ui.set_position(bg_animator.point("HP").unwrap_or_default());
+        health_ui.set_position(layout_animator.point("HP").unwrap_or_default());
         health_ui.snap_health(player_package.health);
 
         // element_sprite
         let mut element_sprite = ElementSprite::new(game_io, player_package.element);
-        element_sprite.set_position(bg_animator.point("ELEMENT").unwrap_or_default());
+        element_sprite.set_position(layout_animator.point("ELEMENT").unwrap_or_default());
 
         // name_position
-        let name_position = bg_animator.point("NAME").unwrap_or_default();
+        let name_position = layout_animator.point("NAME").unwrap_or_default();
 
         Self {
             camera: Camera::new_ui(game_io),
-            background: Background::new(bg_animator, bg_sprite),
-            overlay_sprites,
+            background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_everything(true),
             preview_sprite,
             health_ui,
             element_sprite,
@@ -346,9 +340,7 @@ impl Scene for CharacterSelectScene {
         self.health_ui.draw(game_io, &mut sprite_queue);
         sprite_queue.draw_sprite(&self.element_sprite);
 
-        for sprite in &self.overlay_sprites {
-            sprite_queue.draw_sprite(sprite)
-        }
+        self.frame.draw(&mut sprite_queue);
 
         // draw title
         SceneTitle::new("CHARACTER SELECT").draw(game_io, &mut sprite_queue);

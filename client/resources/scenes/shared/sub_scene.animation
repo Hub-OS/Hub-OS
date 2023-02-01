@@ -1,0 +1,16 @@
+imagePath="/home/konst/Documents/Projects/Real-PET/real_pet/client/resources/scenes/shared/sub_scene.png"
+
+animation state="DEFAULT"
+frame duration="0.005" x="0" y="0" w="240" h="160" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="TOP_BAR"
+frame duration="0.005" x="0" y="0" w="240" h="14" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="BOTTOM_BAR"
+frame duration="0.005" x="0" y="155" w="240" h="5" originx="0" originy="-155" flipx="0" flipy="0"
+
+animation state="RIGHT_ARM"
+frame duration="0.005" x="248" y="0" w="8" h="160" originx="-232" originy="0" flipx="0" flipy="0"
+
+animation state="LEFT_ARM"
+frame duration="0.005" x="240" y="0" w="8" h="160" originx="0" originy="0" flipx="0" flipy="0"

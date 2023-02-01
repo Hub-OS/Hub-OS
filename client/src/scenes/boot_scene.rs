@@ -29,7 +29,6 @@ enum Event {
 
 pub struct BootScene {
     camera: Camera,
-    logo_sprite: Sprite,
     status_label: Text,
     log_style: TextStyle,
     log_receiver: flume::Receiver<LogRecord>,
@@ -42,16 +41,6 @@ pub struct BootScene {
 impl BootScene {
     pub fn new(game_io: &mut GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
         game_io.graphics_mut().set_clear_color(Color::BLACK);
-
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-
-        // logo
-        let mut logo_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_LOGO);
-
-        let logo_size = logo_sprite.size();
-        logo_sprite.set_origin(logo_size * 0.5);
-        logo_sprite.set_scale(Vec2::new(0.5, 0.5));
 
         // log text style
         let mut log_style = TextStyle::new(game_io, FontStyle::Thin);
@@ -199,7 +188,6 @@ impl BootScene {
 
         BootScene {
             camera: Camera::new(game_io),
-            logo_sprite,
             status_label: Text::new(game_io, FontStyle::Small),
             log_style,
             log_receiver,
@@ -348,9 +336,6 @@ impl Scene for BootScene {
             self.log_style
                 .draw(game_io, &mut sprite_queue, &record.message);
         }
-
-        // draw logo
-        sprite_queue.draw_sprite(&self.logo_sprite);
 
         // draw status
         self.status_label.draw(game_io, &mut sprite_queue);
