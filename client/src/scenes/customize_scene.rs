@@ -244,10 +244,9 @@ impl CustomizeScene {
                     // update block preview
                     self.animator.set_state("OPTION");
                     let list_step = self.animator.point("STEP").unwrap_or_default();
-
-                    let index_offset = index - self.scroll_tracker.top_index() + 1;
-
                     let mut position = self.animator.point("START").unwrap_or_default() + list_step;
+
+                    let index_offset = index - self.scroll_tracker.top_index();
                     position += list_step * index_offset as f32;
                     position += self.animator.point("BLOCK_PREVIEW").unwrap_or_default();
 
