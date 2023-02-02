@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::net::{Ipv4Addr, SocketAddr};
 
 const DEFAULT_PORT: u16 = 8765;
@@ -42,5 +43,65 @@ pub fn slice_data(address: &str) -> &str {
     match address.find(DATA_SEPARATORS) {
         Some(index) => &address[index..],
         None => "",
+    }
+}
+
+pub fn uri_encode(path: &str) -> String {
+    let mut encoded_string = String::with_capacity(path.len());
+
+    for b in path.bytes() {
+        if b.is_ascii_alphanumeric() || b == b'.' || b == b' ' || b == b'-' || b == b'_' {
+            // doesn't need to be encoded
+            encoded_string.push(b as char);
+            continue;
+        }
+
+        // needs encoding
+        write!(&mut encoded_string, "%{:0>2X}", b).unwrap();
+    }
+
+    encoded_string
+}
+
+pub fn uri_decode(path: &str) -> Option<String> {
+    let mut decoded_string = String::with_capacity(path.len());
+
+    let mut chars = path.chars().enumerate();
+
+    while let Some((i, c)) = chars.next() {
+        if c != '%' {
+            // doesn't need to be decoded
+            decoded_string.push(c);
+            continue;
+        }
+
+        // needs decoding
+
+        // skip two, also verifies that two characters exist for the next lines
+        chars.next()?;
+        chars.next()?;
+
+        let b = u8::from_str_radix(&path[i + 1..i + 3], 16).ok()?;
+        decoded_string.push(b as char);
+    }
+
+    Some(decoded_string)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn uri_encoding() {
+        const INPUT: &str = "a.b c-d_e:d?e%";
+        const EXPECTED: &str = "a.b c-d_e%3Ad%3Fe%25";
+        const ENCODED_MALFORMED: &str = "%";
+        const BLANK: &str = "";
+
+        assert_eq!(uri_encode(INPUT), EXPECTED);
+        assert_eq!(uri_decode(EXPECTED), Some(INPUT.to_string()));
+        assert_eq!(uri_decode(ENCODED_MALFORMED), None);
+        assert_eq!(uri_decode(BLANK), Some(BLANK.to_string()));
     }
 }
