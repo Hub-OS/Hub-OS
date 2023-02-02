@@ -43,16 +43,16 @@ impl From<String> for Element {
 impl From<&str> for Element {
     fn from(s: &str) -> Element {
         match s.to_lowercase().as_str() {
-            "Fire" => Element::Fire,
-            "Aqua" => Element::Aqua,
-            "Elec" => Element::Elec,
-            "Wood" => Element::Wood,
-            "Sword" => Element::Sword,
-            "Wind" => Element::Wind,
-            "Cursor" => Element::Cursor,
-            "Summon" => Element::Summon,
-            "Plus" => Element::Plus,
-            "Break" => Element::Break,
+            "fire" => Element::Fire,
+            "aqua" => Element::Aqua,
+            "elec" => Element::Elec,
+            "wood" => Element::Wood,
+            "sword" => Element::Sword,
+            "wind" => Element::Wind,
+            "cursor" => Element::Cursor,
+            "summon" => Element::Summon,
+            "plus" => Element::Plus,
+            "break" => Element::Break,
             _ => Element::None,
         }
     }
