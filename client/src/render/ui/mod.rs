@@ -1,3 +1,4 @@
+mod block_preview;
 mod clock;
 mod context_menu;
 mod element_sprite;
@@ -34,6 +35,7 @@ mod ui_config_toggle;
 mod ui_input_tracker;
 mod ui_layout;
 
+pub use block_preview::*;
 pub use clock::*;
 pub use context_menu::*;
 pub use element_sprite::*;

@@ -1,6 +1,6 @@
 # @frame_rate 60
 
-imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/customize/ui.png"
+imagePath="/home/konst/Documents/Projects/Real-PET/real_pet/client/resources/scenes/customize/ui.png"
 
 animation state="GRID"
 frame duration="3f" x="1" y="0" w="127" h="130" originx="-10" originy="-17" flipx="0" flipy="0"
@@ -89,100 +89,101 @@ frame duration="9f" x="75" y="216" w="73" h="19" originx="0" originy="0" flipx="
 animation state="OPTION"
 frame duration="50f" x="1" y="216" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
 point label="START" x="144" y="0"
-point label="NEXT" x="0" y="18"
+point label="STEP" x="0" y="18"
 point label="TEXT_START" x="4" y="4"
 point label="TEXT_END" x="69" y="18"
+point label="BLOCK_PREVIEW" x="76" y="-1"
 
 animation state="OPTION_BLINK"
 frame duration="9f" x="1" y="236" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
 frame duration="9f" x="1" y="216" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WHITE_FLAT"
-frame duration="50f" x="129" y="1" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="1" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WHITE_PLUS"
-frame duration="50f" x="148" y="1" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="1" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="WHITE_FLAT_HELD"
-frame duration="50f" x="167" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WHITE_PLUS_HELD"
-frame duration="50f" x="188" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="0" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WHITE_INDICATOR"
-frame duration="50f" x="209" y="1" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="1" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="RED_FLAT"
-frame duration="50f" x="129" y="22" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="22" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="RED_PLUS"
-frame duration="50f" x="148" y="22" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="22" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="RED_FLAT_HELD"
-frame duration="50f" x="167" y="21" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="21" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="RED_PLUS_HELD"
-frame duration="50f" x="188" y="21" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="21" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="RED_INDICATOR"
-frame duration="50f" x="209" y="22" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="22" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="GREEN_FLAT"
-frame duration="50f" x="129" y="43" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="43" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="GREEN_PLUS"
-frame duration="50f" x="148" y="43" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="43" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="GREEN_FLAT_HELD"
-frame duration="50f" x="167" y="42" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="42" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="GREEN_PLUS_HELD"
-frame duration="50f" x="188" y="42" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="42" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="GREEN_INDICATOR"
-frame duration="50f" x="209" y="43" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="43" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="BLUE_FLAT"
-frame duration="50f" x="129" y="64" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="64" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="BLUE_PLUS"
-frame duration="50f" x="148" y="64" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="64" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="BLUE_FLAT_HELD"
-frame duration="50f" x="167" y="63" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="63" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="BLUE_PLUS_HELD"
-frame duration="50f" x="188" y="63" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="63" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="BLUE_INDICATOR"
-frame duration="50f" x="209" y="64" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="64" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PINK_FLAT"
-frame duration="50f" x="129" y="85" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="85" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PINK_PLUS"
-frame duration="50f" x="148" y="85" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="85" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="PINK_FLAT_HELD"
-frame duration="50f" x="167" y="84" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="84" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PINK_PLUS_HELD"
-frame duration="50f" x="188" y="84" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="84" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PINK_INDICATOR"
-frame duration="50f" x="209" y="85" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="85" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="YELLOW_FLAT"
-frame duration="50f" x="129" y="106" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="106" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="YELLOW_PLUS"
-frame duration="50f" x="148" y="106" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
+frame duration="50f" x="182" y="106" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="YELLOW_FLAT_HELD"
-frame duration="50f" x="167" y="105" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="201" y="105" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="YELLOW_PLUS_HELD"
-frame duration="50f" x="188" y="105" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="222" y="105" w="20" h="20" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="YELLOW_INDICATOR"
-frame duration="50f" x="209" y="106" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="243" y="106" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"

@@ -2,8 +2,9 @@ use crate::bindable::{BlockColor, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle, ScrollTracker,
-    SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
+    BlockPreview, ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle,
+    ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion,
+    UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
@@ -53,6 +54,7 @@ pub struct CustomizeScene {
     colors: Vec<BlockColor>,
     grid: BlockGrid,
     arrow: GridArrow,
+    block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
     cursor: GridCursor,
@@ -147,7 +149,7 @@ impl CustomizeScene {
             );
 
         animator.set_state("OPTION");
-        let list_next = animator.point("NEXT").unwrap_or_default();
+        let list_next = animator.point("STEP").unwrap_or_default();
         let list_start = animator.point("START").unwrap_or_default() + list_next;
 
         scroll_tracker.define_cursor(list_start, list_next.y);
@@ -174,6 +176,7 @@ impl CustomizeScene {
             colors: Vec::new(),
             grid: BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks),
             arrow: GridArrow::new(game_io),
+            block_preview: None,
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
                 &[("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
@@ -208,6 +211,8 @@ impl CustomizeScene {
     }
 
     fn update_text(&mut self, game_io: &GameIO) {
+        self.block_preview = None;
+
         match self.state {
             State::GridSelection { x, y } => {
                 self.information_text.text = if let Some(block) = self.grid.get_block((x, y)) {
@@ -227,6 +232,7 @@ impl CustomizeScene {
 
                 if let Some(package) = self.packages.get(index) {
                     let globals = game_io.resource::<Globals>().unwrap();
+                    let color = package.color;
 
                     let package = globals
                         .block_packages
@@ -234,6 +240,22 @@ impl CustomizeScene {
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
+
+                    // update block preview
+                    self.animator.set_state("OPTION");
+                    let list_step = self.animator.point("STEP").unwrap_or_default();
+
+                    let index_offset = index - self.scroll_tracker.top_index() + 1;
+
+                    let mut position = self.animator.point("START").unwrap_or_default() + list_step;
+                    position += list_step * index_offset as f32;
+                    position += self.animator.point("BLOCK_PREVIEW").unwrap_or_default();
+
+                    let block_preview =
+                        BlockPreview::new(game_io, color, package.is_program, package.shape)
+                            .with_position(position);
+
+                    self.block_preview = Some(block_preview);
                 } else {
                     self.information_text.text = String::from("RUN?");
                 }
@@ -770,7 +792,7 @@ impl Scene for CustomizeScene {
 
         self.animator.set_state("OPTION");
         let mut offset = self.animator.point("START").unwrap_or_default();
-        let offset_jump = self.animator.point("NEXT").unwrap_or_default();
+        let offset_jump = self.animator.point("STEP").unwrap_or_default();
 
         let text_bounds = Rect::from_corners(
             self.animator.point("TEXT_START").unwrap_or_default(),
@@ -872,6 +894,11 @@ impl Scene for CustomizeScene {
         // draw frame
         self.frame.draw(&mut sprite_queue);
         SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
+
+        // draw block preview
+        if let Some(preview) = &mut self.block_preview {
+            preview.draw(&mut sprite_queue);
+        }
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

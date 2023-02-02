@@ -1,0 +1,42 @@
+imagePath="ui.png"
+
+animation state="GRID"
+frame duration="0.005" x="143" y="1" w="19" h="19" originx="0" originy="0" flipx="0" flipy="0"
+point label="GRID_START" x="2" y="2"
+point label="GRID_STEP" x="3" y="3"
+
+animation state="WHITE_FLAT"
+frame duration="0.005" x="243" y="9" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="WHITE_PLUS"
+frame duration="0.005" x="247" y="9" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="RED_FLAT"
+frame duration="0.005" x="243" y="30" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="RED_PLUS"
+frame duration="0.005" x="247" y="30" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="GREEN_FLAT"
+frame duration="0.005" x="243" y="51" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="GREEN_PLUS"
+frame duration="0.005" x="247" y="51" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="BLUE_FLAT"
+frame duration="0.005" x="243" y="72" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="BLUE_PLUS"
+frame duration="0.005" x="247" y="72" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="PINK_FLAT"
+frame duration="0.005" x="243" y="93" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="PINK_PLUS"
+frame duration="0.005" x="247" y="93" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="YELLOW_FLAT"
+frame duration="0.005" x="243" y="114" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="YELLOW_PLUS"
+frame duration="0.005" x="247" y="114" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"

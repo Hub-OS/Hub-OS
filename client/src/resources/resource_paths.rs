@@ -155,6 +155,7 @@ impl ResourcePaths {
     pub const CUSTOMIZE_BG_ANIMATION: &str = "resources/scenes/customize/bg.animation";
     pub const CUSTOMIZE_UI: &str = "resources/scenes/customize/ui.png";
     pub const CUSTOMIZE_UI_ANIMATION: &str = "resources/scenes/customize/ui.animation";
+    pub const CUSTOMIZE_PREVIEW_ANIMATION: &str = "resources/scenes/customize/preview.animation";
 
     // CharacterSelectScene
     pub const CHARACTER_SELECT_LAYOUT_ANIMATION: &str =
