@@ -24,7 +24,7 @@ pub mod HitFlag {
     pub const CONFUSE: HitFlags = 0x00004000;
     pub const PIERCE_GROUND: HitFlags = 0x00008000;
 
-    pub const LIST: [HitFlags; 15] = [
+    pub const LIST: [HitFlags; 16] = [
         RETAIN_INTANGIBLE,
         FREEZE,
         PIERCE_INVIS,
@@ -40,6 +40,7 @@ pub mod HitFlag {
         ROOT,
         BLIND,
         CONFUSE,
+        PIERCE_GROUND,
     ];
 
     pub fn from_str(s: &str) -> HitFlags {
