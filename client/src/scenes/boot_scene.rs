@@ -310,7 +310,7 @@ impl Scene for BootScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw logs
-        const MAX_HEIGHT: usize = 17;
+        const MAX_HEIGHT: usize = 20;
         let line_height = self.log_style.line_height();
 
         for (i, record) in self.log_records.iter().rev().enumerate() {
