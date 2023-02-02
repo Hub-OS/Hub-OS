@@ -325,8 +325,8 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
         let (tile_table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let x = tile_table.get("#x")?;
-        let y = tile_table.get("#y")?;
+        let x: i32 = tile_table.get("#x")?;
+        let y: i32 = tile_table.get("#y")?;
 
         let tables = {
             // scope to prevent RefCell borrow escaping when control is passed back to lua
@@ -363,8 +363,8 @@ fn generate_find_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &
         let (tile_table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
-        let x = tile_table.get("#x")?;
-        let y = tile_table.get("#y")?;
+        let x: i32 = tile_table.get("#x")?;
+        let y: i32 = tile_table.get("#y")?;
 
         let tables = {
             // scope to prevent RefCell borrow escaping when control is passed back to lua
