@@ -140,11 +140,14 @@ impl<T: Copy + 'static> ContextMenu<T> {
                 let option = *option;
 
                 UiLayoutNode::new(
-                    UiButton::new(game_io, FontStyle::Thin, label)
-                        .with_shadow_color(CONTEXT_TEXT_SHADOW_COLOR)
-                        .on_activate(move || {
-                            sender.send(option).unwrap();
-                        }),
+                    UiButton::new(
+                        Text::new(game_io, FontStyle::Thin)
+                            .with_str(label)
+                            .with_shadow_color(CONTEXT_TEXT_SHADOW_COLOR),
+                    )
+                    .on_activate(move || {
+                        sender.send(option).unwrap();
+                    }),
                 )
                 .with_style(option_style.clone())
             })

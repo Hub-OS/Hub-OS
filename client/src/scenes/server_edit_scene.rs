@@ -140,7 +140,7 @@ impl ServerEditScene {
                     })
                     .with_children(vec![
                         UiLayoutNode::new(
-                            UiButton::new(game_io, FontStyle::Thick, "Save").on_activate({
+                            UiButton::new_text(game_io, FontStyle::Thick, "Save").on_activate({
                                 let sender = ui_sender.clone();
 
                                 move || sender.send(UiMessage::Save).unwrap()
@@ -148,7 +148,7 @@ impl ServerEditScene {
                         )
                         .with_style(button_style.clone()),
                         UiLayoutNode::new(
-                            UiButton::new(game_io, FontStyle::Thick, "Cancel").on_activate({
+                            UiButton::new_text(game_io, FontStyle::Thick, "Cancel").on_activate({
                                 let sender = ui_sender;
 
                                 move || sender.send(UiMessage::Cancel).unwrap()

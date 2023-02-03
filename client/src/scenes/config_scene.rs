@@ -122,8 +122,7 @@ impl ConfigScene {
             Rect::new(start.x, start.y, f32::INFINITY, f32::INFINITY),
             ConfigCategory::iter()
                 .map(|option| {
-                    UiButton::new(game_io, FontStyle::Thick, option.into())
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+                    UiButton::new_text(game_io, FontStyle::Thick, option.into())
                         .on_activate({
                             let event_sender = event_sender.clone();
 

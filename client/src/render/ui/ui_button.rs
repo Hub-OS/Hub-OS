@@ -3,33 +3,31 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 
-pub struct UiButton<'a> {
-    text: Text,
+pub struct UiButton<'a, T> {
+    content: T,
     activate_callback: Box<dyn Fn() + 'a>,
     focus_callback: Option<Box<dyn Fn()>>,
     was_focused: bool,
 }
 
-impl<'a> UiButton<'a> {
-    pub fn new(game_io: &GameIO, font_style: FontStyle, text: &str) -> Self {
-        Self {
-            text: Text::new(game_io, font_style)
+impl<'a> UiButton<'a, Text> {
+    pub fn new_text(game_io: &GameIO, font_style: FontStyle, text: &str) -> Self {
+        Self::new(
+            Text::new(game_io, font_style)
                 .with_str(text)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
+        )
+    }
+}
+
+impl<'a, T> UiButton<'a, T> {
+    pub fn new(content: T) -> Self {
+        Self {
+            content,
             activate_callback: Box::new(|| {}),
             focus_callback: None,
             was_focused: false,
         }
-    }
-
-    pub fn with_text_style(mut self, style: TextStyle) -> Self {
-        self.text.style = style;
-        self
-    }
-
-    pub fn with_shadow_color(mut self, color: Color) -> Self {
-        self.text.style.shadow_color = color;
-        self
     }
 
     pub fn on_activate(mut self, callback: impl Fn() + 'a) -> Self {
@@ -43,7 +41,10 @@ impl<'a> UiButton<'a> {
     }
 }
 
-impl<'a> UiNode for UiButton<'a> {
+impl<'a, T> UiNode for UiButton<'a, T>
+where
+    T: UiNode,
+{
     fn focusable(&self) -> bool {
         true
     }
@@ -73,7 +74,7 @@ impl<'a> UiNode for UiButton<'a> {
     }
 
     fn measure_ui_size(&mut self, game_io: &GameIO) -> Vec2 {
-        self.text.measure_ui_size(game_io)
+        self.content.measure_ui_size(game_io)
     }
 
     fn draw_bounded(
@@ -82,6 +83,6 @@ impl<'a> UiNode for UiButton<'a> {
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
-        self.text.draw_bounded(game_io, sprite_queue, bounds)
+        self.content.draw_bounded(game_io, sprite_queue, bounds)
     }
 }
