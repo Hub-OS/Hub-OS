@@ -99,7 +99,7 @@ frame duration="9f" x="1" y="236" w="73" h="19" originx="0" originy="0" flipx="0
 frame duration="9f" x="1" y="216" w="73" h="19" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WHITE_FLAT"
-frame duration="50f" x="163" y="1" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="1" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="WHITE_PLUS"
 frame duration="50f" x="182" y="1" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
@@ -114,7 +114,7 @@ animation state="WHITE_INDICATOR"
 frame duration="50f" x="243" y="1" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="RED_FLAT"
-frame duration="50f" x="163" y="22" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="22" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="RED_PLUS"
 frame duration="50f" x="182" y="22" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
@@ -129,7 +129,7 @@ animation state="RED_INDICATOR"
 frame duration="50f" x="243" y="22" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="GREEN_FLAT"
-frame duration="50f" x="163" y="43" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="43" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="GREEN_PLUS"
 frame duration="50f" x="182" y="43" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
@@ -144,7 +144,7 @@ animation state="GREEN_INDICATOR"
 frame duration="50f" x="243" y="43" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="BLUE_FLAT"
-frame duration="50f" x="163" y="64" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="64" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="BLUE_PLUS"
 frame duration="50f" x="182" y="64" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
@@ -159,7 +159,7 @@ animation state="BLUE_INDICATOR"
 frame duration="50f" x="243" y="64" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="PINK_FLAT"
-frame duration="50f" x="163" y="85" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="85" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="PINK_PLUS"
 frame duration="50f" x="182" y="85" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
@@ -174,7 +174,7 @@ animation state="PINK_INDICATOR"
 frame duration="50f" x="243" y="85" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="YELLOW_FLAT"
-frame duration="50f" x="163" y="106" w="18" h="18" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="163" y="106" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
 
 animation state="YELLOW_PLUS"
 frame duration="50f" x="182" y="106" w="18" h="18" originx="-1" originy="-1" flipx="0" flipy="0"
