@@ -68,6 +68,8 @@ pub struct NavigationMenu {
     top_bar_sprite: Sprite,
     info_sprite: Sprite,
     fade_sprite: Sprite,
+    item_start: Vec2,
+    item_next: Vec2,
     items: Vec<NavigationItem>,
     ui_input_tracker: UiInputTracker,
 }
@@ -125,6 +127,13 @@ impl NavigationMenu {
         fade_sprite.set_color(Color::TRANSPARENT);
         fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
 
+        // items
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::MAIN_MENU_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
+        let item_start = layout_animator.point("OPTION_START").unwrap_or_default();
+        let item_next = layout_animator.point("OPTION_NEXT").unwrap_or_default();
+
         NavigationMenu {
             open_state: OpenState::Open,
             overlay: false,
@@ -139,8 +148,10 @@ impl NavigationMenu {
             top_bar_sprite,
             info_sprite,
             fade_sprite,
-            ui_input_tracker: UiInputTracker::new(),
+            item_start,
+            item_next,
             items,
+            ui_input_tracker: UiInputTracker::new(),
         }
     }
 
@@ -307,17 +318,14 @@ impl NavigationMenu {
 }
 
 fn system_scroll(menu: &mut NavigationMenu) {
-    const OFFSET: Vec2 = Vec2::new(RESOLUTION_F.x - 80.0, 24.0);
-    const ITEM_OFFSET: f32 = 22.0;
-
     let target_scroll_top = menu.scroll_tracker.top_index() as f32;
 
     menu.scroll_top = menu.scroll_top + (target_scroll_top - menu.scroll_top) * 0.2;
 
     for (i, item) in menu.items.iter_mut().enumerate() {
-        let mut position = OFFSET;
-        position.y += i as f32 * ITEM_OFFSET;
-        position.y -= menu.scroll_top * ITEM_OFFSET;
+        let mut position = menu.item_start;
+        position += i as f32 * menu.item_next;
+        position += menu.scroll_top * menu.item_next;
 
         item.sprite.set_position(position);
     }

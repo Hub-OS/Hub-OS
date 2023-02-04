@@ -96,6 +96,7 @@ impl ResourcePaths {
 
     // MainMenuScene
     pub const MAIN_MENU_BG: &str = "resources/scenes/main_menu/bg.png";
+    pub const MAIN_MENU_LAYOUT_ANIMATION: &str = "resources/scenes/main_menu/layout.animation";
     pub const MAIN_MENU_PARTS: &str = "resources/scenes/main_menu/menu.png";
     pub const MAIN_MENU_PARTS_ANIMATION: &str = "resources/scenes/main_menu/menu.animation";
     pub const MAIN_MENU_FOLDER: &str = "resources/scenes/main_menu/folders.png";
