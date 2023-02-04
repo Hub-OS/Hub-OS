@@ -129,9 +129,6 @@ impl PackageScene {
         let mut children: Vec<Box<dyn UiNode>> = Vec::new();
         push_text(&mut children, &listing.name);
 
-        push_blank(&mut children);
-        push_text(&mut children, &format!("Author: {}", author));
-
         match &listing.preview_data {
             PackagePreviewData::Card { codes, .. } => {
                 if !codes.is_empty() {
@@ -146,6 +143,9 @@ impl PackageScene {
             push_blank(&mut children);
             push_text(&mut children, &listing.description);
         }
+
+        push_blank(&mut children);
+        push_text(&mut children, &format!("Author: {}", author));
 
         children
     }
