@@ -11,6 +11,10 @@ impl PackageId {
     pub fn is_blank(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl From<&str> for PackageId {

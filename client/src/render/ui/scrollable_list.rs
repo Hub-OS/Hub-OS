@@ -44,8 +44,24 @@ impl ScrollableList {
         self
     }
 
+    pub fn view_size(&self) -> usize {
+        self.scroll_tracker.view_size()
+    }
+
+    pub fn top_index(&self) -> usize {
+        self.scroll_tracker.top_index()
+    }
+
     pub fn selected_index(&self) -> usize {
         self.scroll_tracker.selected_index()
+    }
+
+    pub fn set_selected_index(&mut self, index: usize) {
+        if self.is_focus_locked() {
+            return;
+        }
+
+        self.scroll_tracker.set_selected_index(index);
     }
 
     pub fn bounds(&self) -> Rect {
@@ -66,14 +82,33 @@ impl ScrollableList {
             .define_cursor(inner_bounds.top_left() + Vec2::new(-7.0, 0.0), item_height);
     }
 
+    pub fn list_bounds(&self) -> Rect {
+        const MARGIN: f32 = 2.0;
+
+        let mut bounds = self.frame.body_bounds();
+        bounds.x += MARGIN;
+        bounds.width -= MARGIN * 2.0;
+
+        bounds
+    }
+
     pub fn set_label(&mut self, label: String) {
         self.frame.set_label(label);
+    }
+
+    pub fn total_children(&self) -> usize {
+        self.children.len()
     }
 
     pub fn set_children(&mut self, children: Vec<Box<dyn UiNode>>) {
         self.scroll_tracker.set_total_items(children.len());
         self.scroll_tracker.set_selected_index(0);
         self.children = children;
+    }
+
+    pub fn append_children(&mut self, children: Vec<Box<dyn UiNode>>) {
+        self.children.extend(children);
+        self.scroll_tracker.set_total_items(self.children.len());
     }
 
     pub fn is_focus_locked(&self) -> bool {
@@ -120,8 +155,7 @@ impl ScrollableList {
         }
 
         // update children
-        let mut child_bounds = self.frame.body_bounds();
-        child_bounds.height = self.scroll_tracker.cursor_multiplier();
+        let mut child_bounds = self.initial_child_bounds();
 
         for i in self.scroll_tracker.view_range() {
             let child = &mut self.children[i];
@@ -140,8 +174,7 @@ impl ScrollableList {
         self.frame.draw(game_io, sprite_queue);
 
         // draw children
-        let mut child_bounds = self.frame.body_bounds();
-        child_bounds.height = self.scroll_tracker.cursor_multiplier();
+        let mut child_bounds = self.initial_child_bounds();
 
         for i in self.scroll_tracker.view_range() {
             let child = &mut self.children[i];
@@ -156,5 +189,12 @@ impl ScrollableList {
         if self.focused && !self.is_focus_locked() {
             self.scroll_tracker.draw_cursor(sprite_queue);
         }
+    }
+
+    fn initial_child_bounds(&self) -> Rect {
+        let mut child_bounds = self.list_bounds();
+        child_bounds.height = self.scroll_tracker.cursor_multiplier();
+
+        child_bounds
     }
 }

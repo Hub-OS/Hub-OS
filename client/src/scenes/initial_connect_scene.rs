@@ -129,6 +129,11 @@ impl Scene for InitialConnectScene {
         &mut self.next_scene
     }
 
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.connected_to_server = true;
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.bg_animator.update();
         self.bg_animator.apply(&mut self.bg_sprite);

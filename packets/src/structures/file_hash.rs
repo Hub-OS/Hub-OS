@@ -15,6 +15,13 @@ impl FileHash {
         }
     }
 
+    pub fn from_hex(value: &str) -> Option<Self> {
+        let bytes = hex::decode(value).ok()?;
+        let bytes = bytes.try_into().ok()?;
+
+        Some(Self { bytes })
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }

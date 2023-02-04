@@ -1,0 +1,11 @@
+animation state="DEFAULT"
+frame w="74" h="76"
+point label="IMAGE_START" x="6" y="6"
+point label="IMAGE_END" x="68" y="70"
+point label="PRIMARY_ELEMENT" x="7" y="55"
+point label="SECONDARY_ELEMENT" x="22" y="55"
+point label="DAMAGE_END" x="66" y="67"
+
+animation state="HEALTH"
+frame y="77" w="37" h="14" originx="-30" originy="-55"
+point label="TEXT_END" x="32" y="12"

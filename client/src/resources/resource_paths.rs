@@ -196,6 +196,14 @@ impl ResourcePaths {
     // ConfigScene
     pub const CONFIG_LAYOUT_ANIMATION: &str = "resources/scenes/config/layout.animation";
 
+    // PackagesScene
+    pub const PACKAGES_LAYOUT_ANIMATION: &str = "resources/scenes/packages/layout.animation";
+    pub const PACKAGES_PREVIEW: &str = "resources/scenes/packages/preview.png";
+    pub const PACKAGES_PREVIEW_ANIMATION: &str = "resources/scenes/packages/preview.animation";
+
+    // PackageScene
+    pub const PACKAGE_LAYOUT_ANIMATION: &str = "resources/scenes/package/layout.animation";
+
     pub fn game_folder() -> &'static str {
         &GAME_PATH
     }

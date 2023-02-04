@@ -6,6 +6,7 @@ pub type TextboxDoorstopRemover = Box<dyn FnOnce()>;
 /// Keeps the textbox open
 pub struct TextboxDoorstop {
     receiver: flume::Receiver<()>,
+    text: String,
     complete: bool,
 }
 
@@ -20,16 +21,22 @@ impl TextboxDoorstop {
         (
             Self {
                 receiver,
+                text: String::new(),
                 complete: false,
             },
             doorstop_remover,
         )
     }
+
+    pub fn with_str(mut self, text: &str) -> Self {
+        self.text = text.to_string();
+        self
+    }
 }
 
 impl TextboxInterface for TextboxDoorstop {
     fn text(&self) -> &str {
-        ""
+        &self.text
     }
 
     fn is_complete(&self) -> bool {

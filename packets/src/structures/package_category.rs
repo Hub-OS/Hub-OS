@@ -12,6 +12,18 @@ pub enum PackageCategory {
     Player,
 }
 
+impl PackageCategory {
+    pub fn path(&self) -> &'static str {
+        match self {
+            PackageCategory::Block => "mods/blocks/",
+            PackageCategory::Card => "mods/cards/",
+            PackageCategory::Character | PackageCategory::Battle => "mods/enemies/",
+            PackageCategory::Library => "mods/libraries/",
+            PackageCategory::Player => "mods/players/",
+        }
+    }
+}
+
 impl From<&str> for PackageCategory {
     fn from(s: &str) -> Self {
         match s.to_lowercase().as_str() {

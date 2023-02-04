@@ -72,6 +72,7 @@ pub struct Globals {
 
     // networking
     pub network: Network,
+    pub connected_to_server: bool,
 }
 
 impl Globals {
@@ -171,6 +172,7 @@ impl Globals {
 
             // networking
             network: Network::new(&args),
+            connected_to_server: false,
         }
     }
 
@@ -221,6 +223,99 @@ impl Globals {
             .load_child_packages(namespace, child_packages);
 
         self.package_or_fallback_info(category, namespace, &id)
+    }
+
+    pub fn load_package(
+        &mut self,
+        category: PackageCategory,
+        namespace: PackageNamespace,
+        path: &str,
+    ) -> Option<&PackageInfo> {
+        let package_info = match category {
+            PackageCategory::Block => {
+                self.block_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Card => self
+                .card_packages
+                .load_package(&self.assets, namespace, path),
+            PackageCategory::Battle => {
+                self.battle_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Library => {
+                self.library_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Player => {
+                self.player_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Character => {
+                log::error!("attempt to load Character package");
+                None
+            }
+        }?;
+
+        // load child packages
+        // character packages are the only child packages for now
+        let child_packages: Vec<_> = package_info.child_packages().collect();
+        let id = package_info.id.clone();
+
+        self.character_packages
+            .load_child_packages(namespace, child_packages);
+
+        self.package_or_fallback_info(category, namespace, &id)
+    }
+
+    pub fn unload_package(
+        &mut self,
+        category: PackageCategory,
+        namespace: PackageNamespace,
+        id: &PackageId,
+    ) {
+        let Some(package_info) = self.package_or_fallback_info(category, namespace, &id) else {
+            return;
+        };
+
+        // get child packages before unloading
+        // character packages are the only child packages for now
+        let child_packages: Vec<_> = package_info.child_packages().collect();
+
+        match category {
+            PackageCategory::Block => {
+                self.block_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Card => {
+                self.card_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Battle => {
+                self.battle_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Library => {
+                self.library_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Player => {
+                self.player_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Character => {
+                self.character_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+        }
+
+        // unload child packages
+        for child_package in child_packages {
+            let id = &child_package.id;
+
+            self.character_packages
+                .unload_package(&self.assets, namespace, id);
+        }
     }
 
     pub fn battle_dependencies(&self, props: &BattleProps) -> Vec<&PackageInfo> {

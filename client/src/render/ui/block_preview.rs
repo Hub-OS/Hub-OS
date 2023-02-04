@@ -7,6 +7,7 @@ use packets::structures::BlockColor;
 
 pub struct BlockPreview {
     size: Vec2,
+    scale: f32,
     position: Vec2,
     sprites: Vec<Sprite>,
 }
@@ -53,6 +54,7 @@ impl BlockPreview {
 
         Self {
             size,
+            scale: 1.0,
             position: Vec2::ZERO,
             sprites,
         }
@@ -60,6 +62,11 @@ impl BlockPreview {
 
     pub fn with_position(mut self, position: Vec2) -> Self {
         self.position = position;
+        self
+    }
+
+    pub fn with_scale(mut self, scale: f32) -> Self {
+        self.scale = scale;
         self
     }
 
@@ -71,7 +78,8 @@ impl BlockPreview {
         for sprite in &mut self.sprites {
             let position = sprite.position();
 
-            sprite.set_position(self.position + position);
+            sprite.set_scale(Vec2::new(self.scale, self.scale));
+            sprite.set_position(self.position + position * self.scale);
             sprite_queue.draw_sprite(sprite);
 
             sprite.set_position(position);
@@ -84,7 +92,8 @@ impl Into<Vec<Sprite>> for BlockPreview {
         for sprite in &mut self.sprites {
             let position = sprite.position();
 
-            sprite.set_position(self.position + position);
+            sprite.set_scale(Vec2::new(self.scale, self.scale));
+            sprite.set_position(self.position + position * self.scale);
         }
 
         self.sprites

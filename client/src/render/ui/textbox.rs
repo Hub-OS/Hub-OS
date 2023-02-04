@@ -216,11 +216,20 @@ impl Textbox {
 
     pub fn use_player_avatar(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
-        let player_package = globals.global_save.player_package(game_io).unwrap();
+
+        let Some(player_package) = globals.global_save.player_package(game_io) else {
+            self.set_next_avatar(
+                game_io,
+                &globals.assets,
+                ResourcePaths::BLANK,
+                ResourcePaths::BLANK,
+            );
+            return;
+        };
 
         self.set_next_avatar(
             game_io,
-            &game_io.resource::<Globals>().unwrap().assets,
+            &globals.assets,
             &player_package.mugshot_texture_path,
             &player_package.mugshot_animation_path,
         );

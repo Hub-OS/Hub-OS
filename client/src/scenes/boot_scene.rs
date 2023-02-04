@@ -6,7 +6,7 @@ use crate::resources::*;
 use framework::logging::LogRecord;
 use framework::prelude::*;
 
-use super::MainMenuScene;
+use super::{CategoryFilter, MainMenuScene, PackagesScene};
 
 const LOG_MARGIN: f32 = 2.0;
 
@@ -265,24 +265,52 @@ impl BootScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let mut available_players = globals.player_packages.local_packages();
 
-                    if available_players.next().is_some() {
-                        self.status_label.text = String::from("BOOT OK. Press Any Button");
-                        self.done = true;
+                    let message = if available_players.next().is_some() {
+                        "BOOT OK. Press Any Button"
                     } else {
-                        self.status_label.text = String::from("Player Mod is Required");
-                        log::error!("Player Mod missing");
-                    }
+                        "Missing Player Mod. Press Any Button"
+                    };
+
+                    self.status_label.text = String::from(message);
+                    self.done = true;
                 }
             }
         }
 
         (self.status_label.style.bounds).set_position(-RESOLUTION_F * 0.5 + 2.0);
     }
+
+    fn transfer(&mut self, game_io: &mut GameIO) {
+        let has_playable_character = {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let mut available_players = globals.player_packages.local_packages();
+
+            available_players.next().is_some()
+        };
+
+        let transition = crate::transitions::new_boot(game_io);
+
+        if has_playable_character {
+            let scene = MainMenuScene::new(game_io);
+            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+        } else {
+            let scene = PackagesScene::new(game_io, CategoryFilter::Players);
+            self.next_scene = NextScene::new_push(scene).with_transition(transition);
+        }
+    }
 }
 
 impl Scene for BootScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        if self.done {
+            let scene = MainMenuScene::new(game_io);
+            let transition = crate::transitions::new_sub_scene_pop(game_io);
+            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -298,9 +326,7 @@ impl Scene for BootScene {
 
         // transfer to the next scene
         if self.done && input_util.latest_input().is_some() {
-            let scene = MainMenuScene::new(game_io);
-            let transition = crate::transitions::new_boot(game_io);
-            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+            self.transfer(game_io);
         }
     }
 

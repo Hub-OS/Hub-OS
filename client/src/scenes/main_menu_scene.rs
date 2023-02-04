@@ -111,6 +111,10 @@ impl Scene for MainMenuScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         // reload character
         self.character_data = CharacterData::load(game_io, &self.scrolling_text_style);
+
+        // can't be on a server if the player is viewing the main menu
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.connected_to_server = false;
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

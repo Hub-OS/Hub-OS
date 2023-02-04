@@ -2,6 +2,8 @@ use super::Input;
 use crate::render::FrameTime;
 use framework::prelude::{Color, UVec2, Vec2};
 
+pub const DEFAULT_PACKAGE_REPO: &str = "https://real-pet.konstinople.dev";
+
 pub const INPUT_BUFFER_LIMIT: usize = 20;
 
 pub const RESOLUTION_F: Vec2 = Vec2::new(240.0, 160.0);
@@ -66,3 +68,6 @@ pub const OVERWORLD_RUN_SPEED: f32 = 140.0 / 60.0;
 pub const TEXT_TRANSPARENT_SHADOW_COLOR: Color = Color::new(0.4, 0.4, 0.4, 0.3);
 pub const TEXT_DARK_SHADOW_COLOR: Color = Color::new(0.32, 0.388, 0.45, 1.0);
 pub const CONTEXT_TEXT_SHADOW_COLOR: Color = Color::new(0.06, 0.31, 0.41, 1.0);
+
+// sizes
+pub const CARD_PREVIEW_SIZE: Vec2 = Vec2::new(56.0, 48.0);

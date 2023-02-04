@@ -1,5 +1,5 @@
 use crate::render::PostProcessColorBlindness;
-use crate::resources::{AssetManager, Input, MAX_VOLUME};
+use crate::resources::{AssetManager, Input, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
 use framework::input::{Button, Key};
 use std::collections::HashMap;
 
@@ -18,6 +18,7 @@ pub struct Config {
     pub key_bindings: HashMap<Input, Key>,
     pub controller_bindings: HashMap<Input, Button>,
     pub controller_index: usize,
+    pub package_repo: String,
 }
 
 impl Config {
@@ -139,6 +140,7 @@ impl Default for Config {
             key_bindings,
             controller_bindings,
             controller_index: 0,
+            package_repo: String::from(DEFAULT_PACKAGE_REPO),
         }
     }
 }
@@ -163,6 +165,7 @@ impl From<&str> for Config {
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
             controller_index: 0,
+            package_repo: String::from(DEFAULT_PACKAGE_REPO),
         };
 
         use ini::Ini;
@@ -228,6 +231,13 @@ impl From<&str> for Config {
             }
         }
 
+        if let Some(properties) = ini.section(Some("Online")) {
+            config.package_repo = properties
+                .get("PackageRepo")
+                .unwrap_or_default()
+                .to_string();
+        }
+
         config
     }
 }
@@ -266,7 +276,7 @@ impl ToString for Config {
             }
 
             writeln!(s, "[Controller]")?;
-            writeln!(s, "Controller Index = {}", self.controller_index)?;
+            writeln!(s, "ControllerIndex = {}", self.controller_index)?;
 
             for input in Input::iter() {
                 write!(s, "{:?} = ", input)?;
@@ -276,6 +286,12 @@ impl ToString for Config {
                 } else {
                     writeln!(s, "None")?;
                 }
+            }
+
+            writeln!(s, "[Online]")?;
+
+            if self.package_repo != DEFAULT_PACKAGE_REPO {
+                writeln!(s, "PackageRepo = {}", self.package_repo)?;
             }
 
             Ok(s)

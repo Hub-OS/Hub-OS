@@ -1,8 +1,9 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
     build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, SubSceneFrame,
-    Textbox, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle,
-    UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    Textbox, TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding,
+    UiConfigCycle, UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode,
+    UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -15,11 +16,14 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 
+use super::{CategoryFilter, PackagesScene};
+
 enum Event {
     CategoryChange(ConfigCategory),
     EnterCategory,
     RequestNicknameChange,
     ChangeNickname { name: String },
+    ViewPackages,
     Leave { save: bool },
 }
 
@@ -350,23 +354,36 @@ impl ConfigScene {
         game_io: &GameIO,
         event_sender: flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
-        vec![Box::new(
-            UiButton::new(game_io, FontStyle::Thick, "Change Nickname")
-                .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
-                .on_activate({
+        vec![
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Change Nickname").on_activate({
                     let event_sender = event_sender.clone();
 
                     move || {
                         let _ = event_sender.send(Event::RequestNicknameChange);
                     }
                 }),
-        )]
+            ),
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Manage Mods").on_activate({
+                    let event_sender = event_sender.clone();
+
+                    move || {
+                        let _ = event_sender.send(Event::ViewPackages);
+                    }
+                }),
+            ),
+        ]
     }
 }
 
 impl Scene for ConfigScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        self.textbox.use_player_avatar(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -436,6 +453,21 @@ impl ConfigScene {
                     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
                     global_save.nickname = name;
                     global_save.save();
+                }
+                Event::ViewPackages => {
+                    let globals = &mut game_io.resource::<Globals>().unwrap();
+
+                    if !globals.connected_to_server {
+                        let scene = PackagesScene::new(game_io, CategoryFilter::default());
+                        let transition = crate::transitions::new_sub_scene(game_io);
+                        self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                    } else {
+                        let message = String::from("You should jack out before updating mods.");
+                        let interface = TextboxMessage::new(message);
+
+                        self.textbox.push_interface(interface);
+                        self.textbox.open();
+                    }
                 }
                 Event::Leave { save } => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();

@@ -219,6 +219,11 @@ impl UiLayout {
         self
     }
 
+    pub fn with_focus(mut self, focused: bool) -> UiLayout {
+        self.focused = focused;
+        self
+    }
+
     pub fn with_wrapped_selection(mut self) -> Self {
         self.wrap_selection = true;
 
@@ -340,6 +345,10 @@ impl UiLayout {
 
     pub fn focused_index(&self) -> Option<GenerationalIndex> {
         self.focused_index
+    }
+
+    pub fn bounds(&self) -> Rect {
+        self.get_bounds(GenerationalIndex::tree_root()).unwrap()
     }
 
     /// includes border + padding

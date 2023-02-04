@@ -14,6 +14,7 @@ mod args;
 mod battle;
 mod bindable;
 mod ease;
+mod http;
 mod lua_api;
 mod overworld;
 mod packages;

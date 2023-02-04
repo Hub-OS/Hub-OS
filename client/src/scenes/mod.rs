@@ -14,6 +14,8 @@ mod netplay_init_scene;
 mod overlay;
 mod overworld_online_scene;
 mod overworld_scene_base;
+mod package_scene;
+mod packages_scene;
 mod server_edit_scene;
 mod server_list_scene;
 
@@ -33,5 +35,7 @@ pub use netplay_init_scene::*;
 pub use overlay::*;
 pub use overworld_online_scene::*;
 pub use overworld_scene_base::*;
+pub use package_scene::*;
+pub use packages_scene::*;
 pub use server_edit_scene::*;
 pub use server_list_scene::*;

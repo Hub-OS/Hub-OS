@@ -303,6 +303,31 @@ impl<T: Package> PackageManager<T> {
             .map(|package| package.package_info())
     }
 
+    pub fn unload_package(
+        &mut self,
+        assets: &LocalAssetManager,
+        namespace: PackageNamespace,
+        id: &PackageId,
+    ) {
+        let Some(package_map) = self.package_maps.get_mut(&namespace) else {
+            return;
+        };
+
+        let Some(package) = package_map.remove(id) else {
+            return;
+        };
+
+        let package_info = package.package_info();
+
+        let is_virtual = package_info
+            .base_path
+            .starts_with(ResourcePaths::VIRTUAL_PREFIX);
+
+        if is_virtual {
+            assets.remove_virtual_zip_use(&package_info.hash);
+        }
+    }
+
     pub fn remove_namespace(&mut self, assets: &LocalAssetManager, namespace: PackageNamespace) {
         let packages = match self.package_maps.remove(&namespace) {
             Some(packages) => packages,
@@ -312,7 +337,11 @@ impl<T: Package> PackageManager<T> {
         for (_, package) in packages {
             let package_info = package.package_info();
 
-            if package_info.hash != FileHash::ZERO {
+            let is_virtual = package_info
+                .base_path
+                .starts_with(ResourcePaths::VIRTUAL_PREFIX);
+
+            if is_virtual {
                 assets.remove_virtual_zip_use(&package_info.hash);
             }
         }
