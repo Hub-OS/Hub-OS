@@ -111,9 +111,12 @@ impl From<&json::Value> for PackageListing {
 }
 
 fn get_unknown_as_string(table: &json::Value, key: &str) -> String {
-    table
-        .get(key)
-        .map(|value| value.to_string())
+    let Some(value) = table.get(key) else {
+        return String::new()
+    };
+
+    (value.as_str().map(|s| s.to_string()))
+        .or_else(|| Some(format!("{}", value.as_i64()?)))
         .unwrap_or_default()
 }
 
