@@ -10,7 +10,7 @@ struct BlockMeta {
     description: String,
     health_boost: i32,
     attack_boost: i8,
-    speed_boost: i8,
+    rapid_boost: i8,
     charge_boost: i8,
     mega_boost: i8,
     giga_boost: i8,
@@ -26,7 +26,7 @@ pub struct BlockPackage {
     pub description: String,
     pub health_boost: i32,
     pub attack_boost: i8,
-    pub speed_boost: i8,
+    pub rapid_boost: i8,
     pub charge_boost: i8,
     pub mega_boost: isize,
     pub giga_boost: isize,
@@ -86,7 +86,7 @@ impl Package for BlockPackage {
         package.description = meta.description;
         package.health_boost = meta.health_boost;
         package.attack_boost = meta.attack_boost;
-        package.speed_boost = meta.speed_boost;
+        package.rapid_boost = meta.rapid_boost;
         package.charge_boost = meta.charge_boost;
         package.mega_boost = meta.mega_boost as isize;
         package.giga_boost = meta.giga_boost as isize;

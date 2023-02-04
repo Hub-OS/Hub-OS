@@ -5,7 +5,7 @@ use crate::{bindable::GenerationalIndex, packages::BlockPackage};
 pub struct AbilityModifier {
     pub level: u8,
     pub attack_boost: i8,
-    pub speed_boost: i8,
+    pub rapid_boost: i8,
     pub charge_boost: i8,
     pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -18,7 +18,7 @@ impl Default for AbilityModifier {
         Self {
             level: 1,
             attack_boost: 0,
-            speed_boost: 0,
+            rapid_boost: 0,
             charge_boost: 0,
             normal_attack_callback: None,
             charged_attack_callback: None,
@@ -32,7 +32,7 @@ impl From<&BlockPackage> for AbilityModifier {
     fn from(package: &BlockPackage) -> Self {
         Self {
             attack_boost: package.attack_boost,
-            speed_boost: package.speed_boost,
+            rapid_boost: package.rapid_boost,
             charge_boost: package.charge_boost,
             ..Default::default()
         }

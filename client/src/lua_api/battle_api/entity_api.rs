@@ -1068,14 +1068,14 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_speed_level", |player: &Player, lua, _: ()| {
-        lua.pack_multi(player.speed_level())
+    getter(lua_api, "get_rapid_level", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.rapid_level())
     });
     setter(
         lua_api,
-        "boost_speed_level",
+        "boost_rapid_level",
         |player: &mut Player, _, level: i8| {
-            player.speed_boost = (player.speed_boost as i8 + level).clamp(0, 5) as u8;
+            player.rapid_boost = (player.rapid_boost as i8 + level).clamp(0, 5) as u8;
             Ok(())
         },
     );

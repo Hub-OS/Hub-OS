@@ -176,7 +176,7 @@ struct StatusData<'a> {
     block_grid: BlockGrid,
     charge_level: i8,
     attack_level: i8,
-    speed_level: i8,
+    rapid_level: i8,
     mega_limit: isize,
     giga_limit: isize,
 }
@@ -191,14 +191,14 @@ impl<'a> StatusData<'a> {
         let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
 
         let mut attack_level = 1;
-        let mut speed_level = 1;
+        let mut rapid_level = 1;
         let mut charge_level = 1;
         let mut mega_limit = MAX_MEGA as isize;
         let mut giga_limit = MAX_GIGA as isize;
 
         for package in block_grid.valid_packages(game_io) {
             attack_level += package.attack_boost;
-            speed_level += package.speed_boost;
+            rapid_level += package.rapid_boost;
             charge_level += package.charge_boost;
             mega_limit += package.mega_boost;
             giga_limit += package.giga_boost;
@@ -208,7 +208,7 @@ impl<'a> StatusData<'a> {
             player_package,
             block_grid,
             attack_level: attack_level.clamp(1, 5),
-            speed_level: speed_level.clamp(1, 5),
+            rapid_level: rapid_level.clamp(1, 5),
             charge_level: charge_level.clamp(1, 5),
             mega_limit: mega_limit.max(0),
             giga_limit: giga_limit.max(0),
@@ -274,7 +274,7 @@ impl StatusPage {
 
         let stat_text_associations = [
             ("ATTACK_TEXT", "Attack LV ", data.attack_level),
-            ("SPEED_TEXT", "Speed  LV ", data.speed_level),
+            ("RAPID_TEXT", "Rapid  LV ", data.rapid_level),
             ("CHARGE_TEXT", "Charge LV ", data.charge_level),
         ];
 

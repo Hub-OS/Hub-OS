@@ -1,7 +1,7 @@
 local user, charged, damage = ...
 local card_action = Battle.CardAction.new(user, "PLAYER_SHOOTING")
 local context = user:get_context()
-local speed_level = user:get_speed_level()
+local rapid_level = user:get_rapid_level()
 
 -- override animation
 
@@ -31,9 +31,9 @@ local cooldown_table = {
     { 3, 4, 5, 6, 7, 8 }
 }
 
-speed_level = math.max(math.min(speed_level, #cooldown_table), 1)
+rapid_level = math.max(math.min(rapid_level, #cooldown_table), 1)
 
-local cooldown = cooldown_table[speed_level][6]
+local cooldown = cooldown_table[rapid_level][6]
 local elapsed_frames = 0
 local spell_erased_frame = 0
 
@@ -148,7 +148,7 @@ card_action:add_anim_action(2, function()
     end
 
     spell.on_delete_func = function()
-        local calculated_cooldown = cooldown_table[speed_level][tiles_travelled]
+        local calculated_cooldown = cooldown_table[rapid_level][tiles_travelled]
 
         if calculated_cooldown ~= nil then
             cooldown = calculated_cooldown

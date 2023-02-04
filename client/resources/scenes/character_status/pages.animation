@@ -6,7 +6,7 @@ point label="ELEMENT" x="88" y="17"
 point label="HEALTH" x="10" y="16"
 point label="PLAYER" x="55" y="84"
 point label="ATTACK_TEXT" x="137" y="29"
-point label="SPEED_TEXT" x="137" y="45"
+point label="RAPID_TEXT" x="137" y="45"
 point label="CHARGE_TEXT" x="137" y="61"
 point label="POWER_CHARGE_TEXT" x="137" y="77"
 
