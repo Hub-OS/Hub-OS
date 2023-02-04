@@ -49,8 +49,9 @@ pub fn slice_data(address: &str) -> &str {
 pub fn uri_encode(path: &str) -> String {
     let mut encoded_string = String::with_capacity(path.len());
 
-    for b in path.bytes() {
-        if b.is_ascii_alphanumeric() || b == b'.' || b == b' ' || b == b'-' || b == b'_' {
+    for (i, b) in path.bytes().enumerate() {
+        if b.is_ascii_alphanumeric() || b == b' ' || b == b'-' || b == b'_' || (b == b'.' && i > 2)
+        {
             // doesn't need to be encoded
             encoded_string.push(b as char);
             continue;
