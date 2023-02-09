@@ -20,6 +20,7 @@ impl Background {
             animator.set_state("DEFAULT");
         }
 
+        let velocity = animator.point("VELOCITY").unwrap_or_default();
         animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         Self {
@@ -27,7 +28,7 @@ impl Background {
             sprite,
             position: Vec2::ZERO,
             offset: Vec2::ZERO,
-            velocity: Vec2::ZERO,
+            velocity,
         }
     }
 
