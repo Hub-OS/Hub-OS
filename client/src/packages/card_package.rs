@@ -73,6 +73,7 @@ impl Package for CardPackage {
         package.default_codes = meta.codes;
 
         // card properties
+        package.card_properties.package_id = package.package_info.id.clone();
         package.card_properties.short_name = meta.name;
         package.card_properties.description = meta.description;
         package.card_properties.long_description = meta.long_description;
