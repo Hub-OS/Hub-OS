@@ -13,7 +13,6 @@ use packets::address_parsing::uri_encode;
 use taffy::style::{AlignItems, Dimension, FlexDirection};
 
 enum Event {
-    Leave,
     ReceivedAuthor(String),
     StartDownload,
     Delete,
@@ -160,11 +159,6 @@ impl PackageScene {
 
         let buttons = if installed {
             vec![
-                UiButton::new_text(game_io, FontStyle::Thick, "Back").on_activate({
-                    let sender = event_sender.clone();
-
-                    move || sender.send(Event::Leave).unwrap()
-                }),
                 UiButton::new_text(game_io, FontStyle::Thick, "Update").on_activate({
                     let sender = event_sender.clone();
 
@@ -178,11 +172,6 @@ impl PackageScene {
             ]
         } else {
             vec![
-                UiButton::new_text(game_io, FontStyle::Thick, "Back").on_activate({
-                    let sender = event_sender.clone();
-
-                    move || sender.send(Event::Leave).unwrap()
-                }),
                 UiButton::new_text(game_io, FontStyle::Thick, "Install").on_activate({
                     let sender = event_sender.clone();
 
@@ -313,12 +302,6 @@ impl PackageScene {
 
     fn handle_event(&mut self, game_io: &mut GameIO, event: Event) {
         match event {
-            Event::Leave => {
-                if !game_io.is_in_transition() {
-                    self.next_scene = NextScene::new_pop()
-                        .with_transition(crate::transitions::new_sub_scene_pop(game_io));
-                }
-            }
             Event::ReceivedAuthor(author) => {
                 self.list.set_children(Self::generate_list(
                     game_io,
