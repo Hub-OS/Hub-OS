@@ -31,6 +31,8 @@ pub struct Globals {
 
     // sounds
     pub audio: AudioManager,
+    pub main_menu_music: SoundBuffer,
+    pub customize_music: SoundBuffer,
     pub battle_music: SoundBuffer,
     pub cursor_move_sfx: SoundBuffer,
     pub cursor_select_sfx: SoundBuffer,
@@ -43,7 +45,9 @@ pub struct Globals {
     pub customize_empty_sfx: SoundBuffer,
     pub customize_block_sfx: SoundBuffer,
     pub customize_complete_sfx: SoundBuffer,
+    pub transmission_sfx: SoundBuffer,
     pub warp_sfx: SoundBuffer,
+    pub battle_transition_sfx: SoundBuffer,
     pub appear_sfx: SoundBuffer,
     pub card_select_open_sfx: SoundBuffer,
     pub card_select_confirm_sfx: SoundBuffer,
@@ -127,6 +131,8 @@ impl Globals {
             audio: AudioManager::new()
                 .with_music_volume(music_volume)
                 .with_sfx_volume(sfx_volume),
+            main_menu_music: assets.audio(ResourcePaths::MAIN_MENU_MUSIC),
+            customize_music: assets.audio(ResourcePaths::CUSTOMIZE_MUSIC),
             battle_music: assets.audio(ResourcePaths::BATTLE_MUSIC),
             cursor_move_sfx: assets.audio(ResourcePaths::CURSOR_MOVE_SFX),
             cursor_select_sfx: assets.audio(ResourcePaths::CURSOR_SELECT_SFX),
@@ -139,7 +145,9 @@ impl Globals {
             customize_empty_sfx: assets.audio(ResourcePaths::CUSTOMIZE_EMPTY_SFX),
             customize_block_sfx: assets.audio(ResourcePaths::CUSTOMIZE_BLOCK_SFX),
             customize_complete_sfx: assets.audio(ResourcePaths::CUSTOMIZE_COMPLETE_SFX),
+            transmission_sfx: assets.audio(ResourcePaths::TRANSMISSION_SFX),
             warp_sfx: assets.audio(ResourcePaths::WARP_SFX),
+            battle_transition_sfx: assets.audio(ResourcePaths::BATTLE_TRANSITION_SFX),
             appear_sfx: assets.audio(ResourcePaths::APPEAR_SFX),
             card_select_open_sfx: assets.audio(ResourcePaths::CARD_SELECT_OPEN_SFX),
             card_select_confirm_sfx: assets.audio(ResourcePaths::CARD_SELECT_CONFIRM_SFX),

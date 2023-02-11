@@ -25,6 +25,8 @@ impl ResourcePaths {
     pub const SEPARATOR: &str = "/";
 
     // Music
+    pub const MAIN_MENU_MUSIC: &str = "resources/music/main_menu.ogg";
+    pub const CUSTOMIZE_MUSIC: &str = "resources/music/customize.ogg";
     pub const BATTLE_MUSIC: &str = "resources/music/battle.ogg";
 
     // SFX
@@ -39,7 +41,9 @@ impl ResourcePaths {
     pub const CUSTOMIZE_EMPTY_SFX: &str = "resources/sfx/customize_empty.ogg";
     pub const CUSTOMIZE_BLOCK_SFX: &str = "resources/sfx/customize_block.ogg";
     pub const CUSTOMIZE_COMPLETE_SFX: &str = "resources/sfx/customize_complete.ogg";
+    pub const TRANSMISSION_SFX: &str = "resources/sfx/transmission.ogg";
     pub const WARP_SFX: &str = "resources/sfx/warp.ogg";
+    pub const BATTLE_TRANSITION_SFX: &str = "resources/sfx/battle_transition.ogg";
     pub const APPEAR_SFX: &str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &str = "resources/sfx/card_select_open.ogg";
     pub const CARD_SELECT_CONFIRM_SFX: &str = "resources/sfx/card_select_confirm.ogg";

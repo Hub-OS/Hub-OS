@@ -631,6 +631,10 @@ impl CustomizeScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Leave => {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.pop_music_stack();
+                    globals.audio.restart_music();
+
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
                 }
@@ -662,6 +666,10 @@ impl Scene for CustomizeScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         self.update_text(game_io);
         self.update_grid_sprite();
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.push_music_stack();
+        globals.audio.play_music(&globals.customize_music, true);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

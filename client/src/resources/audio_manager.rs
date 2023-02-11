@@ -6,6 +6,7 @@ pub struct AudioManager {
     stream: Option<rodio::OutputStream>,
     stream_handle: Option<rodio::OutputStreamHandle>,
     music_sink: RefCell<Option<rodio::Sink>>,
+    music_stack: RefCell<Vec<(SoundBuffer, bool)>>,
     music_volume: f32,
     sfx_volume: f32,
 }
@@ -24,6 +25,7 @@ impl AudioManager {
             stream,
             stream_handle,
             music_sink: RefCell::new(None),
+            music_stack: RefCell::new(vec![(SoundBuffer::new_empty(), false)]),
             music_volume: 1.0,
             sfx_volume: 1.0,
         }
@@ -59,10 +61,45 @@ impl AudioManager {
             .unwrap_or_default()
     }
 
-    pub fn play_music<MusicSource>(&self, buffer: MusicSource, loops: bool)
-    where
-        MusicSource: Clone + Send + AsRef<[u8]> + Sync + 'static,
-    {
+    pub fn music_stack_len(&self) -> usize {
+        self.music_stack.borrow().len()
+    }
+
+    pub fn truncate_music_stack(&self, size: usize) -> bool {
+        let mut stack = self.music_stack.borrow_mut();
+
+        if stack.len() == size {
+            return false;
+        }
+
+        stack.truncate(size);
+        std::mem::drop(stack);
+        self.stop_music();
+
+        true
+    }
+
+    pub fn restart_music(&self) {
+        let stack = self.music_stack.borrow();
+        let (buffer, loops) = stack.last().cloned().unwrap();
+
+        std::mem::drop(stack);
+        self.play_music(&buffer, loops);
+    }
+
+    pub fn push_music_stack(&self) {
+        self.stop_music();
+        let mut stack = self.music_stack.borrow_mut();
+        stack.push((SoundBuffer::new_empty(), false));
+    }
+
+    pub fn pop_music_stack(&self) {
+        self.stop_music();
+        let mut stack = self.music_stack.borrow_mut();
+        stack.pop();
+    }
+
+    pub fn play_music(&self, buffer: &SoundBuffer, loops: bool) {
         let stream_handle = match self.stream_handle.as_ref() {
             Some(stream_handle) => stream_handle,
             None => return,
@@ -70,6 +107,12 @@ impl AudioManager {
 
         if let Some(music_sink) = self.music_sink.borrow().as_ref() {
             music_sink.stop();
+        }
+
+        if buffer.is_empty() {
+            // empty buffer, just return after stopping music
+            // fixes unrecognized format error
+            return;
         }
 
         let music_sink = match rodio::Sink::try_new(stream_handle) {
@@ -83,7 +126,7 @@ impl AudioManager {
         music_sink.set_volume(self.music_volume);
 
         use std::io::{BufReader, Cursor};
-        let cursor = Cursor::new(buffer);
+        let cursor = Cursor::new(buffer.clone());
         let reader = BufReader::new(cursor);
 
         if loops {
@@ -99,6 +142,7 @@ impl AudioManager {
         }
 
         *self.music_sink.borrow_mut() = Some(music_sink);
+        *(self.music_stack.borrow_mut().last_mut().unwrap()) = (buffer.clone(), loops);
     }
 
     pub fn stop_music(&self) {

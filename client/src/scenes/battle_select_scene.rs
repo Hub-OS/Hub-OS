@@ -122,6 +122,11 @@ impl Scene for BattleSelectScene {
         if input_util.was_just_pressed(Input::Confirm) && !self.package_ids.is_empty() {
             let globals = game_io.resource::<Globals>().unwrap();
 
+            // play sfx
+            globals.audio.stop_music();
+            globals.audio.play_sound(&globals.battle_transition_sfx);
+
+            // get the battle
             let package_id = &self.package_ids[self.selection];
             let battle_package = globals
                 .battle_packages
@@ -129,6 +134,7 @@ impl Scene for BattleSelectScene {
 
             let props = BattleProps::new_with_defaults(game_io, battle_package);
 
+            // set the next scene
             let scene = BattleScene::new(game_io, props);
             let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);

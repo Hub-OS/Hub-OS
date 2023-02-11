@@ -64,6 +64,9 @@ impl MainMenuScene {
         let assets = &globals.assets;
         let background_sampler = &globals.background_sampler;
 
+        // music
+        globals.audio.play_music(&globals.main_menu_music, true);
+
         // setup camera
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);

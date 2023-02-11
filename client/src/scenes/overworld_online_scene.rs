@@ -700,6 +700,10 @@ impl OverworldOnlineScene {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
+                    // play sfx
+                    globals.audio.stop_music();
+                    globals.audio.play_sound(&globals.battle_transition_sfx);
+
                     // get package
                     let battle_package = globals
                         .battle_packages
@@ -735,21 +739,30 @@ impl OverworldOnlineScene {
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
+                // play sfx
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.stop_music();
+                globals.audio.play_sound(&globals.battle_transition_sfx);
+
+                // copy background
                 let background = self
                     .base_scene
                     .map
                     .background_properties()
                     .generate_background(game_io, &self.assets);
 
+                // callback
                 let event_sender = self.event_sender.clone();
                 let statistics_callback = Box::new(move |statistics| {
                     let _ = event_sender.send(Event::BattleStatistics(statistics));
                 });
 
+                // get package
                 let battle_package = package_path
                     .and_then(|path| self.encounter_packages.get(&path))
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
+                // create scene
                 let scene = NetplayInitScene::new(
                     game_io,
                     Some(background),

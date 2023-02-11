@@ -78,6 +78,7 @@ pub struct ServerListScene {
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
+    music_stack_len: usize,
     time: FrameTime,
     next_scene: NextScene,
 }
@@ -133,6 +134,7 @@ impl ServerListScene {
             textbox: Textbox::new_navigation(game_io),
             event_sender,
             event_receiver,
+            music_stack_len: globals.audio.music_stack_len(),
             time: 0,
             next_scene: NextScene::None,
         })
@@ -347,6 +349,15 @@ impl Scene for ServerListScene {
 
         self.update_context_menu_options(game_io);
         self.context_menu.close();
+
+        // clean up music after we've left every server
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        globals.audio.truncate_music_stack(self.music_stack_len);
+
+        if !globals.audio.is_music_playing() {
+            globals.audio.restart_music();
+        }
     }
 
     fn next_scene(&mut self) -> &mut NextScene {
@@ -420,6 +431,10 @@ impl Scene for ServerListScene {
                 let (_, status) = &self.statuses[self.scroll_tracker.selected_index()];
 
                 if matches!(status, ServerStatus::Pending | ServerStatus::Online) {
+                    // play join sfx
+                    globals.audio.push_music_stack();
+                    globals.audio.play_sound(&globals.transmission_sfx);
+
                     // try connecting to the server
                     let scene =
                         InitialConnectScene::new(game_io, server_info.address.clone(), None, true);

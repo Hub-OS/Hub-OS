@@ -38,6 +38,7 @@ pub struct BattleScene {
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     already_snapped: bool,
+    started_music: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
@@ -67,6 +68,7 @@ impl BattleScene {
             slow_cooldown: 0,
             frame_by_frame_debug: false,
             already_snapped: false,
+            started_music: false,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
@@ -494,13 +496,17 @@ impl Scene for BattleScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
-
-        if !globals.audio.is_music_playing() {
-            globals.audio.play_music(globals.battle_music.clone(), true);
-        }
+        globals.audio.push_music_stack();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        if !game_io.is_in_transition() && !self.started_music {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_music(&globals.battle_music, true);
+
+            self.started_music = true;
+        }
+
         self.handle_packets(game_io);
 
         let input_util = InputUtil::new(game_io);
@@ -555,6 +561,11 @@ impl Scene for BattleScene {
 
             let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
+
+            // clean up music stack
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.pop_music_stack();
+            globals.audio.restart_music();
         }
     }
 

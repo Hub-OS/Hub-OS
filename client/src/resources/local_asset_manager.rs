@@ -36,10 +36,7 @@ impl LocalAssetManager {
                 .clone(),
         )]);
 
-        let sounds = HashMap::from([(
-            ResourcePaths::BLANK.to_string(),
-            SoundBuffer(Arc::new(Vec::new())),
-        )]);
+        let sounds = HashMap::from([(ResourcePaths::BLANK.to_string(), SoundBuffer::new_empty())]);
 
         Self {
             loaded_zips: RefCell::new(HashMap::new()),
