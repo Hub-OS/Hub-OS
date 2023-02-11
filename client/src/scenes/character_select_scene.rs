@@ -41,7 +41,11 @@ impl CharacterSelectScene {
         let assets = &globals.assets;
         let character_id = &globals.global_save.selected_character;
 
-        let mut package_ids: Vec<_> = globals.player_packages.local_packages().collect();
+        let mut package_ids: Vec<_> = globals
+            .player_packages
+            .package_ids_with_fallthrough(PackageNamespace::Server)
+            .collect();
+
         package_ids.sort();
 
         // selection

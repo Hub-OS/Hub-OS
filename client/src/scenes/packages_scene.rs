@@ -1,5 +1,6 @@
 use super::PackageScene;
 use crate::bindable::SpriteColorMode;
+use crate::packages::PackageNamespace;
 use crate::render::ui::{
     build_9patch, FontStyle, PackageListing, SceneTitle, ScrollableList, SubSceneFrame, Textbox,
     TextboxMessage, TextboxPrompt, UiButton, UiInputTracker, UiLayout, UiLayoutNode, UiNode,
@@ -252,7 +253,11 @@ impl PackagesScene {
     fn leave(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let has_players = globals.player_packages.local_packages().next().is_some();
+        let has_players = globals
+            .player_packages
+            .package_ids(PackageNamespace::Local)
+            .next()
+            .is_some();
 
         if !has_players {
             let interface = TextboxMessage::new(String::from(

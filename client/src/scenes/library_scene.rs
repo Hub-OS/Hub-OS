@@ -32,9 +32,12 @@ impl LibraryScene {
         layout_animator.set_state("DEFAULT");
 
         // docks
-        // todo: display server card packages as well?
-        let mut available_packages: Vec<_> =
-            globals.card_packages.local_packages().cloned().collect();
+        let mut available_packages: Vec<_> = globals
+            .card_packages
+            .package_ids_with_fallthrough(PackageNamespace::Server)
+            .cloned()
+            .collect();
+
         available_packages.sort();
 
         let docks = vec![

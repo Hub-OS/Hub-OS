@@ -31,6 +31,14 @@ impl PackageNamespace {
             PackageNamespace::Local => None,
         }
     }
+
+    pub fn fallback(&self) -> Option<Self> {
+        match self {
+            PackageNamespace::Remote(_) => Some(PackageNamespace::Server),
+            PackageNamespace::Server => Some(PackageNamespace::Local),
+            PackageNamespace::Local => None,
+        }
+    }
 }
 
 impl Default for PackageNamespace {

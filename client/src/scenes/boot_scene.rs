@@ -233,8 +233,11 @@ impl BootScene {
                     globals.player_packages = player_packages;
 
                     // make sure there's a playable character available
-                    let playable_characters: Vec<_> =
-                        globals.player_packages.local_packages().cloned().collect();
+                    let playable_characters: Vec<_> = globals
+                        .player_packages
+                        .package_ids(PackageNamespace::Local)
+                        .cloned()
+                        .collect();
 
                     if !playable_characters.is_empty() {
                         let selected_id = &globals.global_save.selected_character;
@@ -263,7 +266,8 @@ impl BootScene {
                 }
                 Event::Done => {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    let mut available_players = globals.player_packages.local_packages();
+                    let mut available_players =
+                        globals.player_packages.package_ids(PackageNamespace::Local);
 
                     let message = if available_players.next().is_some() {
                         "BOOT OK. Press Any Button"
@@ -283,7 +287,8 @@ impl BootScene {
     fn transfer(&mut self, game_io: &mut GameIO) {
         let has_playable_character = {
             let globals = game_io.resource::<Globals>().unwrap();
-            let mut available_players = globals.player_packages.local_packages();
+            let mut available_players =
+                globals.player_packages.package_ids(PackageNamespace::Local);
 
             available_players.next().is_some()
         };

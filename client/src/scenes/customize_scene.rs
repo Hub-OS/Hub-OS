@@ -80,19 +80,14 @@ impl CustomizeScene {
         // load block packages
         let mut packages: Vec<_> = globals
             .block_packages
-            .local_packages()
-            .map(|id| {
-                let package = globals
-                    .block_packages
-                    .package_or_fallback(PackageNamespace::Server, id)
-                    .unwrap();
-
+            .packages_with_fallthrough(PackageNamespace::Server)
+            .map(|package| {
                 package
                     .block_colors
                     .iter()
                     .cloned()
                     .map(|color| CompactPackageInfo {
-                        id: id.clone(),
+                        id: package.package_info.id.clone(),
                         name: package.name.clone(),
                         color,
                     })

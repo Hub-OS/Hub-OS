@@ -31,7 +31,11 @@ impl BattleSelectScene {
 
         // package list
         let battle_manager = &globals.battle_packages;
-        let mut package_ids: Vec<_> = battle_manager.local_packages().cloned().collect();
+        let mut package_ids: Vec<_> = battle_manager
+            .package_ids(PackageNamespace::Local)
+            .cloned()
+            .collect();
+
         package_ids.sort();
 
         let mut scene = Box::new(Self {

@@ -1,7 +1,7 @@
 use super::{ChildPackageInfo, Package, PackageId, PackageInfo, PackageNamespace};
 use crate::resources::{LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub use packets::structures::PackageCategory;
 
@@ -24,11 +24,33 @@ impl<T: Package> PackageManager<T> {
         self.package_maps.keys().cloned()
     }
 
-    pub fn local_packages(&self) -> impl Iterator<Item = &PackageId> + '_ {
+    pub fn package_ids(&self, ns: PackageNamespace) -> impl Iterator<Item = &PackageId> + '_ {
         self.package_maps
-            .get(&PackageNamespace::Local)
+            .get(&ns)
             .into_iter()
             .flat_map(|packages| packages.keys())
+    }
+
+    pub fn package_ids_with_fallthrough(
+        &self,
+        ns: PackageNamespace,
+    ) -> impl Iterator<Item = &PackageId> + '_ {
+        // gather all ids into a hashset to avoid duplicates
+        let mut ids = HashSet::new();
+
+        let mut temp_ns = Some(ns);
+
+        while let Some(ns) = temp_ns {
+            ids.extend(self.package_ids(ns));
+            temp_ns = ns.fallback();
+        }
+
+        ids.into_iter()
+    }
+
+    pub fn packages_with_fallthrough(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
+        self.package_ids_with_fallthrough(ns)
+            .flat_map(move |id| self.package_or_fallback(ns, id))
     }
 
     pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {

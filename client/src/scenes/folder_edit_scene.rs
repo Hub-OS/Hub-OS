@@ -813,8 +813,7 @@ impl CardListItem {
         }
 
         package_manager
-            .local_packages()
-            .filter_map(|id| package_manager.package_or_fallback(NAMESPACE, id))
+            .packages_with_fallthrough(NAMESPACE)
             .flat_map(|package| {
                 let package_info = package.package_info();
 
