@@ -9,6 +9,7 @@ use crate::render::{
 use crate::resources::*;
 use crate::saves::{Config, GlobalSave};
 use framework::prelude::*;
+use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -465,5 +466,19 @@ impl Globals {
 
         self.player_packages
             .remove_namespace(&self.assets, namespace);
+    }
+
+    pub fn resolve_package_download_path(
+        &self,
+        category: PackageCategory,
+        id: &PackageId,
+    ) -> String {
+        if let Some(package) = self.package_or_fallback_info(category, PackageNamespace::Local, id)
+        {
+            package.base_path.clone()
+        } else {
+            let encoded_id = uri_encode(id.as_str());
+            format!("{}{}/", category.path(), encoded_id)
+        }
     }
 }

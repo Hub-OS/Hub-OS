@@ -1,5 +1,5 @@
 use crate::bindable::SpriteColorMode;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
     build_9patch, FontStyle, PackageListing, PackagePreview, PackagePreviewData, SceneTitle,
     ScrollableList, SubSceneFrame, Text, TextStyle, Textbox, TextboxDoorstop,
@@ -10,19 +10,12 @@ use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQ
 use crate::resources::{AssetManager, Globals, Input, InputUtil, LocalAssetManager, ResourcePaths};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
-use packets::structures::{PackageCategory, PackageId};
 use taffy::style::{AlignItems, Dimension, FlexDirection};
 
-#[derive(Clone)]
 enum Event {
     Leave,
     ReceivedAuthor(String),
     StartDownload,
-    RequestLatestListing,
-    ReceivedListing(PackageListing),
-    InstallPackage,
-    DownloadFailed,
-    QueueComplete,
     Delete,
 }
 
@@ -40,9 +33,8 @@ pub struct PackageScene {
     event_receiver: flume::Receiver<Event>,
     tasks: Vec<AsyncTask<Event>>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
-    queue: Vec<(Option<PackageCategory>, PackageId)>,
-    queue_position: usize,
-    total_updated: usize,
+    package_updater: RepoPackageUpdater,
+    prev_status: UpdateStatus,
     textbox: Textbox,
     next_scene: NextScene,
 }
@@ -95,10 +87,9 @@ impl PackageScene {
             event_receiver,
             tasks: Vec::new(),
             doorstop_remover: None,
+            package_updater: RepoPackageUpdater::new(),
+            prev_status: UpdateStatus::Idle,
             textbox: Textbox::new_navigation(game_io),
-            queue: Vec::new(),
-            queue_position: 0,
-            total_updated: 0,
             next_scene: NextScene::None,
         }
     }
@@ -338,74 +329,8 @@ impl PackageScene {
                 ));
             }
             Event::StartDownload => {
-                self.queue.clear();
-                self.queue_position = 0;
-                self.total_updated = 0;
-
                 let listing = self.preview.listing();
-                let category = listing.preview_data.category();
-                self.queue.push((category, listing.id.clone()));
-
-                self.request_latest_listing(game_io);
-            }
-            Event::RequestLatestListing => {
-                self.request_latest_listing(game_io);
-            }
-            Event::ReceivedListing(listing) => {
-                let id = &listing.id;
-                let category = listing.preview_data.category().unwrap();
-
-                for (category, id) in listing.dependencies {
-                    let dependency = (Some(category), id);
-
-                    // add only unique dependencies to avoid recursive chains
-                    if !self.queue.contains(&dependency) {
-                        self.queue.push(dependency)
-                    }
-                }
-
-                let globals = game_io.resource::<Globals>().unwrap();
-                let existing_hash = globals
-                    .package_or_fallback_info(category, PackageNamespace::Local, id)
-                    .map(|package| package.hash);
-
-                if existing_hash == Some(listing.hash) {
-                    // already up to date, get the next package
-                    self.queue_position += 1;
-                    self.request_latest_listing(game_io);
-                } else {
-                    self.download_package(game_io)
-                }
-            }
-            Event::InstallPackage => {
-                self.install_package(game_io);
-            }
-            Event::DownloadFailed => {
-                if let Some(doorstop_remover) = self.doorstop_remover.take() {
-                    doorstop_remover();
-                }
-
-                let interface = TextboxMessage::new(String::from("Download failed."));
-                self.textbox.push_interface(interface);
-            }
-            Event::QueueComplete => {
-                let message = if self.total_updated == 0 {
-                    "Already up to date."
-                } else {
-                    "Download successful."
-                };
-
-                // clear cached assets
-                let assets = LocalAssetManager::new(game_io);
-                let globals = game_io.resource_mut::<Globals>().unwrap();
-                globals.assets = assets;
-
-                // update player avatar
-                self.textbox.use_player_avatar(game_io);
-
-                let interface = TextboxMessage::new(String::from(message));
-                self.textbox.push_interface(interface);
-                self.reload_buttons(game_io);
+                self.package_updater.begin(game_io, [listing.id.clone()]);
             }
             Event::Delete => {
                 self.delete_package(game_io);
@@ -419,6 +344,64 @@ impl PackageScene {
                 self.textbox.open();
             }
         }
+    }
+
+    fn handle_updater(&mut self, game_io: &mut GameIO) {
+        self.package_updater.update(game_io);
+        let status = self.package_updater.status();
+
+        if status == self.prev_status {
+            return;
+        }
+        self.prev_status = status;
+
+        if status == UpdateStatus::Success {
+            // clear cached assets
+            let assets = LocalAssetManager::new(game_io);
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+            globals.assets = assets;
+
+            // update player avatar
+            self.textbox.use_player_avatar(game_io);
+
+            // reload ui
+            self.reload_buttons(game_io);
+        }
+
+        if let Some(doorstop_remover) = self.doorstop_remover.take() {
+            doorstop_remover();
+        }
+
+        let message = match status {
+            UpdateStatus::Idle => unreachable!(),
+            UpdateStatus::CheckingForUpdate => "Checking for updates...",
+            UpdateStatus::DownloadingPackage => {
+                if self.package_updater.processed_packages() == 0 {
+                    "Downloading package..."
+                } else {
+                    "Downloading dependency..."
+                }
+            }
+            UpdateStatus::Failed => "Download failed.",
+            UpdateStatus::Success => {
+                if self.package_updater.total_updated() == 0 {
+                    "Already up to date."
+                } else {
+                    "Download successful."
+                }
+            }
+        };
+
+        if matches!(status, UpdateStatus::Failed | UpdateStatus::Success) {
+            let interface = TextboxMessage::new(String::from(message));
+            self.textbox.push_interface(interface);
+        } else {
+            let (doorstop, doorstop_remover) = TextboxDoorstop::new();
+            self.doorstop_remover = Some(doorstop_remover);
+            self.textbox.push_interface(doorstop.with_str(message));
+        }
+
+        self.textbox.open();
     }
 
     fn request_author(&mut self, game_io: &mut GameIO) {
@@ -446,145 +429,6 @@ impl PackageScene {
         self.tasks.push(task);
     }
 
-    fn request_latest_listing(&mut self, game_io: &mut GameIO) {
-        if let Some(doorstop_remover) = self.doorstop_remover.take() {
-            doorstop_remover();
-        }
-
-        let Some((_, id)) = self.queue.get(self.queue_position) else {
-            self.event_sender.send(Event::QueueComplete).unwrap();
-            return;
-        };
-
-        let globals = game_io.resource::<Globals>().unwrap();
-
-        let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(id.as_str());
-
-        let uri = format!("{repo}/api/mods/{encoded_id}/meta");
-
-        let task = game_io.spawn_local_task(async move {
-            let Some(value) = crate::http::request_json(&uri).await else {
-                return Event::DownloadFailed;
-            };
-
-            let listing = PackageListing::from(&value);
-
-            Event::ReceivedListing(listing)
-        });
-
-        self.tasks.push(task);
-
-        let (doorstop, remover) = TextboxDoorstop::new();
-        let doorstop = doorstop.with_str("Checking for updates...");
-        self.doorstop_remover = Some(remover);
-
-        self.textbox.push_interface(doorstop);
-        self.textbox.open();
-    }
-
-    fn download_package(&mut self, game_io: &mut GameIO) {
-        if let Some(doorstop_remover) = self.doorstop_remover.take() {
-            doorstop_remover();
-        }
-
-        let Some((category, id)) = self.queue.get(self.queue_position) else {
-            self.event_sender.send(Event::QueueComplete).unwrap();
-            return;
-        };
-
-        let Some(category) = category.clone() else {
-            // can't download this (special category such as "pack")
-            // move onto the next queue item
-            self.queue_position += 1;
-            self.request_latest_listing(game_io);
-            return;
-        };
-
-        self.total_updated += 1;
-
-        let globals = game_io.resource::<Globals>().unwrap();
-        let repo = globals.config.package_repo.clone();
-        let encoded_id = uri_encode(id.as_str());
-
-        let uri = format!("{repo}/api/mods/{encoded_id}");
-        let base_path = Self::resolve_download_path(game_io, category, id);
-
-        let task = game_io.spawn_local_task(async move {
-            let Some(zip_bytes) = crate::http::request(&uri).await else {
-                return Event::DownloadFailed;
-            };
-
-            let _ = std::fs::remove_dir_all(&base_path);
-
-            crate::zip::extract(&zip_bytes, |path, mut virtual_file| {
-                let path = format!("{base_path}{path}");
-
-                if let Some(parent_path) = ResourcePaths::parent(&path) {
-                    if let Err(err) = std::fs::create_dir_all(parent_path) {
-                        log::error!("failed to create directory {parent_path:?}: {}", err);
-                    }
-                }
-
-                let res = std::fs::File::create(&path)
-                    .and_then(|mut file| std::io::copy(&mut virtual_file, &mut file));
-
-                if let Err(err) = res {
-                    log::error!("failed to write to {path:?}: {}", err);
-                }
-            });
-
-            Event::InstallPackage
-        });
-
-        self.tasks.push(task);
-
-        let (doorstop, remover) = TextboxDoorstop::new();
-        let doorstop = if self.queue_position == 0 {
-            doorstop.with_str("Downloading package...")
-        } else {
-            doorstop.with_str("Downloading dependency...")
-        };
-
-        self.doorstop_remover = Some(remover);
-
-        self.textbox.push_interface(doorstop);
-        self.textbox.open();
-    }
-
-    fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, id) = self.queue[self.queue_position].clone();
-        self.queue_position += 1;
-
-        let Some(category) = category else {
-            // special category such as "pack"
-            // just continue working on the queue
-            self.request_latest_listing(game_io);
-            return;
-        };
-
-        // reload package
-        let path = Self::resolve_download_path(game_io, category, &id);
-        let globals = game_io.resource_mut::<Globals>().unwrap();
-
-        globals.unload_package(category, PackageNamespace::Local, &id);
-        globals.load_package(category, PackageNamespace::Local, &path);
-
-        // resolve player package
-        let global_save = &mut globals.global_save;
-        let selected_player_exists = globals
-            .player_packages
-            .package(PackageNamespace::Local, &global_save.selected_character)
-            .is_some();
-
-        if category == PackageCategory::Player && !selected_player_exists {
-            global_save.selected_character = id;
-        }
-
-        // continue working on queue
-        self.request_latest_listing(game_io);
-    }
-
     fn delete_package(&mut self, game_io: &mut GameIO) {
         let listing = self.preview.listing();
 
@@ -594,30 +438,13 @@ impl PackageScene {
             return;
         };
 
-        let path = Self::resolve_download_path(game_io, category, id);
-
         let globals = game_io.resource_mut::<Globals>().unwrap();
+        let path = globals.resolve_package_download_path(category, id);
+
         globals.unload_package(category, PackageNamespace::Local, id);
 
         log::info!("deleting {path:?}");
         let _ = std::fs::remove_dir_all(path);
-    }
-
-    fn resolve_download_path(
-        game_io: &GameIO,
-        category: PackageCategory,
-        id: &PackageId,
-    ) -> String {
-        let globals = game_io.resource::<Globals>().unwrap();
-
-        if let Some(package) =
-            globals.package_or_fallback_info(category, PackageNamespace::Local, id)
-        {
-            package.base_path.clone()
-        } else {
-            let encoded_id = uri_encode(id.as_str());
-            format!("{}{}/", category.path(), encoded_id)
-        }
     }
 
     fn update_cursor(&mut self) {
@@ -647,6 +474,7 @@ impl Scene for PackageScene {
         self.preview.update(game_io);
 
         self.handle_input(game_io);
+        self.handle_updater(game_io);
         self.handle_events(game_io);
         self.update_cursor();
     }
