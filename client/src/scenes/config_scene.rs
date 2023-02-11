@@ -1,9 +1,10 @@
 use crate::bindable::SpriteColorMode;
+use crate::packages::PackageNamespace;
 use crate::render::ui::{
     build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, SubSceneFrame,
-    Textbox, TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding,
-    UiConfigCycle, UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode,
-    UiNode, UiStyle,
+    Textbox, TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, TextboxPrompt,
+    TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle, UiConfigPercentage, UiConfigToggle,
+    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -12,11 +13,12 @@ use crate::render::{
 use crate::resources::*;
 use crate::saves::Config;
 use framework::prelude::*;
+use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
 use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 
-use super::{CategoryFilter, PackagesScene};
+use super::{CategoryFilter, PackageUpdatesScene, PackagesScene};
 
 enum Event {
     CategoryChange(ConfigCategory),
@@ -24,6 +26,9 @@ enum Event {
     RequestNicknameChange,
     ChangeNickname { name: String },
     ViewPackages,
+    UpdatePackages,
+    ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
+    ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
     Leave { save: bool },
 }
 
@@ -48,6 +53,7 @@ pub struct ConfigScene {
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
+    doorstop_remover: Option<TextboxDoorstopRemover>,
     config: Rc<RefCell<Config>>,
     next_scene: NextScene,
 }
@@ -101,6 +107,7 @@ impl ConfigScene {
             event_sender,
             event_receiver,
             textbox: Textbox::new_navigation(game_io),
+            doorstop_remover: None,
             next_scene: NextScene::None,
             config,
         })
@@ -373,6 +380,15 @@ impl ConfigScene {
                     }
                 }),
             ),
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Update Mods").on_activate({
+                    let event_sender = event_sender.clone();
+
+                    move || {
+                        let _ = event_sender.send(Event::UpdatePackages);
+                    }
+                }),
+            ),
         ]
     }
 }
@@ -468,6 +484,67 @@ impl ConfigScene {
                         self.textbox.push_interface(interface);
                         self.textbox.open();
                     }
+                }
+                Event::UpdatePackages => {
+                    let globals = &mut game_io.resource::<Globals>().unwrap();
+                    let request = globals.request_latest_hashes();
+                    let event_sender = self.event_sender.clone();
+                    let (doorstop, doorstop_remover) = TextboxDoorstop::new();
+                    self.doorstop_remover = Some(doorstop_remover);
+
+                    self.textbox
+                        .push_interface(doorstop.with_str("Checking for updates..."));
+                    self.textbox.open();
+
+                    game_io
+                        .spawn_local_task(async move {
+                            let results = request.await;
+                            let event = Event::ReceivedLatestHashes(results);
+                            event_sender.send(event).unwrap();
+                        })
+                        .detach();
+                }
+                Event::ReceivedLatestHashes(results) => {
+                    let globals = &mut game_io.resource::<Globals>().unwrap();
+
+                    let requires_update: Vec<_> = results
+                        .into_iter()
+                        .filter(|(category, id, hash)| {
+                            let Some(package_info) = globals.package_or_fallback_info(
+                                *category,
+                                PackageNamespace::Local,
+                                &id,
+                            ) else {
+                                return false;
+                            };
+
+                            package_info.hash != *hash
+                        })
+                        .collect();
+
+                    if requires_update.is_empty() {
+                        let interface =
+                            TextboxMessage::new(String::from("All packages are up to date."));
+                        self.textbox.push_interface(interface);
+                    } else {
+                        let event_sender = self.event_sender.clone();
+                        let interface = TextboxMessage::new(String::from("Updates found."))
+                            .with_callback(move || {
+                                event_sender
+                                    .send(Event::ViewUpdates(requires_update))
+                                    .unwrap()
+                            });
+                        self.textbox.push_interface(interface);
+                    }
+
+                    let remove_doorstop = self.doorstop_remover.take().unwrap();
+                    remove_doorstop();
+                }
+
+                Event::ViewUpdates(requires_update) => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = PackageUpdatesScene::new(game_io, requires_update);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::Leave { save } => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();

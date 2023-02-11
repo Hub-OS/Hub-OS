@@ -1,5 +1,6 @@
 use super::*;
 use crate::bindable::BlockColor;
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -59,6 +60,22 @@ impl Package for BlockPackage {
 
     fn package_info_mut(&mut self) -> &mut PackageInfo {
         &mut self.package_info
+    }
+
+    fn create_package_listing(&self) -> PackageListing {
+        PackageListing {
+            id: self.package_info.id.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            creator: String::new(),
+            hash: self.package_info.hash,
+            preview_data: PackagePreviewData::Block {
+                flat: self.is_program,
+                colors: self.block_colors.clone(),
+                shape: self.shape,
+            },
+            dependencies: self.package_info.requirements.clone(),
+        }
     }
 
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {

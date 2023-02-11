@@ -1,0 +1,6 @@
+animation state="DEFAULT"
+blank
+point label="LIST_START" x="45" y="17"
+point label="LIST_END" x="195" y="136"
+point label="BUTTONS_START" x="45" y="137"
+point label="BUTTONS_END" x="195" y="152"

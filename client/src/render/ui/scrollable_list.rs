@@ -121,6 +121,10 @@ impl ScrollableList {
         child.is_locking_focus()
     }
 
+    pub fn focused(&self) -> bool {
+        self.focused
+    }
+
     pub fn set_focused(&mut self, focused: bool) {
         self.focused = focused;
     }

@@ -148,6 +148,7 @@ impl PackageScene {
         listing: &PackageListing,
     ) -> UiLayout {
         let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
         let installed = if let Some(category) = listing.preview_data.category() {
             globals
@@ -189,8 +190,6 @@ impl PackageScene {
                 }),
             ]
         };
-
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
@@ -355,19 +354,6 @@ impl PackageScene {
         }
         self.prev_status = status;
 
-        if status == UpdateStatus::Success {
-            // clear cached assets
-            let assets = LocalAssetManager::new(game_io);
-            let globals = game_io.resource_mut::<Globals>().unwrap();
-            globals.assets = assets;
-
-            // update player avatar
-            self.textbox.use_player_avatar(game_io);
-
-            // reload ui
-            self.reload_buttons(game_io);
-        }
-
         if let Some(doorstop_remover) = self.doorstop_remover.take() {
             doorstop_remover();
         }
@@ -393,6 +379,18 @@ impl PackageScene {
         };
 
         if matches!(status, UpdateStatus::Failed | UpdateStatus::Success) {
+            // clear cached assets
+            let assets = LocalAssetManager::new(game_io);
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+            globals.assets = assets;
+
+            // update player avatar
+            self.textbox.use_player_avatar(game_io);
+
+            // reload ui
+            self.reload_buttons(game_io);
+
+            // notify player
             let interface = TextboxMessage::new(String::from(message));
             self.textbox.push_interface(interface);
         } else {

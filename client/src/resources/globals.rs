@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::battle::BattleProps;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
+use crate::render::ui::PackageListing;
 use crate::render::{
     Animator, BackgroundPipeline, PostProcessAdjust, PostProcessAdjustConfig,
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
@@ -430,6 +431,41 @@ impl Globals {
         }
     }
 
+    pub fn create_package_listing(
+        &self,
+        category: PackageCategory,
+        id: &PackageId,
+    ) -> Option<PackageListing> {
+        let namespace = PackageNamespace::Local;
+
+        match category {
+            PackageCategory::Battle => self
+                .battle_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Block => self
+                .block_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Card => self
+                .card_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Character => self
+                .character_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Library => self
+                .library_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Player => self
+                .player_packages
+                .package(namespace, &id)
+                .map(|package| package.create_package_listing()),
+        }
+    }
+
     pub fn remote_namespaces(&self) -> Vec<PackageNamespace> {
         let mut namespace_set = HashSet::new();
 
@@ -479,6 +515,50 @@ impl Globals {
         } else {
             let encoded_id = uri_encode(id.as_str());
             format!("{}{}/", category.path(), encoded_id)
+        }
+    }
+
+    pub fn request_latest_hashes(
+        &self,
+    ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
+        let ns = PackageNamespace::Local;
+        let package_ids: Vec<_> = (self.battle_packages.package_ids(ns))
+            .chain(self.block_packages.package_ids(ns))
+            .chain(self.card_packages.package_ids(ns))
+            .chain(self.character_packages.package_ids(ns))
+            .chain(self.library_packages.package_ids(ns))
+            .chain(self.player_packages.package_ids(ns))
+            .map(|id| uri_encode(id.as_str()))
+            .collect();
+
+        let repo = &self.config.package_repo;
+        let uri = format!("{repo}/api/mods/hashes?id={}", package_ids.join("&id="));
+
+        async move {
+            let Some(json) = crate::http::request_json(&uri).await else {
+                return Vec::new();
+            };
+
+            let Some(arr) = json.as_array() else {
+                return Vec::new();
+            };
+
+            arr.iter()
+                .flat_map(|value| {
+                    Some((
+                        value.get("category")?.as_str()?,
+                        value.get("id")?.as_str()?,
+                        value.get("hash")?.as_str()?,
+                    ))
+                })
+                .flat_map(|(category, id, hash)| {
+                    Some((
+                        PackageCategory::from(category),
+                        PackageId::from(id),
+                        FileHash::from_hex(hash)?,
+                    ))
+                })
+                .collect()
         }
     }
 }

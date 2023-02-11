@@ -205,6 +205,10 @@ impl ResourcePaths {
     // PackageScene
     pub const PACKAGE_LAYOUT_ANIMATION: &str = "resources/scenes/package/layout.animation";
 
+    // PackageUpdatesScene
+    pub const PACKAGE_UPDATES_LAYOUT_ANIMATION: &str =
+        "resources/scenes/package_updates/layout.animation";
+
     pub fn game_folder() -> &'static str {
         &GAME_PATH
     }

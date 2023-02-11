@@ -2,6 +2,7 @@ use super::*;
 use crate::battle::{BattleSimulation, Entity};
 use crate::bindable::Element;
 use crate::lua_api::create_battle_vm;
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::{Animator, Background};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::{GameIO, Texture};
@@ -101,6 +102,21 @@ impl Package for PlayerPackage {
 
     fn package_info_mut(&mut self) -> &mut PackageInfo {
         &mut self.package_info
+    }
+
+    fn create_package_listing(&self) -> PackageListing {
+        PackageListing {
+            id: self.package_info.id.clone(),
+            name: self.name.clone(),
+            description: self.description.clone(),
+            creator: String::new(),
+            hash: self.package_info.hash,
+            preview_data: PackagePreviewData::Player {
+                element: self.element,
+                health: self.health,
+            },
+            dependencies: self.package_info.requirements.clone(),
+        }
     }
 
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {

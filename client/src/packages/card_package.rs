@@ -1,5 +1,6 @@
 use super::*;
 use crate::bindable::{CardProperties, HitFlag};
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -43,6 +44,27 @@ impl Package for CardPackage {
 
     fn package_info_mut(&mut self) -> &mut PackageInfo {
         &mut self.package_info
+    }
+
+    fn create_package_listing(&self) -> PackageListing {
+        PackageListing {
+            id: self.package_info.id.clone(),
+            name: self.card_properties.short_name.clone(),
+            description: if !self.card_properties.long_description.is_empty() {
+                self.card_properties.long_description.clone()
+            } else {
+                self.card_properties.description.clone()
+            },
+            creator: String::new(),
+            hash: self.package_info.hash,
+            preview_data: PackagePreviewData::Card {
+                codes: self.default_codes.clone(),
+                element: self.card_properties.element,
+                secondary_element: self.card_properties.secondary_element,
+                damage: self.card_properties.damage,
+            },
+            dependencies: self.package_info.requirements.clone(),
+        }
     }
 
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
