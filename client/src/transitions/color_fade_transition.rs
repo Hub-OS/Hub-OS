@@ -34,13 +34,9 @@ impl Transition for ColorFadeTransition {
         previous_scene: &mut Box<dyn Scene>,
         next_scene: &mut Box<dyn Scene>,
     ) {
-        let start_instant = match &self.start_instant {
-            Some(instant) => instant,
-            None => {
-                self.start_instant = Some(game_io.frame_start_instant());
-                self.start_instant.as_ref().unwrap()
-            }
-        };
+        let start_instant = self
+            .start_instant
+            .get_or_insert_with(|| game_io.frame_start_instant());
 
         let mut progress = start_instant.elapsed().as_secs_f32() / self.duration.as_secs_f32();
         progress = progress.clamp(0.0, 1.0);

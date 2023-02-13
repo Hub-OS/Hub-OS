@@ -1,12 +1,12 @@
 // todo: move these into the engine for reuse in other projects
 
 mod color_fade_transition;
+mod fade_transition;
 mod push_transition;
-mod swipe_in_transition;
 
 use color_fade_transition::*;
+use fade_transition::*;
 use push_transition::*;
-use swipe_in_transition::*;
 
 use framework::prelude::{Color, Duration, GameIO};
 use packets::structures::Direction;
@@ -15,8 +15,8 @@ pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
 pub const DEFAULT_FADE_DURATION: Duration = Duration::from_millis(500);
 pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1000);
 
-pub fn new_boot(game_io: &GameIO) -> SwipeInTransition {
-    SwipeInTransition::new(game_io, Direction::Down, Duration::from_secs_f32(0.5))
+pub fn new_boot(game_io: &GameIO) -> FadeTransition {
+    FadeTransition::new(game_io, Duration::from_secs_f32(0.5))
 }
 
 pub fn new_navigation(game_io: &GameIO) -> PushTransition {

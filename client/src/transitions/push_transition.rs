@@ -36,13 +36,9 @@ impl Transition for PushTransition {
         let target_size = render_pass.target_size();
 
         // render scenes
-        let current_size = self
-            .targets
-            .as_ref()
-            .map(|(a, _)| a.size())
-            .unwrap_or_default();
+        let current_size = self.targets.as_ref().map(|(a, _)| a.size());
 
-        if current_size != target_size {
+        if current_size != Some(target_size) {
             self.targets = Some((
                 RenderTarget::new(game_io, target_size),
                 RenderTarget::new(game_io, target_size),
@@ -60,13 +56,9 @@ impl Transition for PushTransition {
         subpass.flush();
 
         // calculate camera offset
-        let start_instant = match &self.start_instant {
-            Some(instant) => instant,
-            None => {
-                self.start_instant = Some(game_io.frame_start_instant());
-                self.start_instant.as_ref().unwrap()
-            }
-        };
+        let start_instant = self
+            .start_instant
+            .get_or_insert_with(|| game_io.frame_start_instant());
 
         let mut progress = start_instant.elapsed().as_secs_f32() / self.duration.as_secs_f32();
         progress = progress.clamp(0.0, 1.0);
