@@ -7,6 +7,8 @@ pub struct LogBox {
     bounds: Rect,
     text_style: TextStyle,
     records: Vec<LogRecord>,
+    error_count: usize,
+    warning_count: usize,
 }
 
 impl LogBox {
@@ -18,12 +20,32 @@ impl LogBox {
             text_style,
             bounds,
             records: Vec::new(),
+            error_count: 0,
+            warning_count: 0,
         }
+    }
+
+    pub fn error_count(&self) -> usize {
+        self.error_count
+    }
+
+    pub fn warning_count(&self) -> usize {
+        self.warning_count
     }
 
     pub fn push_record(&mut self, record: LogRecord) {
         self.text_style.bounds = self.bounds;
         let text_measurement = self.text_style.measure(&record.message);
+
+        match record.level {
+            LogLevel::Error => {
+                self.error_count += 1;
+            }
+            LogLevel::Warn => {
+                self.warning_count += 1;
+            }
+            _ => {}
+        }
 
         let new_records = text_measurement.line_ranges.iter().map(|range| LogRecord {
             level: record.level,
