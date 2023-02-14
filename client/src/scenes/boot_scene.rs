@@ -1,9 +1,9 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
-use crate::render::ui::{FontStyle, Text, TextStyle};
+use crate::render::ui::{FontStyle, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
-use framework::logging::LogRecord;
+use framework::logging::{LogLevel, LogRecord};
 use framework::prelude::*;
 
 use super::{CategoryFilter, MainMenuScene, PackagesScene};
@@ -29,10 +29,14 @@ enum Event {
 
 pub struct BootScene {
     camera: Camera,
+    background: Background,
     status_label: Text,
-    log_style: TextStyle,
+    progress_frame_sprite: Sprite,
+    progress_bar_sprite: Sprite,
+    progress_bar_bounds: Rect,
+    status_position: Vec2,
+    log_box: LogBox,
     log_receiver: flume::Receiver<LogRecord>,
-    log_records: Vec<LogRecord>,
     event_receiver: flume::Receiver<Event>,
     done: bool,
     next_scene: NextScene,
@@ -40,15 +44,68 @@ pub struct BootScene {
 
 impl BootScene {
     pub fn new(game_io: &mut GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
-        game_io.graphics_mut().set_clear_color(Color::BLACK);
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
-        // log text style
-        let mut log_style = TextStyle::new(game_io, FontStyle::Thin);
-        log_style.bounds.width = RESOLUTION_F.x - LOG_MARGIN * 2.0;
-        log_style.scale = Vec2::new(0.5, 0.5);
+        // ui
+        let mut animator = Animator::load_new(assets, ResourcePaths::BOOT_UI_ANIMATION);
 
+        // frame
+        let mut progress_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);
+        animator.set_state("PROGRESS_FRAME");
+        animator.apply(&mut progress_frame_sprite);
+
+        let progress_bar_bounds = Rect::from_corners(
+            animator.point("BAR_START").unwrap_or_default(),
+            animator.point("BAR_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let log_bounds = Rect::from_corners(
+            animator.point("LOG_START").unwrap_or_default(),
+            animator.point("LOG_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let status_position = progress_bar_bounds.center();
+
+        // progress bar
+        let mut progress_bar_sprite = progress_frame_sprite.clone();
+        animator.set_state("PROGRESS_BAR");
+        animator.apply(&mut progress_bar_sprite);
+
+        // status text
+        let mut status_label = Text::new(game_io, FontStyle::Wide);
+        status_label.style.color = Color::new(0.28, 0.65, 0.94, 1.0);
+        status_label.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
+
+        // log
+        let mut log_box = LogBox::new(game_io, log_bounds);
+        log_box.push_record(LogRecord {
+            level: LogLevel::Debug,
+            target: String::new(),
+            message: String::from("errors and warnings will appear here"),
+        });
+
+        // work thread
         let (sender, receiver) = flume::unbounded();
+        Self::create_thread(game_io, sender);
 
+        BootScene {
+            camera: Camera::new_ui(game_io),
+            background: Background::load_static(game_io, ResourcePaths::BOOT_BG),
+            status_label,
+            progress_frame_sprite,
+            progress_bar_sprite,
+            progress_bar_bounds,
+            status_position,
+            log_box,
+            log_receiver,
+            event_receiver: receiver,
+            done: false,
+            next_scene: NextScene::None,
+        }
+    }
+
+    fn create_thread(game_io: &GameIO, sender: flume::Sender<Event>) {
         let thread_assets = LocalAssetManager::new(game_io);
 
         std::thread::spawn(move || {
@@ -185,35 +242,14 @@ impl BootScene {
 
             sender.send(Event::Done).unwrap();
         });
-
-        BootScene {
-            camera: Camera::new(game_io),
-            status_label: Text::new(game_io, FontStyle::Small),
-            log_style,
-            log_receiver,
-            log_records: Vec::new(),
-            event_receiver: receiver,
-            done: false,
-            next_scene: NextScene::None,
-        }
     }
 
     fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
-        use framework::logging::LogLevel;
-
         while let Ok(record) = self.log_receiver.try_recv() {
             let high_priority = matches!(record.level, LogLevel::Warn | LogLevel::Error);
 
             if record.target.starts_with(env!("CARGO_PKG_NAME")) || high_priority {
-                let text_measurement = self.log_style.measure(&record.message);
-
-                let new_records = text_measurement.line_ranges.iter().map(|range| LogRecord {
-                    level: record.level,
-                    message: record.message[range.clone()].to_string(),
-                    target: record.target.clone(),
-                });
-
-                self.log_records.extend(new_records);
+                self.log_box.push_record(record);
             }
         }
 
@@ -224,8 +260,12 @@ impl BootScene {
         while let Ok(message) = self.event_receiver.try_recv() {
             match message {
                 Event::StatusUpdate(status_update) => {
-                    let percentage = status_update.progress * 100 / status_update.total;
-                    self.status_label.text = format!("{} {}%", status_update.label, percentage);
+                    // update progress text
+                    self.status_label.text = status_update.label.to_string();
+
+                    // update progress bar
+                    let multiplier = status_update.progress as f32 / status_update.total as f32;
+                    self.update_progress_bar(multiplier);
                 }
                 Event::PlayerManager(player_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -270,18 +310,32 @@ impl BootScene {
                         globals.player_packages.package_ids(PackageNamespace::Local);
 
                     let message = if available_players.next().is_some() {
-                        "BOOT OK. Press Any Button"
+                        "Press Any Button"
                     } else {
                         "Missing Player Mod. Press Any Button"
                     };
 
                     self.status_label.text = String::from(message);
+                    self.update_progress_bar(1.0);
                     self.done = true;
                 }
             }
         }
 
-        (self.status_label.style.bounds).set_position(-RESOLUTION_F * 0.5 + 2.0);
+        if !self.status_label.style.font_style.has_lower_case() {
+            self.status_label.text = self.status_label.text.to_uppercase();
+        }
+
+        let metrics = self.status_label.measure();
+        let status_position = self.status_position - metrics.size * 0.5;
+        self.status_label.style.bounds.set_position(status_position);
+    }
+
+    fn update_progress_bar(&mut self, multiplier: f32) {
+        let mut bounds = self.progress_bar_bounds;
+
+        bounds.width = (bounds.width * multiplier).floor();
+        self.progress_bar_sprite.set_bounds(bounds);
     }
 
     fn transfer(&mut self, game_io: &mut GameIO) {
@@ -321,8 +375,6 @@ impl Scene for BootScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.handle_thread_messages(game_io);
 
-        self.camera.update(game_io);
-
         if game_io.is_in_transition() {
             return;
         }
@@ -336,37 +388,19 @@ impl Scene for BootScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+        // draw bg
+        self.background.draw(game_io, render_pass);
+
         // draw ui
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
+        // draw progress bar
+        sprite_queue.draw_sprite(&self.progress_frame_sprite);
+        sprite_queue.draw_sprite(&self.progress_bar_sprite);
+
         // draw logs
-        const MAX_HEIGHT: usize = 20;
-        let line_height = self.log_style.line_height();
-
-        for (i, record) in self.log_records.iter().rev().enumerate() {
-            if i >= MAX_HEIGHT {
-                break;
-            }
-
-            use framework::logging::LogLevel;
-
-            let color = match record.level {
-                LogLevel::Error => Color::RED,
-                LogLevel::Warn => Color::YELLOW,
-                LogLevel::Trace | LogLevel::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
-                _ => Color::WHITE,
-            };
-
-            self.log_style.color = color;
-
-            self.log_style.bounds.x = -RESOLUTION_F.x * 0.5 + LOG_MARGIN;
-            self.log_style.bounds.y =
-                RESOLUTION_F.y * 0.5 - i as f32 * line_height - LOG_MARGIN - line_height;
-
-            self.log_style
-                .draw(game_io, &mut sprite_queue, &record.message);
-        }
+        self.log_box.draw(game_io, &mut sprite_queue);
 
         // draw status
         self.status_label.draw(game_io, &mut sprite_queue);

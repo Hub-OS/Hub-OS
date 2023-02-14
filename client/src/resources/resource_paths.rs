@@ -96,7 +96,9 @@ impl ResourcePaths {
         "resources/scenes/shared/navigation_textbox.animation";
 
     // BootScene
-    pub const BOOT_LOGO: &str = "resources/scenes/boot/logo.png";
+    pub const BOOT_BG: &str = "resources/scenes/boot/bg.png";
+    pub const BOOT_UI: &str = "resources/scenes/boot/ui.png";
+    pub const BOOT_UI_ANIMATION: &str = "resources/scenes/boot/ui.animation";
 
     // MainMenuScene
     pub const MAIN_MENU_BG: &str = "resources/scenes/main_menu/bg.png";

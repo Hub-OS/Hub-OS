@@ -1,0 +1,11 @@
+imagePath="/home/konst/Documents/Projects/Real-PET/real_pet/client/resources/scenes/boot/ui.png"
+
+animation state="PROGRESS_FRAME"
+frame duration="0.005" x="0" y="0" w="206" h="101" originx="-17" originy="-29" flipx="0" flipy="0"
+point label="BAR_START" x="6" y="87"
+point label="BAR_END" x="200" y="97"
+point label="LOG_START" x="8" y="9"
+point label="LOG_END" x="199" y="81"
+
+animation state="PROGRESS_BAR"
+frame duration="0.005" x="6" y="89" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
