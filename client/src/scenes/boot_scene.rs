@@ -77,13 +77,8 @@ impl BootScene {
         status_label.style.color = Color::new(0.28, 0.65, 0.94, 1.0);
         status_label.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 
-        // log
-        let mut log_box = LogBox::new(game_io, log_bounds);
-        log_box.push_record(LogRecord {
-            level: LogLevel::Debug,
-            target: String::new(),
-            message: String::from("errors and warnings will appear here"),
-        });
+        // logs
+        let log_box = LogBox::new(game_io, log_bounds);
 
         // work thread
         let (sender, receiver) = flume::unbounded();
@@ -309,12 +304,11 @@ impl BootScene {
                     let mut available_players =
                         globals.player_packages.package_ids(PackageNamespace::Local);
 
-                    let message = if available_players.next().is_some() {
-                        "Press Any Button"
-                    } else {
-                        "Missing Player Mod. Press Any Button"
-                    };
+                    if available_players.next().is_none() {
+                        log::info!("missing player mod");
+                    }
 
+                    let message = "Press Any Button";
                     self.status_label.text = String::from(message);
                     self.update_progress_bar(1.0);
                     self.done = true;
@@ -347,13 +341,13 @@ impl BootScene {
             available_players.next().is_some()
         };
 
-        let transition = crate::transitions::new_boot(game_io);
-
         if has_playable_character {
             let scene = MainMenuScene::new(game_io);
+            let transition = crate::transitions::new_boot(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         } else {
             let scene = PackagesScene::new(game_io, CategoryFilter::Players);
+            let transition = crate::transitions::new_sub_scene(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
         }
     }
