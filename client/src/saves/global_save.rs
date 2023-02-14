@@ -36,8 +36,8 @@ impl GlobalSave {
         match rmp_serde::from_slice(&bytes) {
             Ok(save) => save,
             Err(e) => {
-                log::error!("failed to load save data: {}", e);
-                log::info!("backing up corrupted data to {:?}", Self::CORRUPTED_PATH);
+                log::error!("Failed to load save data: {}", e);
+                log::info!("Backing up corrupted data to {:?}", Self::CORRUPTED_PATH);
 
                 // crash if we can't back up the corrupted save
                 // we never want to accidentally reset a player's save, it should be recoverable
@@ -51,12 +51,12 @@ impl GlobalSave {
     pub fn save(&self) {
         use std::fs::File;
 
-        log::info!("saving...");
+        log::info!("Saving...");
 
         let mut file = File::create(Self::PATH).unwrap();
 
         if let Err(e) = rmp_serde::encode::write_named(&mut file, self) {
-            log::error!("failed to save data to {:?}: {}", Self::PATH, e);
+            log::error!("Failed to save data to {:?}: {}", Self::PATH, e);
         }
     }
 

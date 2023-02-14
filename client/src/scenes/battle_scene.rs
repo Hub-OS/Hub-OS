@@ -283,7 +283,7 @@ impl BattleScene {
                 let name: &'static str = (&packet).into();
                 let index = packet.index();
 
-                log::error!("expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
+                log::error!("Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
             }
         }
     }

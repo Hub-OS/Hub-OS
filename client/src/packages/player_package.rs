@@ -128,14 +128,14 @@ impl Package for PlayerPackage {
         let meta: PlayerMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
                 return package;
             }
         };
 
         if meta.category != "player" {
             log::error!(
-                "missing `category = \"player\"` in {:?}",
+                "Missing `category = \"player\"` in {:?}",
                 package.package_info.toml_path
             );
         }

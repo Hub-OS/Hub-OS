@@ -114,7 +114,7 @@ impl Tile {
             TileHighlight::Flash => (self.flash_time / 4) % 2 == 0,
             TileHighlight::Automatic => {
                 log::error!(
-                    "a tile's TileHighlight is set to Automatic? should only exist on spells"
+                    "A tile's TileHighlight is set to Automatic? Should only exist on spells"
                 );
                 false
             }

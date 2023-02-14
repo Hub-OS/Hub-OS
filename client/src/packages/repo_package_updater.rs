@@ -180,7 +180,7 @@ impl RepoPackageUpdater {
 
                 if let Some(parent_path) = ResourcePaths::parent(&path) {
                     if let Err(err) = std::fs::create_dir_all(parent_path) {
-                        log::error!("failed to create directory {parent_path:?}: {}", err);
+                        log::error!("Failed to create directory {parent_path:?}: {}", err);
                     }
                 }
 
@@ -188,7 +188,7 @@ impl RepoPackageUpdater {
                     .and_then(|mut file| std::io::copy(&mut virtual_file, &mut file));
 
                 if let Err(err) = res {
-                    log::error!("failed to write to {path:?}: {}", err);
+                    log::error!("Failed to write to {path:?}: {}", err);
                 }
             });
 

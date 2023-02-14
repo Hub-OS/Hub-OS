@@ -76,14 +76,14 @@ impl Package for CardPackage {
         let meta: CardMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
                 return package;
             }
         };
 
         if meta.category != "card" {
             log::error!(
-                "missing `category = \"card\"` in {:?}",
+                "Missing `category = \"card\"` in {:?}",
                 package.package_info.toml_path
             );
         }

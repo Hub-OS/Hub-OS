@@ -219,7 +219,7 @@ impl Globals {
                     .load_virtual_package(&self.assets, namespace, hash)
             }
             PackageCategory::Character => {
-                log::error!("attempt to load Character package");
+                log::error!("Attempt to load Character package");
                 None
             }
         }?;
@@ -262,7 +262,7 @@ impl Globals {
                     .load_package(&self.assets, namespace, path)
             }
             PackageCategory::Character => {
-                log::error!("attempt to load Character package");
+                log::error!("Attempt to load Character package");
                 None
             }
         }?;

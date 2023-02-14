@@ -73,7 +73,7 @@ impl NetplayInitScene {
     ) -> Self {
         let local_index = Self::resolve_local_index(&remote_players);
 
-        log::debug!("assigned player index {}", local_index);
+        log::debug!("Assigned player index {}", local_index);
 
         let globals = game_io.resource::<Globals>().unwrap();
         let network = &globals.network;
@@ -97,7 +97,7 @@ impl NetplayInitScene {
             let fallback_sender_receiver = senders_and_receivers.pop().unwrap();
 
             if senders_and_receivers.len() < total_remote {
-                log::error!("server sent an invalid address for a remote player, using fallback");
+                log::error!("Server sent an invalid address for a remote player, using fallback");
 
                 let _ = event_sender.send(Event::Fallback {
                     fallback: fallback_sender_receiver,
@@ -114,12 +114,12 @@ impl NetplayInitScene {
             .await;
 
             let event = if success {
-                log::debug!("hole punching successful");
+                log::debug!("Hole punching successful");
                 Event::ResolvedAddresses {
                     players: senders_and_receivers,
                 }
             } else {
-                log::debug!("hole punching failed");
+                log::debug!("Hole punching failed");
                 Event::Fallback {
                     fallback: fallback_sender_receiver,
                 }
@@ -257,7 +257,7 @@ impl NetplayInitScene {
             NetplayPacket::Input { .. } | NetplayPacket::Heartbeat { .. }
         ) {
             let packet_name: &'static str = (&packet).into();
-            log::debug!("received {packet_name} from {index}");
+            log::debug!("Received {packet_name} from {index}");
         }
 
         match packet {
@@ -357,7 +357,7 @@ impl NetplayInitScene {
             NetplayPacket::PackageZip { data, .. } => {
                 let hash = FileHash::hash(&data);
 
-                log::debug!("received zip for {hash}");
+                log::debug!("Received zip for {hash}");
 
                 if self.missing_packages.remove(&hash) {
                     let globals = game_io.resource::<Globals>().unwrap();
@@ -377,7 +377,7 @@ impl NetplayInitScene {
                         self.broadcast_ready();
                     }
                 } else if self.fallback_sender_receiver.is_none() {
-                    log::error!("received data for package that wasn't requested: {hash}");
+                    log::error!("Received data for package that wasn't requested: {hash}");
                     self.failed = true;
                 }
             }
@@ -616,7 +616,7 @@ impl NetplayInitScene {
                     Some(package) => package,
                     None => {
                         log::error!(
-                            "never received player package for player {}",
+                            "Never received player package for player {}",
                             connection.index
                         );
                         self.failed = true;
@@ -763,17 +763,17 @@ async fn punch_holes(
             result = hello_stream.select_next_some() => {
                 match result {
                     NetplayPacket::Hello { index } => {
-                        log::debug!("received Hello");
+                        log::debug!("Received Hello");
 
                         if let Some(slice_index) = remote_index_map.iter().position(|i| *i == index) {
-                            log::debug!("sending HelloAck");
+                            log::debug!("Sending HelloAck");
 
                             let send = &senders_and_receivers[slice_index].0;
                             send(NetplayPacket::HelloAck { index: local_index });
                         }
                     }
                     NetplayPacket::HelloAck {..} => {
-                        log::debug!("received HelloAck");
+                        log::debug!("Received HelloAck");
 
                         total_responses += 1;
 
@@ -786,18 +786,18 @@ async fn punch_holes(
                         let name: &'static str = (&packet).into();
                         let index = packet.index();
 
-                        log::error!("expecting Hello or HelloAck during hole punching phase, received: {name} from {index}");
+                        log::error!("Expecting Hello or HelloAck during hole punching phase, received: {name} from {index}");
                     }
                 }
             }
             result = fallback_stream.select_next_some() => {
                 if let NetplayPacket::Hello { .. } = result {
-                    log::debug!("received Hello through fallback channel");
+                    log::debug!("Received Hello through fallback channel");
                     return false;
                 }
             }
             _ = timer => {
-                log::debug!("hole punch timer exhausted");
+                log::debug!("Hole punch timer exhausted");
 
                 // out of time, we'll assume hole punching failed
 

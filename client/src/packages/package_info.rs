@@ -46,7 +46,7 @@ impl PackageInfo {
         let meta_table: toml::Table = match toml_text.parse() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("{e}");
+                log::error!("Failed to parse {:?}:\n{e}", self.toml_path);
                 return None;
             }
         };
@@ -68,7 +68,7 @@ impl PackageInfo {
         let package_table = match package_table {
             Some(table) => table,
             None => {
-                log::error!("missing [package] section in {:?}", self.toml_path);
+                log::error!("Missing [package] section in {:?}", self.toml_path);
                 return None;
             }
         };

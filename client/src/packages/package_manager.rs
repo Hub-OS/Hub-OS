@@ -175,7 +175,7 @@ impl<T: Package> PackageManager<T> {
         let zip_meta = match assets.virtual_zip_meta(&hash) {
             Some(zip_meta) => zip_meta,
             None => {
-                log::error!("package {hash} has not been loaded as a virtual zip");
+                log::error!("Package {hash} has not been loaded as a virtual zip");
                 return None;
             }
         };
@@ -201,7 +201,7 @@ impl<T: Package> PackageManager<T> {
             Some(result) => result,
             None => {
                 log::error!(
-                    "failed to resolve parent folder for {:?}?",
+                    "Failed to resolve parent folder for {:?}?",
                     ResourcePaths::shorten(path)
                 );
                 return None;
@@ -251,7 +251,7 @@ impl<T: Package> PackageManager<T> {
     fn zip_and_hash(package_info: &PackageInfo) -> Option<FileHash> {
         if package_info.parent_package.is_some() {
             log::error!(
-                "{:?}: child packages should not be calling PackageManager::zip_and_hash",
+                "{:?}: Child packages should not be calling PackageManager::zip_and_hash",
                 package_info.base_path
             );
             return None;
@@ -260,7 +260,7 @@ impl<T: Package> PackageManager<T> {
         let data = match crate::zip::compress(&package_info.base_path) {
             Ok(data) => data,
             Err(e) => {
-                log::error!("failed to zip package {:?}: {e}", package_info.base_path);
+                log::error!("Failed to zip package {:?}: {e}", package_info.base_path);
                 return None;
             }
         };
@@ -270,13 +270,13 @@ impl<T: Package> PackageManager<T> {
 
         if let Err(e) = std::fs::create_dir_all(ResourcePaths::MOD_CACHE_FOLDER) {
             log::error!(
-                "failed to create cache folder {:?}: {e}",
+                "Failed to create cache folder {:?}: {e}",
                 ResourcePaths::MOD_CACHE_FOLDER
             );
         }
 
         if let Err(e) = std::fs::write(&path, data) {
-            log::error!("failed to cache package zip {:?}: {e}", path);
+            log::error!("Failed to cache package zip {:?}: {e}", path);
             return None;
         }
 
@@ -295,7 +295,7 @@ impl<T: Package> PackageManager<T> {
 
         if package_id.is_blank() {
             log::error!(
-                "package is missing a package_id {:?}",
+                "Package is missing a package_id {:?}",
                 ResourcePaths::shorten(&package_info.script_path)
             );
             return None;
@@ -310,7 +310,7 @@ impl<T: Package> PackageManager<T> {
         let packages = self.package_maps.get_mut(&package_info.namespace).unwrap();
 
         if packages.contains_key(&package_id) {
-            log::error!("duplicate package_id {:?}", package_id);
+            log::error!("Duplicate package_id {:?}", package_id);
             return None;
         }
 

@@ -153,7 +153,7 @@ impl BattleLuaApi {
 
         if prev.is_some() {
             log::error!(
-                "getter {}.{} defined more than once",
+                "Getter {}.{} defined more than once",
                 table_path,
                 function_name
             )
@@ -185,7 +185,7 @@ impl BattleLuaApi {
 
         if prev.is_some() {
             log::error!(
-                "setter {}.{} defined more than once",
+                "Setter {}.{} defined more than once",
                 table_path,
                 function_name
             )

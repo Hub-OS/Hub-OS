@@ -108,14 +108,14 @@ impl ServerAssetManager {
         let mut assets = HashMap::new();
 
         if let Err(err) = fs::create_dir_all(path) {
-            log::error!("failed to create cache folder in \"{path}\": {err}");
+            log::error!("Failed to create cache folder in \"{path}\": {err}");
             return assets;
         }
 
         let entries = match fs::read_dir(path) {
             Ok(entries) => entries,
             Err(err) => {
-                log::error!("failed to find cache folder \"{path}\": {err}");
+                log::error!("Failed to find cache folder \"{path}\": {err}");
                 return assets;
             }
         };
@@ -124,7 +124,7 @@ impl ServerAssetManager {
             let entry = match entry {
                 Ok(entry) => entry,
                 Err(err) => {
-                    log::error!("error while reading from cache folder in \"{path}\": {err}");
+                    log::error!("Error while reading from cache folder in \"{path}\": {err}");
                     return assets;
                 }
             };
@@ -227,7 +227,7 @@ impl ServerAssetManager {
             let mut decoder = ZlibDecoder::new(&*source);
 
             if let Err(e) = decoder.read_to_end(&mut data) {
-                log::error!("failed to decompress text from server: {e}");
+                log::error!("Failed to decompress text from server: {e}");
             }
         }
 
@@ -291,7 +291,7 @@ impl AssetManager for ServerAssetManager {
                 let res = fs::read(&asset.local_path);
 
                 if let Err(err) = &res {
-                    log::warn!("failed to load {:?}: {}", path, err);
+                    log::warn!("Failed to load {:?}: {}", path, err);
                 }
 
                 let bytes = res.unwrap_or_default();
@@ -312,7 +312,7 @@ impl AssetManager for ServerAssetManager {
         let res = String::from_utf8(bytes);
 
         if let Err(err) = &res {
-            log::warn!("failed to read {:?} as a string: {}", path, err);
+            log::warn!("Failed to read {:?} as a string: {}", path, err);
         }
 
         res.unwrap_or_default()

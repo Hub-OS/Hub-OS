@@ -331,7 +331,7 @@ impl OverworldOnlineScene {
                         self.assets.audio(&asset_path);
                     }
                     AssetDataType::Unknown => {
-                        log::warn!("server sent unknown AssetType? {:?}", asset_path);
+                        log::warn!("Server sent unknown AssetType? {:?}", asset_path);
                     }
                 }
             }
@@ -346,7 +346,7 @@ impl OverworldOnlineScene {
                 if let Some(map) = load_map(game_io, &self.assets, &data) {
                     self.base_scene.set_world(game_io, &self.assets, map);
                 } else {
-                    log::warn!("failed to load map provided by server");
+                    log::warn!("Failed to load map provided by server");
                 }
             }
             ServerPacket::Health { health, max_health } => {
@@ -1027,7 +1027,7 @@ impl OverworldOnlineScene {
                                 );
                             }
                             _ => {
-                                log::error!("unhandled {:?}", data.object_type);
+                                log::error!("Unhandled {:?}", data.object_type);
                             }
                         }
                     }

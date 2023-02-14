@@ -49,14 +49,14 @@ impl Package for LibraryPackage {
         let meta: LibraryMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
                 return package;
             }
         };
 
         if meta.category != "library" {
             log::error!(
-                "missing `category = \"library\"` in {:?}",
+                "Missing `category = \"library\"` in {:?}",
                 package.package_info.toml_path
             );
         }

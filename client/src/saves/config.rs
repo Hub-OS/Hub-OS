@@ -55,7 +55,7 @@ impl Config {
 
         if !config.validate() {
             // todo: don't override the entire config file, patch out / correct what we have
-            log::error!("config file invalid, falling back to default config");
+            log::error!("Config file invalid, falling back to default config");
             return Config::default();
         }
 
@@ -173,7 +173,7 @@ impl From<&str> for Config {
         let ini = match Ini::load_from_str(s) {
             Ok(ini) => ini,
             Err(e) => {
-                log::error!("failed to parse config.ini file: {}", e);
+                log::error!("Failed to parse config.ini file: {}", e);
                 return config;
             }
         };
@@ -209,7 +209,7 @@ impl From<&str> for Config {
                 if let Some(key) = key {
                     config.key_bindings.insert(input, key);
                 } else if key_str != Some("None") && key_str.is_some() {
-                    log::error!("failed to parse {:?} in config.ini", key_str.unwrap(),)
+                    log::error!("Failed to parse {:?} in config.ini", key_str.unwrap(),)
                 }
             }
         }
@@ -226,7 +226,7 @@ impl From<&str> for Config {
                 if let Some(button) = button {
                     config.controller_bindings.insert(input, button);
                 } else if button_str != Some("None") && button_str.is_some() {
-                    log::error!("failed to parse {:?} in config.ini", button_str.unwrap(),)
+                    log::error!("Failed to parse {:?} in config.ini", button_str.unwrap(),)
                 }
             }
         }

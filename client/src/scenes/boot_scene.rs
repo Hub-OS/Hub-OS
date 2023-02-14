@@ -305,7 +305,7 @@ impl BootScene {
                         globals.player_packages.package_ids(PackageNamespace::Local);
 
                     if available_players.next().is_none() {
-                        log::info!("missing player mod");
+                        log::info!("Missing player mod");
                     }
 
                     let message = "Press Any Button";

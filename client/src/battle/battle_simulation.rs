@@ -481,7 +481,7 @@ impl BattleSimulation {
 
         // validate index as it may be coming from lua
         let Some(card_action) = self.card_actions.get_mut(index) else {
-            log::error!("received invalid CardAction index {index:?}");
+            log::error!("Received invalid CardAction index {index:?}");
             return false;
         };
 

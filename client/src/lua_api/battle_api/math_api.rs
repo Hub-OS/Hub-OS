@@ -11,7 +11,7 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function("math", "randomseed", |_, lua, _| {
-        log::warn!("calling math.randomseed is not necessary, the engine handles it for you");
+        log::warn!("Calling math.randomseed is not necessary, the engine handles it for you");
         lua.pack_multi(())
     });
 

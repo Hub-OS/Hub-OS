@@ -49,14 +49,14 @@ impl Package for BattlePackage {
         let meta: BattleMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
                 return package;
             }
         };
 
         if meta.category != "battle" {
             log::error!(
-                "missing `category = \"battle\"` in {:?}",
+                "Missing `category = \"battle\"` in {:?}",
                 package.package_info.toml_path
             );
         }

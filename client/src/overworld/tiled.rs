@@ -12,7 +12,7 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
     let doc = match roxmltree::Document::parse(data) {
         Ok(doc) => doc,
         Err(err) => {
-            log::error!("failed to load map: {}", err);
+            log::error!("Failed to load map: {}", err);
             return None;
         }
     };
@@ -122,7 +122,7 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
         let tileset_document = match roxmltree::Document::parse(&document_text) {
             Ok(element) => element,
             Err(err) => {
-                log::error!("failed to load {:?}, {}", source, err);
+                log::error!("Failed to load {:?}, {}", source, err);
                 continue;
             }
         };

@@ -393,7 +393,7 @@ impl BattleState {
                 } else {
                     // entity erased?
                     time_freeze_tracker.end_action();
-                    log::error!("time freeze entity erased, yet action still exists?");
+                    log::error!("Time freeze entity erased, yet action still exists?");
                 }
             } else {
                 // action deleted?
@@ -986,7 +986,7 @@ impl BattleState {
             let vm_index = match BattleSimulation::find_vm(vms, package_id, namespace) {
                 Ok(vm_index) => vm_index,
                 _ => {
-                    log::error!("failed to find vm for {package_id}");
+                    log::error!("Failed to find vm for {package_id}");
                     return None;
                 }
             };

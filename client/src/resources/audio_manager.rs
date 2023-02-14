@@ -118,7 +118,7 @@ impl AudioManager {
         let music_sink = match rodio::Sink::try_new(stream_handle) {
             Ok(music_sink) => music_sink,
             Err(e) => {
-                log::error!("failed to create music sink: {e}");
+                log::error!("Failed to create music sink: {e}");
                 return;
             }
         };

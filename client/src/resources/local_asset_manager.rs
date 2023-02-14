@@ -72,7 +72,7 @@ impl LocalAssetManager {
         if let Some(tracking) = loaded_zips.get_mut(hash) {
             tracking.use_count -= 1;
         } else {
-            log::error!("virtual zip usage below zero: {}", hash);
+            log::error!("Virtual zip usage below zero: {}", hash);
         }
     }
 
@@ -91,7 +91,7 @@ impl LocalAssetManager {
             loaded_zips.remove(&hash);
 
             if let Some(tracking) = loaded_zips.remove(&hash) {
-                log::debug!("deleting virtual zip: {hash}");
+                log::debug!("Deleting virtual zip: {hash}");
 
                 let mut text_cache = self.text_cache.borrow_mut();
                 let mut texture_cache = self.texture_cache.borrow_mut();
@@ -162,7 +162,7 @@ impl LocalAssetManager {
                             virtual_files.push(virtual_path);
                         }
                         Err(err) => {
-                            log::error!("failed to load {:?} in {}: {}", file.name(), hash, err);
+                            log::error!("Failed to load {:?} in {}: {}", file.name(), hash, err);
                         }
                     }
 
@@ -183,7 +183,7 @@ impl LocalAssetManager {
             };
 
             if let Err(err) = res {
-                log::error!("failed to load {:?} in {}: {}", file.name(), hash, err);
+                log::error!("Failed to load {:?} in {}: {}", file.name(), hash, err);
             }
         });
 
@@ -213,7 +213,7 @@ impl AssetManager for LocalAssetManager {
         let res = fs::read(path);
 
         if let Err(err) = &res {
-            log::warn!("failed to load {:?}: {}", path, err);
+            log::warn!("Failed to load {:?}: {}", path, err);
         }
 
         res.unwrap_or_default()
@@ -228,7 +228,7 @@ impl AssetManager for LocalAssetManager {
             let res = fs::read_to_string(path);
 
             if let Err(err) = &res {
-                log::warn!("failed to load {:?}: {}", path, err);
+                log::warn!("Failed to load {:?}: {}", path, err);
             }
 
             let text = res.unwrap_or_default();
@@ -248,7 +248,7 @@ impl AssetManager for LocalAssetManager {
             let texture = match Texture::load_from_memory(game_io, &bytes) {
                 Ok(texture) => texture,
                 Err(err) => {
-                    log::warn!("failed to load {:?}: {}", path, err);
+                    log::warn!("Failed to load {:?}: {}", path, err);
                     texture_cache.get(ResourcePaths::BLANK).unwrap().clone()
                 }
             };

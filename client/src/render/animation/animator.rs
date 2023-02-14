@@ -156,7 +156,7 @@ impl Animator {
                             ..AnimationFrame::default()
                         });
                     } else {
-                        log::warn!("line {}: no animation state has been defined yet", i + 1);
+                        log::warn!("Line {}: no animation state has been defined yet", i + 1);
                     }
                 }
                 "frame" => {
@@ -206,7 +206,7 @@ impl Animator {
                             valid: true,
                         });
                     } else {
-                        log::warn!("line {}: no animation state has been defined yet", i + 1);
+                        log::warn!("Line {}: no animation state has been defined yet", i + 1);
                     }
                 }
                 "point" => {
@@ -225,7 +225,7 @@ impl Animator {
 
                         frame.points.insert(label, point);
                     } else {
-                        log::warn!("line {}: no frame has been defined yet", i + 1);
+                        log::warn!("Line {}: no frame has been defined yet", i + 1);
                     }
                 }
                 "" | "VERSION" => {
@@ -233,7 +233,7 @@ impl Animator {
                 }
                 _ => {
                     if !word.starts_with("imagePath") {
-                        log::warn!("line {}: unexpected {:?}", i + 1, word);
+                        log::warn!("Line {}: unexpected {:?}", i + 1, word);
                     }
                 }
             }
@@ -296,7 +296,7 @@ impl Animator {
             let eq_index = if let Some(index) = view.find('=') {
                 index
             } else {
-                log::warn!("line {}: expecting \"=\"", line_index + 1);
+                log::warn!("Line {}: expecting \"=\"", line_index + 1);
                 break;
             };
 
@@ -314,7 +314,7 @@ impl Animator {
                 if let Some(value) = Self::read_quoted(&mut view) {
                     value
                 } else {
-                    log::warn!("line {}: expecting matching '\"'", line_index + 1);
+                    log::warn!("Line {}: expecting matching '\"'", line_index + 1);
                     break;
                 }
             } else {

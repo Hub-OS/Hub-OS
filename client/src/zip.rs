@@ -15,7 +15,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
     let mut archive = match zip::ZipArchive::new(cursor) {
         Ok(archive) => archive,
         Err(err) => {
-            log::error!("failed to read zip: {}", err);
+            log::error!("Failed to read zip: {}", err);
             return;
         }
     };
@@ -24,7 +24,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
         let file = match archive.by_index(i) {
             Ok(file) => file,
             Err(err) => {
-                log::error!("failed to grab a file within zip: {}", err);
+                log::error!("Failed to grab a file within zip: {}", err);
                 continue;
             }
         };
@@ -32,7 +32,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
         let path = match file.enclosed_name().and_then(|path| path.to_str()) {
             Some(path) => ResourcePaths::clean(path),
             None => {
-                log::error!("invalid file name within zip {:?}", file.name());
+                log::error!("Invalid file name within zip {:?}", file.name());
                 continue;
             }
         };

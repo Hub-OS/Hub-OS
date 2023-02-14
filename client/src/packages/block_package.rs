@@ -87,14 +87,14 @@ impl Package for BlockPackage {
         let meta: BlockMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("failed to parse {:?}:\n{e}", package.package_info.toml_path);
+                log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
                 return package;
             }
         };
 
         if meta.category != "block" {
             log::error!(
-                "missing `category = \"block\"` in {:?}",
+                "Missing `category = \"block\"` in {:?}",
                 package.package_info.toml_path
             );
         }
@@ -114,7 +114,7 @@ impl Package for BlockPackage {
 
         if flattened_shape.len() != package.shape.len() {
             log::error!(
-                "expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
+                "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
                 package.package_info.toml_path
             );
         }
