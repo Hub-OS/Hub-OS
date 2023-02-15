@@ -859,7 +859,11 @@ impl BattleState {
                 break;
             }
 
+            let max_charging_time =
+                Player::calculate_charge_time(game_io, simulation, vms, id.into(), None);
+
             let entities = &mut simulation.entities;
+
             let (entity, player, living, character) = entities
                 .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
                 .unwrap();
@@ -935,7 +939,9 @@ impl BattleState {
                         let globals = game_io.resource::<Globals>().unwrap();
                         globals.audio.play_sound(&globals.attack_charging_sfx);
                     }
-                } else if player.charging_time == player.max_charging_time + Player::CHARGE_DELAY {
+                }
+
+                if player.charging_time == max_charging_time + Player::CHARGE_DELAY {
                     // charged
                     player.charge_animator.set_state("CHARGED");
                     player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
@@ -952,7 +958,7 @@ impl BattleState {
             } else if previously_charging {
                 // shooting
                 let fully_charged =
-                    player.charging_time >= player.max_charging_time + Player::CHARGE_DELAY;
+                    player.charging_time >= max_charging_time + Player::CHARGE_DELAY;
 
                 player.charging_time = 0;
 

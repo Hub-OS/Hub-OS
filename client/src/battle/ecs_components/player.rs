@@ -18,7 +18,6 @@ pub struct Player {
     pub charge_boost: u8,
     pub card_view_size: u8,
     pub charging_time: FrameTime,
-    pub max_charging_time: FrameTime,
     pub charge_sprite_index: TreeIndex,
     pub charge_animator: Animator,
     pub charged_color: Color,
@@ -26,6 +25,7 @@ pub struct Player {
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
     pub modifiers: Arena<AbilityModifier>,
+    pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
     pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub special_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
@@ -66,7 +66,6 @@ impl Player {
             charge_boost: 0,
             card_view_size: 5,
             charging_time: 0,
-            max_charging_time: 100,
             charge_sprite_index,
             charge_animator: Animator::load_new(assets, ResourcePaths::BATTLE_CHARGE_ANIMATION),
             charged_color: Color::MAGENTA,
@@ -74,6 +73,9 @@ impl Player {
             forms: Vec::new(),
             active_form: None,
             modifiers: Arena::new(),
+            calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
+                Self::calculate_default_charge_time(level)
+            }),
             normal_attack_callback: BattleCallback::stub(None),
             charged_attack_callback: BattleCallback::stub(None),
             special_attack_callback: BattleCallback::stub(None),
@@ -122,22 +124,62 @@ impl Player {
         base_charge + self.charge_boost
     }
 
+    pub fn calculate_default_charge_time(level: u8) -> FrameTime {
+        match level {
+            0 | 1 => 60,
+            2 => 70,
+            3 => 80,
+            4 => 90,
+            _ => 100,
+        }
+    }
+
+    pub fn calculate_charge_time(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+        level: Option<u8>,
+    ) -> FrameTime {
+        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return 0;
+        };
+
+        let level = level.unwrap_or_else(|| player.charge_level());
+
+        let modifier_iter = player.modifiers.iter();
+        let modifier_callback = modifier_iter
+            .flat_map(|(_, modifier)| modifier.calculate_charge_time_callback.clone())
+            .next();
+
+        let callback = modifier_callback
+            .or_else(|| {
+                player.active_form.and_then(|index| {
+                    let form = player.forms.get(index)?;
+                    form.calculate_charge_time_callback.clone()
+                })
+            })
+            .unwrap_or_else(|| player.calculate_charge_time_callback.clone());
+
+        callback.call(game_io, simulation, vms, level)
+    }
+
     pub fn use_normal_attack(
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
-        let modifier_iter = entity.modifiers.iter();
+        let modifier_iter = player.modifiers.iter();
         let mut callbacks: Vec<_> = modifier_iter
             .flat_map(|(_, modifier)| modifier.normal_attack_callback.clone())
             .collect();
 
-        callbacks.push(entity.normal_attack_callback.clone());
+        callbacks.push(player.normal_attack_callback.clone());
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
@@ -153,16 +195,28 @@ impl Player {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
-        let modifier_iter = entity.modifiers.iter();
+        // modifier
+        let modifier_iter = player.modifiers.iter();
         let mut callbacks: Vec<_> = modifier_iter
             .flat_map(|(_, modifier)| modifier.charged_attack_callback.clone())
             .collect();
 
-        callbacks.push(entity.charged_attack_callback.clone());
+        // form
+        let form_callback = player
+            .active_form
+            .and_then(|index| player.forms.get(index))
+            .and_then(|form| form.special_attack_callback.clone());
+
+        if let Some(callback) = form_callback {
+            callbacks.push(callback);
+        }
+
+        // base
+        callbacks.push(player.charged_attack_callback.clone());
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
@@ -178,16 +232,28 @@ impl Player {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(entity) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
-        let modifier_iter = entity.modifiers.iter();
+        // modifier
+        let modifier_iter = player.modifiers.iter();
         let mut callbacks: Vec<_> = modifier_iter
             .flat_map(|(_, modifier)| modifier.special_attack_callback.clone())
             .collect();
 
-        callbacks.push(entity.special_attack_callback.clone());
+        // form
+        let form_callback = player
+            .active_form
+            .and_then(|index| player.forms.get(index))
+            .and_then(|form| form.special_attack_callback.clone());
+
+        if let Some(callback) = form_callback {
+            callbacks.push(callback);
+        }
+
+        // base
+        callbacks.push(player.special_attack_callback.clone());
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {

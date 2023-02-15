@@ -1,5 +1,8 @@
 use super::errors::{entity_not_found, form_not_found};
-use super::{BattleLuaApi, PLAYER_FORM_TABLE};
+use super::{
+    BattleLuaApi, CHARGED_ATTACK_FN, CHARGE_TIMING_FN, PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN,
+    UPDATE_FN,
+};
 use crate::battle::{BattleCallback, Player, PlayerForm};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
@@ -35,7 +38,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "calculate_charge_time_func",
+        CHARGE_TIMING_FN,
         |form| &mut form.calculate_charge_time_callback,
         |lua, _, charge_level: u8| lua.pack_multi(charge_level),
     );
@@ -62,7 +65,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "on_update_func",
+        UPDATE_FN,
         |form| &mut form.update_callback,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
@@ -72,7 +75,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "charged_attack_func",
+        CHARGED_ATTACK_FN,
         |form| &mut form.charged_attack_callback,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
@@ -82,7 +85,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "special_attack_func",
+        SPECIAL_ATTACK_FN,
         |form| &mut form.special_attack_callback,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;

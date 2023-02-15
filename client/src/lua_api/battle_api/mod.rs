@@ -80,7 +80,7 @@ const ATTACK_FN: &str = "on_attack_func";
 const SPAWN_FN: &str = "on_spawn_func";
 
 // players
-const CHARGE_TIMING_FN: &str = "charged_time_table_func";
+const CHARGE_TIMING_FN: &str = "calculate_charge_time_func";
 const NORMAL_ATTACK_FN: &str = "normal_attack_func";
 const CHARGED_ATTACK_FN: &str = "charged_attack_func";
 const SPECIAL_ATTACK_FN: &str = "special_attack_func";

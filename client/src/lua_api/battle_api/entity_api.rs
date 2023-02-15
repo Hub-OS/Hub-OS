@@ -1094,6 +1094,55 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "calculate_default_charge_time",
+        |api_ctx, lua, params| {
+            let (table, level): (rollback_mlua::Table, Option<u8>) = lua.unpack_multi(params)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let level = level.unwrap_or_else(|| player.charge_level());
+
+            let time = Player::calculate_default_charge_time(level);
+
+            lua.pack_multi(time)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "calculate_charge_time",
+        |api_ctx, lua, params| {
+            let (table, level): (rollback_mlua::Table, Option<u8>) = lua.unpack_multi(params)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+            let vms = api_ctx.vms;
+
+            let time = Player::calculate_charge_time(game_io, simulation, vms, id, level);
+
+            lua.pack_multi(time)
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        CHARGE_TIMING_FN,
+        |player: &mut Player| &mut player.calculate_charge_time_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,

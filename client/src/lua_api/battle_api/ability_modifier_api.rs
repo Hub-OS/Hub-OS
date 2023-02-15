@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use super::errors::{ability_mod_not_found, entity_not_found};
 use super::{
-    create_entity_table, BattleLuaApi, ABILITY_MOD_TABLE, CHARGED_ATTACK_FN, DELETE_FN,
-    NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
+    create_entity_table, BattleLuaApi, ABILITY_MOD_TABLE, CHARGED_ATTACK_FN, CHARGE_TIMING_FN,
+    DELETE_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
 use crate::battle::{AbilityModifier, BattleCallback, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
@@ -23,6 +23,16 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(create_entity_table(lua, id)?)
     });
+
+    callback_setter(
+        lua_api,
+        CHARGE_TIMING_FN,
+        |modifier| {
+            modifier.calculate_charge_time_callback = Some(BattleCallback::default());
+            modifier.calculate_charge_time_callback.as_mut().unwrap()
+        },
+        |lua, _, charge_level: u8| lua.pack_multi(charge_level),
+    );
 
     callback_setter(
         lua_api,
