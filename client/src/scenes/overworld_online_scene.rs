@@ -1099,6 +1099,7 @@ impl OverworldOnlineScene {
                     let next_scene = NextScene::new_swap(scene).with_transition(transition);
 
                     self.next_scene_queue.push_back(next_scene);
+                    self.connected = false;
                 }
                 OverworldEvent::Disconnected { message } => {
                     let event_sender = self.base_scene.event_sender.clone();

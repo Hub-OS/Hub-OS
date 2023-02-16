@@ -192,11 +192,8 @@ impl ServerListScene {
     }
 
     fn update_poll_task(&mut self, game_io: &mut GameIO) {
-        let completed_task = self
-            .active_poll_task
-            .as_ref()
-            .map(|(_, task)| task.is_finished())
-            .unwrap_or_default();
+        let completed_task =
+            matches!(&self.active_poll_task, Some((_, task)) if task.is_finished());
 
         if !completed_task {
             return;
