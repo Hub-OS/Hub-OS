@@ -209,7 +209,7 @@ impl CharacterSelectScene {
         // test description
         let input_util = InputUtil::new(game_io);
 
-        if input_util.was_just_pressed(Input::Option) {
+        if input_util.was_just_pressed(Input::Info) {
             let globals = game_io.resource::<Globals>().unwrap();
 
             let package_id = self.selected_package_id();

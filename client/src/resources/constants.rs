@@ -18,7 +18,7 @@ pub const MAX_CARDS: usize = 30;
 pub const MAX_MEGA: usize = 5;
 pub const MAX_GIGA: usize = 1;
 
-pub const BATTLE_INPUTS: [Input; 11] = [
+pub const BATTLE_INPUTS: [Input; 13] = [
     Input::Up,
     Input::Down,
     Input::Left,
@@ -28,11 +28,13 @@ pub const BATTLE_INPUTS: [Input; 11] = [
     Input::Special,
     Input::ShoulderL,
     Input::ShoulderR,
+    Input::End,
+    Input::EndTurn,
     Input::Confirm,
     Input::Cancel,
 ];
 
-pub const UI_NAVIGATION_INPUTS: [Input; 6] = [
+pub const REPEATABLE_INPUTS: [Input; 6] = [
     Input::Up,
     Input::Down,
     Input::Left,

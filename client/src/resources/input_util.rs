@@ -22,21 +22,20 @@ impl<'a> InputUtil<'a> {
         let latest_button = self.input_manager.latest_button();
 
         latest_key
-            .and_then(|key| Self::latest_input_from_bindings(&self.config.key_bindings, key))
+            .and_then(|key| Self::input_from_binding(&self.config.key_bindings, key))
             .or_else(|| {
-                latest_button.and_then(|key| {
-                    Self::latest_input_from_bindings(&self.config.controller_bindings, key)
-                })
+                latest_button
+                    .and_then(|key| Self::input_from_binding(&self.config.controller_bindings, key))
             })
     }
 
-    fn latest_input_from_bindings<K: std::cmp::PartialEq>(
-        bindings: &HashMap<Input, K>,
+    fn input_from_binding<K: std::cmp::PartialEq>(
+        bindings: &HashMap<Input, Vec<K>>,
         key: K,
     ) -> Option<Input> {
         bindings
             .iter()
-            .find(|(_, k)| **k == key)
+            .find(|(_, binded)| binded.contains(&key))
             .map(|(input, _)| *input)
     }
 
@@ -67,14 +66,20 @@ impl<'a> InputUtil<'a> {
         let config = &self.config;
         let input_manager = self.input_manager;
 
-        if let Some(key) = config.key_bindings.get(&input) {
-            if input_manager.is_key_down(*key) {
+        if let Some(keys) = config.key_bindings.get(&input) {
+            let is_down = keys.iter().any(|key| input_manager.is_key_down(*key));
+
+            if is_down {
                 return true;
             }
         }
 
-        if let Some(button) = config.controller_bindings.get(&input) {
-            if input_manager.is_button_down(config.controller_index, *button) {
+        if let Some(buttons) = config.controller_bindings.get(&input) {
+            let is_down = buttons
+                .iter()
+                .any(|button| input_manager.is_button_down(config.controller_index, *button));
+
+            if is_down {
                 return true;
             }
         }
@@ -83,36 +88,62 @@ impl<'a> InputUtil<'a> {
     }
 
     pub fn was_just_pressed(&self, input: Input) -> bool {
-        let config = &self.config;
-        let input_manager = self.input_manager;
+        let already_down = self.any(
+            input,
+            |key| {
+                !self.input_manager.was_key_just_pressed(key) && self.input_manager.is_key_down(key)
+            },
+            |index, button| {
+                !self.input_manager.was_button_just_pressed(index, button)
+                    && self.input_manager.is_button_down(index, button)
+            },
+        );
 
-        if let Some(key) = config.key_bindings.get(&input) {
-            if input_manager.was_key_just_pressed(*key) {
-                return true;
-            }
+        if already_down {
+            // handle multiple bindings to the same input
+            // prevent was_just_pressed from activating if other bindings are already pressed
+            return false;
         }
 
-        if let Some(button) = config.controller_bindings.get(&input) {
-            if input_manager.was_button_just_pressed(config.controller_index, *button) {
-                return true;
-            }
-        }
-
-        false
+        self.any(
+            input,
+            |key| self.input_manager.was_key_just_pressed(key),
+            |index, button| self.input_manager.was_button_just_pressed(index, button),
+        )
     }
 
     pub fn was_released(&self, input: Input) -> bool {
-        let config = &self.config;
-        let input_manager = self.input_manager;
+        // handle multiple bindings to the same input, nothing should still be down
+        if self.is_down(input) {
+            return false;
+        }
 
-        if let Some(key) = config.key_bindings.get(&input) {
-            if input_manager.was_key_released(*key) {
+        self.any(
+            input,
+            |key| self.input_manager.was_key_released(key),
+            |index, button| self.input_manager.was_button_released(index, button),
+        )
+    }
+
+    fn any(
+        &self,
+        input: Input,
+        key_callback: impl Fn(Key) -> bool,
+        button_callback: impl Fn(usize, Button) -> bool,
+    ) -> bool {
+        let config = &self.config;
+
+        if let Some(keys) = config.key_bindings.get(&input) {
+            if keys.iter().any(|key| key_callback(*key)) {
                 return true;
             }
         }
 
-        if let Some(button) = config.controller_bindings.get(&input) {
-            if input_manager.was_button_released(config.controller_index, *button) {
+        if let Some(buttons) = config.controller_bindings.get(&input) {
+            if buttons
+                .iter()
+                .any(|button| button_callback(config.controller_index, *button))
+            {
                 return true;
             }
         }

@@ -357,6 +357,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     held_table.set("Shoot", InputQuery::Held(Input::Shoot))?;
     held_table.set("LeftShoulder", InputQuery::Held(Input::ShoulderL))?;
     held_table.set("RightShoulder", InputQuery::Held(Input::ShoulderR))?;
+    held_table.set("EndTurn", InputQuery::Held(Input::EndTurn))?;
+    held_table.set("Ready", InputQuery::Held(Input::End))?;
     input_table.set("Held", held_table)?;
 
     let pressed_table = lua.create_table()?;
@@ -369,6 +371,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     pressed_table.set("Shoot", InputQuery::JustPressed(Input::Shoot))?;
     pressed_table.set("LeftShoulder", InputQuery::JustPressed(Input::ShoulderL))?;
     pressed_table.set("RightShoulder", InputQuery::JustPressed(Input::ShoulderR))?;
+    pressed_table.set("EndTurn", InputQuery::JustPressed(Input::EndTurn))?;
+    pressed_table.set("Ready", InputQuery::JustPressed(Input::End))?;
     input_table.set("Pressed", pressed_table)?;
 
     globals.set("Input", input_table)?;

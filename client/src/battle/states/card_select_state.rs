@@ -632,7 +632,7 @@ impl CardSelectState {
 
         let previous_item = resolve_selected_item(player, selection);
 
-        if previous_item == SelectedItem::None {
+        if input.is_active(Input::End) || previous_item == SelectedItem::None {
             // select Confirm as a safety net
             selection.col = 5;
             selection.row = 0;

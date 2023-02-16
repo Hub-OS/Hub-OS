@@ -198,9 +198,7 @@ impl BattleState {
                 }
 
                 let input = &simulation.inputs[player.index];
-
-                // todo: create a new input for ending the turn?
-                input.was_just_pressed(Input::ShoulderL) || input.was_just_pressed(Input::ShoulderR)
+                input.was_just_pressed(Input::EndTurn)
             });
     }
 

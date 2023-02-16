@@ -12,16 +12,22 @@ pub enum Input {
     UseCard,
     Shoot,
     Special,
+    Flee,
+    EndTurn,
     Pause,
     Confirm,
     Cancel,
     Option,
+    Info,
+    End,
     Sprint,
     ShoulderL,
     ShoulderR,
     Minimap,
     AdvanceFrame,
     RewindFrame,
+    FaceLeft,
+    FaceRight,
 }
 
 impl Input {

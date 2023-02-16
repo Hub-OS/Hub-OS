@@ -1,10 +1,11 @@
+use super::{CategoryFilter, PackageUpdatesScene, PackagesScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, Dimension, FlexDirection, FontStyle, SceneTitle, ScrollableList, SubSceneFrame,
-    Textbox, TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, TextboxPrompt,
-    TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle, UiConfigPercentage, UiConfigToggle,
-    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    build_9patch, BindingContextOption, ContextMenu, Dimension, FlexDirection, FontStyle,
+    SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
+    TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle,
+    UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -18,11 +19,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 
-use super::{CategoryFilter, PackageUpdatesScene, PackagesScene};
-
 enum Event {
     CategoryChange(ConfigCategory),
     EnterCategory,
+    OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     RequestNicknameChange,
     ChangeNickname { name: String },
     ViewPackages,
@@ -52,6 +52,8 @@ pub struct ConfigScene {
     cursor_animator: Animator,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
+    context_menu: ContextMenu<BindingContextOption>,
+    context_sender: Option<flume::Sender<Option<BindingContextOption>>>,
     textbox: Textbox,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     config: Rc<RefCell<Config>>,
@@ -82,11 +84,13 @@ impl ConfigScene {
         let layout_animator = Animator::load_new(assets, ResourcePaths::CONFIG_LAYOUT_ANIMATION)
             .with_state("DEFAULT");
 
-        let primary_layout_start = layout_animator.point("primary").unwrap_or_default();
+        let primary_layout_start = layout_animator.point("PRIMARY").unwrap_or_default();
 
-        let secondary_layout_start = layout_animator.point("secondary_start").unwrap_or_default();
-        let secondary_layout_end = layout_animator.point("secondary_end").unwrap_or_default();
+        let secondary_layout_start = layout_animator.point("SECONDARY_START").unwrap_or_default();
+        let secondary_layout_end = layout_animator.point("SECONDARY_END").unwrap_or_default();
         let secondary_bounds = Rect::from_corners(secondary_layout_start, secondary_layout_end);
+
+        let context_position = layout_animator.point("CONTEXT_MENU").unwrap_or_default();
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),
@@ -106,6 +110,14 @@ impl ConfigScene {
             cursor_animator,
             event_sender,
             event_receiver,
+            context_menu: ContextMenu::new(game_io, "BINDING", context_position).with_options(
+                game_io,
+                &[
+                    ("Append", BindingContextOption::Append),
+                    ("Clear", BindingContextOption::Clear),
+                ],
+            ),
+            context_sender: None,
             textbox: Textbox::new_navigation(game_io),
             doorstop_remover: None,
             next_scene: NextScene::None,
@@ -163,14 +175,14 @@ impl ConfigScene {
         game_io: &GameIO,
         config: &Rc<RefCell<Config>>,
         category: ConfigCategory,
-        event_sender: flume::Sender<Event>,
+        event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         match category {
             ConfigCategory::Video => Self::generate_video_menu(config),
             ConfigCategory::Audio => Self::generate_audio_menu(config),
-            ConfigCategory::Keyboard => Self::generate_keyboard_menu(config),
-            ConfigCategory::Gamepad => Self::generate_controller_menu(config),
-            ConfigCategory::Misc => Self::generate_misc_menu(game_io, event_sender),
+            ConfigCategory::Keyboard => Self::generate_keyboard_menu(config, &event_sender),
+            ConfigCategory::Gamepad => Self::generate_controller_menu(config, &event_sender),
+            ConfigCategory::Misc => Self::generate_misc_menu(game_io, &event_sender),
         }
     }
 
@@ -341,25 +353,47 @@ impl ConfigScene {
         ]
     }
 
-    fn generate_keyboard_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
+    fn generate_keyboard_menu(
+        config: &Rc<RefCell<Config>>,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
         Input::iter()
-            .map(|option| -> Box<dyn UiNode> {
-                Box::new(UiConfigBinding::new_keyboard(option, config.clone()))
+            .map(|option| {
+                UiConfigBinding::new_keyboard(option, config.clone()).with_context_requester({
+                    let event_sender = event_sender.clone();
+                    move |sender| {
+                        event_sender
+                            .send(Event::OpenBindingContextMenu(sender))
+                            .unwrap();
+                    }
+                })
             })
+            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) })
             .collect()
     }
 
-    fn generate_controller_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
+    fn generate_controller_menu(
+        config: &Rc<RefCell<Config>>,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
         Input::iter()
-            .map(|option| -> Box<dyn UiNode> {
-                Box::new(UiConfigBinding::new_controller(option, config.clone()))
+            .map(|option| {
+                UiConfigBinding::new_controller(option, config.clone()).with_context_requester({
+                    let event_sender = event_sender.clone();
+                    move |sender| {
+                        event_sender
+                            .send(Event::OpenBindingContextMenu(sender))
+                            .unwrap();
+                    }
+                })
             })
+            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) })
             .collect()
     }
 
     fn generate_misc_menu(
         game_io: &GameIO,
-        event_sender: flume::Sender<Event>,
+        event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         vec![
             Box::new(
@@ -424,6 +458,8 @@ impl Scene for ConfigScene {
             sprite_queue.draw_sprite(&self.cursor_sprite);
         }
 
+        self.context_menu.draw(game_io, &mut sprite_queue);
+
         self.textbox.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
@@ -435,17 +471,20 @@ impl ConfigScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::CategoryChange(category) => {
-                    let children = Self::generate_submenu(
-                        game_io,
-                        &self.config,
-                        category,
-                        self.event_sender.clone(),
-                    );
+                    let children =
+                        Self::generate_submenu(game_io, &self.config, category, &self.event_sender);
 
                     let label: &'static str = category.into();
 
                     self.secondary_layout.set_label(label.to_ascii_uppercase());
                     self.secondary_layout.set_children(children);
+                }
+                Event::OpenBindingContextMenu(sender) => {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&globals.cursor_select_sfx);
+
+                    self.context_menu.open();
+                    self.context_sender = Some(sender);
                 }
                 Event::EnterCategory => {
                     self.primary_layout.set_focused(false);
@@ -637,10 +676,28 @@ impl ConfigScene {
             return;
         }
 
+        self.handle_context_menu_input(game_io);
+
         if self.primary_layout.focused() {
             self.handle_tab_input(game_io);
         } else {
             self.handle_submenu_input(game_io);
+        }
+    }
+
+    fn handle_context_menu_input(&mut self, game_io: &mut GameIO) {
+        if !self.context_menu.is_open() {
+            if let Some(sender) = self.context_sender.take() {
+                let _ = sender.send(None);
+            }
+            return;
+        }
+
+        if let Some(selection) = self.context_menu.update(game_io, &self.ui_input_tracker) {
+            if let Some(sender) = self.context_sender.take() {
+                let _ = sender.send(Some(selection));
+            }
+            self.context_menu.close();
         }
     }
 

@@ -1,6 +1,7 @@
 use crate::render::PostProcessColorBlindness;
 use crate::resources::{AssetManager, Input, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
 use framework::input::{Button, Key};
+use itertools::Itertools;
 use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Eq)]
@@ -15,8 +16,8 @@ pub struct Config {
     pub sfx: u8,
     pub mute_music: bool,
     pub mute_sfx: bool,
-    pub key_bindings: HashMap<Input, Key>,
-    pub controller_bindings: HashMap<Input, Button>,
+    pub key_bindings: HashMap<Input, Vec<Key>>,
+    pub controller_bindings: HashMap<Input, Vec<Button>>,
     pub controller_index: usize,
     pub package_repo: String,
 }
@@ -87,43 +88,61 @@ impl Config {
 impl Default for Config {
     fn default() -> Config {
         let key_bindings = HashMap::from([
-            (Input::Left, Key::A),
-            (Input::Right, Key::D),
-            (Input::Up, Key::W),
-            (Input::Down, Key::S),
-            (Input::ShoulderL, Key::Q),
-            (Input::ShoulderR, Key::E),
-            (Input::Confirm, Key::Space),
-            (Input::UseCard, Key::Space),
-            (Input::Cancel, Key::LShift),
-            (Input::Shoot, Key::LShift),
-            (Input::Sprint, Key::LShift),
-            (Input::Option, Key::F),
-            (Input::Special, Key::F),
-            (Input::Minimap, Key::M),
-            (Input::Pause, Key::Escape),
-            (Input::RewindFrame, Key::Left),
-            (Input::AdvanceFrame, Key::Right),
+            (Input::Up, vec![Key::W]),
+            (Input::Down, vec![Key::S]),
+            (Input::Left, vec![Key::A]),
+            (Input::Right, vec![Key::D]),
+            (Input::ShoulderL, vec![Key::Q]),
+            (Input::ShoulderR, vec![Key::E]),
+            (Input::Flee, vec![Key::Q]),
+            (Input::Info, vec![Key::E]),
+            (Input::EndTurn, vec![Key::Q, Key::E]),
+            (Input::FaceLeft, vec![Key::R]),
+            (Input::FaceRight, vec![Key::R]),
+            (Input::Confirm, vec![Key::Space]),
+            (Input::UseCard, vec![Key::Space]),
+            (Input::Cancel, vec![Key::LShift, Key::Escape]),
+            (Input::Shoot, vec![Key::LShift]),
+            (Input::Sprint, vec![Key::LShift]),
+            (Input::Minimap, vec![Key::M]),
+            (Input::Option, vec![Key::F]),
+            (Input::Special, vec![Key::F]),
+            (Input::End, vec![Key::F]),
+            (Input::Pause, vec![Key::Escape]),
+            (Input::RewindFrame, vec![Key::Left]),
+            (Input::AdvanceFrame, vec![Key::Right]),
         ]);
 
         let controller_bindings = HashMap::from([
-            (Input::Left, Button::DPadLeft),
-            (Input::Right, Button::DPadRight),
-            (Input::Up, Button::DPadUp),
-            (Input::Down, Button::DPadDown),
-            (Input::ShoulderL, Button::LeftTrigger),
-            (Input::ShoulderR, Button::RightTrigger),
-            (Input::Confirm, Button::A),
-            (Input::UseCard, Button::A),
-            (Input::Cancel, Button::B),
-            (Input::Shoot, Button::B),
-            (Input::Sprint, Button::B),
-            (Input::Option, Button::X),
-            (Input::Special, Button::X),
-            (Input::Minimap, Button::Y),
-            (Input::Pause, Button::Start),
-            (Input::RewindFrame, Button::LeftShoulder),
-            (Input::AdvanceFrame, Button::RightShoulder),
+            (Input::Up, vec![Button::LeftStickUp, Button::DPadUp]),
+            (Input::Down, vec![Button::LeftStickDown, Button::DPadDown]),
+            (Input::Left, vec![Button::LeftStickLeft, Button::DPadLeft]),
+            (
+                Input::Right,
+                vec![Button::LeftStickRight, Button::DPadRight],
+            ),
+            (Input::ShoulderL, vec![Button::LeftTrigger]),
+            (Input::ShoulderR, vec![Button::RightTrigger]),
+            (Input::Flee, vec![Button::LeftTrigger]),
+            (Input::Info, vec![Button::RightTrigger]),
+            (
+                Input::EndTurn,
+                vec![Button::LeftTrigger, Button::RightTrigger],
+            ),
+            (Input::Confirm, vec![Button::A]),
+            (Input::UseCard, vec![Button::A]),
+            (Input::Cancel, vec![Button::B]),
+            (Input::Shoot, vec![Button::B]),
+            (Input::Sprint, vec![Button::B]),
+            (Input::Special, vec![Button::X]),
+            (Input::Minimap, vec![Button::Y]),
+            (Input::FaceLeft, vec![Button::Y]),
+            (Input::FaceRight, vec![Button::Y]),
+            (Input::Option, vec![Button::Start]),
+            (Input::End, vec![Button::Start]),
+            (Input::Pause, vec![Button::Start]),
+            (Input::RewindFrame, vec![Button::LeftShoulder]),
+            (Input::AdvanceFrame, vec![Button::RightShoulder]),
         ]);
 
         Config {
@@ -203,14 +222,14 @@ impl From<&str> for Config {
             for input in Input::iter() {
                 let input_string = format!("{:?}", input);
 
-                let key_str = properties.get(&input_string);
-                let key = key_str.and_then(|value| Key::from_str(value).ok());
+                let keys = properties
+                    .get(&input_string)
+                    .into_iter()
+                    .flat_map(|key_str| key_str.split(','))
+                    .flat_map(|value| Key::from_str(value).ok())
+                    .collect();
 
-                if let Some(key) = key {
-                    config.key_bindings.insert(input, key);
-                } else if key_str != Some("None") && key_str.is_some() {
-                    log::error!("Failed to parse {:?} in config.ini", key_str.unwrap(),)
-                }
+                config.key_bindings.insert(input, keys);
             }
         }
 
@@ -220,14 +239,14 @@ impl From<&str> for Config {
             for input in Input::iter() {
                 let input_string = format!("{:?}", input);
 
-                let button_str = properties.get(&input_string);
-                let button = button_str.and_then(|value| Button::from_str(value).ok());
+                let buttons = properties
+                    .get(&input_string)
+                    .into_iter()
+                    .flat_map(|key_str| key_str.split(','))
+                    .flat_map(|value| Button::from_str(value).ok())
+                    .collect();
 
-                if let Some(button) = button {
-                    config.controller_bindings.insert(input, button);
-                } else if button_str != Some("None") && button_str.is_some() {
-                    log::error!("Failed to parse {:?} in config.ini", button_str.unwrap(),)
-                }
+                config.controller_bindings.insert(input, buttons);
             }
         }
 
@@ -268,8 +287,13 @@ impl ToString for Config {
             for input in Input::iter() {
                 write!(s, "{:?} = ", input)?;
 
-                if let Some(key) = self.key_bindings.get(&input) {
-                    writeln!(s, "{:?}", key)?;
+                if let Some(keys) = self.key_bindings.get(&input) {
+                    let keys_string = keys
+                        .iter()
+                        .map(|key| -> &'static str { key.into() })
+                        .join(",");
+
+                    writeln!(s, "{}", keys_string)?;
                 } else {
                     writeln!(s, "None")?;
                 }
@@ -281,8 +305,13 @@ impl ToString for Config {
             for input in Input::iter() {
                 write!(s, "{:?} = ", input)?;
 
-                if let Some(key) = self.controller_bindings.get(&input) {
-                    writeln!(s, "{:?}", key)?;
+                if let Some(buttons) = self.controller_bindings.get(&input) {
+                    let buttons_string = buttons
+                        .iter()
+                        .map(|button| -> &'static str { button.into() })
+                        .join(",");
+
+                    writeln!(s, "{}", buttons_string)?;
                 } else {
                     writeln!(s, "None")?;
                 }

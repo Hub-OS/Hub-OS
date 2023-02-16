@@ -1,5 +1,5 @@
 use crate::render::*;
-use crate::resources::{Input, UI_NAVIGATION_INPUTS};
+use crate::resources::{Input, REPEATABLE_INPUTS};
 
 #[derive(Default, Clone)]
 pub struct PlayerInput {
@@ -22,7 +22,7 @@ impl PlayerInput {
             return false;
         }
 
-        if !UI_NAVIGATION_INPUTS.contains(&input) {
+        if !REPEATABLE_INPUTS.contains(&input) {
             return self.was_just_pressed(input);
         }
 
@@ -74,7 +74,7 @@ impl PlayerInput {
         let navigation_held = self
             .previous_input
             .iter()
-            .any(|input| UI_NAVIGATION_INPUTS.contains(input));
+            .any(|input| REPEATABLE_INPUTS.contains(input));
 
         if navigation_held {
             self.navigation_held_duration += 1;

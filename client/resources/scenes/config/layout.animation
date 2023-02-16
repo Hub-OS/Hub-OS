@@ -1,5 +1,6 @@
 animation state="DEFAULT"
 blank
-point label="primary" x="7" y="21"
-point label="secondary_start" x="80" y="21"
-point label="secondary_end" x="233" y="147"
+point label="PRIMARY" x="7" y="21"
+point label="SECONDARY_START" x="80" y="21"
+point label="SECONDARY_END" x="233" y="147"
+point label="CONTEXT_MENU" x="13" y="25"
