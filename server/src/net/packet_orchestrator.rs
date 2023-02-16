@@ -27,7 +27,7 @@ impl Connection {
         connection_config: &packets::Config,
         socket_address: SocketAddr,
     ) -> (Self, PacketReceiver<PacketChannels>) {
-        let mut connection_builder = ConnectionBuilder::new(&connection_config);
+        let mut connection_builder = ConnectionBuilder::new(connection_config);
         let server_comm_channel =
             connection_builder.bidirectional_channel(PacketChannels::ServerComm);
         let server_channel = connection_builder.sending_channel(PacketChannels::Server);

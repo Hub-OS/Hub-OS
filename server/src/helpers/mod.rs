@@ -16,7 +16,7 @@ pub fn normalize_path(path: &std::path::Path) -> std::path::PathBuf {
         }
 
         if component_as_os_str == ".." {
-            if normalized_path.file_name() == None {
+            if normalized_path.file_name().is_none() {
                 // file_name() returns none for ".." as last component and no component
                 // this means we're building out the start like ../../../etc
                 normalized_path.push("..");

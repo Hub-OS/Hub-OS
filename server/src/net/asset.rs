@@ -67,12 +67,12 @@ impl Asset {
     pub fn load_from_file(path: &std::path::Path) -> Asset {
         use std::fs;
 
-        let data = fs::read(&path).unwrap_or_default();
+        let data = fs::read(path).unwrap_or_default();
         let asset_data = resolve_asset_data(path, &data);
 
         let mut last_modified = 0;
 
-        if let Ok(file_meta) = fs::metadata(&path) {
+        if let Ok(file_meta) = fs::metadata(path) {
             if let Ok(time) = file_meta.modified() {
                 last_modified = time
                     .duration_since(std::time::UNIX_EPOCH)
@@ -235,9 +235,9 @@ impl Asset {
             return None;
         };
 
-        let id = get_str(&package, "id");
-        let name = get_str(&package, "name");
-        let category = get_str(&package, "category");
+        let id = get_str(package, "id");
+        let name = get_str(package, "name");
+        let category = get_str(package, "category");
 
         Some(PackageInfo {
             name: name.to_string(),
@@ -271,16 +271,16 @@ impl Asset {
         let dependencies = meta_table.get("dependencies")?;
 
         let char_iter = Self::resolve_dependency_category(
-            &dependencies,
+            dependencies,
             "characters",
             PackageCategory::Character,
         );
 
         let card_iter =
-            Self::resolve_dependency_category(&dependencies, "cards", PackageCategory::Card);
+            Self::resolve_dependency_category(dependencies, "cards", PackageCategory::Card);
 
         let lib_iter =
-            Self::resolve_dependency_category(&dependencies, "libraries", PackageCategory::Library);
+            Self::resolve_dependency_category(dependencies, "libraries", PackageCategory::Library);
 
         Some(char_iter.chain(card_iter).chain(lib_iter))
     }
@@ -357,7 +357,7 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
             let original_data = String::from_utf8_lossy(data);
             let translated_data = translate_tsx(path, &original_data);
 
-            if translated_data == None {
+            if translated_data.is_none() {
                 log::warn!("Invalid .tsx file: {:?}", path);
             }
 
