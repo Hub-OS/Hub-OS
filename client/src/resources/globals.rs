@@ -95,7 +95,7 @@ impl Globals {
         }
 
         if config.lock_aspect_ratio {
-            game_io.window_mut().lock_resolution(TRUE_RESOLUTION.into());
+            game_io.window_mut().lock_resolution(TRUE_RESOLUTION);
         }
 
         let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);
@@ -284,7 +284,7 @@ impl Globals {
         namespace: PackageNamespace,
         id: &PackageId,
     ) {
-        let Some(package_info) = self.package_or_fallback_info(category, namespace, &id) else {
+        let Some(package_info) = self.package_or_fallback_info(category, namespace, id) else {
             return;
         };
 
@@ -414,27 +414,27 @@ impl Globals {
         match category {
             PackageCategory::Battle => self
                 .battle_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Block => self
                 .block_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Card => self
                 .card_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Character => self
                 .character_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Library => self
                 .library_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Player => self
                 .player_packages
-                .package_or_fallback(namespace, &id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
         }
     }
@@ -449,27 +449,27 @@ impl Globals {
         match category {
             PackageCategory::Battle => self
                 .battle_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Block => self
                 .block_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Card => self
                 .card_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Character => self
                 .character_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Library => self
                 .library_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Player => self
                 .player_packages
-                .package(namespace, &id)
+                .package(namespace, id)
                 .map(|package| package.create_package_listing()),
         }
     }

@@ -36,7 +36,7 @@ impl Network {
     pub fn new(args: &Args) -> Self {
         let (sender, receiver) = flume::unbounded();
 
-        let socket = UdpSocket::bind(&format!("0.0.0.0:{}", args.port)).unwrap();
+        let socket = UdpSocket::bind(format!("0.0.0.0:{}", args.port)).unwrap();
         let socket = Arc::new(socket);
 
         std::thread::spawn({

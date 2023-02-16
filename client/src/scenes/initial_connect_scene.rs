@@ -196,7 +196,7 @@ impl Scene for InitialConnectScene {
                 }
                 Event::Failed { reason } => {
                     let message = match reason {
-                        Some(reason) => format!("We've been kicked: {:?}", reason),
+                        Some(reason) => format!("We've been kicked: {reason:?}"),
                         None => String::from("Connection failed."),
                     };
 

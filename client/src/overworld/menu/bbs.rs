@@ -5,7 +5,7 @@ use framework::prelude::*;
 use packets::structures::BbsPost;
 use std::iter::IntoIterator;
 
-pub struct BBS {
+pub struct Bbs {
     topic: String,
     color: Color,
     ui_input_tracker: UiInputTracker,
@@ -19,7 +19,7 @@ pub struct BBS {
     on_close: Box<dyn Fn()>,
 }
 
-impl BBS {
+impl Bbs {
     pub fn new(
         game_io: &GameIO,
         topic: String,

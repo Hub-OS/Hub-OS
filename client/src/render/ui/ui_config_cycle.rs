@@ -25,11 +25,11 @@ impl<T: Copy + PartialEq> UiConfigCycle<T> {
         Self {
             name,
             selection: options
-                .into_iter()
+                .iter()
                 .position(|(_, v)| *v == value)
                 .unwrap_or_default(),
             options: options
-                .into_iter()
+                .iter()
                 .map(|(name, value)| (name.to_string(), *value))
                 .collect(),
             config,

@@ -1,4 +1,4 @@
-use super::BBS;
+use super::Bbs;
 use crate::ease::inverse_lerp;
 use crate::overworld::OverworldPlayerData;
 use crate::render::ui::*;
@@ -27,8 +27,8 @@ pub struct MenuManager {
     selection_needs_ack: bool,
     textbox: Textbox,
     bbs_replaced: bool,
-    old_bbs: Option<BBS>,
-    bbs: Option<BBS>,
+    old_bbs: Option<Bbs>,
+    bbs: Option<Bbs>,
     fade_time: FrameTime,
     max_fade_time: FrameTime,
     fade_sprite: Sprite,
@@ -65,7 +65,7 @@ impl MenuManager {
                 SceneOption::Config,
             ],
         )
-        .as_overlay(true);
+        .into_overlay(true);
 
         Self {
             selection_needs_ack: false,
@@ -96,7 +96,7 @@ impl MenuManager {
         self.navigation_menu.is_open()
     }
 
-    pub fn bbs_mut(&mut self) -> Option<&mut BBS> {
+    pub fn bbs_mut(&mut self) -> Option<&mut Bbs> {
         self.bbs.as_mut()
     }
 
@@ -159,7 +159,7 @@ impl MenuManager {
             self.old_bbs = None;
         }
 
-        self.bbs = Some(BBS::new(game_io, topic, color, on_select, on_close));
+        self.bbs = Some(Bbs::new(game_io, topic, color, on_select, on_close));
     }
 
     pub fn set_next_avatar(

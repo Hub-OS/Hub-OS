@@ -1,4 +1,3 @@
-use fs_extra;
 use std::fs;
 use std::process::{Command, ExitCode};
 

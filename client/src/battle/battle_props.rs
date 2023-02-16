@@ -16,6 +16,17 @@ pub struct PlayerSetup<'a> {
 }
 
 impl<'a> PlayerSetup<'a> {
+    pub fn new(player_package: &'a PlayerPackage, index: usize, local: bool) -> Self {
+        Self {
+            player_package,
+            folder: Folder::new(String::new()),
+            blocks: Vec::new(),
+            index,
+            local,
+            input_buffer: VecDeque::new(),
+        }
+    }
+
     pub fn namespace(&self) -> PackageNamespace {
         if self.local {
             PackageNamespace::Local

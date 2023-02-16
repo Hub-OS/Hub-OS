@@ -225,7 +225,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_aready_used());
         }
 
-        let used = simulation.use_card_action(api_ctx.game_io, id.into(), action_index.into());
+        let used = simulation.use_card_action(api_ctx.game_io, id, action_index.into());
 
         lua.pack_multi(used)
     });

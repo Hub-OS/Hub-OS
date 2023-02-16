@@ -52,7 +52,7 @@ impl ServerEditScene {
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
         let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
-        let input_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "TEXT_INPUT");
+        let input_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "TEXT_INPUT");
 
         let label_style = UiStyle {
             align_self: AlignSelf::FlexStart,

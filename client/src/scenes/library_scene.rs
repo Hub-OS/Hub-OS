@@ -196,7 +196,7 @@ impl Dock {
 
         // cards
         let cards: Vec<_> = available_packages
-            .into_iter()
+            .iter()
             .flat_map(|id| {
                 globals
                     .card_packages

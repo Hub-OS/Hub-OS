@@ -151,7 +151,7 @@ impl RepoPackageUpdater {
             return;
         };
 
-        let Some(category) = category.clone() else {
+        let Some(category) = *category else {
             // can't download this (special category such as "pack")
             // move onto the next queue item
             self.queue_position += 1;

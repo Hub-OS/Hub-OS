@@ -295,7 +295,7 @@ impl TextStyle {
         let mut state = String::with_capacity(state_prefix.len() + 6);
 
         // begin with the state prefix
-        let _ = write!(state, "{}", state_prefix);
+        let _ = write!(state, "{state_prefix}");
 
         // convert the character string to 6 hex chars
         for c in character.chars() {

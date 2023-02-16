@@ -58,7 +58,7 @@ pub fn uri_encode(path: &str) -> String {
         }
 
         // needs encoding
-        write!(&mut encoded_string, "%{:0>2X}", b).unwrap();
+        write!(&mut encoded_string, "%{b:0>2X}").unwrap();
     }
 
     encoded_string

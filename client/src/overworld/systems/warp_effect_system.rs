@@ -172,5 +172,5 @@ fn handle_walk_out(
         return false;
     }
 
-    return true;
+    true
 }

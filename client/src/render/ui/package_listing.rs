@@ -31,7 +31,7 @@ impl From<&json::Value> for PackageListing {
             }
         };
 
-        let category = get_str(&package_table, "category");
+        let category = get_str(package_table, "category");
 
         let preview_data = match category {
             "player" => PackagePreviewData::Player {
@@ -39,9 +39,9 @@ impl From<&json::Value> for PackageListing {
                 health: get_i32(package_table, "health"),
             },
             "card" => PackagePreviewData::Card {
-                codes: get_string_vec(&package_table, "codes"),
-                element: get_str(&package_table, "element").into(),
-                secondary_element: get_str(&package_table, "secondary_element").into(),
+                codes: get_string_vec(package_table, "codes"),
+                element: get_str(package_table, "element").into(),
+                secondary_element: get_str(package_table, "secondary_element").into(),
                 damage: get_i32(package_table, "damage"),
             },
             "block" => PackagePreviewData::Block {
@@ -76,10 +76,10 @@ impl From<&json::Value> for PackageListing {
             _ => PackagePreviewData::Unknown,
         };
 
-        let mut description = get_str(&package_table, "long_description");
+        let mut description = get_str(package_table, "long_description");
 
         if description.is_empty() {
-            description = get_str(&package_table, "description");
+            description = get_str(package_table, "description");
         }
 
         let mut dependencies = Vec::new();
@@ -87,23 +87,23 @@ impl From<&json::Value> for PackageListing {
         if let Some(dependencies_table) = package_table.get("dependencies") {
             let into_id = |id: &json::Value| id.as_str().unwrap_or_default().into();
 
-            dependencies.extend(map_array_values(&dependencies_table, "battles", |id| {
+            dependencies.extend(map_array_values(dependencies_table, "battles", |id| {
                 (PackageCategory::Battle, into_id(id))
             }));
-            dependencies.extend(map_array_values(&dependencies_table, "cards", |id| {
+            dependencies.extend(map_array_values(dependencies_table, "cards", |id| {
                 (PackageCategory::Card, into_id(id))
             }));
-            dependencies.extend(map_array_values(&dependencies_table, "libraries", |id| {
+            dependencies.extend(map_array_values(dependencies_table, "libraries", |id| {
                 (PackageCategory::Library, into_id(id))
             }));
         }
 
         Self {
-            id: get_str(&package_table, "id").into(),
-            name: get_str(&package_table, "name").to_string(),
+            id: get_str(package_table, "id").into(),
+            name: get_str(package_table, "name").to_string(),
             description: description.to_string(),
-            creator: get_unknown_as_string(&value, "creator"),
-            hash: FileHash::from_hex(get_str(&value, "hash")).unwrap_or_default(),
+            creator: get_unknown_as_string(value, "creator"),
+            hash: FileHash::from_hex(get_str(value, "hash")).unwrap_or_default(),
             preview_data,
             dependencies,
         }

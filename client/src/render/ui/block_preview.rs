@@ -87,15 +87,15 @@ impl BlockPreview {
     }
 }
 
-impl Into<Vec<Sprite>> for BlockPreview {
-    fn into(mut self) -> Vec<Sprite> {
-        for sprite in &mut self.sprites {
+impl From<BlockPreview> for Vec<Sprite> {
+    fn from(mut preview: BlockPreview) -> Vec<Sprite> {
+        for sprite in &mut preview.sprites {
             let position = sprite.position();
 
-            sprite.set_scale(Vec2::new(self.scale, self.scale));
-            sprite.set_position(self.position + position * self.scale);
+            sprite.set_scale(Vec2::new(preview.scale, preview.scale));
+            sprite.set_position(preview.position + position * preview.scale);
         }
 
-        self.sprites
+        preview.sprites
     }
 }

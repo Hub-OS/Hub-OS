@@ -220,7 +220,7 @@ impl From<&str> for Config {
             config.controller_index = parse_or_default(properties.get("ControllerIndex"));
 
             for input in Input::iter() {
-                let input_string = format!("{:?}", input);
+                let input_string = format!("{input:?}");
 
                 let keys = properties
                     .get(&input_string)
@@ -237,7 +237,7 @@ impl From<&str> for Config {
             config.controller_index = parse_or_default(properties.get("ControllerIndex"));
 
             for input in Input::iter() {
-                let input_string = format!("{:?}", input);
+                let input_string = format!("{input:?}");
 
                 let buttons = properties
                     .get(&input_string)
@@ -285,7 +285,7 @@ impl ToString for Config {
 
             writeln!(s, "[Keyboard]")?;
             for input in Input::iter() {
-                write!(s, "{:?} = ", input)?;
+                write!(s, "{input:?} = ")?;
 
                 if let Some(keys) = self.key_bindings.get(&input) {
                     let keys_string = keys
@@ -293,7 +293,7 @@ impl ToString for Config {
                         .map(|key| -> &'static str { key.into() })
                         .join(",");
 
-                    writeln!(s, "{}", keys_string)?;
+                    writeln!(s, "{keys_string}")?;
                 } else {
                     writeln!(s, "None")?;
                 }
@@ -303,7 +303,7 @@ impl ToString for Config {
             writeln!(s, "ControllerIndex = {}", self.controller_index)?;
 
             for input in Input::iter() {
-                write!(s, "{:?} = ", input)?;
+                write!(s, "{input:?} = ")?;
 
                 if let Some(buttons) = self.controller_bindings.get(&input) {
                     let buttons_string = buttons
@@ -311,7 +311,7 @@ impl ToString for Config {
                         .map(|button| -> &'static str { button.into() })
                         .join(",");
 
-                    writeln!(s, "{}", buttons_string)?;
+                    writeln!(s, "{buttons_string}")?;
                 } else {
                     writeln!(s, "None")?;
                 }

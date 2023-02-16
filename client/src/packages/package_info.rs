@@ -89,8 +89,7 @@ impl PackageInfo {
         if let Some(ids) = dependency_table.get(key).and_then(Value::as_array) {
             self.requirements.extend(
                 ids.iter()
-                    .map(|id| id.as_str())
-                    .flatten()
+                    .flat_map(|id| id.as_str())
                     .map(|id| (category, id.into())),
             )
         }
@@ -107,15 +106,15 @@ impl PackageInfo {
         if let Some(list) = defines_table.get(key).and_then(Value::as_array) {
             self.child_id_path_pairs.extend(
                 list.iter()
-                    .map(|table| Some((table.get("id")?.as_str()?, table.get("path")?.as_str()?)))
-                    .flatten()
+                    .flat_map(|table| {
+                        Some((table.get("id")?.as_str()?, table.get("path")?.as_str()?))
+                    })
                     .map(|(id, path)| (id.into(), self.base_path.clone() + path)),
             );
 
             self.requirements.extend(
                 list.iter()
-                    .map(|table| table.get("id")?.as_str())
-                    .flatten()
+                    .flat_map(|table| table.get("id")?.as_str())
                     .map(|id| (category, id.into())),
             );
         }

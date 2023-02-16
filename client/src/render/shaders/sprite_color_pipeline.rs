@@ -191,7 +191,7 @@ impl<'a> SpriteColorQueue<'a> {
         let updated_color_mode = self.color_mode != self.previous_color_mode;
         let requires_shader_change = updated_shader_effect || updated_color_mode;
 
-        let palette_ptr = self.palette.as_ref().map(|p| Arc::as_ptr(p));
+        let palette_ptr = self.palette.as_ref().map(Arc::as_ptr);
         let updated_palette = palette_ptr != self.previous_palette_ptr;
         let updated_uniforms = requires_shader_change || self.updated_camera || updated_palette;
 

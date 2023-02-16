@@ -290,10 +290,10 @@ impl BattleAnimator {
         reversed: bool,
         time: FrameTime,
     ) {
-        let state_differs = self.current_state() != Some(&state);
+        let state_differs = self.current_state() != Some(state);
 
         if state_differs {
-            pending_callbacks.extend(self.set_state(&state));
+            pending_callbacks.extend(self.set_state(state));
         }
 
         let resync_required =

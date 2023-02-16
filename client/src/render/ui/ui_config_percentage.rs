@@ -56,7 +56,7 @@ impl UiConfigPercentage {
     }
 
     fn generate_value_text(level: u8) -> String {
-        format!("{}%", level)
+        format!("{level}%")
     }
 }
 

@@ -294,7 +294,7 @@ impl NetplayInitScene {
                     .map(|(category, id, hash)| (category, PackageId::from(id), hash))
                     .filter(|(category, id, hash)| {
                         globals
-                            .package_or_fallback_info(*category, PackageNamespace::Server, &id)
+                            .package_or_fallback_info(*category, PackageNamespace::Server, id)
                             .map(|package_info| package_info.hash != *hash) // hashes differ
                             .unwrap_or(true) // non existent
                     })
@@ -315,10 +315,8 @@ impl NetplayInitScene {
                 self.missing_packages
                     .extend(missing_packages.iter().cloned());
 
-                if missing_packages.is_empty() {
-                    if self.received_every_zip() {
-                        self.broadcast_ready();
-                    }
+                if missing_packages.is_empty() && self.received_every_zip() {
+                    self.broadcast_ready();
                 }
 
                 // request missing packages, even if that list is empty
@@ -440,7 +438,7 @@ impl NetplayInitScene {
 
             if let Some(connection) = connection {
                 if let Some(send) = connection.send.as_ref() {
-                    send(packet.clone());
+                    send(packet);
                 }
             }
         }

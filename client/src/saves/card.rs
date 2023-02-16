@@ -197,7 +197,7 @@ impl Card {
         // limit
         label.font_style = FontStyle::Wide;
         label.bounds.set_position(LIMIT_OFFSET + position);
-        let text = format!("{:>2}", limit);
+        let text = format!("{limit:>2}");
         label.color = Color::from((247, 214, 99, 255));
         label.draw(game_io, sprite_queue, &text);
 

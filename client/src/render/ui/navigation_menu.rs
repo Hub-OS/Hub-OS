@@ -115,7 +115,7 @@ impl NavigationMenu {
             .collect();
 
         // info sprite
-        let mut info_sprite = menu_sprite.clone();
+        let mut info_sprite = menu_sprite;
         animator.set_state("INFO");
         animator.apply(&mut info_sprite);
 
@@ -155,7 +155,7 @@ impl NavigationMenu {
         }
     }
 
-    pub fn as_overlay(mut self, closeable: bool) -> Self {
+    pub fn into_overlay(mut self, closeable: bool) -> Self {
         self.overlay = closeable;
         self.open_state = if closeable {
             OpenState::Closed

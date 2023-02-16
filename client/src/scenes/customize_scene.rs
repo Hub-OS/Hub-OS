@@ -81,7 +81,7 @@ impl CustomizeScene {
         let mut packages: Vec<_> = globals
             .block_packages
             .packages_with_fallthrough(PackageNamespace::Server)
-            .map(|package| {
+            .flat_map(|package| {
                 package
                     .block_colors
                     .iter()
@@ -92,7 +92,6 @@ impl CustomizeScene {
                         color,
                     })
             })
-            .flatten()
             .filter(|compact_package_info| {
                 // only include blocks that are not already on the grid
                 !blocks.iter().any(|block| {

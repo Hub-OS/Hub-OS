@@ -18,7 +18,7 @@ impl AttackBox {
             team: entity.team,
             x,
             y,
-            props: spell.hit_props,
+            props: spell.hit_props.clone(),
             highlight: spell.requested_highlight == TileHighlight::Automatic,
         }
     }

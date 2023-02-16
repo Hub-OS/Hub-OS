@@ -372,8 +372,7 @@ impl IconRow {
     fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a PackageId>) -> Self {
         let player_packages = &game_io.resource::<Globals>().unwrap().player_packages;
         let compact_package_data = package_ids
-            .map(|id| player_packages.package_or_fallback(PackageNamespace::Server, id))
-            .flatten()
+            .flat_map(|id| player_packages.package_or_fallback(PackageNamespace::Server, id))
             .map(|package| CompactPackageInfo {
                 package_id: package.package_info.id.clone(),
                 name: package.name.clone(),
@@ -442,7 +441,7 @@ impl IconRow {
             }
 
             sprite.set_position(offset);
-            sprite_queue.draw_sprite(&sprite);
+            sprite_queue.draw_sprite(sprite);
 
             offset.x += ICON_X_OFFSET;
         }

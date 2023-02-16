@@ -163,7 +163,7 @@ impl FormActivateState {
         }
 
         for id in relevant_ids {
-            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
+            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id) else {
                 continue;
             };
 
@@ -257,7 +257,7 @@ fn has_pending_activations(simulation: &mut BattleSimulation) -> bool {
         }
     }
 
-    return false;
+    false
 }
 
 fn set_relevant_color(entities: &mut hecs::World, color: Color) {

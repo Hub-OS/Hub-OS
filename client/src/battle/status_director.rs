@@ -40,7 +40,7 @@ struct AppliedStatus {
     lifetime: FrameTime,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct StatusDirector {
     statuses: Vec<AppliedStatus>,
     new_statuses: Vec<AppliedStatus>,
@@ -49,20 +49,6 @@ pub struct StatusDirector {
     dragged: bool,
     remaining_drag_lockout: FrameTime,
     remaining_shake_time: FrameTime,
-}
-
-impl Default for StatusDirector {
-    fn default() -> Self {
-        Self {
-            statuses: Vec::new(),
-            new_statuses: Vec::new(),
-            status_sprites: Vec::new(),
-            input_index: None,
-            dragged: false,
-            remaining_drag_lockout: 0,
-            remaining_shake_time: 0,
-        }
-    }
 }
 
 impl StatusDirector {
@@ -216,7 +202,7 @@ impl StatusDirector {
         }
 
         animator.sync_time(lifetime);
-        sprite_node.apply_animation(&animator);
+        sprite_node.apply_animation(animator);
         sprite_node.set_offset(HitFlag::status_sprite_position(status_flag, entity.height));
         sprite_node.set_alpha(alpha);
     }

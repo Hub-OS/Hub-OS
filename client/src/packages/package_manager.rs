@@ -283,11 +283,11 @@ impl<T: Package> PackageManager<T> {
         Some(hash)
     }
 
-    fn internal_load_package<'a>(
-        &'a mut self,
+    fn internal_load_package(
+        &mut self,
         package_info: PackageInfo,
         package_table: toml::Table,
-    ) -> Option<&'a PackageInfo> {
+    ) -> Option<&PackageInfo> {
         let package = T::load_new(package_info, package_table);
 
         let package_info = package.package_info();
@@ -301,13 +301,10 @@ impl<T: Package> PackageManager<T> {
             return None;
         }
 
-        if !self.package_maps.contains_key(&package_info.namespace) {
-            // no idea why i couldn't write this with a match expression
-            self.package_maps
-                .insert(package_info.namespace, HashMap::new());
-        }
-
-        let packages = self.package_maps.get_mut(&package_info.namespace).unwrap();
+        let packages = self
+            .package_maps
+            .entry(package_info.namespace)
+            .or_insert_with(|| HashMap::new());
 
         if packages.contains_key(&package_id) {
             log::error!("Duplicate package_id {:?}", package_id);

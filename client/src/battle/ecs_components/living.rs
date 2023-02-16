@@ -159,7 +159,7 @@ impl Living {
         }
 
         for callback in hit_callbacks {
-            callback.call(game_io, simulation, vms, hit_props);
+            callback.call(game_io, simulation, vms, hit_props.clone());
         }
     }
 }

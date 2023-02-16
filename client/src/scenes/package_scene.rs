@@ -44,7 +44,7 @@ impl PackageScene {
         let assets = &globals.assets;
 
         // layout
-        let mut animator = Animator::load_new(assets, &ResourcePaths::PACKAGE_LAYOUT_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_LAYOUT_ANIMATION);
         animator.set_state("DEFAULT");
 
         let preview_position = animator.point("PREVIEW").unwrap_or_default();
@@ -102,8 +102,8 @@ impl PackageScene {
         let mut style = TextStyle::new(game_io, FontStyle::Thin);
         style.bounds = list.list_bounds();
 
-        let push_text = |children: &mut Vec<Box<dyn UiNode>>, text: &str| {
-            let ranges = style.measure(&text).line_ranges;
+        let push_text = |children: &mut Vec<Box<dyn UiNode + 'static>>, text: &str| {
+            let ranges = style.measure(text).line_ranges;
 
             for range in ranges {
                 children.push(Box::new(
@@ -112,13 +112,14 @@ impl PackageScene {
             }
         };
 
-        let push_blank = |children: &mut Vec<Box<dyn UiNode>>| {
+        let push_blank = |children: &mut Vec<Box<dyn UiNode + 'static>>| {
             children.push(Box::new(()));
         };
 
         let mut children: Vec<Box<dyn UiNode>> = Vec::new();
         push_text(&mut children, &listing.name);
 
+        #[allow(clippy::single_match)]
         match &listing.preview_data {
             PackagePreviewData::Card { codes, .. } => {
                 if !codes.is_empty() {
@@ -135,7 +136,7 @@ impl PackageScene {
         }
 
         push_blank(&mut children);
-        push_text(&mut children, &format!("Author: {}", author));
+        push_text(&mut children, &format!("Author: {author}"));
 
         children
     }
@@ -182,12 +183,12 @@ impl PackageScene {
 
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
-        let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
+        let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let button_style = UiStyle {
             margin_top: Dimension::Auto,
             margin_right: Dimension::Points(2.0),
-            nine_patch: Some(button_9patch.clone()),
+            nine_patch: Some(button_9patch),
             ..Default::default()
         };
 

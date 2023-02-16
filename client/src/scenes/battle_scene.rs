@@ -99,25 +99,7 @@ impl BattleScene {
         }
 
         // load the players in the correct order
-        for setup in props.player_setups.iter_mut() {
-            // shuffle cards
-            setup.folder.shuffle(&mut scene.simulation.rng);
-
-            let result = scene.simulation.load_player(
-                game_io,
-                &scene.vms,
-                &setup.player_package.package_info.id,
-                setup.player_package.package_info.namespace,
-                setup.index,
-                setup.local,
-                std::mem::take(&mut setup.folder.cards),
-                std::mem::take(&mut setup.blocks),
-            );
-
-            if let Err(e) = result {
-                log::error!("{e}");
-            }
-
+        for mut setup in props.player_setups {
             if setup.local {
                 scene.local_index = setup.index;
             }
@@ -125,6 +107,15 @@ impl BattleScene {
             if let Some(remote_controller) = scene.player_controllers.get_mut(setup.index) {
                 remote_controller.input_buffer = std::mem::take(&mut setup.input_buffer);
                 remote_controller.connected = true;
+            }
+
+            // shuffle cards
+            setup.folder.shuffle(&mut scene.simulation.rng);
+
+            let result = scene.simulation.load_player(game_io, &scene.vms, setup);
+
+            if let Err(e) = result {
+                log::error!("{e}");
             }
         }
 
@@ -256,10 +247,7 @@ impl BattleScene {
                     }
 
                     // convert input
-                    let pressed: Vec<_> = pressed
-                        .into_iter()
-                        .flat_map(|input| Input::from_u8(input))
-                        .collect();
+                    let pressed: Vec<_> = pressed.into_iter().flat_map(Input::from_u8).collect();
 
                     if let Some(input) = self.simulation.inputs.get(index) {
                         if !input.matches(&pressed) {
@@ -377,7 +365,7 @@ impl BattleScene {
                 let _ = write!(&mut file, "(");
 
                 for t in archetype.component_types() {
-                    let _ = write!(&mut file, "{:?}, ", t);
+                    let _ = write!(&mut file, "{t:?}, ");
                 }
 
                 let _ = write!(&mut file, "), ");

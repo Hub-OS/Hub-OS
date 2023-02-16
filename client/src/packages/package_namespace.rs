@@ -51,12 +51,10 @@ impl PartialOrd for PackageNamespace {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (PackageNamespace::Local, PackageNamespace::Server | PackageNamespace::Remote(_))
-            | (PackageNamespace::Server, PackageNamespace::Remote(_)) => {
-                return Some(Ordering::Less);
-            }
+            | (PackageNamespace::Server, PackageNamespace::Remote(_)) => Some(Ordering::Less),
             (PackageNamespace::Server, PackageNamespace::Local)
             | (PackageNamespace::Remote(_), PackageNamespace::Local | PackageNamespace::Server) => {
-                return Some(Ordering::Greater);
+                Some(Ordering::Greater)
             }
             _ => Some(Ordering::Equal),
         }

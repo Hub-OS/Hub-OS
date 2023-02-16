@@ -319,12 +319,10 @@ impl ScrollTracker {
     pub fn move_up(&mut self) {
         let new_index = if self.selected_index > 0 {
             self.selected_index - 1
+        } else if self.wrap {
+            self.total_items.max(1) - 1
         } else {
-            if self.wrap {
-                self.total_items.max(1) - 1
-            } else {
-                0
-            }
+            0
         };
 
         self.set_selected_index(new_index);

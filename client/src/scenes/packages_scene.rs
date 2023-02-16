@@ -88,7 +88,7 @@ impl PackagesScene {
         cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         // layout
-        let mut animator = Animator::load_new(assets, &ResourcePaths::PACKAGES_LAYOUT_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGES_LAYOUT_ANIMATION);
         animator.set_state("DEFAULT");
 
         let sidebar_bounds = Rect::from_corners(
@@ -167,7 +167,7 @@ impl PackagesScene {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
-        let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
+        let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let option_style = UiStyle {
             margin_bottom: Dimension::Points(0.0),

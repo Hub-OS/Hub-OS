@@ -62,10 +62,10 @@ impl Transition for FadeTransition {
 
         // render the target with changing transparency
         let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
-        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline();
 
         let mut sprite_queue =
-            SpriteQueue::new(game_io, &render_pipeline, [self.camera.as_binding()]);
+            SpriteQueue::new(game_io, render_pipeline, [self.camera.as_binding()]);
 
         let mut sprite_a = Sprite::new(game_io, prev_scene_target.texture().clone());
         sprite_a.set_size(Vec2::ONE);

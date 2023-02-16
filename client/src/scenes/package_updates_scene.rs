@@ -129,12 +129,12 @@ impl PackageUpdatesScene {
 
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
-        let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
+        let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let button_style = UiStyle {
             margin_top: Dimension::Auto,
             margin_right: Dimension::Points(2.0),
-            nine_patch: Some(button_9patch.clone()),
+            nine_patch: Some(button_9patch),
             ..Default::default()
         };
 
@@ -307,7 +307,7 @@ impl Scene for PackageUpdatesScene {
                     return false;
                 };
 
-                return package_info.hash != *hash;
+                package_info.hash != *hash
             })
             .collect();
 

@@ -591,7 +591,7 @@ impl CardSelectState {
 
         if input.was_just_pressed(Input::Confirm) {
             // select form
-            if let Some((index, _)) = player.available_forms().skip(selection.form_row).next() {
+            if let Some((index, _)) = player.available_forms().nth(selection.form_row) {
                 if selection.selected_form_index == Some(index) {
                     // deselect the form if the player reselected it
                     selection.selected_form_index = None;
@@ -991,19 +991,21 @@ fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> Ca
         }
     }
 
-    if same_package_id && code_restriction.is_some() {
-        if !same_code {
-            return CardRestriction::Package(first_package_id.unwrap());
-        } else {
-            return CardRestriction::Mixed {
-                package_id: first_package_id.unwrap(),
-                code: code_restriction.unwrap(),
-            };
+    if let Some(code) = code_restriction {
+        if same_package_id {
+            if !same_code {
+                return CardRestriction::Package(first_package_id.unwrap());
+            } else {
+                return CardRestriction::Mixed {
+                    package_id: first_package_id.unwrap(),
+                    code,
+                };
+            }
         }
-    }
 
-    if same_code && code_restriction.is_some() {
-        return CardRestriction::Code(code_restriction.unwrap());
+        if same_code {
+            return CardRestriction::Code(code);
+        }
     }
 
     CardRestriction::Any

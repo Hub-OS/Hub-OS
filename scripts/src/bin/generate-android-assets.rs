@@ -4,7 +4,7 @@ fn main() -> ExitCode {
     let android_assets_path = "cache/android_assets";
     let zip_path = String::from(android_assets_path) + "/resources.zip";
 
-    std::fs::create_dir_all(&android_assets_path).unwrap();
+    std::fs::create_dir_all(android_assets_path).unwrap();
 
     // linux only for now
     let zip_output = Command::new("zip")

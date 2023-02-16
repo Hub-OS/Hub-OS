@@ -56,7 +56,7 @@ where
 
         let root_path = path;
 
-        let entry_iter = WalkDir::new(&path)
+        let entry_iter = WalkDir::new(path)
             .into_iter()
             .flatten()
             .sorted_by_cached_key(|entry| entry.path().to_path_buf());

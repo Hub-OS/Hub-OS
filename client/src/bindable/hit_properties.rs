@@ -1,6 +1,6 @@
 use crate::bindable::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct HitProperties {
     pub damage: i32,
     pub flags: HitFlags,

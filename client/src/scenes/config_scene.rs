@@ -133,7 +133,7 @@ impl ConfigScene {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
-        let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
+        let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let option_style = UiStyle {
             margin_bottom: Dimension::Points(0.0),
@@ -180,9 +180,9 @@ impl ConfigScene {
         match category {
             ConfigCategory::Video => Self::generate_video_menu(config),
             ConfigCategory::Audio => Self::generate_audio_menu(config),
-            ConfigCategory::Keyboard => Self::generate_keyboard_menu(config, &event_sender),
-            ConfigCategory::Gamepad => Self::generate_controller_menu(config, &event_sender),
-            ConfigCategory::Misc => Self::generate_misc_menu(game_io, &event_sender),
+            ConfigCategory::Keyboard => Self::generate_keyboard_menu(config, event_sender),
+            ConfigCategory::Gamepad => Self::generate_controller_menu(config, event_sender),
+            ConfigCategory::Misc => Self::generate_misc_menu(game_io, event_sender),
         }
     }
 
@@ -210,7 +210,7 @@ impl ConfigScene {
                     let window = game_io.window_mut();
 
                     if config.lock_aspect_ratio {
-                        window.lock_resolution(TRUE_RESOLUTION.into());
+                        window.lock_resolution(TRUE_RESOLUTION);
                     } else {
                         window.unlock_resolution()
                     }
@@ -552,7 +552,7 @@ impl ConfigScene {
                             let Some(package_info) = globals.package_or_fallback_info(
                                 *category,
                                 PackageNamespace::Local,
-                                &id,
+                                id,
                             ) else {
                                 return false;
                             };
@@ -620,7 +620,7 @@ impl ConfigScene {
                         window.set_fullscreen(fullscreen);
 
                         if lock_aspect_ratio {
-                            window.lock_resolution(TRUE_RESOLUTION.into());
+                            window.lock_resolution(TRUE_RESOLUTION);
                         } else {
                             window.unlock_resolution();
                         }

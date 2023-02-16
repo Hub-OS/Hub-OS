@@ -24,7 +24,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
             let entities = &mut api_ctx.simulation.entities;
             let player = entities
                 .query_one_mut::<&mut Player>(entity_id.into())
-                .or_else(|_| Err(entity_not_found()))?;
+                .map_err(|_| entity_not_found())?;
 
             let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
 
@@ -124,7 +124,7 @@ fn callback_setter<G, P, F, R>(
         let entities = &mut api_ctx.simulation.entities;
         let player = entities
             .query_one_mut::<&mut Player>(entity_id.into())
-            .or_else(|_| Err(entity_not_found()))?;
+            .map_err(|_| entity_not_found())?;
 
         let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
 

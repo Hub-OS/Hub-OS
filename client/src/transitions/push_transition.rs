@@ -70,10 +70,10 @@ impl Transition for PushTransition {
 
         // render transition
         let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
-        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline();
 
         let mut sprite_queue =
-            SpriteQueue::new(game_io, &render_pipeline, [self.camera.as_binding()])
+            SpriteQueue::new(game_io, render_pipeline, [self.camera.as_binding()])
                 .with_inverted_y(true);
 
         let mut sprite_a = Sprite::new(game_io, target_a.texture().clone());

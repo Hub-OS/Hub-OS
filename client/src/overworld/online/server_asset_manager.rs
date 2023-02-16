@@ -155,7 +155,7 @@ impl ServerAssetManager {
             None => return,
         };
 
-        let _ = fs::remove_file(&asset.local_path);
+        let _ = fs::remove_file(asset.local_path);
     }
 
     pub fn store_asset(&self, remote_path: String, last_modified: u64, data: Vec<u8>, write: bool) {

@@ -6,10 +6,10 @@ use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BlockGrid, Card};
+use crate::saves::{BlockGrid, Card, Folder};
 use framework::prelude::*;
 use generational_arena::Arena;
-use packets::structures::{BattleStatistics, InstalledBlock};
+use packets::structures::BattleStatistics;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
@@ -144,12 +144,12 @@ impl BattleSimulation {
         }
 
         Self {
-            battle_started: self.battle_started.clone(),
+            battle_started: self.battle_started,
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
             rng: self.rng.clone(),
-            time: self.time.clone(),
-            battle_time: self.battle_time.clone(),
+            time: self.time,
+            battle_time: self.battle_time,
             camera: self.camera.clone(game_io),
             background: self.background.clone(),
             fade_sprite: self.fade_sprite.clone(),
@@ -158,19 +158,19 @@ impl BattleSimulation {
             entities,
             generation_tracking: self.generation_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
-            defense_judge: self.defense_judge.clone(),
+            defense_judge: self.defense_judge,
             animators: self.animators.clone(),
             card_actions: self.card_actions.clone(),
             time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
-            local_player_id: self.local_player_id.clone(),
+            local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             player_spawn_positions: self.player_spawn_positions.clone(),
-            perspective_flipped: self.perspective_flipped.clone(),
-            intro_complete: self.intro_complete.clone(),
-            is_resimulation: self.is_resimulation.clone(),
-            exit: self.exit.clone(),
+            perspective_flipped: self.perspective_flipped,
+            intro_complete: self.intro_complete,
+            is_resimulation: self.is_resimulation,
+            exit: self.exit,
         }
     }
 
@@ -634,7 +634,7 @@ impl BattleSimulation {
     }
 
     fn create_entity(&mut self, game_io: &GameIO) -> EntityId {
-        let id: EntityId = self.reserve_entity().into();
+        let id: EntityId = self.reserve_entity();
 
         let mut animator = BattleAnimator::new();
         animator.set_target(id, GenerationalIndex::tree_root());
@@ -771,7 +771,7 @@ impl BattleSimulation {
                 }
             }
 
-            return true;
+            true
         });
 
         entity.delete_callback = BattleCallback::new(move |_, simulation, _, _| {
@@ -785,13 +785,17 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
-        package_id: &PackageId,
-        package_namespace: PackageNamespace,
-        index: usize,
-        local: bool,
-        cards: Vec<Card>,
-        blocks: Vec<InstalledBlock>,
+        setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
+        let PlayerSetup {
+            player_package,
+            index,
+            local,
+            folder: Folder { cards, .. },
+            blocks,
+            ..
+        } = setup;
+
         // namespace for using cards / attacks
         let namespace = if local {
             PackageNamespace::Local
@@ -810,11 +814,6 @@ impl BattleSimulation {
         entity.pending_spawn = true;
 
         // use preloaded package properties
-        let globals = game_io.resource::<Globals>().unwrap();
-        let player_package = (globals.player_packages)
-            .package_or_fallback(package_namespace, package_id)
-            .unwrap();
-
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
         living.set_health(player_package.health);
@@ -958,7 +957,9 @@ impl BattleSimulation {
             .unwrap();
 
         // call init function
-        let vm_index = Self::find_vm(vms, package_id, package_namespace)?;
+        let package_info = &player_package.package_info;
+        let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
+
         self.call_global(game_io, vms, vm_index, "player_init", move |lua| {
             create_entity_table(lua, id)
         })?;
@@ -1377,6 +1378,7 @@ impl BattleSimulation {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 pub fn recycle_vec<'a, 'b, T: ?Sized>(mut data: Vec<&'a mut T>) -> Vec<&'b mut T> {
     data.clear();
     unsafe { std::mem::transmute(data) }

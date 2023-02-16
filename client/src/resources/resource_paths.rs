@@ -226,7 +226,7 @@ impl ResourcePaths {
     pub fn is_absolute(path_str: &str) -> bool {
         use std::path::Path;
 
-        path_str.starts_with("/") || Path::new(&path_str).is_absolute()
+        path_str.starts_with('/') || Path::new(&path_str).is_absolute()
     }
 
     pub fn absolute(path_str: &str) -> String {

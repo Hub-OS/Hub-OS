@@ -139,6 +139,7 @@ impl SpriteNode {
     }
 
     pub fn palette_path(&self) -> Option<&str> {
+        #[allow(clippy::question_mark)]
         if self.palette.is_none() {
             return None;
         }
@@ -265,7 +266,7 @@ impl Tree<SpriteNode> {
         );
     }
 
-    pub fn draw<'a>(&mut self, sprite_queue: &mut SpriteColorQueue<'a>) {
+    pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
         let intial_shader_effect = sprite_queue.shader_effect();
 
         // offset each child by parent node

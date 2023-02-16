@@ -216,7 +216,7 @@ impl Scene for FolderEditScene {
             Color::from((255, 181, 74))
         };
 
-        count_text.text = format!("{:>2}/{}", card_count, MAX_CARDS);
+        count_text.text = format!("{card_count:>2}/{MAX_CARDS}");
         count_text.draw(game_io, &mut sprite_queue);
 
         // draw docks
