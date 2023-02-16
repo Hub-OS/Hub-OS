@@ -1,10 +1,11 @@
 use crate::overworld::components::{WarpController, WarpEffect};
-use crate::overworld::{ObjectData, ObjectType, OverworldBaseEvent};
-use crate::scenes::{InitialConnectScene, OverworldSceneBase};
+use crate::overworld::{ObjectData, ObjectType, OverworldEvent};
+use crate::resources::{Globals, Network, ServerStatus};
+use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn system_warp(game_io: &GameIO, scene: &mut OverworldSceneBase) {
+pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     let player_data = &scene.player_data;
     let entities = &mut scene.entities;
     let map = &mut scene.map;
@@ -13,7 +14,7 @@ pub fn system_warp(game_io: &GameIO, scene: &mut OverworldSceneBase) {
         .query_one_mut::<(&mut Vec3, &Direction, &WarpController)>(player_data.entity)
         .unwrap();
 
-    if warp_controller.warp_entity.is_some() {
+    if warp_controller.warped_out {
         return;
     }
 
@@ -23,45 +24,75 @@ pub fn system_warp(game_io: &GameIO, scene: &mut OverworldSceneBase) {
       return;
     };
 
-    let data = map
+    let object_data = map
         .object_entities_mut()
         .query_one_mut::<&ObjectData>(entity)
         .unwrap();
 
-    if !data.object_type.is_warp() {
+    if !object_data.object_type.is_warp() {
         return;
     }
 
-    match data.object_type {
+    match object_data.object_type {
         ObjectType::CustomWarp | ObjectType::CustomServerWarp => {
-            let callback = move |_: &GameIO, scene: &mut OverworldSceneBase| {
-                let event = OverworldBaseEvent::PendingWarp { entity };
-                scene.events.push_back(event);
+            let callback = move |_: &mut GameIO, scene: &mut OverworldSceneBase| {
+                let event = OverworldEvent::PendingWarp { entity };
+                scene.event_sender.send(event).unwrap();
             };
 
             WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
         }
         ObjectType::ServerWarp => {
-            let address = data.custom_properties.get("address").to_string();
-            let data = data.custom_properties.get("data").to_string();
+            let address = object_data.custom_properties.get("address").to_string();
+            let data = object_data.custom_properties.get("data").to_string();
             let data = if data.is_empty() { None } else { Some(data) };
+            let direction: Direction = object_data.custom_properties.get("direction").into();
 
-            let callback = move |game_io: &GameIO, scene: &mut OverworldSceneBase| {
-                // todo: use push and fix infinite warp issues
-                let transition = crate::transitions::new_connect(game_io);
+            // begin poll task
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+            let subscription = globals.network.subscribe_to_server(address.clone());
 
-                scene.next_scene =
-                    NextScene::new_swap(InitialConnectScene::new(game_io, address, data, false))
-                        .with_transition(transition);
+            let poll_task = game_io.spawn_local_task(async move {
+                let Some((send, receiver)) = subscription.await else {
+                    return false
+                };
+
+                Network::poll_server(&send, &receiver).await == ServerStatus::Online
+            });
+
+            let callback = move |game_io: &mut GameIO, scene: &mut OverworldSceneBase| {
+                let event_sender = scene.event_sender.clone();
+                let player_entity = scene.player_data.entity;
+
+                game_io
+                    .spawn_local_task(async move {
+                        let events = if poll_task.await {
+                            vec![OverworldEvent::TransferServer { address, data }]
+                        } else {
+                            let message = String::from("Looks like the next area is offline...");
+                            vec![
+                                OverworldEvent::SystemMessage { message },
+                                OverworldEvent::WarpIn {
+                                    target_entity: player_entity,
+                                    direction,
+                                },
+                            ]
+                        };
+
+                        for event in events {
+                            event_sender.send(event).unwrap();
+                        }
+                    })
+                    .detach();
             };
 
             WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
         }
         ObjectType::PositionWarp => {
             let target_position = Vec3::new(
-                data.custom_properties.get_f32("x"),
-                data.custom_properties.get_f32("y"),
-                data.custom_properties.get_f32("z"),
+                object_data.custom_properties.get_f32("x"),
+                object_data.custom_properties.get_f32("y"),
+                object_data.custom_properties.get_f32("z"),
             );
 
             WarpEffect::warp_full(
@@ -74,7 +105,7 @@ pub fn system_warp(game_io: &GameIO, scene: &mut OverworldSceneBase) {
             );
         }
         ObjectType::HomeWarp => {
-            let callback = |game_io: &GameIO, scene: &mut OverworldSceneBase| {
+            let callback = |game_io: &mut GameIO, scene: &mut OverworldSceneBase| {
                 let transition = crate::transitions::new_connect(game_io);
                 scene.next_scene = NextScene::new_pop().with_transition(transition);
             };

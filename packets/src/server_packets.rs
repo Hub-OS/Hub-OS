@@ -10,7 +10,6 @@ pub enum ServerPacket {
     VersionInfo {
         version_id: String,
         version_iteration: u64,
-        max_payload_size: u16,
     },
     Heartbeat,
     Authorize {
@@ -268,11 +267,10 @@ pub enum ServerPacket {
 }
 
 impl ServerPacket {
-    pub fn new_version_info(max_payload_size: u16) -> Self {
+    pub fn new_version_info() -> Self {
         ServerPacket::VersionInfo {
             version_id: VERSION_ID.to_string(),
             version_iteration: VERSION_ITERATION,
-            max_payload_size,
         }
     }
 

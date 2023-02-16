@@ -342,7 +342,7 @@ impl<T: Package> PackageManager<T> {
             .base_path
             .starts_with(ResourcePaths::VIRTUAL_PREFIX);
 
-        if is_virtual {
+        if is_virtual && package_info.hash != FileHash::ZERO {
             assets.remove_virtual_zip_use(&package_info.hash);
         }
     }
@@ -360,7 +360,7 @@ impl<T: Package> PackageManager<T> {
                 .base_path
                 .starts_with(ResourcePaths::VIRTUAL_PREFIX);
 
-            if is_virtual {
+            if is_virtual && package_info.hash != FileHash::ZERO {
                 assets.remove_virtual_zip_use(&package_info.hash);
             }
         }

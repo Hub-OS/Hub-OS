@@ -22,6 +22,7 @@ pub enum WarpType {
 /// Attaches to the actor
 #[derive(Default)]
 pub struct WarpController {
+    pub warped_out: bool,
     pub walk_timer: Option<FrameTime>,
     pub warp_entity: Option<hecs::Entity>,
 }
@@ -31,15 +32,15 @@ pub struct WarpEffect {
     pub actor_entity: hecs::Entity,
     pub warp_type: WarpType,
     pub last_frame: Option<usize>,
-    pub callback: Option<Box<dyn FnOnce(&GameIO, &mut OverworldSceneBase) + Send + Sync>>,
+    pub callback: Option<Box<dyn FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync>>,
 }
 
 impl WarpEffect {
     pub fn spawn(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         base_scene: &mut OverworldSceneBase,
         target_entity: hecs::Entity,
-        callback: Box<dyn FnOnce(&GameIO, &mut OverworldSceneBase) + Send + Sync>,
+        callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync>,
         warp_type: WarpType,
     ) -> hecs::Entity {
         let position = *base_scene
@@ -90,15 +91,16 @@ impl WarpEffect {
             .unwrap();
 
         warp_controller.warp_entity = Some(warp_entity);
+        warp_controller.warped_out = true;
 
         warp_entity
     }
 
     pub fn warp_out(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         base_scene: &mut OverworldSceneBase,
         target_entity: hecs::Entity,
-        callback: impl FnOnce(&GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
     ) -> hecs::Entity {
         Self::spawn(
             game_io,
@@ -110,12 +112,12 @@ impl WarpEffect {
     }
 
     pub fn warp_in(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         base_scene: &mut OverworldSceneBase,
         target_entity: hecs::Entity,
         position: Vec3,
         direction: Direction,
-        callback: impl FnOnce(&GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
     ) -> hecs::Entity {
         Self::spawn(
             game_io,
@@ -130,12 +132,12 @@ impl WarpEffect {
     }
 
     pub fn warp_full(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         base_scene: &mut OverworldSceneBase,
         target_entity: hecs::Entity,
         position: Vec3,
         direction: Direction,
-        callback: impl FnOnce(&GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
     ) -> hecs::Entity {
         Self::spawn(
             game_io,

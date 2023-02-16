@@ -4,53 +4,6 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use packets::{ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE};
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-enum ServerStatus {
-    Pending,
-    Online,
-    Offline,
-    TooOld,
-    TooNew,
-    Incompatible,
-    InvalidAddress,
-}
-
-impl ServerStatus {
-    fn state(self) -> &'static str {
-        match self {
-            ServerStatus::Pending => "PENDING",
-            ServerStatus::Online => "ONLINE",
-            ServerStatus::Offline => "OFFLINE",
-            ServerStatus::TooOld
-            | ServerStatus::TooNew
-            | ServerStatus::Incompatible
-            | ServerStatus::InvalidAddress => "ERROR",
-        }
-    }
-
-    fn create_message(self, server_name: &str) -> Option<String> {
-        let message = match self {
-            ServerStatus::Online | ServerStatus::Pending => {
-                return None;
-            }
-            ServerStatus::Offline => format!("{server_name} is offline."),
-            ServerStatus::TooOld => {
-                format!("{server_name} is too behind. We'll need to downgrade to connect.")
-            }
-            ServerStatus::TooNew => {
-                format!("{server_name} is too ahead. We'll need to update to connect.")
-            }
-            ServerStatus::Incompatible => format!("{server_name} is incompatible."),
-            ServerStatus::InvalidAddress => {
-                format!("I couldn't understand the address for {server_name}.")
-            }
-        };
-
-        Some(message)
-    }
-}
 
 #[derive(Clone, Copy)]
 enum MenuOption {
@@ -70,7 +23,7 @@ pub struct ServerListScene {
     scrollable_frame: ScrollableFrame,
     status_animator: Animator,
     status_sprite: Sprite,
-    statuses: Vec<(String, ServerStatus)>, // address, statuses
+    statuses: Vec<(String, Option<ServerStatus>)>, // address, statuses
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
     context_menu: ContextMenu<MenuOption>,
@@ -140,6 +93,46 @@ impl ServerListScene {
         })
     }
 
+    fn status_state(status: Option<ServerStatus>) -> &'static str {
+        let Some(status) = status else {
+            return "PENDING";
+        };
+
+        match status {
+            ServerStatus::Online => "ONLINE",
+            ServerStatus::Offline => "OFFLINE",
+            ServerStatus::TooOld
+            | ServerStatus::TooNew
+            | ServerStatus::Incompatible
+            | ServerStatus::InvalidAddress => "ERROR",
+        }
+    }
+
+    fn create_message(status: Option<ServerStatus>, server_name: &str) -> Option<String> {
+        let Some(status) = status else {
+            return None;
+        };
+
+        let message = match status {
+            ServerStatus::Online => {
+                return None;
+            }
+            ServerStatus::Offline => format!("{server_name} is offline."),
+            ServerStatus::TooOld => {
+                format!("{server_name} is too behind. We'll need to downgrade to connect.")
+            }
+            ServerStatus::TooNew => {
+                format!("{server_name} is too ahead. We'll need to update to connect.")
+            }
+            ServerStatus::Incompatible => format!("{server_name} is incompatible."),
+            ServerStatus::InvalidAddress => {
+                format!("I couldn't understand the address for {server_name}.")
+            }
+        };
+
+        Some(message)
+    }
+
     fn update_server_list(&mut self, game_io: &mut GameIO) {
         use packets::address_parsing::strip_data;
 
@@ -153,8 +146,7 @@ impl ServerListScene {
                 Some((address, _)) => address,
                 None => {
                     // status list is shorter, just need to append
-                    self.statuses
-                        .push((new_address.clone(), ServerStatus::Pending));
+                    self.statuses.push((new_address.clone(), None));
                     continue;
                 }
             };
@@ -163,7 +155,7 @@ impl ServerListScene {
                 continue;
             }
 
-            self.statuses[i] = (new_address.clone(), ServerStatus::Pending);
+            self.statuses[i] = (new_address.clone(), None);
         }
 
         self.scroll_tracker.set_total_items(self.statuses.len());
@@ -179,7 +171,7 @@ impl ServerListScene {
         let next_address = &self
             .statuses
             .iter()
-            .find(|(_, status)| *status == ServerStatus::Pending)
+            .find(|(_, status)| status.is_none())
             .map(|(address, _)| address.clone());
 
         if let Some(address) = next_address.clone() {
@@ -192,39 +184,7 @@ impl ServerListScene {
                     None => return ServerStatus::InvalidAddress,
                 };
 
-                while !receiver.is_disconnected() {
-                    send(Reliability::Unreliable, ClientPacket::VersionRequest);
-
-                    async_sleep(SERVER_TICK_RATE).await;
-
-                    let response = match receiver.try_recv() {
-                        Ok(response) => response,
-                        _ => continue,
-                    };
-
-                    let (version_id, version_iteration) = match response {
-                        ServerPacket::VersionInfo {
-                            version_id,
-                            version_iteration,
-                            ..
-                        } => (version_id, version_iteration),
-                        _ => continue,
-                    };
-
-                    if version_id != packets::VERSION_ID {
-                        return ServerStatus::Incompatible;
-                    }
-
-                    if version_iteration > packets::VERSION_ITERATION {
-                        return ServerStatus::TooNew;
-                    } else if version_iteration < packets::VERSION_ITERATION {
-                        return ServerStatus::TooOld;
-                    }
-
-                    return ServerStatus::Online;
-                }
-
-                ServerStatus::Offline
+                Network::poll_server(&send, &receiver).await
             });
 
             self.active_poll_task = Some((address, task));
@@ -250,8 +210,8 @@ impl ServerListScene {
         let address = strip_data(&address);
 
         for (stored_address, stored_status) in &mut self.statuses {
-            if strip_data(stored_address) == address && *stored_status == ServerStatus::Pending {
-                *stored_status = status;
+            if strip_data(stored_address) == address && stored_status.is_none() {
+                *stored_status = Some(status);
             }
         }
 
@@ -430,7 +390,7 @@ impl Scene for ServerListScene {
 
                 let (_, status) = &self.statuses[self.scroll_tracker.selected_index()];
 
-                if matches!(status, ServerStatus::Pending | ServerStatus::Online) {
+                if matches!(status, None | Some(ServerStatus::Online)) {
                     // play join sfx
                     globals.audio.push_music_stack();
                     globals.audio.play_sound(&globals.transmission_sfx);
@@ -444,7 +404,7 @@ impl Scene for ServerListScene {
                 }
 
                 // see if there's a message to display
-                if let Some(message) = status.create_message(server_name) {
+                if let Some(message) = Self::create_message(*status, server_name) {
                     let textbox_interface = TextboxMessage::new(message);
                     self.textbox.push_interface(textbox_interface);
                     self.textbox.open();
@@ -499,7 +459,7 @@ impl Scene for ServerListScene {
             text_style.draw(game_io, &mut sprite_queue, name);
 
             // draw status indicator
-            self.status_animator.set_state(status.state());
+            self.status_animator.set_state(Self::status_state(*status));
             self.status_animator.set_loop_mode(AnimatorLoopMode::Loop);
             self.status_animator
                 .sync_time(self.time - i as FrameTime * 3);

@@ -245,7 +245,7 @@ impl Server {
                     self.packet_orchestrator.borrow_mut().send(
                         socket_address,
                         Reliability::Reliable,
-                        ServerPacket::new_version_info(self.config.max_payload_size),
+                        ServerPacket::new_version_info(),
                     );
                 }
                 ClientPacket::Heartbeat => {}
@@ -494,7 +494,7 @@ impl Server {
                     self.packet_orchestrator.borrow_mut().send(
                         socket_address,
                         Reliability::Reliable,
-                        ServerPacket::new_version_info(self.config.max_payload_size),
+                        ServerPacket::new_version_info(),
                     );
                 }
                 ClientPacket::Authorize {

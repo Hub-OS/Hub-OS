@@ -7,7 +7,7 @@ const WARP_IN_REVEAL_FRAME: usize = 4;
 const WARP_OUT_HIDE_FRAME: usize = 0;
 const WALK_OUT_TIME: FrameTime = 8;
 
-pub fn system_warp_effect(game_io: &GameIO, scene: &mut OverworldSceneBase) {
+pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     let entities = &mut scene.entities;
     let map = &mut scene.map;
     let mut pending_action = Vec::new();
@@ -57,9 +57,15 @@ pub fn system_warp_effect(game_io: &GameIO, scene: &mut OverworldSceneBase) {
 
         match effect.warp_type {
             WarpType::In { direction, .. } => {
-                if handle_walk_out(map, entities, effect.actor_entity, direction) {
+                let actor_entity = effect.actor_entity;
+
+                if handle_walk_out(map, entities, actor_entity, direction) {
                     // skip deleting until the walk animation has completed
                     continue;
+                }
+
+                if let Ok(mut warp_controller) = entities.get::<&mut WarpController>(actor_entity) {
+                    warp_controller.warped_out = false;
                 }
             }
             WarpType::Out => {}
@@ -107,7 +113,10 @@ pub fn system_warp_effect(game_io: &GameIO, scene: &mut OverworldSceneBase) {
                 let (set_position, set_direction) = components;
 
                 *set_position = position;
-                *set_direction = direction;
+
+                if !direction.is_none() {
+                    *set_direction = direction;
+                }
 
                 if let Some(callback) = callback {
                     callback(game_io, scene);

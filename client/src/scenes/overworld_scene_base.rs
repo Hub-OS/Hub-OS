@@ -5,7 +5,6 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use std::collections::VecDeque;
 use std::sync::Arc;
 
 pub struct OverworldSceneBase {
@@ -15,7 +14,8 @@ pub struct OverworldSceneBase {
     pub entities: hecs::World,
     pub map: Map,
     pub menu_manager: MenuManager,
-    pub events: VecDeque<OverworldBaseEvent>,
+    pub event_sender: flume::Sender<OverworldEvent>,
+    pub event_receiver: flume::Receiver<OverworldEvent>,
     pub next_scene: NextScene,
     world_time: FrameTime,
     input_locks: usize,
@@ -50,6 +50,8 @@ impl OverworldSceneBase {
         let mut menu_manager = MenuManager::new(game_io);
         menu_manager.update_player_data(&player_data);
 
+        let (event_sender, event_receiver) = flume::unbounded();
+
         Self {
             world_camera: Camera::new(game_io),
             ui_camera: Camera::new_ui(game_io),
@@ -57,7 +59,8 @@ impl OverworldSceneBase {
             entities,
             map: Map::new(0, 0, 0, 0),
             menu_manager,
-            events: VecDeque::new(),
+            event_sender,
+            event_receiver,
             next_scene: NextScene::None,
             world_time: 0,
             input_locks: 0,
@@ -145,7 +148,7 @@ impl OverworldSceneBase {
             .unwrap();
         let warp_controller = query.get().unwrap();
 
-        warp_controller.warp_entity.is_some()
+        warp_controller.warped_out
     }
 
     pub fn add_input_lock(&mut self) {

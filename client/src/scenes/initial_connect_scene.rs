@@ -5,10 +5,10 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use packets::{ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE};
+use packets::ServerPacket;
 
 enum Event {
-    ReceivedPayloadSize(ClientPacketSender, ServerPacketReceiver, u16),
+    Subscribed(ClientPacketSender, ServerPacketReceiver),
     Failed { reason: Option<String> },
     Pop,
 }
@@ -40,57 +40,12 @@ impl InitialConnectScene {
         let task = game_io.spawn_local_task({
             let event_sender = event_sender.clone();
             async move {
-                let (send, receiver) = match subscription.await {
-                    Some((send, receiver)) => (send, receiver),
-                    None => {
-                        event_sender.send(Event::Failed { reason: None }).unwrap();
-                        return;
-                    }
+                let event = match subscription.await {
+                    Some((send, receiver)) => Event::Subscribed(send, receiver),
+                    None => Event::Failed { reason: None },
                 };
 
-                while !receiver.is_disconnected() {
-                    send(Reliability::Unreliable, ClientPacket::VersionRequest);
-
-                    async_sleep(SERVER_TICK_RATE).await;
-
-                    let response = match receiver.try_recv() {
-                        Ok(response) => response,
-                        _ => continue,
-                    };
-
-                    let (version_id, version_iteration, max_payload_size) = match response {
-                        ServerPacket::VersionInfo {
-                            version_id,
-                            version_iteration,
-                            max_payload_size,
-                        } => (version_id, version_iteration, max_payload_size),
-                        ServerPacket::Kick { reason } => {
-                            event_sender
-                                .send(Event::Failed {
-                                    reason: Some(reason),
-                                })
-                                .unwrap();
-                            return;
-                        }
-                        _ => continue,
-                    };
-
-                    if version_id != packets::VERSION_ID
-                        || version_iteration != packets::VERSION_ITERATION
-                    {
-                        event_sender.send(Event::Failed { reason: None }).unwrap();
-                        return;
-                    }
-
-                    let event =
-                        Event::ReceivedPayloadSize(send, receiver.clone(), max_payload_size);
-
-                    event_sender.send(event).unwrap();
-                    return;
-                }
-
-                // we return on success, so this is a failure
-                event_sender.send(Event::Failed { reason: None }).unwrap();
+                event_sender.send(event).unwrap();
             }
         });
 
@@ -181,11 +136,10 @@ impl Scene for InitialConnectScene {
 
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
-                Event::ReceivedPayloadSize(send_packet, packet_receiver, max_payload_size) => {
+                Event::Subscribed(send_packet, packet_receiver) => {
                     let online_scene = OverworldOnlineScene::new(
                         game_io,
                         self.address.clone(),
-                        max_payload_size,
                         send_packet,
                         packet_receiver,
                     );

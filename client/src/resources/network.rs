@@ -1,9 +1,11 @@
 use crate::args::Args;
 use crate::render::FrameTime;
+use framework::prelude::async_sleep;
 use framework::util::Instant;
 use generational_arena::Arena;
 use packets::{
     deserialize, ClientPacket, NetplayPacket, PacketChannels, Reliability, ServerPacket,
+    SERVER_TICK_RATE,
 };
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,6 +18,16 @@ pub type ClientPacketSender = Arc<dyn Fn(Reliability, ClientPacket) + Send + Syn
 pub type ServerPacketReceiver = flume::Receiver<ServerPacket>;
 pub type NetplayPacketSender = Arc<dyn Fn(NetplayPacket) + Send + Sync>;
 pub type NetplayPacketReceiver = flume::Receiver<NetplayPacket>;
+
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub enum ServerStatus {
+    Online,
+    Offline,
+    TooOld,
+    TooNew,
+    Incompatible,
+    InvalidAddress,
+}
 
 enum Event {
     ServerSubscription(SocketAddr, flume::Sender<ServerPacket>),
@@ -99,12 +111,55 @@ impl Network {
                 .send(Event::ServerSubscription(addr, sender))
                 .ok()?;
 
-            let send_packet: ClientPacketSender = Arc::new(move |reliability, body| {
+            let send: ClientPacketSender = Arc::new(move |reliability, body| {
                 let _ = event_sender.send(Event::SendingClientPacket(addr, reliability, body));
             });
 
-            Some((send_packet, receiver))
+            Some((send, receiver))
         }
+    }
+
+    pub async fn poll_server(
+        send: &ClientPacketSender,
+        receiver: &ServerPacketReceiver,
+    ) -> ServerStatus {
+        while !receiver.is_disconnected() {
+            send(Reliability::Unreliable, ClientPacket::VersionRequest);
+
+            async_sleep(SERVER_TICK_RATE).await;
+
+            let response = match receiver.try_recv() {
+                Ok(response) => response,
+                _ => continue,
+            };
+
+            let (version_id, version_iteration) = match response {
+                ServerPacket::VersionInfo {
+                    version_id,
+                    version_iteration,
+                } => (version_id, version_iteration),
+                ServerPacket::Kick { .. } => {
+                    return ServerStatus::Offline;
+                }
+                _ => {
+                    continue;
+                }
+            };
+
+            if version_id != packets::VERSION_ID {
+                return ServerStatus::Incompatible;
+            }
+
+            if version_iteration > packets::VERSION_ITERATION {
+                return ServerStatus::TooNew;
+            } else if version_iteration < packets::VERSION_ITERATION {
+                return ServerStatus::TooOld;
+            }
+
+            return ServerStatus::Online;
+        }
+
+        ServerStatus::Offline
     }
 
     pub fn tick(&mut self) {
