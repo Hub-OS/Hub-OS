@@ -1265,6 +1265,7 @@ impl Scene for OverworldOnlineScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
 
+        movement_interpolation_system(game_io, &mut self.base_scene);
         self.base_scene.update(game_io);
         self.send_position(game_io);
 
@@ -1272,7 +1273,6 @@ impl Scene for OverworldOnlineScene {
             self.handle_input(game_io);
         }
 
-        movement_interpolation_system(game_io, &mut self.base_scene);
         self.handle_events(game_io);
         self.handle_next_scene(game_io);
     }
