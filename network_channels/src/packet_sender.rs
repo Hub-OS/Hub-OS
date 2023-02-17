@@ -56,18 +56,18 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         while let Ok(ack) = self.ack_receiver.try_recv() {
             self.last_receive_time = ack.time;
 
-            if let Some(header) = ack.header {
-                if let Some(index) = self
-                    .stored_packets
-                    .iter()
-                    .position(|packet| packet.header == header)
-                {
-                    let packet = self.stored_packets.remove(index);
+            let Some(header) = ack.header else {
+                continue;
+            };
 
-                    let rtt = ack.time - packet.creation;
-                    let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
-                    self.retry_delay = self.retry_delay.min(updated_retry_delay);
-                }
+            let mut packets_iter = self.stored_packets.iter();
+
+            if let Some(index) = packets_iter.position(|packet| packet.header == header) {
+                let packet = self.stored_packets.remove(index);
+
+                let rtt = ack.time - packet.creation;
+                let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
+                self.retry_delay = self.retry_delay.min(updated_retry_delay);
             }
         }
 
@@ -139,13 +139,13 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     }
                 }
             };
+        }
 
-            for packet in &mut self.stored_packets {
-                if packet.next_retry <= now && packet.bytes.len() <= budget {
-                    budget -= packet.bytes.len();
-                    send(&packet.bytes);
-                    packet.next_retry = now + self.retry_delay;
-                }
+        for packet in &mut self.stored_packets {
+            if packet.next_retry <= now && packet.bytes.len() <= budget {
+                budget -= packet.bytes.len();
+                send(&packet.bytes);
+                packet.next_retry = now + self.retry_delay;
             }
         }
     }
