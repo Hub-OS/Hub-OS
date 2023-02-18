@@ -30,6 +30,7 @@ impl ResourcePaths {
     pub const BATTLE_MUSIC: &str = "resources/music/battle.ogg";
 
     // SFX
+    pub const START_GAME_SFX: &str = "resources/sfx/start_game.ogg";
     pub const CURSOR_MOVE_SFX: &str = "resources/sfx/cursor_move.ogg";
     pub const CURSOR_SELECT_SFX: &str = "resources/sfx/cursor_select.ogg";
     pub const CURSOR_CANCEL_SFX: &str = "resources/sfx/cursor_cancel.ogg";

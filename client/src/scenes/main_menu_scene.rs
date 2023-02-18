@@ -64,9 +64,6 @@ impl MainMenuScene {
         let assets = &globals.assets;
         let background_sampler = &globals.background_sampler;
 
-        // music
-        globals.audio.play_music(&globals.main_menu_music, true);
-
         // setup camera
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
@@ -121,8 +118,14 @@ impl Scene for MainMenuScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        self.camera.update(game_io);
+        // music
+        let globals = game_io.resource::<Globals>().unwrap();
 
+        if !game_io.is_in_transition() && !globals.audio.is_music_playing() {
+            globals.audio.play_music(&globals.main_menu_music, true);
+        }
+
+        // ui
         self.background.update();
 
         self.scrolling_text_offset -= 1.0;

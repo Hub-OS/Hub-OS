@@ -377,6 +377,9 @@ impl Scene for BootScene {
 
         // transfer to the next scene
         if self.done && input_util.latest_input().is_some() {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.start_game_sfx);
+
             self.transfer(game_io);
         }
     }

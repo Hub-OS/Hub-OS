@@ -54,11 +54,7 @@ impl AudioManager {
     }
 
     pub fn is_music_playing(&self) -> bool {
-        self.music_sink
-            .borrow()
-            .as_ref()
-            .map(|sink| !sink.empty())
-            .unwrap_or_default()
+        matches!(&*self.music_sink.borrow(), Some(sink) if !sink.empty())
     }
 
     pub fn music_stack_len(&self) -> usize {
