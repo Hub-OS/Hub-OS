@@ -27,6 +27,7 @@ pub struct OverworldOnlineScene {
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
     connected: bool,
+    transferring: bool,
     server_address: String,
     send_packet: ClientPacketSender,
     packet_receiver: ServerPacketReceiver,
@@ -65,6 +66,7 @@ impl OverworldOnlineScene {
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
             connected: true,
+            transferring: false,
             server_address: address,
             send_packet,
             packet_receiver,
@@ -245,7 +247,19 @@ impl OverworldOnlineScene {
             ServerPacket::TransferStart => {
                 self.excluded_actors.clear();
                 self.excluded_objects.clear();
-                log::warn!("TransferStart hasn't been implemented")
+                self.transferring = true;
+
+                // despawn all other actors
+                let player_entity = self.base_scene.player_data.entity;
+                let player_id = self.actor_id_map.get_by_right(&player_entity);
+                let player_id = player_id.cloned().unwrap();
+
+                for entity in self.actor_id_map.right_values() {
+                    let _ = self.base_scene.entities.despawn(*entity);
+                }
+
+                self.actor_id_map.clear();
+                self.actor_id_map.insert(player_id, player_entity);
             }
             ServerPacket::TransferComplete { warp_in, direction } => {
                 let player_entity = self.base_scene.player_data.entity;
@@ -275,6 +289,7 @@ impl OverworldOnlineScene {
                 }
 
                 self.send_ready_packet(game_io);
+                self.transferring = false;
             }
             ServerPacket::TransferServer {
                 address,
@@ -1337,7 +1352,9 @@ impl Scene for OverworldOnlineScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        self.base_scene.draw(game_io, render_pass)
+        if !self.transferring {
+            self.base_scene.draw(game_io, render_pass);
+        }
     }
 }
 
