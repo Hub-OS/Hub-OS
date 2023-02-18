@@ -20,7 +20,7 @@ impl Area {
         }
     }
 
-    pub fn get_id(&self) -> &str {
+    pub fn id(&self) -> &str {
         &self.id
     }
 
@@ -28,11 +28,11 @@ impl Area {
         self.map = map;
     }
 
-    pub fn get_map(&self) -> &Map {
+    pub fn map(&self) -> &Map {
         &self.map
     }
 
-    pub fn get_map_mut(&mut self) -> &mut Map {
+    pub fn map_mut(&mut self) -> &mut Map {
         &mut self.map
     }
 
@@ -42,11 +42,11 @@ impl Area {
         }
     }
 
-    pub fn get_required_assets(&self) -> &Vec<String> {
+    pub fn required_assets(&self) -> &Vec<String> {
         &self.required_assets
     }
 
-    pub fn get_connected_players(&self) -> &Vec<String> {
+    pub fn connected_players(&self) -> &Vec<String> {
         &self.connected_players
     }
 
@@ -65,7 +65,7 @@ impl Area {
             .map(|position| self.connected_players.swap_remove(position));
     }
 
-    pub fn get_connected_bots(&self) -> &Vec<String> {
+    pub fn connected_bots(&self) -> &Vec<String> {
         &self.connected_bots
     }
 

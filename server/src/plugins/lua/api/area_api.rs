@@ -10,7 +10,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let area_ids: mlua::Result<Vec<mlua::String>> = net
             .get_areas()
-            .map(|area| lua_ctx.create_string(area.get_id()))
+            .map(|area| lua_ctx.create_string(area.id()))
             .collect();
 
         lua_ctx.pack_multi(area_ids?)
@@ -39,7 +39,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map().clone();
+            let map = area.map().clone();
 
             net.add_area(new_id, map);
 
@@ -56,7 +56,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
             lua_ctx.pack_multi(map.render())
         } else {
             Err(create_area_error(area_id_str))
@@ -81,7 +81,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua_ctx.pack_multi(area.get_map().get_width())
+            lua_ctx.pack_multi(area.map().width())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -94,7 +94,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua_ctx.pack_multi(area.get_map().get_height())
+            lua_ctx.pack_multi(area.map().height())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -107,7 +107,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua_ctx.pack_multi(area.get_map().get_layer_count())
+            lua_ctx.pack_multi(area.map().layer_count())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -120,7 +120,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            lua_ctx.pack_multi(area.get_map_mut().get_tile_width())
+            lua_ctx.pack_multi(area.map_mut().tile_width())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -133,7 +133,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            lua_ctx.pack_multi(area.get_map_mut().get_tile_height())
+            lua_ctx.pack_multi(area.map_mut().tile_height())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -149,7 +149,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                lua_ctx.pack_multi(area.get_map().get_custom_properties().clone())
+                lua_ctx.pack_multi(area.map().custom_properties().clone())
             } else {
                 Err(create_area_error(area_id_str))
             }
@@ -166,8 +166,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                let map = area.get_map();
-                let value = map.get_custom_property(name_str).cloned();
+                let map = area.map();
+                let value = map.get_custom_property(name_str).map(String::from);
 
                 lua_ctx.pack_multi(value)
             } else {
@@ -187,7 +187,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let mut net = api_ctx.net_ref.borrow_mut();
 
             if let Some(area) = net.get_area_mut(area_id_str) {
-                area.get_map_mut().set_custom_property(name_str, value);
+                area.map_mut().set_custom_property(name_str, value);
 
                 lua_ctx.pack_multi(())
             } else {
@@ -203,7 +203,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua_ctx.pack_multi(area.get_map().get_name().as_str())
+            lua_ctx.pack_multi(area.map().name())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -216,7 +216,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_name(name);
 
@@ -233,7 +233,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua_ctx.pack_multi(area.get_map().get_song_path().as_str())
+            lua_ctx.pack_multi(area.map().song_path())
         } else {
             Err(create_area_error(area_id_str))
         }
@@ -246,7 +246,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_song_path(path);
 
@@ -263,16 +263,13 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map();
+            let map = area.map();
 
             let table = lua_ctx.create_table()?;
 
-            table.set("texture_path", map.get_background_texture_path().as_str())?;
+            table.set("texture_path", map.background_texture_path())?;
 
-            table.set(
-                "animation_path",
-                map.get_background_animation_path().as_str(),
-            )?;
+            table.set("animation_path", map.background_animation_path())?;
 
             lua_ctx.pack_multi(table)
         } else {
@@ -290,9 +287,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                let map = area.get_map();
+                let map = area.map();
 
-                let (vel_x, vel_y) = map.get_background_velocity();
+                let (vel_x, vel_y) = map.background_velocity();
 
                 let table = lua_ctx.create_table()?;
                 table.set("x", vel_x)?;
@@ -319,7 +316,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_background_texture_path(texture_path);
             map.set_background_animation_path(animation_path.unwrap_or_default());
@@ -342,9 +339,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                let map = area.get_map();
+                let map = area.map();
 
-                let parallax = map.get_background_parallax();
+                let parallax = map.background_parallax();
 
                 lua_ctx.pack_multi(parallax)
             } else {
@@ -360,16 +357,13 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map();
+            let map = area.map();
 
             let table = lua_ctx.create_table()?;
 
-            table.set("texture_path", map.get_foreground_texture_path().as_str())?;
+            table.set("texture_path", map.foreground_texture_path())?;
 
-            table.set(
-                "animation_path",
-                map.get_foreground_animation_path().as_str(),
-            )?;
+            table.set("animation_path", map.foreground_animation_path())?;
 
             lua_ctx.pack_multi(table)
         } else {
@@ -387,9 +381,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                let map = area.get_map();
+                let map = area.map();
 
-                let (vel_x, vel_y) = map.get_foreground_velocity();
+                let (vel_x, vel_y) = map.foreground_velocity();
 
                 let table = lua_ctx.create_table()?;
                 table.set("x", vel_x)?;
@@ -412,9 +406,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let net = api_ctx.net_ref.borrow();
 
             if let Some(area) = net.get_area(area_id_str) {
-                let map = area.get_map();
+                let map = area.map();
 
-                let parallax = map.get_foreground_parallax();
+                let parallax = map.foreground_parallax();
 
                 lua_ctx.pack_multi(parallax)
             } else {
@@ -437,7 +431,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_foreground_texture_path(texture_path);
             map.set_foreground_animation_path(animation_path.unwrap_or_default());
@@ -457,7 +451,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let (x, y, z) = area.get_map().get_spawn();
+            let (x, y, z) = area.map().spawn_position();
 
             let table = lua_ctx.create_table()?;
             table.set("x", x)?;
@@ -477,9 +471,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
-            map.set_spawn(x, y, z);
+            map.set_spawn_position(x, y, z);
 
             lua_ctx.pack_multi(())
         } else {
@@ -494,7 +488,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let direction = area.get_map().get_spawn_direction();
+            let direction = area.map().spawn_direction();
 
             let direction_str: &str = direction.into();
             lua_ctx.pack_multi(direction_str)
@@ -511,7 +505,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             let direction = Direction::from(direction_str);
             map.set_spawn_direction(direction);
@@ -529,8 +523,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map();
-            let tilesets = map.get_tilesets();
+            let map = area.map();
+            let tilesets = map.tilesets();
             let tileset_paths: mlua::Result<Vec<mlua::String>> = tilesets
                 .iter()
                 .map(|tileset| lua_ctx.create_string(&tileset.path))
@@ -549,8 +543,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map();
-            let tilesets = map.get_tilesets();
+            let map = area.map();
+            let tilesets = map.tilesets();
             let optional_tileset = tilesets.iter().find(|tileset| tileset.path == path_str);
 
             if let Some(tileset) = optional_tileset {
@@ -574,8 +568,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let map = area.get_map();
-            let tilesets = map.get_tilesets();
+            let map = area.map();
+            let tilesets = map.tilesets();
             let optional_tileset = tilesets
                 .iter()
                 .take_while(|tileset| tileset.first_gid <= tile_gid)
@@ -605,7 +599,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let tile = if x < 0 || y < 0 || z < 0 {
                 Tile::default()
             } else {
-                area.get_map().get_tile(x as usize, y as usize, z as usize)
+                area.map().get_tile(x as usize, y as usize, z as usize)
             };
 
             let table = lua_ctx.create_table()?;
@@ -655,7 +649,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 flipped_anti_diagonally: rotate.unwrap_or(false),
             };
 
-            area.get_map_mut()
+            area.map_mut()
                 .set_tile(x as usize, y as usize, z as usize, tile);
 
             lua_ctx.pack_multi(())

@@ -137,7 +137,7 @@ impl Net {
         self.asset_manager.remove_asset(&map_path);
 
         if let Some(area) = self.areas.remove(id) {
-            let player_ids = area.get_connected_players();
+            let player_ids = area.connected_players();
 
             for player_id in player_ids {
                 self.kick_player(player_id, "Area destroyed", true);
@@ -173,7 +173,7 @@ impl Net {
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                area.get_connected_players(),
+                area.connected_players(),
                 asset_path,
             );
 
@@ -188,7 +188,7 @@ impl Net {
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                area.get_connected_players(),
+                area.connected_players(),
                 path,
             );
 
@@ -257,7 +257,7 @@ impl Net {
             self.config.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            area.get_connected_players(),
+            area.connected_players(),
             [texture_path, animation_path].iter(),
         );
 
@@ -1336,10 +1336,7 @@ impl Net {
         client.warp_z = z;
         client.warp_direction = direction;
 
-        if !previous_area
-            .get_connected_players()
-            .contains(&id.to_string())
-        {
+        if !previous_area.connected_players().contains(&id.to_string()) {
             // client has not been added to any area yet
             // assume client was transferred on initial connection by a plugin
             client.actor.area_id = area_id.to_string();
@@ -1350,7 +1347,7 @@ impl Net {
 
         self.packet_orchestrator
             .borrow_mut()
-            .leave_room(client.socket_address, previous_area.get_id());
+            .leave_room(client.socket_address, previous_area.id());
 
         client.warp_area = area_id.to_string();
 
@@ -1408,7 +1405,7 @@ impl Net {
             self.config.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            area.get_connected_players(),
+            area.connected_players(),
             [texture_path.as_str(), animation_path.as_str()].iter(),
         );
 
@@ -1494,9 +1491,9 @@ impl Net {
     ) -> String {
         let area_id = String::from("default");
         let area = self.get_area_mut(&area_id).unwrap();
-        let map = area.get_map();
-        let (spawn_x, spawn_y, spawn_z) = map.get_spawn();
-        let spawn_direction = map.get_spawn_direction();
+        let map = area.map();
+        let (spawn_x, spawn_y, spawn_z) = map.spawn_position();
+        let spawn_direction = map.spawn_direction();
 
         let client = Client::new(
             socket_address,
@@ -1609,7 +1606,7 @@ impl Net {
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                area.get_connected_players(),
+                area.connected_players(),
                 [texture_path.as_str(), animation_path.as_str()].iter(),
             );
         }
@@ -1648,7 +1645,7 @@ impl Net {
         let area = self.areas.get(area_id).unwrap();
 
         let mut packets: Vec<ServerPacket> = Vec::new();
-        let mut asset_paths: Vec<String> = area.get_required_assets().clone();
+        let mut asset_paths: Vec<String> = area.required_assets().clone();
 
         // send map
         let map_path = get_map_path(area_id);
@@ -1656,7 +1653,7 @@ impl Net {
         packets.push(ServerPacket::MapUpdate { map_path });
 
         // send clients
-        for other_player_id in area.get_connected_players() {
+        for other_player_id in area.connected_players() {
             if other_player_id == player_id {
                 continue;
             }
@@ -1671,7 +1668,7 @@ impl Net {
         }
 
         // send bots
-        for bot_id in area.get_connected_bots() {
+        for bot_id in area.connected_bots() {
             let bot = self.bots.get(bot_id).unwrap();
 
             asset_paths.push(bot.texture_path.clone());
@@ -1738,7 +1735,7 @@ impl Net {
 
         self.packet_orchestrator
             .borrow_mut()
-            .broadcast_bytes_to_room(area.get_id(), Reliability::ReliableOrdered, packet_bytes);
+            .broadcast_bytes_to_room(area.id(), Reliability::ReliableOrdered, packet_bytes);
     }
 
     pub(super) fn remove_player(&mut self, id: &str, warp_out: bool) {
@@ -1807,7 +1804,7 @@ impl Net {
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                area.get_connected_players(),
+                area.connected_players(),
                 [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
             );
 
@@ -2086,7 +2083,7 @@ impl Net {
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                area.get_connected_players(),
+                area.connected_players(),
                 [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
             );
 
@@ -2199,8 +2196,8 @@ impl Net {
         use super::asset::get_map_path;
 
         for area in self.areas.values_mut() {
-            let map_path = get_map_path(area.get_id());
-            let map = area.get_map_mut();
+            let map_path = get_map_path(area.id());
+            let map = area.map_mut();
 
             if map.asset_is_stale() {
                 let map_asset = map.generate_asset();
@@ -2236,7 +2233,7 @@ fn broadcast_actor_keyframes(
     keyframes: Vec<KeyFrame>,
 ) {
     packet_orchestrator.broadcast_to_room(
-        area.get_id(),
+        area.id(),
         Reliability::ReliableOrdered,
         ServerPacket::ActorPropertyKeyFrames {
             actor_id: id.to_string(),
@@ -2312,7 +2309,7 @@ fn broadcast_to_area(
     reliability: Reliability,
     packet: ServerPacket,
 ) {
-    packet_orchestrator.broadcast_to_room(area.get_id(), reliability, packet);
+    packet_orchestrator.broadcast_to_room(area.id(), reliability, packet);
 }
 
 fn ensure_asset(

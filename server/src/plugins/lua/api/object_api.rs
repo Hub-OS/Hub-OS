@@ -11,8 +11,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         if let Some(area) = net.get_area(area_id_str) {
             let result: Vec<u32> = area
-                .get_map()
-                .get_objects()
+                .map()
+                .objects()
                 .iter()
                 .map(|object| object.id)
                 .collect();
@@ -30,7 +30,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let optional_object = area.get_map().get_object_by_id(id);
+            let optional_object = area.map().get_object_by_id(id);
 
             lua_ctx.pack_multi(map_optional_object_to_table(lua_ctx, optional_object))
         } else {
@@ -45,7 +45,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let optional_object = area.get_map().get_object_by_name(name_str);
+            let optional_object = area.map().get_object_by_name(name_str);
 
             lua_ctx.pack_multi(map_optional_object_to_table(lua_ctx, optional_object))
         } else {
@@ -79,7 +79,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let data_table: mlua::Table = table.get("data")?;
         let custom_properties: Option<HashMap<String, String>> = table.get("custom_properties")?;
 
-        let map = area.get_map_mut();
+        let map = area.map_mut();
 
         let data = parse_object_data(data_table)?;
 
@@ -107,7 +107,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.remove_object(id);
 
@@ -124,7 +124,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_object_name(id, name);
 
@@ -141,7 +141,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_object_class(id, class);
 
@@ -160,7 +160,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_object_class(id, class);
 
@@ -181,7 +181,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let mut net = api_ctx.net_ref.borrow_mut();
 
             if let Some(area) = net.get_area_mut(area_id_str) {
-                let map = area.get_map_mut();
+                let map = area.map_mut();
 
                 map.set_object_custom_property(id, name, value);
 
@@ -200,7 +200,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.resize_object(id, width, height);
 
@@ -217,7 +217,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_object_rotation(id, rotation);
 
@@ -238,7 +238,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let mut net = api_ctx.net_ref.borrow_mut();
 
             if let Some(area) = net.get_area_mut(area_id_str) {
-                let map = area.get_map_mut();
+                let map = area.map_mut();
 
                 map.set_object_visibility(id, visibility);
 
@@ -257,7 +257,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.move_object(id, x, y, layer);
 
@@ -275,7 +275,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let map = area.get_map_mut();
+            let map = area.map_mut();
 
             map.set_object_data(id, parse_object_data(data_table)?);
 

@@ -242,11 +242,11 @@ impl Map {
         }
     }
 
-    pub fn get_tilesets(&self) -> &Vec<TilesetInfo> {
+    pub fn tilesets(&self) -> &Vec<TilesetInfo> {
         &self.tilesets
     }
 
-    pub fn get_name(&self) -> &String {
+    pub fn name(&self) -> &str {
         &self.name
     }
 
@@ -258,7 +258,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_song_path(&self) -> &String {
+    pub fn song_path(&self) -> &str {
         &self.song_path
     }
 
@@ -270,7 +270,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_background_texture_path(&self) -> &String {
+    pub fn background_texture_path(&self) -> &str {
         &self.background_texture_path
     }
 
@@ -282,7 +282,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_background_animation_path(&self) -> &String {
+    pub fn background_animation_path(&self) -> &str {
         &self.background_animation_path
     }
 
@@ -294,7 +294,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_background_velocity(&self) -> (f32, f32) {
+    pub fn background_velocity(&self) -> (f32, f32) {
         (self.background_vel_x, self.background_vel_y)
     }
 
@@ -309,7 +309,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_background_parallax(&self) -> f32 {
+    pub fn background_parallax(&self) -> f32 {
         self.background_parallax
     }
 
@@ -321,7 +321,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_foreground_texture_path(&self) -> &String {
+    pub fn foreground_texture_path(&self) -> &str {
         &self.foreground_texture_path
     }
 
@@ -333,7 +333,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_foreground_animation_path(&self) -> &String {
+    pub fn foreground_animation_path(&self) -> &str {
         &self.foreground_animation_path
     }
 
@@ -345,7 +345,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_foreground_velocity(&self) -> (f32, f32) {
+    pub fn foreground_velocity(&self) -> (f32, f32) {
         (self.foreground_vel_x, self.foreground_vel_y)
     }
 
@@ -360,7 +360,7 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_foreground_parallax(&self) -> f32 {
+    pub fn foreground_parallax(&self) -> f32 {
         self.foreground_parallax
     }
 
@@ -369,12 +369,12 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_custom_properties(&self) -> &HashMap<String, String> {
+    pub fn custom_properties(&self) -> &HashMap<String, String> {
         &self.custom_properties
     }
 
-    pub fn get_custom_property(&self, name: &str) -> Option<&String> {
-        self.custom_properties.get(name)
+    pub fn get_custom_property(&self, name: &str) -> Option<&str> {
+        self.custom_properties.get(name).map(String::as_str)
     }
 
     pub fn set_custom_property(&mut self, name: &str, value: String) {
@@ -424,37 +424,37 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn get_width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.width
     }
 
-    pub fn get_height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.height
     }
 
-    pub fn get_layer_count(&self) -> usize {
+    pub fn layer_count(&self) -> usize {
         self.layers.len()
     }
 
-    pub fn get_tile_width(&self) -> u32 {
+    pub fn tile_width(&self) -> u32 {
         self.tile_width
     }
 
-    pub fn get_tile_height(&self) -> u32 {
+    pub fn tile_height(&self) -> u32 {
         self.tile_height
     }
 
-    pub fn get_spawn(&self) -> (f32, f32, f32) {
+    pub fn spawn_position(&self) -> (f32, f32, f32) {
         (self.spawn_x, self.spawn_y, self.spawn_z)
     }
 
-    pub fn set_spawn(&mut self, x: f32, y: f32, z: f32) {
+    pub fn set_spawn_position(&mut self, x: f32, y: f32, z: f32) {
         self.spawn_x = x;
         self.spawn_y = y;
         self.spawn_z = z;
     }
 
-    pub fn get_spawn_direction(&self) -> Direction {
+    pub fn spawn_direction(&self) -> Direction {
         self.spawn_direction
     }
 
@@ -483,7 +483,7 @@ impl Map {
         }
     }
 
-    pub fn get_objects(&self) -> &Vec<MapObject> {
+    pub fn objects(&self) -> &Vec<MapObject> {
         &self.objects
     }
 

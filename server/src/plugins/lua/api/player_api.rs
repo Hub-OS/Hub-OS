@@ -12,7 +12,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let connected_players_iter = area.get_connected_players().iter();
+            let connected_players_iter = area.connected_players().iter();
             let result: mlua::Result<Vec<mlua::String>> = connected_players_iter
                 .map(|player_id| lua_ctx.create_string(player_id))
                 .collect();

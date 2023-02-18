@@ -10,7 +10,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         if let Some(area) = net.get_area_mut(area_id_str) {
-            let connected_bots_iter = area.get_connected_bots().iter();
+            let connected_bots_iter = area.connected_bots().iter();
 
             let result: mlua::Result<Vec<mlua::String>> = connected_bots_iter
                 .map(|bot_id| lua_ctx.create_string(&bot_id))
@@ -60,9 +60,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let area_id = area_id.unwrap_or_else(|| String::from("default"));
 
         if let Some(area) = net.get_area(&area_id) {
-            let map = area.get_map();
-            let spawn = map.get_spawn();
-            let spawn_direction = map.get_spawn_direction();
+            let map = area.map();
+            let spawn = map.spawn_position();
+            let spawn_direction = map.spawn_direction();
 
             let direction = direction
                 .map(|string| Direction::from(&string))
