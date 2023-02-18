@@ -3,6 +3,7 @@ use super::*;
 use crate::render::*;
 use framework::prelude::*;
 use hecs::Entity;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct Map {
@@ -19,6 +20,7 @@ pub struct Map {
     tilesets: Vec<Rc<Tileset>>,
     tile_metas: Vec<Option<TileMeta>>,
     tiles_modified: bool,
+    object_entity_map: HashMap<u32, hecs::Entity>,
     object_entities: hecs::World,
     projection: Projection,
 }
@@ -39,6 +41,7 @@ impl Map {
             tilesets: Vec::new(),
             tile_metas: Vec::new(),
             tiles_modified: false,
+            object_entity_map: HashMap::new(),
             object_entities: hecs::World::new(),
             projection: Projection::Isometric,
         }
@@ -154,6 +157,48 @@ impl Map {
 
     pub fn object_entities_mut(&mut self) -> &mut hecs::World {
         &mut self.object_entities
+    }
+
+    pub fn insert_tile_object(
+        &mut self,
+        game_io: &GameIO,
+        tile_object: TileObject,
+        layer_index: usize,
+    ) {
+        let id = tile_object.data.id;
+        let position = tile_object.data.position;
+        let tile_position = self.world_to_tile_space(position);
+        let elevation = self.elevation_at(tile_position, layer_index as i32);
+        let sprite = tile_object.create_sprite(game_io, self, layer_index);
+
+        let mut entity = hecs::EntityBuilder::new();
+
+        entity.add_bundle((
+            tile_object.data,
+            tile_object.tile,
+            position.extend(elevation),
+        ));
+
+        if let Some(sprite) = sprite {
+            entity.add(sprite);
+        }
+
+        let entity = self.object_entities.spawn(entity.build());
+        self.object_entity_map.insert(id, entity);
+    }
+
+    pub fn insert_shape_object(&mut self, shape_object: ShapeObject) {
+        let id = shape_object.data.id;
+
+        let entity = self
+            .object_entities
+            .spawn((shape_object.data, shape_object.shape));
+
+        self.object_entity_map.insert(id, entity);
+    }
+
+    pub fn get_object_entity(&self, id: u32) -> Option<hecs::Entity> {
+        self.object_entity_map.get(&id).cloned()
     }
 
     pub fn screen_direction_to_world(&self, direction: Direction) -> Direction {
@@ -351,7 +396,8 @@ impl Map {
         layer_index: i32,
         solid_only: bool,
     ) -> Option<Entity> {
-        let mut query = self.object_entities.query::<(&Tile, &ObjectData, &Vec3)>();
+        type Query<'a> = hecs::Without<(&'a Tile, &'a ObjectData, &'a Vec3), &'a Excluded>;
+        let mut query = self.object_entities.query::<Query>();
 
         for (entity, (tile, data, world_pos)) in query.iter() {
             if solid_only && !data.object_type.is_solid() {
@@ -617,7 +663,7 @@ impl Map {
         use std::cmp::Ordering;
 
         let mut queries = [entities, &self.object_entities]
-            .map(|entities| entities.query::<hecs::Without<(&Sprite, &Vec3), &HiddenSprite>>());
+            .map(|entities| entities.query::<hecs::Without<(&Sprite, &Vec3), &Excluded>>());
 
         let mut render_order = Vec::new();
 

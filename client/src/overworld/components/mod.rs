@@ -1,5 +1,5 @@
 mod actor_collider;
-mod hidden_sprite;
+mod excluded;
 mod interactable_actor;
 mod movement_animator;
 mod movement_interpolator;
@@ -8,7 +8,7 @@ mod player_minimap_marker;
 mod warp_effect;
 
 pub use actor_collider::*;
-pub use hidden_sprite::*;
+pub use excluded::*;
 pub use interactable_actor::*;
 pub use movement_animator::*;
 pub use movement_interpolator::*;

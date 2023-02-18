@@ -1,4 +1,4 @@
-use super::{Animator, HiddenSprite};
+use super::{Animator, Excluded};
 use crate::render::FrameTime;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::scenes::OverworldSceneBase;
@@ -63,7 +63,7 @@ impl WarpEffect {
         match warp_type {
             WarpType::In { .. } => {
                 animator.set_state("IN");
-                let _ = base_scene.entities.insert_one(target_entity, HiddenSprite);
+                Excluded::increment(&mut base_scene.entities, target_entity);
             }
             WarpType::Out | WarpType::Full { .. } => {
                 animator.set_state("OUT");

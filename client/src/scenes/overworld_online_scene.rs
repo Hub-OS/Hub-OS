@@ -36,6 +36,7 @@ pub struct OverworldOnlineScene {
     assets: ServerAssetManager,
     custom_emotes_path: String,
     actor_id_map: BiMap<String, hecs::Entity>,
+    excluded_objects: Vec<u32>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
     loaded_zips: HashMap<String, FileHash>,         // server_path -> hash
@@ -53,7 +54,7 @@ impl OverworldOnlineScene {
         let player_entity = base_scene.player_data.entity;
         let entities = &mut base_scene.entities;
         entities
-            .insert_one(player_entity, HiddenSprite::default())
+            .insert_one(player_entity, Excluded::default())
             .unwrap();
 
         let assets = ServerAssetManager::new(game_io, &address);
@@ -72,6 +73,7 @@ impl OverworldOnlineScene {
             assets,
             custom_emotes_path: ResourcePaths::BLANK.to_string(),
             actor_id_map: BiMap::new(),
+            excluded_objects: Vec::new(),
             doorstop_remover: None,
             encounter_packages: HashMap::new(),
             loaded_zips: HashMap::new(),
@@ -224,7 +226,7 @@ impl OverworldOnlineScene {
                     *position = spawn_position;
                     *direction = spawn_direction;
 
-                    entities.remove_one::<HiddenSprite>(player_entity);
+                    entities.remove_one::<Excluded>(player_entity);
                 }
             }
             ServerPacket::CompleteConnection => {
@@ -238,7 +240,10 @@ impl OverworldOnlineScene {
                     send_packet(Reliability::ReliableOrdered, ClientPacket::TransferredOut);
                 });
             }
-            ServerPacket::TransferStart => log::warn!("TransferStart hasn't been implemented"),
+            ServerPacket::TransferStart => {
+                self.excluded_objects.clear();
+                log::warn!("TransferStart hasn't been implemented")
+            }
             ServerPacket::TransferComplete { warp_in, direction } => {
                 let player_entity = self.base_scene.player_data.entity;
                 let send_packet = self.send_packet.clone();
@@ -337,7 +342,15 @@ impl OverworldOnlineScene {
 
                 let data = self.assets.text(&map_path);
 
-                if let Some(map) = load_map(game_io, &self.assets, &data) {
+                if let Some(mut map) = load_map(game_io, &self.assets, &data) {
+                    for id in &self.excluded_objects {
+                        let Some(entity) = map.get_object_entity(*id) else {
+                            continue;
+                        };
+
+                        Excluded::increment(map.object_entities_mut(), entity);
+                    }
+
                     self.base_scene.set_world(game_io, &self.assets, map);
                 } else {
                     log::warn!("Failed to load map provided by server");
@@ -387,10 +400,30 @@ impl OverworldOnlineScene {
                 globals.audio.play_sound(&sound);
             }
             ServerPacket::ExcludeObject { id } => {
-                log::warn!("ExcludeObject hasn't been implemented")
+                if !self.excluded_objects.contains(&id) {
+                    self.excluded_objects.push(id);
+
+                    let map = &mut self.base_scene.map;
+
+                    if let Some(entity) = map.get_object_entity(id) {
+                        let object_entities = map.object_entities_mut();
+
+                        Excluded::increment(object_entities, entity);
+                    }
+                }
             }
             ServerPacket::IncludeObject { id } => {
-                log::warn!("IncludeObject hasn't been implemented")
+                if let Some(index) = self.excluded_objects.iter().position(|v| *v == id) {
+                    self.excluded_objects.remove(index);
+
+                    let map = &mut self.base_scene.map;
+
+                    if let Some(entity) = map.get_object_entity(id) {
+                        let object_entities = map.object_entities_mut();
+
+                        Excluded::decrement(object_entities, entity);
+                    }
+                }
             }
             ServerPacket::ExcludeActor { actor_id } => {
                 log::warn!("ExcludeActor hasn't been implemented")

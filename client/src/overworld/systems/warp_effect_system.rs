@@ -20,14 +20,9 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
         effect.last_frame = Some(current_frame);
 
         if frame_changed {
-            let is_hidden = entities
-                .query_one::<&HiddenSprite>(effect.actor_entity)
-                .map(|mut q| q.get().is_some())
-                .unwrap_or_default();
-
             match effect.warp_type {
                 WarpType::In { .. } => {
-                    if current_frame == WARP_IN_REVEAL_FRAME && is_hidden {
+                    if current_frame == WARP_IN_REVEAL_FRAME {
                         pending_action.push((
                             effect.warp_type,
                             effect.actor_entity,
@@ -36,7 +31,7 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
                     }
                 }
                 WarpType::Out | WarpType::Full { .. } => {
-                    if current_frame == WARP_OUT_HIDE_FRAME && !is_hidden {
+                    if current_frame == WARP_OUT_HIDE_FRAME {
                         // only passing callback for WarpType::Out as
                         // WarpType::Full truely completes when it becomes a WarpType::In
                         let callback = if matches!(effect.warp_type, WarpType::Out) {
@@ -104,7 +99,7 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
                 position,
                 direction,
             } => {
-                let _ = entities.remove_one::<HiddenSprite>(actor_entity);
+                Excluded::decrement(entities, actor_entity);
 
                 let Ok(components) = entities.query_one_mut::<(&mut Vec3, &mut Direction)>(actor_entity) else {
                     continue;
@@ -123,7 +118,7 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
                 }
             }
             WarpType::Out | WarpType::Full { .. } => {
-                let _ = entities.insert_one(actor_entity, HiddenSprite);
+                Excluded::increment(entities, actor_entity);
 
                 if entities.contains(actor_entity) {
                     if let Some(callback) = callback {

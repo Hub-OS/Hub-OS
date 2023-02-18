@@ -4,7 +4,6 @@ use crate::parse_util::parse_or_default;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::{GameIO, Rect, Vec2};
-use hecs::EntityBuilder;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -180,29 +179,10 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
 
                 if child.attribute("gid").is_some() {
                     let tile_object = TileObject::from(child);
-                    let position = tile_object.data.position;
-                    let tile_position = map.world_to_tile_space(position);
-                    let elevation = map.elevation_at(tile_position, i as i32);
-                    let sprite = tile_object.create_sprite(game_io, &map, i);
-
-                    let mut entity = EntityBuilder::new();
-
-                    entity.add_bundle((
-                        tile_object.data,
-                        tile_object.tile,
-                        position.extend(elevation),
-                    ));
-
-                    if let Some(sprite) = sprite {
-                        entity.add(sprite);
-                    }
-
-                    map.object_entities_mut().spawn(entity.build());
+                    map.insert_tile_object(game_io, tile_object, i);
                 } else {
                     let shape_object = ShapeObject::from(child);
-
-                    map.object_entities_mut()
-                        .spawn((shape_object.data, shape_object.shape));
+                    map.insert_shape_object(shape_object);
                 }
             }
         }
