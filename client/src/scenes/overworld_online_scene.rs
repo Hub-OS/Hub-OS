@@ -36,6 +36,7 @@ pub struct OverworldOnlineScene {
     assets: ServerAssetManager,
     custom_emotes_path: String,
     actor_id_map: BiMap<String, hecs::Entity>,
+    excluded_actors: Vec<String>,
     excluded_objects: Vec<u32>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
@@ -73,6 +74,7 @@ impl OverworldOnlineScene {
             assets,
             custom_emotes_path: ResourcePaths::BLANK.to_string(),
             actor_id_map: BiMap::new(),
+            excluded_actors: Vec::new(),
             excluded_objects: Vec::new(),
             doorstop_remover: None,
             encounter_packages: HashMap::new(),
@@ -241,6 +243,7 @@ impl OverworldOnlineScene {
                 });
             }
             ServerPacket::TransferStart => {
+                self.excluded_actors.clear();
                 self.excluded_objects.clear();
                 log::warn!("TransferStart hasn't been implemented")
             }
@@ -401,8 +404,6 @@ impl OverworldOnlineScene {
             }
             ServerPacket::ExcludeObject { id } => {
                 if !self.excluded_objects.contains(&id) {
-                    self.excluded_objects.push(id);
-
                     let map = &mut self.base_scene.map;
 
                     if let Some(entity) = map.get_object_entity(id) {
@@ -410,12 +411,12 @@ impl OverworldOnlineScene {
 
                         Excluded::increment(object_entities, entity);
                     }
+
+                    self.excluded_objects.push(id);
                 }
             }
             ServerPacket::IncludeObject { id } => {
                 if let Some(index) = self.excluded_objects.iter().position(|v| *v == id) {
-                    self.excluded_objects.remove(index);
-
                     let map = &mut self.base_scene.map;
 
                     if let Some(entity) = map.get_object_entity(id) {
@@ -423,13 +424,29 @@ impl OverworldOnlineScene {
 
                         Excluded::decrement(object_entities, entity);
                     }
+
+                    self.excluded_objects.remove(index);
                 }
             }
             ServerPacket::ExcludeActor { actor_id } => {
-                log::warn!("ExcludeActor hasn't been implemented")
+                if !self.excluded_actors.contains(&actor_id) {
+                    if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
+                        let entities = &mut self.base_scene.entities;
+                        Excluded::increment(entities, *entity);
+                    }
+
+                    self.excluded_actors.push(actor_id);
+                }
             }
             ServerPacket::IncludeActor { actor_id } => {
-                log::warn!("IncludeActor hasn't been implemented")
+                if let Some(index) = self.excluded_actors.iter().position(|v| *v == actor_id) {
+                    if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
+                        let entities = &mut self.base_scene.entities;
+                        Excluded::decrement(entities, *entity);
+                    }
+
+                    self.excluded_actors.remove(index);
+                }
             }
             ServerPacket::MoveCamera {
                 x,
@@ -838,8 +855,17 @@ impl OverworldOnlineScene {
                     let texture = self.assets.texture(game_io, &texture_path);
                     let animator = Animator::load_new(&self.assets, &animation_path);
 
-                    self.base_scene
-                        .spawn_player_actor(game_io, texture, animator, position)
+                    let entity = self
+                        .base_scene
+                        .spawn_player_actor(game_io, texture, animator, position);
+
+                    // mark as excluded as it was marked before spawn
+                    if self.excluded_actors.contains(&actor_id) {
+                        let entities = &mut self.base_scene.entities;
+                        Excluded::increment(entities, entity)
+                    }
+
+                    entity
                 };
 
                 if entity != self.base_scene.player_data.entity {
