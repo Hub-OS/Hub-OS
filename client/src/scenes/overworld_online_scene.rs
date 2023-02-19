@@ -3,9 +3,9 @@ use crate::battle::BattleProps;
 use crate::bindable::Emotion;
 use crate::overworld::components::*;
 use crate::overworld::{
-    movement_interpolation_system, CameraAction, ObjectData, ObjectType, OverworldEvent,
+    movement_interpolation_system, CameraAction, Identity, Item, ObjectData, ObjectType,
+    OverworldEvent, ServerAssetManager,
 };
-use crate::overworld::{Item, ServerAssetManager};
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage, TextboxPrompt,
@@ -28,6 +28,7 @@ pub struct OverworldOnlineScene {
     next_scene_queue: VecDeque<NextScene>,
     connected: bool,
     transferring: bool,
+    identity: Identity,
     server_address: String,
     send_packet: ClientPacketSender,
     packet_receiver: ServerPacketReceiver,
@@ -67,6 +68,7 @@ impl OverworldOnlineScene {
             next_scene_queue: VecDeque::new(),
             connected: true,
             transferring: false,
+            identity: Identity::for_address(&address),
             server_address: address,
             send_packet,
             packet_receiver,
@@ -98,7 +100,7 @@ impl OverworldOnlineScene {
             Reliability::ReliableOrdered,
             ClientPacket::Login {
                 username: global_save.nickname.clone(),
-                identity: String::new(),
+                identity: self.identity.data().to_vec(),
                 data,
             },
         );
@@ -195,7 +197,28 @@ impl OverworldOnlineScene {
                 // no action required, server just wants an ack to keep connections alive on both sides
             }
             ServerPacket::Authorize { address, data } => {
-                log::warn!("Authorize hasn't been implemented")
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let subscription = globals.network.subscribe_to_server(address);
+
+                let origin_address = address_parsing::strip_data(&self.server_address).to_string();
+                let identity = self.identity.data().to_vec();
+
+                let fut = async move {
+                    let (send, _) = subscription.await?;
+
+                    send(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::Authorize {
+                            origin_address,
+                            identity,
+                            data,
+                        },
+                    );
+
+                    Some(())
+                };
+
+                game_io.spawn_local_task(fut).detach()
             }
             ServerPacket::Login {
                 actor_id,

@@ -20,7 +20,7 @@ log = "0.4"
 rollback_mlua = { git = "https://github.com/Real-PET/rollback-mlua" }
 num-derive = "0.3"
 num-traits = "0.2"
-rand = "0.8"
+rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
 rodio = "0.16"

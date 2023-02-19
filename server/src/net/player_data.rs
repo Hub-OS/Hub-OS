@@ -1,5 +1,5 @@
 pub struct PlayerData {
-    pub identity: String,
+    pub identity: Vec<u8>,
     pub element: String,
     pub health: u32,
     pub max_health: u32,
@@ -9,7 +9,7 @@ pub struct PlayerData {
 }
 
 impl PlayerData {
-    pub fn new(identity: String) -> PlayerData {
+    pub fn new(identity: Vec<u8>) -> PlayerData {
         PlayerData {
             identity,
             element: String::new(),

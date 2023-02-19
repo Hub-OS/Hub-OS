@@ -1487,7 +1487,7 @@ impl Net {
         &mut self,
         socket_address: std::net::SocketAddr,
         name: String,
-        identity: String,
+        identity: Vec<u8>,
     ) -> String {
         let area_id = String::from("default");
         let area = self.get_area_mut(&area_id).unwrap();

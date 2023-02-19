@@ -21,6 +21,7 @@ lazy_static::lazy_static! {
 impl ResourcePaths {
     pub const CACHE_FOLDER: &str = "cache/";
     pub const MOD_CACHE_FOLDER: &str = "cache/local_packages/";
+    pub const IDENTITY_FOLDER: &str = "identity/";
     pub const VIRTUAL_PREFIX: &str = "/virtual/";
     pub const SEPARATOR: &str = "/";
 
@@ -217,10 +218,6 @@ impl ResourcePaths {
         "resources/scenes/package_updates/layout.animation";
 
     pub fn game_folder() -> &'static str {
-        &GAME_PATH
-    }
-
-    pub fn cache_folder() -> &'static str {
         &GAME_PATH
     }
 

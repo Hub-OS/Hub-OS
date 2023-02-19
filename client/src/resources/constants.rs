@@ -5,6 +5,7 @@ use framework::prelude::{Color, UVec2, Vec2};
 pub const DEFAULT_PACKAGE_REPO: &str = "https://real-pet.konstinople.dev";
 
 pub const INPUT_BUFFER_LIMIT: usize = 20;
+pub const IDENTITY_LEN: usize = 32;
 
 pub const RESOLUTION_F: Vec2 = Vec2::new(240.0, 160.0);
 pub const DEFAULT_SCALE: f32 = 2.0;

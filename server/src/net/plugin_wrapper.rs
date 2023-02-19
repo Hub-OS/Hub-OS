@@ -50,7 +50,7 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
-    fn handle_authorization(&mut self, net: &mut Net, identity: &str, host: &str, data: &[u8]) {
+    fn handle_authorization(&mut self, net: &mut Net, identity: &[u8], host: &str, data: &[u8]) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_authorization(net, identity, host, data);
         });

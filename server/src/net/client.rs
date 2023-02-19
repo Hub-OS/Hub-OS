@@ -38,7 +38,7 @@ impl Client {
     pub(super) fn new(
         socket_address: SocketAddr,
         name: String,
-        identity: String,
+        identity: Vec<u8>,
         area_id: String,
         spawn_x: f32,
         spawn_y: f32,

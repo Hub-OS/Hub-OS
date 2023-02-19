@@ -10,7 +10,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(player_data) = &net.get_player_data(player_id_str) {
-            lua_ctx.pack_multi(player_data.identity.as_str())
+            let identity_string = lua_ctx.create_string(&player_data.identity)?;
+
+            lua_ctx.pack_multi(identity_string)
         } else {
             Err(create_player_error(player_id_str))
         }

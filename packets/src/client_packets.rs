@@ -17,7 +17,7 @@ pub enum ClientPacket {
     VersionRequest,
     Authorize {
         origin_address: String,
-        identity: String,
+        identity: Vec<u8>,
         data: Vec<u8>,
     },
     Heartbeat,
@@ -31,7 +31,7 @@ pub enum ClientPacket {
     },
     Login {
         username: String,
-        identity: String,
+        identity: Vec<u8>,
         data: String,
     },
     Logout,

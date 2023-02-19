@@ -133,7 +133,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_authorization(&mut self, net: &mut Net, identity: &str, host: &str, data: &[u8]) {
+    fn handle_authorization(&mut self, net: &mut Net, identity: &[u8], host: &str, data: &[u8]) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -146,7 +146,7 @@ impl PluginInterface for LuaPluginInterface {
                 let data_string = lua_ctx.create_string(data)?;
 
                 let event = lua_ctx.create_table()?;
-                event.set("identity", identity)?;
+                event.set("identity", lua_ctx.create_string(identity)?)?;
                 event.set("host", host)?;
                 event.set("data", data_string)?;
 
