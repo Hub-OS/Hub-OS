@@ -260,4 +260,8 @@ impl ResourcePaths {
             path_str.to_string()
         }
     }
+
+    pub fn delete_mod_cache_folder() {
+        let _ = std::fs::remove_dir_all(ResourcePaths::mod_cache_folder());
+    }
 }
