@@ -274,8 +274,7 @@ impl OverworldOnlineScene {
 
                 // despawn all other actors
                 let player_entity = self.base_scene.player_data.entity;
-                let player_id = self.actor_id_map.get_by_right(&player_entity);
-                let player_id = player_id.cloned().unwrap();
+                let (player_id, _) = self.actor_id_map.remove_by_right(&player_entity).unwrap();
 
                 for entity in self.actor_id_map.right_values() {
                     let _ = self.base_scene.entities.despawn(*entity);
