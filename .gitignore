@@ -9,6 +9,7 @@ dist
 # client files
 cache/
 mods
+identity
 save.dat
 corrupted_save.dat
 config.ini
