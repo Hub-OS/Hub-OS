@@ -29,6 +29,7 @@ enum Event {
     UpdatePackages,
     ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
     ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
+    ClearCache,
     Leave { save: bool },
 }
 
@@ -423,6 +424,15 @@ impl ConfigScene {
                     }
                 }),
             ),
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Clear Cache").on_activate({
+                    let event_sender = event_sender.clone();
+
+                    move || {
+                        let _ = event_sender.send(Event::ClearCache);
+                    }
+                }),
+            ),
         ]
     }
 }
@@ -579,11 +589,36 @@ impl ConfigScene {
                     let remove_doorstop = self.doorstop_remover.take().unwrap();
                     remove_doorstop();
                 }
-
                 Event::ViewUpdates(requires_update) => {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let scene = PackageUpdatesScene::new(game_io, requires_update);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::ClearCache => {
+                    let globals = &mut game_io.resource::<Globals>().unwrap();
+
+                    let message = if !globals.connected_to_server {
+                        match std::fs::remove_dir_all(ResourcePaths::CACHE_FOLDER) {
+                            Ok(()) => String::from("Successfully cleared cache."),
+                            Err(e) => {
+                                log::error!("{e}");
+
+                                match e.kind() {
+                                    std::io::ErrorKind::NotFound => {
+                                        String::from("Cache is already empty.")
+                                    }
+                                    _ => String::from("Failed to clear cache."),
+                                }
+                            }
+                        }
+                    } else {
+                        String::from("You should jack out before clearing cache.")
+                    };
+
+                    let interface = TextboxMessage::new(message);
+
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
                 }
                 Event::Leave { save } => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
