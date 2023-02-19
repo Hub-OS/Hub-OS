@@ -43,6 +43,7 @@ pub fn main() -> anyhow::Result<()> {
     let (log_sender, log_receiver) = flume::unbounded();
     default_logger::init_with_listener!(move |log| {
         let _ = log_sender.send(log);
+        cleanup();
     });
 
     let game = Game::new("Personal Terminal", TRUE_RESOLUTION.into())
@@ -58,7 +59,13 @@ pub fn main() -> anyhow::Result<()> {
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 
+    cleanup();
+
     Ok(())
+}
+
+fn cleanup() {
+    let _ = std::fs::remove_dir_all(ResourcePaths::mod_cache_folder());
 }
 
 #[cfg(target_os = "android")]

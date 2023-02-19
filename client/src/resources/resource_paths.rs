@@ -18,9 +18,13 @@ lazy_static::lazy_static! {
     );
 }
 
+lazy_static::lazy_static! {
+    static ref MOD_CACHE_FOLDER: String =
+        std::env::temp_dir().to_string_lossy().to_string() + "/" + env!("CARGO_PKG_NAME") + "/local_packages/";
+}
+
 impl ResourcePaths {
     pub const CACHE_FOLDER: &str = "cache/";
-    pub const MOD_CACHE_FOLDER: &str = "cache/local_packages/";
     pub const IDENTITY_FOLDER: &str = "identity/";
     pub const VIRTUAL_PREFIX: &str = "/virtual/";
     pub const SEPARATOR: &str = "/";
@@ -219,6 +223,10 @@ impl ResourcePaths {
 
     pub fn game_folder() -> &'static str {
         &GAME_PATH
+    }
+
+    pub fn mod_cache_folder() -> &'static str {
+        &MOD_CACHE_FOLDER
     }
 
     pub fn is_absolute(path_str: &str) -> bool {

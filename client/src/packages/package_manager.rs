@@ -266,12 +266,12 @@ impl<T: Package> PackageManager<T> {
         };
 
         let hash = FileHash::hash(&data);
-        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+        let path = format!("{}{}.zip", ResourcePaths::mod_cache_folder(), hash);
 
-        if let Err(e) = std::fs::create_dir_all(ResourcePaths::MOD_CACHE_FOLDER) {
+        if let Err(e) = std::fs::create_dir_all(ResourcePaths::mod_cache_folder()) {
             log::error!(
                 "Failed to create cache folder {:?}: {e}",
-                ResourcePaths::MOD_CACHE_FOLDER
+                ResourcePaths::mod_cache_folder()
             );
         }
 

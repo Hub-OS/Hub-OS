@@ -512,7 +512,7 @@ impl NetplayInitScene {
                 let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
                     bytes
                 } else {
-                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                    let path = format!("{}{}.zip", ResourcePaths::mod_cache_folder(), hash);
 
                     assets.binary(&path)
                 };
@@ -534,7 +534,7 @@ impl NetplayInitScene {
                     let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
                         bytes
                     } else {
-                        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                        let path = format!("{}{}.zip", ResourcePaths::mod_cache_folder(), hash);
 
                         assets.binary(&path)
                     };
