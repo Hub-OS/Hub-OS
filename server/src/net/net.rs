@@ -365,7 +365,7 @@ impl Net {
         );
     }
 
-    pub fn animate_player_properties(&mut self, id: &str, animation: Vec<KeyFrame>) {
+    pub fn animate_player_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
         use std::collections::HashSet;
 
         let client = match self.clients.get_mut(id) {
@@ -2005,7 +2005,7 @@ impl Net {
         );
     }
 
-    pub fn animate_bot_properties(&mut self, id: &str, animation: Vec<KeyFrame>) {
+    pub fn animate_bot_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
         if let Some(bot) = self.bots.get_mut(id) {
             // store final values for new players
             let area = match self.areas.get(&bot.area_id) {
@@ -2230,7 +2230,7 @@ fn broadcast_actor_keyframes(
     packet_orchestrator: &mut PacketOrchestrator,
     area: &Area,
     id: &str,
-    keyframes: Vec<KeyFrame>,
+    keyframes: Vec<ActorKeyFrame>,
 ) {
     packet_orchestrator.broadcast_to_room(
         area.id(),

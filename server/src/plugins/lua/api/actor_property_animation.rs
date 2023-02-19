@@ -1,12 +1,12 @@
-use crate::net::{ActorProperty, Direction, Ease, KeyFrame};
+use crate::net::{ActorKeyFrame, ActorProperty, Direction, Ease};
 
-pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<KeyFrame>> {
+pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<ActorKeyFrame>> {
     let mut animation = Vec::new();
 
     for keyframe_table in keyframe_tables {
         let duration_option: Option<f32> = keyframe_table.get("duration")?;
 
-        let mut keyframe = KeyFrame {
+        let mut keyframe = ActorKeyFrame {
             property_steps: Vec::new(),
             duration: duration_option.unwrap_or_default(),
         };

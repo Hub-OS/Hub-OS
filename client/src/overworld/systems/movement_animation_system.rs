@@ -8,7 +8,7 @@ pub fn system_movement_animation(scene: &mut OverworldSceneBase) {
     let query = entities.query_mut::<(&mut MovementAnimator, &mut Animator, &mut Direction)>();
 
     for (_, (movement_animator, animator, direction)) in query {
-        if !movement_animator.enabled() {
+        if !movement_animator.animation_enabled() {
             continue;
         }
 

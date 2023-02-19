@@ -1,9 +1,9 @@
 use super::{InitialConnectScene, NetplayInitScene, OverworldSceneBase};
 use crate::battle::BattleProps;
 use crate::bindable::Emotion;
-use crate::overworld::components::*;
+use crate::overworld::{components::*, system_actor_property_animation};
 use crate::overworld::{
-    movement_interpolation_system, CameraAction, Identity, Item, ObjectData, ObjectType,
+    system_movement_interpolation, CameraAction, Identity, Item, ObjectData, ObjectType,
     OverworldEvent, ServerAssetManager,
 };
 use crate::packages::{PackageId, PackageNamespace};
@@ -16,7 +16,7 @@ use crate::resources::*;
 use crate::scenes::BattleScene;
 use bimap::BiMap;
 use framework::prelude::*;
-use packets::structures::{BattleStatistics, FileHash};
+use packets::structures::{ActorProperty, BattleStatistics, FileHash};
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
 };
@@ -941,7 +941,7 @@ impl OverworldOnlineScene {
                             .unwrap();
 
                         animator.set_state(&state);
-                        movement_animator.set_enabled(false);
+                        movement_animator.set_animation_enabled(false);
                     }
 
                     if warp_in {
@@ -1001,6 +1001,10 @@ impl OverworldOnlineScene {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let entities = &mut self.base_scene.entities;
 
+                    let animating_properties = entities
+                        .satisfies::<(&ActorPropertyAnimator)>(*entity)
+                        .unwrap_or(false);
+
                     if let Ok(interpolator) =
                         entities.query_one_mut::<(&mut MovementInterpolator)>(*entity)
                     {
@@ -1008,7 +1012,16 @@ impl OverworldOnlineScene {
                         let position = self.base_scene.map.tile_3d_to_world(tile_position);
 
                         if interpolator.is_movement_impossible(position) {
-                            // todo: warp
+                            if !animating_properties {
+                                WarpEffect::warp_full(
+                                    game_io,
+                                    &mut self.base_scene,
+                                    *entity,
+                                    position,
+                                    direction,
+                                    |_, _| {},
+                                );
+                            }
                         } else {
                             interpolator.push(game_io, position, direction);
                         }
@@ -1054,13 +1067,45 @@ impl OverworldOnlineScene {
                         animator.set_loop_mode(AnimatorLoopMode::Loop);
                     }
 
-                    movement_animator.set_enabled(false);
+                    movement_animator.set_animation_enabled(false);
                 }
             }
             ServerPacket::ActorPropertyKeyFrames {
                 actor_id,
                 keyframes,
-            } => log::warn!("ActorPropertyKeyFrames hasn't been implemented"),
+            } => {
+                if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
+                    let mut property_animator = ActorPropertyAnimator::new();
+
+                    if *entity != self.base_scene.player_data.entity {
+                        property_animator.set_audio_enabled(false);
+                    }
+
+                    let tile_size = self.base_scene.map.tile_size().as_vec2();
+
+                    for mut keyframe in keyframes {
+                        // fix scale
+                        for (property, ease) in &mut keyframe.property_steps {
+                            match property {
+                                ActorProperty::X(value) => {
+                                    *property = ActorProperty::X(*value * tile_size.x * 0.5);
+                                }
+                                ActorProperty::Y(value) => {
+                                    *property = ActorProperty::Y(*value * tile_size.y);
+                                }
+                                _ => {}
+                            }
+                        }
+
+                        property_animator.add_key_frame(keyframe);
+                    }
+
+                    let entities = &mut self.base_scene.entities;
+                    entities.insert_one(*entity, property_animator);
+
+                    ActorPropertyAnimator::start(game_io, &self.assets, entities, *entity);
+                }
+            }
             ServerPacket::ActorMinimapColor { actor_id, color } => {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let entities = &mut self.base_scene.entities;
@@ -1362,7 +1407,8 @@ impl Scene for OverworldOnlineScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
 
-        movement_interpolation_system(game_io, &mut self.base_scene);
+        system_actor_property_animation(game_io, &self.assets, &mut self.base_scene);
+        system_movement_interpolation(game_io, &mut self.base_scene);
         self.base_scene.update(game_io);
         self.send_position(game_io);
 

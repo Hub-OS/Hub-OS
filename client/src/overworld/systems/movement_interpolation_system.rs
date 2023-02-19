@@ -1,19 +1,23 @@
-use crate::overworld::components::{MovementAnimator, MovementInterpolator};
+use crate::overworld::components::{ActorPropertyAnimator, MovementAnimator, MovementInterpolator};
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn movement_interpolation_system(game_io: &GameIO, scene: &mut OverworldSceneBase) {
+pub fn system_movement_interpolation(game_io: &GameIO, scene: &mut OverworldSceneBase) {
     let entities = &mut scene.entities;
 
-    // todo: disable if property animator is animating position?
+    type Query<'a> = hecs::Without<
+        (
+            &'a mut Vec3,
+            &'a mut Direction,
+            &'a mut MovementInterpolator,
+            &'a mut MovementAnimator,
+        ),
+        &'a ActorPropertyAnimator,
+    >;
 
-    for (_, (position, direction, interpolater, movement_animator)) in entities.query_mut::<(
-        &mut Vec3,
-        &mut Direction,
-        &mut MovementInterpolator,
-        &mut MovementAnimator,
-    )>() {
+    for (_, (position, direction, interpolater, movement_animator)) in entities.query_mut::<Query>()
+    {
         let (new_position, new_direction, new_state) = interpolater.update(game_io);
         *position = new_position;
 

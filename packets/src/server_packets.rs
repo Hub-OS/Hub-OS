@@ -256,7 +256,7 @@ pub enum ServerPacket {
     },
     ActorPropertyKeyFrames {
         actor_id: String,
-        keyframes: Vec<KeyFrame>,
+        keyframes: Vec<ActorKeyFrame>,
     },
     ActorMinimapColor {
         actor_id: String,

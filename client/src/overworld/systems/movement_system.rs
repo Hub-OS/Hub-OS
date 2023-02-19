@@ -17,6 +17,9 @@ pub fn system_movement(scene: &mut OverworldSceneBase) {
             continue;
         }
 
+        // force animation on if we're moving through the movement animator
+        movement_animator.set_animation_enabled(true);
+
         let movement_direction = movement_animator.advance_direction();
 
         let speed = match movement_animator.state() {
