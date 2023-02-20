@@ -156,7 +156,9 @@ impl OverworldSceneBase {
     }
 
     pub fn remove_input_lock(&mut self) {
-        self.input_locks -= 1;
+        if self.input_locks > 0 {
+            self.input_locks -= 1;
+        }
     }
 
     pub fn queue_camera_action(&mut self, action: CameraAction) {
