@@ -959,26 +959,21 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::ActorDisconnected { actor_id, warp_out } => {
-                if warp_out {
-                    if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
+                if let Some((_, entity)) = self.actor_id_map.remove_by_left(&actor_id) {
+                    if warp_out {
                         let event_sender = self.base_scene.event_sender.clone();
 
                         WarpEffect::warp_out(
                             game_io,
                             &mut self.base_scene,
-                            *entity,
-                            move |_, _| {
-                                event_sender
-                                    .send(OverworldEvent::RemoveActor { actor_id })
-                                    .unwrap();
+                            entity,
+                            move |_, base_scene| {
+                                let _ = base_scene.entities.despawn(entity);
                             },
                         );
+                    } else {
+                        let _ = self.base_scene.entities.despawn(entity);
                     }
-                } else {
-                    self.base_scene
-                        .event_sender
-                        .send(OverworldEvent::RemoveActor { actor_id })
-                        .unwrap();
                 }
             }
             ServerPacket::ActorSetName { actor_id, name } => {
@@ -1146,6 +1141,12 @@ impl OverworldOnlineScene {
             .push_textbox_interface(doorstop_interface);
     }
 
+    fn remove_actor(&mut self, actor_id: &str) {
+        if let Some((_, entity)) = self.actor_id_map.remove_by_left(actor_id) {
+            let _ = self.base_scene.entities.despawn(entity);
+        }
+    }
+
     fn handle_events(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.base_scene.event_receiver.try_recv() {
             match event {
@@ -1184,11 +1185,6 @@ impl OverworldOnlineScene {
                         Reliability::ReliableOrdered,
                         ClientPacket::BattleResults { battle_stats },
                     );
-                }
-                OverworldEvent::RemoveActor { actor_id } => {
-                    if let Some((_, entity)) = self.actor_id_map.remove_by_left(&actor_id) {
-                        let _ = self.base_scene.entities.despawn(entity);
-                    }
                 }
                 OverworldEvent::WarpIn {
                     target_entity,

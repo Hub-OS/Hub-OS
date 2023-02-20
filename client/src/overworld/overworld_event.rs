@@ -7,9 +7,6 @@ pub enum OverworldEvent {
     TextboxResponse(u8),
     PromptResponse(String),
     BattleStatistics(Option<BattleStatistics>),
-    RemoveActor {
-        actor_id: String,
-    },
     WarpIn {
         target_entity: hecs::Entity,
         direction: Direction,
