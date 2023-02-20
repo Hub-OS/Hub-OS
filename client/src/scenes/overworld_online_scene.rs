@@ -1228,14 +1228,11 @@ impl OverworldOnlineScene {
                     }
                 }
                 OverworldEvent::TransferServer { address, data } => {
-                    (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::Logout);
-
                     let transition = crate::transitions::new_connect(game_io);
                     let scene = InitialConnectScene::new(game_io, address, data, false);
                     let next_scene = NextScene::new_swap(scene).with_transition(transition);
 
                     self.next_scene_queue.push_back(next_scene);
-                    self.connected = false;
                 }
                 OverworldEvent::Disconnected { message } => {
                     let event_sender = self.base_scene.event_sender.clone();
@@ -1257,13 +1254,9 @@ impl OverworldOnlineScene {
                     self.connected = false;
                 }
                 OverworldEvent::Leave => {
-                    (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::Logout);
-
                     let transition = crate::transitions::new_connect(game_io);
                     *self.base_scene.next_scene() =
                         NextScene::new_pop().with_transition(transition);
-
-                    self.connected = false;
                 }
             }
         }
@@ -1376,14 +1369,25 @@ impl OverworldOnlineScene {
         let base_scene_next_scene = self.base_scene.next_scene().take();
 
         if base_scene_next_scene.is_some() {
-            self.next_scene_queue.push_back(base_scene_next_scene)
+            self.next_scene_queue.push_back(base_scene_next_scene);
         }
 
-        if !game_io.is_in_transition() && self.next_scene.is_none() {
-            if let Some(next_scene) = self.next_scene_queue.pop_front() {
-                self.next_scene = next_scene;
-            }
+        if game_io.is_in_transition() || !self.next_scene.is_none() {
+            return;
         }
+
+        let Some(next_scene) = self.next_scene_queue.pop_front() else {
+            return;
+        };
+
+        if !matches!(&next_scene, NextScene::Push { .. }) && self.connected {
+            // leaving as anything that isn't NextScene::Push will end up dropping this scene
+            // notify the server
+            (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::Logout);
+            self.connected = false;
+        }
+
+        self.next_scene = next_scene;
     }
 }
 
