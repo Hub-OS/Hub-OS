@@ -223,7 +223,7 @@ impl UiNode for PackageListing {
                 let mut position = bounds.center_right();
                 position.x -= 3.0;
 
-                for color in colors {
+                for color in colors.iter().rev() {
                     animator.set_state(if *flat {
                         color.flat_state()
                     } else {
