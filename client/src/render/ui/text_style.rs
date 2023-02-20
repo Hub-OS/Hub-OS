@@ -149,6 +149,7 @@ impl TextStyle {
         F: FnMut(AnimationFrame, Vec2),
     {
         let mut insert_tracker = TextInsertTracker::new(self);
+        insert_tracker.line_start_index = range.start;
 
         let mut max_x: f32 = 0.0;
         let mut max_y: f32 = 0.0;
@@ -192,7 +193,7 @@ impl TextStyle {
                     "\t" => {
                         insert_tracker.insert_tab(index);
                     }
-                    "\n" => {
+                    "\r\n" | "\n" => {
                         insert_tracker.new_line(index, 1);
                     }
                     _ => {
