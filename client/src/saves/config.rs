@@ -253,7 +253,7 @@ impl From<&str> for Config {
         if let Some(properties) = ini.section(Some("Online")) {
             config.package_repo = properties
                 .get("PackageRepo")
-                .unwrap_or_default()
+                .unwrap_or(DEFAULT_PACKAGE_REPO)
                 .to_string();
         }
 
