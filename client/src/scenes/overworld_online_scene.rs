@@ -943,7 +943,7 @@ impl OverworldOnlineScene {
                         movement_animator.set_animation_enabled(false);
                     }
 
-                    if warp_in {
+                    if warp_in && !self.excluded_actors.contains(&actor_id) {
                         // create warp effect
                         WarpEffect::warp_in(
                             game_io,
@@ -1011,7 +1011,7 @@ impl OverworldOnlineScene {
                         let position = self.base_scene.map.tile_3d_to_world(tile_position);
 
                         if interpolator.is_movement_impossible(position) {
-                            if !animating_properties {
+                            if !animating_properties && !self.excluded_actors.contains(&actor_id) {
                                 WarpEffect::warp_full(
                                     game_io,
                                     &mut self.base_scene,
