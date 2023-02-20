@@ -143,6 +143,17 @@ impl Instance<BackgroundInstanceData> for Background {
         bounds.width /= texture_size.x;
         bounds.height /= texture_size.y;
 
+        // small shifts to remove seams
+        let increment = 0.01 / texture_size.x;
+
+        let x_increment = bounds.width.signum() * increment;
+        bounds.x += x_increment;
+        bounds.width -= x_increment;
+
+        let y_increment = bounds.height.signum() * increment;
+        bounds.y += y_increment;
+        bounds.height -= y_increment;
+
         BackgroundInstanceData {
             scale,
             offset,
