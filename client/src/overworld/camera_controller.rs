@@ -119,7 +119,7 @@ impl CameraController {
                 CameraAction::TrackEntity { entity } => self.tracked_entity = Some(entity),
                 CameraAction::Unlock => {
                     // unlock as long as nothing else is queued
-                    self.locked = self.queue.is_empty();
+                    self.locked = !self.queue.is_empty();
                 }
             }
         }
