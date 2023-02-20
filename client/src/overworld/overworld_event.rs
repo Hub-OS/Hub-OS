@@ -1,3 +1,4 @@
+use framework::prelude::Vec3;
 use packets::structures::{BattleStatistics, Direction};
 
 pub enum OverworldEvent {
@@ -9,6 +10,7 @@ pub enum OverworldEvent {
     BattleStatistics(Option<BattleStatistics>),
     WarpIn {
         target_entity: hecs::Entity,
+        position: Vec3,
         direction: Direction,
     },
     /// See warp_system.rs to see which object types are already handled

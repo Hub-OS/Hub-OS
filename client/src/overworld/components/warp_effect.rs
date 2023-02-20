@@ -40,11 +40,10 @@ impl WarpEffect {
         game_io: &mut GameIO,
         base_scene: &mut OverworldSceneBase,
         target_entity: hecs::Entity,
+        position: Vec3,
         callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync>,
         warp_type: WarpType,
     ) -> hecs::Entity {
-        let entities = &mut base_scene.entities;
-        let position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
         let screen_position = base_scene.map.world_3d_to_screen(position);
 
         let globals = game_io.resource::<Globals>().unwrap();
@@ -60,7 +59,7 @@ impl WarpEffect {
         match warp_type {
             WarpType::In { .. } => {
                 animator.set_state("IN");
-                Excluded::increment(entities, target_entity);
+                Excluded::increment(&mut base_scene.entities, target_entity);
             }
             WarpType::Out | WarpType::Full { .. } => {
                 animator.set_state("OUT");
@@ -105,10 +104,14 @@ impl WarpEffect {
         target_entity: hecs::Entity,
         callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
     ) -> hecs::Entity {
+        let entities = &mut base_scene.entities;
+        let position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
+
         Self::spawn(
             game_io,
             base_scene,
             target_entity,
+            position,
             Box::new(callback),
             WarpType::Out,
         )
@@ -126,6 +129,7 @@ impl WarpEffect {
             game_io,
             base_scene,
             target_entity,
+            position,
             Box::new(callback),
             WarpType::In {
                 position,
@@ -142,10 +146,14 @@ impl WarpEffect {
         direction: Direction,
         callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
     ) -> hecs::Entity {
+        let entities = &mut base_scene.entities;
+        let out_position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
+
         Self::spawn(
             game_io,
             base_scene,
             target_entity,
+            out_position,
             Box::new(callback),
             WarpType::Full {
                 position,

@@ -13,8 +13,9 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
     let mut pending_action = Vec::new();
     let mut pending_removal = Vec::new();
 
-    for (entity, (effect, animator)) in entities.query::<(&mut WarpEffect, &mut Animator)>().iter()
-    {
+    type Query<'a> = (&'a mut WarpEffect, &'a mut Animator, &'a mut Vec3);
+
+    for (entity, (effect, animator, warp_position)) in entities.query::<Query>().iter() {
         let current_frame = animator.current_frame_index();
         let frame_changed = effect.last_frame != Some(current_frame);
         effect.last_frame = Some(current_frame);
@@ -23,24 +24,12 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
             match effect.warp_type {
                 WarpType::In { .. } => {
                     if current_frame == WARP_IN_REVEAL_FRAME {
-                        pending_action.push((
-                            effect.warp_type,
-                            effect.actor_entity,
-                            effect.callback.take(),
-                        ));
+                        pending_action.push((effect.warp_type, effect.actor_entity));
                     }
                 }
                 WarpType::Out | WarpType::Full { .. } => {
                     if current_frame == WARP_OUT_HIDE_FRAME {
-                        // only passing callback for WarpType::Out as
-                        // WarpType::Full truely completes when it becomes a WarpType::In
-                        let callback = if matches!(effect.warp_type, WarpType::Out) {
-                            effect.callback.take()
-                        } else {
-                            None
-                        };
-
-                        pending_action.push((effect.warp_type, effect.actor_entity, callback));
+                        pending_action.push((effect.warp_type, effect.actor_entity));
                     }
                 }
             }
@@ -73,6 +62,7 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
                     direction,
                 };
                 animator.set_state("IN");
+                *warp_position = position;
 
                 // todo: play sfx?
 
@@ -80,18 +70,23 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
             }
         }
 
-        pending_removal.push((entity, effect.actor_entity));
+        pending_removal.push((entity, effect.actor_entity, effect.callback.take()));
     }
 
-    for (entity, actor_entity) in pending_removal {
+    for (entity, actor_entity, callback) in pending_removal {
+        let entities = &mut scene.entities;
         let _ = entities.despawn(entity);
 
         if let Ok(mut warp_controller) = entities.get::<&mut WarpController>(actor_entity) {
             warp_controller.warp_entity = None;
         }
+
+        if let Some(callback) = callback {
+            callback(game_io, scene);
+        }
     }
 
-    for (warp_type, actor_entity, callback) in pending_action {
+    for (warp_type, actor_entity) in pending_action {
         let entities = &mut scene.entities;
 
         match warp_type {
@@ -112,19 +107,9 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
                 if !direction.is_none() {
                     *set_direction = direction;
                 }
-
-                if let Some(callback) = callback {
-                    callback(game_io, scene);
-                }
             }
             WarpType::Out | WarpType::Full { .. } => {
                 Excluded::increment(entities, actor_entity);
-
-                if entities.contains(actor_entity) {
-                    if let Some(callback) = callback {
-                        callback(game_io, scene);
-                    }
-                }
             }
         }
     }

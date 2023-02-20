@@ -1192,22 +1192,17 @@ impl OverworldOnlineScene {
                 }
                 OverworldEvent::WarpIn {
                     target_entity,
+                    position,
                     direction,
                 } => {
-                    let entities = &mut self.base_scene.entities;
-
-                    if let Ok(position) = entities.query_one_mut::<&Vec3>(target_entity) {
-                        let position = *position;
-
-                        WarpEffect::warp_in(
-                            game_io,
-                            &mut self.base_scene,
-                            target_entity,
-                            position,
-                            direction,
-                            |_, _| {},
-                        );
-                    }
+                    WarpEffect::warp_in(
+                        game_io,
+                        &mut self.base_scene,
+                        target_entity,
+                        position,
+                        direction,
+                        |_, _| {},
+                    );
                 }
                 OverworldEvent::PendingWarp { entity } => {
                     let map = &mut self.base_scene.map;

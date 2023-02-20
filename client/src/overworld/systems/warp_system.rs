@@ -48,6 +48,10 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
             let data = if data.is_empty() { None } else { Some(data) };
             let direction: Direction = object_data.custom_properties.get("direction").into();
 
+            let mut warp_position = object_data.position.extend(position.z);
+            warp_position.x += object_data.size.y * 0.5;
+            warp_position.y += object_data.size.y * 0.5;
+
             // begin poll task
             let globals = game_io.resource_mut::<Globals>().unwrap();
             let subscription = globals.network.subscribe_to_server(address.clone());
@@ -74,6 +78,7 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
                                 OverworldEvent::SystemMessage { message },
                                 OverworldEvent::WarpIn {
                                     target_entity: player_entity,
+                                    position: warp_position,
                                     direction,
                                 },
                             ]
