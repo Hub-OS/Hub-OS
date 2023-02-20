@@ -37,6 +37,7 @@ pub struct ActorPropertyAnimator {
     time: f32,
     total_time: f32,
     sprite_animation_speed: f32,
+    movement_animator_moved: bool,
     animating_sprite: bool,
     animating_position: bool,
     animating_direction: bool,
@@ -51,6 +52,7 @@ impl ActorPropertyAnimator {
             time: 0.0,
             total_time: 0.0,
             sprite_animation_speed: 1.0,
+            movement_animator_moved: false,
             animating_sprite: false,
             animating_position: false,
             animating_direction: false,
@@ -102,8 +104,10 @@ impl ActorPropertyAnimator {
             &'a Vec3,
             &'a Direction,
             &'a Sprite,
+            &'a mut MovementAnimator,
         );
-        let Ok((property_animator, position, direction, sprite)) = entities.query_one_mut::<Query>(entity) else {
+
+        let Ok((property_animator, position, direction, sprite, movement_animator)) = entities.query_one_mut::<Query>(entity) else {
             return;
         };
 
@@ -133,6 +137,9 @@ impl ActorPropertyAnimator {
             match property_id {
                 ActorPropertyId::X | ActorPropertyId::Y | ActorPropertyId::Z => {
                     property_animator.animating_position = true;
+                    property_animator.movement_animator_moved =
+                        movement_animator.movement_enabled();
+                    movement_animator.set_movement_enabled(false);
                 }
                 ActorPropertyId::Direction => {
                     property_animator.animating_direction = true;
@@ -313,37 +320,33 @@ impl ActorPropertyAnimator {
 
             if property_animator.animating_position && !property_animator.animating_sprite {
                 // resolve direction and player animation
-                if position_difference.x != 0.0 || position_difference.y != 0.0 {
-                    let new_direction = if property_animator.animating_direction {
-                        *direction
-                    } else {
-                        Direction::from_offset(position_difference.xy().into())
-                    };
-
-                    if !new_direction.is_none() {
-                        *direction = new_direction;
-                    }
-
-                    let distance = position_difference.length();
-
-                    let movement_state = if distance == 0.0 {
-                        MovementState::Idle
-                    } else if distance <= OVERWORLD_WALK_SPEED * elapsed {
-                        MovementState::Walking
-                    } else {
-                        MovementState::Running
-                    };
-
-                    movement_animator.set_state(movement_state);
+                let new_direction = if property_animator.animating_direction {
+                    *direction
                 } else {
-                    movement_animator.set_animation_enabled(false);
+                    Direction::from_offset(position_difference.xy().into())
+                };
+
+                if !new_direction.is_none() {
+                    *direction = new_direction;
                 }
+
+                let distance = position_difference.length();
+
+                let movement_state = if distance == 0.0 {
+                    MovementState::Idle
+                } else if distance <= OVERWORLD_WALK_SPEED * elapsed {
+                    MovementState::Walking
+                } else {
+                    MovementState::Running
+                };
+
+                movement_animator.set_state(movement_state);
             }
 
             property_animator.time += elapsed;
 
             if property_animator.relevant_properties.is_empty() {
-                movement_animator.set_movement_enabled(true);
+                movement_animator.set_movement_enabled(property_animator.movement_animator_moved);
                 animator_remove_list.push(entity);
             }
         }
@@ -397,5 +400,17 @@ impl ActorPropertyAnimator {
                 log::error!("Called apply_f32_property for invalid ActorPropertyId")
             }
         }
+    }
+
+    pub fn stop(entities: &mut hecs::World, entity: hecs::Entity) {
+        let Ok(property_animator) = entities.remove_one::<ActorPropertyAnimator>(entity) else {
+            return;
+        };
+
+        let Ok(movement_animator) = entities.query_one_mut::<&mut MovementAnimator>(entity) else {
+            return;
+        };
+
+        movement_animator.set_movement_enabled(property_animator.movement_animator_moved);
     }
 }

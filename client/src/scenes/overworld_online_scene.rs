@@ -1094,7 +1094,11 @@ impl OverworldOnlineScene {
                         property_animator.add_key_frame(keyframe);
                     }
 
+                    // stop the previous animator
                     let entities = &mut self.base_scene.entities;
+                    ActorPropertyAnimator::stop(entities, *entity);
+
+                    // insert and start the new one
                     entities.insert_one(*entity, property_animator);
 
                     ActorPropertyAnimator::start(game_io, &self.assets, entities, *entity);
