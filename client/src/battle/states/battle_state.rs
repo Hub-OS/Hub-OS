@@ -408,6 +408,7 @@ impl BattleState {
         }
 
         // detect expiration
+        let mut actions_pending_removal = Vec::new();
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
@@ -420,6 +421,11 @@ impl BattleState {
                 {
                     // freeze the entity again
                     entity.time_frozen_count = 1;
+
+                    // delete action if it still exists
+                    if let Some(index) = entity.card_action_index.take() {
+                        actions_pending_removal.push(index);
+                    }
 
                     entity.card_action_index = action_index;
 
@@ -445,6 +451,8 @@ impl BattleState {
                 }
             }
         }
+
+        simulation.delete_card_actions(game_io, vms, &actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {
