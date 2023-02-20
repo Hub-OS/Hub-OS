@@ -114,7 +114,7 @@ fn callback_setter<G, P, F, R>(
         + 'static,
 {
     lua_api.add_dynamic_setter(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
         let entity_id: EntityId = table.raw_get("#entity_id")?;
@@ -130,15 +130,19 @@ fn callback_setter<G, P, F, R>(
 
         let key = Arc::new(lua.create_registry_value(table)?);
 
-        *callback_getter(form) = Some(BattleCallback::new_transformed_lua_callback(
-            lua,
-            api_ctx.vm_index,
-            callback,
-            move |_, lua, p| {
-                let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                param_transformer(lua, table, p)
-            },
-        )?);
+        *callback_getter(form) = callback
+            .map(|callback| {
+                BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    api_ctx.vm_index,
+                    callback,
+                    move |_, lua, p| {
+                        let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                        param_transformer(lua, table, p)
+                    },
+                )
+            })
+            .transpose()?;
 
         lua.pack_multi(())
     });

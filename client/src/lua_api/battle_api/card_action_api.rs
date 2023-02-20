@@ -546,7 +546,7 @@ fn callback_setter<G, P, F, R>(
         + 'static,
 {
     lua_api.add_dynamic_setter(CARD_ACTION_TABLE, name, move |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
         let id: GenerationalIndex = table.raw_get("#id")?;
@@ -559,21 +559,25 @@ fn callback_setter<G, P, F, R>(
 
         let key = Arc::new(lua.create_registry_value(table)?);
 
-        *callback_getter(card_action) = Some(BattleCallback::new_transformed_lua_callback(
-            lua,
-            api_ctx.vm_index,
-            callback,
-            move |api_ctx, lua, p| {
-                let api_ctx = &mut *api_ctx.borrow_mut();
-                let card_actions = &mut api_ctx.simulation.card_actions;
-                let card_action = card_actions
-                    .get_mut(id.into())
-                    .ok_or_else(card_action_not_found)?;
+        *callback_getter(card_action) = callback
+            .map(|callback| {
+                BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    api_ctx.vm_index,
+                    callback,
+                    move |api_ctx, lua, p| {
+                        let api_ctx = &mut *api_ctx.borrow_mut();
+                        let card_actions = &mut api_ctx.simulation.card_actions;
+                        let card_action = card_actions
+                            .get_mut(id.into())
+                            .ok_or_else(card_action_not_found)?;
 
-                let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                param_transformer(card_action, lua, table, p)
-            },
-        )?);
+                        let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                        param_transformer(card_action, lua, table, p)
+                    },
+                )
+            })
+            .transpose()?;
 
         lua.pack_multi(())
     });

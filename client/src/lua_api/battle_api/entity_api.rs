@@ -1241,7 +1241,7 @@ fn callback_setter<C, G, P, F, R>(
 ) where
     C: hecs::Component,
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut C) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
     F: for<'lua> Fn(
             &'lua rollback_mlua::Lua,
@@ -1254,7 +1254,7 @@ fn callback_setter<C, G, P, F, R>(
         + 'static,
 {
     lua_api.add_dynamic_setter(ENTITY_TABLE, name, move |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -1267,15 +1267,19 @@ fn callback_setter<C, G, P, F, R>(
 
         let key = Arc::new(lua.create_registry_value(table)?);
 
-        *callback_getter(entity) = BattleCallback::new_transformed_lua_callback(
-            lua,
-            api_ctx.vm_index,
-            callback,
-            move |_, lua, p| {
-                let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                param_transformer(lua, table, p)
-            },
-        )?;
+        if let Some(callback) = callback {
+            *callback_getter(entity) = BattleCallback::new_transformed_lua_callback(
+                lua,
+                api_ctx.vm_index,
+                callback,
+                move |_, lua, p| {
+                    let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                    param_transformer(lua, table, p)
+                },
+            )?;
+        } else {
+            *callback_getter(entity) = BattleCallback::stub(R::default());
+        }
 
         lua.pack_multi(())
     });
