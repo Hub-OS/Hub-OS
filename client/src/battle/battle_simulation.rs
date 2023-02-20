@@ -682,7 +682,10 @@ impl BattleSimulation {
     {
         let lua = &vms[vm_index].lua;
 
-        let global_fn: rollback_mlua::Function = lua.globals().get(fn_name)?;
+        let global_fn: rollback_mlua::Function = lua
+            .globals()
+            .get(fn_name)
+            .map_err(|e| rollback_mlua::Error::RuntimeError(format!("{e}: {fn_name}")))?;
 
         let api_ctx = RefCell::new(BattleScriptContext {
             vm_index,
