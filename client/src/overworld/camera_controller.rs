@@ -77,7 +77,7 @@ impl CameraController {
         entities: &mut hecs::World,
         camera: &mut Camera,
     ) {
-        if self.queue.is_empty() {
+        if !self.locked {
             let entity = self.tracked_entity.unwrap_or(self.player_entity);
 
             if let Ok(target) = entities.query_one_mut::<&Vec3>(entity) {
