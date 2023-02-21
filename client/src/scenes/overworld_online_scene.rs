@@ -34,6 +34,7 @@ pub struct OverworldOnlineScene {
     packet_receiver: ServerPacketReceiver,
     synchronizing_packets: bool,
     stored_packets: Vec<ServerPacket>,
+    previous_boost_packet: Option<ClientPacket>,
     last_position_send: Instant,
     assets: ServerAssetManager,
     custom_emotes_path: String,
@@ -74,6 +75,7 @@ impl OverworldOnlineScene {
             packet_receiver,
             synchronizing_packets: false,
             stored_packets: Vec::new(),
+            previous_boost_packet: None,
             last_position_send: game_io.frame_start_instant(),
             assets,
             custom_emotes_path: ResourcePaths::BLANK.to_string(),
@@ -86,7 +88,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    pub fn start_connection(&self, game_io: &GameIO, data: Option<String>) {
+    pub fn start_connection(&mut self, game_io: &GameIO, data: Option<String>) {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
 
@@ -116,34 +118,39 @@ impl OverworldOnlineScene {
             );
         }
 
-        // send augments
-        self.send_augments();
+        // send boosts
+        self.send_boosts();
 
         // send avatar data
         self.send_avatar_data(game_io);
 
         // nothing else to send, request join
+        let send_packet = &self.send_packet;
         send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
     }
 
-    pub fn send_augments(&self) {
+    pub fn send_boosts(&mut self) {
+        let packet = ClientPacket::Boost {
+            health_boost: self.base_scene.player_data.health_boost,
+        };
+
+        if self.previous_boost_packet.as_ref() == Some(&packet) {
+            return;
+        }
+
+        self.previous_boost_packet = Some(packet.clone());
+
         let send_packet = &self.send_packet;
-        send_packet(
-            Reliability::ReliableOrdered,
-            ClientPacket::Augments {
-                health_boost: self.base_scene.player_data.health_boost,
-            },
-        );
+        send_packet(Reliability::ReliableOrdered, packet);
     }
 
-    pub fn send_avatar_data(&self, game_io: &GameIO) {
-        let send_packet = &self.send_packet;
-
+    pub fn send_avatar_data(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
         let assets = &globals.assets;
+        let send_packet = &self.send_packet;
 
         vec![
             ClientPacket::Asset {
@@ -1439,10 +1446,16 @@ impl Scene for OverworldOnlineScene {
         // should be called before handling packets, but it's not necessary to do this every frame
         self.handle_events(game_io);
 
+        let previous_player_id = self.base_scene.player_data.package_id.clone();
         self.base_scene.enter(game_io);
 
-        // send augments
-        self.send_augments();
+        // send boosts
+        self.send_boosts();
+
+        if previous_player_id != self.base_scene.player_data.package_id {
+            // send avatar data
+            self.send_avatar_data(game_io);
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

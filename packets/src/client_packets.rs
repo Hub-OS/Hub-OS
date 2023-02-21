@@ -4,7 +4,7 @@ use super::structures::{BattleStatistics, Direction};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ClientAssetType {
     Texture,
     Animation,
@@ -12,7 +12,7 @@ pub enum ClientAssetType {
     MugshotAnimation,
 }
 
-#[derive(Debug, Serialize, Deserialize, IntoStaticStr)]
+#[derive(Clone, Debug, Serialize, Deserialize, IntoStaticStr, PartialEq)]
 pub enum ClientPacket {
     VersionRequest,
     Authorize {
@@ -47,7 +47,7 @@ pub enum ClientPacket {
         z: f32,
         direction: Direction,
     },
-    Augments {
+    Boost {
         health_boost: i32,
     },
     AvatarChange {

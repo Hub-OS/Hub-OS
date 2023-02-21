@@ -137,7 +137,7 @@ impl Scene for InitialConnectScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Subscribed(send_packet, packet_receiver) => {
-                    let online_scene = OverworldOnlineScene::new(
+                    let mut online_scene = OverworldOnlineScene::new(
                         game_io,
                         self.address.clone(),
                         send_packet,

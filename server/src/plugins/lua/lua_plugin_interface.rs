@@ -276,6 +276,24 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
+    fn handle_player_boost(&mut self, net: &mut Net, player_id: &str) {
+        handle_event(
+            &mut self.scripts,
+            &self.all_scripts,
+            &mut self.widget_trackers,
+            &mut self.battle_trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua_ctx, callback| {
+                let event = lua_ctx.create_table()?;
+                event.set("player_id", player_id)?;
+
+                callback.call(("player_boost", event))
+            },
+        );
+    }
+
     fn handle_player_avatar_change(
         &mut self,
         net: &mut Net,
@@ -306,7 +324,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set(
                     "prevent_default",
                     lua_ctx.create_function(move |_, _: ()| {
-                        prevent_default_reference.clone().set(true);
+                        prevent_default_reference.set(true);
                         Ok(())
                     })?,
                 )?;

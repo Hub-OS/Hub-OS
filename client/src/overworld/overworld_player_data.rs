@@ -3,6 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::resources::Globals;
 use crate::saves::BlockGrid;
 use framework::prelude::{GameIO, Vec3};
+use packets::structures::PackageId;
 
 pub struct Item {
     pub id: String,
@@ -12,6 +13,7 @@ pub struct Item {
 
 pub struct OverworldPlayerData {
     pub entity: hecs::Entity,
+    pub package_id: PackageId,
     pub health: i32,
     pub base_health: i32,
     pub health_boost: i32,
@@ -24,9 +26,10 @@ pub struct OverworldPlayerData {
 }
 
 impl OverworldPlayerData {
-    pub fn new(game_io: &GameIO, player_entity: hecs::Entity) -> Self {
+    pub fn new(game_io: &GameIO, player_entity: hecs::Entity, package_id: PackageId) -> Self {
         let mut data = Self {
             entity: player_entity,
+            package_id,
             health: 0,
             base_health: 0,
             health_boost: 0,
@@ -38,7 +41,7 @@ impl OverworldPlayerData {
             tile_interaction: None,
         };
 
-        data.process_augments(game_io);
+        data.process_boosts(game_io);
         data.health = data.base_health + data.health_boost;
 
         data
@@ -48,10 +51,16 @@ impl OverworldPlayerData {
         self.base_health + self.health_boost
     }
 
-    pub fn process_augments(&mut self, game_io: &GameIO) {
+    pub fn process_boosts(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let global_save = &globals.global_save;
+
+        // base_health
+        let player_package = global_save.player_package(game_io).unwrap();
+        self.base_health = player_package.health;
+
+        // health_boost
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
         let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
 
@@ -63,8 +72,7 @@ impl OverworldPlayerData {
 
         self.health_boost = health_boost;
 
-        let global_save = &globals.global_save;
-        let player_package = global_save.player_package(game_io).unwrap();
-        self.base_health = player_package.health;
+        // apply max_health to final health
+        self.health = self.max_health().min(self.health);
     }
 }

@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, FromPrimitive)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, FromPrimitive, PartialEq, Eq)]
 pub enum Emotion {
     #[default]
     Normal,

@@ -46,9 +46,16 @@ impl OverworldSceneBase {
             .unwrap();
         movement_animator.set_movement_enabled(true);
 
-        let player_data = OverworldPlayerData::new(game_io, player_entity);
+        // data
+        let player_data = OverworldPlayerData::new(
+            game_io,
+            player_entity,
+            player_package.package_info.id.clone(),
+        );
+
         let health = player_data.health;
 
+        // menus
         let mut menu_manager = MenuManager::new(game_io);
         menu_manager.update_player_data(&player_data);
 
@@ -174,7 +181,16 @@ impl Scene for OverworldSceneBase {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        self.player_data.process_augments(game_io);
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+        let player_package = global_save.player_package(game_io).unwrap();
+
+        self.player_data.process_boosts(game_io);
+
+        if self.player_data.package_id != player_package.package_info.id {
+            self.player_data.package_id = player_package.package_info.id.clone();
+            self.player_data.health = self.player_data.max_health();
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

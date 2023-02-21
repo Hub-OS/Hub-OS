@@ -366,12 +366,14 @@ impl Server {
                     self.plugin_wrapper
                         .handle_custom_warp(net, player_id, tile_object_id);
                 }
-                ClientPacket::Augments { health_boost } => {
+                ClientPacket::Boost { health_boost } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         let player_data = &mut client.player_data;
                         player_data.health_boost = health_boost;
                         player_data.health = player_data.max_health().min(player_data.health);
 
+                        // max_health is applied in the client as well
+                        // but reapplied through a packet in case of an in-flight packet overriding it
                         self.packet_orchestrator.borrow_mut().send(
                             socket_address,
                             Reliability::ReliableOrdered,
@@ -379,6 +381,8 @@ impl Server {
                                 health: player_data.health,
                             },
                         );
+
+                        self.plugin_wrapper.handle_player_boost(net, player_id);
                     }
                 }
                 ClientPacket::AvatarChange {
@@ -389,6 +393,18 @@ impl Server {
                     if let Some((texture_path, animation_path)) = net.store_player_assets(player_id)
                     {
                         net.update_player_data(player_id, name, element, base_health);
+
+                        if let Some(player_data) = net.get_player_data(player_id) {
+                            // health is applied in the client as well
+                            // but reapplied through a packet in case of an in-flight packet overriding it
+                            self.packet_orchestrator.borrow_mut().send(
+                                socket_address,
+                                Reliability::ReliableOrdered,
+                                ServerPacket::Health {
+                                    health: player_data.health,
+                                },
+                            );
+                        }
 
                         let prevent_default = self.plugin_wrapper.handle_player_avatar_change(
                             net,

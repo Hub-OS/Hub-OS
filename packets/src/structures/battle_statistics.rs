@@ -1,13 +1,13 @@
 use super::Emotion;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BattleSurvivor {
     pub id: String,
     pub health: u32,
 }
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BattleStatistics {
     pub health: u32,      // todo: track
     pub emotion: Emotion, // todo: track
