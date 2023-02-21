@@ -9,6 +9,7 @@ pub struct Component {
     pub entity: EntityId,
     pub lifetime: ComponentLifetime,
     pub update_callback: BattleCallback,
+    pub init_callback: BattleCallback,
 }
 
 impl Component {
@@ -17,6 +18,7 @@ impl Component {
             entity,
             lifetime,
             update_callback: BattleCallback::default(),
+            init_callback: BattleCallback::default(),
         }
     }
 

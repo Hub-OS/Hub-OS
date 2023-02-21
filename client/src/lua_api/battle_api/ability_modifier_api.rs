@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use super::errors::{ability_mod_not_found, entity_not_found};
 use super::{
     create_entity_table, BattleLuaApi, ABILITY_MOD_TABLE, CHARGED_ATTACK_FN, CHARGE_TIMING_FN,
@@ -181,7 +179,7 @@ fn callback_setter<G, P, F, R>(
             .get_mut(index.into())
             .ok_or_else(ability_mod_not_found)?;
 
-        let key = Arc::new(lua.create_registry_value(table)?);
+        let key = lua.create_registry_value(table)?;
 
         if let Some(callback) = callback {
             *callback_getter(modifier) = BattleCallback::new_transformed_lua_callback(
@@ -194,7 +192,7 @@ fn callback_setter<G, P, F, R>(
                 },
             )?;
         } else {
-            *callback_getter(modifier) = BattleCallback::stub(R::default());
+            *callback_getter(modifier) = BattleCallback::default();
         }
 
         lua.pack_multi(())

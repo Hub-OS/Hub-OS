@@ -328,6 +328,12 @@ impl BattleSimulation {
             self.animators[entity.animator_index].enable();
             self.pending_callbacks.push(entity.spawn_callback.clone());
 
+            for (_, component) in &self.components {
+                if component.entity == entity.id {
+                    self.pending_callbacks.push(component.init_callback.clone());
+                }
+            }
+
             if self.battle_started {
                 self.pending_callbacks
                     .push(entity.battle_start_callback.clone())

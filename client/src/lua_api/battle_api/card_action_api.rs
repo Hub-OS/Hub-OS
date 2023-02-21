@@ -11,7 +11,6 @@ use crate::bindable::{CardProperties, EntityId, GenerationalIndex, SpriteColorMo
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::{DerivedFrame, FrameTime, SpriteNode};
 use rollback_mlua::LuaSerdeExt;
-use std::sync::Arc;
 
 pub fn inject_card_action_api(lua_api: &mut BattleLuaApi) {
     inject_step_api(lua_api);
@@ -557,7 +556,7 @@ fn callback_setter<G, P, F, R>(
             .get_mut(id.into())
             .ok_or_else(card_action_not_found)?;
 
-        let key = Arc::new(lua.create_registry_value(table)?);
+        let key = lua.create_registry_value(table)?;
 
         *callback_getter(card_action) = callback
             .map(|callback| {

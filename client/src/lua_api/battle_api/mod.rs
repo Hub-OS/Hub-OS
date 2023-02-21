@@ -85,3 +85,6 @@ const NORMAL_ATTACK_FN: &str = "normal_attack_func";
 const CHARGED_ATTACK_FN: &str = "charged_attack_func";
 const SPECIAL_ATTACK_FN: &str = "special_attack_func";
 const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
+
+// components
+const INIT_FN: &str = "on_init_func";

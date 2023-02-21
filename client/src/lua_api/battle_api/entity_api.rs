@@ -17,7 +17,6 @@ use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
 use framework::prelude::Vec2;
-use std::sync::Arc;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     inject_character_api(lua_api);
@@ -1265,7 +1264,7 @@ fn callback_setter<C, G, P, F, R>(
             .query_one_mut::<&mut C>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let key = Arc::new(lua.create_registry_value(table)?);
+        let key = lua.create_registry_value(table)?;
 
         if let Some(callback) = callback {
             *callback_getter(entity) = BattleCallback::new_transformed_lua_callback(
@@ -1278,7 +1277,7 @@ fn callback_setter<C, G, P, F, R>(
                 },
             )?;
         } else {
-            *callback_getter(entity) = BattleCallback::stub(R::default());
+            *callback_getter(entity) = BattleCallback::default();
         }
 
         lua.pack_multi(())
