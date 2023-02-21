@@ -357,11 +357,18 @@ impl CustomizeScene {
 
                     globals.audio.play_sound(&globals.cursor_select_sfx);
                 } else {
+                    // handle scrolling
                     let prev_index = self.scroll_tracker.selected_index();
 
                     self.scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
+                    if self.input_tracker.is_active(Input::End) {
+                        let last_index = self.scroll_tracker.total_items() - 1;
+                        self.scroll_tracker.set_selected_index(last_index);
+                    }
+
+                    // sfx
                     let selected_index = self.scroll_tracker.selected_index();
 
                     if prev_index != selected_index {
@@ -370,6 +377,7 @@ impl CustomizeScene {
                         self.update_text(game_io);
                     }
 
+                    // handle confirm
                     if self.input_tracker.is_active(Input::Confirm) {
                         if self.packages.get(selected_index).is_some() {
                             // selected a block
@@ -409,10 +417,16 @@ impl CustomizeScene {
             State::GridSelection { x: old_x, y: old_y } => {
                 let cancel = self.input_tracker.is_active(Input::Cancel) && !prev_held;
                 let returned_to_list = self.input_tracker.is_active(Input::Right) && old_x == 6;
+                let pressed_end = self.input_tracker.is_active(Input::End);
                 let has_block = self.grid.get_block((old_x, old_y)).is_some();
 
-                if (cancel || returned_to_list) && self.held_block.is_none() {
+                if (cancel || returned_to_list || pressed_end) && self.held_block.is_none() {
                     self.state = State::ListSelection;
+
+                    if pressed_end {
+                        let last_index = self.scroll_tracker.total_items() - 1;
+                        self.scroll_tracker.set_selected_index(last_index);
+                    }
 
                     globals.audio.play_sound(&globals.cursor_cancel_sfx);
                 } else if self.input_tracker.is_active(Input::Confirm) && !prev_held && has_block {
