@@ -184,7 +184,7 @@ impl NavigationMenu {
     }
 
     pub fn update_info(&mut self, player_data: &OverworldPlayerData) {
-        self.hp_text = format!("{:>4}/{:>4}", player_data.health, player_data.max_health);
+        self.hp_text = format!("{:>4}/{:>4}", player_data.health, player_data.max_health());
         self.money_text = format!("{:>8}$", player_data.money);
     }
 

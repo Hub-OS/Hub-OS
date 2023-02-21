@@ -63,8 +63,10 @@ pub enum ServerPacket {
         map_path: String,
     },
     Health {
-        health: u32,
-        max_health: u32,
+        health: i32,
+    },
+    BaseHealth {
+        base_health: i32,
     },
     Emotion {
         emotion: u8,
@@ -201,11 +203,15 @@ pub enum ServerPacket {
     InitiateEncounter {
         package_path: String,
         data: Option<String>,
+        health: i32,
+        base_health: i32,
     },
     InitiateNetplay {
         package_path: Option<String>,
         data: Option<String>,
         remote_players: Vec<RemotePlayerInfo>,
+        health: i32,
+        base_health: i32,
     },
     ActorConnected {
         actor_id: String,

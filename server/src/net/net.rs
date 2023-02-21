@@ -965,6 +965,8 @@ impl Net {
                 self.clients.get(*id).map(|client| RemotePlayerInfo {
                     index: i,
                     address: client.socket_address,
+                    health: client.player_data.health,
+                    base_health: client.player_data.base_health,
                 })
             })
             .collect();
@@ -993,6 +995,10 @@ impl Net {
                     .cloned()
                     .collect();
 
+                let info = &remote_players[player_index];
+                let health = info.health;
+                let base_health = info.base_health;
+
                 orchestrator.send(
                     client.socket_address,
                     Reliability::ReliableOrdered,
@@ -1000,6 +1006,8 @@ impl Net {
                         package_path: package_path.clone(),
                         data: data.clone(),
                         remote_players,
+                        health,
+                        base_health,
                     },
                 );
             }
@@ -1173,6 +1181,8 @@ impl Net {
             ServerPacket::InitiateEncounter {
                 package_path: package_path.to_string(),
                 data: data.map(|s| s.to_string()),
+                health: client.player_data.health,
+                base_health: client.player_data.base_health,
             },
         );
     }
@@ -1191,38 +1201,42 @@ impl Net {
             .map(|client| &client.player_data)
     }
 
-    pub(crate) fn update_player_data(&mut self, player_id: &str, element: String, max_health: u32) {
+    pub(crate) fn update_player_data(
+        &mut self,
+        player_id: &str,
+        avatar_name: String,
+        element: String,
+        base_health: i32,
+    ) {
         let client = self.clients.get_mut(player_id).unwrap();
+        let player_data = &mut client.player_data;
 
-        client.player_data.element = element;
-        client.player_data.health = max_health;
-        client.player_data.max_health = max_health;
+        player_data.avatar_name = avatar_name;
+        player_data.element = element;
+        player_data.base_health = base_health;
+        player_data.health = base_health + player_data.health_boost;
     }
 
-    pub fn set_player_health(&mut self, player_id: &str, health: u32) {
+    pub fn set_player_health(&mut self, player_id: &str, health: i32) {
         if let Some(client) = self.clients.get_mut(player_id) {
-            let max_health = client.player_data.max_health;
-
             client.player_data.health = health;
 
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
-                ServerPacket::Health { health, max_health },
+                ServerPacket::Health { health },
             );
         }
     }
 
-    pub fn set_player_max_health(&mut self, player_id: &str, max_health: u32) {
+    pub fn set_player_base_health(&mut self, player_id: &str, base_health: i32) {
         if let Some(client) = self.clients.get_mut(player_id) {
-            let health = client.player_data.health;
-
-            client.player_data.max_health = max_health;
+            client.player_data.base_health = base_health;
 
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
-                ServerPacket::Health { health, max_health },
+                ServerPacket::BaseHealth { base_health },
             );
         }
     }

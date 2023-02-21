@@ -366,23 +366,35 @@ impl Server {
                     self.plugin_wrapper
                         .handle_custom_warp(net, player_id, tile_object_id);
                 }
+                ClientPacket::Augments { health_boost } => {
+                    if let Some(client) = net.get_client_mut(player_id) {
+                        let player_data = &mut client.player_data;
+                        player_data.health_boost = health_boost;
+                        player_data.health = player_data.max_health().min(player_data.health);
+
+                        self.packet_orchestrator.borrow_mut().send(
+                            socket_address,
+                            Reliability::ReliableOrdered,
+                            ServerPacket::Health {
+                                health: player_data.health,
+                            },
+                        );
+                    }
+                }
                 ClientPacket::AvatarChange {
                     name,
                     element,
-                    max_health,
+                    base_health,
                 } => {
                     if let Some((texture_path, animation_path)) = net.store_player_assets(player_id)
                     {
-                        net.update_player_data(player_id, element.clone(), max_health);
+                        net.update_player_data(player_id, name, element, base_health);
 
                         let prevent_default = self.plugin_wrapper.handle_player_avatar_change(
                             net,
                             player_id,
                             &texture_path,
                             &animation_path,
-                            &name,
-                            &element,
-                            max_health,
                         );
 
                         if !prevent_default {

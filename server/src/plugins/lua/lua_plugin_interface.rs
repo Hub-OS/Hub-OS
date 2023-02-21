@@ -282,9 +282,6 @@ impl PluginInterface for LuaPluginInterface {
         player_id: &str,
         texture_path: &str,
         animation_path: &str,
-        name: &str,
-        element: &str,
-        max_health: u32,
     ) -> bool {
         use std::cell::Cell;
         use std::rc::Rc;
@@ -306,9 +303,6 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("player_id", player_id)?;
                 event.set("texture_path", texture_path)?;
                 event.set("animation_path", animation_path)?;
-                event.set("name", name)?;
-                event.set("element", element)?;
-                event.set("max_health", max_health)?;
                 event.set(
                     "prevent_default",
                     lua_ctx.create_function(move |_, _: ()| {

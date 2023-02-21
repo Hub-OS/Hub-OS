@@ -174,6 +174,7 @@ impl Scene for CharacterScene {
 struct StatusData<'a> {
     player_package: &'a PlayerPackage,
     block_grid: BlockGrid,
+    health: i32,
     charge_level: i8,
     attack_level: i8,
     rapid_level: i8,
@@ -190,6 +191,7 @@ impl<'a> StatusData<'a> {
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
         let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
 
+        let mut health = player_package.health;
         let mut attack_level = 1;
         let mut rapid_level = 1;
         let mut charge_level = 1;
@@ -197,6 +199,7 @@ impl<'a> StatusData<'a> {
         let mut giga_limit = MAX_GIGA as isize;
 
         for package in block_grid.valid_packages(game_io) {
+            health += package.health_boost;
             attack_level += package.attack_boost;
             rapid_level += package.rapid_boost;
             charge_level += package.charge_boost;
@@ -207,6 +210,7 @@ impl<'a> StatusData<'a> {
         Self {
             player_package,
             block_grid,
+            health,
             attack_level: attack_level.clamp(1, 5),
             rapid_level: rapid_level.clamp(1, 5),
             charge_level: charge_level.clamp(1, 5),
@@ -250,7 +254,7 @@ impl StatusPage {
 
         if let Some(point) = layout_animator.point("HEALTH") {
             let mut player_health_ui = PlayerHealthUI::new(game_io);
-            player_health_ui.snap_health(data.player_package.health);
+            player_health_ui.snap_health(data.health);
             player_health_ui.set_position(point);
 
             page.player_health_ui.push(player_health_ui);

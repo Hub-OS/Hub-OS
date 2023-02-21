@@ -16,6 +16,17 @@ use std::pin::Pin;
 
 const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
 
+pub struct NetplayProps {
+    pub background: Option<Background>,
+    pub battle_package: Option<(PackageNamespace, PackageId)>,
+    pub data: Option<String>,
+    pub health: i32,
+    pub base_health: i32,
+    pub remote_players: Vec<RemotePlayerInfo>,
+    pub fallback_address: String,
+    pub statistics_callback: Option<BattleStatisticsCallback>,
+}
+
 enum Event {
     AddressesFailed,
     ResolvedAddresses {
@@ -29,6 +40,8 @@ enum Event {
 struct RemotePlayerConnection {
     index: usize,
     player_package: PackageId,
+    health: i32,
+    base_health: i32,
     folder: Folder,
     blocks: Vec<InstalledBlock>,
     load_map: HashMap<FileHash, PackageCategory>,
@@ -43,6 +56,8 @@ struct RemotePlayerConnection {
 
 pub struct NetplayInitScene {
     local_index: usize,
+    local_health: i32,
+    local_base_health: i32,
     battle_package: Option<(PackageNamespace, PackageId)>,
     data: Option<String>,
     background: Option<Background>,
@@ -62,15 +77,18 @@ pub struct NetplayInitScene {
 }
 
 impl NetplayInitScene {
-    pub fn new(
-        game_io: &GameIO,
-        background: Option<Background>,
-        battle_package: Option<(PackageNamespace, PackageId)>,
-        data: Option<String>,
-        remote_players: Vec<RemotePlayerInfo>,
-        fallback_address: String,
-        statistics_callback: Option<BattleStatisticsCallback>,
-    ) -> Self {
+    pub fn new(game_io: &GameIO, props: NetplayProps) -> Self {
+        let NetplayProps {
+            background,
+            battle_package,
+            data,
+            health,
+            base_health,
+            remote_players,
+            fallback_address,
+            statistics_callback,
+        } = props;
+
         let local_index = Self::resolve_local_index(&remote_players);
 
         log::debug!("Assigned player index {}", local_index);
@@ -133,6 +151,8 @@ impl NetplayInitScene {
             .map(|info| RemotePlayerConnection {
                 index: info.index,
                 player_package: PackageId::new_blank(),
+                health: info.health,
+                base_health: info.base_health,
                 folder: Folder::default(),
                 blocks: Vec::new(),
                 load_map: HashMap::new(),
@@ -148,6 +168,8 @@ impl NetplayInitScene {
 
         Self {
             local_index,
+            local_health: health,
+            local_base_health: base_health,
             battle_package,
             data,
             background,
@@ -600,8 +622,11 @@ impl NetplayInitScene {
                 props.background = background;
             }
 
-            // correct index
-            props.player_setups[0].index = self.local_index;
+            // correct index and health
+            let local_setup = &mut props.player_setups[0];
+            local_setup.index = self.local_index;
+            local_setup.health = self.local_health;
+            local_setup.base_health = self.local_base_health;
 
             // setup other players
             for connection in &mut self.player_connections {
@@ -624,6 +649,8 @@ impl NetplayInitScene {
 
                 props.player_setups.push(PlayerSetup {
                     player_package,
+                    health: connection.health,
+                    base_health: connection.base_health,
                     folder: connection.folder.clone(),
                     blocks: connection.blocks.clone(),
                     index: connection.index,

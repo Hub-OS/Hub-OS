@@ -380,9 +380,9 @@ Net:on("player_move", function(event)
 end)
 
 Net:on("player_avatar_change", function(event)
-  -- may change in a future update from avatar swapping removal in v2.5
-  -- health, max_health, and element will be updated on the player before this function executes
-  -- { player_id: string, texture_path: string, animation_path: string, name: string, element: string, max_health: number, prevent_default: Function }
+  -- health, base_health, max_health, and element will be updated on the player before this function executes
+  -- prevent_default blocks texture and animation change
+  -- { player_id: string, texture_path: string, animation_path: string, prevent_default: Function }
   print(event.player_id, event)
 end)
 
@@ -594,6 +594,7 @@ Net.get_player_position(player_id) -- { x, y, z }
 Net.get_player_mugshot(player_id) -- { texture_path, animation_path }
 Net.get_player_avatar(player_id) -- { texture_path, animation_path }
 Net.set_player_avatar(player_id, texture_path, animation_path)
+Net.get_player_avatar_name(player_id) -- name
 Net.set_player_emote(player_id, emote_id, use_custom_emotes?)
 Net.exclusive_player_emote(player_id, emoter_id, emote_id, use_custom_emotes?)
 Net.set_player_minimap_color(player_id, color) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
@@ -662,8 +663,9 @@ Net.get_player_secret(player_id) -- the secret identifier for this player. simil
 Net.get_player_element(player_id) -- string
 Net.get_player_health(player_id)
 Net.set_player_health(player_id, health)
+Net.get_player_base_health(player_id)
+Net.set_player_base_health(player_id, health)
 Net.get_player_max_health(player_id)
-Net.set_player_max_health(player_id, health)
 Net.get_player_emotion(player_id)
 Net.set_player_emotion(player_id, emotion)
 Net.get_player_money(player_id)

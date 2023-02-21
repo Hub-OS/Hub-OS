@@ -1,4 +1,4 @@
-use super::{InitialConnectScene, NetplayInitScene, OverworldSceneBase};
+use super::{InitialConnectScene, NetplayInitScene, NetplayProps, OverworldSceneBase};
 use crate::battle::BattleProps;
 use crate::bindable::Emotion;
 use crate::overworld::{components::*, system_actor_property_animation};
@@ -116,7 +116,31 @@ impl OverworldOnlineScene {
             );
         }
 
-        // send player assets
+        // send augments
+        self.send_augments();
+
+        // send avatar data
+        self.send_avatar_data(game_io);
+
+        // nothing else to send, request join
+        send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
+    }
+
+    pub fn send_augments(&self) {
+        let send_packet = &self.send_packet;
+        send_packet(
+            Reliability::ReliableOrdered,
+            ClientPacket::Augments {
+                health_boost: self.base_scene.player_data.health_boost,
+            },
+        );
+    }
+
+    pub fn send_avatar_data(&self, game_io: &GameIO) {
+        let send_packet = &self.send_packet;
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
         let assets = &globals.assets;
@@ -143,18 +167,14 @@ impl OverworldOnlineScene {
         .for_each(|packet| send_packet(Reliability::ReliableOrdered, packet));
 
         // send avatar change signal
-        // todo: add hp modification by ncp
         send_packet(
             Reliability::ReliableOrdered,
             ClientPacket::AvatarChange {
                 name: player_package.name.clone(),
                 element: player_package.element.to_string(),
-                max_health: player_package.health as u32,
+                base_health: player_package.health,
             },
         );
-
-        // nothing else to send, request join
-        send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
     }
 
     pub fn packet_receiver(&self) -> &ServerPacketReceiver {
@@ -396,10 +416,15 @@ impl OverworldOnlineScene {
                     log::warn!("Failed to load map provided by server");
                 }
             }
-            ServerPacket::Health { health, max_health } => {
+            ServerPacket::Health { health } => {
                 let player_data = &mut self.base_scene.player_data;
-                player_data.health = health as i32;
-                player_data.max_health = max_health as i32;
+                player_data.health = health;
+
+                self.base_scene.menu_manager.update_player_data(player_data);
+            }
+            ServerPacket::BaseHealth { base_health } => {
+                let player_data = &mut self.base_scene.player_data;
+                player_data.base_health = base_health;
 
                 self.base_scene.menu_manager.update_player_data(player_data);
             }
@@ -779,7 +804,12 @@ impl OverworldOnlineScene {
             ServerPacket::ModBlacklist { blacklist_path } => {
                 log::warn!("ModBlacklist hasn't been implemented")
             }
-            ServerPacket::InitiateEncounter { package_path, data } => {
+            ServerPacket::InitiateEncounter {
+                package_path,
+                data,
+                health,
+                base_health,
+            } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
@@ -793,6 +823,9 @@ impl OverworldOnlineScene {
                         .package_or_fallback(PackageNamespace::Server, package_id);
 
                     let mut props = BattleProps::new_with_defaults(game_io, battle_package);
+                    let player_setup = &mut props.player_setups[0];
+                    player_setup.health = health;
+                    player_setup.base_health = base_health;
 
                     // callback
                     let event_sender = self.base_scene.event_sender.clone();
@@ -819,6 +852,8 @@ impl OverworldOnlineScene {
                 package_path,
                 data,
                 remote_players,
+                health,
+                base_health,
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
@@ -846,15 +881,18 @@ impl OverworldOnlineScene {
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
                 // create scene
-                let scene = NetplayInitScene::new(
-                    game_io,
-                    Some(background),
+                let props = NetplayProps {
+                    background: Some(background),
                     battle_package,
                     data,
+                    health,
+                    base_health,
                     remote_players,
-                    self.server_address.clone(),
-                    Some(statistics_callback),
-                );
+                    fallback_address: self.server_address.clone(),
+                    statistics_callback: Some(statistics_callback),
+                };
+
+                let scene = NetplayInitScene::new(game_io, props);
 
                 let transition = crate::transitions::new_battle(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
@@ -1400,6 +1438,11 @@ impl Scene for OverworldOnlineScene {
         // handle events triggered from other scenes
         // should be called before handling packets, but it's not necessary to do this every frame
         self.handle_events(game_io);
+
+        self.base_scene.enter(game_io);
+
+        // send augments
+        self.send_augments();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

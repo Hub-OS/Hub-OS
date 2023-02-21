@@ -46,7 +46,9 @@ impl OverworldSceneBase {
             .unwrap();
         movement_animator.set_movement_enabled(true);
 
-        let player_data = OverworldPlayerData::new(player_entity);
+        let player_data = OverworldPlayerData::new(game_io, player_entity);
+        let health = player_data.health;
+
         let mut menu_manager = MenuManager::new(game_io);
         menu_manager.update_player_data(&player_data);
 
@@ -67,7 +69,7 @@ impl OverworldSceneBase {
             background: Background::new_blank(game_io),
             foreground: Background::new_blank(game_io),
             camera_controller: CameraController::new(player_entity),
-            health_ui: PlayerHealthUI::new(game_io),
+            health_ui: PlayerHealthUI::new(game_io).with_health(health),
         }
     }
 
@@ -169,6 +171,10 @@ impl OverworldSceneBase {
 impl Scene for OverworldSceneBase {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        self.player_data.process_augments(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

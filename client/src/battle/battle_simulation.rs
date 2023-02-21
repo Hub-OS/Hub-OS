@@ -825,7 +825,6 @@ impl BattleSimulation {
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
-        living.set_health(player_package.health);
         living.status_director.set_input_index(index);
 
         // derive states
@@ -958,6 +957,18 @@ impl BattleSimulation {
             },
         ));
 
+        // resolve health boost
+        // todo: move to AbilityModifier?
+        let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
+
+        let health_boost = grid
+            .valid_packages(game_io)
+            .fold(0, |acc, package| acc + package.health_boost);
+
+        living.max_health = setup.base_health + health_boost;
+        living.set_health(setup.health);
+
+        // insert entity
         self.entities
             .insert(
                 id.into(),
@@ -973,9 +984,7 @@ impl BattleSimulation {
             create_entity_table(lua, id)
         })?;
 
-        // blocks
-        let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
-
+        // init blocks
         for package in grid.valid_packages(game_io) {
             let package_info = &package.package_info;
             let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;

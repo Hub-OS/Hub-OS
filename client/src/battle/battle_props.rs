@@ -1,6 +1,7 @@
 use crate::packages::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::BlockGrid;
 use crate::saves::Folder;
 use framework::prelude::*;
 use packets::structures::{BattleStatistics, InstalledBlock};
@@ -8,6 +9,8 @@ use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
     pub player_package: &'a PlayerPackage,
+    pub health: i32,
+    pub base_health: i32,
     pub folder: Folder,
     pub blocks: Vec<InstalledBlock>,
     pub index: usize,
@@ -19,6 +22,8 @@ impl<'a> PlayerSetup<'a> {
     pub fn new(player_package: &'a PlayerPackage, index: usize, local: bool) -> Self {
         Self {
             player_package,
+            health: 9999,
+            base_health: 9999,
             folder: Folder::new(String::new()),
             blocks: Vec::new(),
             index,
@@ -43,8 +48,16 @@ impl<'a> PlayerSetup<'a> {
         let folder = global_save.active_folder().cloned().unwrap_or_default();
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
 
+        let grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks.clone());
+
+        let health_boost = grid
+            .valid_packages(game_io)
+            .fold(0, |acc, package| acc + package.health_boost);
+
         Self {
             player_package,
+            health: player_package.health + health_boost,
+            base_health: player_package.health,
             index: 0,
             folder,
             blocks,

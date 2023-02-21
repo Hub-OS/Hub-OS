@@ -37,6 +37,11 @@ impl PlayerHealthUI {
         health_ui
     }
 
+    pub fn with_health(mut self, health: i32) -> Self {
+        self.snap_health(health);
+        self
+    }
+
     pub fn set_health(&mut self, health: i32) {
         self.target_health = health;
     }

@@ -47,10 +47,13 @@ pub enum ClientPacket {
         z: f32,
         direction: Direction,
     },
+    Augments {
+        health_boost: i32,
+    },
     AvatarChange {
         name: String,
         element: String,
-        max_health: u32,
+        base_health: i32,
     },
     Emote {
         emote_id: u8,
