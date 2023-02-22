@@ -989,13 +989,17 @@ impl Net {
 
                 client.battle_tracker.push_back(tracking_info);
 
+                let info = remote_players
+                    .iter()
+                    .find(|info| info.index == player_index)
+                    .unwrap();
+
                 let remote_players: Vec<_> = remote_players
                     .iter()
                     .filter(|info| info.index != player_index)
                     .cloned()
                     .collect();
 
-                let info = &remote_players[player_index];
                 let health = info.health;
                 let base_health = info.base_health;
 
