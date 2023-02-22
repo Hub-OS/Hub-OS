@@ -264,6 +264,14 @@ impl OverworldOnlineScene {
                 let tile_position = Vec3::new(spawn_x, spawn_y, spawn_z);
                 let spawn_position = map.tile_3d_to_world(tile_position);
 
+                let (position, direction) = entities
+                    .query_one_mut::<(&mut Vec3, &mut Direction)>(player_entity)
+                    .unwrap();
+                *position = spawn_position;
+                *direction = spawn_direction;
+
+                entities.remove_one::<Excluded>(player_entity);
+
                 if warp_in {
                     WarpEffect::warp_in(
                         game_io,
@@ -273,14 +281,6 @@ impl OverworldOnlineScene {
                         spawn_direction,
                         |_, _| {},
                     );
-                } else {
-                    let (position, direction) = entities
-                        .query_one_mut::<(&mut Vec3, &mut Direction)>(player_entity)
-                        .unwrap();
-                    *position = spawn_position;
-                    *direction = spawn_direction;
-
-                    entities.remove_one::<Excluded>(player_entity);
                 }
             }
             ServerPacket::CompleteConnection => {
