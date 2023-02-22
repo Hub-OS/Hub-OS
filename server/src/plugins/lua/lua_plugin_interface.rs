@@ -3,6 +3,7 @@ use crate::jobs::JobPromiseManager;
 use crate::net::{BattleStatistics, Net, WidgetTracker};
 use crate::plugins::PluginInterface;
 use mlua::Lua;
+use packets::structures::PackageId;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -276,7 +277,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_boost(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_boost(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -288,6 +289,18 @@ impl PluginInterface for LuaPluginInterface {
             |lua_ctx, callback| {
                 let event = lua_ctx.create_table()?;
                 event.set("player_id", player_id)?;
+
+                let blocks: Vec<_> = blocks
+                    .iter()
+                    .flat_map(|id| -> mlua::Result<mlua::Table> {
+                        let table = lua_ctx.create_table()?;
+                        table.set("id", lua_ctx.create_string(id.as_str())?)?;
+
+                        Ok(table)
+                    })
+                    .collect();
+
+                event.set("blocks", blocks)?;
 
                 callback.call(("player_boost", event))
             },

@@ -366,7 +366,10 @@ impl Server {
                     self.plugin_wrapper
                         .handle_custom_warp(net, player_id, tile_object_id);
                 }
-                ClientPacket::Boost { health_boost } => {
+                ClientPacket::Boost {
+                    health_boost,
+                    blocks,
+                } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         let player_data = &mut client.player_data;
                         player_data.health_boost = health_boost;
@@ -382,7 +385,8 @@ impl Server {
                             },
                         );
 
-                        self.plugin_wrapper.handle_player_boost(net, player_id);
+                        self.plugin_wrapper
+                            .handle_player_boost(net, player_id, &blocks);
                     }
                 }
                 ClientPacket::AvatarChange {

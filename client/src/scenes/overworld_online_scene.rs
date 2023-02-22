@@ -13,6 +13,7 @@ use crate::render::ui::{
 };
 use crate::render::AnimatorLoopMode;
 use crate::resources::*;
+use crate::saves::BlockGrid;
 use crate::scenes::BattleScene;
 use bimap::BiMap;
 use framework::prelude::*;
@@ -119,7 +120,7 @@ impl OverworldOnlineScene {
         }
 
         // send boosts
-        self.send_boosts();
+        self.send_boosts(game_io);
 
         // send avatar data
         self.send_avatar_data(game_io);
@@ -129,9 +130,19 @@ impl OverworldOnlineScene {
         send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
     }
 
-    pub fn send_boosts(&mut self) {
+    pub fn send_boosts(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+
+        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
+        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+
         let packet = ClientPacket::Boost {
             health_boost: self.base_scene.player_data.health_boost,
+            blocks: block_grid
+                .valid_packages(game_io)
+                .map(|package| package.package_info.id.clone())
+                .collect(),
         };
 
         if self.previous_boost_packet.as_ref() == Some(&packet) {
@@ -1450,7 +1461,7 @@ impl Scene for OverworldOnlineScene {
         self.base_scene.enter(game_io);
 
         // send boosts
-        self.send_boosts();
+        self.send_boosts(game_io);
 
         if previous_player_id != self.base_scene.player_data.package_id {
             // send avatar data

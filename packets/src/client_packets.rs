@@ -1,6 +1,7 @@
 // Increment VERSION_ITERATION src/packets/mod.rs if packets are added or modified
 
 use super::structures::{BattleStatistics, Direction};
+use crate::structures::PackageId;
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -49,6 +50,7 @@ pub enum ClientPacket {
     },
     Boost {
         health_boost: i32,
+        blocks: Vec<PackageId>,
     },
     AvatarChange {
         name: String,
