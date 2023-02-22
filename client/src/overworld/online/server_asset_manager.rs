@@ -243,10 +243,12 @@ impl ServerAssetManager {
         match download.data_type {
             AssetDataType::Texture => {
                 // cache as texture
+                self.textures.borrow_mut().remove(&remote_path);
                 self.texture(game_io, &remote_path);
             }
             AssetDataType::Audio => {
                 // cache as audio
+                self.sounds.borrow_mut().remove(&remote_path);
                 self.audio(&remote_path);
             }
             _ => {}

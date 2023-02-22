@@ -173,6 +173,19 @@ impl OverworldSceneBase {
     pub fn queue_camera_action(&mut self, action: CameraAction) {
         self.camera_controller.queue_action(action);
     }
+
+    fn handle_player_changes(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+        let player_package = global_save.player_package(game_io).unwrap();
+
+        if self.player_data.package_id == player_package.package_info.id {
+            return;
+        }
+
+        self.player_data.package_id = player_package.package_info.id.clone();
+        self.player_data.health = self.player_data.max_health();
+    }
 }
 
 impl Scene for OverworldSceneBase {
@@ -181,16 +194,8 @@ impl Scene for OverworldSceneBase {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let global_save = &globals.global_save;
-        let player_package = global_save.player_package(game_io).unwrap();
-
         self.player_data.process_boosts(game_io);
-
-        if self.player_data.package_id != player_package.package_info.id {
-            self.player_data.package_id = player_package.package_info.id.clone();
-            self.player_data.health = self.player_data.max_health();
-        }
+        self.handle_player_changes(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
