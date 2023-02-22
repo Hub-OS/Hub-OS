@@ -198,7 +198,7 @@ fn try_move_to(
     // if we can move forward, check neighboring actors
     let mut query = entities.query::<(&Vec3, &ActorCollider)>();
 
-    for (entity, (other_pos, ActorCollider { radius, solid })) in query.into_iter() {
+    for (entity, (&other_pos, &ActorCollider { radius, solid })) in query.into_iter() {
         if !solid || entity == actor_entity {
             continue;
         }
@@ -209,15 +209,15 @@ fn try_move_to(
             continue;
         }
 
-        let delta = target_pos - *other_pos;
-        let collision = delta.length_squared() <= (COLLISION_RADIUS + *radius).powi(2);
+        let delta = target_pos - other_pos;
+        let collision = delta.length_squared() < (COLLISION_RADIUS + radius).powi(2);
 
         if collision {
             // push the ourselves out of the other actor
             // use current position to prevent sliding off map
             let delta_unit = delta.normalize();
-            let sum_of_radii = COLLISION_RADIUS + *radius;
-            let out_pos = *other_pos + delta_unit * sum_of_radii;
+            let sum_of_radii = COLLISION_RADIUS + radius;
+            let out_pos = other_pos + delta_unit * sum_of_radii;
 
             let out_pos_in_tile_space = map.world_to_tile_space(out_pos.xy());
             let elevation = map.elevation_at(out_pos_in_tile_space, new_layer);

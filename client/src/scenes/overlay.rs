@@ -9,7 +9,6 @@ pub struct Overlay {
     camera: Camera,
     rectangle: FlatModel,
     history: VecDeque<f32>,
-    visible: bool,
 }
 
 const RECT_WIDTH: usize = 1;
@@ -28,7 +27,6 @@ impl Overlay {
             camera,
             rectangle,
             history: VecDeque::new(),
-            visible: false,
         }
     }
 }
@@ -45,14 +43,20 @@ impl SceneOverlay for Overlay {
             self.history.pop_front();
         }
 
-        if game_io.input().was_key_just_pressed(Key::F3) {
-            self.visible = !self.visible;
+        let pressed_debug = game_io.input().was_key_just_pressed(Key::F3);
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+
+        if pressed_debug {
+            globals.debug_visible = !globals.debug_visible;
         }
-        game_io.resource_mut::<Globals>().unwrap().tick();
+
+        globals.tick();
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        if !self.visible {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if !globals.debug_visible {
             return;
         }
 

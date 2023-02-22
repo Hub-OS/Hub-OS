@@ -80,6 +80,9 @@ pub struct Globals {
     // networking
     pub network: Network,
     pub connected_to_server: bool,
+
+    // debug
+    pub debug_visible: bool,
 }
 
 impl Globals {
@@ -185,6 +188,9 @@ impl Globals {
             // networking
             network: Network::new(&args),
             connected_to_server: false,
+
+            // debug
+            debug_visible: false,
         }
     }
 

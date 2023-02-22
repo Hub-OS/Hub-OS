@@ -242,6 +242,8 @@ impl Scene for OverworldSceneBase {
                 .draw_objects_with_entities(&mut sprite_queue, &self.entities, i);
         }
 
+        player_interaction_debug_render(game_io, self, &mut sprite_queue);
+
         // draw foreground
         self.foreground.draw(game_io, render_pass);
 
