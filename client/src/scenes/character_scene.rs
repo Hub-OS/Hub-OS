@@ -306,8 +306,8 @@ impl StatusPage {
             page.text.push(text);
         }
 
-        if let Some(start_point) = layout_animator.point("FOLDER_START") {
-            let end_point = layout_animator.point("FOLDER_END").unwrap_or_default();
+        if let Some(start_point) = layout_animator.point("DECK_START") {
+            let end_point = layout_animator.point("DECK_END").unwrap_or_default();
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)

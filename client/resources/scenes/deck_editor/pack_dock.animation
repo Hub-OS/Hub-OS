@@ -1,0 +1,8 @@
+animation state="DEFAULT"
+frame x="0" y="0" w="239" h="136" originx="0" originy="-16"
+point label="CARD" x="158" y="1"
+point label="LIST" x="7" y="16"
+point label="SCROLL_START" x="150" y="21"
+point label="SCROLL_END" x="150" y="123"
+point label="CONTEXT_MENU" x="169" y="4"
+point label="PAGE_ARROWS" x="1" y="10"

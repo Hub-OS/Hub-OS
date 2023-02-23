@@ -1,0 +1,6 @@
+animation state="default"
+blank
+point label="DECK_START" x="13" y="17"
+point label="SCROLL_START" x="222" y="69"
+point label="SCROLL_END" x="222" y="140"
+point label="LIST" x="95" y="64"

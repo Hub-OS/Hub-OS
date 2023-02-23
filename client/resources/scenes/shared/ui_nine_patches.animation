@@ -135,4 +135,4 @@ frame duration="50f" x="29" y="24" w="11" h="7" originx="0" originy="0" flipx="0
 
 animation state="LIST_LABEL"
 frame duration="50f" x="12" y="32" w="52" h="8" originx="6" originy="11" flipx="0" flipy="0"
-point label="text_start" x="5" y="2"
+point label="TEXT_START" x="5" y="2"

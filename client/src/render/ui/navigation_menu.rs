@@ -10,7 +10,7 @@ use super::{FontStyle, TextStyle};
 #[derive(Clone, Copy)]
 pub enum SceneOption {
     Servers,
-    Folders,
+    Decks,
     Library,
     Character,
     BattleSelect,
@@ -40,7 +40,7 @@ impl SceneOption {
     fn state(&self) -> &'static str {
         match self {
             SceneOption::Servers => "SERVERS_LABEL",
-            SceneOption::Folders => "FOLDERS_LABEL",
+            SceneOption::Decks => "DECKS_LABEL",
             SceneOption::Library => "LIBRARY_LABEL",
             SceneOption::Character => "CHARACTER_LABEL",
             SceneOption::BattleSelect => "BATTLE_SELECT_LABEL",
@@ -253,7 +253,7 @@ impl NavigationMenu {
 
         let scene: Option<Box<dyn Scene>> = match self.items[selection].target_scene {
             SceneOption::Servers => Some(ServerListScene::new(game_io)),
-            SceneOption::Folders => Some(FolderListScene::new(game_io)),
+            SceneOption::Decks => Some(DeckListScene::new(game_io)),
             SceneOption::Library => Some(LibraryScene::new(game_io)),
             SceneOption::Character => Some(CharacterScene::new(game_io)),
             SceneOption::BattleSelect => Some(BattleSelectScene::new(game_io)),

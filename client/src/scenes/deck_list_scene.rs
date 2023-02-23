@@ -1,9 +1,9 @@
-use super::FolderEditScene;
+use super::DeckEditorScene;
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Folder;
+use crate::saves::Deck;
 use framework::prelude::*;
 
 enum Event {
@@ -13,7 +13,7 @@ enum Event {
 }
 
 #[derive(Clone, Copy)]
-enum FolderOption {
+enum DeckOption {
     Edit,
     Equip,
     ChangeName,
@@ -21,29 +21,29 @@ enum FolderOption {
     Delete,
 }
 
-pub struct FolderListScene {
+pub struct DeckListScene {
     camera: Camera,
     background: Background,
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
     equipped_sprite: Sprite,
     equipped_animator: Animator,
-    folder_scroll_offset: f32,
-    folder_sprite: Sprite,
-    folder_start_position: Vec2,
-    folder_scroll_tracker: ScrollTracker,
+    deck_scroll_offset: f32,
+    deck_sprite: Sprite,
+    deck_start_position: Vec2,
+    deck_scroll_tracker: ScrollTracker,
     card_scroll_tracker: ScrollTracker,
     card_list_position: Vec2,
-    context_menu: ContextMenu<FolderOption>,
+    context_menu: ContextMenu<DeckOption>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
     next_scene: NextScene,
 }
 
-impl FolderListScene {
+impl DeckListScene {
     pub fn new(game_io: &mut GameIO) -> Box<Self> {
-        move_selected_folder(game_io);
+        move_selected_deck(game_io);
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -52,8 +52,7 @@ impl FolderListScene {
         camera.snap(RESOLUTION_F * 0.5);
 
         // background
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::FOLDERS_LAYOUT_ANIMATION);
+        let mut layout_animator = Animator::load_new(assets, ResourcePaths::DECKS_LAYOUT_ANIMATION);
         layout_animator.set_state("DEFAULT");
 
         // card scroll tracker
@@ -66,44 +65,44 @@ impl FolderListScene {
 
         card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
-        // folder sprites
-        let folder_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDERS_ENABLED);
+        // deck sprites
+        let deck_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_ENABLED);
 
-        let folder_start_position = layout_animator.point("FOLDER_START").unwrap_or_default();
+        let deck_start_position = layout_animator.point("DECK_START").unwrap_or_default();
 
-        // folder cursor sprite
-        let mut folder_scroll_tracker = ScrollTracker::new(game_io, 3);
-        folder_scroll_tracker.use_custom_cursor(
+        // deck cursor sprite
+        let mut deck_scroll_tracker = ScrollTracker::new(game_io, 3);
+        deck_scroll_tracker.use_custom_cursor(
             game_io,
-            ResourcePaths::FOLDERS_CURSOR_ANIMATION,
-            ResourcePaths::FOLDERS_CURSOR,
+            ResourcePaths::DECKS_CURSOR_ANIMATION,
+            ResourcePaths::DECKS_CURSOR,
         );
-        folder_scroll_tracker.set_vertical(false);
+        deck_scroll_tracker.set_vertical(false);
 
-        let cursor_start = folder_start_position + Vec2::new(3.0, 7.0);
-        folder_scroll_tracker.define_cursor(cursor_start, folder_sprite.size().x + 1.0);
+        let cursor_start = deck_start_position + Vec2::new(3.0, 7.0);
+        deck_scroll_tracker.define_cursor(cursor_start, deck_sprite.size().x + 1.0);
 
         // equipped sprite
         let mut equipped_animator =
-            Animator::load_new(assets, ResourcePaths::FOLDERS_EQUIPPED_ANIMATION);
+            Animator::load_new(assets, ResourcePaths::DECKS_EQUIPPED_ANIMATION);
         equipped_animator.set_state("BLINK");
         equipped_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
-        let equipped_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDERS_EQUIPPED);
+        let equipped_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_EQUIPPED);
 
         let (event_sender, event_receiver) = flume::unbounded();
 
         Box::new(Self {
             camera,
-            background: Background::load_static(game_io, ResourcePaths::FOLDERS_BG),
+            background: Background::load_static(game_io, ResourcePaths::DECKS_BG),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
             equipped_sprite,
             equipped_animator,
-            folder_scroll_offset: 0.0,
-            folder_sprite,
-            folder_start_position,
-            folder_scroll_tracker,
+            deck_scroll_offset: 0.0,
+            deck_sprite,
+            deck_start_position,
+            deck_scroll_tracker,
             card_scroll_tracker,
             card_list_position,
             context_menu: ContextMenu::new(game_io, "SELECT", Vec2::new(3.0, 50.0))
@@ -116,33 +115,33 @@ impl FolderListScene {
     }
 }
 
-fn move_selected_folder(game_io: &mut GameIO) {
+fn move_selected_deck(game_io: &mut GameIO) {
     let globals = game_io.resource_mut::<Globals>().unwrap();
     let save = &mut globals.global_save;
 
-    if save.selected_folder == 0 {
+    if save.selected_deck == 0 {
         return;
     }
 
-    let folder = save.folders.remove(save.selected_folder);
-    save.folders.insert(0, folder);
-    save.selected_folder = 0;
+    let deck = save.decks.remove(save.selected_deck);
+    save.decks.insert(0, deck);
+    save.selected_deck = 0;
 }
 
-impl Scene for FolderListScene {
+impl Scene for DeckListScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let folders = &game_io.resource::<Globals>().unwrap().global_save.folders;
+        let decks = &game_io.resource::<Globals>().unwrap().global_save.decks;
 
-        self.folder_scroll_tracker.set_total_items(folders.len());
+        self.deck_scroll_tracker.set_total_items(decks.len());
 
-        let selected_index = self.folder_scroll_tracker.selected_index();
+        let selected_index = self.deck_scroll_tracker.selected_index();
 
-        if let Some(folder) = folders.get(selected_index) {
-            let count = folder.cards.len();
+        if let Some(deck) = decks.get(selected_index) {
+            let count = deck.cards.len();
             self.card_scroll_tracker.set_total_items(count);
         }
     }
@@ -182,29 +181,29 @@ impl Scene for FolderListScene {
         // draw context menu
         self.context_menu.draw(game_io, &mut sprite_queue);
 
-        // folder offset calculations
-        let folder_top_index = self.folder_scroll_tracker.top_index();
-        self.folder_scroll_offset += (folder_top_index as f32 - self.folder_scroll_offset) * 0.2;
+        // deck offset calculations
+        let deck_top_index = self.deck_scroll_tracker.top_index();
+        self.deck_scroll_offset += (deck_top_index as f32 - self.deck_scroll_offset) * 0.2;
 
-        // draw folders
+        // draw decks
         const LABEL_OFFSET: Vec2 = Vec2::new(4.0, 11.0);
 
         let mut label =
             TextStyle::new(game_io, FontStyle::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
-        let selection_multiplier = self.folder_sprite.size().x + 1.0;
+        let selection_multiplier = self.deck_sprite.size().x + 1.0;
 
-        let folder_offset = -self.folder_scroll_offset * selection_multiplier;
+        let deck_offset = -self.deck_scroll_offset * selection_multiplier;
 
-        for (i, folder) in global_save.folders.iter().enumerate() {
-            let mut position = self.folder_start_position;
-            position.x += i as f32 * selection_multiplier + folder_offset;
+        for (i, deck) in global_save.decks.iter().enumerate() {
+            let mut position = self.deck_start_position;
+            position.x += i as f32 * selection_multiplier + deck_offset;
 
-            // draw folder first
-            self.folder_sprite.set_position(position);
-            sprite_queue.draw_sprite(&self.folder_sprite);
+            // draw deck first
+            self.deck_sprite.set_position(position);
+            sprite_queue.draw_sprite(&self.deck_sprite);
 
-            if i == global_save.selected_folder {
+            if i == global_save.selected_deck {
                 self.equipped_animator.update();
                 self.equipped_animator.apply(&mut self.equipped_sprite);
 
@@ -212,18 +211,18 @@ impl Scene for FolderListScene {
                 sprite_queue.draw_sprite(&self.equipped_sprite);
             }
 
-            // folder label
+            // deck label
             label.bounds.set_position(position + LABEL_OFFSET);
-            label.draw(game_io, &mut sprite_queue, &folder.name);
+            label.draw(game_io, &mut sprite_queue, &deck.name);
         }
 
-        if !global_save.folders.is_empty() {
-            // draw folder cursor
-            self.folder_scroll_tracker.draw_cursor(&mut sprite_queue);
+        if !global_save.decks.is_empty() {
+            // draw deck cursor
+            self.deck_scroll_tracker.draw_cursor(&mut sprite_queue);
 
             // draw cards
-            let folder_index = self.folder_scroll_tracker.selected_index();
-            let cards = &global_save.folders[folder_index].cards;
+            let deck_index = self.deck_scroll_tracker.selected_index();
+            let cards = &global_save.decks[deck_index].cards;
             let range = self.card_scroll_tracker.view_range();
             let mut card_position = self.card_list_position;
 
@@ -243,34 +242,34 @@ impl Scene for FolderListScene {
     }
 }
 
-fn handle_events(scene: &mut FolderListScene, game_io: &mut GameIO) {
+fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
 
     match scene.event_receiver.try_recv() {
         Ok(Event::Rename(name)) => {
-            let folder_index = scene.folder_scroll_tracker.selected_index();
-            global_save.folders[folder_index].name = name;
+            let deck_index = scene.deck_scroll_tracker.selected_index();
+            global_save.decks[deck_index].name = name;
             global_save.save();
 
             scene.textbox.close();
         }
         Ok(Event::Delete) => {
-            let folder_index = scene.folder_scroll_tracker.selected_index();
-            global_save.folders.remove(folder_index);
+            let deck_index = scene.deck_scroll_tracker.selected_index();
+            global_save.decks.remove(deck_index);
 
-            let new_total = global_save.folders.len();
-            scene.folder_scroll_tracker.set_total_items(new_total);
+            let new_total = global_save.decks.len();
+            scene.deck_scroll_tracker.set_total_items(new_total);
 
-            if global_save.selected_folder <= new_total {
-                global_save.selected_folder = 0;
+            if global_save.selected_deck <= new_total {
+                global_save.selected_deck = 0;
             }
 
             global_save.save();
 
             // update card list
-            let folder_index = scene.folder_scroll_tracker.selected_index();
-            let card_count = match global_save.folders.get(folder_index) {
-                Some(folder) => folder.cards.len(),
+            let deck_index = scene.deck_scroll_tracker.selected_index();
+            let card_count = match global_save.decks.get(deck_index) {
+                Some(deck) => deck.cards.len(),
                 None => 0,
             };
 
@@ -284,7 +283,7 @@ fn handle_events(scene: &mut FolderListScene, game_io: &mut GameIO) {
     }
 }
 
-fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
+fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     scene.ui_input_tracker.update(game_io);
 
     if scene.context_menu.is_open() {
@@ -294,28 +293,28 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
 
     let globals = game_io.resource::<Globals>().unwrap();
 
-    // folder scroll
-    let folders = &globals.global_save.folders;
-    let total_folders = folders.len();
+    // deck scroll
+    let decks = &globals.global_save.decks;
+    let total_decks = decks.len();
 
-    if total_folders > 0 {
-        let previous_folder_index = scene.folder_scroll_tracker.selected_index();
+    if total_decks > 0 {
+        let previous_deck_index = scene.deck_scroll_tracker.selected_index();
 
         if scene.ui_input_tracker.is_active(Input::Left) {
-            scene.folder_scroll_tracker.move_up();
+            scene.deck_scroll_tracker.move_up();
         }
 
         if scene.ui_input_tracker.is_active(Input::Right) {
-            scene.folder_scroll_tracker.move_down();
+            scene.deck_scroll_tracker.move_down();
         }
 
-        let folder_index = scene.folder_scroll_tracker.selected_index();
+        let deck_index = scene.deck_scroll_tracker.selected_index();
 
-        if previous_folder_index != folder_index {
+        if previous_deck_index != deck_index {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.cursor_move_sfx);
 
-            let count = folders[folder_index].cards.len();
+            let count = decks[deck_index].cards.len();
             scene.card_scroll_tracker.set_total_items(count);
         }
     }
@@ -360,15 +359,15 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_select_sfx);
 
-        let options: &[(&str, FolderOption)] = if total_folders == 0 {
-            &[("NEW", FolderOption::New)]
+        let options: &[(&str, DeckOption)] = if total_decks == 0 {
+            &[("NEW", DeckOption::New)]
         } else {
             &[
-                ("EDIT", FolderOption::Edit),
-                ("EQUIP", FolderOption::Equip),
-                ("CHG NAME", FolderOption::ChangeName),
-                ("NEW", FolderOption::New),
-                ("DELETE", FolderOption::Delete),
+                ("EDIT", DeckOption::Edit),
+                ("EQUIP", DeckOption::Equip),
+                ("CHG NAME", DeckOption::ChangeName),
+                ("NEW", DeckOption::New),
+                ("DELETE", DeckOption::Delete),
             ]
         };
 
@@ -378,7 +377,7 @@ fn handle_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
     }
 }
 
-fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO) {
+fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let selection = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
         Some(selection) => selection,
         None => return,
@@ -388,17 +387,17 @@ fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO) 
     let global_save = &mut globals.global_save;
 
     match selection {
-        FolderOption::Edit => {
-            let folder_index = scene.folder_scroll_tracker.selected_index();
+        DeckOption::Edit => {
+            let deck_index = scene.deck_scroll_tracker.selected_index();
 
-            scene.next_scene = NextScene::new_push(FolderEditScene::new(game_io, folder_index))
+            scene.next_scene = NextScene::new_push(DeckEditorScene::new(game_io, deck_index))
                 .with_transition(crate::transitions::new_sub_scene(game_io));
         }
-        FolderOption::Equip => {
-            global_save.selected_folder = scene.folder_scroll_tracker.selected_index();
+        DeckOption::Equip => {
+            global_save.selected_deck = scene.deck_scroll_tracker.selected_index();
             global_save.save();
         }
-        FolderOption::ChangeName => {
+        DeckOption::ChangeName => {
             let event_sender = scene.event_sender.clone();
             let callback = move |name: String| {
                 let event = if !name.is_empty() {
@@ -410,30 +409,30 @@ fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO) 
                 event_sender.send(event).unwrap();
             };
 
-            let folder_name = &global_save.folders[global_save.selected_folder].name;
+            let deck_name = &global_save.decks[global_save.selected_deck].name;
             let textbox_interface = TextboxPrompt::new(callback)
-                .with_str(folder_name)
+                .with_str(deck_name)
                 .with_character_limit(9);
 
             scene.textbox.push_interface(textbox_interface);
             scene.textbox.open();
         }
-        FolderOption::New => {
+        DeckOption::New => {
             let name = String::from("NewFldr");
-            global_save.folders.push(Folder::new(name));
+            global_save.decks.push(Deck::new(name));
 
-            let total_folders = global_save.folders.len();
+            let total_deckss = global_save.decks.len();
 
-            scene.folder_scroll_tracker.set_total_items(total_folders);
+            scene.deck_scroll_tracker.set_total_items(total_deckss);
 
             scene
-                .folder_scroll_tracker
-                .set_selected_index(total_folders - 1);
+                .deck_scroll_tracker
+                .set_selected_index(total_deckss - 1);
             scene.card_scroll_tracker.set_total_items(0);
         }
-        FolderOption::Delete => {
+        DeckOption::Delete => {
             let event_sender = scene.event_sender.clone();
-            let folder_name = &global_save.folders[global_save.selected_folder].name;
+            let deck_name = &global_save.decks[global_save.selected_deck].name;
             let callback = move |response| {
                 let event = if response {
                     Event::Delete
@@ -444,8 +443,7 @@ fn handle_context_menu_input(scene: &mut FolderListScene, game_io: &mut GameIO) 
                 event_sender.send(event).unwrap();
             };
 
-            let textbox_interface =
-                TextboxQuestion::new(format!("Delete {folder_name}?"), callback);
+            let textbox_interface = TextboxQuestion::new(format!("Delete {deck_name}?"), callback);
 
             scene.textbox.push_interface(textbox_interface);
             scene.textbox.open();

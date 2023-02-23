@@ -5,7 +5,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::BlockGrid;
-use crate::saves::{Card, Folder};
+use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use std::collections::HashMap;
 
@@ -17,7 +17,7 @@ enum Event {
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq)]
-enum FolderSorting {
+enum Sorting {
     Id,
     Alphabetical,
     Code,
@@ -27,8 +27,8 @@ enum FolderSorting {
     Class,
 }
 
-pub struct FolderEditScene {
-    folder_index: usize,
+pub struct DeckEditorScene {
+    deck_index: usize,
     mega_limit: usize,
     giga_limit: usize,
     camera: Camera,
@@ -36,19 +36,19 @@ pub struct FolderEditScene {
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
     page_tracker: PageTracker,
-    context_menu: ContextMenu<FolderSorting>,
-    last_sort: Option<FolderSorting>,
-    folder_dock: Dock,
+    context_menu: ContextMenu<Sorting>,
+    last_sort: Option<Sorting>,
+    deck_dock: Dock,
     pack_dock: Dock,
-    folder_size_sprite: Sprite,
+    deck_size_sprite: Sprite,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     next_scene: NextScene,
 }
 
-impl FolderEditScene {
-    pub fn new(game_io: &mut GameIO, folder_index: usize) -> Self {
+impl DeckEditorScene {
+    pub fn new(game_io: &mut GameIO, deck_index: usize) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
         // limits
@@ -70,36 +70,36 @@ impl FolderEditScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        // folder_dock
-        let folder = &globals.global_save.folders[folder_index];
-        let mut folder_dock = Dock::new(
+        // deck_dock
+        let deck = &globals.global_save.decks[deck_index];
+        let mut deck_dock = Dock::new(
             game_io,
-            CardListItem::vec_from_folder(folder),
-            ResourcePaths::FOLDER_DOCK,
-            ResourcePaths::FOLDER_DOCK_ANIMATION,
+            CardListItem::vec_from_deck(deck),
+            ResourcePaths::DECK_DOCK,
+            ResourcePaths::DECK_DOCK_ANIMATION,
         );
-        folder_dock.update_card_count();
+        deck_dock.update_card_count();
 
         // pack_dock
         let pack_dock = Dock::new(
             game_io,
-            CardListItem::pack_vec_from_packages(game_io, folder),
-            ResourcePaths::FOLDER_PACK_DOCK,
-            ResourcePaths::FOLDER_PACK_DOCK_ANIMATION,
+            CardListItem::pack_vec_from_packages(game_io, deck),
+            ResourcePaths::DECK_PACK_DOCK,
+            ResourcePaths::DECK_PACK_DOCK_ANIMATION,
         );
 
         // static sprites
-        let mut folder_size_sprite = assets.new_sprite(game_io, ResourcePaths::FOLDER_SIZE);
-        folder_size_sprite.set_origin(Vec2::new(0.0, folder_size_sprite.size().y * 0.5));
-        folder_size_sprite.set_position(Vec2::new(
-            RESOLUTION_F.x - folder_size_sprite.size().x,
-            5.0 + folder_size_sprite.size().y * 0.5,
+        let mut deck_size_sprite = assets.new_sprite(game_io, ResourcePaths::DECK_SIZE);
+        deck_size_sprite.set_origin(Vec2::new(0.0, deck_size_sprite.size().y * 0.5));
+        deck_size_sprite.set_position(Vec2::new(
+            RESOLUTION_F.x - deck_size_sprite.size().x,
+            5.0 + deck_size_sprite.size().y * 0.5,
         ));
 
         let (event_sender, event_receiver) = flume::unbounded();
 
         Self {
-            folder_index,
+            deck_index,
             mega_limit: mega_limit.max(0) as usize,
             giga_limit: giga_limit.max(0) as usize,
             camera,
@@ -111,19 +111,19 @@ impl FolderEditScene {
             context_menu: ContextMenu::new(game_io, "SORT", Vec2::ZERO).with_options(
                 game_io,
                 &[
-                    ("ID", FolderSorting::Id),
-                    ("ABCDE", FolderSorting::Alphabetical),
-                    ("Code", FolderSorting::Code),
-                    ("Attack", FolderSorting::Damage),
-                    ("Element", FolderSorting::Element),
-                    ("No.", FolderSorting::Number),
-                    ("Class", FolderSorting::Class),
+                    ("ID", Sorting::Id),
+                    ("ABCDE", Sorting::Alphabetical),
+                    ("Code", Sorting::Code),
+                    ("Attack", Sorting::Damage),
+                    ("Element", Sorting::Element),
+                    ("No.", Sorting::Number),
+                    ("Class", Sorting::Class),
                 ],
             ),
             last_sort: None,
-            folder_dock,
+            deck_dock,
             pack_dock,
-            folder_size_sprite,
+            deck_size_sprite,
             textbox: Textbox::new_navigation(game_io),
             event_sender,
             event_receiver,
@@ -131,24 +131,24 @@ impl FolderEditScene {
         }
     }
 
-    fn leave(&mut self, game_io: &mut GameIO, equip_folder: bool) {
+    fn leave(&mut self, game_io: &mut GameIO, equip_deck: bool) {
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);
 
         // save
         let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
 
-        if equip_folder {
-            global_save.selected_folder = self.folder_index;
+        if equip_deck {
+            global_save.selected_deck = self.deck_index;
         }
 
-        global_save.folders[self.folder_index].cards = self.clone_cards();
+        global_save.decks[self.deck_index].cards = self.clone_cards();
 
         global_save.save();
     }
 
     fn clone_cards(&self) -> Vec<Card> {
-        self.folder_dock
+        self.deck_dock
             .card_slots
             .iter()
             .flatten()
@@ -157,7 +157,7 @@ impl FolderEditScene {
     }
 }
 
-impl Scene for FolderEditScene {
+impl Scene for DeckEditorScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
@@ -193,21 +193,21 @@ impl Scene for FolderEditScene {
         // draw title
         SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
 
-        // draw folder size
+        // draw deck size
         let offset = Vec2::new(self.page_tracker.page_offset(0), 0.0);
-        let original_size_position = self.folder_size_sprite.position();
+        let original_size_position = self.deck_size_sprite.position();
         let adjusted_size_position = original_size_position + offset;
 
-        self.folder_size_sprite.set_position(adjusted_size_position);
-        sprite_queue.draw_sprite(&self.folder_size_sprite);
-        self.folder_size_sprite.set_position(original_size_position);
+        self.deck_size_sprite.set_position(adjusted_size_position);
+        sprite_queue.draw_sprite(&self.deck_size_sprite);
+        self.deck_size_sprite.set_position(original_size_position);
 
         let mut count_text = Text::new(game_io, FontStyle::Wide);
         (count_text.style.bounds).set_position(adjusted_size_position);
         count_text.style.bounds.x += 10.0;
         count_text.style.bounds.y -= 3.0;
 
-        let card_count = self.folder_dock.card_count;
+        let card_count = self.deck_dock.card_count;
 
         count_text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         count_text.style.color = if card_count == MAX_CARDS {
@@ -222,7 +222,7 @@ impl Scene for FolderEditScene {
         // draw docks
         for (page, offset) in self.page_tracker.visible_pages() {
             let dock = match page {
-                0 => &mut self.folder_dock,
+                0 => &mut self.deck_dock,
                 1 => &mut self.pack_dock,
                 _ => unreachable!(),
             };
@@ -240,7 +240,7 @@ impl Scene for FolderEditScene {
         // draw context menu
         if self.context_menu.is_open() {
             let active_dock = match self.page_tracker.active_page() {
-                0 => &mut self.folder_dock,
+                0 => &mut self.deck_dock,
                 1 => &mut self.pack_dock,
                 _ => unreachable!(),
             };
@@ -258,14 +258,14 @@ impl Scene for FolderEditScene {
     }
 }
 
-fn handle_events(scene: &mut FolderEditScene, game_io: &mut GameIO) {
+fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     if let Ok(Event::Leave(equip)) = scene.event_receiver.try_recv() {
         scene.leave(game_io, equip);
         scene.textbox.close();
     }
 }
 
-fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
+fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     scene.ui_input_tracker.update(game_io);
 
     if scene.context_menu.is_open() {
@@ -277,11 +277,11 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
     let (active_dock, inactive_dock);
 
     if scene.page_tracker.active_page() == 0 {
-        active_dock = &mut scene.folder_dock;
+        active_dock = &mut scene.deck_dock;
         inactive_dock = &mut scene.pack_dock;
     } else {
         active_dock = &mut scene.pack_dock;
-        inactive_dock = &mut scene.folder_dock;
+        inactive_dock = &mut scene.deck_dock;
     }
 
     let scroll_tracker = &mut active_dock.scroll_tracker;
@@ -326,16 +326,16 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.cursor_cancel_sfx);
 
-        let cancel_handled = scene.folder_dock.scroll_tracker.forget_index().is_some()
+        let cancel_handled = scene.deck_dock.scroll_tracker.forget_index().is_some()
             || scene.pack_dock.scroll_tracker.forget_index().is_some();
 
         // closing
         if !cancel_handled {
-            let folder = &globals.global_save.folders[scene.folder_index];
-            let is_equipped = globals.global_save.selected_folder == scene.folder_index;
+            let deck = &globals.global_save.decks[scene.deck_index];
+            let is_equipped = globals.global_save.selected_deck == scene.deck_index;
 
-            if is_equipped || folder.cards == scene.clone_cards() {
-                // didn't modify the folder, leave without changing the equipped folder
+            if is_equipped || deck.cards == scene.clone_cards() {
+                // didn't modify the deck, leave without changing the equipped deck
                 scene.leave(game_io, false);
             } else {
                 let event_sender = scene.event_sender.clone();
@@ -344,7 +344,7 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
                 };
 
                 let textbox_interface =
-                    TextboxQuestion::new(format!("Equip {}?", folder.name), callback);
+                    TextboxQuestion::new(format!("Equip {}?", deck.name), callback);
 
                 scene.textbox.push_interface(textbox_interface);
                 scene.textbox.open();
@@ -363,7 +363,7 @@ fn handle_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
     }
 }
 
-fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO) {
+fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     let selected_option = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
         Some(option) => option,
         None => return,
@@ -371,43 +371,41 @@ fn handle_context_menu_input(scene: &mut FolderEditScene, game_io: &mut GameIO) 
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
     let card_slots = match scene.page_tracker.active_page() {
-        0 => &mut scene.folder_dock.card_slots,
+        0 => &mut scene.deck_dock.card_slots,
         1 => &mut scene.pack_dock.card_slots,
         _ => unreachable!(),
     };
 
     match selected_option {
-        FolderSorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
+        Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
             item.card.package_id.clone()
         }),
-        FolderSorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
+        Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
                 .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.short_name.clone()
         }),
-        FolderSorting::Code => {
-            sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone())
-        }
-        FolderSorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
+        Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
+        Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
                 .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             -package.card_properties.damage
         }),
-        FolderSorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
+        Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
                 .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.element as u8
         }),
-        FolderSorting::Number => {
+        Sorting::Number => {
             sort_card_items(card_slots, |item: &CardListItem| -(item.count as isize))
         }
-        FolderSorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
+        Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
                 .package_or_fallback(NAMESPACE, &item.card.package_id)
                 .unwrap();
@@ -434,20 +432,20 @@ where
     card_slots.sort_by_cached_key(move |slot| slot.as_ref().map(key_function));
 }
 
-fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usize) {
+fn dock_internal_swap(scene: &mut DeckEditorScene, game_io: &GameIO, index: usize) {
     if scene.page_tracker.active_page() == 0 {
-        let selected_index = scene.folder_dock.scroll_tracker.selected_index();
+        let selected_index = scene.deck_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
             transfer_to_pack(scene, index);
         } else {
-            scene.folder_dock.card_slots.swap(selected_index, index);
+            scene.deck_dock.card_slots.swap(selected_index, index);
         }
     } else {
         let selected_index = scene.pack_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
-            transfer_to_folder(scene, game_io, index);
+            transfer_to_deck(scene, game_io, index);
         } else {
             scene.pack_dock.card_slots.swap(selected_index, index);
         }
@@ -455,18 +453,18 @@ fn dock_internal_swap(scene: &mut FolderEditScene, game_io: &GameIO, index: usiz
 }
 
 fn inter_dock_swap(
-    scene: &mut FolderEditScene,
+    scene: &mut DeckEditorScene,
     game_io: &GameIO,
     inactive_index: usize,
     active_index: usize,
 ) -> Option<()> {
-    let (folder_index, pack_index);
+    let (deck_index, pack_index);
 
     if scene.page_tracker.active_page() == 0 {
-        folder_index = active_index;
+        deck_index = active_index;
         pack_index = inactive_index;
     } else {
-        folder_index = inactive_index;
+        deck_index = inactive_index;
         pack_index = active_index;
     }
 
@@ -475,13 +473,13 @@ fn inter_dock_swap(
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
-    let stored_index = transfer_to_pack(scene, folder_index);
+    let stored_index = transfer_to_pack(scene, deck_index);
 
-    let Some(index) = transfer_to_folder(scene, game_io, pack_index) else {
+    let Some(index) = transfer_to_deck(scene, game_io, pack_index) else {
         if let Some(stored_index) = stored_index {
             // move it back
-            let index = transfer_to_folder(scene, game_io, stored_index)?;
-            scene.folder_dock.card_slots.swap(index, folder_index);
+            let index = transfer_to_deck(scene, game_io, stored_index)?;
+            scene.deck_dock.card_slots.swap(index, deck_index);
         }
 
         return None;
@@ -501,28 +499,28 @@ fn inter_dock_swap(
         }
     }
 
-    // move the card transferred to the folder to the correct slot
+    // move the card transferred to the deck to the correct slot
     // otherwise it's moved to the first empty slot and not the one we're selecting
-    scene.folder_dock.card_slots.swap(index, folder_index);
+    scene.deck_dock.card_slots.swap(index, deck_index);
 
-    scene.folder_dock.update_card_count();
-    scene.folder_dock.update_preview();
+    scene.deck_dock.update_card_count();
+    scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
     Some(())
 }
 
-fn transfer_to_folder(
-    scene: &mut FolderEditScene,
+fn transfer_to_deck(
+    scene: &mut DeckEditorScene,
     game_io: &GameIO,
     from_index: usize,
 ) -> Option<usize> {
     let card_item = scene.pack_dock.card_slots.get_mut(from_index)?.as_mut()?;
 
-    let folder_dock = &mut scene.folder_dock;
+    let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
-    let duplicate_count = folder_dock
+    let duplicate_count = deck_dock
         .card_items()
         .filter(|item| item.card.package_id == card_item.card.package_id)
         .count();
@@ -531,13 +529,13 @@ fn transfer_to_folder(
     let package = card_manager.package_or_fallback(NAMESPACE, &card_item.card.package_id)?;
 
     if duplicate_count >= package.card_properties.limit {
-        // folder already has too many
+        // deck already has too many
         return None;
     }
 
     match package.card_properties.card_class {
         CardClass::Mega => {
-            let mega_count = folder_dock
+            let mega_count = deck_dock
                 .card_items()
                 .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
                 .filter(|package| package.card_properties.card_class == CardClass::Mega)
@@ -548,7 +546,7 @@ fn transfer_to_folder(
             }
         }
         CardClass::Giga => {
-            let giga_count = folder_dock
+            let giga_count = deck_dock
                 .card_items()
                 .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
                 .filter(|package| package.card_properties.card_class == CardClass::Giga)
@@ -562,11 +560,11 @@ fn transfer_to_folder(
     };
 
     // search for an empty slot to insert the card into
-    let folder_slots = &mut scene.folder_dock.card_slots;
+    let deck_slots = &mut scene.deck_dock.card_slots;
 
-    let empty_index = folder_slots.iter_mut().position(|item| item.is_none())?;
+    let empty_index = deck_slots.iter_mut().position(|item| item.is_none())?;
 
-    folder_slots[empty_index] = Some(CardListItem {
+    deck_slots[empty_index] = Some(CardListItem {
         card: card_item.card.clone(),
         count: 1,
         show_count: false,
@@ -581,23 +579,18 @@ fn transfer_to_folder(
         scene.pack_dock.scroll_tracker.set_total_items(pack_size);
     }
 
-    scene.folder_dock.update_card_count();
-    scene.folder_dock.update_preview();
+    scene.deck_dock.update_card_count();
+    scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
     Some(empty_index)
 }
 
-fn transfer_to_pack(scene: &mut FolderEditScene, from_index: usize) -> Option<usize> {
-    let card = scene
-        .folder_dock
-        .card_slots
-        .get_mut(from_index)?
-        .take()?
-        .card;
+fn transfer_to_pack(scene: &mut DeckEditorScene, from_index: usize) -> Option<usize> {
+    let card = scene.deck_dock.card_slots.get_mut(from_index)?.take()?.card;
 
-    scene.folder_dock.update_card_count();
-    scene.folder_dock.update_preview();
+    scene.deck_dock.update_card_count();
+    scene.deck_dock.update_preview();
 
     let pack_slots = &mut scene.pack_dock.card_slots;
 
@@ -778,8 +771,8 @@ struct CardListItem {
 }
 
 impl CardListItem {
-    pub fn vec_from_folder(folder: &Folder) -> Vec<Option<CardListItem>> {
-        let mut card_items: Vec<_> = folder
+    pub fn vec_from_deck(deck: &Deck) -> Vec<Option<CardListItem>> {
+        let mut card_items: Vec<_> = deck
             .cards
             .iter()
             .map(|card| {
@@ -799,13 +792,13 @@ impl CardListItem {
 
     pub fn pack_vec_from_packages(
         game_io: &GameIO,
-        active_folder: &Folder,
+        active_deck: &Deck,
     ) -> Vec<Option<CardListItem>> {
         let package_manager = &game_io.resource::<Globals>().unwrap().card_packages;
 
         let mut use_counts = HashMap::new();
 
-        for card in &active_folder.cards {
+        for card in &active_deck.cards {
             use_counts
                 .entry(card)
                 .and_modify(|count| *count += 1)

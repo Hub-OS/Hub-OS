@@ -4,12 +4,12 @@ imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/
 
 animation state="ROOT"
 frame duration="0f" x="236" y="192" w="120" h="64" originx="0" originy="-96" flipx="0" flipy="0"
-point label="card_start" x="9" y="9"
-point label="confirm" x="91" y="16"
+point label="CARD_START" x="9" y="9"
+point label="CONFIRM" x="91" y="16"
 
 animation state="STANDARD_FRAME"
 frame duration="0f" x="0" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
-point label="preview" x="44" y="24"
+point label="PREVIEW" x="44" y="24"
 
 animation state="MEGA_FRAME"
 frame duration="0f" x="89" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
@@ -31,8 +31,8 @@ frame duration="0f" x="178" y="98" w="56" h="48" originx="28" originy="0" flipx=
 
 animation state="FORM_LIST_FRAME"
 frame duration="3f" x="235" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
-point label="start" x="8" y="8"
-point label="initial_origin" x="0" y="-88"
+point label="START" x="8" y="8"
+point label="INITIAL_ORIGIN" x="0" y="-88"
 
 animation state="FORM_TAB"
 frame duration="50f" x="235" y="101" w="88" h="12" originx="0" originy="-88" flipx="0" flipy="0"
@@ -42,7 +42,7 @@ frame duration="50f" x="235" y="114" w="72" h="16" originx="0" originy="0" flipx
 
 animation state="SELECTION_FRAME"
 frame duration="0f" x="324" y="0" w="32" h="111" originx="-88" originy="0" flipx="0" flipy="0"
-point label="start" x="9" y="25"
+point label="START" x="9" y="25"
 
 animation state="SELECTED_FRAME"
 frame duration="0f" x="329" y="112" w="22" h="16" originx="4" originy="1" flipx="0" flipy="0"

@@ -6,7 +6,7 @@ use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BlockGrid, Card, Folder};
+use crate::saves::{BlockGrid, Card, Deck};
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::BattleStatistics;
@@ -800,7 +800,7 @@ impl BattleSimulation {
             player_package,
             index,
             local,
-            folder: Folder { cards, .. },
+            deck: Deck { cards, .. },
             blocks,
             ..
         } = setup;

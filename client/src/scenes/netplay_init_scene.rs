@@ -4,7 +4,7 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{Card, Folder};
+use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
@@ -42,7 +42,7 @@ struct RemotePlayerConnection {
     player_package: PackageId,
     health: i32,
     base_health: i32,
-    folder: Folder,
+    deck: Deck,
     blocks: Vec<InstalledBlock>,
     load_map: HashMap<FileHash, PackageCategory>,
     requested_packages: Option<Vec<FileHash>>,
@@ -153,7 +153,7 @@ impl NetplayInitScene {
                 player_package: PackageId::new_blank(),
                 health: info.health,
                 base_health: info.base_health,
-                folder: Folder::default(),
+                deck: Deck::default(),
                 blocks: Vec::new(),
                 load_map: HashMap::new(),
                 requested_packages: None,
@@ -296,7 +296,7 @@ impl NetplayInitScene {
                 ..
             } => {
                 connection.player_package = player_package.into();
-                connection.folder.cards = cards
+                connection.deck.cards = cards
                     .into_iter()
                     .map(|(package_id, code)| Card {
                         package_id: package_id.into(),
@@ -502,7 +502,7 @@ impl NetplayInitScene {
         let player_setup = &props.player_setups[0];
         let player_package_info = &player_setup.player_package.package_info;
         let cards = player_setup
-            .folder
+            .deck
             .cards
             .iter()
             .map(|card| (card.package_id.clone().into(), card.code.clone()))
@@ -651,7 +651,7 @@ impl NetplayInitScene {
                     player_package,
                     health: connection.health,
                     base_health: connection.base_health,
-                    folder: connection.folder.clone(),
+                    deck: connection.deck.clone(),
                     blocks: connection.blocks.clone(),
                     index: connection.index,
                     local: false,

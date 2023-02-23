@@ -345,7 +345,7 @@ impl Globals {
         let card_package_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
-            let card_iter = setup.folder.cards.iter();
+            let card_iter = setup.deck.cards.iter();
             card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
         });
 

@@ -1,8 +1,8 @@
 animation state="STANDARD"
 frame x="0" y="0" w="80" h="134"
-point label="preview" x="40" y="4"
-point label="description_start" x="4" y="71"
-point label="description_end" x="75" y="120"
+point label="PREVIEW" x="40" y="4"
+point label="DESCRIPTION_START" x="4" y="71"
+point label="DESCRIPTION_END" x="75" y="120"
 
 animation state="MEGA"
 frame x="80" y="0" w="80" h="134"

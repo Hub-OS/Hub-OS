@@ -55,7 +55,7 @@ impl MenuManager {
         let navigation_menu = NavigationMenu::new(
             game_io,
             vec![
-                SceneOption::Folders,
+                SceneOption::Decks,
                 // SceneOption::Items,
                 SceneOption::Library,
                 SceneOption::Character,

@@ -91,7 +91,7 @@ impl MainMenuScene {
                 game_io,
                 vec![
                     SceneOption::Servers,
-                    SceneOption::Folders,
+                    SceneOption::Decks,
                     SceneOption::Library,
                     SceneOption::Character,
                     SceneOption::BattleSelect,

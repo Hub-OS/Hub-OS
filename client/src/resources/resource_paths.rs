@@ -111,10 +111,6 @@ impl ResourcePaths {
     pub const MAIN_MENU_LAYOUT_ANIMATION: &str = "resources/scenes/main_menu/layout.animation";
     pub const MAIN_MENU_PARTS: &str = "resources/scenes/main_menu/menu.png";
     pub const MAIN_MENU_PARTS_ANIMATION: &str = "resources/scenes/main_menu/menu.animation";
-    pub const MAIN_MENU_FOLDER: &str = "resources/scenes/main_menu/folders.png";
-    pub const MAIN_MENU_FOLDER_ANIMATION: &str = "resources/scenes/main_menu/folders.animation";
-    pub const MAIN_MENU_WINDOWS: &str = "resources/scenes/main_menu/windows.png";
-    pub const MAIN_MENU_WINDOWS_ANIMATION: &str = "resources/scenes/main_menu/windows.animation";
 
     // ServerListScene
     pub const SERVER_LIST_STATUS: &str = "resources/scenes/server_list/status.png";
@@ -134,23 +130,23 @@ impl ResourcePaths {
     pub const OVERWORLD_BBS: &str = "resources/scenes/overworld/bbs/bbs.png";
     pub const OVERWORLD_BBS_ANIMATION: &str = "resources/scenes/overworld/bbs/bbs.animation";
 
-    // FoldersScene
-    pub const FOLDERS_BG: &str = "resources/scenes/folder_list/bg.png";
-    pub const FOLDERS_LAYOUT_ANIMATION: &str = "resources/scenes/folder_list/layout.animation";
-    pub const FOLDERS_ENABLED: &str = "resources/scenes/folder_list/enabled.png";
-    pub const FOLDERS_DISABLED: &str = "resources/scenes/folder_list/disabled.png";
-    pub const FOLDERS_CURSOR: &str = "resources/scenes/folder_list/cursor.png";
-    pub const FOLDERS_CURSOR_ANIMATION: &str = "resources/scenes/folder_list/cursor.animation";
-    pub const FOLDERS_EQUIPPED: &str = "resources/scenes/folder_list/equip.png";
-    pub const FOLDERS_EQUIPPED_ANIMATION: &str = "resources/scenes/folder_list/equip.animation";
+    // DeckListScene
+    pub const DECKS_BG: &str = "resources/scenes/deck_list/bg.png";
+    pub const DECKS_LAYOUT_ANIMATION: &str = "resources/scenes/deck_list/layout.animation";
+    pub const DECKS_ENABLED: &str = "resources/scenes/deck_list/enabled.png";
+    pub const DECKS_DISABLED: &str = "resources/scenes/deck_list/disabled.png";
+    pub const DECKS_CURSOR: &str = "resources/scenes/deck_list/cursor.png";
+    pub const DECKS_CURSOR_ANIMATION: &str = "resources/scenes/deck_list/cursor.animation";
+    pub const DECKS_EQUIPPED: &str = "resources/scenes/deck_list/equip.png";
+    pub const DECKS_EQUIPPED_ANIMATION: &str = "resources/scenes/deck_list/equip.animation";
 
-    // FolderScene
-    pub const FOLDER_SIZE: &str = "resources/scenes/folder_edit/size.png";
-    pub const FOLDER_DOCK: &str = "resources/scenes/folder_edit/dock.png";
-    pub const FOLDER_DOCK_ANIMATION: &str = "resources/scenes/folder_edit/dock.animation";
-    pub const FOLDER_PACK_DOCK: &str = "resources/scenes/folder_edit/pack_dock.png";
-    pub const FOLDER_PACK_DOCK_ANIMATION: &str = "resources/scenes/folder_edit/pack_dock.animation";
-    pub const FOLDER_SORT_MENU: &str = "resources/scenes/folder_edit/sort.png";
+    // DeckEditorScene
+    pub const DECK_SIZE: &str = "resources/scenes/deck_editor/size.png";
+    pub const DECK_DOCK: &str = "resources/scenes/deck_editor/dock.png";
+    pub const DECK_DOCK_ANIMATION: &str = "resources/scenes/deck_editor/dock.animation";
+    pub const DECK_PACK_DOCK: &str = "resources/scenes/deck_editor/pack_dock.png";
+    pub const DECK_PACK_DOCK_ANIMATION: &str = "resources/scenes/deck_editor/pack_dock.animation";
+    pub const DECK_SORT_MENU: &str = "resources/scenes/deck_editor/sort.png";
 
     // LibraryScene
     pub const LIBRARY_LAYOUT_ANIMATION: &str = "resources/scenes/library/layout.animation";

@@ -764,7 +764,7 @@ impl CardSelectState {
                 }
             }
 
-            // remove the cards from the folder
+            // remove the cards from the deck
             // must sort + loop in reverse to prevent issues from shifting indices
             selection.selected_card_indices.sort();
 

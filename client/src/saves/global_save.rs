@@ -1,4 +1,4 @@
-use super::{Folder, InstalledBlock, ServerInfo};
+use super::{Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::GameIO;
@@ -10,8 +10,8 @@ use std::collections::HashMap;
 pub struct GlobalSave {
     pub nickname: String,
     pub selected_character: PackageId,
-    pub folders: Vec<Folder>,
-    pub selected_folder: usize,
+    pub decks: Vec<Deck>,
+    pub selected_deck: usize,
     pub server_list: Vec<ServerInfo>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
 }
@@ -70,8 +70,8 @@ impl GlobalSave {
             .package_or_fallback(PackageNamespace::Server, player_id)
     }
 
-    pub fn active_folder(&self) -> Option<&Folder> {
-        self.folders.get(self.selected_folder)
+    pub fn active_deck(&self) -> Option<&Deck> {
+        self.decks.get(self.selected_deck)
     }
 
     pub fn active_blocks(&self) -> Option<&Vec<InstalledBlock>> {
@@ -84,8 +84,8 @@ impl Default for GlobalSave {
         Self {
             nickname: String::from("Anon"),
             selected_character: PackageId::new_blank(),
-            folders: Vec::new(),
-            selected_folder: 0,
+            decks: Vec::new(),
+            selected_deck: 0,
             server_list: Vec::new(),
             installed_blocks: HashMap::new(),
         }
