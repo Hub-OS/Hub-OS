@@ -21,7 +21,7 @@ enum Event {
     PlayerManager(PackageManager<PlayerPackage>),
     CardManager(PackageManager<CardPackage>),
     BattleManager(PackageManager<BattlePackage>),
-    BlockManager(PackageManager<BlockPackage>),
+    AugmentManager(PackageManager<AugmentPackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
     Done,
@@ -169,14 +169,15 @@ impl BootScene {
 
             sender.send(Event::BattleManager(battle_packages)).unwrap();
 
-            // load block mods
-            let mut block_packages = PackageManager::<BlockPackage>::new(PackageCategory::Block);
-            block_packages.load_packages_in_folder(
+            // load augment mods
+            let mut augment_packages =
+                PackageManager::<AugmentPackage>::new(PackageCategory::Augment);
+            augment_packages.load_packages_in_folder(
                 &thread_assets,
-                "./mods/blocks",
+                "./mods/augments",
                 |progress, total| {
                     let status_update = StatusUpdate {
-                        label: "Loading Blocks",
+                        label: "Loading Augments",
                         progress,
                         total,
                     };
@@ -185,9 +186,11 @@ impl BootScene {
                 },
             );
 
-            child_packages.extend(block_packages.child_packages(PackageNamespace::Local));
+            child_packages.extend(augment_packages.child_packages(PackageNamespace::Local));
 
-            sender.send(Event::BlockManager(block_packages)).unwrap();
+            sender
+                .send(Event::AugmentManager(augment_packages))
+                .unwrap();
 
             // load libraries
             let mut library_packages =
@@ -289,8 +292,8 @@ impl BootScene {
                 Event::BattleManager(battle_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().battle_packages = battle_packages;
                 }
-                Event::BlockManager(block_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().block_packages = block_packages;
+                Event::AugmentManager(augment_packages) => {
+                    game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
                 }
                 Event::LibraryManager(library_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;

@@ -79,7 +79,7 @@ impl CustomizeScene {
 
         // load block packages
         let mut packages: Vec<_> = globals
-            .block_packages
+            .augment_packages
             .packages_with_fallthrough(PackageNamespace::Server)
             .flat_map(|package| {
                 package
@@ -211,7 +211,7 @@ impl CustomizeScene {
             State::GridSelection { x, y } => {
                 self.information_text.text = if let Some(block) = self.grid.get_block((x, y)) {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    let packages = &globals.block_packages;
+                    let packages = &globals.augment_packages;
                     let package = packages
                         .package_or_fallback(PackageNamespace::Server, &block.package_id)
                         .unwrap();
@@ -229,7 +229,7 @@ impl CustomizeScene {
                     let color = package.color;
 
                     let package = globals
-                        .block_packages
+                        .augment_packages
                         .package_or_fallback(PackageNamespace::Server, &package.id)
                         .unwrap();
 
@@ -258,7 +258,7 @@ impl CustomizeScene {
                     let block_name = if let Some(block) = self.grid.get_block(position) {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let package = globals
-                            .block_packages
+                            .augment_packages
                             .package_or_fallback(PackageNamespace::Server, &block.package_id)
                             .unwrap();
 
@@ -571,7 +571,7 @@ impl CustomizeScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
         let package = globals
-            .block_packages
+            .augment_packages
             .package_or_fallback(PackageNamespace::Server, &block.package_id)
             .unwrap();
 
@@ -775,7 +775,7 @@ impl Scene for CustomizeScene {
                 } else {
                     block_sprite.set_position(position);
 
-                    let packages = &globals.block_packages;
+                    let packages = &globals.augment_packages;
                     let package = packages
                         .package_or_fallback(PackageNamespace::Server, &block.package_id)
                         .unwrap();
@@ -865,7 +865,7 @@ impl Scene for CustomizeScene {
 
         // draw held blocks
         if let Some(block) = &self.held_block {
-            let packages = &globals.block_packages;
+            let packages = &globals.augment_packages;
             let package = packages
                 .package_or_fallback(PackageNamespace::Server, &block.package_id)
                 .unwrap();

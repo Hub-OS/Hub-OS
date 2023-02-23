@@ -93,9 +93,9 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
-    fn handle_player_boost(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
         self.wrap_calls(net, |plugin_interface, net| {
-            plugin_interface.handle_player_boost(net, player_id, blocks)
+            plugin_interface.handle_player_augment(net, player_id, blocks)
         });
     }
 

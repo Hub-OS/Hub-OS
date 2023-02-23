@@ -29,7 +29,7 @@ enum Event {
 pub enum CategoryFilter {
     #[default]
     Cards,
-    Blocks,
+    Augments,
     Battle,
     Players,
     // Pack
@@ -39,7 +39,7 @@ impl CategoryFilter {
     fn name(&self) -> &str {
         match self {
             CategoryFilter::Cards => "Cards",
-            CategoryFilter::Blocks => "Blocks",
+            CategoryFilter::Augments => "Augments",
             CategoryFilter::Battle => "Battle",
             CategoryFilter::Players => "Players",
         }
@@ -48,7 +48,7 @@ impl CategoryFilter {
     fn value(&self) -> &str {
         match self {
             CategoryFilter::Cards => "card",
-            CategoryFilter::Blocks => "block",
+            CategoryFilter::Augments => "augment",
             CategoryFilter::Battle => "battle",
             CategoryFilter::Players => "player",
         }

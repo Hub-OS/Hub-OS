@@ -1,20 +1,20 @@
-use super::errors::{ability_mod_not_found, entity_not_found};
+use super::errors::{augment_not_found, entity_not_found};
 use super::{
-    create_entity_table, BattleLuaApi, ABILITY_MOD_TABLE, CHARGED_ATTACK_FN, CHARGE_TIMING_FN,
+    create_entity_table, BattleLuaApi, AUGMENT_TABLE, CHARGED_ATTACK_FN, CHARGE_TIMING_FN,
     DELETE_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
-use crate::battle::{AbilityModifier, BattleCallback, Player};
+use crate::battle::{Augment, BattleCallback, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
-pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
+pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     getter(
         lua_api,
         "get_level",
         |modifier, _, _: ()| Ok(modifier.level),
     );
 
-    lua_api.add_dynamic_function(ABILITY_MOD_TABLE, "get_owner", move |_, lua, params| {
+    lua_api.add_dynamic_function(AUGMENT_TABLE, "get_owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -35,7 +35,7 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
-        |modifier: &mut AbilityModifier| {
+        |modifier: &mut Augment| {
             modifier.normal_attack_callback = Some(BattleCallback::default());
             modifier.normal_attack_callback.as_mut().unwrap()
         },
@@ -45,7 +45,7 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |modifier: &mut AbilityModifier| {
+        |modifier: &mut Augment| {
             modifier.charged_attack_callback = Some(BattleCallback::default());
             modifier.charged_attack_callback.as_mut().unwrap()
         },
@@ -55,7 +55,7 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |modifier: &mut AbilityModifier| {
+        |modifier: &mut Augment| {
             modifier.special_attack_callback = Some(BattleCallback::default());
             modifier.special_attack_callback.as_mut().unwrap()
         },
@@ -65,12 +65,12 @@ pub fn inject_ability_mod_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         DELETE_FN,
-        |modifier: &mut AbilityModifier| &mut modifier.delete_callback,
+        |modifier: &mut Augment| &mut modifier.delete_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 }
 
-pub fn create_ability_mod_table(
+pub fn create_augment_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityId,
     index: generational_arena::Index,
@@ -79,7 +79,7 @@ pub fn create_ability_mod_table(
     table.raw_set("#id", entity_id)?;
     table.raw_set("#index", GenerationalIndex::from(index))?;
 
-    inherit_metatable(lua, ABILITY_MOD_TABLE, &table)?;
+    inherit_metatable(lua, AUGMENT_TABLE, &table)?;
 
     Ok(table)
 }
@@ -88,10 +88,9 @@ fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
     R: for<'lua> rollback_mlua::ToLua<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(&AbilityModifier, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
-        + 'static,
+    F: for<'lua> Fn(&Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
 {
-    lua_api.add_dynamic_function(ABILITY_MOD_TABLE, name, move |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(AUGMENT_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -107,7 +106,7 @@ where
         let modifier = player
             .modifiers
             .get(index.into())
-            .ok_or_else(ability_mod_not_found)?;
+            .ok_or_else(augment_not_found)?;
 
         lua.pack_multi(callback(modifier, lua, param)?)
     });
@@ -117,10 +116,10 @@ fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
     R: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(&mut AbilityModifier, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
+    F: for<'lua> Fn(&mut Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
         + 'static,
 {
-    lua_api.add_dynamic_function(ABILITY_MOD_TABLE, name, move |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(AUGMENT_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -136,7 +135,7 @@ where
         let modifier = player
             .modifiers
             .get_mut(index.into())
-            .ok_or_else(ability_mod_not_found)?;
+            .ok_or_else(augment_not_found)?;
 
         lua.pack_multi(callback(modifier, lua, param)?)
     });
@@ -150,7 +149,7 @@ fn callback_setter<G, P, F, R>(
 ) where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
-    G: for<'lua> Fn(&mut AbilityModifier) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
+    G: for<'lua> Fn(&mut Augment) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
     F: for<'lua> Fn(
             &'lua rollback_mlua::Lua,
             rollback_mlua::Table<'lua>,
@@ -161,7 +160,7 @@ fn callback_setter<G, P, F, R>(
         + Copy
         + 'static,
 {
-    lua_api.add_dynamic_setter(ABILITY_MOD_TABLE, name, move |api_ctx, lua, params| {
+    lua_api.add_dynamic_setter(AUGMENT_TABLE, name, move |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
@@ -177,7 +176,7 @@ fn callback_setter<G, P, F, R>(
         let modifier = player
             .modifiers
             .get_mut(index.into())
-            .ok_or_else(ability_mod_not_found)?;
+            .ok_or_else(augment_not_found)?;
 
         let key = lua.create_registry_value(table)?;
 

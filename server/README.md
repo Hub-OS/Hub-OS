@@ -379,7 +379,7 @@ Net:on("player_move", function(event)
   print(event.player_id, event.x, event.y, event.z)
 end)
 
-Net:on("player_boost", function(event)
+Net:on("player_augment", function(event)
   -- base_health and max_health will be updated on the player before this function executes
   -- { player_id: string, blocks: { id: string }[] }
   print(event.player_id, event)

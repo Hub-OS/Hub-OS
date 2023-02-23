@@ -44,7 +44,7 @@ impl From<&json::Value> for PackageListing {
                 secondary_element: get_str(package_table, "secondary_element").into(),
                 damage: get_i32(package_table, "damage"),
             },
-            "block" => PackagePreviewData::Block {
+            "augment" => PackagePreviewData::Augment {
                 flat: package_table
                     .get("flat")
                     .and_then(|value| value.as_bool())
@@ -212,7 +212,7 @@ impl UiNode for PackageListing {
                 sprite.set_position(position);
                 sprite_queue.draw_sprite(&sprite);
             }
-            PackagePreviewData::Block { colors, flat, .. } => {
+            PackagePreviewData::Augment { colors, flat, .. } => {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
                 let mut sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
                 sprite.set_scale(Vec2::new(2.0, 2.0));

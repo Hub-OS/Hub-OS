@@ -1,5 +1,5 @@
-mod ability_modifier;
 mod attack_box;
+mod augment;
 mod battle_animator;
 mod battle_callback;
 mod battle_props;
@@ -23,8 +23,8 @@ mod tile;
 mod time_freeze_tracker;
 mod turn_gauge;
 
-pub use ability_modifier::*;
 pub use attack_box::*;
+pub use augment::*;
 pub use battle_animator::*;
 pub use battle_callback::*;
 pub use battle_props::*;

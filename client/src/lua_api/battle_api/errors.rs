@@ -10,8 +10,8 @@ pub fn too_many_forms() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("too many forms"))
 }
 
-pub fn ability_mod_not_found() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("ability mod deleted"))
+pub fn augment_not_found() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("augment deleted"))
 }
 
 pub fn sprite_not_found() -> rollback_mlua::Error {

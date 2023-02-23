@@ -277,7 +277,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_boost(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -302,7 +302,7 @@ impl PluginInterface for LuaPluginInterface {
 
                 event.set("blocks", blocks)?;
 
-                callback.call(("player_boost", event))
+                callback.call(("player_augment", event))
             },
         );
     }

@@ -1,10 +1,10 @@
 use super::BattleCallback;
 use crate::bindable::GenerationalIndex;
-use crate::packages::BlockPackage;
+use crate::packages::AugmentPackage;
 use crate::render::FrameTime;
 
 #[derive(Clone)]
-pub struct AbilityModifier {
+pub struct Augment {
     pub level: u8,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -16,7 +16,7 @@ pub struct AbilityModifier {
     pub delete_callback: BattleCallback,
 }
 
-impl Default for AbilityModifier {
+impl Default for Augment {
     fn default() -> Self {
         Self {
             level: 1,
@@ -32,8 +32,8 @@ impl Default for AbilityModifier {
     }
 }
 
-impl From<&BlockPackage> for AbilityModifier {
-    fn from(package: &BlockPackage) -> Self {
+impl From<&AugmentPackage> for Augment {
+    fn from(package: &AugmentPackage) -> Self {
         Self {
             attack_boost: package.attack_boost,
             rapid_boost: package.rapid_boost,

@@ -386,7 +386,7 @@ impl Server {
                         );
 
                         self.plugin_wrapper
-                            .handle_player_boost(net, player_id, &blocks);
+                            .handle_player_augment(net, player_id, &blocks);
                     }
                 }
                 ClientPacket::AvatarChange {

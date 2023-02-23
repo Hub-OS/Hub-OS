@@ -1,5 +1,5 @@
-mod ability_modifier_api;
 mod animation_api;
+mod augment_api;
 mod battle_init;
 mod battle_lua_api;
 mod built_in_api;
@@ -18,7 +18,7 @@ mod sprite_api;
 mod sync_node_api;
 mod tile_api;
 
-pub use ability_modifier_api::create_ability_mod_table;
+pub use augment_api::create_augment_table;
 pub use battle_init::battle_init;
 pub use battle_lua_api::*;
 pub use entity_api::create_entity_table;
@@ -54,7 +54,7 @@ pub const BUSTER_TABLE: &str = "Battle.Buster";
 pub const VIRUS_DEFENSE_TABLE: &str = "Battle.DefenseVirusBody";
 pub const HITBOX_TABLE: &str = "Battle.Hitbox";
 pub const SHARED_HITBOX_TABLE: &str = "Battle.SharedHitbox";
-pub const ABILITY_MOD_TABLE: &str = "Battle.AbilityMod";
+pub const AUGMENT_TABLE: &str = "Battle.Augment";
 
 // callbacks
 

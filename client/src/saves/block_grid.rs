@@ -1,5 +1,5 @@
 use crate::{
-    packages::{BlockPackage, PackageNamespace},
+    packages::{AugmentPackage, PackageNamespace},
     resources::Globals,
     saves::InstalledBlock,
 };
@@ -80,7 +80,7 @@ impl BlockGrid {
     ) -> Option<Vec<(usize, usize)>> {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let Some(package) = globals.block_packages.package_or_fallback(self.namespace, &block.package_id) else {
+        let Some(package) = globals.augment_packages.package_or_fallback(self.namespace, &block.package_id) else {
             return Some(Vec::new());
         };
 
@@ -183,7 +183,7 @@ impl BlockGrid {
     pub fn installed_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = &'a BlockPackage> {
+    ) -> impl Iterator<Item = &'a AugmentPackage> {
         let globals = game_io.resource::<Globals>().unwrap();
 
         self.blocks
@@ -191,7 +191,7 @@ impl BlockGrid {
             .map(|(_, block)| block)
             .flat_map(|block| {
                 globals
-                    .block_packages
+                    .augment_packages
                     .package_or_fallback(self.namespace, &block.package_id)
             })
     }
@@ -199,7 +199,7 @@ impl BlockGrid {
     fn valid_flat_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = &'a BlockPackage> {
+    ) -> impl Iterator<Item = &'a AugmentPackage> {
         let globals = game_io.resource::<Globals>().unwrap();
 
         (0..Self::SIDE_LEN)
@@ -207,7 +207,7 @@ impl BlockGrid {
             .unique_by(|block| block.position)
             .flat_map(|block| {
                 globals
-                    .block_packages
+                    .augment_packages
                     .package_or_fallback(self.namespace, &block.package_id)
             })
             .filter(|package| package.is_program)
@@ -216,7 +216,7 @@ impl BlockGrid {
     fn valid_plus_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = &'a BlockPackage> {
+    ) -> impl Iterator<Item = &'a AugmentPackage> {
         self.installed_packages(game_io)
             .filter(|package| !package.is_program)
     }
@@ -224,7 +224,7 @@ impl BlockGrid {
     pub fn valid_packages<'a>(
         &'a self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = &'a BlockPackage> {
+    ) -> impl Iterator<Item = &'a AugmentPackage> {
         self.valid_flat_packages(game_io)
             .chain(self.valid_plus_packages(game_io))
     }

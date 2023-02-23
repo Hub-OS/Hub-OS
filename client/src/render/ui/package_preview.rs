@@ -20,7 +20,7 @@ pub enum PackagePreviewData {
         element: Element,
         health: i32,
     },
-    Block {
+    Augment {
         flat: bool,
         colors: Vec<BlockColor>,
         shape: [bool; 5 * 5],
@@ -43,7 +43,7 @@ impl PackagePreviewData {
         match self {
             PackagePreviewData::Card { .. } => Some(PackageCategory::Card),
             PackagePreviewData::Player { .. } => Some(PackageCategory::Player),
-            PackagePreviewData::Block { .. } => Some(PackageCategory::Block),
+            PackagePreviewData::Augment { .. } => Some(PackageCategory::Augment),
             PackagePreviewData::Battle => Some(PackageCategory::Battle),
             PackagePreviewData::Library => Some(PackageCategory::Library),
             _ => None,
@@ -238,7 +238,7 @@ impl PackagePreview {
                 text.style.bounds += text_anchor - text_size;
                 self.text.push(text);
             }
-            PackagePreviewData::Block {
+            PackagePreviewData::Augment {
                 flat,
                 colors,
                 shape,

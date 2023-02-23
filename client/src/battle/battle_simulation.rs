@@ -1,7 +1,7 @@
 use super::rollback_vm::RollbackVM;
 use super::*;
 use crate::bindable::*;
-use crate::lua_api::{create_ability_mod_table, create_entity_table};
+use crate::lua_api::{create_augment_table, create_entity_table};
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
 use crate::render::*;
@@ -958,7 +958,7 @@ impl BattleSimulation {
         ));
 
         // resolve health boost
-        // todo: move to AbilityModifier?
+        // todo: move to Augment?
         let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
 
         let health_boost = grid
@@ -993,14 +993,22 @@ impl BattleSimulation {
                 .entities
                 .query_one_mut::<&mut Player>(id.into())
                 .unwrap();
-            let index = player.modifiers.insert(AbilityModifier::from(package));
+            let index = player.modifiers.insert(Augment::from(package));
 
-            let result = self.call_global(game_io, vms, vm_index, "block_init", move |lua| {
-                create_ability_mod_table(lua, id, index)
-            });
+            let lua = &vms[vm_index].lua;
+            let has_init = lua
+                .globals()
+                .contains_key("augment_init")
+                .unwrap_or_default();
 
-            if let Err(e) = result {
-                log::error!("{e}");
+            if has_init {
+                let result = self.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
+                    create_augment_table(lua, id, index)
+                });
+
+                if let Err(e) = result {
+                    log::error!("{e}");
+                }
             }
         }
 

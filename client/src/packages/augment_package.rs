@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
-struct BlockMeta {
+struct AugmentMeta {
     category: String,
     name: String,
     description: String,
@@ -21,7 +21,7 @@ struct BlockMeta {
 }
 
 #[derive(Default, Clone)]
-pub struct BlockPackage {
+pub struct AugmentPackage {
     pub package_info: PackageInfo,
     pub name: String,
     pub description: String,
@@ -36,7 +36,7 @@ pub struct BlockPackage {
     pub shape: [bool; 5 * 5],
 }
 
-impl BlockPackage {
+impl AugmentPackage {
     pub fn exists_at(&self, rotation: u8, position: (usize, usize)) -> bool {
         if position.0 >= 5 || position.1 >= 5 {
             return false;
@@ -53,7 +53,7 @@ impl BlockPackage {
     }
 }
 
-impl Package for BlockPackage {
+impl Package for AugmentPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
     }
@@ -69,7 +69,7 @@ impl Package for BlockPackage {
             description: self.description.clone(),
             creator: String::new(),
             hash: self.package_info.hash,
-            preview_data: PackagePreviewData::Block {
+            preview_data: PackagePreviewData::Augment {
                 flat: self.is_program,
                 colors: self.block_colors.clone(),
                 shape: self.shape,
@@ -79,12 +79,12 @@ impl Package for BlockPackage {
     }
 
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
-        let mut package = BlockPackage {
+        let mut package = AugmentPackage {
             package_info,
             ..Default::default()
         };
 
-        let meta: BlockMeta = match package_table.try_into() {
+        let meta: AugmentMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
                 log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
@@ -92,9 +92,9 @@ impl Package for BlockPackage {
             }
         };
 
-        if meta.category != "block" {
+        if meta.category != "augment" {
             log::error!(
-                "Missing `category = \"block\"` in {:?}",
+                "Missing `category = \"augment\"` in {:?}",
                 package.package_info.toml_path
             );
         }

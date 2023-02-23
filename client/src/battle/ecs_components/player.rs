@@ -24,7 +24,7 @@ pub struct Player {
     pub slide_when_moving: bool,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub modifiers: Arena<AbilityModifier>,
+    pub modifiers: Arena<Augment>,
     pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
     pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
