@@ -49,6 +49,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
         let label_style = UiStyle {
             nine_patch: Some(label_9patch),
+            padding_right: arrow_sprite.origin().x,
             ..Default::default()
         };
 
