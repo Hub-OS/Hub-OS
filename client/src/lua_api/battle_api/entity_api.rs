@@ -4,6 +4,7 @@ use super::errors::card_action_not_found;
 use super::errors::entity_not_found;
 use super::errors::invalid_sync_node;
 use super::errors::mismatched_entity;
+use super::errors::package_not_loaded;
 use super::errors::too_many_forms;
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
@@ -16,6 +17,7 @@ use crate::bindable::*;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
+use crate::resources::Globals;
 use framework::prelude::Vec2;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
@@ -1051,6 +1053,128 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let form_table = create_player_form_table(lua, table, index)?;
 
         lua.pack_multi(form_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "boost_augment", |api_ctx, lua, params| {
+        let (table, augment_id, level_boost): (rollback_mlua::Table, rollback_mlua::String, i32) =
+            lua.unpack_multi(params)?;
+
+        let level_boost = level_boost.clamp(-100, 100);
+        let augment_id = augment_id.to_str()?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let mut augment_iter = player.augments.iter_mut();
+        let existing_augment =
+            augment_iter.find(|(_, augment)| augment.package_id.as_str() == augment_id);
+
+        if let Some((index, augment)) = existing_augment {
+            let updated_level = (augment.level as i32 + level_boost).clamp(0, 100);
+            augment.level = updated_level as u8;
+
+            if augment.level == 0 {
+                // delete
+                let augment = player.augments.remove(index).unwrap();
+                let callback = augment.delete_callback;
+
+                callback.call(api_ctx.game_io, simulation, api_ctx.vms, ());
+            }
+        } else if level_boost > 0 {
+            // create
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let package_id = PackageId::from(augment_id);
+            let package = globals
+                .augment_packages
+                .package_or_fallback(player.namespace(), &package_id)
+                .ok_or_else(|| package_not_loaded(&package_id))?;
+
+            let package_info = &package.package_info;
+
+            let vms = api_ctx.vms;
+            let vm_index =
+                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+
+            let index = player
+                .augments
+                .insert(Augment::from((package, level_boost as usize)));
+
+            let lua = &vms[vm_index].lua;
+            let has_init = lua
+                .globals()
+                .contains_key("augment_init")
+                .unwrap_or_default();
+
+            if has_init {
+                let result = api_ctx.simulation.call_global(
+                    api_ctx.game_io,
+                    vms,
+                    vm_index,
+                    "augment_init",
+                    move |lua| create_augment_table(lua, id, index),
+                );
+
+                if let Err(e) = result {
+                    log::error!("{e}");
+                }
+            }
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augment", |api_ctx, lua, params| {
+        let (table, augment_id): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let augment_id = augment_id.to_str()?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let mut augment_iter = player.augments.iter();
+        let augment_table = augment_iter
+            .find(|(_, augment)| augment.package_id.as_str() == augment_id)
+            .map(|(index, _)| create_augment_table(lua, id, index))
+            .transpose()?;
+
+        lua.pack_multi(augment_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augments", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let augment_tables: rollback_mlua::Result<Vec<_>> = player
+            .augments
+            .iter()
+            .map(|(index, _)| create_augment_table(lua, id, index))
+            .collect();
+
+        lua.pack_multi(augment_tables?)
     });
 
     getter(

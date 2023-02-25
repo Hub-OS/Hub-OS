@@ -1,3 +1,5 @@
+use packets::structures::PackageId;
+
 use super::BattleCallback;
 use crate::bindable::GenerationalIndex;
 use crate::packages::AugmentPackage;
@@ -5,6 +7,7 @@ use crate::render::FrameTime;
 
 #[derive(Clone)]
 pub struct Augment {
+    pub package_id: PackageId,
     pub level: u8,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -16,30 +19,19 @@ pub struct Augment {
     pub delete_callback: BattleCallback,
 }
 
-impl Default for Augment {
-    fn default() -> Self {
+impl From<(&AugmentPackage, usize)> for Augment {
+    fn from((package, level): (&AugmentPackage, usize)) -> Self {
         Self {
-            level: 1,
-            attack_boost: 0,
-            rapid_boost: 0,
-            charge_boost: 0,
+            package_id: package.package_info.id.clone(),
+            level: level as u8,
+            attack_boost: package.attack_boost,
+            rapid_boost: package.rapid_boost,
+            charge_boost: package.charge_boost,
             calculate_charge_time_callback: None,
             normal_attack_callback: None,
             charged_attack_callback: None,
             special_attack_callback: None,
             delete_callback: BattleCallback::default(),
-        }
-    }
-}
-
-impl From<(&AugmentPackage, usize)> for Augment {
-    fn from((package, level): (&AugmentPackage, usize)) -> Self {
-        Self {
-            level: level as u8,
-            attack_boost: package.attack_boost,
-            rapid_boost: package.rapid_boost,
-            charge_boost: package.charge_boost,
-            ..Default::default()
         }
     }
 }
