@@ -537,7 +537,12 @@ impl CardSelectState {
                     // close menu
                     selection.form_open_time = None;
 
-                    // todo: play sfx
+                    // sfx
+                    if !is_resimulation {
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        globals.audio.play_sound(&globals.transform_select_sfx);
+                    }
+
                     return;
                 }
                 40.. => {

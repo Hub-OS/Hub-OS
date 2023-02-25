@@ -60,6 +60,7 @@ impl ResourcePaths {
     pub const TILE_BREAK_SFX: &str = "resources/sfx/tile_break.ogg";
     pub const TRAP_SFX: &str = "resources/sfx/trap.ogg";
     pub const SHINE_SFX: &str = "resources/sfx/shine.ogg";
+    pub const TRANSFORM_SELECT_SFX: &str = "resources/sfx/transform_select.ogg";
     pub const TRANSFORM_SFX: &str = "resources/sfx/transform.ogg";
     pub const TRANSFORM_REVERT_SFX: &str = "resources/sfx/transform_revert.ogg";
     pub const ATTACK_CHARGING_SFX: &str = "resources/sfx/attack_charging.ogg";
