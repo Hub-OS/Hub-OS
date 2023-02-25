@@ -52,6 +52,7 @@ impl PackageInfo {
         };
 
         if let Some(dep_table) = meta_table.get("dependencies") {
+            self.process_dependencies(dep_table, "augments", PackageCategory::Augment);
             self.process_dependencies(dep_table, "cards", PackageCategory::Card);
             self.process_dependencies(dep_table, "characters", PackageCategory::Character);
             self.process_dependencies(dep_table, "libraries", PackageCategory::Library);

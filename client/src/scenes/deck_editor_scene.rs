@@ -59,9 +59,9 @@ impl DeckEditorScene {
         let mut mega_limit = MAX_MEGA as isize;
         let mut giga_limit = MAX_GIGA as isize;
 
-        for package in block_grid.valid_packages(game_io) {
-            mega_limit += package.mega_boost;
-            giga_limit += package.giga_boost;
+        for (package, level) in block_grid.augments(game_io) {
+            mega_limit += package.mega_boost * level as isize;
+            giga_limit += package.giga_boost * level as isize;
         }
 
         // ui

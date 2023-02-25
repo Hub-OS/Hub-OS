@@ -81,6 +81,7 @@ impl CustomizeScene {
         let mut packages: Vec<_> = globals
             .augment_packages
             .packages_with_fallthrough(PackageNamespace::Server)
+            .filter(|package| package.has_shape)
             .flat_map(|package| {
                 package
                     .block_colors
@@ -245,7 +246,7 @@ impl CustomizeScene {
                     position += self.animator.point("BLOCK_PREVIEW").unwrap_or_default();
 
                     let block_preview =
-                        BlockPreview::new(game_io, color, package.is_program, package.shape)
+                        BlockPreview::new(game_io, color, package.is_flat, package.shape)
                             .with_position(position);
 
                     self.block_preview = Some(block_preview);
@@ -780,7 +781,7 @@ impl Scene for CustomizeScene {
                         .package_or_fallback(PackageNamespace::Server, &block.package_id)
                         .unwrap();
 
-                    if package.is_program {
+                    if package.is_flat {
                         self.animator.set_state(block.color.flat_state());
                     } else {
                         self.animator.set_state(block.color.plus_state());
@@ -873,7 +874,7 @@ impl Scene for CustomizeScene {
             // create sprite
             block_sprite.set_color(Color::WHITE.multiply_alpha(0.5));
 
-            if package.is_program {
+            if package.is_flat {
                 self.animator.set_state(block.color.flat_held_state());
             } else {
                 self.animator.set_state(block.color.plus_held_state());

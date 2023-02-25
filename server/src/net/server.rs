@@ -368,7 +368,7 @@ impl Server {
                 }
                 ClientPacket::Boost {
                     health_boost,
-                    blocks,
+                    augments,
                 } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         let player_data = &mut client.player_data;
@@ -386,7 +386,7 @@ impl Server {
                         );
 
                         self.plugin_wrapper
-                            .handle_player_augment(net, player_id, &blocks);
+                            .handle_player_augment(net, player_id, &augments);
                     }
                 }
                 ClientPacket::AvatarChange {

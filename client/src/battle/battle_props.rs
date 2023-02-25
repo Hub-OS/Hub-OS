@@ -50,9 +50,9 @@ impl<'a> PlayerSetup<'a> {
 
         let grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks.clone());
 
-        let health_boost = grid
-            .valid_packages(game_io)
-            .fold(0, |acc, package| acc + package.health_boost);
+        let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
+            acc + package.health_boost * level as i32
+        });
 
         Self {
             player_package,

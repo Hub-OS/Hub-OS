@@ -17,7 +17,8 @@ struct AugmentMeta {
     giga_boost: i8,
     colors: Vec<String>,
     flat: bool,
-    shape: Vec<Vec<u8>>,
+    shape: Option<Vec<Vec<u8>>>,
+    byproducts: Vec<PackageId>,
 }
 
 #[derive(Default, Clone)]
@@ -31,9 +32,11 @@ pub struct AugmentPackage {
     pub charge_boost: i8,
     pub mega_boost: isize,
     pub giga_boost: isize,
-    pub is_program: bool,
+    pub has_shape: bool,
+    pub is_flat: bool,
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
+    pub byproducts: Vec<PackageId>,
 }
 
 impl AugmentPackage {
@@ -70,7 +73,7 @@ impl Package for AugmentPackage {
             creator: String::new(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Augment {
-                flat: self.is_program,
+                flat: self.is_flat,
                 colors: self.block_colors.clone(),
                 shape: self.shape,
             },
@@ -107,20 +110,24 @@ impl Package for AugmentPackage {
         package.charge_boost = meta.charge_boost;
         package.mega_boost = meta.mega_boost as isize;
         package.giga_boost = meta.giga_boost as isize;
-        package.is_program = meta.flat;
+        package.has_shape = meta.shape.is_some();
+        package.is_flat = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
+        package.byproducts = meta.byproducts;
 
-        let flattened_shape: Vec<_> = meta.shape.into_iter().flatten().collect();
+        if let Some(shape) = meta.shape {
+            let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();
 
-        if flattened_shape.len() != package.shape.len() {
-            log::error!(
-                "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
-                package.package_info.toml_path
-            );
-        }
+            if flattened_shape.len() != package.shape.len() {
+                log::error!(
+                    "Expected a 5x5 shape (5 lists of 5 numbers) in {:?}",
+                    package.package_info.toml_path
+                );
+            }
 
-        for (i, n) in flattened_shape.into_iter().enumerate() {
-            package.shape[i] = n != 0;
+            for (i, n) in flattened_shape.into_iter().enumerate() {
+                package.shape[i] = n != 0;
+            }
         }
 
         package

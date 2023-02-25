@@ -24,7 +24,7 @@ pub struct Player {
     pub slide_when_moving: bool,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub modifiers: Arena<Augment>,
+    pub augments: Arena<Augment>,
     pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
     pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
     pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
@@ -72,7 +72,7 @@ impl Player {
             slide_when_moving: false,
             forms: Vec::new(),
             active_form: None,
-            modifiers: Arena::new(),
+            augments: Arena::new(),
             calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
                 Self::calculate_default_charge_time(level)
             }),
@@ -98,27 +98,31 @@ impl Player {
     }
 
     pub fn attack_level(&self) -> u8 {
-        let modifier_iter = self.modifiers.iter();
-        let base_attack = modifier_iter
-            .fold(1, |acc, (_, m)| acc + m.attack_boost as i32)
+        let augment_iter = self.augments.iter();
+        let base_attack = augment_iter
+            .fold(1, |acc, (_, m)| {
+                acc + m.attack_boost as i32 * m.level as i32
+            })
             .clamp(1, 5) as u8;
 
         base_attack + self.attack_boost
     }
 
     pub fn rapid_level(&self) -> u8 {
-        let modifier_iter = self.modifiers.iter();
-        let base_speed = modifier_iter
-            .fold(1, |acc, (_, m)| acc + m.rapid_boost as i32)
+        let augment_iter = self.augments.iter();
+        let base_speed = augment_iter
+            .fold(1, |acc, (_, m)| acc + m.rapid_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_speed + self.rapid_boost
     }
 
     pub fn charge_level(&self) -> u8 {
-        let modifier_iter = self.modifiers.iter();
-        let base_charge = modifier_iter
-            .fold(1, |acc, (_, m)| acc + m.charge_boost as i32)
+        let augment_iter = self.augments.iter();
+        let base_charge = augment_iter
+            .fold(1, |acc, (_, m)| {
+                acc + m.charge_boost as i32 * m.level as i32
+            })
             .clamp(1, 5) as u8;
 
         base_charge + self.charge_boost
@@ -147,12 +151,12 @@ impl Player {
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let modifier_iter = player.modifiers.iter();
-        let modifier_callback = modifier_iter
-            .flat_map(|(_, modifier)| modifier.calculate_charge_time_callback.clone())
+        let augment_iter = player.augments.iter();
+        let augment_callback = augment_iter
+            .flat_map(|(_, augment)| augment.calculate_charge_time_callback.clone())
             .next();
 
-        let callback = modifier_callback
+        let callback = augment_callback
             .or_else(|| {
                 player.active_form.and_then(|index| {
                     let form = player.forms.get(index)?;
@@ -174,9 +178,9 @@ impl Player {
             return;
         };
 
-        let modifier_iter = player.modifiers.iter();
-        let mut callbacks: Vec<_> = modifier_iter
-            .flat_map(|(_, modifier)| modifier.normal_attack_callback.clone())
+        let augment_iter = player.augments.iter();
+        let mut callbacks: Vec<_> = augment_iter
+            .flat_map(|(_, augment)| augment.normal_attack_callback.clone())
             .collect();
 
         callbacks.push(player.normal_attack_callback.clone());
@@ -199,10 +203,10 @@ impl Player {
             return;
         };
 
-        // modifier
-        let modifier_iter = player.modifiers.iter();
-        let mut callbacks: Vec<_> = modifier_iter
-            .flat_map(|(_, modifier)| modifier.charged_attack_callback.clone())
+        // augment
+        let augment_iter = player.augments.iter();
+        let mut callbacks: Vec<_> = augment_iter
+            .flat_map(|(_, augment)| augment.charged_attack_callback.clone())
             .collect();
 
         // form
@@ -236,10 +240,10 @@ impl Player {
             return;
         };
 
-        // modifier
-        let modifier_iter = player.modifiers.iter();
-        let mut callbacks: Vec<_> = modifier_iter
-            .flat_map(|(_, modifier)| modifier.special_attack_callback.clone())
+        // augment
+        let augment_iter = player.augments.iter();
+        let mut callbacks: Vec<_> = augment_iter
+            .flat_map(|(_, augment)| augment.special_attack_callback.clone())
             .collect();
 
         // form

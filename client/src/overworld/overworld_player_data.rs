@@ -66,8 +66,8 @@ impl OverworldPlayerData {
 
         let mut health_boost = 0;
 
-        for package in block_grid.valid_packages(game_io) {
-            health_boost += package.health_boost;
+        for (package, level) in block_grid.augments(game_io) {
+            health_boost += package.health_boost * level as i32;
         }
 
         self.health_boost = health_boost;

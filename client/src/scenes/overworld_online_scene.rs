@@ -139,9 +139,9 @@ impl OverworldOnlineScene {
 
         let packet = ClientPacket::Boost {
             health_boost: self.base_scene.player_data.health_boost,
-            blocks: block_grid
-                .valid_packages(game_io)
-                .map(|package| package.package_info.id.clone())
+            augments: block_grid
+                .augments(game_io)
+                .map(|(package, _)| package.package_info.id.clone())
                 .collect(),
         };
 

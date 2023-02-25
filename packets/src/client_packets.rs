@@ -50,7 +50,7 @@ pub enum ClientPacket {
     },
     Boost {
         health_boost: i32,
-        blocks: Vec<PackageId>,
+        augments: Vec<PackageId>,
     },
     AvatarChange {
         name: String,

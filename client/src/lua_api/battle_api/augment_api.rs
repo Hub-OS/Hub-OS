@@ -8,11 +8,7 @@ use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
-    getter(
-        lua_api,
-        "get_level",
-        |modifier, _, _: ()| Ok(modifier.level),
-    );
+    getter(lua_api, "get_level", |augment, _, _: ()| Ok(augment.level));
 
     lua_api.add_dynamic_function(AUGMENT_TABLE, "get_owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -25,9 +21,9 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
-        |modifier| {
-            modifier.calculate_charge_time_callback = Some(BattleCallback::default());
-            modifier.calculate_charge_time_callback.as_mut().unwrap()
+        |augment| {
+            augment.calculate_charge_time_callback = Some(BattleCallback::default());
+            augment.calculate_charge_time_callback.as_mut().unwrap()
         },
         |lua, _, charge_level: u8| lua.pack_multi(charge_level),
     );
@@ -35,9 +31,9 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
-        |modifier: &mut Augment| {
-            modifier.normal_attack_callback = Some(BattleCallback::default());
-            modifier.normal_attack_callback.as_mut().unwrap()
+        |augment: &mut Augment| {
+            augment.normal_attack_callback = Some(BattleCallback::default());
+            augment.normal_attack_callback.as_mut().unwrap()
         },
         |lua, table, _| lua.pack_multi(table),
     );
@@ -45,9 +41,9 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |modifier: &mut Augment| {
-            modifier.charged_attack_callback = Some(BattleCallback::default());
-            modifier.charged_attack_callback.as_mut().unwrap()
+        |augment: &mut Augment| {
+            augment.charged_attack_callback = Some(BattleCallback::default());
+            augment.charged_attack_callback.as_mut().unwrap()
         },
         |lua, table, _| lua.pack_multi(table),
     );
@@ -55,9 +51,9 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |modifier: &mut Augment| {
-            modifier.special_attack_callback = Some(BattleCallback::default());
-            modifier.special_attack_callback.as_mut().unwrap()
+        |augment: &mut Augment| {
+            augment.special_attack_callback = Some(BattleCallback::default());
+            augment.special_attack_callback.as_mut().unwrap()
         },
         |lua, table, _| lua.pack_multi(table),
     );
@@ -65,7 +61,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         DELETE_FN,
-        |modifier: &mut Augment| &mut modifier.delete_callback,
+        |augment: &mut Augment| &mut augment.delete_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 }
@@ -103,12 +99,12 @@ where
             .query_one_mut::<&Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let modifier = player
-            .modifiers
+        let augment = player
+            .augments
             .get(index.into())
             .ok_or_else(augment_not_found)?;
 
-        lua.pack_multi(callback(modifier, lua, param)?)
+        lua.pack_multi(callback(augment, lua, param)?)
     });
 }
 
@@ -132,12 +128,12 @@ where
             .query_one_mut::<&mut Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let modifier = player
-            .modifiers
+        let augment = player
+            .augments
             .get_mut(index.into())
             .ok_or_else(augment_not_found)?;
 
-        lua.pack_multi(callback(modifier, lua, param)?)
+        lua.pack_multi(callback(augment, lua, param)?)
     });
 }
 
@@ -173,15 +169,15 @@ fn callback_setter<G, P, F, R>(
             .query_one_mut::<&mut Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let modifier = player
-            .modifiers
+        let augment = player
+            .augments
             .get_mut(index.into())
             .ok_or_else(augment_not_found)?;
 
         let key = lua.create_registry_value(table)?;
 
         if let Some(callback) = callback {
-            *callback_getter(modifier) = BattleCallback::new_transformed_lua_callback(
+            *callback_getter(augment) = BattleCallback::new_transformed_lua_callback(
                 lua,
                 api_ctx.vm_index,
                 callback,
@@ -191,7 +187,7 @@ fn callback_setter<G, P, F, R>(
                 },
             )?;
         } else {
-            *callback_getter(modifier) = BattleCallback::default();
+            *callback_getter(augment) = BattleCallback::default();
         }
 
         lua.pack_multi(())

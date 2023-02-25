@@ -8,7 +8,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
-use crate::saves::{Config, GlobalSave};
+use crate::saves::{BlockGrid, Config, GlobalSave};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
@@ -336,7 +336,7 @@ impl Globals {
         }
     }
 
-    pub fn battle_dependencies(&self, props: &BattleProps) -> Vec<&PackageInfo> {
+    pub fn battle_dependencies(&self, game_io: &GameIO, props: &BattleProps) -> Vec<&PackageInfo> {
         let player_package_iter = props
             .player_setups
             .iter()
@@ -349,11 +349,20 @@ impl Globals {
             card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
         });
 
-        let block_package_iter = props.player_setups.iter().flat_map(|setup| {
+        let augment_package_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
-            let block_iter = setup.blocks.iter();
-            block_iter.map(move |block| (PackageCategory::Augment, ns, block.package_id.clone()))
+            BlockGrid::new(ns)
+                .with_blocks(game_io, setup.blocks.clone())
+                .augments(game_io)
+                .map(move |(augment, _)| {
+                    (
+                        PackageCategory::Augment,
+                        ns,
+                        augment.package_info.id.clone(),
+                    )
+                })
+                .collect::<Vec<_>>()
         });
 
         let battle_package_iter = std::iter::once(props.battle_package)
@@ -362,7 +371,7 @@ impl Globals {
 
         let package_iter = player_package_iter
             .chain(card_package_iter)
-            .chain(block_package_iter)
+            .chain(augment_package_iter)
             .chain(battle_package_iter);
 
         self.package_dependency_iter(package_iter)

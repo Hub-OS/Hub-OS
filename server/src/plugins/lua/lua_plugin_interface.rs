@@ -277,7 +277,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]) {
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, augments: &[PackageId]) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -290,7 +290,7 @@ impl PluginInterface for LuaPluginInterface {
                 let event = lua_ctx.create_table()?;
                 event.set("player_id", player_id)?;
 
-                let blocks: Vec<_> = blocks
+                let augments: Vec<_> = augments
                     .iter()
                     .flat_map(|id| -> mlua::Result<mlua::Table> {
                         let table = lua_ctx.create_table()?;
@@ -300,7 +300,7 @@ impl PluginInterface for LuaPluginInterface {
                     })
                     .collect();
 
-                event.set("blocks", blocks)?;
+                event.set("augments", augments)?;
 
                 callback.call(("player_augment", event))
             },

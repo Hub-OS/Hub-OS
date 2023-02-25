@@ -87,6 +87,9 @@ impl From<&json::Value> for PackageListing {
         if let Some(dependencies_table) = package_table.get("dependencies") {
             let into_id = |id: &json::Value| id.as_str().unwrap_or_default().into();
 
+            dependencies.extend(map_array_values(dependencies_table, "augments", |id| {
+                (PackageCategory::Augment, into_id(id))
+            }));
             dependencies.extend(map_array_values(dependencies_table, "battles", |id| {
                 (PackageCategory::Battle, into_id(id))
             }));

@@ -198,13 +198,13 @@ impl<'a> StatusData<'a> {
         let mut mega_limit = MAX_MEGA as isize;
         let mut giga_limit = MAX_GIGA as isize;
 
-        for package in block_grid.valid_packages(game_io) {
-            health += package.health_boost;
-            attack_level += package.attack_boost;
-            rapid_level += package.rapid_boost;
-            charge_level += package.charge_boost;
-            mega_limit += package.mega_boost;
-            giga_limit += package.giga_boost;
+        for (package, level) in block_grid.augments(game_io) {
+            health += package.health_boost * level as i32;
+            attack_level += package.attack_boost * level as i8;
+            rapid_level += package.rapid_boost * level as i8;
+            charge_level += package.charge_boost * level as i8;
+            mega_limit += package.mega_boost * level as isize;
+            giga_limit += package.giga_boost * level as isize;
         }
 
         Self {

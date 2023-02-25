@@ -126,7 +126,7 @@ impl BattleScene {
 
     fn load_vms(&mut self, game_io: &GameIO, props: &BattleProps) {
         let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(props);
+        let dependencies = globals.battle_dependencies(game_io, props);
 
         for package_info in dependencies {
             self.load_vm(game_io, package_info);

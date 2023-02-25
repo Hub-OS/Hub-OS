@@ -32,9 +32,10 @@ impl Default for Augment {
     }
 }
 
-impl From<&AugmentPackage> for Augment {
-    fn from(package: &AugmentPackage) -> Self {
+impl From<(&AugmentPackage, usize)> for Augment {
+    fn from((package, level): (&AugmentPackage, usize)) -> Self {
         Self {
+            level: level as u8,
             attack_boost: package.attack_boost,
             rapid_boost: package.rapid_boost,
             charge_boost: package.charge_boost,

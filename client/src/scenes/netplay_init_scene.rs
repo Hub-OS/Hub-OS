@@ -481,7 +481,7 @@ impl NetplayInitScene {
     fn broadcast_package_list(&self, game_io: &GameIO) {
         let props = BattleProps::new_with_defaults(game_io, None);
         let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(&props);
+        let dependencies = globals.battle_dependencies(game_io, &props);
 
         let packages = dependencies
             .iter()

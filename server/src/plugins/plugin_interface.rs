@@ -11,7 +11,7 @@ pub trait PluginInterface {
     fn handle_player_transfer(&mut self, net: &mut Net, player_id: &str);
     fn handle_player_disconnect(&mut self, net: &mut Net, player_id: &str);
     fn handle_player_move(&mut self, net: &mut Net, player_id: &str, x: f32, y: f32, z: f32);
-    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, blocks: &[PackageId]);
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, augments: &[PackageId]);
     fn handle_player_avatar_change(
         &mut self,
         net: &mut Net,

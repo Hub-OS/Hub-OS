@@ -594,13 +594,13 @@ impl BattleSimulation {
         let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
         let delete_callback = entity.delete_callback.clone();
 
-        // delete player modifiers
+        // delete player augments
         if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
-            let modifier_iter = player.modifiers.iter();
-            let modifier_callbacks =
-                modifier_iter.map(|(_, modifier)| modifier.delete_callback.clone());
+            let augment_iter = player.augments.iter();
+            let augment_callbacks =
+                augment_iter.map(|(_, augment)| augment.delete_callback.clone());
 
-            self.pending_callbacks.extend(modifier_callbacks);
+            self.pending_callbacks.extend(augment_callbacks);
             self.call_pending_callbacks(game_io, vms);
         }
 
@@ -961,9 +961,9 @@ impl BattleSimulation {
         // todo: move to Augment?
         let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
 
-        let health_boost = grid
-            .valid_packages(game_io)
-            .fold(0, |acc, package| acc + package.health_boost);
+        let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
+            acc + package.health_boost * level as i32
+        });
 
         living.max_health = setup.base_health + health_boost;
         living.set_health(setup.health);
@@ -985,7 +985,7 @@ impl BattleSimulation {
         })?;
 
         // init blocks
-        for package in grid.valid_packages(game_io) {
+        for (package, level) in grid.augments(game_io) {
             let package_info = &package.package_info;
             let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
 
@@ -993,7 +993,7 @@ impl BattleSimulation {
                 .entities
                 .query_one_mut::<&mut Player>(id.into())
                 .unwrap();
-            let index = player.modifiers.insert(Augment::from(package));
+            let index = player.augments.insert(Augment::from((package, level)));
 
             let lua = &vms[vm_index].lua;
             let has_init = lua
