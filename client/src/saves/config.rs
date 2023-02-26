@@ -344,8 +344,8 @@ impl ToString for Config {
             writeln!(s, "[Keyboard]")?;
 
             match self.key_style {
-                KeyStyle::Wasd => writeln!(s, "KeyStyle = WASD")?,
-                KeyStyle::Emulator => writeln!(s, "KeyStyle = Emulator")?,
+                KeyStyle::Wasd => writeln!(s, "Style = WASD")?,
+                KeyStyle::Emulator => writeln!(s, "Style = Emulator")?,
             }
 
             for input in Input::iter() {
