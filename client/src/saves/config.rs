@@ -4,6 +4,13 @@ use framework::input::{Button, Key};
 use itertools::Itertools;
 use std::collections::HashMap;
 
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum KeyStyle {
+    Wasd,
+    #[default]
+    Emulator,
+}
+
 #[derive(Clone, PartialEq, Eq)]
 pub struct Config {
     pub fullscreen: bool,
@@ -16,6 +23,7 @@ pub struct Config {
     pub sfx: u8,
     pub mute_music: bool,
     pub mute_sfx: bool,
+    pub key_style: KeyStyle,
     pub key_bindings: HashMap<Input, Vec<Key>>,
     pub controller_bindings: HashMap<Input, Vec<Button>>,
     pub controller_index: usize,
@@ -25,6 +33,100 @@ pub struct Config {
 impl Config {
     pub fn validate(&self) -> bool {
         Config::validate_bindings(&self.key_bindings)
+    }
+
+    pub fn with_default_key_bindings(mut self, key_style: KeyStyle) -> Self {
+        self.key_bindings = Self::default_key_bindings(key_style);
+        self
+    }
+
+    pub fn default_key_bindings(key_style: KeyStyle) -> HashMap<Input, Vec<Key>> {
+        match key_style {
+            KeyStyle::Wasd => HashMap::from([
+                (Input::Up, vec![Key::W]),
+                (Input::Down, vec![Key::S]),
+                (Input::Left, vec![Key::A]),
+                (Input::Right, vec![Key::D]),
+                (Input::ShoulderL, vec![Key::Q]),
+                (Input::ShoulderR, vec![Key::E]),
+                (Input::Flee, vec![Key::Q]),
+                (Input::Info, vec![Key::E]),
+                (Input::EndTurn, vec![Key::Q, Key::E]),
+                (Input::FaceLeft, vec![Key::R]),
+                (Input::FaceRight, vec![Key::R]),
+                (Input::Confirm, vec![Key::Space]),
+                (Input::UseCard, vec![Key::Space]),
+                (Input::Cancel, vec![Key::LShift, Key::Escape]),
+                (Input::Shoot, vec![Key::LShift]),
+                (Input::Sprint, vec![Key::LShift]),
+                (Input::Minimap, vec![Key::M]),
+                (Input::Option, vec![Key::F]),
+                (Input::Special, vec![Key::F]),
+                (Input::End, vec![Key::F]),
+                (Input::Pause, vec![Key::Escape]),
+                (Input::RewindFrame, vec![Key::Left]),
+                (Input::AdvanceFrame, vec![Key::Right]),
+            ]),
+            KeyStyle::Emulator => HashMap::from([
+                (Input::Up, vec![Key::Up]),
+                (Input::Down, vec![Key::Down]),
+                (Input::Left, vec![Key::Left]),
+                (Input::Right, vec![Key::Right]),
+                (Input::ShoulderL, vec![Key::A]),
+                (Input::ShoulderR, vec![Key::S]),
+                (Input::Flee, vec![Key::A]),
+                (Input::Info, vec![Key::S]),
+                (Input::EndTurn, vec![Key::A, Key::S]),
+                (Input::FaceLeft, vec![Key::LShift]),
+                (Input::FaceRight, vec![Key::LShift]),
+                (Input::Confirm, vec![Key::Z]),
+                (Input::UseCard, vec![Key::Z]),
+                (Input::Cancel, vec![Key::X]),
+                (Input::Shoot, vec![Key::X]),
+                (Input::Sprint, vec![Key::X]),
+                (Input::Minimap, vec![Key::M]),
+                (Input::Option, vec![Key::Return]),
+                (Input::Special, vec![Key::C]),
+                (Input::End, vec![Key::Return]),
+                (Input::Pause, vec![Key::Return]),
+                (Input::RewindFrame, vec![Key::Q]),
+                (Input::AdvanceFrame, vec![Key::W]),
+            ]),
+        }
+    }
+
+    pub fn default_controller_bindings() -> HashMap<Input, Vec<Button>> {
+        HashMap::from([
+            (Input::Up, vec![Button::LeftStickUp, Button::DPadUp]),
+            (Input::Down, vec![Button::LeftStickDown, Button::DPadDown]),
+            (Input::Left, vec![Button::LeftStickLeft, Button::DPadLeft]),
+            (
+                Input::Right,
+                vec![Button::LeftStickRight, Button::DPadRight],
+            ),
+            (Input::ShoulderL, vec![Button::LeftTrigger]),
+            (Input::ShoulderR, vec![Button::RightTrigger]),
+            (Input::Flee, vec![Button::LeftTrigger]),
+            (Input::Info, vec![Button::RightTrigger]),
+            (
+                Input::EndTurn,
+                vec![Button::LeftTrigger, Button::RightTrigger],
+            ),
+            (Input::Confirm, vec![Button::A]),
+            (Input::UseCard, vec![Button::A]),
+            (Input::Cancel, vec![Button::B]),
+            (Input::Shoot, vec![Button::B]),
+            (Input::Sprint, vec![Button::B]),
+            (Input::Special, vec![Button::X]),
+            (Input::Minimap, vec![Button::Y]),
+            (Input::FaceLeft, vec![Button::Y]),
+            (Input::FaceRight, vec![Button::Y]),
+            (Input::Option, vec![Button::Start]),
+            (Input::End, vec![Button::Start]),
+            (Input::Pause, vec![Button::Start]),
+            (Input::RewindFrame, vec![Button::LeftShoulder]),
+            (Input::AdvanceFrame, vec![Button::RightShoulder]),
+        ])
     }
 
     pub fn music_volume(&self) -> f32 {
@@ -68,83 +170,31 @@ impl Config {
     }
 
     fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {
-        let required_bindings = Input::REQUIRED_INPUTS
+        let required_are_set = Input::REQUIRED_INPUTS
             .iter()
             .map(|input| bindings.get(input))
-            .collect::<Vec<_>>();
+            .all(|binding| binding.is_some());
 
-        // all required bindings must be set and unique
-        required_bindings.iter().all(|input| {
-            input.is_some()
-                && required_bindings
-                    .iter()
-                    .filter(|other_input| input == *other_input)
-                    .count()
-                    == 1
-        })
+        let non_overlap_bindings: Vec<_> = Input::NON_OVERLAP_INPUTS
+            .iter()
+            .map(|input| bindings.get(input))
+            .collect();
+
+        let non_overlap_are_unique = non_overlap_bindings.iter().all(|binding| {
+            non_overlap_bindings
+                .iter()
+                .filter(|other_input| binding == *other_input)
+                .count()
+                == 1
+        });
+
+        // all required bindings must be set
+        required_are_set && non_overlap_are_unique
     }
 }
 
 impl Default for Config {
     fn default() -> Config {
-        let key_bindings = HashMap::from([
-            (Input::Up, vec![Key::W]),
-            (Input::Down, vec![Key::S]),
-            (Input::Left, vec![Key::A]),
-            (Input::Right, vec![Key::D]),
-            (Input::ShoulderL, vec![Key::Q]),
-            (Input::ShoulderR, vec![Key::E]),
-            (Input::Flee, vec![Key::Q]),
-            (Input::Info, vec![Key::E]),
-            (Input::EndTurn, vec![Key::Q, Key::E]),
-            (Input::FaceLeft, vec![Key::R]),
-            (Input::FaceRight, vec![Key::R]),
-            (Input::Confirm, vec![Key::Space]),
-            (Input::UseCard, vec![Key::Space]),
-            (Input::Cancel, vec![Key::LShift, Key::Escape]),
-            (Input::Shoot, vec![Key::LShift]),
-            (Input::Sprint, vec![Key::LShift]),
-            (Input::Minimap, vec![Key::M]),
-            (Input::Option, vec![Key::F]),
-            (Input::Special, vec![Key::F]),
-            (Input::End, vec![Key::F]),
-            (Input::Pause, vec![Key::Escape]),
-            (Input::RewindFrame, vec![Key::Left]),
-            (Input::AdvanceFrame, vec![Key::Right]),
-        ]);
-
-        let controller_bindings = HashMap::from([
-            (Input::Up, vec![Button::LeftStickUp, Button::DPadUp]),
-            (Input::Down, vec![Button::LeftStickDown, Button::DPadDown]),
-            (Input::Left, vec![Button::LeftStickLeft, Button::DPadLeft]),
-            (
-                Input::Right,
-                vec![Button::LeftStickRight, Button::DPadRight],
-            ),
-            (Input::ShoulderL, vec![Button::LeftTrigger]),
-            (Input::ShoulderR, vec![Button::RightTrigger]),
-            (Input::Flee, vec![Button::LeftTrigger]),
-            (Input::Info, vec![Button::RightTrigger]),
-            (
-                Input::EndTurn,
-                vec![Button::LeftTrigger, Button::RightTrigger],
-            ),
-            (Input::Confirm, vec![Button::A]),
-            (Input::UseCard, vec![Button::A]),
-            (Input::Cancel, vec![Button::B]),
-            (Input::Shoot, vec![Button::B]),
-            (Input::Sprint, vec![Button::B]),
-            (Input::Special, vec![Button::X]),
-            (Input::Minimap, vec![Button::Y]),
-            (Input::FaceLeft, vec![Button::Y]),
-            (Input::FaceRight, vec![Button::Y]),
-            (Input::Option, vec![Button::Start]),
-            (Input::End, vec![Button::Start]),
-            (Input::Pause, vec![Button::Start]),
-            (Input::RewindFrame, vec![Button::LeftShoulder]),
-            (Input::AdvanceFrame, vec![Button::RightShoulder]),
-        ]);
-
         Config {
             fullscreen: false,
             lock_aspect_ratio: true,
@@ -156,8 +206,9 @@ impl Default for Config {
             sfx: MAX_VOLUME,
             mute_music: false,
             mute_sfx: false,
-            key_bindings,
-            controller_bindings,
+            key_style: Default::default(),
+            key_bindings: HashMap::new(),
+            controller_bindings: Self::default_controller_bindings(),
             controller_index: 0,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         }
@@ -181,6 +232,7 @@ impl From<&str> for Config {
             sfx: MAX_VOLUME,
             mute_music: false,
             mute_sfx: false,
+            key_style: Default::default(),
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
             controller_index: 0,
@@ -217,7 +269,13 @@ impl From<&str> for Config {
         }
 
         if let Some(properties) = ini.section(Some("Keyboard")) {
-            config.controller_index = parse_or_default(properties.get("ControllerIndex"));
+            let key_style_str = properties.get("Style").unwrap_or_default();
+
+            config.key_style = match key_style_str.to_lowercase().as_str() {
+                "wasd" => KeyStyle::Wasd,
+                "emulator" => KeyStyle::Emulator,
+                _ => KeyStyle::default(),
+            };
 
             for input in Input::iter() {
                 let input_string = format!("{input:?}");
@@ -284,6 +342,12 @@ impl ToString for Config {
             writeln!(s, "MuteSFX = {}", self.mute_sfx)?;
 
             writeln!(s, "[Keyboard]")?;
+
+            match self.key_style {
+                KeyStyle::Wasd => writeln!(s, "KeyStyle = WASD")?,
+                KeyStyle::Emulator => writeln!(s, "KeyStyle = Emulator")?,
+            }
+
             for input in Input::iter() {
                 write!(s, "{input:?} = ")?;
 

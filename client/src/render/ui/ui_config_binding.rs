@@ -338,7 +338,7 @@ impl UiConfigBinding {
         value: V,
         append: bool,
     ) {
-        if Input::REQUIRED_INPUTS.contains(&input) {
+        if Input::NON_OVERLAP_INPUTS.contains(&input) {
             // unbind overlapping input
             for (_, list) in bindings.iter_mut() {
                 let Some(index) = list.iter().position(|v| *v == value) else {

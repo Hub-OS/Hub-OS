@@ -24,10 +24,10 @@ pub enum Input {
     ShoulderL,
     ShoulderR,
     Minimap,
-    AdvanceFrame,
-    RewindFrame,
     FaceLeft,
     FaceRight,
+    AdvanceFrame,
+    RewindFrame,
 }
 
 impl Input {
@@ -39,6 +39,18 @@ impl Input {
         Input::Cancel,
         Input::Confirm,
         Input::Pause,
+        Input::Option,
+        Input::ShoulderL,
+        Input::ShoulderR,
+    ];
+
+    pub const NON_OVERLAP_INPUTS: [Input; 9] = [
+        Input::Up,
+        Input::Down,
+        Input::Left,
+        Input::Right,
+        Input::Cancel,
+        Input::Confirm,
         Input::Option,
         Input::ShoulderL,
         Input::ShoulderR,

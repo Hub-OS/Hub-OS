@@ -12,7 +12,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpriteColorQueue,
 };
 use crate::resources::*;
-use crate::saves::Config;
+use crate::saves::{Config, KeyStyle};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
@@ -181,8 +181,10 @@ impl ConfigScene {
         match category {
             ConfigCategory::Video => Self::generate_video_menu(config),
             ConfigCategory::Audio => Self::generate_audio_menu(config),
-            ConfigCategory::Keyboard => Self::generate_keyboard_menu(config, event_sender),
-            ConfigCategory::Gamepad => Self::generate_controller_menu(config, event_sender),
+            ConfigCategory::Keyboard => Self::generate_keyboard_menu(game_io, config, event_sender),
+            ConfigCategory::Gamepad => {
+                Self::generate_controller_menu(game_io, config, event_sender)
+            }
             ConfigCategory::Misc => Self::generate_misc_menu(game_io, event_sender),
         }
     }
@@ -355,10 +357,33 @@ impl ConfigScene {
     }
 
     fn generate_keyboard_menu(
+        game_io: &GameIO,
         config: &Rc<RefCell<Config>>,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
-        Input::iter()
+        let mut children: Vec<Box<dyn UiNode>> = vec![
+            Box::new(UiConfigCycle::new(
+                "Style",
+                config.borrow().key_style,
+                config.clone(),
+                &[("WASD", KeyStyle::Wasd), ("Emulator", KeyStyle::Emulator)],
+                |_, mut config, value| {
+                    config.key_style = value;
+                },
+            )),
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
+                    let config = config.clone();
+
+                    move || {
+                        let mut config = config.borrow_mut();
+                        config.key_bindings = Config::default_key_bindings(config.key_style);
+                    }
+                }),
+            ),
+        ];
+
+        let binding_iter = Input::iter()
             .map(|option| {
                 UiConfigBinding::new_keyboard(option, config.clone()).with_context_requester({
                     let event_sender = event_sender.clone();
@@ -369,15 +394,30 @@ impl ConfigScene {
                     }
                 })
             })
-            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) })
-            .collect()
+            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) });
+
+        children.extend(binding_iter);
+
+        children
     }
 
     fn generate_controller_menu(
+        game_io: &GameIO,
         config: &Rc<RefCell<Config>>,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
-        Input::iter()
+        let mut children: Vec<Box<dyn UiNode>> = vec![Box::new(
+            UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
+                let config = config.clone();
+
+                move || {
+                    let mut config = config.borrow_mut();
+                    config.controller_bindings = Config::default_controller_bindings();
+                }
+            }),
+        )];
+
+        let binding_iter = Input::iter()
             .map(|option| {
                 UiConfigBinding::new_controller(option, config.clone()).with_context_requester({
                     let event_sender = event_sender.clone();
@@ -388,8 +428,11 @@ impl ConfigScene {
                     }
                 })
             })
-            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) })
-            .collect()
+            .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) });
+
+        children.extend(binding_iter);
+
+        children
     }
 
     fn generate_misc_menu(
