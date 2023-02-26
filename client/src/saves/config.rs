@@ -207,7 +207,7 @@ impl Default for Config {
             mute_music: false,
             mute_sfx: false,
             key_style: Default::default(),
-            key_bindings: HashMap::new(),
+            key_bindings: Self::default_key_bindings(Default::default()),
             controller_bindings: Self::default_controller_bindings(),
             controller_index: 0,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
