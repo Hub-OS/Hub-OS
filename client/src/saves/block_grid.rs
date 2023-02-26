@@ -270,7 +270,7 @@ impl BlockGrid {
 
     fn has_conflicts(&self, block: &InstalledBlock, package: &AugmentPackage) -> bool {
         Self::iterate_block_positions(block, package)
-            .any(|position| self.has_conflicting_neighbors(position))
+            .any(|position| Self::is_edge(position) || self.has_conflicting_neighbors(position))
     }
 
     fn has_conflicting_neighbors(&self, position: (usize, usize)) -> bool {
