@@ -162,6 +162,12 @@ impl Scene for DeckEditorScene {
         &mut self.next_scene
     }
 
+    fn enter(&mut self, _game_io: &mut GameIO) {
+        sort_card_items(&mut self.pack_dock.card_slots, |item: &CardListItem| {
+            item.card.package_id.clone()
+        });
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.scene_time += 1;
 
