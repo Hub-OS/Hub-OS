@@ -1512,7 +1512,10 @@ impl BattleState {
 
                 // animations
                 let animator = &mut simulation.animators[animator_index];
-                card_action.prev_state = animator.current_state().map(String::from);
+
+                card_action.prev_state = animator
+                    .current_state()
+                    .map(|state| (state.to_string(), animator.loop_mode(), animator.reversed()));
 
                 if let Some(derived_frames) = card_action.derived_frames.take() {
                     card_action.state = BattleAnimator::derive_state(

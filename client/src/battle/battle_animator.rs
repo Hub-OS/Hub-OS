@@ -210,6 +210,10 @@ impl BattleAnimator {
         }
     }
 
+    pub fn loop_mode(&self) -> AnimatorLoopMode {
+        self.animator.loop_mode()
+    }
+
     pub fn set_loop_mode(&mut self, mode: AnimatorLoopMode) {
         self.animator.set_loop_mode(mode)
     }
@@ -233,6 +237,10 @@ impl BattleAnimator {
                 self.animator.set_reversed(true);
             }
         }
+    }
+
+    pub fn reversed(&self) -> bool {
+        self.animator.reversed()
     }
 
     pub fn set_reversed(&mut self, reversed: bool) {

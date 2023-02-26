@@ -1,6 +1,6 @@
 use super::{BattleAnimator, BattleCallback, Entity, Field};
 use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex};
-use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
+use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
 use generational_arena::Arena;
 
 #[derive(Clone)]
@@ -11,7 +11,7 @@ pub struct CardAction {
     pub used: bool,
     pub entity: EntityId,
     pub state: String,
-    pub prev_state: Option<String>,
+    pub prev_state: Option<(String, AnimatorLoopMode, bool)>,
     pub frame_callbacks: Vec<(usize, BattleCallback)>,
     pub sprite_index: GenerationalIndex,
     pub properties: CardProperties,
@@ -75,9 +75,12 @@ impl CardAction {
         entity.card_action_index = None;
 
         // revert animation
-        if let Some(state) = self.prev_state.as_ref() {
+        if let Some((state, loop_mode, reversed)) = self.prev_state.take() {
             let animator = &mut animators[entity.animator_index];
-            let callbacks = animator.set_state(state);
+            let callbacks = animator.set_state(&state);
+            animator.set_loop_mode(loop_mode);
+            animator.set_reversed(reversed);
+
             pending_callbacks.extend(callbacks);
 
             let sprite_node = entity.sprite_tree.root_mut();
