@@ -84,7 +84,7 @@ impl From<&json::Value> for PackageListing {
 
         let mut dependencies = Vec::new();
 
-        if let Some(dependencies_table) = package_table.get("dependencies") {
+        if let Some(dependencies_table) = value.get("dependencies") {
             let into_id = |id: &json::Value| id.as_str().unwrap_or_default().into();
 
             dependencies.extend(map_array_values(dependencies_table, "augments", |id| {
