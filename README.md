@@ -1,3 +1,47 @@
+# About
+
+The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle), splintered off from creative differences.
+
+## Special Thanks
+
+- Alison Allbright
+- Alrysc
+- cantrem404
+- CosmicNobab
+- ChordMankey
+- Dawn Elaine
+- D3str0y3d255
+- DJRezzed
+- Dunstan
+- Ehab2020
+- FrozenLake
+- Gemini
+- Gray Nine
+- JamesKing
+- JonTheBurger
+- KayThree
+- Keristero
+- Konstinople
+- Kuri
+- kyqurikan
+- Loui
+- Mars
+- Mint
+- Mithalan
+- nickblock
+- OuroYisus
+- Pion
+- Salad
+- Shale
+- svenevs
+- theWildSushii
+- Pheelbert
+- PlayerZero
+- Poly
+- Pyredrid
+- Weenie
+- Zeek
+
 # Features:
 
 - [x] Rollback
@@ -45,40 +89,3 @@ Same prerequisites as [Building](#building). There's two primary projects in thi
 These subprojects require files from their respective subfolders to run, such as `resources` for the client. So running the client requires you to use `cargo run` in the client folder where the `resources` folder is available, and running the server must occur within the server folder.
 
 Each subproject may have their own README as well for further information.
-
-# Acknowledgments
-
-The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle), splintered off from creative differences.
-
-## Special Thanks
-
-- Alison Allbright
-- Alrysc
-- CosmicNobab
-- Dawn Elaine
-- D3str0y3d255
-- DJRezzed
-- Dunstan
-- FrozenLake
-- Gemini
-- Gray Nine
-- JamesKing
-- jontheburger
-- Keristero
-- Konstinople
-- Kuri
-- kyqurikan
-- Loui
-- Mars
-- Mint
-- Mithalan
-- OuroYisus
-- Pion
-- Salad
-- Shale
-- theWildSushii
-- Pheelbert
-- PlayerZero
-- Poly
-- Weenie
-- Zeek
