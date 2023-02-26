@@ -680,6 +680,7 @@ impl Scene for CustomizeScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         self.update_text(game_io);
         self.update_grid_sprite();
+        self.update_colors();
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.push_music_stack();
@@ -716,7 +717,14 @@ impl Scene for CustomizeScene {
         sprite_queue.draw_sprite(&self.grid_sprite);
 
         // draw colors
+        let default_block_color = if !matches!(self.state, State::GridSelection { .. }) {
+            DIM_COLOR
+        } else {
+            Color::WHITE
+        };
+
         let mut color_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
+        color_sprite.set_color(default_block_color);
 
         self.animator.set_state("GRID");
         let mut color_position =
@@ -742,12 +750,6 @@ impl Scene for CustomizeScene {
         // draw grid blocks
         let mut block_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
         let flashing_blocks = self.resolve_flashing_blocks();
-
-        let default_block_color = if !matches!(self.state, State::GridSelection { .. }) {
-            DIM_COLOR
-        } else {
-            Color::WHITE
-        };
 
         for y in 0..BlockGrid::SIDE_LEN {
             for x in 0..BlockGrid::SIDE_LEN {
