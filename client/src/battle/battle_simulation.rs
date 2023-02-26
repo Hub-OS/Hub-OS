@@ -898,6 +898,16 @@ impl BattleSimulation {
         living.register_status_callback(
             HitFlag::FLINCH,
             BattleCallback::new(move |game_io, simulation, vms, _| {
+                // cancel previous action
+                let entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(id.into())
+                    .unwrap();
+
+                if let Some(index) = entity.card_action_index {
+                    simulation.delete_card_actions(game_io, vms, &[index]);
+                }
+
                 let (entity, living, player) = simulation
                     .entities
                     .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
@@ -910,26 +920,22 @@ impl BattleSimulation {
 
                 player.charging_time = 0;
 
-                let animator = &mut simulation.animators[entity.animator_index];
+                // create a sprite for flinch action attachments
+                let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
+                sprite_node.set_visible(false);
+                let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
 
-                let callbacks = animator.set_state(living.flinch_anim_state.as_ref().unwrap());
-                simulation.pending_callbacks.extend(callbacks);
+                // create flinch card action
+                let entity_id = entity.id;
+                let card_action = CardAction::new(
+                    entity_id,
+                    living.flinch_anim_state.clone().unwrap(),
+                    sprite_index,
+                );
 
-                // on complete will return to idle
-                animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
-                    let entity = simulation
-                        .entities
-                        .query_one_mut::<&Entity>(id.into())
-                        .unwrap();
-
-                    let animator = &mut simulation.animators[entity.animator_index];
-
-                    let callbacks = animator.set_state(Player::IDLE_STATE);
-                    animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    simulation.pending_callbacks.extend(callbacks);
-
-                    simulation.call_pending_callbacks(game_io, vms);
-                }));
+                // use card action
+                let action_index = simulation.card_actions.insert(card_action);
+                simulation.use_card_action(game_io, entity_id, action_index);
 
                 simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().hurt_sfx);
                 simulation.call_pending_callbacks(game_io, vms);
