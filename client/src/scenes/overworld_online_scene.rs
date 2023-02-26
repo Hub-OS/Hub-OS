@@ -1234,7 +1234,7 @@ impl OverworldOnlineScene {
                     let battle_stats = match statistics {
                         Some(statistics) => statistics,
                         None => BattleStatistics {
-                            health: player_data.health as u32,
+                            health: player_data.health,
                             emotion: player_data.emotion,
                             ran: true,
                             ..Default::default()

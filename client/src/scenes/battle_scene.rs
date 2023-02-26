@@ -544,6 +544,7 @@ impl Scene for BattleScene {
             });
 
             if let Some(statistics_callback) = self.statistics_callback.take() {
+                self.simulation.wrap_up_statistics();
                 statistics_callback(Some(self.simulation.statistics.clone()));
             }
 

@@ -3,24 +3,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BattleSurvivor {
-    pub id: String,
-    pub health: u32,
+    pub name: String,
+    pub health: i32,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BattleStatistics {
-    pub health: u32,      // todo: track
+    pub health: i32,
     pub emotion: Emotion, // todo: track
     pub ran: bool,        // todo: track
     pub turns: u32,
     pub score: i32,
-    pub enemy_survivors: Vec<BattleSurvivor>, // todo: track
-    pub neutral_survivors: Vec<BattleSurvivor>, // todo: track
+    pub ally_survivors: Vec<BattleSurvivor>,
+    pub enemy_survivors: Vec<BattleSurvivor>,
+    pub neutral_survivors: Vec<BattleSurvivor>,
 
     // used for score calculation
     pub boss_battle: bool,
     pub time: i64,
-    pub hits_taken: usize, // todo: track
+    pub hits_taken: usize,
     pub movements: usize,
     pub max_kill_chain: usize, // todo: track
     pub counters: usize,       // todo: track

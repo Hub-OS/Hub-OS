@@ -9,7 +9,7 @@ use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
 use framework::prelude::*;
 use generational_arena::Arena;
-use packets::structures::BattleStatistics;
+use packets::structures::{BattleStatistics, BattleSurvivor};
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
@@ -45,7 +45,7 @@ pub struct BattleSimulation {
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUI,
     pub player_spawn_positions: Vec<(i32, i32)>,
-    pub perspective_flipped: bool,
+    pub local_team: Team,
     pub intro_complete: bool,
     pub is_resimulation: bool,
     pub exit: bool,
@@ -89,7 +89,7 @@ impl BattleSimulation {
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUI::new(game_io),
             player_spawn_positions,
-            perspective_flipped: false,
+            local_team: Team::Unset,
             intro_complete: false,
             is_resimulation: false,
             exit: false,
@@ -167,7 +167,7 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             player_spawn_positions: self.player_spawn_positions.clone(),
-            perspective_flipped: self.perspective_flipped,
+            local_team: self.local_team,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,
             exit: self.exit,
@@ -209,6 +209,42 @@ impl BattleSimulation {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(sound_buffer);
         }
+    }
+
+    pub fn wrap_up_statistics(&mut self) {
+        let entities = &mut self.entities;
+
+        if let Ok((entity, living)) =
+            entities.query_one_mut::<(&Entity, &Living)>(self.local_player_id.into())
+        {
+            self.local_team = entity.team;
+            self.statistics.health = living.health;
+        }
+
+        for (_, (entity, living)) in entities.query_mut::<(&Entity, &Living)>() {
+            if entity.team == self.local_team && entity.id != self.local_player_id {
+                self.statistics.ally_survivors.push(BattleSurvivor {
+                    name: entity.name.clone(),
+                    health: living.health,
+                });
+            }
+
+            if entity.team != self.local_team && entity.team != Team::Other {
+                self.statistics.enemy_survivors.push(BattleSurvivor {
+                    name: entity.name.clone(),
+                    health: living.health,
+                });
+            }
+
+            if entity.team != self.local_team && entity.team == Team::Other {
+                self.statistics.neutral_survivors.push(BattleSurvivor {
+                    name: entity.name.clone(),
+                    health: living.health,
+                });
+            }
+        }
+
+        self.statistics.calculate_score();
     }
 
     pub fn pre_update(&mut self, game_io: &GameIO, vms: &[RollbackVM], state: &dyn State) {
@@ -907,6 +943,10 @@ impl BattleSimulation {
                     return;
                 }
 
+                if local {
+                    simulation.statistics.hits_taken += 1;
+                }
+
                 let (entity, living, player) = simulation
                     .entities
                     .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
@@ -1170,13 +1210,15 @@ impl BattleSimulation {
         if let Ok((entity, living)) =
             (self.entities).query_one_mut::<(&Entity, &Living)>(self.local_player_id.into())
         {
-            //Bool assignment. If entity is team blue set the fact that they're perspective flipped to true. -Dawn
-            self.perspective_flipped = entity.team == Team::Blue;
+            self.local_team = entity.team;
 
             if living.status_director.remaining_status_time(HitFlag::BLIND) > 0 {
                 blind_filter = Some(entity.team);
             }
         }
+
+        // Bool assignment. If entity is team blue set the fact that they're perspective flipped to true. -Dawn
+        let perspective_flipped = self.local_team == Team::Blue;
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
@@ -1188,7 +1230,7 @@ impl BattleSimulation {
 
         // draw field
         self.field
-            .draw(game_io, &mut sprite_queue, self.perspective_flipped);
+            .draw(game_io, &mut sprite_queue, perspective_flipped);
 
         // draw dramatic fade
         if self.fade_sprite.color().a > 0.0 {
@@ -1228,7 +1270,7 @@ impl BattleSimulation {
             let mut sprite_nodes = sprite_nodes_recycled;
 
             // offset for calculating initial placement position
-            let mut offset: Vec2 = entity.corrected_offset(self.perspective_flipped);
+            let mut offset: Vec2 = entity.corrected_offset(perspective_flipped);
 
             // elevation
             offset.y -= entity.elevation;
@@ -1236,11 +1278,11 @@ impl BattleSimulation {
             shadow_node.set_offset(Vec2::new(shadow_node.offset().x, entity.elevation));
 
             let tile_center =
-                (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
+                (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
             let initial_position = tile_center + offset;
 
             // true if only one is true, since flipping twice causes us to no longer be flipped
-            let flipped = self.perspective_flipped ^ entity.flipped();
+            let flipped = perspective_flipped ^ entity.flipped();
 
             // offset each child by parent node accounting for perspective
             (entity.sprite_tree).inherit_from_parent(initial_position, flipped);
@@ -1324,10 +1366,9 @@ impl BattleSimulation {
                 }
 
                 let tile_position = (entity.x, entity.y);
-                let tile_center =
-                    (self.field).calc_tile_center(tile_position, self.perspective_flipped);
+                let tile_center = (self.field).calc_tile_center(tile_position, perspective_flipped);
 
-                let entity_offset = entity.corrected_offset(self.perspective_flipped);
+                let entity_offset = entity.corrected_offset(perspective_flipped);
 
                 hp_text.text = living.health.to_string();
                 let text_size = hp_text.measure().size;
@@ -1345,9 +1386,9 @@ impl BattleSimulation {
         {
             sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-            let offset = entity.corrected_offset(self.perspective_flipped);
+            let offset = entity.corrected_offset(perspective_flipped);
             let tile_center =
-                (self.field).calc_tile_center((entity.x, entity.y), self.perspective_flipped);
+                (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
 
             let base_position = tile_center + vec2(offset.x, -entity.height - 16.0);
 

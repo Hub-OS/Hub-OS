@@ -456,7 +456,20 @@ Net:on("shop_purchase", function(event)
 end)
 
 Net:on("battle_results", function(event)
-  -- { player_id: string, health: number, score: number, time: number, ran: bool, emotion: number, turns: number, enemies: { id: String, health: number }[] } }
+  --[[
+    {
+      player_id: string,
+      health: number,
+      score: number,
+      time: number,
+      ran: bool,
+      emotion: number,
+      turns: number,
+      allies: { name: String, health: number }[],
+      enemies: { name: String, health: number }[],
+      neutral: { name: String, health: number }[],
+    }
+  ]]--
   print(event.player_id, event.health, event.time, event.ran, event.emotion, event.turns, event.enemies)
 end)
 

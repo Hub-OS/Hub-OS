@@ -740,13 +740,26 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("emotion", battle_stats.emotion as u8)?;
                 event.set("turns", battle_stats.turns)?;
 
+                // ally list
+                let mut neutral_tables = Vec::new();
+                neutral_tables.reserve(battle_stats.ally_survivors.len());
+
+                for survivor in &battle_stats.ally_survivors {
+                    let table = lua_ctx.create_table()?;
+                    table.set("name", survivor.name.as_str())?;
+                    table.set("health", survivor.health)?;
+                    neutral_tables.push(table);
+                }
+
+                event.set("allies", neutral_tables)?;
+
                 // enemy list
                 let mut enemy_tables = Vec::new();
                 enemy_tables.reserve(battle_stats.enemy_survivors.len());
 
                 for survivor in &battle_stats.enemy_survivors {
                     let table = lua_ctx.create_table()?;
-                    table.set("id", survivor.id.as_str())?;
+                    table.set("name", survivor.name.as_str())?;
                     table.set("health", survivor.health)?;
                     enemy_tables.push(table);
                 }
@@ -759,7 +772,7 @@ impl PluginInterface for LuaPluginInterface {
 
                 for survivor in &battle_stats.neutral_survivors {
                     let table = lua_ctx.create_table()?;
-                    table.set("id", survivor.id.as_str())?;
+                    table.set("name", survivor.name.as_str())?;
                     table.set("health", survivor.health)?;
                     neutral_tables.push(table);
                 }
