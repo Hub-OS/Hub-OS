@@ -280,32 +280,37 @@ impl BlockGrid {
         };
 
         let reference_color = self.blocks[reference].color;
-        self.neighbors_indices(position)
+        self.neighbor_indices(position)
             .any(|index| index != reference && self.blocks[index].color == reference_color)
     }
 
-    fn neighbors_indices(
+    // skips edges
+    fn neighbor_indices(
         &self,
         position: (usize, usize),
     ) -> impl Iterator<Item = generational_arena::Index> + '_ {
         let (x, y) = position;
         let mut neighbors = [None; 4];
 
-        if y > 0 {
+        if y > 1 {
             let grid_index = Self::calculate_index((x, y - 1));
             neighbors[0] = self.grid.get(grid_index).cloned().flatten();
         }
 
-        if x > 0 {
+        if x > 1 {
             let grid_index = Self::calculate_index((x - 1, y));
             neighbors[1] = self.grid.get(grid_index).cloned().flatten();
         }
 
-        let grid_index = Self::calculate_index((x + 1, y));
-        neighbors[2] = self.grid.get(grid_index).cloned().flatten();
+        if x + 1 < Self::SIDE_LEN {
+            let grid_index = Self::calculate_index((x + 1, y));
+            neighbors[2] = self.grid.get(grid_index).cloned().flatten();
+        }
 
-        let grid_index = Self::calculate_index((x, y + 1));
-        neighbors[3] = self.grid.get(grid_index).cloned().flatten();
+        if y + 1 < Self::SIDE_LEN {
+            let grid_index = Self::calculate_index((x, y + 1));
+            neighbors[3] = self.grid.get(grid_index).cloned().flatten();
+        }
 
         neighbors.into_iter().flatten()
     }
