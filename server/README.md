@@ -782,7 +782,7 @@ emitter:destroy() -- allows async iterators to complete
 
 ## Building the Project
 
-Windows requires for building lua [MSVC++](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022)
+Windows requires [MSVC++](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) for building lua
 
 This project is built with Rust, so after installing Cargo, you can compile and run the project with `cargo run`.
 

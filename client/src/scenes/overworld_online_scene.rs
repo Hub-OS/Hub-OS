@@ -841,6 +841,8 @@ impl OverworldOnlineScene {
                         .package_or_fallback(PackageNamespace::Server, package_id);
 
                     let mut props = BattleProps::new_with_defaults(game_io, battle_package);
+                    props.data = data;
+
                     let player_setup = &mut props.player_setups[0];
                     player_setup.health = health;
                     player_setup.base_health = base_health;

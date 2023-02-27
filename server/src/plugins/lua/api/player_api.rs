@@ -663,7 +663,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let package_id_str = package_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        let data = data_value.map(|v| format!("return {}", lua_value_to_string(v, "", 0)));
+        let data = data_value.map(|v| lua_value_to_string(v, "", 0));
 
         if let Some(tracker) = api_ctx
             .battle_tracker_ref

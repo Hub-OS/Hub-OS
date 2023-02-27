@@ -95,7 +95,7 @@ impl BattleScene {
                 simulation: &mut scene.simulation,
             };
 
-            battle_init(context);
+            battle_init(context, props.data);
         }
 
         // load the players in the correct order

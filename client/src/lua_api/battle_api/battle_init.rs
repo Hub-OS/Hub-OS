@@ -9,7 +9,7 @@ use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
-pub fn battle_init(context: BattleScriptContext) {
+pub fn battle_init(context: BattleScriptContext, data: Option<String>) {
     let globals = context.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
@@ -24,6 +24,16 @@ pub fn battle_init(context: BattleScriptContext) {
         }
     };
 
+    let chunk = data.and_then(|data| {
+        let chunk: Option<rollback_mlua::Value> = lua.load(&data).eval().ok();
+
+        if chunk.is_none() {
+            log::error!("Failed to read data from server:\n{data}");
+        }
+
+        chunk
+    });
+
     let context = RefCell::new(context);
 
     battle_api.inject_dynamic(lua, &context, |lua| {
@@ -31,7 +41,7 @@ pub fn battle_init(context: BattleScriptContext) {
             let init_table = lua.create_table()?;
             inherit_metatable(lua, BATTLE_INIT_TABLE, &init_table)?;
 
-            battle_init.call(init_table)
+            battle_init.call((init_table, chunk))
         })
     });
 }
