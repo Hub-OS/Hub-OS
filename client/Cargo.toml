@@ -23,7 +23,7 @@ num-traits = "0.2"
 rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
-rodio = "0.16"
+rodio = "0.17"
 roxmltree = "0.15"
 rust-ini = "0.18"
 serde = { version = "1.0", features = ["derive"] }
