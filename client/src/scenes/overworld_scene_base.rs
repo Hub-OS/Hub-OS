@@ -147,6 +147,16 @@ impl OverworldSceneBase {
             || self.camera_controller.is_locked()
             || self.input_locks > 0
             || self.player_is_warping()
+            || self.animating_position()
+    }
+
+    fn animating_position(&self) -> bool {
+        let entities = &self.entities;
+        let Ok(mut query) = entities.query_one::<&ActorPropertyAnimator>(self.player_data.entity) else {
+            return false;
+        };
+
+        matches!(query.get(), Some(property_animator) if property_animator.is_animating_position())
     }
 
     fn player_is_warping(&self) -> bool {

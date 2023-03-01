@@ -14,6 +14,7 @@ pub fn system_movement(scene: &mut OverworldSceneBase) {
 
     for (actor_entity, (movement_animator, position)) in query.into_iter() {
         if !movement_animator.movement_enabled() {
+            movement_animator.clear_queue();
             continue;
         }
 

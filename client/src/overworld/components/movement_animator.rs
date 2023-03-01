@@ -54,6 +54,12 @@ impl MovementAnimator {
         self.state = state;
     }
 
+    pub fn clear_queue(&mut self) {
+        for direction in &mut self.direction_queue {
+            *direction = Direction::None;
+        }
+    }
+
     pub fn queue_direction(&mut self, direction: Direction) {
         if let Some(value) = self.direction_queue.back_mut() {
             *value = direction;

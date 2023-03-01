@@ -1,5 +1,5 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
-use crate::render::Animator;
+use crate::render::{Animator, AnimatorLoopMode};
 use crate::resources::{AssetManager, Globals, OVERWORLD_WALK_SPEED};
 use enum_map::EnumMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
@@ -41,6 +41,7 @@ pub struct ActorPropertyAnimator {
     animating_sprite: bool,
     animating_position: bool,
     animating_direction: bool,
+    actor_direction: Direction,
     audio_enabled: bool,
     property_states: EnumMap<ActorPropertyId, PropertyState>,
     relevant_properties: Vec<ActorPropertyId>,
@@ -56,6 +57,7 @@ impl ActorPropertyAnimator {
             animating_sprite: false,
             animating_position: false,
             animating_direction: false,
+            actor_direction: Direction::None,
             audio_enabled: true,
             property_states: EnumMap::default(),
             relevant_properties: Vec::new(),
@@ -68,6 +70,10 @@ impl ActorPropertyAnimator {
 
     pub fn set_audio_enabled(&mut self, enable: bool) {
         self.audio_enabled = enable;
+    }
+
+    pub fn actor_direction(&self) -> Direction {
+        self.actor_direction
     }
 
     pub fn add_key_frame(&mut self, keyframe: ActorKeyFrame) {
@@ -111,6 +117,8 @@ impl ActorPropertyAnimator {
             return;
         };
 
+        property_animator.movement_animator_moved = movement_animator.movement_enabled();
+
         for property_id in property_animator.relevant_properties.iter().cloned() {
             let state = &mut property_animator.property_states[property_id];
 
@@ -137,8 +145,6 @@ impl ActorPropertyAnimator {
             match property_id {
                 ActorPropertyId::X | ActorPropertyId::Y | ActorPropertyId::Z => {
                     property_animator.animating_position = true;
-                    property_animator.movement_animator_moved =
-                        movement_animator.movement_enabled();
                     movement_animator.set_movement_enabled(false);
                 }
                 ActorPropertyId::Direction => {
@@ -251,6 +257,7 @@ impl ActorPropertyAnimator {
 
                         if animator.current_state() != Some(active_string_value) {
                             animator.set_state(active_string_value);
+                            animator.set_loop_mode(AnimatorLoopMode::Loop);
                         }
                     }
                     ActorPropertyId::AnimationSpeed => {
@@ -280,6 +287,7 @@ impl ActorPropertyAnimator {
                     }
                     ActorPropertyId::Direction => {
                         if let ActorProperty::Direction(new_direction) = key_frame.property {
+                            property_animator.actor_direction = new_direction;
                             *direction = new_direction;
                         }
                     }
@@ -321,7 +329,7 @@ impl ActorPropertyAnimator {
             if property_animator.animating_position && !property_animator.animating_sprite {
                 // resolve direction and player animation
                 let new_direction = if property_animator.animating_direction {
-                    *direction
+                    property_animator.actor_direction
                 } else {
                     Direction::from_offset(position_difference.xy().into())
                 };
@@ -343,9 +351,13 @@ impl ActorPropertyAnimator {
                 movement_animator.set_state(movement_state);
             }
 
+            movement_animator.set_animation_enabled(!property_animator.animating_sprite);
+
+            // update time
             property_animator.time += elapsed;
 
             if property_animator.relevant_properties.is_empty() {
+                movement_animator.set_animation_enabled(true);
                 movement_animator.set_movement_enabled(property_animator.movement_animator_moved);
                 animator_remove_list.push(entity);
             }
