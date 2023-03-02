@@ -81,7 +81,7 @@ impl CameraController {
             let entity = self.tracked_entity.unwrap_or(self.player_entity);
 
             if let Ok(target) = entities.query_one_mut::<&Vec3>(entity) {
-                let target = map.world_3d_to_screen(*target);
+                let target = map.world_3d_to_screen(*target).floor();
                 camera.snap(target);
             }
         }

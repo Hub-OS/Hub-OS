@@ -124,12 +124,14 @@ fn find_final_position(
 
 fn offset_with_direction(map: &Map, direction: Direction, magnitude: f32) -> Vec2 {
     let mut offset: Vec2 = direction.chebyshev_vector().into();
+    offset *= magnitude;
+    offset = offset.round();
 
     if direction.is_diagonal() {
         offset.y /= 2.0;
     }
 
-    map.screen_to_world(offset * magnitude)
+    map.screen_to_world(offset)
 }
 
 fn try_move_to(
