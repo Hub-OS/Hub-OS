@@ -211,7 +211,12 @@ impl Scene for OverworldSceneBase {
     fn update(&mut self, game_io: &mut GameIO) {
         self.world_time += 1;
 
-        self.next_scene = self.menu_manager.update(game_io);
+        let next_scene = self.menu_manager.update(game_io);
+
+        if self.next_scene.is_none() {
+            self.next_scene = next_scene;
+        }
+
         self.health_ui.set_health(self.player_data.health);
         self.health_ui.update();
 
