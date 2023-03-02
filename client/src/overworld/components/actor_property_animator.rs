@@ -1,5 +1,5 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
-use crate::render::{Animator, AnimatorLoopMode};
+use crate::render::{Animator, AnimatorLoopMode, FrameTime};
 use crate::resources::{AssetManager, Globals, OVERWORLD_WALK_SPEED};
 use enum_map::EnumMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
@@ -36,6 +36,8 @@ struct PropertyState {
 pub struct ActorPropertyAnimator {
     time: f32,
     total_time: f32,
+    sprite_animation_base_time: FrameTime,
+    sprite_animation_time: FrameTime,
     sprite_animation_speed: f32,
     movement_animator_moved: bool,
     animating_sprite: bool,
@@ -52,6 +54,8 @@ impl ActorPropertyAnimator {
         Self {
             time: 0.0,
             total_time: 0.0,
+            sprite_animation_base_time: 0,
+            sprite_animation_time: 0,
             sprite_animation_speed: 1.0,
             movement_animator_moved: false,
             animating_sprite: false,
@@ -110,14 +114,16 @@ impl ActorPropertyAnimator {
             &'a Vec3,
             &'a Direction,
             &'a Sprite,
+            &'a Animator,
             &'a mut MovementAnimator,
         );
 
-        let Ok((property_animator, position, direction, sprite, movement_animator)) = entities.query_one_mut::<Query>(entity) else {
+        let Ok((property_animator, position, direction, sprite, animator, movement_animator)) = entities.query_one_mut::<Query>(entity) else {
             return;
         };
 
         property_animator.movement_animator_moved = movement_animator.movement_enabled();
+        property_animator.sprite_animation_base_time = animator.calculate_time();
 
         for property_id in property_animator.relevant_properties.iter().cloned() {
             let state = &mut property_animator.property_states[property_id];
@@ -258,6 +264,9 @@ impl ActorPropertyAnimator {
                         if animator.current_state() != Some(active_string_value) {
                             animator.set_state(active_string_value);
                             animator.set_loop_mode(AnimatorLoopMode::Loop);
+
+                            property_animator.sprite_animation_time = 0;
+                            property_animator.sprite_animation_base_time = 0;
                         }
                     }
                     ActorPropertyId::AnimationSpeed => {
@@ -266,6 +275,9 @@ impl ActorPropertyAnimator {
                             key_frame.property.get_f32(),
                             key_frame.progress_from_time_point(property_animator.time),
                         );
+
+                        property_animator.sprite_animation_time = 0;
+                        property_animator.sprite_animation_base_time = animator.calculate_time();
                     }
                     ActorPropertyId::SoundEffect => {
                         if property_animator.audio_enabled
@@ -323,6 +335,16 @@ impl ActorPropertyAnimator {
                 }
             }
 
+            // handle animation speed
+            if property_animator.sprite_animation_speed != 1.0 {
+                let multiplier = property_animator.sprite_animation_speed;
+                let start = property_animator.sprite_animation_base_time;
+                let elapsed = property_animator.sprite_animation_time;
+
+                let sync_time = start + (elapsed as f32 * multiplier) as FrameTime;
+                animator.sync_time(sync_time);
+            }
+
             // handle movement
             let position_difference = *position - previous_position;
 
@@ -355,6 +377,7 @@ impl ActorPropertyAnimator {
 
             // update time
             property_animator.time += elapsed;
+            property_animator.sprite_animation_time += 1;
 
             if property_animator.relevant_properties.is_empty() {
                 movement_animator.set_animation_enabled(true);
