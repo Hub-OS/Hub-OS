@@ -104,6 +104,8 @@ impl Player {
         }
 
         // initialize uninitalized
+        let config = &simulation.config;
+
         type PlayerQuery<'a> = (&'a mut Entity, &'a mut Player, &'a Living);
 
         for (_, (entity, player, living)) in simulation.entities.query_mut::<PlayerQuery>() {
@@ -114,7 +116,7 @@ impl Player {
             }
 
             // initialize position
-            let pos = simulation
+            let pos = config
                 .player_spawn_positions
                 .get(player.index)
                 .cloned()
@@ -128,7 +130,7 @@ impl Player {
             entity.team = tile.map(|tile| tile.team()).unwrap_or_default();
 
             // initalize flippable
-            let flippable_config = &simulation.player_flippable;
+            let flippable_config = &config.player_flippable;
             let can_flip_setting = flippable_config.get(player.index).cloned().flatten();
 
             player.can_flip = can_flip_setting.unwrap_or(match entity.team {

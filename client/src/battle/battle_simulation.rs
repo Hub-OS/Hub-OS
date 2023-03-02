@@ -14,15 +14,9 @@ use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
-const DEFAULT_PLAYER_LAYOUTS: [[(i32, i32); 4]; 4] = [
-    [(2, 2), (0, 0), (0, 0), (0, 0)],
-    [(2, 2), (5, 2), (0, 0), (0, 0)],
-    [(2, 2), (4, 3), (6, 1), (0, 0)],
-    [(1, 3), (3, 1), (4, 3), (6, 1)],
-];
-
 pub struct BattleSimulation {
     pub battle_started: bool,
+    pub config: BattleConfig,
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
     pub inputs: Vec<PlayerInput>,
@@ -44,8 +38,6 @@ pub struct BattleSimulation {
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUI,
-    pub player_spawn_positions: Vec<(i32, i32)>,
-    pub player_flippable: Vec<Option<bool>>,
     pub local_team: Team,
     pub intro_complete: bool,
     pub is_resimulation: bool,
@@ -57,10 +49,6 @@ impl BattleSimulation {
         let mut camera = Camera::new(game_io);
         camera.snap(Vec2::new(0.0, 10.0));
 
-        let spawn_count = player_count.min(4);
-        let mut player_spawn_positions = DEFAULT_PLAYER_LAYOUTS[spawn_count - 1].to_vec();
-        player_spawn_positions.resize(spawn_count, (0, 0));
-
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
@@ -68,6 +56,7 @@ impl BattleSimulation {
 
         Self {
             battle_started: false,
+            config: BattleConfig::new(player_count),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
             time: 0,
@@ -89,8 +78,6 @@ impl BattleSimulation {
             pending_callbacks: Vec::new(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUI::new(game_io),
-            player_spawn_positions,
-            player_flippable: vec![None; spawn_count],
             local_team: Team::Unset,
             intro_complete: false,
             is_resimulation: false,
@@ -147,6 +134,7 @@ impl BattleSimulation {
 
         Self {
             battle_started: self.battle_started,
+            config: self.config.clone(),
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
             rng: self.rng.clone(),
@@ -168,8 +156,6 @@ impl BattleSimulation {
             pending_callbacks: self.pending_callbacks.clone(),
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
-            player_spawn_positions: self.player_spawn_positions.clone(),
-            player_flippable: self.player_flippable.clone(),
             local_team: self.local_team,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,

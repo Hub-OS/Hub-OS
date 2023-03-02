@@ -143,7 +143,8 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let spawn_pos = simulation.player_spawn_positions.get_mut(player_index);
+        let config = &mut simulation.config;
+        let spawn_pos = config.player_spawn_positions.get_mut(player_index);
 
         if let Some(spawn_pos) = spawn_pos {
             *spawn_pos = (x, y);
@@ -163,11 +164,11 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
 
             if let Some(index) = player_index {
-                if let Some(flippable) = simulation.player_flippable.get_mut(index) {
+                if let Some(flippable) = simulation.config.player_flippable.get_mut(index) {
                     *flippable = Some(true);
                 }
             } else {
-                simulation.player_flippable.fill(Some(true));
+                simulation.config.player_flippable.fill(Some(true));
             }
 
             lua.pack_multi(())
