@@ -126,13 +126,15 @@ fn system_tile_effect(
 
             match screen_direction {
                 Direction::UpLeft => {
-                    end_position.x -= 1.0;
+                    end_position.x += map.tile_size().x as f32 * 0.5 - 1.0;
                 }
                 Direction::UpRight => {
-                    end_position.y -= 1.0;
+                    end_position.y += map.tile_size().y as f32 - 1.0;
                 }
                 _ => {}
             }
+
+            end_tile_position = map.world_3d_to_tile_space(end_position);
 
             // resolve duration
             let tile_distance = (end_tile_position - start_tile_position)
