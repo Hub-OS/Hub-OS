@@ -112,7 +112,7 @@ fn system_tile_effect(
             end_tile_position += walk_vector;
 
             // slide to the middle of the next tile if it's a conveyor
-            let end_tile = layer.tile_at(end_tile_position.xy().as_ivec2());
+            let end_tile = layer.tile_at_f32(end_tile_position.xy());
             let end_tile_meta = map.tile_meta_for_tile(end_tile.gid);
             let end_tile_is_conveyor =
                 matches!(end_tile_meta, Some(meta) if meta.tile_class == TileClass::Conveyor);
