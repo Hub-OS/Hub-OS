@@ -31,7 +31,7 @@ pub enum Input {
 }
 
 impl Input {
-    pub const REQUIRED_INPUTS: [Input; 10] = [
+    pub const REQUIRED: [Input; 10] = [
         Input::Up,
         Input::Down,
         Input::Left,
@@ -44,7 +44,7 @@ impl Input {
         Input::ShoulderR,
     ];
 
-    pub const NON_OVERLAP_INPUTS: [Input; 9] = [
+    pub const NON_OVERLAP: [Input; 9] = [
         Input::Up,
         Input::Down,
         Input::Left,
@@ -52,6 +52,33 @@ impl Input {
         Input::Cancel,
         Input::Confirm,
         Input::Option,
+        Input::ShoulderL,
+        Input::ShoulderR,
+    ];
+
+    pub const BATTLE: [Input; 15] = [
+        Input::Up,
+        Input::Down,
+        Input::Left,
+        Input::Right,
+        Input::Shoot,
+        Input::UseCard,
+        Input::Special,
+        Input::FaceLeft,
+        Input::FaceRight,
+        Input::ShoulderL,
+        Input::ShoulderR,
+        Input::End,
+        Input::EndTurn,
+        Input::Confirm,
+        Input::Cancel,
+    ];
+
+    pub const REPEATABLE: [Input; 6] = [
+        Input::Up,
+        Input::Down,
+        Input::Left,
+        Input::Right,
         Input::ShoulderL,
         Input::ShoulderR,
     ];

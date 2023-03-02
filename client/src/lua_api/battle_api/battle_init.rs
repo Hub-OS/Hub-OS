@@ -154,6 +154,28 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         BATTLE_INIT_TABLE,
+        "enable_flipping",
+        |api_ctx, lua, params| {
+            let (_, player_index): (rollback_mlua::Table, Option<usize>) =
+                lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            if let Some(index) = player_index {
+                if let Some(flippable) = simulation.player_flippable.get_mut(index) {
+                    *flippable = Some(true);
+                }
+            } else {
+                simulation.player_flippable.fill(Some(true));
+            }
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        BATTLE_INIT_TABLE,
         "enable_boss_battle",
         |api_ctx, lua, _| {
             let mut api_ctx = api_ctx.borrow_mut();

@@ -13,6 +13,8 @@ pub struct Player {
     pub local: bool,
     pub cards: Vec<Card>,
     pub card_use_requested: bool,
+    pub can_flip: bool,
+    pub flip_requested: bool,
     pub attack_boost: u8,
     pub rapid_boost: u8,
     pub charge_boost: u8,
@@ -61,6 +63,8 @@ impl Player {
             local,
             cards,
             card_use_requested: false,
+            can_flip: true,
+            flip_requested: false,
             attack_boost: 0,
             rapid_boost: 0,
             charge_boost: 0,
@@ -79,6 +83,68 @@ impl Player {
             normal_attack_callback: BattleCallback::stub(None),
             charged_attack_callback: BattleCallback::stub(None),
             special_attack_callback: BattleCallback::stub(None),
+        }
+    }
+
+    pub fn initialize_uninitialized(simulation: &mut BattleSimulation) {
+        // resolve flippable defaults by team (Team::Other will always be true)
+        let mut default_red_flippable = false;
+        let mut default_blue_flippable = false;
+
+        let field_col_count = simulation.field.cols();
+
+        for ((col, _), tile) in simulation.field.iter_mut() {
+            if col == 1 && tile.original_team() != Team::Red {
+                default_red_flippable = true;
+            }
+
+            if col + 2 == field_col_count && tile.original_team() != Team::Blue {
+                default_blue_flippable = true;
+            }
+        }
+
+        // initialize uninitalized
+        type PlayerQuery<'a> = (&'a mut Entity, &'a mut Player, &'a Living);
+
+        for (_, (entity, player, living)) in simulation.entities.query_mut::<PlayerQuery>() {
+            // track the local player's health
+            if player.local {
+                simulation.local_player_id = entity.id;
+                simulation.local_health_ui.snap_health(living.health);
+            }
+
+            // initialize position
+            let pos = simulation
+                .player_spawn_positions
+                .get(player.index)
+                .cloned()
+                .unwrap_or_default();
+
+            entity.x = pos.0;
+            entity.y = pos.1;
+
+            // initalize team
+            let tile = simulation.field.tile_at_mut((entity.x, entity.y));
+            entity.team = tile.map(|tile| tile.team()).unwrap_or_default();
+
+            // initalize flippable
+            let flippable_config = &simulation.player_flippable;
+            let can_flip_setting = flippable_config.get(player.index).cloned().flatten();
+
+            player.can_flip = can_flip_setting.unwrap_or(match entity.team {
+                Team::Red => default_red_flippable,
+                Team::Blue => default_blue_flippable,
+                _ => true,
+            });
+
+            // initialize animation state
+            let animator = &mut simulation.animators[entity.animator_index];
+
+            if animator.current_state().is_none() {
+                let callbacks = animator.set_state(Player::IDLE_STATE);
+                animator.set_loop_mode(AnimatorLoopMode::Loop);
+                simulation.pending_callbacks.extend(callbacks);
+            }
         }
     }
 

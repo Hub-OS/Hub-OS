@@ -209,7 +209,7 @@ impl UiNode for UiConfigBinding {
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(bounds.position());
 
-        if Input::REQUIRED_INPUTS.contains(&self.input) && self.cached_bindings.is_empty() {
+        if Input::REQUIRED.contains(&self.input) && self.cached_bindings.is_empty() {
             // display unbound required inputs in red
             text_style.color = Color::ORANGE;
         }
@@ -338,7 +338,7 @@ impl UiConfigBinding {
         value: V,
         append: bool,
     ) {
-        if Input::NON_OVERLAP_INPUTS.contains(&input) {
+        if Input::NON_OVERLAP.contains(&input) {
             // unbind overlapping input
             for (_, list) in bindings.iter_mut() {
                 let Some(index) = list.iter().position(|v| *v == value) else {

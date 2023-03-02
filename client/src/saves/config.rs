@@ -170,12 +170,12 @@ impl Config {
     }
 
     fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {
-        let required_are_set = Input::REQUIRED_INPUTS
+        let required_are_set = Input::REQUIRED
             .iter()
             .map(|input| bindings.get(input))
             .all(|binding| binding.is_some());
 
-        let non_overlap_bindings: Vec<_> = Input::NON_OVERLAP_INPUTS
+        let non_overlap_bindings: Vec<_> = Input::NON_OVERLAP
             .iter()
             .map(|input| bindings.get(input))
             .collect();

@@ -1087,6 +1087,14 @@ impl BattleState {
             let input = &simulation.inputs[player.index];
             let anim = &simulation.animators[entity.animator_index];
 
+            // test for flip requests
+            let face_left = input.was_just_pressed(Input::FaceLeft);
+            let face_right = input.was_just_pressed(Input::FaceRight);
+
+            player.flip_requested |= (face_left && face_right)
+                || (face_left && entity.facing != Direction::Left)
+                || (face_right && entity.facing != Direction::Right);
+
             // can only move if there's no move action queued and the current animation is PLAYER_IDLE
             if entity.move_action.is_some() || anim.current_state() != Some(Player::IDLE_STATE) {
                 continue;
@@ -1139,6 +1147,12 @@ impl BattleState {
                     player.slide_when_moving,
                 ));
             }
+
+            // handle flipping
+            if player.flip_requested && player.can_flip {
+                entity.facing = entity.facing.reversed();
+            }
+            player.flip_requested = false;
         }
 
         // try movement

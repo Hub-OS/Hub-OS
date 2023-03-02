@@ -355,6 +355,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     held_table.set("Use", InputQuery::Held(Input::UseCard))?;
     held_table.set("Special", InputQuery::Held(Input::Special))?;
     held_table.set("Shoot", InputQuery::Held(Input::Shoot))?;
+    held_table.set("FaceLeft", InputQuery::Held(Input::FaceLeft))?;
+    held_table.set("FaceRight", InputQuery::Held(Input::FaceRight))?;
     held_table.set("LeftShoulder", InputQuery::Held(Input::ShoulderL))?;
     held_table.set("RightShoulder", InputQuery::Held(Input::ShoulderR))?;
     held_table.set("EndTurn", InputQuery::Held(Input::EndTurn))?;
@@ -369,6 +371,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     pressed_table.set("Use", InputQuery::JustPressed(Input::UseCard))?;
     pressed_table.set("Special", InputQuery::JustPressed(Input::Special))?;
     pressed_table.set("Shoot", InputQuery::JustPressed(Input::Shoot))?;
+    pressed_table.set("FaceLeft", InputQuery::JustPressed(Input::FaceLeft))?;
+    pressed_table.set("FaceRight", InputQuery::JustPressed(Input::FaceRight))?;
     pressed_table.set("LeftShoulder", InputQuery::JustPressed(Input::ShoulderL))?;
     pressed_table.set("RightShoulder", InputQuery::JustPressed(Input::ShoulderR))?;
     pressed_table.set("EndTurn", InputQuery::JustPressed(Input::EndTurn))?;

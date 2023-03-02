@@ -1,4 +1,3 @@
-use super::Input;
 use crate::render::FrameTime;
 use framework::prelude::{Color, UVec2, Vec2};
 
@@ -18,31 +17,6 @@ pub const MAX_VOLUME: u8 = 100;
 pub const MAX_CARDS: usize = 30;
 pub const MAX_MEGA: usize = 5;
 pub const MAX_GIGA: usize = 1;
-
-pub const BATTLE_INPUTS: [Input; 13] = [
-    Input::Up,
-    Input::Down,
-    Input::Left,
-    Input::Right,
-    Input::Shoot,
-    Input::UseCard,
-    Input::Special,
-    Input::ShoulderL,
-    Input::ShoulderR,
-    Input::End,
-    Input::EndTurn,
-    Input::Confirm,
-    Input::Cancel,
-];
-
-pub const REPEATABLE_INPUTS: [Input; 6] = [
-    Input::Up,
-    Input::Down,
-    Input::Left,
-    Input::Right,
-    Input::ShoulderL,
-    Input::ShoulderR,
-];
 
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 

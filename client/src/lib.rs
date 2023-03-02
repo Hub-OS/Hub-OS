@@ -9,6 +9,8 @@
 // false reports https://github.com/rust-lang/rust-clippy/issues/8148
 #![allow(clippy::unnecessary_to_owned)]
 #![allow(clippy::needless_collect)]
+// it should be easy to read conditions, i don't want clever compression
+#![allow(clippy::nonminimal_bool)]
 
 mod args;
 mod battle;

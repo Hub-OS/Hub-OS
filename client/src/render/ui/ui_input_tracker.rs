@@ -69,7 +69,7 @@ impl UiInputTracker {
         // detect held navigation inputs
         self.held_navigation_inputs.clear();
 
-        for input in REPEATABLE_INPUTS {
+        for input in Input::REPEATABLE {
             if input_util.is_down(input) {
                 self.held_navigation_inputs.push(input);
             }

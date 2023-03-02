@@ -45,6 +45,7 @@ pub struct BattleSimulation {
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUI,
     pub player_spawn_positions: Vec<(i32, i32)>,
+    pub player_flippable: Vec<Option<bool>>,
     pub local_team: Team,
     pub intro_complete: bool,
     pub is_resimulation: bool,
@@ -89,6 +90,7 @@ impl BattleSimulation {
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUI::new(game_io),
             player_spawn_positions,
+            player_flippable: vec![None; spawn_count],
             local_team: Team::Unset,
             intro_complete: false,
             is_resimulation: false,
@@ -167,6 +169,7 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             player_spawn_positions: self.player_spawn_positions.clone(),
+            player_flippable: self.player_flippable.clone(),
             local_team: self.local_team,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,
@@ -177,31 +180,7 @@ impl BattleSimulation {
     pub fn initialize_uninitialized(&mut self) {
         self.field.initialize_uninitialized();
 
-        type PlayerQuery<'a> = (&'a mut Entity, &'a Player, &'a Living);
-
-        for (_, (entity, player, living)) in self.entities.query_mut::<PlayerQuery>() {
-            if player.local {
-                self.local_player_id = entity.id;
-                self.local_health_ui.snap_health(living.health);
-            }
-
-            let pos = self
-                .player_spawn_positions
-                .get(player.index)
-                .cloned()
-                .unwrap_or_default();
-
-            entity.x = pos.0;
-            entity.y = pos.1;
-
-            let animator = &mut self.animators[entity.animator_index];
-
-            if animator.current_state().is_none() {
-                let callbacks = animator.set_state(Player::IDLE_STATE);
-                animator.set_loop_mode(AnimatorLoopMode::Loop);
-                self.pending_callbacks.extend(callbacks);
-            }
-        }
+        Player::initialize_uninitialized(self);
     }
 
     pub fn play_sound(&self, game_io: &GameIO, sound_buffer: &SoundBuffer) {

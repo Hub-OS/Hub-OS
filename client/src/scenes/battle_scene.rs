@@ -303,7 +303,7 @@ impl BattleScene {
         // gather input
         let mut pressed = Vec::new();
 
-        for input in BATTLE_INPUTS {
+        for input in Input::BATTLE {
             if input_util.is_down(input) {
                 pressed.push(input);
             }
