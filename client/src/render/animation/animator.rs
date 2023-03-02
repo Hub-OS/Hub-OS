@@ -481,6 +481,34 @@ impl Animator {
         }
     }
 
+    /// Calculates the current time for usage with sync_time
+    pub fn calculate_time(&self) -> FrameTime {
+        let Some(frame_list) = self.current_frame_list() else {
+            return 0;
+        };
+
+        let reversed = self.reversed ^ self.bounced;
+
+        let time = if reversed {
+            let remaining_frames = &frame_list.frames()[self.frame_index..];
+            let frame_iter = remaining_frames.iter();
+
+            let frame_time = self.current_frame_duration() - self.frame_progress;
+            frame_iter.fold(0, |acc, frame| acc + frame.duration) + frame_time
+        } else {
+            let remaining_frames = &frame_list.frames()[..self.frame_index];
+            let frame_iter = remaining_frames.iter();
+
+            frame_iter.fold(0, |acc, frame| acc + frame.duration) + self.frame_progress
+        };
+
+        if self.bounced {
+            time + frame_list.duration()
+        } else {
+            time
+        }
+    }
+
     fn current_frame_list(&self) -> Option<&FrameList> {
         let state = self.current_state.as_ref()?.as_str();
         self.states.get(state)

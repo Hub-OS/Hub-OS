@@ -25,7 +25,7 @@ pub fn system_movement_animation(scene: &mut OverworldSceneBase) {
     }
 }
 
-fn find_state_from_movement(
+pub fn find_state_from_movement(
     animator: &Animator,
     movement_state: MovementState,
     direction: Direction,

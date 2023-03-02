@@ -262,6 +262,12 @@ impl Map {
         )
     }
 
+    pub fn tile_to_world(&self, tile: Vec2) -> Vec2 {
+        let mut world = tile * self.tile_size.as_vec2();
+        world.x /= 2.0;
+        world
+    }
+
     pub fn world_3d_to_tile_space(&self, point: Vec3) -> Vec3 {
         self.world_to_tile_space(point.xy()).extend(point.z)
     }

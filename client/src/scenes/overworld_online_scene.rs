@@ -1,11 +1,8 @@
 use super::{InitialConnectScene, NetplayInitScene, NetplayProps, OverworldSceneBase};
 use crate::battle::BattleProps;
 use crate::bindable::Emotion;
-use crate::overworld::{components::*, system_actor_property_animation};
-use crate::overworld::{
-    system_movement_interpolation, CameraAction, Identity, Item, ObjectData, ObjectType,
-    OverworldEvent, ServerAssetManager,
-};
+use crate::overworld::components::*;
+use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage, TextboxPrompt,
@@ -1472,10 +1469,22 @@ impl Scene for OverworldOnlineScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        let base_scene = &mut self.base_scene;
+        system_update_animation(base_scene);
+
         self.handle_packets(game_io);
 
-        system_actor_property_animation(game_io, &self.assets, &mut self.base_scene);
-        system_movement_interpolation(game_io, &mut self.base_scene);
+        let base_scene = &mut self.base_scene;
+        system_player_movement(game_io, base_scene, &self.assets);
+        system_actor_property_animation(game_io, &self.assets, base_scene);
+        system_movement_interpolation(game_io, base_scene);
+        system_player_interaction(game_io, base_scene);
+        system_warp_effect(game_io, base_scene);
+        system_warp(game_io, base_scene);
+        system_movement_animation(base_scene);
+        system_movement(base_scene);
+        system_apply_animation(base_scene);
+        system_position(base_scene);
         self.base_scene.update(game_io);
         self.send_position(game_io);
 

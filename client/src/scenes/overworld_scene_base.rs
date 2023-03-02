@@ -215,15 +215,6 @@ impl Scene for OverworldSceneBase {
         self.health_ui.set_health(self.player_data.health);
         self.health_ui.update();
 
-        system_player_movement(game_io, self);
-        system_player_interaction(game_io, self);
-        system_warp_effect(game_io, self);
-        system_warp(game_io, self);
-        system_movement_animation(self);
-        system_movement(self);
-        system_animate(self);
-        system_position(self);
-
         self.map.update(self.world_time);
         self.update_backgrounds();
 
