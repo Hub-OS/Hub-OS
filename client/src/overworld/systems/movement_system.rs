@@ -1,4 +1,4 @@
-use crate::overworld::{components::*, Map};
+use crate::overworld::{components::*, Map, TileClass};
 use crate::resources::{OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
 use crate::scenes::OverworldSceneBase;
 use framework::prelude::{Vec2, Vec3Swizzles};
@@ -145,9 +145,9 @@ fn try_move_to(
     let mut target_pos = current_pos + offset.extend(0.0);
 
     let curr_layer = current_pos.z as i32;
-    let curr_pos_tile_space = map.world_to_tile_space(current_pos.xy());
-    let target_pos_tile_space = map.world_to_tile_space(target_pos.xy());
-    let tile_speed = curr_pos_tile_space.distance(target_pos_tile_space);
+    let curr_tile_pos = map.world_to_tile_space(current_pos.xy());
+    let target_tile_pos = map.world_to_tile_space(target_pos.xy());
+    let tile_speed = curr_tile_pos.distance(target_tile_pos);
 
     let layer_relative_elevation = current_pos.z.fract();
     let new_layer = get_target_layer(
@@ -155,11 +155,11 @@ fn try_move_to(
         curr_layer,
         layer_relative_elevation,
         tile_speed,
-        curr_pos_tile_space,
-        target_pos_tile_space,
+        curr_tile_pos,
+        target_tile_pos,
     );
 
-    target_pos.z = map.elevation_at(target_pos_tile_space, new_layer);
+    target_pos.z = map.elevation_at(target_tile_pos, new_layer);
 
     let ray = offset / speed * COLLISION_RADIUS;
 
@@ -183,7 +183,7 @@ fn try_move_to(
             curr_layer,
             layer_relative_elevation,
             tile_speed,
-            curr_pos_tile_space,
+            curr_tile_pos,
             edge_tile_space,
         );
 
@@ -220,10 +220,37 @@ fn try_move_to(
             let sum_of_radii = COLLISION_RADIUS + radius;
             let out_pos = other_pos + delta_unit * sum_of_radii;
 
-            let out_pos_in_tile_space = map.world_to_tile_space(out_pos.xy());
-            let elevation = map.elevation_at(out_pos_in_tile_space, new_layer);
+            let out_tile_pos = map.world_to_tile_space(out_pos.xy());
+            let elevation = map.elevation_at(out_tile_pos, new_layer);
 
             return (false, Vec3::new(out_pos.x, out_pos.y, elevation));
+        }
+    }
+
+    // corner squeeze check for conveyors
+    if target_pos.z >= 0.0
+        && target_tile_pos.x.floor() != curr_tile_pos.x.floor()
+        && target_tile_pos.y.floor() != curr_tile_pos.y.floor()
+    {
+        // should only matter for the target layer
+        if let Some(layer) = map.tile_layer(target_pos.z as usize) {
+            let mut x_tile_position = curr_tile_pos;
+            let mut y_tile_position = curr_tile_pos;
+
+            x_tile_position.x += (target_tile_pos.x - curr_tile_pos.x).signum();
+            y_tile_position.y += (target_tile_pos.y - curr_tile_pos.y).signum();
+
+            let x_tile = layer.tile_at_f32(x_tile_position);
+            let y_tile = layer.tile_at_f32(y_tile_position);
+
+            let x_meta = map.tile_meta_for_tile(x_tile.gid);
+            let y_meta = map.tile_meta_for_tile(y_tile.gid);
+
+            if matches!(x_meta, Some(meta) if meta.tile_class == TileClass::Conveyor)
+                && matches!(y_meta, Some(meta) if meta.tile_class == TileClass::Conveyor)
+            {
+                return (false, current_pos);
+            }
         }
     }
 
