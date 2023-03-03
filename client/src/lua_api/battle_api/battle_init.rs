@@ -142,6 +142,20 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        BATTLE_INIT_TABLE,
+        "set_turn_limit",
+        |api_ctx, lua, params| {
+            let (_, turn_limit): (rollback_mlua::Table, u32) = lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.config.turn_limit = Some(turn_limit);
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "spawn_player", |api_ctx, lua, params| {
         let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
             lua.unpack_multi(params)?;

@@ -188,6 +188,11 @@ impl BattleState {
             simulation.play_sound(game_io, &globals.turn_gauge_sfx);
         }
 
+        if simulation.config.turn_limit == Some(simulation.statistics.turns) {
+            self.fail(simulation);
+            return;
+        }
+
         if simulation.config.automatic_turn_end {
             self.complete = true;
             return;
@@ -224,26 +229,24 @@ impl BattleState {
         }
 
         // detect failure + find team for success detection
-        const FAILED_MESSAGE: &str = "<_FAILED_>";
         let local_team;
 
         if let Ok(entity) =
             (simulation.entities).query_one_mut::<&Entity>(simulation.local_player_id.into())
         {
             if entity.deleted {
-                self.message = Some((FAILED_MESSAGE, simulation.time));
+                self.fail(simulation);
                 return;
             }
 
             local_team = entity.team;
         } else {
-            self.message = Some((FAILED_MESSAGE, simulation.time));
+            self.fail(simulation);
             return;
         }
 
         // detect success
         // todo: score screen
-        const SUCCESS_MESSAGE: &str = "<_SUCCESS_>";
 
         let enemies_alive = simulation
             .entities
@@ -252,8 +255,16 @@ impl BattleState {
             .any(|(_, (entity, _))| entity.team != local_team);
 
         if !enemies_alive {
-            self.message = Some((SUCCESS_MESSAGE, simulation.time));
+            self.succeed(simulation);
         }
+    }
+
+    fn fail(&mut self, simulation: &BattleSimulation) {
+        self.message = Some(("<_FAILED_>", simulation.time));
+    }
+
+    fn succeed(&mut self, simulation: &BattleSimulation) {
+        self.message = Some(("<_SUCCESS_>", simulation.time));
     }
 
     fn detect_battle_start(
