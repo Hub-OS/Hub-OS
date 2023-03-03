@@ -23,6 +23,7 @@ pub struct Config {
     pub sfx: u8,
     pub mute_music: bool,
     pub mute_sfx: bool,
+    pub audio_device: String,
     pub key_style: KeyStyle,
     pub key_bindings: HashMap<Input, Vec<Key>>,
     pub controller_bindings: HashMap<Input, Vec<Button>>,
@@ -206,6 +207,7 @@ impl Default for Config {
             sfx: MAX_VOLUME,
             mute_music: false,
             mute_sfx: false,
+            audio_device: String::new(),
             key_style: Default::default(),
             key_bindings: Self::default_key_bindings(Default::default()),
             controller_bindings: Self::default_controller_bindings(),
@@ -232,6 +234,7 @@ impl From<&str> for Config {
             sfx: MAX_VOLUME,
             mute_music: false,
             mute_sfx: false,
+            audio_device: String::new(),
             key_style: Default::default(),
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
@@ -266,6 +269,10 @@ impl From<&str> for Config {
             config.sfx = parse_or_default::<u8>(properties.get("SFX")).min(MAX_VOLUME);
             config.mute_music = parse_or_default(properties.get("MuteMusic"));
             config.mute_sfx = parse_or_default(properties.get("MuteSFX"));
+            config.audio_device = properties
+                .get("OutputDevice")
+                .unwrap_or_default()
+                .to_string();
         }
 
         if let Some(properties) = ini.section(Some("Keyboard")) {
@@ -340,6 +347,7 @@ impl ToString for Config {
             writeln!(s, "SFX = {}", self.sfx)?;
             writeln!(s, "MuteMusic = {}", self.mute_music)?;
             writeln!(s, "MuteSFX = {}", self.mute_sfx)?;
+            writeln!(s, "OutputDevice = {}", self.audio_device)?;
 
             writeln!(s, "[Keyboard]")?;
 

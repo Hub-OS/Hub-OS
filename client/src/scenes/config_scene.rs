@@ -5,7 +5,8 @@ use crate::render::ui::{
     build_9patch, BindingContextOption, ContextMenu, Dimension, FlexDirection, FontStyle,
     SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
     TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle,
-    UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
+    UiConfigDynamicCycle, UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout,
+    UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -173,14 +174,14 @@ impl ConfigScene {
     }
 
     fn generate_submenu(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         config: &Rc<RefCell<Config>>,
         category: ConfigCategory,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         match category {
             ConfigCategory::Video => Self::generate_video_menu(config),
-            ConfigCategory::Audio => Self::generate_audio_menu(config),
+            ConfigCategory::Audio => Self::generate_audio_menu(game_io, config),
             ConfigCategory::Keyboard => Self::generate_keyboard_menu(game_io, config, event_sender),
             ConfigCategory::Gamepad => {
                 Self::generate_controller_menu(game_io, config, event_sender)
@@ -298,7 +299,10 @@ impl ConfigScene {
         ]
     }
 
-    fn generate_audio_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
+    fn generate_audio_menu(
+        game_io: &mut GameIO,
+        config: &Rc<RefCell<Config>>,
+    ) -> Vec<Box<dyn UiNode>> {
         vec![
             Box::new(
                 UiConfigPercentage::new(
@@ -351,6 +355,43 @@ impl ConfigScene {
                     audio.set_sfx_volume(config.sfx_volume());
 
                     config.mute_sfx
+                },
+            )),
+            Box::new(UiConfigDynamicCycle::new(
+                game_io,
+                "Device",
+                config.borrow().audio_device.clone(),
+                config.clone(),
+                |_, value| {
+                    if value.is_empty() {
+                        String::from("Auto")
+                    } else {
+                        value.clone()
+                    }
+                },
+                |game_io, mut config, previous_value, cycle_right| {
+                    let names: Vec<_> = std::iter::once(None)
+                        .chain(AudioManager::device_names().map(Some))
+                        .collect();
+
+                    let device_name =
+                        UiConfigDynamicCycle::cycle_slice(&names, cycle_right, |name| {
+                            if let Some(name) = name {
+                                name == previous_value
+                            } else {
+                                previous_value.is_empty()
+                            }
+                        })
+                        .cloned()
+                        .unwrap_or_default()
+                        .unwrap_or_default();
+
+                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
+                    audio.use_device(&device_name);
+
+                    config.audio_device = device_name.clone();
+
+                    device_name
                 },
             )),
         ]

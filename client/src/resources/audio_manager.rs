@@ -1,5 +1,6 @@
 use super::SoundBuffer;
-use rodio::{OutputStream, Source};
+use rodio::cpal::{traits::HostTrait, Device};
+use rodio::{DeviceTrait, OutputStream, Source};
 use std::cell::RefCell;
 
 pub struct AudioManager {
@@ -12,8 +13,28 @@ pub struct AudioManager {
 }
 
 impl AudioManager {
-    pub fn new() -> Self {
-        let (stream, stream_handle) = match OutputStream::try_default() {
+    pub fn new(name: &str) -> Self {
+        let mut audio_manager = Self {
+            stream: None,
+            stream_handle: None,
+            music_sink: RefCell::new(None),
+            music_stack: RefCell::new(vec![(SoundBuffer::new_empty(), false)]),
+            music_volume: 1.0,
+            sfx_volume: 1.0,
+        };
+
+        audio_manager.use_device(name);
+
+        audio_manager
+    }
+
+    pub fn use_device(&mut self, name: &str) {
+        let Some(device) = Self::get_device(name) else {
+            log::error!("No audio output device named {name:?}");
+            return;
+        };
+
+        let (stream, stream_handle) = match OutputStream::try_from_device(&device) {
             Ok((stream, stream_handle)) => (Some(stream), Some(stream_handle)),
             Err(e) => {
                 log::error!("{e}");
@@ -21,14 +42,28 @@ impl AudioManager {
             }
         };
 
-        Self {
-            stream,
-            stream_handle,
-            music_sink: RefCell::new(None),
-            music_stack: RefCell::new(vec![(SoundBuffer::new_empty(), false)]),
-            music_volume: 1.0,
-            sfx_volume: 1.0,
+        self.stream = stream;
+        self.stream_handle = stream_handle;
+        self.restart_music();
+    }
+
+    fn get_device(name: &str) -> Option<Device> {
+        if name.is_empty() {
+            let host = rodio::cpal::default_host();
+            return host.default_output_device();
         }
+
+        Self::devices()
+            .find(|device| matches!(device.name(), Ok(device_name) if device_name == name))
+    }
+
+    fn devices() -> impl Iterator<Item = Device> {
+        let host = rodio::cpal::default_host();
+        std::iter::once(host.output_devices()).flatten().flatten()
+    }
+
+    pub fn device_names() -> impl Iterator<Item = String> {
+        Self::devices().flat_map(|device| device.name())
     }
 
     pub fn with_music_volume(mut self, volume: f32) -> Self {
