@@ -92,8 +92,9 @@ impl State for BattleState {
 
         simulation.call_pending_callbacks(game_io, vms);
 
-        if self.message.is_none() {
+        if self.message.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
             // only update the time statistic if the battle is still going for the local player
+            // and if time is not frozen
             simulation.statistics.time += 1;
         }
 
