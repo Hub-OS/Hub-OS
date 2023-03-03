@@ -923,7 +923,7 @@ impl OverworldOnlineScene {
                 scale_x,
                 scale_y,
                 rotation,
-                minimap_color,
+                map_color,
                 animation,
             } => {
                 let tile_position = Vec3::new(x, y, z);
@@ -958,12 +958,12 @@ impl OverworldOnlineScene {
                     let entities = &mut self.base_scene.entities;
 
                     // tweak existing properties
-                    let (sprite, direction, collider, minimap_marker) = entities
+                    let (sprite, direction, collider, map_marker) = entities
                         .query_one_mut::<(
                             &mut Sprite,
                             &mut Direction,
                             &mut ActorCollider,
-                            &mut PlayerMinimapMarker,
+                            &mut PlayerMapMarker,
                         )>(entity)
                         .unwrap();
 
@@ -971,7 +971,7 @@ impl OverworldOnlineScene {
                     sprite.set_rotation(rotation);
                     *direction = initial_direction;
                     collider.solid = solid;
-                    minimap_marker.color = minimap_color.into();
+                    map_marker.color = map_color.into();
 
                     // setup remote player specific components
                     let _ = entities.insert(
@@ -1153,14 +1153,13 @@ impl OverworldOnlineScene {
                     ActorPropertyAnimator::start(game_io, &self.assets, entities, *entity);
                 }
             }
-            ServerPacket::ActorMinimapColor { actor_id, color } => {
+            ServerPacket::ActorMapColor { actor_id, color } => {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let entities = &mut self.base_scene.entities;
 
-                    if let Ok(minimap_marker) =
-                        entities.query_one_mut::<&mut PlayerMinimapMarker>(*entity)
+                    if let Ok(map_marker) = entities.query_one_mut::<&mut PlayerMapMarker>(*entity)
                     {
-                        minimap_marker.color = Color::from(color);
+                        map_marker.color = Color::from(color);
                     }
                 }
             }

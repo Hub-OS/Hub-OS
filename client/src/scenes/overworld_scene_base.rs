@@ -92,7 +92,7 @@ impl OverworldSceneBase {
         entities.spawn((
             Sprite::new(game_io, texture),
             animator,
-            PlayerMinimapMarker::new_player(),
+            PlayerMapMarker::new_player(),
             MovementAnimator::new(),
             position,
             ActorCollider {

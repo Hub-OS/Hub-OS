@@ -225,7 +225,7 @@ pub enum ServerPacket {
         scale_x: f32,
         scale_y: f32,
         rotation: f32,
-        minimap_color: (u8, u8, u8, u8),
+        map_color: (u8, u8, u8, u8),
         animation: Option<String>,
     },
     ActorDisconnected {
@@ -262,7 +262,7 @@ pub enum ServerPacket {
         actor_id: String,
         keyframes: Vec<ActorKeyFrame>,
     },
-    ActorMinimapColor {
+    ActorMapColor {
         actor_id: String,
         color: (u8, u8, u8, u8),
     },

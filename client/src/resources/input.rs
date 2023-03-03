@@ -23,7 +23,7 @@ pub enum Input {
     Sprint,
     ShoulderL,
     ShoulderR,
-    Minimap,
+    Map,
     FaceLeft,
     FaceRight,
     AdvanceFrame,

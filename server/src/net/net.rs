@@ -318,13 +318,13 @@ impl Net {
             .send_by_id(target_id, Reliability::Reliable, packet);
     }
 
-    pub fn set_player_minimap_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
+    pub fn set_player_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
         let client = match self.clients.get_mut(id) {
             Some(client) => client,
             None => return,
         };
 
-        client.actor.minimap_color = color;
+        client.actor.map_color = color;
 
         let area = match self.areas.get(&client.actor.area_id) {
             Some(area) => area,
@@ -335,7 +335,7 @@ impl Net {
             &mut self.packet_orchestrator.borrow_mut(),
             area,
             Reliability::Reliable,
-            ServerPacket::ActorMinimapColor {
+            ServerPacket::ActorMapColor {
                 actor_id: id.to_string(),
                 color,
             },
@@ -1960,13 +1960,13 @@ impl Net {
         );
     }
 
-    pub fn set_bot_minimap_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
+    pub fn set_bot_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
         let bot = match self.bots.get_mut(id) {
             Some(bot) => bot,
             None => return,
         };
 
-        bot.minimap_color = color;
+        bot.map_color = color;
 
         let area = match self.areas.get(&bot.area_id) {
             Some(area) => area,
@@ -1977,7 +1977,7 @@ impl Net {
             &mut self.packet_orchestrator.borrow_mut(),
             area,
             Reliability::Reliable,
-            ServerPacket::ActorMinimapColor {
+            ServerPacket::ActorMapColor {
                 actor_id: id.to_string(),
                 color,
             },

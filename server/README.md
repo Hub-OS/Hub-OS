@@ -43,7 +43,7 @@ Paths
   - `/players`
     - Stores avatar files sent from players (5 MiB limit)
     - Textures are stored as `[id].texture`, and animations are stored as `[id].animation`
-  - `/maps`
+  - `/areas`
     - Generated from areas and updated every tick.
     - Stored as `[area id].txt`
 - Paths not starting with `/server` are treated as paths to client files. Files of interest are available in `assets/`
@@ -148,7 +148,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Home Warp
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 - Players will be warped home if colliding with the warp
 - Custom properties:
   - Direction: string
@@ -164,7 +164,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Position Warp
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 - Players will be warped to the set position if colliding with the warp
 - Custom properties:
   - X: float
@@ -183,7 +183,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Server Warp
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 - Players will be transferred to a different server if colliding with the warp
 - Custom properties:
   - Address: string
@@ -204,7 +204,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Custom Server Warp
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 - Players will be warped out if colliding with the warp, the result of the warp can be resolved in handle_custom_warp
 - Custom Properties:
   - Direction: string
@@ -220,7 +220,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Custom Warp
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 - Players will be warped out if colliding with the warp, the result of the warp can be resolved in handle_custom_warp
   - Direction: string
     - Left
@@ -235,7 +235,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Stairs
 
 - Tiles only
-- Visible in minimap
+- Visible in map
 - Allows players to walk up or down a layer
 - Makes tile directly above become treated as a hole
 - Custom properties:
@@ -250,7 +250,7 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Conveyor
 
 - Tiles only
-- Visible in minimap
+- Visible in map
 - Custom properties:
 
   - Direction: string
@@ -286,17 +286,17 @@ Classes are used to denote special tiles or objects understood by the client.
 #### Board
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 
 #### Shop
 
 - Tile Objects only
-- Visible in minimap
+- Visible in map
 
 #### Arrow
 
 - Tiles only
-- Visible in minimap
+- Visible in map
 - Custom properties:
 
   - Direction: string
@@ -494,7 +494,7 @@ Net.list_areas() -- area_id[]
 Net.update_area(area_id, map_string)
 Net.clone_area(area_id, new_area_id)
 Net.remove_area(area_id)
-Net.map_to_string(area_id)
+Net.area_to_string(area_id)
 Net.get_width(area_id)
 Net.get_height(area_id)
 Net.get_layer_count(area_id)
@@ -584,7 +584,7 @@ Net.move_bot(bot_id, x, y, z)
 -- Net.set_bot_solid(bot_id, solid)
 Net.set_bot_avatar(bot_id, texture_path, animation_path)
 Net.set_bot_emote(bot_id, emote_id, use_custom_emotes?)
-Net.set_bot_minimap_color(bot_id, color) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
+Net.set_bot_map_color(bot_id, color) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
 Net.animate_bot(bot_id, state_name, loop?)
 Net.transfer_bot(bot_id, area_id, warp_in?, x?, y?, z?)
 
@@ -616,7 +616,7 @@ Net.set_player_avatar(player_id, texture_path, animation_path)
 Net.get_player_avatar_name(player_id) -- name
 Net.set_player_emote(player_id, emote_id, use_custom_emotes?)
 Net.exclusive_player_emote(player_id, emoter_id, emote_id, use_custom_emotes?)
-Net.set_player_minimap_color(player_id, color) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
+Net.set_player_map_color(player_id, color) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
 Net.animate_player(player_id, state_name, loop?)
 Net.animate_player_properties(player_id, keyframes) -- unstable
 Net.is_player_battling(player_id)
