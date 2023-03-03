@@ -628,8 +628,6 @@ Net.include_object_for_player(player_id, object_id)
 Net.exclude_actor_for_player(player_id, actor_id)
 Net.include_actor_for_player(player_id, actor_id)
 Net.enable_camera_controls(player_id, range_x?, range_y?) -- range is in pixels
-Net.enable_camera_zoom(player_id)
-Net.disable_camera_zoom(player_id)
 Net.move_player_camera(player_id, x, y, z, holdTimeInSeconds?)
 Net.fade_player_camera(player_id, color, durationInSeconds) -- color = { r: 0-255, g: 0-255, b: 0-255, a?: 0-255 }
 Net.slide_player_camera(player_id, x, y, z, durationInSeconds)

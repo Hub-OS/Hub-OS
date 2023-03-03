@@ -568,12 +568,6 @@ impl OverworldOnlineScene {
             ServerPacket::UnlockCamera => {
                 self.base_scene.queue_camera_action(CameraAction::Unlock);
             }
-            ServerPacket::EnableCameraZoom => {
-                log::warn!("EnableCameraZoom hasn't been implemented")
-            }
-            ServerPacket::DisableCameraZoom => {
-                log::warn!("DisableCameraZoom hasn't been implemented")
-            }
             ServerPacket::LockInput => {
                 self.base_scene.add_input_lock();
             }

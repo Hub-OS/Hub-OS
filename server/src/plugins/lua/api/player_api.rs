@@ -473,26 +473,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function("Net", "enable_camera_zoom", |api_ctx, lua_ctx, params| {
-        let player_id: mlua::String = lua_ctx.unpack_multi(params)?;
-
-        let player_id_str = player_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        net.enable_camera_zoom(player_id_str);
-        lua_ctx.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "disable_camera_zoom", |api_ctx, lua_ctx, params| {
-        let player_id: mlua::String = lua_ctx.unpack_multi(params)?;
-
-        let player_id_str = player_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        net.disable_camera_zoom(player_id_str);
-        lua_ctx.pack_multi(())
-    });
-
     lua_api.add_dynamic_function(
         "Net",
         "is_player_input_locked",

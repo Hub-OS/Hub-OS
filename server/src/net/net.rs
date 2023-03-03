@@ -577,22 +577,6 @@ impl Net {
         );
     }
 
-    pub fn enable_camera_zoom(&mut self, id: &str) {
-        self.packet_orchestrator.borrow_mut().send_by_id(
-            id,
-            Reliability::ReliableOrdered,
-            ServerPacket::EnableCameraZoom,
-        );
-    }
-
-    pub fn disable_camera_zoom(&mut self, id: &str) {
-        self.packet_orchestrator.borrow_mut().send_by_id(
-            id,
-            Reliability::ReliableOrdered,
-            ServerPacket::DisableCameraZoom,
-        );
-    }
-
     pub fn is_player_input_locked(&self, id: &str) -> bool {
         if let Some(client) = self.clients.get(id) {
             return client.is_input_locked;

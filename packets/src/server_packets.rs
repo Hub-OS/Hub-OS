@@ -125,8 +125,6 @@ pub enum ServerPacket {
         dist_y: f32,
     },
     UnlockCamera,
-    EnableCameraZoom,
-    DisableCameraZoom,
     LockInput,
     UnlockInput,
     Teleport {
