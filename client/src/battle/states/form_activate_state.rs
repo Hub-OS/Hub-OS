@@ -1,4 +1,4 @@
-use super::{BattleState, State};
+use super::{State, TurnStartState};
 use crate::battle::{BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
@@ -23,7 +23,7 @@ impl State for FormActivateState {
 
     fn next_state(&self, _game_io: &GameIO) -> Option<Box<dyn State>> {
         if self.completed {
-            Some(Box::new(BattleState::new()))
+            Some(Box::new(TurnStartState::new()))
         } else {
             None
         }
