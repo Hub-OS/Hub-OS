@@ -188,18 +188,24 @@ impl BattleState {
             simulation.play_sound(game_io, &globals.turn_gauge_sfx);
         }
 
-        self.complete = simulation
+        if simulation.config.automatic_turn_end {
+            self.complete = true;
+            return;
+        }
+
+        let mut player_iter = simulation
             .entities
             .query_mut::<(&Entity, &mut Player)>()
-            .into_iter()
-            .any(|(_, (entity, player))| {
-                if entity.deleted {
-                    return false;
-                }
+            .into_iter();
 
-                let input = &simulation.inputs[player.index];
-                input.was_just_pressed(Input::EndTurn)
-            });
+        self.complete = player_iter.any(|(_, (entity, player))| {
+            if entity.deleted {
+                return false;
+            }
+
+            let input = &simulation.inputs[player.index];
+            input.was_just_pressed(Input::EndTurn)
+        });
     }
 
     fn detect_success_or_failure(&mut self, simulation: &mut BattleSimulation) {

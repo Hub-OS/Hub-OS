@@ -130,7 +130,17 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field_table)
     });
 
-    // "set_turn_limit", &ScriptedMob::EnableFreedomMission,
+    lua_api.add_dynamic_function(
+        BATTLE_INIT_TABLE,
+        "enable_automatic_turn_end",
+        |api_ctx, lua, _| {
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.config.automatic_turn_end = true;
+
+            lua.pack_multi(())
+        },
+    );
 
     lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "spawn_player", |api_ctx, lua, params| {
         let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
