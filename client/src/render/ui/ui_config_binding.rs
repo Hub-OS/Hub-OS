@@ -1,17 +1,12 @@
-use super::{FontStyle, TextStyle, UiNode};
-use crate::render::{FrameTime, SpriteColorQueue};
+use super::{FontStyle, OverflowTextScroller, TextStyle, UiNode};
+use crate::render::SpriteColorQueue;
 use crate::resources::*;
 use crate::saves::Config;
 use framework::prelude::*;
 use itertools::Itertools;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::ops::Range;
 use std::rc::Rc;
-
-const MAX_TEXT_WIDTH: usize = 8;
-const FRAMES_PER_CHAR: FrameTime = 20;
-const END_CHAR_LINGER: usize = 1;
 
 enum CachedBindings {
     Keys(Vec<Key>),
@@ -41,7 +36,7 @@ pub struct UiConfigBinding {
     appending: bool,
     cached_bindings: CachedBindings,
     bound_text: String,
-    hover_time: FrameTime,
+    text_scroller: OverflowTextScroller,
     context_receiver: Option<flume::Receiver<Option<BindingContextOption>>>,
     context_requester: Box<dyn Fn(flume::Sender<Option<BindingContextOption>>)>,
 }
@@ -60,7 +55,7 @@ impl UiConfigBinding {
                 CachedBindings::Buttons(Vec::new())
             },
             bound_text: String::new(),
-            hover_time: 0,
+            text_scroller: OverflowTextScroller::new(),
             context_receiver: None,
             context_requester: Box::new(|_| {}),
         };
@@ -171,29 +166,6 @@ impl UiConfigBinding {
 
         &self.bound_text
     }
-
-    fn text_range(&self) -> Range<usize> {
-        let len = self.bound_text_str().len();
-        let max_end = len.max(MAX_TEXT_WIDTH) - MAX_TEXT_WIDTH;
-
-        let index_offset = if max_end == 0 {
-            0
-        } else {
-            let offset =
-                (self.hover_time / FRAMES_PER_CHAR) as usize % (max_end + END_CHAR_LINGER * 2 + 1);
-
-            if offset < END_CHAR_LINGER {
-                0
-            } else if offset > max_end {
-                // lingering
-                max_end
-            } else {
-                offset - END_CHAR_LINGER
-            }
-        };
-
-        index_offset..len.min(index_offset + MAX_TEXT_WIDTH)
-    }
 }
 
 impl UiNode for UiConfigBinding {
@@ -224,7 +196,8 @@ impl UiNode for UiConfigBinding {
         text_style.draw(game_io, sprite_queue, text);
 
         // draw binding
-        let text = &self.bound_text_str()[self.text_range()];
+        let range = self.text_scroller.text_range(&self.bound_text);
+        let text = &self.bound_text_str()[range];
 
         let metrics = text_style.measure(text);
         text_style.bounds.x += bounds.width - metrics.size.x - 1.0;
@@ -246,14 +219,14 @@ impl UiNode for UiConfigBinding {
 
     fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
         if !focused || self.binding {
-            self.hover_time = 0;
+            self.text_scroller.reset();
         }
 
         if !focused {
             return;
         }
 
-        self.hover_time += 1;
+        self.text_scroller.update();
 
         if let Some(receiver) = &self.context_receiver {
             if let Ok(selection) = receiver.try_recv() {
