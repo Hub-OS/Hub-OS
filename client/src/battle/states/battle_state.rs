@@ -123,10 +123,10 @@ impl State for BattleState {
             style.bounds.set_position(position);
 
             style.draw(game_io, sprite_queue, text);
+        } else {
+            // turn gauge
+            simulation.turn_gauge.draw(sprite_queue);
         }
-
-        // turn gauge
-        simulation.turn_gauge.draw(sprite_queue);
 
         // time freeze
         let time_freeze_tracker = &simulation.time_freeze_tracker;
