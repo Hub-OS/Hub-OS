@@ -443,20 +443,43 @@ impl ConfigScene {
     }
 
     fn generate_controller_menu(
-        game_io: &GameIO,
+        game_io: &mut GameIO,
         config: &Rc<RefCell<Config>>,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
-        let mut children: Vec<Box<dyn UiNode>> = vec![Box::new(
-            UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
-                let config = config.clone();
+        let mut children: Vec<Box<dyn UiNode>> = vec![
+            Box::new(UiConfigDynamicCycle::new(
+                game_io,
+                "Active Gamepad",
+                config.borrow().controller_index,
+                config.clone(),
+                |_, value| value.to_string(),
+                |game_io, mut config, previous_value, cycle_right| {
+                    let controllers = game_io.input().controllers();
 
-                move || {
-                    let mut config = config.borrow_mut();
-                    config.controller_bindings = Config::default_controller_bindings();
-                }
-            }),
-        )];
+                    let id =
+                        UiConfigDynamicCycle::cycle_slice(controllers, cycle_right, |controller| {
+                            controller.id() == *previous_value
+                        })
+                        .map(|controller| controller.id())
+                        .unwrap_or_default();
+
+                    config.controller_index = id;
+
+                    id
+                },
+            )),
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
+                    let config = config.clone();
+
+                    move || {
+                        let mut config = config.borrow_mut();
+                        config.controller_bindings = Config::default_controller_bindings();
+                    }
+                }),
+            ),
+        ];
 
         let binding_iter = Input::iter()
             .map(|option| {

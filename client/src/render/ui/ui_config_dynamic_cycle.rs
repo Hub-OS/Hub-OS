@@ -40,7 +40,7 @@ impl<T> UiConfigDynamicCycle<T> {
     }
 }
 
-impl<T: PartialEq> UiConfigDynamicCycle<T> {
+impl<T> UiConfigDynamicCycle<T> {
     pub fn cycle_slice(slice: &[T], cycle_right: bool, eq_test: impl Fn(&T) -> bool) -> Option<&T> {
         if cycle_right {
             let value_after_previous = slice.iter().skip_while(|value| !eq_test(*value)).nth(1);
