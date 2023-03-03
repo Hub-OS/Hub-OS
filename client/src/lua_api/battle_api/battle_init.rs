@@ -181,18 +181,20 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         BATTLE_INIT_TABLE,
         "enable_flipping",
         |api_ctx, lua, params| {
-            let (_, player_index): (rollback_mlua::Table, Option<usize>) =
+            let (_, enable, player_index): (rollback_mlua::Table, Option<bool>, Option<usize>) =
                 lua.unpack_multi(params)?;
+
+            let enable = enable.unwrap_or(true);
 
             let mut api_ctx = api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
 
             if let Some(index) = player_index {
                 if let Some(flippable) = simulation.config.player_flippable.get_mut(index) {
-                    *flippable = Some(true);
+                    *flippable = Some(enable);
                 }
             } else {
-                simulation.config.player_flippable.fill(Some(true));
+                simulation.config.player_flippable.fill(Some(enable));
             }
 
             lua.pack_multi(())
