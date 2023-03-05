@@ -89,9 +89,14 @@ pub enum ClientPacket {
     PostSelection {
         post_id: String,
     },
+    ShopOpen,
+    ShopLeave,
     ShopClose,
     ShopPurchase {
-        item_name: String,
+        item_id: String,
+    },
+    ShopDescriptionRequest {
+        item_id: String,
     },
     EncounterStart,
     BattleResults {

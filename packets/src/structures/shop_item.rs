@@ -2,15 +2,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ShopItem {
+    pub id: Option<String>,
     pub name: String,
-    pub description: String,
-    pub price: u32,
+    pub price_text: String,
 }
 
 impl ShopItem {
-    pub fn calc_size(&self) -> usize {
-        (std::mem::size_of::<String>() + self.name.len())
-            + (std::mem::size_of::<String>() + self.description.len())
-            + (std::mem::size_of::<u32>()) // price
+    pub fn id(&self) -> &str {
+        self.id.as_ref().unwrap_or(&self.name)
     }
 }

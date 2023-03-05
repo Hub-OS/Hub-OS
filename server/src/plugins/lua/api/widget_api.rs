@@ -1,5 +1,6 @@
 use super::lua_helpers::*;
 use super::LuaApi;
+use crate::net::ShopItem;
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -295,8 +296,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_open_shop", |api_ctx, lua_ctx, params| {
-        use crate::net::ShopItem;
-
         let (player_id, item_tables, mug_texture_path, mug_animation_path): (
             mlua::String,
             Vec<mlua::Table>,
@@ -317,15 +316,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             items.reserve(item_tables.len());
 
             for item_table in item_tables {
-                let name: String = item_table.get("name")?;
-                let description: String = item_table.get("description")?;
-                let price: u32 = item_table.get("price")?;
-
-                items.push(ShopItem {
-                    name,
-                    description,
-                    price,
-                });
+                items.push(table_to_shop_item(item_table)?);
             }
 
             net.open_shop(
@@ -338,4 +329,53 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         lua_ctx.pack_multi(())
     });
+
+    lua_api.add_dynamic_function("Net", "set_shop_message", |api_ctx, lua_ctx, params| {
+        let (player_id, message): (mlua::String, String) = lua_ctx.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.set_shop_message(player_id_str, message);
+
+        lua_ctx.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "update_shop_item", |api_ctx, lua_ctx, params| {
+        let (player_id, table): (mlua::String, mlua::Table) = lua_ctx.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.update_shop_item(player_id_str, table_to_shop_item(table)?);
+
+        lua_ctx.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "remove_shop_item", |api_ctx, lua_ctx, params| {
+        let (player_id, id): (mlua::String, String) = lua_ctx.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.remove_shop_item(player_id_str, id);
+
+        lua_ctx.pack_multi(())
+    });
+}
+
+fn table_to_shop_item(item_table: mlua::Table) -> mlua::Result<ShopItem> {
+    let id: Option<String> = item_table.get("id")?;
+    let name: String = item_table.get("name")?;
+    let price: mlua::Value = item_table.get("price")?;
+
+    let price_text = match price {
+        mlua::Value::Integer(n) => n.to_string(),
+        mlua::Value::Number(n) => n.to_string(),
+        mlua::Value::String(s) => String::from(s.to_str()?),
+        _ => String::new(),
+    };
+
+    Ok(ShopItem {
+        id,
+        name,
+        price_text,
+    })
 }

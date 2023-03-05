@@ -1,5 +1,6 @@
-use super::TextboxInterface;
+use super::{TextStyle, TextboxInterface};
 use crate::render::*;
+use framework::prelude::GameIO;
 
 pub type TextboxDoorstopRemover = Box<dyn FnOnce()>;
 
@@ -32,6 +33,11 @@ impl TextboxDoorstop {
         self.text = text.to_string();
         self
     }
+
+    pub fn with_string(mut self, text: String) -> Self {
+        self.text = text;
+        self
+    }
 }
 
 impl TextboxInterface for TextboxDoorstop {
@@ -43,22 +49,13 @@ impl TextboxInterface for TextboxDoorstop {
         self.complete
     }
 
-    fn update(
-        &mut self,
-        _game_io: &mut framework::prelude::GameIO,
-        _text_style: &super::TextStyle,
-        _lines: usize,
-    ) {
+    fn update(&mut self, _game_io: &mut GameIO, _text_style: &TextStyle, _lines: usize) {
         if self.receiver.try_recv().is_ok() {
             self.complete = true;
         }
     }
 
-    fn draw(
-        &mut self,
-        _game_io: &framework::prelude::GameIO,
-        _sprite_queue: &mut SpriteColorQueue,
-    ) {
+    fn draw(&mut self, _game_io: &GameIO, _sprite_queue: &mut SpriteColorQueue) {
         // no ui
     }
 }

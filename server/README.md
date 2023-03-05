@@ -445,14 +445,24 @@ Net:on("post_selection", function(event)
   print(event.player_id, event.post_id)
 end)
 
+Net:on("shop_leave", function(event)
+  -- { player_id: string }
+  print(event.player_id)
+end)
+
 Net:on("shop_close", function(event)
   -- { player_id: string }
   print(event.player_id)
 end)
 
 Net:on("shop_purchase", function(event)
-  -- { player_id: string, item_name: string }
-  print(event.player_id, event.item_name)
+  -- { player_id: string, item_id: string }
+  print(event.player_id, event.item_id)
+end)
+
+Net:on("shop_description_request", function(event)
+  -- { player_id: string, item_id: string }
+  print(event.player_id, event.item_id)
 end)
 
 Net:on("battle_results", function(event)
@@ -668,9 +678,13 @@ Net.append_posts(player_id, posts, post_id?) -- unstable, issues arise when mult
 Net.remove_post(player_id, post_id) -- unstable, issues arise when multiple scripts create boards at the same time
 Net.close_bbs(player_id)
 
--- items = { name: string, description: string, price: number }[]
--- returns EventEmitter, re-emits shop_purchase, shop_close
+-- items = { id: string?, name: string, description: string, price: number | string }[]
+-- returns EventEmitter, re-emits shop_purchase, shop_description_request, shop_leave, shop_close
 Net.open_shop(player_id, items, mug_texture_path?, mug_animation_path?)
+Net.set_shop_message(player_id, message)
+-- item_data = { id: string?, name: string, price: number | string }
+Net.update_shop_item(player_id, item_data)
+Net.remove_shop_item(player_id, item_id)
 ```
 
 #### Player Data API

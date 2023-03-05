@@ -130,6 +130,10 @@ impl ResourcePaths {
     pub const OVERWORLD_WARP_ANIMATION: &str = "resources/scenes/overworld/warp.animation";
     pub const OVERWORLD_BBS: &str = "resources/scenes/overworld/bbs/bbs.png";
     pub const OVERWORLD_BBS_ANIMATION: &str = "resources/scenes/overworld/bbs/bbs.animation";
+    pub const OVERWORLD_SHOP_BG: &str = "resources/scenes/overworld/shop/bg.png";
+    pub const OVERWORLD_SHOP_BG_ANIMATION: &str = "resources/scenes/overworld/shop/bg.animation";
+    pub const OVERWORLD_SHOP: &str = "resources/scenes/overworld/shop/ui.png";
+    pub const OVERWORLD_SHOP_ANIMATION: &str = "resources/scenes/overworld/shop/ui.animation";
 
     // DeckListScene
     pub const DECKS_BG: &str = "resources/scenes/deck_list/bg.png";

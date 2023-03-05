@@ -50,8 +50,11 @@ pub trait PluginInterface {
     fn handle_board_close(&mut self, net: &mut Net, player_id: &str);
     fn handle_post_request(&mut self, net: &mut Net, player_id: &str);
     fn handle_post_selection(&mut self, net: &mut Net, player_id: &str, post_id: &str);
+    fn handle_shop_open(&mut self, net: &mut Net, player_id: &str);
+    fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str);
     fn handle_shop_close(&mut self, net: &mut Net, player_id: &str);
-    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, post_id: &str);
+    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str);
+    fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str);
     fn handle_battle_results(
         &mut self,
         net: &mut Net,

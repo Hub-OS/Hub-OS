@@ -894,9 +894,7 @@ impl Net {
         mug_texture_path: &str,
         mug_animation_path: &str,
     ) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -907,16 +905,55 @@ impl Net {
         packet_orchestrator.send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::ShopInventory { items },
+            ServerPacket::OpenShop {
+                mug_texture_path: mug_texture_path.to_string(),
+                mug_animation_path: mug_animation_path.to_string(),
+            },
         );
 
         packet_orchestrator.send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::OpenShop {
-                mug_texture_path: mug_texture_path.to_string(),
-                mug_animation_path: mug_animation_path.to_string(),
-            },
+            ServerPacket::ShopInventory { items },
+        );
+    }
+
+    pub fn set_shop_message(&mut self, player_id: &str, message: String) {
+        let Some(client) = self.clients.get_mut(player_id) else {
+            return;
+        };
+
+        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+        packet_orchestrator.send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::ShopMessage { message },
+        );
+    }
+
+    pub fn update_shop_item(&mut self, player_id: &str, item: ShopItem) {
+        let Some(client) = self.clients.get_mut(player_id) else {
+            return;
+        };
+
+        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+        packet_orchestrator.send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::UpdateShopItem { item },
+        );
+    }
+
+    pub fn remove_shop_item(&mut self, player_id: &str, id: String) {
+        let Some(client) = self.clients.get_mut(player_id) else {
+            return;
+        };
+
+        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+        packet_orchestrator.send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::RemoveShopItem { id },
         );
     }
 

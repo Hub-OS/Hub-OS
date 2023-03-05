@@ -492,15 +492,43 @@ impl Server {
                     self.packet_orchestrator.borrow_mut().send(
                         socket_address,
                         Reliability::ReliableOrdered,
-                        ServerPacket::PostSelectionAck,
+                        ServerPacket::SelectionAck,
+                    );
+                }
+                ClientPacket::ShopOpen => {
+                    self.plugin_wrapper.handle_shop_open(net, player_id);
+                }
+                ClientPacket::ShopLeave => {
+                    self.plugin_wrapper.handle_shop_leave(net, player_id);
+
+                    self.packet_orchestrator.borrow_mut().send(
+                        socket_address,
+                        Reliability::ReliableOrdered,
+                        ServerPacket::SelectionAck,
                     );
                 }
                 ClientPacket::ShopClose => {
                     self.plugin_wrapper.handle_shop_close(net, player_id);
                 }
-                ClientPacket::ShopPurchase { item_name } => {
+                ClientPacket::ShopPurchase { item_id } => {
                     self.plugin_wrapper
-                        .handle_shop_purchase(net, player_id, &item_name);
+                        .handle_shop_purchase(net, player_id, &item_id);
+
+                    self.packet_orchestrator.borrow_mut().send(
+                        socket_address,
+                        Reliability::ReliableOrdered,
+                        ServerPacket::SelectionAck,
+                    );
+                }
+                ClientPacket::ShopDescriptionRequest { item_id } => {
+                    self.plugin_wrapper
+                        .handle_shop_description_request(net, player_id, &item_id);
+
+                    self.packet_orchestrator.borrow_mut().send(
+                        socket_address,
+                        Reliability::ReliableOrdered,
+                        ServerPacket::SelectionAck,
+                    );
                 }
                 ClientPacket::EncounterStart => {
                     if let Some(client) = net.get_client_mut(player_id) {

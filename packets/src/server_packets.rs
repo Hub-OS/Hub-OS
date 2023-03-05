@@ -173,14 +173,23 @@ pub enum ServerPacket {
     RemovePost {
         id: String,
     },
-    PostSelectionAck,
+    SelectionAck,
     CloseBBS,
-    ShopInventory {
-        items: Vec<ShopItem>,
-    },
     OpenShop {
         mug_texture_path: String,
         mug_animation_path: String,
+    },
+    ShopInventory {
+        items: Vec<ShopItem>,
+    },
+    ShopMessage {
+        message: String,
+    },
+    UpdateShopItem {
+        item: ShopItem,
+    },
+    RemoveShopItem {
+        id: String,
     },
     OfferPackage {
         name: String,

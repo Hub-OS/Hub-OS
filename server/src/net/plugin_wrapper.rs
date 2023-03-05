@@ -236,6 +236,30 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
+    fn handle_shop_open(&mut self, net: &mut Net, player_id: &str) {
+        if let Some(client) = net.get_client_mut(player_id) {
+            client.widget_tracker.open_shop();
+
+            if let Some(i) = client.widget_tracker.current_shop() {
+                self.wrap_call(*i, net, |plugin_interface, net| {
+                    plugin_interface.handle_shop_open(net, player_id)
+                });
+            }
+        }
+    }
+
+    fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str) {
+        if let Some(client) = net.get_client_mut(player_id) {
+            client.widget_tracker.open_shop();
+
+            if let Some(i) = client.widget_tracker.current_shop() {
+                self.wrap_call(*i, net, |plugin_interface, net| {
+                    plugin_interface.handle_shop_leave(net, player_id)
+                });
+            }
+        }
+    }
+
     fn handle_shop_close(&mut self, net: &mut Net, player_id: &str) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.close_shop() {
@@ -246,11 +270,21 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_name: &str) {
+    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.current_shop() {
                 self.wrap_call(*i, net, |plugin_interface, net| {
-                    plugin_interface.handle_shop_purchase(net, player_id, item_name)
+                    plugin_interface.handle_shop_purchase(net, player_id, item_id)
+                });
+            }
+        }
+    }
+
+    fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+        if let Some(client) = net.get_client_mut(player_id) {
+            if let Some(i) = client.widget_tracker.current_shop() {
+                self.wrap_call(*i, net, |plugin_interface, net| {
+                    plugin_interface.handle_shop_description_request(net, player_id, item_id)
                 });
             }
         }
