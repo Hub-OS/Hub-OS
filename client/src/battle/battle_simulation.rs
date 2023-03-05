@@ -954,22 +954,38 @@ impl BattleSimulation {
                     simulation.pending_callbacks.push(callback);
                 }
 
-                // spawn shine fx
-                let mut full_position = entity.full_position();
-                full_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+                // spawn shine fx & alert fx
+                let mut shine_position = entity.full_position();
+                shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
+                // play revert sfx
+                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
+
+                let mut alert_position = entity.full_position();
+                alert_position.offset += Vec2::new(0.0, -entity.height);
+                
+                let alert_id = simulation.create_alert(game_io);
+                let alert_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(alert_id.into())
+                    .unwrap();
+
+                alert_entity.copy_full_position(alert_position);
+                alert_entity.pending_spawn = true;
+
+                // play revert sound effect
+                simulation.play_sound(game_io, revert_sfx);
+
+                // actual shine creation as indicated above
                 let shine_id = simulation.create_transformation_shine(game_io);
                 let shine_entity = simulation
                     .entities
                     .query_one_mut::<&mut Entity>(shine_id.into())
                     .unwrap();
 
-                shine_entity.copy_full_position(full_position);
+                // shine position, set to spawn
+                shine_entity.copy_full_position(shine_position);
                 shine_entity.pending_spawn = true;
-
-                // play revert sfx
-                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
-                simulation.play_sound(game_io, revert_sfx);
             },
         ));
 
@@ -1187,14 +1203,14 @@ impl BattleSimulation {
         let id = self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_POOF,
-            ResourcePaths::BATTLE_POOF_ANIMATION
+            ResourcePaths::BATTLE_POOF_ANIMATION,
         );
 
         let entity = self
             .entities
             .query_one_mut::<&mut Entity>(id.into())
             .unwrap();
-        
+
         // Revisit - does Poof make a sound by default?
         entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
             // simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().explode_sfx);
