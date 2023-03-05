@@ -61,8 +61,8 @@ local directions = {
 
 function Direction.from_offset(x, y)
   local angle = math.atan(y, x)
-  local direction_index = math.floor(angle / math.pi * 4) + 5
-  return directions[direction_index]
+  local direction_index = math.floor(angle / math.pi * 4 + 4.5)
+  return directions[direction_index % 8 + 1]
 end
 
 function Direction.diagonal_from_offset(x, y)
