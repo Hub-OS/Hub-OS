@@ -38,6 +38,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_constructor_fn(lua_api, EXPLOSION_TABLE, |api_ctx| {
         Ok(api_ctx.simulation.create_explosion(api_ctx.game_io))
     });
+    generate_constructor_fn(lua_api, POOF_TABLE, |api_ctx| {
+        Ok(api_ctx.simulation.create_poof(api_ctx.game_io))
+    });
+    generate_constructor_fn(lua_api, ALERT_TABLE, |api_ctx| {
+        Ok(api_ctx.simulation.create_alert(api_ctx.game_io))
+    });
 
     generate_cast_fn::<&Artifact>(lua_api, ARTIFACT_TABLE);
     generate_cast_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, SPELL_TABLE);

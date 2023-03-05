@@ -202,6 +202,10 @@ impl ResourcePaths {
     pub const BATTLE_SPLASH_ANIMATION: &str = "resources/scenes/battle/splash.animation";
     pub const BATTLE_STATUSES: &str = "resources/scenes/battle/statuses.png";
     pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
+    pub const BATTLE_POOF: &str = "resources/scenes/battle/poof.png";
+    pub const BATTLE_POOF_ANIMATION: &str = "resources/scenes/battle/poof.animation";
+    pub const BATTLE_ALERT: &str = "resources/scenes/battle/alert.png";
+    pub const BATTLE_ALERT_ANIMATION: &str = "resources/scenes/battle/alert.animation";
 
     // ConfigScene
     pub const CONFIG_LAYOUT_ANIMATION: &str = "resources/scenes/config/layout.animation";
