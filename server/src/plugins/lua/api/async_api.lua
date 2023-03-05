@@ -355,6 +355,14 @@ Net:on("shop_purchase", function(event)
   shop_emitters[event.player_id][1]:emit("shop_purchase", event)
 end)
 
+Net:on("shop_description_request", function(event)
+  shop_emitters[event.player_id][1]:emit("shop_description_request", event)
+end)
+
+Net:on("shop_leave", function(event)
+  shop_emitters[event.player_id][1]:emit("shop_leave", event)
+end)
+
 Net:on("shop_close", function(event)
   local emitter = table.remove(shop_emitters[event.player_id], 1)
   emitter:emit("shop_close", event)

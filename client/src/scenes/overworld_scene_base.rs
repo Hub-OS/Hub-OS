@@ -92,7 +92,7 @@ impl OverworldSceneBase {
         entities.spawn((
             Sprite::new(game_io, texture),
             animator,
-            PlayerMinimapMarker::new_player(),
+            PlayerMapMarker::new_player(),
             MovementAnimator::new(),
             position,
             ActorCollider {
@@ -233,25 +233,27 @@ impl Scene for OverworldSceneBase {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        // draw background
-        self.background.draw(game_io, render_pass);
-
         // draw sprites in world space
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.world_camera, SpriteColorMode::Multiply);
 
-        for i in 0..self.map.tile_layers().len() {
-            self.map
-                .draw_tile_layer(game_io, &mut sprite_queue, &self.world_camera, i);
+        if !self.menu_manager.is_blocking_view() {
+            // draw background
+            self.background.draw(game_io, render_pass);
 
-            self.map
-                .draw_objects_with_entities(&mut sprite_queue, &self.entities, i);
+            for i in 0..self.map.tile_layers().len() {
+                self.map
+                    .draw_tile_layer(game_io, &mut sprite_queue, &self.world_camera, i);
+
+                self.map
+                    .draw_objects_with_entities(&mut sprite_queue, &self.entities, i);
+            }
+
+            player_interaction_debug_render(game_io, self, &mut sprite_queue);
+
+            // draw foreground
+            self.foreground.draw(game_io, render_pass);
         }
-
-        player_interaction_debug_render(game_io, self, &mut sprite_queue);
-
-        // draw foreground
-        self.foreground.draw(game_io, render_pass);
 
         // draw ui
         sprite_queue.update_camera(&self.ui_camera);
@@ -262,7 +264,8 @@ impl Scene for OverworldSceneBase {
             self.health_ui.draw(game_io, &mut sprite_queue);
         }
 
-        self.menu_manager.draw(game_io, &mut sprite_queue);
+        self.menu_manager
+            .draw(game_io, render_pass, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }

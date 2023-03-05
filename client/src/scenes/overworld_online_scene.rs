@@ -755,7 +755,7 @@ impl OverworldOnlineScene {
                     bbs.remove_post(&id);
                 }
             }
-            ServerPacket::PostSelectionAck => {
+            ServerPacket::SelectionAck => {
                 self.base_scene.menu_manager.acknowledge_selection();
             }
             ServerPacket::CloseBBS => {
@@ -763,13 +763,95 @@ impl OverworldOnlineScene {
                     bbs.close();
                 }
             }
-            ServerPacket::ShopInventory { items } => {
-                log::warn!("ShopInventory hasn't been implemented")
-            }
             ServerPacket::OpenShop {
                 mug_texture_path,
                 mug_animation_path,
-            } => log::warn!("OpenShop hasn't been implemented"),
+            } => {
+                let send_packet = self.send_packet.clone();
+
+                // let the server know shop selections from now on are for this shop
+                send_packet(Reliability::ReliableOrdered, ClientPacket::ShopOpen);
+
+                let on_select = {
+                    let send_packet = self.send_packet.clone();
+
+                    move |id: &str| {
+                        send_packet(
+                            Reliability::ReliableOrdered,
+                            ClientPacket::ShopPurchase {
+                                item_id: id.to_string(),
+                            },
+                        );
+                    }
+                };
+
+                let on_description_request = {
+                    let send_packet = self.send_packet.clone();
+
+                    move |id: &str| {
+                        send_packet(
+                            Reliability::ReliableOrdered,
+                            ClientPacket::ShopDescriptionRequest {
+                                item_id: id.to_string(),
+                            },
+                        );
+                    }
+                };
+
+                let on_leave = {
+                    let send_packet = self.send_packet.clone();
+
+                    move || {
+                        send_packet(Reliability::ReliableOrdered, ClientPacket::ShopLeave);
+                    }
+                };
+
+                let on_close = {
+                    let send_packet = self.send_packet.clone();
+
+                    move || {
+                        send_packet(Reliability::ReliableOrdered, ClientPacket::ShopClose);
+                    }
+                };
+
+                self.base_scene.menu_manager.open_shop(
+                    game_io,
+                    on_select,
+                    on_description_request,
+                    on_leave,
+                    on_close,
+                );
+
+                let shop = self.base_scene.menu_manager.shop_mut().unwrap();
+
+                shop.set_shop_avatar(
+                    game_io,
+                    &self.assets,
+                    &mug_texture_path,
+                    &mug_animation_path,
+                );
+                shop.set_money(self.base_scene.player_data.money);
+            }
+            ServerPacket::ShopInventory { items } => {
+                if let Some(shop) = self.base_scene.menu_manager.shop_mut() {
+                    shop.set_items(items);
+                }
+            }
+            ServerPacket::ShopMessage { message } => {
+                if let Some(shop) = self.base_scene.menu_manager.shop_mut() {
+                    shop.set_message(message);
+                }
+            }
+            ServerPacket::UpdateShopItem { item } => {
+                if let Some(shop) = self.base_scene.menu_manager.shop_mut() {
+                    shop.update_item(item);
+                }
+            }
+            ServerPacket::RemoveShopItem { id } => {
+                if let Some(shop) = self.base_scene.menu_manager.shop_mut() {
+                    shop.remove_item(&id);
+                }
+            }
             ServerPacket::OfferPackage {
                 id,
                 name,
@@ -923,7 +1005,7 @@ impl OverworldOnlineScene {
                 scale_x,
                 scale_y,
                 rotation,
-                minimap_color,
+                map_color,
                 animation,
             } => {
                 let tile_position = Vec3::new(x, y, z);
@@ -958,12 +1040,12 @@ impl OverworldOnlineScene {
                     let entities = &mut self.base_scene.entities;
 
                     // tweak existing properties
-                    let (sprite, direction, collider, minimap_marker) = entities
+                    let (sprite, direction, collider, map_marker) = entities
                         .query_one_mut::<(
                             &mut Sprite,
                             &mut Direction,
                             &mut ActorCollider,
-                            &mut PlayerMinimapMarker,
+                            &mut PlayerMapMarker,
                         )>(entity)
                         .unwrap();
 
@@ -971,7 +1053,7 @@ impl OverworldOnlineScene {
                     sprite.set_rotation(rotation);
                     *direction = initial_direction;
                     collider.solid = solid;
-                    minimap_marker.color = minimap_color.into();
+                    map_marker.color = map_color.into();
 
                     // setup remote player specific components
                     let _ = entities.insert(
@@ -1153,14 +1235,13 @@ impl OverworldOnlineScene {
                     ActorPropertyAnimator::start(game_io, &self.assets, entities, *entity);
                 }
             }
-            ServerPacket::ActorMinimapColor { actor_id, color } => {
+            ServerPacket::ActorMapColor { actor_id, color } => {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let entities = &mut self.base_scene.entities;
 
-                    if let Ok(minimap_marker) =
-                        entities.query_one_mut::<&mut PlayerMinimapMarker>(*entity)
+                    if let Ok(map_marker) = entities.query_one_mut::<&mut PlayerMapMarker>(*entity)
                     {
-                        minimap_marker.color = Color::from(color);
+                        map_marker.color = Color::from(color);
                     }
                 }
             }

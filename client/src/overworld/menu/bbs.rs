@@ -186,7 +186,12 @@ impl Bbs {
         self.unread_animator.update();
     }
 
-    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw(
+        &mut self,
+        game_io: &GameIO,
+        _: &mut RenderPass,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
         for sprite in &self.static_sprites {
             sprite_queue.draw_sprite(sprite);
         }

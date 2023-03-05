@@ -210,28 +210,6 @@ pub fn inject_card_action_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_step_api(lua_api: &mut BattleLuaApi) {
-    // todo: CardAction::add_step and remove create_step?
-    // lua_api.add_dynamic_function(
-    //     CARD_ACTION_TABLE,
-    //     "add_step",
-    //     move |api_ctx, lua, params| {
-    //         let (table, step): (rollback_mlua::Table, rollback_mlua::Table) = lua.unpack_multi(params)?;
-
-    //         let id: GenerationalIndex = table.raw_get("#id")?;
-
-    //         let mut api_ctx = api_ctx.borrow_mut();
-    //         let card_actions = &mut api_ctx.simulation.card_actions;
-    //         let card_action = card_actions
-    //             .get_mut(id.into())
-    //             .ok_or_else(card_action_not_found)?;
-
-    //         // todo: maybe make this create_step instead and generate the step here?
-    //         // card_action.steps.push(value);
-
-    //         lua.pack_multi(create_entity_table(lua, card_action.entity)?)
-    //     },
-    // );
-
     lua_api.add_dynamic_function(
         CARD_ACTION_TABLE,
         "create_step",

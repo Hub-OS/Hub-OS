@@ -84,7 +84,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 scale_x: 1.0,
                 scale_y: 1.0,
                 rotation: 0.0,
-                minimap_color: (0, 0, 0, 0),
+                map_color: (0, 0, 0, 0),
                 current_animation: animation,
                 solid: solid.unwrap_or_default(),
             };
@@ -268,28 +268,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua_ctx.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(
-        "Net",
-        "set_bot_minimap_color",
-        |api_ctx, lua_ctx, params| {
-            let (bot_id, color_table): (mlua::String, mlua::Table) =
-                lua_ctx.unpack_multi(params)?;
-            let bot_id_str = bot_id.to_str()?;
+    lua_api.add_dynamic_function("Net", "set_bot_map_color", |api_ctx, lua_ctx, params| {
+        let (bot_id, color_table): (mlua::String, mlua::Table) = lua_ctx.unpack_multi(params)?;
+        let bot_id_str = bot_id.to_str()?;
 
-            let mut net = api_ctx.net_ref.borrow_mut();
+        let mut net = api_ctx.net_ref.borrow_mut();
 
-            let color = (
-                color_table.get("r")?,
-                color_table.get("g")?,
-                color_table.get("b")?,
-                color_table.get("a").unwrap_or(255),
-            );
+        let color = (
+            color_table.get("r")?,
+            color_table.get("g")?,
+            color_table.get("b")?,
+            color_table.get("a").unwrap_or(255),
+        );
 
-            net.set_bot_minimap_color(bot_id_str, color);
+        net.set_bot_map_color(bot_id_str, color);
 
-            lua_ctx.pack_multi(())
-        },
-    );
+        lua_ctx.pack_multi(())
+    });
 
     lua_api.add_dynamic_function("Net", "transfer_bot", |api_ctx, lua_ctx, params| {
         let (bot_id, area_id, warp_in_option, x_option, y_option, z_option): (

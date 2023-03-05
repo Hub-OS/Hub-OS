@@ -49,7 +49,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
-    lua_api.add_dynamic_function("Net", "map_to_string", |api_ctx, lua_ctx, params| {
+    lua_api.add_dynamic_function("Net", "area_to_string", |api_ctx, lua_ctx, params| {
         let area_id: mlua::String = lua_ctx.unpack_multi(params)?;
         let area_id_str = area_id.to_str()?;
 

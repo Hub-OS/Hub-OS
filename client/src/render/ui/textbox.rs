@@ -64,6 +64,8 @@ pub struct Textbox {
     char_time: FrameTime,
     text_offset: Vec2,
     text_style: TextStyle,
+    transition_animation_enabled: bool,
+    text_animation_enabled: bool,
     effect_processor: TextboxEffectProcessor,
 }
 
@@ -112,6 +114,8 @@ impl Textbox {
                 .with_bounds(text_bounds)
                 .with_color(Color::BLACK)
                 .with_line_spacing(3.0),
+            transition_animation_enabled: true,
+            text_animation_enabled: true,
             effect_processor: TextboxEffectProcessor::new(),
         };
 
@@ -171,6 +175,32 @@ impl Textbox {
         self
     }
 
+    pub fn with_transition_animation_enabled(mut self, enable: bool) -> Self {
+        self.transition_animation_enabled = enable;
+        self
+    }
+
+    pub fn with_text_animation_enabled(mut self, enable: bool) -> Self {
+        self.text_animation_enabled = enable;
+        self
+    }
+
+    pub fn is_transition_animation_enabled(&self) -> bool {
+        self.transition_animation_enabled
+    }
+
+    pub fn set_transition_animation_enabled(&mut self, enable: bool) {
+        self.transition_animation_enabled = enable;
+    }
+
+    pub fn is_text_animation_enabled(&self) -> bool {
+        self.text_animation_enabled
+    }
+
+    pub fn set_text_animation_enabled(&mut self, enable: bool) {
+        self.text_animation_enabled = enable;
+    }
+
     pub fn push_interface(&mut self, interface: impl TextboxInterface + 'static) {
         if let Some((_, _, count)) = self.avatar_queue.back_mut() {
             *count += 1;
@@ -200,7 +230,12 @@ impl Textbox {
             return;
         }
 
-        self.animator.set_state("OPEN");
+        if self.transition_animation_enabled {
+            self.animator.set_state("OPEN");
+        } else {
+            self.animator.set_state("IDLE");
+        }
+
         self.is_open = true;
     }
 
@@ -209,7 +244,9 @@ impl Textbox {
     }
 
     pub fn close(&mut self) {
-        if self.animator.current_state() != Some("CLOSE") {
+        if !self.transition_animation_enabled {
+            self.is_open = false;
+        } else if !self.is_closing() {
             self.animator.set_state("CLOSE");
         }
     }
@@ -306,7 +343,9 @@ impl Textbox {
         let is_last_page = self.page_queue.len() == 1;
         let page_completed = self.text_index == page.range.end;
 
-        if !page_completed {
+        if !self.text_animation_enabled && !page_completed {
+            self.skip_animation(game_io);
+        } else if !page_completed {
             // try advancing character
             self.char_time += 1;
 
@@ -386,7 +425,7 @@ impl Textbox {
             || current_char.is_whitespace()
             || current_char.is_punctuation();
 
-        if !silent_char {
+        if !silent_char && self.text_animation_enabled {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.text_blip_sfx);
         }

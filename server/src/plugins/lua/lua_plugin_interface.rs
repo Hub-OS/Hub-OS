@@ -652,6 +652,39 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
+    fn handle_shop_open(&mut self, _: &mut Net, player_id: &str) {
+        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+
+        tracker.open_shop();
+    }
+
+    fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str) {
+        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+
+        let script_index = if let Some(script_index) = tracker.close_shop() {
+            script_index
+        } else {
+            // protect against attackers
+            return;
+        };
+
+        handle_event(
+            &mut self.scripts,
+            &[script_index],
+            &mut self.widget_trackers,
+            &mut self.battle_trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua_ctx, callback| {
+                let event = lua_ctx.create_table()?;
+                event.set("player_id", player_id)?;
+
+                callback.call(("shop_leave", event))
+            },
+        );
+    }
+
     fn handle_shop_close(&mut self, net: &mut Net, player_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
@@ -679,7 +712,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_name: &str) {
+    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
         let script_index = if let Some(script_index) = tracker.current_shop() {
@@ -700,9 +733,37 @@ impl PluginInterface for LuaPluginInterface {
             |lua_ctx, callback| {
                 let event = lua_ctx.create_table()?;
                 event.set("player_id", player_id)?;
-                event.set("item_name", item_name)?;
+                event.set("item_id", item_id)?;
 
                 callback.call(("shop_purchase", event))
+            },
+        );
+    }
+
+    fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+
+        let script_index = if let Some(script_index) = tracker.current_shop() {
+            *script_index
+        } else {
+            // protect against attackers
+            return;
+        };
+
+        handle_event(
+            &mut self.scripts,
+            &[script_index],
+            &mut self.widget_trackers,
+            &mut self.battle_trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua_ctx, callback| {
+                let event = lua_ctx.create_table()?;
+                event.set("player_id", player_id)?;
+                event.set("item_id", item_id)?;
+
+                callback.call(("shop_description_request", event))
             },
         );
     }
