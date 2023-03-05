@@ -541,24 +541,23 @@ fn transfer_to_deck(
 
     match package.card_properties.card_class {
         CardClass::Mega => {
-            let mega_count = deck_dock
-                .card_items()
-                .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
-                .filter(|package| package.card_properties.card_class == CardClass::Mega)
-                .count();
+            let mega_count = deck_dock.count_class(card_manager, CardClass::Mega);
 
             if mega_count >= scene.mega_limit {
                 return None;
             }
         }
         CardClass::Giga => {
-            let giga_count = deck_dock
-                .card_items()
-                .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
-                .filter(|package| package.card_properties.card_class == CardClass::Giga)
-                .count();
+            let giga_count = deck_dock.count_class(card_manager, CardClass::Giga);
 
             if giga_count >= scene.giga_limit {
+                return None;
+            }
+        }
+        CardClass::Dark => {
+            let dark_count = deck_dock.count_class(card_manager, CardClass::Dark);
+
+            if dark_count >= MAX_DARK {
                 return None;
             }
         }
@@ -701,6 +700,17 @@ impl Dock {
 
     fn card_items(&self) -> impl Iterator<Item = &CardListItem> {
         self.card_slots.iter().flat_map(|item| item.as_ref())
+    }
+
+    fn count_class(
+        &self,
+        card_manager: &PackageManager<CardPackage>,
+        card_class: CardClass,
+    ) -> usize {
+        self.card_items()
+            .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
+            .filter(|package| package.card_properties.card_class == card_class)
+            .count()
     }
 
     fn update_card_count(&mut self) {
