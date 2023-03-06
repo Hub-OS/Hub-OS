@@ -110,7 +110,7 @@ impl TextStyle {
             self.iterate_slice(text, range.clone(), |frame, position| {
                 frame.apply(&mut sprite);
 
-                sprite.set_position(position + Vec2::ONE);
+                sprite.set_position(position + self.scale);
                 sprite_queue.draw_sprite(&sprite);
             });
         }
