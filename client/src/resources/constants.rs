@@ -17,6 +17,7 @@ pub const MAX_VOLUME: u8 = 100;
 pub const MAX_CARDS: usize = 30;
 pub const MAX_MEGA: usize = 5;
 pub const MAX_GIGA: usize = 1;
+pub const MAX_DARK: usize = 3;
 
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 

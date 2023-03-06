@@ -6,6 +6,7 @@ use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 
 const RANGE_EXTENSION: f32 = 4.0;
+const RADIUS_MULTIPLIER: f32 = 2.5;
 
 pub fn system_player_interaction(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     let player_data = &mut scene.player_data;
@@ -50,7 +51,9 @@ pub fn system_player_interaction(game_io: &mut GameIO, scene: &mut OverworldScen
 
         let dist_squared = position.xy().distance_squared(interaction_point.xy());
 
-        if dist_squared > radius * radius {
+        let interaction_radius = radius * RADIUS_MULTIPLIER;
+
+        if dist_squared > interaction_radius * interaction_radius {
             // point was not in the collision radius
             continue;
         }

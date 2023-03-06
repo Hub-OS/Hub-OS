@@ -1180,30 +1180,19 @@ impl BattleSimulation {
     }
 
     pub fn create_alert(&mut self, game_io: &GameIO) -> EntityId {
-        let id = self.create_animated_artifact(
+        self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_ALERT,
             ResourcePaths::BATTLE_ALERT_ANIMATION,
-        );
-
-        let entity = self
-            .entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .unwrap();
-
-        //revisit - does this make a sound by default?
-        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
-            // simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().trap_sfx);
-        });
-
-        id
+        )
     }
 
     pub fn create_poof(&mut self, game_io: &GameIO) -> EntityId {
-        let id = self.create_animated_artifact(
+        self.create_animated_artifact(
             game_io,
             ResourcePaths::BATTLE_POOF,
             ResourcePaths::BATTLE_POOF_ANIMATION,
+
         );
 
         let entity = self
@@ -1217,6 +1206,8 @@ impl BattleSimulation {
         });
 
         id
+
+        )
     }
 
     pub fn create_transformation_shine(&mut self, game_io: &GameIO) -> EntityId {
