@@ -18,13 +18,9 @@ lazy_static::lazy_static! {
     );
 }
 
-lazy_static::lazy_static! {
-    static ref MOD_CACHE_FOLDER: String =
-        std::env::temp_dir().to_string_lossy().to_string() + "/" + env!("CARGO_PKG_NAME") + "/local_packages/";
-}
-
 impl ResourcePaths {
-    pub const CACHE_FOLDER: &str = "cache/";
+    pub const SERVER_CACHE_FOLDER: &str = "cache/servers/";
+    pub const MOD_CACHE_FOLDER: &str = "cache/mods/";
     pub const IDENTITY_FOLDER: &str = "identity/";
     pub const VIRTUAL_PREFIX: &str = "/virtual/";
     pub const SEPARATOR: &str = "/";
@@ -228,10 +224,6 @@ impl ResourcePaths {
         &GAME_PATH
     }
 
-    pub fn mod_cache_folder() -> &'static str {
-        &MOD_CACHE_FOLDER
-    }
-
     pub fn is_absolute(path_str: &str) -> bool {
         use std::path::Path;
 
@@ -262,9 +254,5 @@ impl ResourcePaths {
         } else {
             path_str.to_string()
         }
-    }
-
-    pub fn delete_mod_cache_folder() {
-        let _ = std::fs::remove_dir_all(ResourcePaths::mod_cache_folder());
     }
 }

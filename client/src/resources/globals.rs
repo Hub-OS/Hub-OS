@@ -203,6 +203,38 @@ impl Globals {
         self.network.tick();
     }
 
+    pub fn packages(&self, namespace: PackageNamespace) -> impl Iterator<Item = &PackageInfo> {
+        (self
+            .augment_packages
+            .packages(namespace)
+            .map(|package| &package.package_info))
+        .chain(
+            self.card_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.battle_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.library_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.player_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.character_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+    }
+
     pub fn load_virtual_package(
         &mut self,
         category: PackageCategory,
