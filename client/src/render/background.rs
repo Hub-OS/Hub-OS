@@ -161,11 +161,11 @@ impl Instance<BackgroundInstanceData> for Background {
 
         let x_increment = bounds.width.signum() * increment;
         bounds.x += x_increment;
-        bounds.width -= x_increment;
+        bounds.width -= x_increment * 2.0;
 
         let y_increment = bounds.height.signum() * increment;
         bounds.y += y_increment;
-        bounds.height -= y_increment;
+        bounds.height -= y_increment * 2.0;
 
         BackgroundInstanceData {
             scale,
