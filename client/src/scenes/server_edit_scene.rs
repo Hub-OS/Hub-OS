@@ -170,7 +170,9 @@ impl ServerEditScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
-            frame: SubSceneFrame::new(game_io).with_arms(true),
+            frame: SubSceneFrame::new(game_io)
+                .with_top_bar(true)
+                .with_arms(true),
             edit_prop,
             server_info,
             button_9patch,
@@ -191,6 +193,8 @@ impl Scene for ServerEditScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
+
         // update cursor
         let focused_index = self.ui_layout.focused_index().unwrap();
         let focused_bounds = self.ui_layout.get_bounds(focused_index).unwrap();

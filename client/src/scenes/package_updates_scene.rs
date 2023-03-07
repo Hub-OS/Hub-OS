@@ -76,7 +76,9 @@ impl PackageUpdatesScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
-            frame: SubSceneFrame::new(game_io).with_arms(true),
+            frame: SubSceneFrame::new(game_io)
+                .with_top_bar(true)
+                .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
             buttons: Self::create_buttons(game_io, &event_sender, button_bounds),
@@ -316,6 +318,7 @@ impl Scene for PackageUpdatesScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.handle_input(game_io);
         self.handle_events(game_io);
         self.handle_updater(game_io);

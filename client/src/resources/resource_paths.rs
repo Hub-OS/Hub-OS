@@ -136,10 +136,10 @@ impl ResourcePaths {
     pub const OVERWORLD_SHOP_ANIMATION: &str = "resources/scenes/overworld/shop/ui.animation";
 
     // DeckListScene
-    pub const DECKS_BG: &str = "resources/scenes/deck_list/bg.png";
     pub const DECKS_LAYOUT_ANIMATION: &str = "resources/scenes/deck_list/layout.animation";
     pub const DECKS_ENABLED: &str = "resources/scenes/deck_list/enabled.png";
     pub const DECKS_DISABLED: &str = "resources/scenes/deck_list/disabled.png";
+    pub const DECKS_FRAME: &str = "resources/scenes/deck_list/frame.png";
     pub const DECKS_CURSOR: &str = "resources/scenes/deck_list/cursor.png";
     pub const DECKS_CURSOR_ANIMATION: &str = "resources/scenes/deck_list/cursor.animation";
     pub const DECKS_EQUIPPED: &str = "resources/scenes/deck_list/equip.png";
@@ -159,8 +159,6 @@ impl ResourcePaths {
     pub const LIBRARY_DOCK_ANIMATION: &str = "resources/scenes/library/dock.animation";
 
     // CharacterScene
-    pub const CHARACTER_BG: &str = "resources/scenes/character_status/bg.png";
-    pub const CHARACTER_BG_ANIMATION: &str = "resources/scenes/character_status/bg.animation";
     pub const CHARACTER_PAGES: &str = "resources/scenes/character_status/pages.png";
     pub const CHARACTER_PAGES_ANIMATION: &str = "resources/scenes/character_status/pages.animation";
 

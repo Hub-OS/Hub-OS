@@ -1,7 +1,5 @@
-imagePath="visionBurstBG.png"
+imagePath="bg.png"
 
 animation state="BG"
-frame duration="110f" x="3" y="4" w="240" h="160" originx="0" originy="0"
-frame duration="20f" x="250" y="4" w="240" h="160" originx="0" originy="0"
-frame duration="54f" x="498" y="4" w="240" h="160" originx="0" originy="0"
-frame duration="22f" x="250" y="4" w="240" h="160" originx="0" originy="0"
+frame w="240" h="160"
+point label="VELOCITY" x="-0.25" y="0.0"

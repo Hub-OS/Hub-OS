@@ -10,6 +10,7 @@ use framework::prelude::*;
 pub struct LibraryScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     card_preview: FullCard,
     ui_input_tracker: UiInputTracker,
     page_tracker: PageTracker,
@@ -69,6 +70,7 @@ impl LibraryScene {
         let mut scene = Box::new(Self {
             camera,
             background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             card_preview: FullCard::new(game_io, card_position),
             page_tracker,
@@ -136,6 +138,7 @@ impl Scene for LibraryScene {
     fn update(&mut self, game_io: &mut GameIO) {
         // update camera
         self.camera.update(game_io);
+        self.background.update();
 
         // update page_tracker
         let previously_scrolling = self.page_tracker.animating();
@@ -159,6 +162,7 @@ impl Scene for LibraryScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw title
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new("LIBRARY").draw(game_io, &mut sprite_queue);
 
         // draw docks

@@ -97,7 +97,9 @@ impl ConfigScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
-            frame: SubSceneFrame::new(game_io).with_arms(true),
+            frame: SubSceneFrame::new(game_io)
+                .with_top_bar(true)
+                .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             primary_layout: Self::generate_category_menu(
                 game_io,
@@ -554,6 +556,7 @@ impl Scene for ConfigScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.update_cursor();
         self.handle_input(game_io);
         self.handle_events(game_io);

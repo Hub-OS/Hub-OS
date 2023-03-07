@@ -20,6 +20,7 @@ enum Event {
 pub struct ServerListScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     scrollable_frame: ScrollableFrame,
     status_animator: Animator,
     status_sprite: Sprite,
@@ -73,6 +74,7 @@ impl ServerListScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             scrollable_frame,
             status_animator: Animator::load_new(
                 assets,
@@ -322,6 +324,7 @@ impl Scene for ServerListScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.update_poll_task(game_io);
         self.handle_events(game_io);
 
@@ -430,7 +433,8 @@ impl Scene for ServerListScene {
         // render static pieces
         self.background.draw(game_io, render_pass);
 
-        SceneTitle::new("SERVERS").draw(game_io, &mut sprite_queue);
+        self.frame.draw(&mut sprite_queue);
+        SceneTitle::new("SERVER LIST").draw(game_io, &mut sprite_queue);
 
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 

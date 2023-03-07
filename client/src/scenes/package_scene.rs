@@ -75,7 +75,9 @@ impl PackageScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
-            frame: SubSceneFrame::new(game_io).with_arms(true),
+            frame: SubSceneFrame::new(game_io)
+                .with_top_bar(true)
+                .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             preview: PackagePreview::new(listing).with_position(preview_position),
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
@@ -453,6 +455,7 @@ impl Scene for PackageScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.preview.update(game_io);
 
         self.handle_input(game_io);
