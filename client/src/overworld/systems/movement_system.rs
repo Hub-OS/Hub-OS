@@ -1,13 +1,12 @@
-use crate::overworld::{components::*, Map, TileClass};
+use crate::overworld::{components::*, Map, OverworldArea, TileClass};
 use crate::resources::{OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::{Vec2, Vec3Swizzles};
 
 const COLLISION_RADIUS: f32 = 4.0;
 
-pub fn system_movement(scene: &mut OverworldSceneBase) {
-    let entities = &mut scene.entities;
-    let map = &mut scene.map;
+pub fn system_movement(area: &mut OverworldArea) {
+    let entities = &mut area.entities;
+    let map = &mut area.map;
 
     let mut query = entities.query::<(&mut MovementAnimator, &Vec3)>();
     let mut updates = Vec::new();

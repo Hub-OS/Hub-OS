@@ -1,7 +1,6 @@
 use super::find_state_from_movement;
-use crate::overworld::{components::*, TileClass};
+use crate::overworld::{components::*, OverworldArea, TileClass};
 use crate::resources::*;
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 use packets::structures::{ActorKeyFrame, ActorProperty, Ease};
 
@@ -11,24 +10,24 @@ const DEFAULT_TREADMILL_SPEED: f32 = 1.875;
 
 pub fn system_player_movement(
     game_io: &mut GameIO,
-    scene: &mut OverworldSceneBase,
+    area: &mut OverworldArea,
     assets: &impl AssetManager,
 ) {
-    system_base(game_io, scene);
-    system_tile_effect(game_io, scene, assets);
+    system_base(game_io, area);
+    system_tile_effect(game_io, area, assets);
 }
 
-fn system_base(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
+fn system_base(game_io: &mut GameIO, area: &mut OverworldArea) {
     let input_util = InputUtil::new(game_io);
 
-    let input_direction = if scene.is_input_locked(game_io) {
+    let input_direction = if area.is_input_locked(game_io) {
         Direction::None
     } else {
         input_util.direction()
     };
 
-    let player_data = &scene.player_data;
-    let entities = &mut scene.entities;
+    let player_data = &area.player_data;
+    let entities = &mut area.entities;
 
     let movement_animator = entities
         .query_one_mut::<&mut MovementAnimator>(player_data.entity)
@@ -46,13 +45,9 @@ fn system_base(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
     movement_animator.queue_direction(input_direction);
 }
 
-fn system_tile_effect(
-    game_io: &mut GameIO,
-    scene: &mut OverworldSceneBase,
-    assets: &impl AssetManager,
-) {
-    let player_data = &scene.player_data;
-    let entities = &mut scene.entities;
+fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &impl AssetManager) {
+    let player_data = &area.player_data;
+    let entities = &mut area.entities;
 
     if entities.satisfies::<&ActorPropertyAnimator>(player_data.entity) == Ok(true) {
         return;
@@ -66,7 +61,7 @@ fn system_tile_effect(
         return;
     }
 
-    let map = &scene.map;
+    let map = &area.map;
 
     let Some(layer) = map.tile_layer(position.z as usize) else {
         return;

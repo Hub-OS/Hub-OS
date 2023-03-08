@@ -1,9 +1,9 @@
 use crate::overworld::components::*;
+use crate::overworld::OverworldArea;
 use crate::render::AnimatorLoopMode;
-use crate::scenes::OverworldSceneBase;
 
-pub fn system_movement_animation(scene: &mut OverworldSceneBase) {
-    let entities = &mut scene.entities;
+pub fn system_movement_animation(area: &mut OverworldArea) {
+    let entities = &mut area.entities;
 
     let query = entities.query_mut::<(&mut MovementAnimator, &mut Animator, &mut Direction)>();
 

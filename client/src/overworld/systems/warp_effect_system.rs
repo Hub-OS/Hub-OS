@@ -1,15 +1,14 @@
-use crate::overworld::{components::*, Map, ObjectData};
+use crate::overworld::{components::*, Map, ObjectData, OverworldArea};
 use crate::render::FrameTime;
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::{GameIO, Vec3Swizzles};
 
 const WARP_IN_REVEAL_FRAME: usize = 4;
 const WARP_OUT_HIDE_FRAME: usize = 0;
 const WALK_OUT_TIME: FrameTime = 8;
 
-pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
-    let entities = &mut scene.entities;
-    let map = &mut scene.map;
+pub fn system_warp_effect(game_io: &mut GameIO, area: &mut OverworldArea) {
+    let entities = &mut area.entities;
+    let map = &mut area.map;
     let mut pending_action = Vec::new();
     let mut pending_removal = Vec::new();
 
@@ -74,7 +73,7 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
     }
 
     for (entity, actor_entity, callback) in pending_removal {
-        let entities = &mut scene.entities;
+        let entities = &mut area.entities;
         let _ = entities.despawn(entity);
 
         if let Ok(mut warp_controller) = entities.get::<&mut WarpController>(actor_entity) {
@@ -82,12 +81,12 @@ pub fn system_warp_effect(game_io: &mut GameIO, scene: &mut OverworldSceneBase) 
         }
 
         if let Some(callback) = callback {
-            callback(game_io, scene);
+            callback(game_io, area);
         }
     }
 
     for (warp_type, actor_entity) in pending_action {
-        let entities = &mut scene.entities;
+        let entities = &mut area.entities;
 
         match warp_type {
             WarpType::In {

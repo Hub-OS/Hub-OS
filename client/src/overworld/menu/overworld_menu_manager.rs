@@ -28,7 +28,7 @@ pub trait Menu {
     );
 }
 
-pub struct MenuManager {
+pub struct OverworldMenuManager {
     selection_needs_ack: bool,
     textbox: Textbox,
     shop_or_bbs_replaced: bool,
@@ -47,7 +47,7 @@ pub struct MenuManager {
     event_sender: flume::Sender<Event>,
 }
 
-impl MenuManager {
+impl OverworldMenuManager {
     pub fn new(game_io: &GameIO) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);

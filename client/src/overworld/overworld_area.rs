@@ -1,31 +1,26 @@
-use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
 use crate::overworld::*;
-use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use std::sync::Arc;
 
-pub struct OverworldSceneBase {
+pub struct OverworldArea {
     pub world_camera: Camera,
     pub ui_camera: Camera,
     pub player_data: OverworldPlayerData,
     pub entities: hecs::World,
     pub map: Map,
-    pub menu_manager: MenuManager,
     pub event_sender: flume::Sender<OverworldEvent>,
     pub event_receiver: flume::Receiver<OverworldEvent>,
-    pub next_scene: NextScene,
     world_time: FrameTime,
     input_locks: usize,
     background: Background,
     foreground: Background,
     camera_controller: CameraController,
-    health_ui: PlayerHealthUI,
 }
 
-impl OverworldSceneBase {
+impl OverworldArea {
     pub fn new(game_io: &mut GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -53,12 +48,6 @@ impl OverworldSceneBase {
             player_package.package_info.id.clone(),
         );
 
-        let health = player_data.health;
-
-        // menus
-        let mut menu_manager = MenuManager::new(game_io);
-        menu_manager.update_player_data(&player_data);
-
         let (event_sender, event_receiver) = flume::unbounded();
 
         Self {
@@ -67,16 +56,13 @@ impl OverworldSceneBase {
             player_data,
             entities,
             map: Map::new(0, 0, 0, 0),
-            menu_manager,
             event_sender,
             event_receiver,
-            next_scene: NextScene::None,
             world_time: 0,
             input_locks: 0,
             background: Background::new_blank(game_io),
             foreground: Background::new_blank(game_io),
             camera_controller: CameraController::new(player_entity),
-            health_ui: PlayerHealthUI::new(game_io).with_health(health),
         }
     }
 
@@ -143,7 +129,6 @@ impl OverworldSceneBase {
 
     pub fn is_input_locked(&self, game_io: &GameIO) -> bool {
         game_io.is_in_transition()
-            || self.menu_manager.is_open()
             || self.camera_controller.is_locked()
             || self.input_locks > 0
             || self.player_is_warping()
@@ -196,29 +181,14 @@ impl OverworldSceneBase {
         self.player_data.package_id = player_package.package_info.id.clone();
         self.player_data.health = self.player_data.max_health();
     }
-}
 
-impl Scene for OverworldSceneBase {
-    fn next_scene(&mut self) -> &mut NextScene {
-        &mut self.next_scene
-    }
-
-    fn enter(&mut self, game_io: &mut GameIO) {
+    pub fn enter(&mut self, game_io: &mut GameIO) {
         self.player_data.process_boosts(game_io);
         self.handle_player_changes(game_io);
     }
 
-    fn update(&mut self, game_io: &mut GameIO) {
+    pub fn update(&mut self, game_io: &mut GameIO) {
         self.world_time += 1;
-
-        let next_scene = self.menu_manager.update(game_io);
-
-        if self.next_scene.is_none() {
-            self.next_scene = next_scene;
-        }
-
-        self.health_ui.set_health(self.player_data.health);
-        self.health_ui.update();
 
         self.map.update(self.world_time);
         self.update_backgrounds();
@@ -232,46 +202,6 @@ impl Scene for OverworldSceneBase {
         );
     }
 
-    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        // draw sprites in world space
-        let mut sprite_queue =
-            SpriteColorQueue::new(game_io, &self.world_camera, SpriteColorMode::Multiply);
-
-        if !self.menu_manager.is_blocking_view() {
-            // draw background
-            self.background.draw(game_io, render_pass);
-
-            for i in 0..self.map.tile_layers().len() {
-                self.map
-                    .draw_tile_layer(game_io, &mut sprite_queue, &self.world_camera, i);
-
-                self.map
-                    .draw_objects_with_entities(&mut sprite_queue, &self.entities, i);
-            }
-
-            player_interaction_debug_render(game_io, self, &mut sprite_queue);
-
-            // draw foreground
-            self.foreground.draw(game_io, render_pass);
-        }
-
-        // draw ui
-        sprite_queue.update_camera(&self.ui_camera);
-
-        if !self.menu_manager.is_blocking_hud() {
-            draw_clock(game_io, &mut sprite_queue);
-            draw_map_name(game_io, &mut sprite_queue, &self.map);
-            self.health_ui.draw(game_io, &mut sprite_queue);
-        }
-
-        self.menu_manager
-            .draw(game_io, render_pass, &mut sprite_queue);
-
-        render_pass.consume_queue(sprite_queue);
-    }
-}
-
-impl OverworldSceneBase {
     fn update_backgrounds(&mut self) {
         let player_entity = self.player_data.entity;
         let world_position = self.entities.query_one_mut::<&Vec3>(player_entity).unwrap();
@@ -288,21 +218,28 @@ impl OverworldSceneBase {
         self.foreground
             .set_offset(screen_position * foreground_parallax);
     }
-}
 
-const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
+    pub fn draw(
+        &self,
+        game_io: &GameIO,
+        render_pass: &mut RenderPass,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        // draw background
+        self.background.draw(game_io, render_pass);
 
-fn draw_map_name(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, map: &Map) {
-    const MARGIN: Vec2 = Vec2::new(1.0, 3.0);
+        // draw world
+        for i in 0..self.map.tile_layers().len() {
+            self.map
+                .draw_tile_layer(game_io, sprite_queue, &self.world_camera, i);
 
-    let mut label = Text::new(game_io, FontStyle::Thick);
-    label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-    label.text = format!("{:_>12}", map.name());
+            self.map
+                .draw_objects_with_entities(sprite_queue, &self.entities, i);
+        }
 
-    let text_size = label.measure().size;
+        player_interaction_debug_render(game_io, self, sprite_queue);
 
-    (label.style.bounds).set_position(RESOLUTION_F - text_size - MARGIN);
-
-    // draw text
-    label.draw(game_io, sprite_queue);
+        // draw foreground
+        self.foreground.draw(game_io, render_pass);
+    }
 }
