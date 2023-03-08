@@ -33,6 +33,7 @@ pub struct DeckEditorScene {
     giga_limit: usize,
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
     page_tracker: PageTracker,
@@ -93,7 +94,7 @@ impl DeckEditorScene {
         deck_size_sprite.set_origin(Vec2::new(0.0, deck_size_sprite.size().y * 0.5));
         deck_size_sprite.set_position(Vec2::new(
             RESOLUTION_F.x - deck_size_sprite.size().x,
-            5.0 + deck_size_sprite.size().y * 0.5,
+            10.0 + deck_size_sprite.size().y * 0.5,
         ));
 
         let (event_sender, event_receiver) = flume::unbounded();
@@ -104,6 +105,7 @@ impl DeckEditorScene {
             giga_limit: giga_limit.max(0) as usize,
             camera,
             background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
             page_tracker: PageTracker::new(game_io, 2)
@@ -169,6 +171,7 @@ impl Scene for DeckEditorScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.scene_time += 1;
 
         self.page_tracker.update();
@@ -197,6 +200,7 @@ impl Scene for DeckEditorScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw title
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
 
         // draw deck size

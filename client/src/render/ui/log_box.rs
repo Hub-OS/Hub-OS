@@ -74,8 +74,8 @@ impl LogBox {
             }
 
             let color = match record.level {
-                LogLevel::Error => Color::new(1.0, 0.0, 0.0, 1.0),
-                LogLevel::Warn => Color::new(0.95, 0.95, 0.2, 1.0),
+                LogLevel::Error => Color::new(0.9, 0.1, 0.0, 1.0),
+                LogLevel::Warn => Color::new(0.9, 0.8, 0.3, 1.0),
                 LogLevel::Trace | LogLevel::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
                 _ => Color::WHITE,
             };

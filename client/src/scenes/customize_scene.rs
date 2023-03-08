@@ -157,7 +157,7 @@ impl CustomizeScene {
 
         Self {
             camera: Camera::new_ui(game_io),
-            background: Background::new_sub_scene(game_io),
+            background: Background::new_character_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             animator,
             grid_sprite,
@@ -688,6 +688,7 @@ impl Scene for CustomizeScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.input_tracker.update(game_io);
         self.time += 1;
 

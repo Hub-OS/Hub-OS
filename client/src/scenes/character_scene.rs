@@ -2,8 +2,8 @@ use super::{CharacterSelectScene, CustomizeScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PageTracker, PlayerHealthUI, SceneTitle, ScrollableList, Text,
-    Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
+    ElementSprite, FontStyle, PageTracker, PlayerHealthUI, SceneTitle, ScrollableList,
+    SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
@@ -18,6 +18,7 @@ enum Event {
 pub struct CharacterScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
@@ -34,6 +35,7 @@ impl CharacterScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             textbox: Textbox::new_navigation(game_io).begin_open(),
             event_sender,
             event_receiver,
@@ -121,6 +123,7 @@ impl Scene for CharacterScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.textbox.update(game_io);
         self.page_tracker.update();
 
@@ -162,6 +165,7 @@ impl Scene for CharacterScene {
         self.page_tracker.draw_page_arrows(&mut sprite_queue);
 
         // draw title
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new("STATUS").draw(game_io, &mut sprite_queue);
 
         // draw textbox

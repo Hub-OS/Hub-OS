@@ -1,7 +1,7 @@
 use crate::battle::BattleProps;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
-use crate::render::ui::{SceneTitle, Textbox, TextboxMessage};
+use crate::render::ui::{SceneTitle, SubSceneFrame, Textbox, TextboxMessage};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleScene;
@@ -10,6 +10,7 @@ use framework::prelude::*;
 pub struct BattleSelectScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     selection: usize,
     package_ids: Vec<PackageId>,
     preview_sprite: Sprite,
@@ -41,6 +42,7 @@ impl BattleSelectScene {
         let mut scene = Box::new(Self {
             camera,
             background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             selection: 0,
             package_ids,
             preview_sprite,
@@ -89,6 +91,7 @@ impl Scene for BattleSelectScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.camera.update(game_io);
 
         self.textbox.update(game_io);
@@ -157,6 +160,7 @@ impl Scene for BattleSelectScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw title
+        self.frame.draw(&mut sprite_queue);
         SceneTitle::new("BATTLE SELECT").draw(game_io, &mut sprite_queue);
 
         // draw preview sprite

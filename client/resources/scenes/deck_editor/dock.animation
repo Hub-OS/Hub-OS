@@ -1,7 +1,7 @@
 imagePath="dock.png"
 
 animation state="DEFAULT"
-frame x="0" y="0" w="239" h="136" originx="-1" originy="-16"
+frame x="0" y="0" w="239" h="136" originx="-1" originy="-20"
 point label="CARD" x="7" y="1"
 point label="LIST" x="102" y="16"
 point label="SCROLL_START" x="229" y="21"

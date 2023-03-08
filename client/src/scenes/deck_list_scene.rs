@@ -24,12 +24,14 @@ enum DeckOption {
 pub struct DeckListScene {
     camera: Camera,
     background: Background,
+    frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
     equipped_sprite: Sprite,
     equipped_animator: Animator,
     deck_scroll_offset: f32,
     deck_sprite: Sprite,
+    deck_frame_sprite: Sprite,
     deck_start_position: Vec2,
     deck_scroll_tracker: ScrollTracker,
     card_scroll_tracker: ScrollTracker,
@@ -70,6 +72,12 @@ impl DeckListScene {
 
         let deck_start_position = layout_animator.point("DECK_START").unwrap_or_default();
 
+        // deck frame
+        let mut deck_frame_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_FRAME);
+
+        let deck_frame_position = layout_animator.point("FRAME").unwrap_or_default();
+        deck_frame_sprite.set_position(deck_frame_position);
+
         // deck cursor sprite
         let mut deck_scroll_tracker = ScrollTracker::new(game_io, 3);
         deck_scroll_tracker.use_custom_cursor(
@@ -94,13 +102,15 @@ impl DeckListScene {
 
         Box::new(Self {
             camera,
-            background: Background::load_static(game_io, ResourcePaths::DECKS_BG),
+            background: Background::new_sub_scene(game_io),
+            frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
             equipped_sprite,
             equipped_animator,
             deck_scroll_offset: 0.0,
             deck_sprite,
+            deck_frame_sprite,
             deck_start_position,
             deck_scroll_tracker,
             card_scroll_tracker,
@@ -149,6 +159,7 @@ impl Scene for DeckListScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.scene_time += 1;
         self.camera.update(game_io);
+        self.background.update();
 
         if game_io.is_in_transition() {
             return;
@@ -176,10 +187,8 @@ impl Scene for DeckListScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw title
-        SceneTitle::new("FOLDERS").draw(game_io, &mut sprite_queue);
-
-        // draw context menu
-        self.context_menu.draw(game_io, &mut sprite_queue);
+        self.frame.draw(&mut sprite_queue);
+        SceneTitle::new("FOLDER LIST").draw(game_io, &mut sprite_queue);
 
         // deck offset calculations
         let deck_top_index = self.deck_scroll_tracker.top_index();
@@ -216,6 +225,9 @@ impl Scene for DeckListScene {
             label.draw(game_io, &mut sprite_queue, &deck.name);
         }
 
+        // draw selected deck
+        sprite_queue.draw_sprite(&self.deck_frame_sprite);
+
         if !global_save.decks.is_empty() {
             // draw deck cursor
             self.deck_scroll_tracker.draw_cursor(&mut sprite_queue);
@@ -234,6 +246,9 @@ impl Scene for DeckListScene {
             // draw card cursor
             self.card_scroll_tracker.draw_scrollbar(&mut sprite_queue);
         }
+
+        // draw context menu
+        self.context_menu.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

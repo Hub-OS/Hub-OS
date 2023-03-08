@@ -105,7 +105,7 @@ impl CharacterSelectScene {
 
         Self {
             camera: Camera::new_ui(game_io),
-            background: Background::new_sub_scene(game_io),
+            background: Background::new_character_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             preview_sprite,
             health_ui,
@@ -264,6 +264,8 @@ impl Scene for CharacterSelectScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
+
         // update health ui
         self.health_ui.update();
 

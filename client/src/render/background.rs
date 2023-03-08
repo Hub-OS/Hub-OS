@@ -14,10 +14,12 @@ pub struct Background {
 
 impl Background {
     pub fn new(mut animator: Animator, sprite: Sprite) -> Self {
-        if animator.has_state("BG") {
-            animator.set_state("BG");
-        } else if animator.has_state("DEFAULT") {
-            animator.set_state("DEFAULT");
+        if animator.current_state().is_none() {
+            if animator.has_state("BG") {
+                animator.set_state("BG");
+            } else if animator.has_state("DEFAULT") {
+                animator.set_state("DEFAULT");
+            }
         }
 
         let velocity = animator.point("VELOCITY").unwrap_or_default();
@@ -60,6 +62,17 @@ impl Background {
         let assets = &globals.assets;
 
         let animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION);
+        let sprite = assets.new_sprite(game_io, ResourcePaths::SUB_SCENE);
+
+        Self::new(animator, sprite)
+    }
+
+    pub fn new_character_scene(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let animator = Animator::load_new(assets, ResourcePaths::SUB_SCENE_ANIMATION)
+            .with_state("CHARACTER_BG");
         let sprite = assets.new_sprite(game_io, ResourcePaths::SUB_SCENE);
 
         Self::new(animator, sprite)
@@ -148,11 +161,11 @@ impl Instance<BackgroundInstanceData> for Background {
 
         let x_increment = bounds.width.signum() * increment;
         bounds.x += x_increment;
-        bounds.width -= x_increment;
+        bounds.width -= x_increment * 2.0;
 
         let y_increment = bounds.height.signum() * increment;
         bounds.y += y_increment;
-        bounds.height -= y_increment;
+        bounds.height -= y_increment * 2.0;
 
         BackgroundInstanceData {
             scale,

@@ -107,7 +107,9 @@ impl PackagesScene {
         let mut scene = Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
-            frame: SubSceneFrame::new(game_io).with_arms(true),
+            frame: SubSceneFrame::new(game_io)
+                .with_top_bar(true)
+                .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             sidebar: Self::generate_sidebar(game_io, event_sender.clone(), sidebar_bounds)
                 .with_focus(false),
@@ -336,6 +338,8 @@ impl Scene for PackagesScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
+
         let finished_request = matches!(&self.list_task, Some(task) if task.is_finished());
 
         if finished_request {

@@ -74,7 +74,7 @@ impl BootScene {
 
         // status text
         let mut status_label = Text::new(game_io, FontStyle::Wide);
-        status_label.style.color = Color::new(0.28, 0.65, 0.94, 1.0);
+        status_label.style.color = Color::WHITE;
         status_label.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 
         // logs
@@ -86,7 +86,7 @@ impl BootScene {
 
         BootScene {
             camera: Camera::new_ui(game_io),
-            background: Background::load_static(game_io, ResourcePaths::BOOT_BG),
+            background: Background::new_sub_scene(game_io),
             status_label,
             progress_frame_sprite,
             progress_bar_sprite,
@@ -370,6 +370,7 @@ impl Scene for BootScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.background.update();
         self.handle_thread_messages(game_io);
 
         if game_io.is_in_transition() {

@@ -1,4 +1,4 @@
 animation state="DEFAULT"
 blank
-point label="OPTION_START" x="160" y="24"
-point label="OPTION_NEXT" x="0" y="22"
+point label="OPTION_START" x="150" y="24"
+point label="OPTION_NEXT" x="0" y="18"
