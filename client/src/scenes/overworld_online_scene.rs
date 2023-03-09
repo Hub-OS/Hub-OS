@@ -209,7 +209,7 @@ impl OverworldOnlineScene {
     fn update_ui(&mut self, game_io: &mut GameIO) {
         self.hud.update(&self.area);
 
-        let next_scene = self.menu_manager.update(game_io);
+        let next_scene = self.menu_manager.update(game_io, &mut self.area);
 
         if self.next_scene.is_none() {
             self.next_scene = next_scene;

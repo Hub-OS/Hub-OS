@@ -1,3 +1,4 @@
+use super::Menu;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -150,8 +151,28 @@ impl Bbs {
             self.posts.remove(index);
         }
     }
+}
 
-    pub fn handle_input(&mut self, game_io: &GameIO) {
+impl Menu for Bbs {
+    fn drop_on_close(&self) -> bool {
+        true
+    }
+
+    fn is_fullscreen(&self) -> bool {
+        true
+    }
+
+    fn is_open(&self) -> bool {
+        true
+    }
+
+    fn open(&mut self) {}
+
+    fn update(&mut self, _game_io: &mut GameIO, _area: &mut crate::overworld::OverworldArea) {
+        self.unread_animator.update();
+    }
+
+    fn handle_input(&mut self, game_io: &mut GameIO, _: &mut Textbox) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         self.ui_input_tracker.update(game_io);
@@ -182,16 +203,7 @@ impl Bbs {
         }
     }
 
-    pub fn update(&mut self) {
-        self.unread_animator.update();
-    }
-
-    pub fn draw(
-        &mut self,
-        game_io: &GameIO,
-        _: &mut RenderPass,
-        sprite_queue: &mut SpriteColorQueue,
-    ) {
+    fn draw(&mut self, game_io: &GameIO, _: &mut RenderPass, sprite_queue: &mut SpriteColorQueue) {
         for sprite in &self.static_sprites {
             sprite_queue.draw_sprite(sprite);
         }

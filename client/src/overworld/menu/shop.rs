@@ -1,3 +1,5 @@
+use super::Menu;
+use crate::overworld::OverworldArea;
 use crate::render::ui::{
     FontStyle, ScrollTracker, TextStyle, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
     TextboxQuestion, UiInputTracker,
@@ -181,8 +183,24 @@ impl Shop {
             (self.on_close)();
         }
     }
+}
 
-    pub fn update(&mut self, game_io: &mut GameIO) {
+impl Menu for Shop {
+    fn drop_on_close(&self) -> bool {
+        true
+    }
+
+    fn is_fullscreen(&self) -> bool {
+        true
+    }
+
+    fn is_open(&self) -> bool {
+        true
+    }
+
+    fn open(&mut self) {}
+
+    fn update(&mut self, game_io: &mut GameIO, _area: &mut OverworldArea) {
         self.ui_input_tracker.update(game_io);
         self.time += 1;
         self.background.update();
@@ -195,7 +213,7 @@ impl Shop {
         }
     }
 
-    pub fn handle_input(&mut self, game_io: &mut GameIO, textbox: &mut Textbox) {
+    fn handle_input(&mut self, game_io: &mut GameIO, textbox: &mut Textbox) {
         if self.closed || self.close_time.is_some() {
             return;
         }
@@ -278,7 +296,7 @@ impl Shop {
         }
     }
 
-    pub fn draw(
+    fn draw(
         &mut self,
         game_io: &GameIO,
         render_pass: &mut RenderPass,
