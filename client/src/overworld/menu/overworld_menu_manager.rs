@@ -113,16 +113,16 @@ impl OverworldMenuManager {
     }
 
     pub fn is_blocking_view(&self) -> bool {
-        let shop_or_bbs_blocks =
-            self.fade_time >= self.max_fade_time / 2 && (self.shop.is_some() || self.bbs.is_some());
+        let fading_out = self.fade_time <= self.max_fade_time / 2;
 
-        let fading_menu_blocks = self.fade_time <= self.max_fade_time / 2
-            && matches!(&self.fading_menu, Some(index) if self.menus[*index].is_fullscreen());
+        let fading_menu_blocks =
+            matches!(&self.fading_menu, Some(index) if self.menus[*index].is_fullscreen());
 
-        let menu_is_fullscreen =
-            matches!(&self.active_menu, Some(index) if self.menus[*index].is_fullscreen());
+        let menu_is_fullscreen = matches!(&self.active_menu, Some(index) if self.menus[*index].is_fullscreen())
+            || self.shop.is_some()
+            || self.bbs.is_some();
 
-        shop_or_bbs_blocks || fading_menu_blocks || menu_is_fullscreen
+        (!fading_out && menu_is_fullscreen) || (fading_out && fading_menu_blocks)
     }
 
     pub fn bbs_mut(&mut self) -> Option<&mut Bbs> {
@@ -142,9 +142,12 @@ impl OverworldMenuManager {
         self.menu_bindings.push((input, menu_index));
     }
 
-    /// Opens a registered menu, forces other registered menus to close (built in menus such as Textbox + BBS are excluded)
+    /// Opens a registered menu, forces other menus to close
     pub fn open_menu(&mut self, menu_index: generational_arena::Index) {
-        let next_is_fullscreen = self.menus[menu_index].is_fullscreen();
+        let menu = &mut self.menus[menu_index];
+        menu.open();
+
+        let next_is_fullscreen = menu.is_fullscreen();
         let previous_is_fullscreen =
             matches!(self.active_menu, Some(index) if self.menus[index].is_fullscreen());
 
@@ -412,11 +415,12 @@ impl OverworldMenuManager {
 
             menu.update(game_io, area);
 
-            if menu.is_open() {
-                // skip other input checks while a registered menu is open
-                handle_input = false;
-            } else {
-                self.active_menu = None;
+            // skip other input checks while a registered menu is open
+            handle_input = false;
+
+            if !menu.is_open() {
+                let transition = menu.is_fullscreen();
+                self.close_old_menu(transition);
             }
         }
 
@@ -450,13 +454,12 @@ impl OverworldMenuManager {
         }
 
         // try opening a menu if there's no menu open
-        if !self.is_open() {
+        if handle_input && !self.is_open() {
             let input_util = InputUtil::new(game_io);
 
             for (input, index) in self.menu_bindings.iter().cloned() {
                 if input_util.was_just_pressed(input) {
-                    self.active_menu = Some(index);
-                    self.menus[index].open();
+                    self.open_menu(index);
 
                     // skip other input checks while a menu is opening
                     handle_input = false;
