@@ -555,14 +555,16 @@ impl Map {
 
         let mut tile_sprite: Option<Sprite> = None;
 
+        let camera_bounds = camera.bounds();
+
         const TILE_PADDING: i32 = 3;
-        let screen_size = camera.size();
+        let screen_size = camera_bounds.size();
         let tile_size = self.tile_size;
 
         let horizontal_tile_count = (screen_size.x / tile_size.x as f32).ceil() as i32;
         let vertical_tile_count = ((screen_size.y / tile_size.y as f32) * 2.0).ceil() as i32;
 
-        let screen_top_left = camera.bounds().top_left();
+        let screen_top_left = camera_bounds.top_left();
 
         let tile_space_start = self.world_to_tile_space(self.screen_to_world(screen_top_left));
         let tile_space_start_i = tile_space_start.as_ivec2();

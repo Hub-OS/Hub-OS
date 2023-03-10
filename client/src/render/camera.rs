@@ -66,6 +66,14 @@ impl Camera {
         self.internal_camera.bounds()
     }
 
+    pub fn scale(&self) -> Vec2 {
+        self.internal_camera.scale()
+    }
+
+    pub fn set_scale(&mut self, scale: Vec2) {
+        self.internal_camera.set_scale(scale);
+    }
+
     pub fn update(&mut self, game_io: &GameIO) {
         let last_frame_secs = (game_io.frame_duration() + game_io.sleep_duration()).as_secs_f32();
         self.slide_progress += last_frame_secs;

@@ -32,6 +32,7 @@ pub trait Menu {
         game_io: &GameIO,
         render_pass: &mut RenderPass,
         sprite_queue: &mut SpriteColorQueue,
+        area: &OverworldArea,
     );
 }
 
@@ -482,25 +483,26 @@ impl OverworldMenuManager {
         game_io: &GameIO,
         render_pass: &mut RenderPass,
         sprite_queue: &mut SpriteColorQueue,
+        area: &OverworldArea,
     ) {
         let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
 
         if fade_progress < 0.5 {
             if let Some(index) = self.fading_menu {
                 let menu = &mut self.menus[index];
-                menu.draw(game_io, render_pass, sprite_queue);
+                menu.draw(game_io, render_pass, sprite_queue, area);
             }
         } else {
             if let Some(bbs) = &mut self.bbs {
-                bbs.draw(game_io, render_pass, sprite_queue);
+                bbs.draw(game_io, render_pass, sprite_queue, area);
             }
 
             if let Some(shop) = &mut self.shop {
-                shop.draw(game_io, render_pass, sprite_queue);
+                shop.draw(game_io, render_pass, sprite_queue, area);
             }
 
             if let Some(index) = self.active_menu {
-                self.menus[index].draw(game_io, render_pass, sprite_queue);
+                self.menus[index].draw(game_io, render_pass, sprite_queue, area);
             }
         }
 

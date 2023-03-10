@@ -301,6 +301,7 @@ impl Menu for Shop {
         game_io: &GameIO,
         render_pass: &mut RenderPass,
         sprite_queue: &mut SpriteColorQueue,
+        _: &OverworldArea,
     ) {
         self.background.draw(game_io, render_pass);
 

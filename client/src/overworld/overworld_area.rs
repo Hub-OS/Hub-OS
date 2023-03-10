@@ -11,6 +11,7 @@ pub struct OverworldArea {
     pub player_data: OverworldPlayerData,
     pub entities: hecs::World,
     pub map: Map,
+    pub last_map_update: FrameTime,
     pub event_sender: flume::Sender<OverworldEvent>,
     pub event_receiver: flume::Receiver<OverworldEvent>,
     world_time: FrameTime,
@@ -56,6 +57,7 @@ impl OverworldArea {
             player_data,
             entities,
             map: Map::new(0, 0, 0, 0),
+            last_map_update: 0,
             event_sender,
             event_receiver,
             world_time: 0,
@@ -111,7 +113,7 @@ impl OverworldArea {
             .spawn((Sprite::new(game_io, texture), animator, position))
     }
 
-    pub fn set_world(&mut self, game_io: &GameIO, assets: &impl AssetManager, map: Map) {
+    pub fn set_map(&mut self, game_io: &GameIO, assets: &impl AssetManager, map: Map) {
         if self.map.background_properties() != map.background_properties() {
             self.background = map
                 .background_properties()
@@ -125,6 +127,7 @@ impl OverworldArea {
         }
 
         self.map = map;
+        self.last_map_update = self.world_time;
     }
 
     pub fn is_input_locked(&self, game_io: &GameIO) -> bool {

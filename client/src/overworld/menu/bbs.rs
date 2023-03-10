@@ -1,4 +1,5 @@
 use super::Menu;
+use crate::overworld::OverworldArea;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -203,7 +204,13 @@ impl Menu for Bbs {
         }
     }
 
-    fn draw(&mut self, game_io: &GameIO, _: &mut RenderPass, sprite_queue: &mut SpriteColorQueue) {
+    fn draw(
+        &mut self,
+        game_io: &GameIO,
+        _: &mut RenderPass,
+        sprite_queue: &mut SpriteColorQueue,
+        _: &OverworldArea,
+    ) {
         for sprite in &self.static_sprites {
             sprite_queue.draw_sprite(sprite);
         }

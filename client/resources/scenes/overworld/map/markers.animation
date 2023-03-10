@@ -1,0 +1,28 @@
+imagePath="markers.png"
+
+animation state="ACTOR"
+frame x="1" y="1" w="6" h="8" originx="3" originy="8"
+
+animation state="HOME"
+frame x="9" y="2" w="6" h="6" originx="4" originy="4"
+
+animation state="SHOP"
+frame x="17" y="1" w="6" h="7" originx="3" originy="7"
+
+animation state="WARP"
+frame x="1" y="11" w="8" h="6" originx="4" originy="3"
+
+animation state="BOARD"
+frame x="10" y="10" w="6" h="7" originx="3" originy="7"
+
+animation state="CONVEYOR"
+frame x="17" y="9" w="6" h="3" originx="3" originy="2"
+
+animation state="ARROW"
+frame x="1" y="18" w="12" h="6" originx="4" originy="2"
+
+animation state="ICE"
+frame x="17" y="14" w="12" h="6" originx="6" originy="3"
+
+animation state="TREADMILL"
+frame x="17" y="21" w="14" h="6" originx="6" originy="3"

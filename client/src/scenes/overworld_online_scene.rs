@@ -67,6 +67,12 @@ impl OverworldOnlineScene {
         let mut menu_manager = OverworldMenuManager::new(game_io);
         menu_manager.update_player_data(&area.player_data);
 
+        // map menu
+        let map_menu = MapMenu::new(game_io);
+        let map_menu_index = menu_manager.register_menu(Box::new(map_menu));
+        menu_manager.bind_menu(Input::Map, map_menu_index);
+
+        // hud
         let hud = OverworldHud::new(game_io, area.player_data.health);
 
         Self {
@@ -446,7 +452,7 @@ impl OverworldOnlineScene {
                         Excluded::increment(map.object_entities_mut(), entity);
                     }
 
-                    self.area.set_world(game_io, &self.assets, map);
+                    self.area.set_map(game_io, &self.assets, map);
                 } else {
                     log::warn!("Failed to load map provided by server");
                 }
@@ -1604,7 +1610,7 @@ impl Scene for OverworldOnlineScene {
         }
 
         self.menu_manager
-            .draw(game_io, render_pass, &mut sprite_queue);
+            .draw(game_io, render_pass, &mut sprite_queue, &self.area);
 
         render_pass.consume_queue(sprite_queue);
     }

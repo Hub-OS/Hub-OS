@@ -124,6 +124,14 @@ impl ResourcePaths {
     pub const OVERWORLD_TEXTBOX_ANIMATION: &str = "resources/scenes/overworld/textbox.animation";
     pub const OVERWORLD_WARP: &str = "resources/scenes/overworld/warp.png";
     pub const OVERWORLD_WARP_ANIMATION: &str = "resources/scenes/overworld/warp.animation";
+    pub const OVERWORLD_MAP_BG: &str = "resources/scenes/overworld/map/bg.png";
+    pub const OVERWORLD_MAP_BG_ANIMATION: &str = "resources/scenes/overworld/map/bg.animation";
+    pub const OVERWORLD_MAP_OVERLAY: &str = "resources/scenes/overworld/map/overlay.png";
+    pub const OVERWORLD_MAP_OVERLAY_ARROWS: &str =
+        "resources/scenes/overworld/map/overlay_arrows.png";
+    pub const OVERWORLD_MAP_MARKERS: &str = "resources/scenes/overworld/map/markers.png";
+    pub const OVERWORLD_MAP_MARKERS_ANIMATION: &str =
+        "resources/scenes/overworld/map/markers.animation";
     pub const OVERWORLD_BBS: &str = "resources/scenes/overworld/bbs/bbs.png";
     pub const OVERWORLD_BBS_ANIMATION: &str = "resources/scenes/overworld/bbs/bbs.animation";
     pub const OVERWORLD_SHOP_BG: &str = "resources/scenes/overworld/shop/bg.png";

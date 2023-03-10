@@ -10,7 +10,7 @@ pub struct PlayerMapMarker {
 impl PlayerMapMarker {
     pub fn new_player() -> Self {
         Self {
-            color: Color::from((0, 248, 248, 255)),
+            color: Color::from((112, 248, 72, 255)),
         }
     }
 }
