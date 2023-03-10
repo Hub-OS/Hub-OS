@@ -246,7 +246,12 @@ impl MapMenu {
                     self.marker_animator.set_state(state);
                     self.marker_animator.apply(&mut sprite);
 
-                    sprite.set_color(Color::WHITE);
+                    if map.is_concealed(world_position) {
+                        sprite.set_color(Color::WHITE.multiply_color(CONCEALED_MULTIPLIER));
+                    } else {
+                        sprite.set_color(Color::WHITE);
+                    }
+
                     sprite.set_position(screen_position.floor());
                     sprite.set_scale(Self::scale_from_direction(tile.get_direction(tile_meta)));
 
@@ -386,8 +391,6 @@ impl Menu for MapMenu {
         type ObjectQuery<'a> = hecs::Without<(&'a Vec3, &'a Tile, &'a ObjectData), &'a Excluded>;
         let object_entities = area.map.object_entities();
 
-        self.marker_sprite.set_color(Color::WHITE);
-
         for (_, (&position, tile, object)) in object_entities.query::<ObjectQuery>().into_iter() {
             // resolve state
             let state = match object.object_type {
@@ -436,6 +439,15 @@ impl Menu for MapMenu {
             self.marker_sprite
                 .set_position((screen_position * self.scale + map_offset).floor());
 
+            // resolve color
+            let color = if area.map.is_concealed(position) {
+                Color::WHITE.multiply_color(CONCEALED_MULTIPLIER)
+            } else {
+                Color::WHITE
+            };
+
+            self.marker_sprite.set_color(color);
+
             // draw
             sprite_queue.draw_sprite(&self.marker_sprite);
         }
@@ -448,10 +460,20 @@ impl Menu for MapMenu {
         self.marker_animator.apply(&mut self.marker_sprite);
 
         for (_, (&position, marker)) in area.entities.query::<ActorQuery>().into_iter() {
+            // resolve position
             let sprite_position = area.map.world_3d_to_screen(position) * self.scale + map_offset;
-
             self.marker_sprite.set_position(sprite_position.floor());
-            self.marker_sprite.set_color(marker.color);
+
+            // resolve color
+            let color = if area.map.is_concealed(position) {
+                marker.color.multiply_color(CONCEALED_MULTIPLIER)
+            } else {
+                marker.color
+            };
+
+            self.marker_sprite.set_color(color);
+
+            // draw sprite
             sprite_queue.draw_sprite(&self.marker_sprite);
         }
 

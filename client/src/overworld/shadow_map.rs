@@ -3,7 +3,7 @@ use super::{Map, TileClass, TileShadow};
 pub struct ShadowMap {
     cols: usize,
     rows: usize,
-    shadows: Vec<usize>,
+    shadows: Vec<i32>,
 }
 
 impl ShadowMap {
@@ -53,14 +53,14 @@ impl ShadowMap {
                         }
                     }
 
-                    self.shadows[shadow_index] = index;
+                    self.shadows[shadow_index] = index as i32;
                     break;
                 }
             }
         }
     }
 
-    pub fn has_shadow(&self, position: (i32, i32), layer: usize) -> bool {
+    pub fn has_shadow(&self, position: (i32, i32), layer: i32) -> bool {
         let (x, y) = position;
 
         let cols = self.cols as i32;

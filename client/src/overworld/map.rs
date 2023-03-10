@@ -6,6 +6,8 @@ use hecs::Entity;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+const SHADOW_MULTIPLIER: f32 = 0.65;
+
 pub struct Map {
     cols: u32,
     rows: u32,
@@ -278,22 +280,22 @@ impl Map {
         world
     }
 
-    pub fn can_move_to(&self, pos: Vec3) -> bool {
-        let layer_index = pos.z as i32;
+    pub fn can_move_to(&self, tile_point: Vec3) -> bool {
+        let layer_index = tile_point.z as i32;
 
         if layer_index < 0 || layer_index >= self.tile_layers.len() as i32 {
             return false;
         }
 
         let layer = self.tile_layer(layer_index as usize).unwrap();
-        let tile = layer.tile_at_f32(pos.xy());
+        let tile = layer.tile_at_f32(tile_point.xy());
 
         if tile.gid == 0 {
             return false;
         }
 
         // get decimal part
-        let mut test_pos = pos.xy().fract();
+        let mut test_pos = tile_point.xy().fract();
 
         // get positive coords
         if test_pos.x < 0.0 {
@@ -307,20 +309,20 @@ impl Map {
         test_pos.x *= (self.tile_size.x / 2) as f32;
         test_pos.y *= self.tile_size.y as f32;
 
-        let layer_relative_z = pos.z.fract();
+        let layer_relative_z = tile_point.z.fract();
         let tile_test_pos = test_pos - layer_relative_z * self.tile_size.y as f32;
 
         if tile.intersects(self, tile_test_pos) {
             return false;
         }
 
-        test_pos.x += pos.x.floor() * (self.tile_size.x / 2) as f32;
-        test_pos.y += pos.y.floor() * (self.tile_size.y) as f32;
+        test_pos.x += tile_point.x.floor() * (self.tile_size.x / 2) as f32;
+        test_pos.y += tile_point.y.floor() * (self.tile_size.y) as f32;
 
         self.tile_object_at(test_pos, layer_index, true).is_none()
     }
 
-    pub fn elevation_at(&self, point: Vec2, mut layer_index: i32) -> f32 {
+    pub fn elevation_at(&self, tile_point: Vec2, mut layer_index: i32) -> f32 {
         let total_layers = self.tile_layers.len() as i32;
 
         if layer_index >= total_layers {
@@ -335,7 +337,7 @@ impl Map {
             None => return 0.0,
         };
 
-        let tile = layer.tile_at_f32(point);
+        let tile = layer.tile_at_f32(tile_point);
         let tile_meta = match self.tile_meta_for_tile(tile.gid) {
             Some(tile_meta) => tile_meta,
             _ => return layer_elevation,
@@ -345,8 +347,8 @@ impl Map {
             return layer_elevation;
         }
 
-        let relative_x = point.x.fract();
-        let relative_y = point.y.fract();
+        let relative_x = tile_point.x.fract();
+        let relative_y = tile_point.y.fract();
 
         let mut direction: Direction = tile_meta.custom_properties.get("direction").into();
 
@@ -392,13 +394,77 @@ impl Map {
         tile_meta.tile_class == TileClass::Stairs
     }
 
-    //     bool HasShadow(sf::Vector2i tilePos, int layer);
-    //     bool TileConceals(sf::Vector2i tilePos, int layer);
-    //     bool IsConcealed(sf::Vector2i tilePos, int layer);
+    pub fn is_in_shadow(&self, world_position: Vec3) -> bool {
+        let tile_position = self
+            .world_3d_to_tile_space(world_position.floor())
+            .as_ivec3();
+
+        if tile_position.z < 0 {
+            return false;
+        }
+
+        self.shadow_map
+            .has_shadow(tile_position.xy().into(), tile_position.z)
+    }
+
+    fn tile_conceals(&self, tile_position: IVec2, layer_index: i32) -> bool {
+        if layer_index < 0 {
+            return false;
+        }
+
+        let Some(layer) = self.tile_layers.get(layer_index as usize) else {
+            return false;
+        };
+
+        let tile = layer.tile_at(tile_position);
+
+        let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+            return false;
+        };
+
+        tile_meta.tile_class != TileClass::Invisible
+            && !self.ignore_tile_above(tile_position, layer_index - 1)
+    }
+
+    pub fn is_concealed(&self, world_point: Vec3) -> bool {
+        let tile_point = self.world_3d_to_tile_space(world_point).floor();
+
+        let mut col = tile_point.x as i32;
+        let mut row = tile_point.y as i32;
+        let layer_index = tile_point.z.floor() as i32;
+
+        let cols = self.cols as i32;
+        let rows = self.rows as i32;
+
+        for i in layer_index + 1..self.tile_layers.len() as i32 {
+            let layer_offset = i - layer_index;
+            let is_odd_layer = layer_offset % 2 != 0;
+
+            if !is_odd_layer {
+                // every two layers we move, we have a new tile that aligns with us
+                col += 1;
+                row += 1;
+            }
+
+            if col < 0 || row < 0 || col >= cols || row >= rows || i < 0 {
+                continue;
+            }
+
+            if self.tile_conceals(IVec2::new(col, row), i) {
+                return true;
+            }
+
+            if is_odd_layer && self.tile_conceals(IVec2::new(col + 1, row + 1), i) {
+                return true;
+            }
+        }
+
+        false
+    }
 
     pub fn tile_object_at(
         &self,
-        point: Vec2,
+        world_point: Vec2,
         layer_index: i32,
         solid_only: bool,
     ) -> Option<Entity> {
@@ -433,7 +499,7 @@ impl Map {
             let rotation = data.rotation;
             let size = data.size;
 
-            let world_position = point - position;
+            let world_position = world_point - position;
             let mut screen_position = self.world_to_screen(world_position);
 
             // rotation
@@ -647,11 +713,9 @@ impl Map {
         camera: &Camera,
         layer_index: usize,
     ) {
-        const SHADOW_COLOR: Color = Color::new(0.65, 0.65, 0.65, 1.0);
-
         self.iterate_visible_tiles(game_io, camera, layer_index, |sprite, _, _, (col, row)| {
-            if self.shadow_map.has_shadow((col, row), layer_index) {
-                sprite.set_color(SHADOW_COLOR);
+            if self.shadow_map.has_shadow((col, row), layer_index as i32) {
+                sprite.set_color(Color::WHITE.multiply_color(SHADOW_MULTIPLIER));
             } else {
                 sprite.set_color(Color::WHITE);
             }
@@ -671,29 +735,40 @@ impl Map {
         use std::cmp::Ordering;
 
         let mut queries = [entities, &self.object_entities]
-            .map(|entities| entities.query::<hecs::Without<(&Sprite, &Vec3), &Excluded>>());
+            .map(|entities| entities.query::<hecs::Without<(&mut Sprite, &Vec3), &Excluded>>());
 
         let mut render_order = Vec::new();
 
         for query in &mut queries {
-            for (_, (sprite, position)) in query.iter() {
+            for (_, (sprite, &position)) in query.iter() {
                 // add sprites on the same layer, bump up sprites to the next layer if the sprite is on stairs
                 if position.z.ceil() as usize == layer_index {
                     let sort_value = self.world_to_screen(position.xy()).y;
 
-                    render_order.push((sprite, sort_value));
+                    render_order.push((sprite, position, sort_value));
                 }
             }
         }
 
-        render_order.sort_unstable_by(|(_, sort_value_a), (_, sort_value_b)| {
+        render_order.sort_unstable_by(|(_, _, sort_value_a), (_, _, sort_value_b)| {
             sort_value_a
                 .partial_cmp(sort_value_b)
                 .unwrap_or(Ordering::Equal)
         });
 
-        for (sprite, _) in render_order {
-            sprite_queue.draw_sprite(sprite)
+        for (sprite, position, _) in render_order {
+            // shade
+            let original_color = sprite.color();
+
+            if self.is_in_shadow(position) {
+                sprite.set_color(original_color.multiply_color(SHADOW_MULTIPLIER));
+            }
+
+            // draw
+            sprite_queue.draw_sprite(sprite);
+
+            // reset color
+            sprite.set_color(original_color);
         }
     }
 }
