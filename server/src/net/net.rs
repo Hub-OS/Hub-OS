@@ -894,6 +894,15 @@ impl Net {
         mug_texture_path: &str,
         mug_animation_path: &str,
     ) {
+        ensure_assets(
+            &mut self.packet_orchestrator.borrow_mut(),
+            self.config.max_payload_size,
+            &self.asset_manager,
+            &mut self.clients,
+            &[player_id.to_string()],
+            [mug_texture_path, mug_animation_path].iter(),
+        );
+
         let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
