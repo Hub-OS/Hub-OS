@@ -13,6 +13,7 @@ pub enum SceneOption {
     Decks,
     Library,
     Character,
+    KeyItems,
     BattleSelect,
     Config,
 }
@@ -43,6 +44,7 @@ impl SceneOption {
             SceneOption::Decks => "DECKS_LABEL",
             SceneOption::Library => "LIBRARY_LABEL",
             SceneOption::Character => "CHARACTER_LABEL",
+            SceneOption::KeyItems => "KEY_ITEMS_LABEL",
             SceneOption::BattleSelect => "BATTLE_SELECT_LABEL",
             SceneOption::Config => "CONFIG_LABEL",
         }
@@ -188,7 +190,11 @@ impl NavigationMenu {
         self.money_text = format!("{:>8}$", player_data.money);
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO) -> NextScene {
+    pub fn update(
+        &mut self,
+        game_io: &mut GameIO,
+        override_callback: impl Fn(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
+    ) -> NextScene {
         let mut next_scene = NextScene::None;
 
         self.ui_input_tracker.update(game_io);
@@ -230,7 +236,7 @@ impl NavigationMenu {
         }
 
         if self.ui_input_tracker.is_active(Input::Confirm) {
-            next_scene = self.select_item(game_io);
+            next_scene = self.select_item(game_io, override_callback);
         }
 
         next_scene
@@ -248,17 +254,26 @@ impl NavigationMenu {
         self.animator.apply(&mut item.sprite);
     }
 
-    fn select_item(&mut self, game_io: &mut GameIO) -> NextScene {
+    fn select_item(
+        &mut self,
+        game_io: &mut GameIO,
+        override_callback: impl Fn(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
+    ) -> NextScene {
         let selection = self.scroll_tracker.selected_index();
+        let selected_option = self.items[selection].target_scene;
 
-        let scene: Option<Box<dyn Scene>> = match self.items[selection].target_scene {
-            SceneOption::Servers => Some(ServerListScene::new(game_io)),
-            SceneOption::Decks => Some(DeckListScene::new(game_io)),
-            SceneOption::Library => Some(LibraryScene::new(game_io)),
-            SceneOption::Character => Some(CharacterScene::new(game_io)),
-            SceneOption::BattleSelect => Some(BattleSelectScene::new(game_io)),
-            SceneOption::Config => Some(ConfigScene::new(game_io)),
-        };
+        let scene =
+            override_callback(game_io, selected_option).or_else(|| -> Option<Box<dyn Scene>> {
+                match selected_option {
+                    SceneOption::Servers => Some(ServerListScene::new(game_io)),
+                    SceneOption::Decks => Some(DeckListScene::new(game_io)),
+                    SceneOption::Library => Some(LibraryScene::new(game_io)),
+                    SceneOption::Character => Some(CharacterScene::new(game_io)),
+                    SceneOption::BattleSelect => Some(BattleSelectScene::new(game_io)),
+                    SceneOption::Config => Some(ConfigScene::new(game_io)),
+                    _ => None,
+                }
+            });
 
         let globals = game_io.resource::<Globals>().unwrap();
 

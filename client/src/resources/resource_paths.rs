@@ -180,6 +180,10 @@ impl ResourcePaths {
     pub const CHARACTER_SELECT_CURSOR_ANIMATION: &str =
         "resources/scenes/character_select/cursor.animation";
 
+    // KeyItemsScene
+    pub const KEY_ITEMS_LAYOUT_ANIMATION: &str = "resources/scenes/key_items/layout.animation";
+    pub const KEY_ITEMS_MUG: &str = "resources/scenes/key_items/mug.png";
+
     // BattleSelectScene
 
     // BattleScene

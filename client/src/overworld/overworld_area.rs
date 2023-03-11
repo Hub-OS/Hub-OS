@@ -3,12 +3,15 @@ use crate::overworld::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use packets::structures::ItemDefinition;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct OverworldArea {
     pub world_camera: Camera,
     pub ui_camera: Camera,
     pub player_data: OverworldPlayerData,
+    pub item_registry: HashMap<String, ItemDefinition>,
     pub entities: hecs::World,
     pub map: Map,
     pub last_map_update: FrameTime,
@@ -55,6 +58,7 @@ impl OverworldArea {
             world_camera: Camera::new(game_io),
             ui_camera: Camera::new_ui(game_io),
             player_data,
+            item_registry: HashMap::new(),
             entities,
             map: Map::new(0, 0, 0, 0),
             last_map_update: 0,

@@ -6,6 +6,7 @@ use crate::overworld::OverworldPlayerData;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::scenes::KeyItemsScene;
 use crate::transitions::DEFAULT_FADE_DURATION;
 use framework::prelude::*;
 use generational_arena::Arena;
@@ -74,7 +75,7 @@ impl OverworldMenuManager {
                 SceneOption::Library,
                 SceneOption::Character,
                 // SceneOption::Email,
-                // SceneOption::KeyItems,
+                SceneOption::KeyItems,
                 SceneOption::BattleSelect,
                 SceneOption::Config,
             ],
@@ -475,7 +476,15 @@ impl OverworldMenuManager {
             }
         }
 
-        self.navigation_menu.update(game_io)
+        self.navigation_menu
+            .update(game_io, |game_io, selection| match selection {
+                SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
+                    game_io,
+                    &area.item_registry,
+                    &area.player_data.inventory,
+                ))),
+                _ => None,
+            })
     }
 
     pub fn draw(

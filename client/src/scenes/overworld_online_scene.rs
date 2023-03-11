@@ -482,23 +482,17 @@ impl OverworldOnlineScene {
 
                 self.menu_manager.update_player_data(player_data);
             }
-            ServerPacket::AddItem {
+            ServerPacket::RegisterItem {
                 id,
-                name,
-                description,
+                item_definition,
             } => {
-                self.area.player_data.items.push(Item {
-                    id,
-                    name,
-                    description,
-                });
+                self.area.item_registry.insert(id, item_definition);
             }
-            ServerPacket::RemoveItem { id } => {
-                let items = &mut self.area.player_data.items;
-
-                if let Some(index) = items.iter().position(|item| item.id == id) {
-                    items.remove(index);
-                }
+            ServerPacket::AddItem { id, count } => {
+                self.area.player_data.inventory.give_item(&id, count);
+            }
+            ServerPacket::RemoveItem { id, count } => {
+                self.area.player_data.inventory.remove_item(&id, count);
             }
             ServerPacket::PlaySound { path } => {
                 let sound = self.assets.audio(&path);

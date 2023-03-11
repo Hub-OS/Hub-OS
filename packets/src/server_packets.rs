@@ -74,13 +74,17 @@ pub enum ServerPacket {
     Money {
         money: u32,
     },
+    RegisterItem {
+        id: String,
+        item_definition: ItemDefinition,
+    },
     AddItem {
         id: String,
-        name: String,
-        description: String,
+        count: usize,
     },
     RemoveItem {
         id: String,
+        count: usize,
     },
     PlaySound {
         path: String,

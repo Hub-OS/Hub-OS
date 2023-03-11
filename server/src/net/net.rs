@@ -21,7 +21,7 @@ pub struct Net {
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
-    items: HashMap<String, Item>,
+    item_registry: HashMap<String, ItemDefinition>,
 }
 
 impl Net {
@@ -79,7 +79,7 @@ impl Net {
             asset_manager,
             active_plugin: 0,
             kick_list: Vec::new(),
-            items: HashMap::new(),
+            item_registry: HashMap::new(),
         }
     }
 
@@ -1299,56 +1299,60 @@ impl Net {
         }
     }
 
-    pub fn get_item(&mut self, item_id: &str) -> Option<&Item> {
-        self.items.get(item_id)
+    pub fn get_item(&mut self, item_id: &str) -> Option<&ItemDefinition> {
+        self.item_registry.get(item_id)
     }
 
-    pub fn set_item(&mut self, item_id: String, item: Item) {
-        self.items.insert(item_id, item);
+    pub fn set_item(&mut self, item_id: String, item: ItemDefinition) {
+        self.item_registry.insert(item_id, item);
     }
 
-    pub fn give_player_item(&mut self, player_id: &str, item_id: String) {
+    pub fn give_player_item(&mut self, player_id: &str, item_id: String, count: usize) {
         let client = if let Some(client) = self.clients.get_mut(player_id) {
             client
         } else {
             return;
         };
 
-        let item = if let Some(item) = self.items.get(&item_id) {
-            item
-        } else {
-            log::warn!("No item found with id {:?}", item_id);
-            return;
-        };
+        let item_definition =
+            if let Some(item_definition) = self.item_registry.get(&item_id).cloned() {
+                item_definition
+            } else {
+                log::warn!("No item found with id {:?}", item_id);
+                return;
+            };
+
+        if !client.player_data.inventory.item_registered(&item_id) {
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::RegisterItem {
+                    id: item_id.clone(),
+                    item_definition,
+                },
+            );
+        }
+
+        // must come after the item_registered check
+        // will register the item with the inventory
+        client.player_data.inventory.give_item(&item_id, count);
 
         self.packet_orchestrator.borrow_mut().send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::AddItem {
-                id: item_id.clone(),
-                name: item.name.clone(),
-                description: item.description.clone(),
-            },
+            ServerPacket::AddItem { id: item_id, count },
         );
-
-        client.player_data.items.push(item_id);
     }
 
-    pub fn remove_player_item(&mut self, player_id: &str, item_id: &str) {
+    pub fn remove_player_item(&mut self, player_id: &str, item_id: String, count: usize) {
         if let Some(client) = self.clients.get_mut(player_id) {
+            client.player_data.inventory.remove_item(&item_id, count);
+
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
-                ServerPacket::RemoveItem {
-                    id: item_id.to_string(),
-                },
+                ServerPacket::RemoveItem { id: item_id, count },
             );
-
-            let items = &mut client.player_data.items;
-
-            if let Some(index) = items.iter().position(|item| *item == item_id) {
-                items.remove(index);
-            }
         }
     }
 

@@ -10,7 +10,7 @@ animation state="DECKS_LABEL"
 frame duration="6f" x="102" y="42" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
 frame duration="6f" x="3" y="42" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
 
-animation state="SUB_CHIP_LABEL"
+animation state="ITEMS_LABEL"
 frame duration="6f" x="102" y="59" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
 frame duration="6f" x="3" y="59" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
 
