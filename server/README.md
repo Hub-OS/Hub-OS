@@ -701,12 +701,14 @@ Net.get_player_emotion(player_id)
 Net.set_player_emotion(player_id, emotion)
 Net.get_player_money(player_id)
 Net.set_player_money(player_id, money)
-Net.get_player_items(player_id) -- string[]
-Net.give_player_item(player_id, item_id)
-Net.remove_player_item(player_id, item_id)
+Net.get_player_items(player_id) -- string[] (unique)
+Net.give_player_item(player_id, item_id, count?)
+Net.remove_player_item(player_id, item_id, count?)
+Net.get_player_item_count(player_id, item_id)
 Net.player_has_item(player_id, item_id)
 
-Net.create_item(item_id, { name, description })
+-- item_definition = { consumable: bool, name: string, description: string }
+Net.register_item(item_id, item_definition)
 Net.get_item_name(item_id)
 Net.get_item_description(item_id)
 ```
