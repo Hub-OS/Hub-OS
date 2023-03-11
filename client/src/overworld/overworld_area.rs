@@ -14,7 +14,7 @@ pub struct OverworldArea {
     pub last_map_update: FrameTime,
     pub event_sender: flume::Sender<OverworldEvent>,
     pub event_receiver: flume::Receiver<OverworldEvent>,
-    world_time: FrameTime,
+    pub world_time: FrameTime,
     input_locks: usize,
     background: Background,
     foreground: Background,

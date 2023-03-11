@@ -459,9 +459,16 @@ impl Menu for MapMenu {
         self.marker_animator.set_state("ACTOR");
         self.marker_animator.apply(&mut self.marker_sprite);
 
-        for (_, (&position, marker)) in area.entities.query::<ActorQuery>().into_iter() {
+        for (entity, (&position, marker)) in area.entities.query::<ActorQuery>().into_iter() {
             // resolve position
-            let sprite_position = area.map.world_3d_to_screen(position) * self.scale + map_offset;
+            let mut sprite_position =
+                area.map.world_3d_to_screen(position) * self.scale + map_offset;
+
+            // bobbing to make the player's marker grab focus
+            if area.player_data.entity == entity {
+                sprite_position.y += ((area.world_time / 10) % 2) as f32;
+            }
+
             self.marker_sprite.set_position(sprite_position.floor());
 
             // resolve color
