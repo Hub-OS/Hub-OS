@@ -117,6 +117,18 @@ impl OverworldArea {
             .spawn((Sprite::new(game_io, texture), animator, position))
     }
 
+    pub fn despawn_sprite_attachments(&mut self, entity: hecs::Entity) {
+        let attachment_iter = self.entities.query_mut::<&ActorAttachment>().into_iter();
+        let pending_deletion: Vec<_> = attachment_iter
+            .filter(|(_, attachment)| attachment.actor_entity == entity)
+            .map(|(entity, _)| entity)
+            .collect();
+
+        for entity in pending_deletion {
+            let _ = self.entities.despawn(entity);
+        }
+    }
+
     pub fn set_map(&mut self, game_io: &GameIO, assets: &impl AssetManager, map: Map) {
         if self.map.background_properties() != map.background_properties() {
             self.background = map
@@ -224,6 +236,21 @@ impl OverworldArea {
         self.foreground.update();
         self.foreground
             .set_offset(screen_position * foreground_parallax);
+    }
+
+    pub fn draw_screen_attachments<C: hecs::Component>(&self, sprite_queue: &mut SpriteColorQueue) {
+        let mut query = self.entities.query::<(&Sprite, &AttachmentLayer, &C)>();
+        let mut render_order = Vec::new();
+
+        for (_, (sprite, &AttachmentLayer(layer), _)) in query.into_iter() {
+            render_order.push((sprite, layer));
+        }
+
+        render_order.sort_by_key(|(_, layer)| -*layer);
+
+        for (sprite, _) in render_order {
+            sprite_queue.draw_sprite(sprite);
+        }
     }
 
     pub fn draw(

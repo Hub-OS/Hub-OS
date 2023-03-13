@@ -6,6 +6,7 @@ use super::*;
 use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
+use generational_arena::Arena;
 use packets::{Reliability, ServerPacket};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -18,6 +19,8 @@ pub struct Net {
     areas: HashMap<String, Area>,
     clients: HashMap<String, Client>,
     bots: HashMap<String, Actor>,
+    sprites: HashMap<String, Sprite>,
+    public_sprites: Arena<String>,
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
@@ -76,6 +79,8 @@ impl Net {
             areas,
             clients: HashMap::new(),
             bots: HashMap::new(),
+            sprites: HashMap::new(),
+            public_sprites: Arena::new(),
             asset_manager,
             active_plugin: 0,
             kick_list: Vec::new(),
@@ -342,7 +347,7 @@ impl Net {
         );
     }
 
-    pub fn animate_player(&mut self, id: &str, name: &str, loop_animation: bool) {
+    pub fn animate_player(&mut self, id: &str, state: &str, loop_animation: bool) {
         let client = match self.clients.get(id) {
             Some(client) => client,
             None => return,
@@ -359,7 +364,7 @@ impl Net {
             Reliability::Reliable,
             ServerPacket::ActorAnimate {
                 actor_id: id.to_string(),
-                state: name.to_string(),
+                state: state.to_string(),
                 loop_animation,
             },
         );
@@ -1729,6 +1734,27 @@ impl Net {
             packets.push(bot.create_spawn_packet(bot.x, bot.y, bot.z, false));
         }
 
+        // send public sprites
+        for (_, sprite_id) in &self.public_sprites {
+            let sprite = &self.sprites[sprite_id];
+
+            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+                continue;
+            };
+
+            if !scope.is_visible_to(area_id, player_id) {
+                continue;
+            }
+
+            asset_paths.push(sprite.definition.animation_path.clone());
+            asset_paths.push(sprite.definition.texture_path.clone());
+
+            packets.push(ServerPacket::SpriteCreated {
+                sprite_id: sprite_id.clone(),
+                sprite_definition: sprite.definition.clone(),
+            });
+        }
+
         if let Some(custom_emotes_path) = &self.config.custom_emotes_path {
             asset_paths.push(custom_emotes_path.clone());
             packets.push(ServerPacket::CustomEmotesPath {
@@ -1796,6 +1822,7 @@ impl Net {
             None => return,
         };
 
+        // remove assets
         let remove_list = [
             asset::get_player_texture_path(id),
             asset::get_player_animation_path(id),
@@ -1807,6 +1834,23 @@ impl Net {
             self.asset_manager.remove_asset(asset_path);
         }
 
+        // delete sprites
+        for id in client.actor.child_sprites {
+            let Some(sprite) = self.sprites.remove(&id) else {
+                continue;
+            };
+
+            if let Some(index) = sprite.public_sprites_index {
+                self.public_sprites.remove(index);
+            }
+        }
+
+        // remove from packet_orchestrator
+        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+
+        packet_orchestrator.unregister_client(client.socket_address);
+
+        // remove player from the area
         let area = match self.areas.get_mut(&client.actor.area_id) {
             Some(area) => area,
             None => return,
@@ -1818,10 +1862,6 @@ impl Net {
             actor_id: id.to_string(),
             warp_out,
         };
-
-        let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-
-        packet_orchestrator.unregister_client(client.socket_address);
 
         broadcast_to_area(
             &mut packet_orchestrator,
@@ -1877,6 +1917,18 @@ impl Net {
             None => return,
         };
 
+        // delete sprites
+        for id in bot.child_sprites {
+            let Some(sprite) = self.sprites.remove(&id) else {
+                continue;
+            };
+
+            if let Some(index) = sprite.public_sprites_index {
+                self.public_sprites.remove(index);
+            }
+        }
+
+        // remove bot from the area
         let area = match self.areas.get_mut(&bot.area_id) {
             Some(area) => area,
             None => return,
@@ -2107,28 +2159,53 @@ impl Net {
             return;
         }
 
-        if let Some(bot) = self.bots.get_mut(id) {
-            if let Some(previous_area) = self.areas.get_mut(&bot.area_id) {
-                previous_area.remove_bot(id);
+        let Some(bot) = self.bots.get_mut(id) else {
+            return;
+        };
 
-                broadcast_to_area(
-                    &mut self.packet_orchestrator.borrow_mut(),
-                    previous_area,
-                    Reliability::ReliableOrdered,
-                    ServerPacket::ActorDisconnected {
-                        actor_id: id.to_string(),
-                        warp_out: warp_in,
-                    },
-                );
-            }
+        if let Some(previous_area) = self.areas.get_mut(&bot.area_id) {
+            previous_area.remove_bot(id);
 
-            bot.area_id = area_id.to_string();
-            bot.x = x;
-            bot.y = y;
-            bot.z = z;
+            broadcast_to_area(
+                &mut self.packet_orchestrator.borrow_mut(),
+                previous_area,
+                Reliability::ReliableOrdered,
+                ServerPacket::ActorDisconnected {
+                    actor_id: id.to_string(),
+                    warp_out: warp_in,
+                },
+            );
+        }
 
-            let area = self.areas.get_mut(area_id).unwrap();
-            area.add_bot(id.to_string());
+        bot.area_id = area_id.to_string();
+        bot.x = x;
+        bot.y = y;
+        bot.z = z;
+
+        let area = self.areas.get_mut(area_id).unwrap();
+        area.add_bot(id.to_string());
+
+        ensure_assets(
+            &mut self.packet_orchestrator.borrow_mut(),
+            self.config.max_payload_size,
+            &self.asset_manager,
+            &mut self.clients,
+            area.connected_players(),
+            [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
+        );
+
+        broadcast_to_area(
+            &mut self.packet_orchestrator.borrow_mut(),
+            area,
+            Reliability::ReliableOrdered,
+            bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in),
+        );
+
+        let bot = self.bots.get(id).unwrap();
+        let area = self.areas.get(area_id).unwrap();
+
+        for sprite_id in &bot.child_sprites {
+            let sprite = self.sprites.get(id).unwrap();
 
             ensure_assets(
                 &mut self.packet_orchestrator.borrow_mut(),
@@ -2136,16 +2213,176 @@ impl Net {
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
-                [bot.texture_path.as_str(), bot.animation_path.as_str()].iter(),
+                [
+                    &sprite.definition.texture_path,
+                    &sprite.definition.animation_path,
+                ],
             );
 
-            broadcast_to_area(
+            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+                continue;
+            };
+
+            broadcast_to_scope(
                 &mut self.packet_orchestrator.borrow_mut(),
-                area,
+                scope,
+                &self.areas,
                 Reliability::ReliableOrdered,
-                bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in),
+                ServerPacket::SpriteCreated {
+                    sprite_id: sprite_id.clone(),
+                    sprite_definition: sprite.definition.clone(),
+                },
             );
         }
+    }
+
+    pub fn create_sprite(
+        &mut self,
+        client_id_restriction: Option<String>,
+        sprite_definition: SpriteDefinition,
+    ) -> String {
+        use uuid::Uuid;
+
+        let id = Uuid::new_v4().to_string();
+
+        let public_sprites_index = if client_id_restriction.is_none() {
+            Some(self.public_sprites.insert(id.clone()))
+        } else {
+            None
+        };
+
+        if let SpriteParent::Actor(actor_id) = &sprite_definition.parent {
+            if let Some(client) = self.clients.get_mut(actor_id) {
+                client.actor.child_sprites.push(id.clone());
+            } else if let Some(bot) = self.bots.get_mut(actor_id) {
+                bot.child_sprites.push(id.clone());
+            }
+        }
+
+        let sprite = Sprite {
+            definition: sprite_definition.clone(),
+            public_sprites_index,
+            client_id_restriction,
+        };
+
+        let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, &sprite)
+            .map(|scope| scope.to_owned());
+
+        let Some(scope) = scope else {
+            // no clients to send packets to
+            self.sprites.insert(id.clone(), sprite);
+            return id;
+        };
+
+        // send assets
+        ensure_scope_has_assets(
+            &mut self.packet_orchestrator.borrow_mut(),
+            self.config.max_payload_size,
+            &self.asset_manager,
+            &self.areas,
+            &mut self.clients,
+            scope,
+            [
+                &sprite_definition.animation_path,
+                &sprite_definition.texture_path,
+            ],
+        );
+
+        // send creation packet
+        self.message_sprite_aware(id.clone(), |sprite_id| ServerPacket::SpriteCreated {
+            sprite_id,
+            sprite_definition,
+        });
+
+        self.sprites.insert(id.clone(), sprite);
+
+        id
+    }
+
+    pub fn animate_sprite(&mut self, sprite_id: String, state: String, loop_animation: bool) {
+        self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteAnimate {
+            sprite_id,
+            state,
+            loop_animation,
+        });
+    }
+
+    pub fn delete_sprite(&mut self, sprite_id: String) {
+        self.message_sprite_aware(sprite_id.clone(), |sprite_id| ServerPacket::SpriteDeleted {
+            sprite_id,
+        });
+
+        let Some(sprite) = self.sprites.remove(&sprite_id) else {
+            return;
+        };
+
+        if let Some(index) = sprite.public_sprites_index {
+            self.public_sprites.remove(index);
+        }
+
+        if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+            let mut empty = Vec::new();
+
+            let id_list = if let Some(client) = self.clients.get_mut(actor_id) {
+                &mut client.actor.child_sprites
+            } else if let Some(bot) = self.bots.get_mut(actor_id) {
+                &mut bot.child_sprites
+            } else {
+                &mut empty
+            };
+
+            if let Some(index) = id_list.iter().position(|id| id == &sprite_id) {
+                id_list.remove(index);
+            }
+        }
+    }
+
+    fn message_sprite_aware(
+        &mut self,
+        sprite_id: String,
+        callback: impl FnOnce(String) -> ServerPacket,
+    ) {
+        let Some(sprite) = self.sprites.get(&sprite_id) else {
+            return;
+        };
+
+        let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+            return;
+        };
+
+        let packet = callback(sprite_id);
+
+        broadcast_to_scope(
+            &mut self.packet_orchestrator.borrow_mut(),
+            scope,
+            &self.areas,
+            Reliability::ReliableOrdered,
+            packet,
+        );
+    }
+
+    fn resolve_sprite_packet_scope<'a>(
+        clients: &'a HashMap<String, Client>,
+        bots: &'a HashMap<String, Actor>,
+        sprite: &'a Sprite,
+    ) -> Option<PacketScope<'a>> {
+        if let Some(client_id) = &sprite.client_id_restriction {
+            // send the packet just to this client
+            return Some(PacketScope::Client(client_id));
+        }
+
+        // assume public as there's no client_id_restriction
+
+        if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+            // send just to clients in the same area as the actor
+            let client_area_id = clients.get(actor_id).map(|client| &client.actor.area_id);
+            let area_id = client_area_id.or_else(|| bots.get(actor_id).map(|actor| &actor.area_id));
+
+            return Some(PacketScope::Area(area_id?));
+        }
+
+        // broadcast to everyone
+        Some(PacketScope::All)
     }
 
     pub fn request_update_synchronization(&mut self) {
@@ -2364,14 +2601,39 @@ fn broadcast_to_area(
     packet_orchestrator.broadcast_to_room(area.id(), reliability, packet);
 }
 
-fn ensure_asset(
+fn broadcast_to_scope(
+    packet_orchestrator: &mut PacketOrchestrator,
+    scope: PacketScope,
+    areas: &HashMap<String, Area>,
+    reliability: Reliability,
+    packet: ServerPacket,
+) {
+    match scope {
+        PacketScope::All => {
+            packet_orchestrator.broadcast_to_clients(reliability, packet);
+        }
+        PacketScope::Area(area_id) => {
+            if let Some(area) = areas.get(area_id) {
+                broadcast_to_area(packet_orchestrator, area, reliability, packet);
+            }
+        }
+        PacketScope::Client(id) => {
+            packet_orchestrator.send_by_id(id, reliability, packet);
+        }
+    }
+}
+
+fn ensure_asset<I, P>(
     packet_orchestrator: &mut PacketOrchestrator,
     max_payload_size: u16,
     asset_manager: &AssetManager,
     clients: &mut HashMap<String, Client>,
-    player_ids: &[String],
+    player_ids: I,
     asset_path: &str,
-) {
+) where
+    I: IntoIterator<Item = P> + Clone,
+    P: AsRef<str>,
+{
     if !asset_path.starts_with("/server") {
         return;
     }
@@ -2393,8 +2655,8 @@ fn ensure_asset(
 
         let mut byte_vecs = Vec::new();
 
-        for player_id in player_ids {
-            let client = clients.get_mut(player_id).unwrap();
+        for player_id in player_ids.clone() {
+            let client = clients.get_mut(player_id.as_ref()).unwrap();
 
             if asset.cachable && client.cached_assets.contains(asset_path) {
                 continue;
@@ -2422,15 +2684,18 @@ fn ensure_asset(
     }
 }
 
-fn ensure_assets<'a, I>(
+fn ensure_assets<AI, A, PI, P>(
     packet_orchestrator: &mut PacketOrchestrator,
     max_payload_size: u16,
     asset_manager: &AssetManager,
     clients: &mut HashMap<String, Client>,
-    player_ids: &[String],
-    asset_paths: I,
+    player_ids: PI,
+    asset_paths: AI,
 ) where
-    I: Iterator<Item = &'a &'a str>,
+    AI: IntoIterator<Item = A>,
+    A: AsRef<str>,
+    PI: IntoIterator<Item = P> + Clone,
+    P: AsRef<str>,
 {
     for asset_path in asset_paths {
         ensure_asset(
@@ -2438,8 +2703,58 @@ fn ensure_assets<'a, I>(
             max_payload_size,
             asset_manager,
             clients,
-            player_ids,
-            asset_path,
+            player_ids.clone(),
+            asset_path.as_ref(),
         );
+    }
+}
+
+fn ensure_scope_has_assets<AI, A>(
+    packet_orchestrator: &mut PacketOrchestrator,
+    max_payload_size: u16,
+    asset_manager: &AssetManager,
+    areas: &HashMap<String, Area>,
+    clients: &mut HashMap<String, Client>,
+    scope: PacketScopeOwned,
+    asset_paths: AI,
+) where
+    AI: IntoIterator<Item = A> + Clone,
+    A: AsRef<str>,
+{
+    match scope {
+        PacketScopeOwned::All => {
+            for area in areas.values() {
+                ensure_assets(
+                    packet_orchestrator,
+                    max_payload_size,
+                    asset_manager,
+                    clients,
+                    area.connected_players(),
+                    asset_paths.clone(),
+                );
+            }
+        }
+        PacketScopeOwned::Area(area_id) => {
+            if let Some(area) = areas.get(&area_id) {
+                ensure_assets(
+                    packet_orchestrator,
+                    max_payload_size,
+                    asset_manager,
+                    clients,
+                    area.connected_players(),
+                    asset_paths,
+                );
+            }
+        }
+        PacketScopeOwned::Client(id) => {
+            ensure_assets(
+                packet_orchestrator,
+                max_payload_size,
+                asset_manager,
+                clients,
+                &[id],
+                asset_paths,
+            );
+        }
     }
 }

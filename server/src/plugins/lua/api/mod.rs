@@ -9,6 +9,7 @@ mod lua_helpers;
 mod object_api;
 mod player_api;
 mod player_data_api;
+mod sprite_api;
 mod synchronization_api;
 mod widget_api;
 
@@ -65,6 +66,7 @@ impl LuaApi {
         player_data_api::inject_dynamic(&mut lua_api);
         widget_api::inject_dynamic(&mut lua_api);
         bot_api::inject_dynamic(&mut lua_api);
+        sprite_api::inject_dynamic(&mut lua_api);
         synchronization_api::inject_dynamic(&mut lua_api);
 
         async_api::inject_static(&mut lua_api);

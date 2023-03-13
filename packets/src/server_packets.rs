@@ -279,6 +279,18 @@ pub enum ServerPacket {
         actor_id: String,
         color: (u8, u8, u8, u8),
     },
+    SpriteCreated {
+        sprite_id: String,
+        sprite_definition: SpriteDefinition,
+    },
+    SpriteAnimate {
+        sprite_id: String,
+        state: String,
+        loop_animation: bool,
+    },
+    SpriteDeleted {
+        sprite_id: String,
+    },
     SynchronizeUpdates,
     EndSynchronization,
 }

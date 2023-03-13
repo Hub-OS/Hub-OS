@@ -14,7 +14,7 @@ use crate::saves::BlockGrid;
 use crate::scenes::BattleScene;
 use bimap::BiMap;
 use framework::prelude::*;
-use packets::structures::{ActorProperty, BattleStatistics, FileHash};
+use packets::structures::{ActorProperty, BattleStatistics, FileHash, SpriteParent};
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
 };
@@ -39,6 +39,7 @@ pub struct OverworldOnlineScene {
     assets: ServerAssetManager,
     custom_emotes_path: String,
     actor_id_map: BiMap<String, hecs::Entity>,
+    sprite_id_map: HashMap<String, hecs::Entity>,
     excluded_actors: Vec<String>,
     excluded_objects: Vec<u32>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
@@ -94,6 +95,7 @@ impl OverworldOnlineScene {
             assets,
             custom_emotes_path: ResourcePaths::BLANK.to_string(),
             actor_id_map: BiMap::new(),
+            sprite_id_map: HashMap::new(),
             excluded_actors: Vec::new(),
             excluded_objects: Vec::new(),
             doorstop_remover: None,
@@ -337,8 +339,9 @@ impl OverworldOnlineScene {
                 let player_entity = self.area.player_data.entity;
                 let (player_id, _) = self.actor_id_map.remove_by_right(&player_entity).unwrap();
 
-                for entity in self.actor_id_map.right_values() {
-                    let _ = self.area.entities.despawn(*entity);
+                for &entity in self.actor_id_map.right_values() {
+                    let _ = self.area.entities.despawn(entity);
+                    self.area.despawn_sprite_attachments(entity);
                 }
 
                 self.actor_id_map.clear();
@@ -1116,9 +1119,11 @@ impl OverworldOnlineScene {
 
                         WarpEffect::warp_out(game_io, &mut self.area, entity, move |_, area| {
                             let _ = area.entities.despawn(entity);
+                            area.despawn_sprite_attachments(entity);
                         });
                     } else {
                         let _ = self.area.entities.despawn(entity);
+                        self.area.despawn_sprite_attachments(entity);
                     }
                 }
             }
@@ -1260,6 +1265,88 @@ impl OverworldOnlineScene {
                     }
                 }
             }
+            ServerPacket::SpriteCreated {
+                sprite_id,
+                sprite_definition,
+            } => {
+                let entities = &mut self.area.entities;
+                let assets = &self.assets;
+
+                // setup sprite
+                let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
+
+                // setup offset
+                let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
+                sprite.set_position(offset);
+
+                // setup layer
+                let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
+                    // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
+                    sprite_definition.layer - 1
+                } else {
+                    sprite_definition.layer
+                });
+
+                // setup animator
+                let mut animator = Animator::load_new(assets, &sprite_definition.animation_path);
+                animator.set_state(&sprite_definition.animation_state);
+
+                if sprite_definition.animation_loops {
+                    animator.set_loop_mode(AnimatorLoopMode::Loop);
+                } else if let Some(frame_list) =
+                    animator.frame_list(&sprite_definition.animation_state)
+                {
+                    // end the state
+                    animator.sync_time(frame_list.duration());
+                }
+
+                let entity = entities.spawn((animator, sprite, offset, layer));
+
+                // set attachment
+                let _ = match sprite_definition.parent {
+                    SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
+                    SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
+                    SpriteParent::Actor(actor_id) => entities.insert(
+                        entity,
+                        (
+                            ActorAttachment {
+                                actor_entity: self
+                                    .actor_id_map
+                                    .get_by_left(&actor_id)
+                                    .cloned()
+                                    .unwrap_or(hecs::Entity::DANGLING),
+                                point: sprite_definition.parent_point,
+                            },
+                            Vec3::ZERO,
+                        ),
+                    ),
+                };
+
+                self.sprite_id_map.insert(sprite_id, entity);
+            }
+            ServerPacket::SpriteAnimate {
+                sprite_id,
+                state,
+                loop_animation,
+            } => {
+                if let Some(&entity) = self.sprite_id_map.get(&sprite_id) {
+                    let entities = &mut self.area.entities;
+
+                    if let Ok(animator) = entities.query_one_mut::<&mut Animator>(entity) {
+                        animator.set_state(&state);
+
+                        if loop_animation {
+                            animator.set_loop_mode(AnimatorLoopMode::Loop);
+                        }
+                    }
+                }
+            }
+            ServerPacket::SpriteDeleted { sprite_id } => {
+                if let Some(entity) = self.sprite_id_map.remove(&sprite_id) {
+                    let entities = &mut self.area.entities;
+                    let _ = entities.despawn(entity);
+                }
+            }
             ServerPacket::SynchronizeUpdates => {
                 self.synchronizing_packets = true;
             }
@@ -1284,12 +1371,6 @@ impl OverworldOnlineScene {
         let (doorstop_interface, remover) = TextboxDoorstop::new();
         self.doorstop_remover = Some(remover);
         self.menu_manager.push_textbox_interface(doorstop_interface);
-    }
-
-    fn remove_actor(&mut self, actor_id: &str) {
-        if let Some((_, entity)) = self.actor_id_map.remove_by_left(actor_id) {
-            let _ = self.area.entities.despawn(entity);
-        }
     }
 
     fn handle_events(&mut self, game_io: &mut GameIO) {
@@ -1601,8 +1682,13 @@ impl Scene for OverworldOnlineScene {
 
         if !self.menu_manager.is_blocking_hud() {
             self.hud.draw(game_io, &mut sprite_queue, &self.area.map);
+
+            // draw hud attachments
+            self.area
+                .draw_screen_attachments::<HudAttachment>(&mut sprite_queue);
         }
 
+        // draw menu, also draws widget attachments
         self.menu_manager
             .draw(game_io, render_pass, &mut sprite_queue, &self.area);
 

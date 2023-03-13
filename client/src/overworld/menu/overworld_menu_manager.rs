@@ -1,6 +1,7 @@
 use super::Bbs;
 use super::Shop;
 use crate::ease::inverse_lerp;
+use crate::overworld::components::WidgetAttachment;
 use crate::overworld::OverworldArea;
 use crate::overworld::OverworldPlayerData;
 use crate::render::ui::*;
@@ -496,6 +497,7 @@ impl OverworldMenuManager {
     ) {
         let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
 
+        // draw menus
         if fade_progress < 0.5 {
             if let Some(index) = self.fading_menu {
                 let menu = &mut self.menus[index];
@@ -515,8 +517,13 @@ impl OverworldMenuManager {
             }
         }
 
+        // draw textbox
         self.textbox.draw(game_io, sprite_queue);
 
+        // draw widget attachments
+        area.draw_screen_attachments::<WidgetAttachment>(sprite_queue);
+
+        // draw fade
         if self.fade_time < self.max_fade_time {
             let mut color = self.fade_sprite.color();
             color.a = crate::ease::symmetric(4.0, fade_progress);
@@ -525,6 +532,7 @@ impl OverworldMenuManager {
             sprite_queue.draw_sprite(&self.fade_sprite);
         }
 
+        // draw navigation menu
         self.navigation_menu.draw(game_io, sprite_queue);
     }
 }

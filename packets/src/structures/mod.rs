@@ -12,6 +12,7 @@ mod package_category;
 mod package_id;
 mod remote_player_info;
 mod shop_item;
+mod sprite;
 
 pub use actor_property::*;
 pub use asset::*;
@@ -27,3 +28,4 @@ pub use package_category::*;
 pub use package_id::*;
 pub use remote_player_info::*;
 pub use shop_item::*;
+pub use sprite::*;
