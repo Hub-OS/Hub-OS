@@ -71,9 +71,10 @@ impl Living {
         entity_id: EntityId,
         mut hit_props: HitProperties,
     ) {
-        let (entity, living) = (simulation.entities)
-            .query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-            .unwrap();
+        let entities = &mut simulation.entities;
+        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+            return;
+        };
 
         let time_is_frozen = entity.time_frozen_count > 0;
         let tile_pos = (entity.x, entity.y);

@@ -739,22 +739,17 @@ impl BattleState {
                 );
 
                 if simulation.defense_judge.damage_blocked {
-                    let tile = simulation
-                        .field
-                        .tile_at_mut((attack_box.x, attack_box.y))
-                        .unwrap();
-                    tile.ignore_attacker(attacker_id);
+                    if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
+                        tile.ignore_attacker(attacker_id);
+                    }
                 }
 
                 // test tangibility
                 if intangible {
-                    let living = simulation
-                        .entities
-                        .query_one_mut::<&mut Living>(id)
-                        .unwrap();
-
-                    if !living.intangibility.try_pierce(&hit_props) {
-                        continue;
+                    if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
+                        if !living.intangibility.try_pierce(&hit_props) {
+                            continue;
+                        }
                     }
                 }
 
@@ -773,11 +768,9 @@ impl BattleState {
                     continue;
                 }
 
-                let tile = simulation
-                    .field
-                    .tile_at_mut((attack_box.x, attack_box.y))
-                    .unwrap();
-                tile.ignore_attacker(attacker_id);
+                if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
+                    tile.ignore_attacker(attacker_id);
+                }
 
                 Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
 
@@ -1184,10 +1177,8 @@ impl BattleState {
             // movement test
             if can_move_to_callback.call(game_io, simulation, vms, dest) {
                 // statistics
-                if let Ok(player) = simulation.entities.query_one_mut::<&Player>(id) {
-                    if player.local {
-                        simulation.statistics.movements += 1;
-                    }
+                if simulation.local_player_id == EntityId::from(id) {
+                    simulation.statistics.movements += 1;
                 }
 
                 // actual movement
