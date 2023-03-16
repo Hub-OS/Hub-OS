@@ -101,7 +101,7 @@ impl State for BattleState {
 
         // other players may still be in battle, and some components make use of this
         simulation.battle_time += 1;
-        simulation.time += 1;
+        self.time += 1;
 
         self.detect_success_or_failure(simulation);
         self.update_turn_gauge(game_io, simulation);
