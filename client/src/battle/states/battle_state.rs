@@ -1430,33 +1430,45 @@ impl BattleState {
                     let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
 
                     match current_tile.state() {
+                        TileState::Poison => {
+                            // take 1hp immediately for stepping on poison
+                            let mut hit_props = HitProperties::blank();
+                            hit_props.damage = 1;
+
+                            Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
+                        }
                         TileState::Ice => {
-                            let direction = move_action.aligned_direction();
-                            let offset = direction.i32_vector();
-                            let dest = (entity.x + offset.0, entity.y + offset.1);
+                            if entity.element != Element::Aqua {
+                                let direction = move_action.aligned_direction();
+                                let offset = direction.i32_vector();
+                                let dest = (entity.x + offset.0, entity.y + offset.1);
 
-                            let can_move_to_callback =
-                                entity.current_can_move_to_callback(&simulation.card_actions);
-                            let can_move_to =
-                                can_move_to_callback.call(game_io, simulation, vms, dest);
+                                let can_move_to_callback =
+                                    entity.current_can_move_to_callback(&simulation.card_actions);
+                                let can_move_to =
+                                    can_move_to_callback.call(game_io, simulation, vms, dest);
 
-                            if can_move_to {
-                                entity = simulation
-                                    .entities
-                                    .query_one_mut::<&mut Entity>(id)
-                                    .unwrap();
-                                entity.move_action = Some(MoveAction::slide(dest, 4));
+                                if can_move_to {
+                                    entity = simulation
+                                        .entities
+                                        .query_one_mut::<&mut Entity>(id)
+                                        .unwrap();
+                                    entity.move_action = Some(MoveAction::slide(dest, 4));
+                                }
                             }
                         }
                         TileState::Sea => {
-                            let position = (entity.x, entity.y);
+                            if entity.element != Element::Aqua {
+                                let position = (entity.x, entity.y);
 
-                            if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id)
-                            {
-                                living.status_director.apply_status(HitFlag::ROOT, 20);
+                                if let Ok(living) =
+                                    simulation.entities.query_one_mut::<&mut Living>(id)
+                                {
+                                    living.status_director.apply_status(HitFlag::ROOT, 20);
 
-                                let splash_id = simulation.create_splash(game_io);
-                                simulation.request_entity_spawn(splash_id, position);
+                                    let splash_id = simulation.create_splash(game_io);
+                                    simulation.request_entity_spawn(splash_id, position);
+                                }
                             }
                         }
                         _ => {}
