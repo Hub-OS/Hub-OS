@@ -27,6 +27,7 @@ pub struct BattleSimulation {
     pub fade_sprite: Sprite,
     pub turn_gauge: TurnGauge,
     pub field: Field,
+    pub tile_states: Vec<TileState>,
     pub entities: hecs::World,
     pub generation_tracking: Vec<hecs::Entity>,
     pub queued_attacks: Vec<AttackBox>,
@@ -67,6 +68,7 @@ impl BattleSimulation {
             fade_sprite: assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
+            tile_states: TileState::create_registry(),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
@@ -145,6 +147,7 @@ impl BattleSimulation {
             fade_sprite: self.fade_sprite.clone(),
             turn_gauge: self.turn_gauge.clone(),
             field: self.field.clone(),
+            tile_states: self.tile_states.clone(),
             entities,
             generation_tracking: self.generation_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
@@ -751,7 +754,7 @@ impl BattleSimulation {
                 .query_one_mut::<&Entity>(id.into())
                 .unwrap();
 
-            if !entity.ignore_hole_tiles && tile.state().is_hole() {
+            if !entity.ignore_hole_tiles && simulation.tile_states[tile.state_index()].is_hole {
                 // can't walk on holes
                 return false;
             }
@@ -1221,8 +1224,12 @@ impl BattleSimulation {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::default());
 
         // draw field
-        self.field
-            .draw(game_io, &mut sprite_queue, perspective_flipped);
+        self.field.draw(
+            game_io,
+            &mut sprite_queue,
+            &self.tile_states,
+            perspective_flipped,
+        );
 
         // draw dramatic fade
         if self.fade_sprite.color().a > 0.0 {

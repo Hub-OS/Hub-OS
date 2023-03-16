@@ -1,3 +1,4 @@
+use super::TileState;
 use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
@@ -175,7 +176,7 @@ impl Field {
                 }
 
                 if col == 0 || col == self.cols - 1 || row == 0 || row == self.rows - 1 {
-                    tile.set_state(TileState::Hidden);
+                    tile.set_state_index(TileState::HIDDEN, None);
                 }
             }
         }
@@ -259,7 +260,13 @@ impl Field {
         }
     }
 
-    pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, flipped: bool) {
+    pub fn draw(
+        &mut self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        tile_states: &[TileState],
+        flipped: bool,
+    ) {
         sprite_queue.set_color_mode(SpriteColorMode::Add);
 
         self.tile_animator.sync_time(self.time);
@@ -288,12 +295,26 @@ impl Field {
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];
+                let state_index = tile.state_index();
 
-                if tile.state() == TileState::Hidden {
+                if state_index == TileState::HIDDEN {
                     continue;
                 }
 
-                let animation_string = prefix.clone() + tile.animation_state(flipped);
+                // resolve displayed tile state
+                let tile_state = if tile.flicker_normal_state() {
+                    &tile_states[TileState::NORMAL]
+                } else {
+                    &tile_states[state_index]
+                };
+
+                let tile_animation_state = if flipped {
+                    &tile_state.flipped_animation_state
+                } else {
+                    &tile_state.default_animation_state
+                };
+
+                let animation_string = prefix.clone() + tile_animation_state;
                 self.tile_animator.set_state(&animation_string);
                 self.tile_animator.set_loop_mode(AnimatorLoopMode::Loop);
                 self.tile_animator.sync_time(self.time);

@@ -1,4 +1,4 @@
-use super::{CardAction, Entity};
+use super::{CardAction, Entity, TileState};
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
@@ -6,8 +6,9 @@ use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
 #[derive(Default, Clone)]
 pub struct Tile {
     position: (i32, i32),
-    state: TileState,
+    state_index: usize,
     state_lifetime: FrameTime,
+    max_state_lifetime: Option<FrameTime>,
     immutable_team: bool,
     team: Team,
     original_team: Team,
@@ -30,27 +31,14 @@ impl Tile {
         }
     }
 
-    pub fn state(&self) -> TileState {
-        self.state
+    pub fn state_index(&self) -> usize {
+        self.state_index
     }
 
-    pub fn set_state(&mut self, state: TileState) {
-        if self.state == TileState::Metal && state == TileState::Cracked {
-            // can't crack metal panels
-            return;
-        }
-
-        if !state.is_walkable() && !self.reservations.is_empty() {
-            // tile must be walkable for entities that are on or are moving to this tile
-            return;
-        }
-
-        if self.state.immutable() {
-            return;
-        }
-
+    pub fn set_state_index(&mut self, state: usize, max_state_lifetime: Option<FrameTime>) {
         self.state_lifetime = 0;
-        self.state = state;
+        self.state_index = state;
+        self.max_state_lifetime = max_state_lifetime;
     }
 
     pub fn team(&self) -> Team {
@@ -104,7 +92,7 @@ impl Tile {
     }
 
     pub fn should_highlight(&self) -> bool {
-        if self.state == TileState::Hidden {
+        if self.state_index == TileState::HIDDEN {
             return false;
         }
 
@@ -127,18 +115,13 @@ impl Tile {
 
     pub fn apply_wash(&mut self) {
         if self.washed {
-            self.state = TileState::Normal;
+            self.state_index = TileState::NORMAL;
             self.washed = false;
         }
     }
 
-    pub fn attempt_wash(&mut self, element: Element) {
-        self.washed = matches!(
-            (self.state, element),
-            (TileState::Sand, Element::Wind)
-                | (TileState::Grass, Element::Fire)
-                | (TileState::Volcano, Element::Aqua)
-        );
+    pub fn set_washed(&mut self, washed: bool) {
+        self.washed = washed;
     }
 
     pub fn ignoring_attacker(&self, id: EntityId) -> bool {
@@ -236,17 +219,6 @@ impl Tile {
         }
     }
 
-    pub fn apply_bonus_damage(&self, props: &HitProperties) -> bool {
-        let element = match self.state {
-            TileState::Grass => Element::Wood,
-            TileState::Lava => Element::Fire,
-            TileState::Sea => Element::Aqua,
-            _ => Element::None,
-        };
-
-        props.is_super_effective(element)
-    }
-
     pub fn reset_highlight(&mut self) {
         if self.highlight != TileHighlight::Flash {
             self.flash_time = 0;
@@ -260,9 +232,9 @@ impl Tile {
     pub fn update_state(&mut self) {
         self.state_lifetime += 1;
 
-        if let Some(max_lifetime) = self.state.max_lifetime() {
+        if let Some(max_lifetime) = self.max_state_lifetime {
             if self.state_lifetime > max_lifetime {
-                self.state = TileState::Normal;
+                self.state_index = TileState::NORMAL;
             }
         }
     }
@@ -289,15 +261,15 @@ impl Tile {
         }
     }
 
-    pub fn animation_state(&self, flipped: bool) -> &'static str {
-        if let Some(max_lifetime) = self.state.max_lifetime() {
+    pub fn flicker_normal_state(&self) -> bool {
+        if let Some(max_lifetime) = self.max_state_lifetime {
             let flicker_elapsed = self.state_lifetime - (max_lifetime - TILE_FLICKER_DURATION);
 
             if flicker_elapsed > 0 && (flicker_elapsed / 2) % 2 == 0 {
-                return TileState::Normal.animation_suffix(flipped);
+                return true;
             }
         }
 
-        self.state.animation_suffix(flipped)
+        false
     }
 }

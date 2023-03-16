@@ -21,7 +21,6 @@ mod move_action;
 mod sprite_color_mode;
 mod team;
 mod tile_highlight;
-mod tile_state;
 
 pub use action_lockout::*;
 pub use animator_playback_mode::*;
@@ -46,7 +45,6 @@ pub use move_action::*;
 pub use sprite_color_mode::*;
 pub use team::*;
 pub use tile_highlight::*;
-pub use tile_state::*;
 
 pub use packets::structures::BlockColor;
 pub use packets::structures::Direction;

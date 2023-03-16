@@ -21,6 +21,7 @@ mod shared_battle_assets;
 mod states;
 mod status_director;
 mod tile;
+mod tile_state;
 mod time_freeze_tracker;
 mod turn_gauge;
 
@@ -47,5 +48,6 @@ pub use shared_battle_assets::*;
 pub use states::*;
 pub use status_director::*;
 pub use tile::*;
+pub use tile_state::*;
 pub use time_freeze_tracker::*;
 pub use turn_gauge::*;

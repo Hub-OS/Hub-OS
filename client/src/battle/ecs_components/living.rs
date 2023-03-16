@@ -89,10 +89,8 @@ impl Living {
             hit_props.flags |= HitFlag::NO_COUNTER;
         }
 
-        let (entity, living) = simulation
-            .entities
-            .query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-            .unwrap();
+        let entities = &mut simulation.entities;
+        let entity = entities.query_one_mut::<&Entity>(entity_id.into()).unwrap();
 
         let original_damage = hit_props.damage;
 
@@ -103,16 +101,22 @@ impl Living {
 
         // tile bonus
         let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
+        let tile_state = &simulation.tile_states[tile.state_index()];
+        let bonus_damage_callback = tile_state.calculate_bonus_damage_callback.clone();
 
-        if tile.state() == TileState::Holy {
-            hit_props.damage += 1;
-            hit_props.damage /= 2;
-        }
+        hit_props.damage += bonus_damage_callback.call(
+            game_io,
+            simulation,
+            vms,
+            (hit_props.clone(), original_damage),
+        );
 
-        if tile.apply_bonus_damage(&hit_props) {
-            hit_props.damage += original_damage;
-        }
+        let entities = &mut simulation.entities;
+        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+            return;
+        };
 
+        // apply damage
         living.set_health(living.health - hit_props.damage);
 
         if hit_props.flags & HitFlag::IMPACT != 0 {

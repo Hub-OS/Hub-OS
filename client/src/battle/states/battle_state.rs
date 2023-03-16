@@ -507,7 +507,7 @@ impl BattleState {
 
         field.update_tile_states(&mut simulation.entities);
 
-        for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
+        for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
             if entity.ignore_tile_effects || !entity.on_field || entity.deleted {
                 continue;
             }
@@ -515,86 +515,15 @@ impl BattleState {
             let tile_pos = (entity.x, entity.y);
             let tile = field.tile_at_mut(tile_pos).unwrap();
 
-            match tile.state() {
-                TileState::Poison => {
-                    if simulation.battle_time > 0 && simulation.battle_time % POISON_INTERVAL == 0 {
-                        let callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-                            let mut hit_props = HitProperties::blank();
-                            hit_props.damage = 1;
+            let tile_state = &simulation.tile_states[tile.state_index()];
+            let tile_callback = tile_state.entity_update_callback.clone();
+            let entity_id = entity.id;
 
-                            Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
-                        });
+            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                tile_callback.call(game_io, simulation, vms, entity_id);
+            });
 
-                        simulation.pending_callbacks.push(callback);
-                    }
-                }
-                TileState::Grass => {
-                    if entity.element == Element::Wood && living.health < living.max_health {
-                        // todo: should entities have individual timers?
-                        let heal_interval = if living.health >= 9 {
-                            GRASS_HEAL_INTERVAL
-                        } else {
-                            GRASS_SLOWED_HEAL_INTERVAL
-                        };
-
-                        if simulation.battle_time > 0 && simulation.battle_time % heal_interval == 0
-                        {
-                            living.health += 1;
-                        }
-                    }
-                }
-                TileState::Lava => {
-                    if entity.element != Element::Fire {
-                        let callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-                            // todo: spawn explosion artifact
-
-                            let hit_props = HitProperties {
-                                damage: 50,
-                                element: Element::Fire,
-                                ..Default::default()
-                            };
-
-                            Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
-                        });
-
-                        simulation.pending_callbacks.push(callback);
-                        tile.set_state(TileState::Normal);
-                    }
-                }
-                TileState::DirectionLeft
-                | TileState::DirectionRight
-                | TileState::DirectionUp
-                | TileState::DirectionDown => {
-                    if entity.move_action.is_none()
-                        && simulation.battle_time - entity.last_movement >= CONVEYOR_WAIT_DELAY
-                    {
-                        let direction = tile.state().direction();
-                        let offset = direction.i32_vector();
-                        let dest = (entity.x + offset.0, entity.y + offset.1);
-
-                        let can_move_to_callback =
-                            entity.current_can_move_to_callback(&simulation.card_actions);
-
-                        let callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-                            let can_move_to =
-                                can_move_to_callback.call(game_io, simulation, vms, dest);
-
-                            if can_move_to {
-                                let entity = simulation
-                                    .entities
-                                    .query_one_mut::<&mut Entity>(id)
-                                    .unwrap();
-
-                                let move_action = MoveAction::slide(dest, CONVEYOR_SLIDE_DURATION);
-                                entity.move_action = Some(move_action);
-                            }
-                        });
-
-                        simulation.pending_callbacks.push(callback);
-                    }
-                }
-                _ => {}
-            }
+            simulation.pending_callbacks.push(callback);
         }
 
         simulation.call_pending_callbacks(game_io, vms)
@@ -648,13 +577,23 @@ impl BattleState {
 
         // interactions between attack boxes and tiles
         for attack_box in &simulation.queued_attacks {
-            let tile = simulation
-                .field
-                .tile_at_mut((attack_box.x, attack_box.y))
-                .unwrap();
-            tile.attempt_wash(attack_box.props.element);
-            tile.attempt_wash(attack_box.props.secondary_element);
+            let field = &mut simulation.field;
+            let Some(tile) = field.tile_at_mut((attack_box.x, attack_box.y)) else {
+                continue;
+            };
 
+            // resolve wash
+            let tile_state = &simulation.tile_states[tile.state_index()];
+            let cleanser_element = tile_state.cleanser_element;
+
+            let element = attack_box.props.element;
+            let secondary_element = attack_box.props.secondary_element;
+
+            if cleanser_element == Some(element) || cleanser_element == Some(secondary_element) {
+                tile.set_washed(true);
+            }
+
+            // highlight
             if attack_box.highlight {
                 tile.set_highlight(TileHighlight::Solid);
             }
@@ -1401,18 +1340,30 @@ impl BattleState {
                 start_tile.unignore_attacker(entity.id);
                 start_tile.handle_auto_reservation_removal(&simulation.card_actions, entity);
 
-                #[allow(clippy::collapsible_if)]
                 if !entity.ignore_tile_effects {
-                    if start_tile.state() == TileState::Cracked
-                        && start_tile.reservations().is_empty()
-                    {
-                        if !simulation.is_resimulation {
-                            let globals = game_io.resource::<Globals>().unwrap();
-                            globals.audio.play_sound(&globals.tile_break_sfx);
-                        }
+                    let move_action = entity.move_action.clone().unwrap();
 
-                        start_tile.set_state(TileState::Broken);
-                    }
+                    // process stepping off the tile
+                    let tile_state = &simulation.tile_states[start_tile.state_index()];
+                    let tile_callback = tile_state.entity_leave_callback.clone();
+                    let params = (entity.id, move_action);
+
+                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                        tile_callback.call(game_io, simulation, vms, params.clone());
+                    });
+
+                    simulation.pending_callbacks.push(callback);
+
+                    // process stepping onto the new tile
+                    let tile_state = &simulation.tile_states[start_tile.state_index()];
+                    let tile_callback = tile_state.entity_enter_callback.clone();
+                    let params = entity.id;
+
+                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                        tile_callback.call(game_io, simulation, vms, params);
+                    });
+
+                    simulation.pending_callbacks.push(callback);
                 }
 
                 let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
@@ -1429,50 +1380,20 @@ impl BattleState {
                 if move_action.success && !entity.ignore_tile_effects {
                     let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
 
-                    match current_tile.state() {
-                        TileState::Poison => {
-                            // take 1hp immediately for stepping on poison
-                            let mut hit_props = HitProperties::blank();
-                            hit_props.damage = 1;
+                    let tile_state = &simulation.tile_states[current_tile.state_index()];
+                    let tile_callback = tile_state.entity_stop_callback.clone();
+                    let entity_id = entity.id;
 
-                            Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
-                        }
-                        TileState::Ice => {
-                            if entity.element != Element::Aqua {
-                                let direction = move_action.aligned_direction();
-                                let offset = direction.i32_vector();
-                                let dest = (entity.x + offset.0, entity.y + offset.1);
+                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                        tile_callback.call(
+                            game_io,
+                            simulation,
+                            vms,
+                            (entity_id, move_action.clone()),
+                        );
+                    });
 
-                                let can_move_to_callback =
-                                    entity.current_can_move_to_callback(&simulation.card_actions);
-                                let can_move_to =
-                                    can_move_to_callback.call(game_io, simulation, vms, dest);
-
-                                if can_move_to {
-                                    entity = simulation
-                                        .entities
-                                        .query_one_mut::<&mut Entity>(id)
-                                        .unwrap();
-                                    entity.move_action = Some(MoveAction::slide(dest, 4));
-                                }
-                            }
-                        }
-                        TileState::Sea => {
-                            if entity.element != Element::Aqua {
-                                let position = (entity.x, entity.y);
-
-                                if let Ok(living) =
-                                    simulation.entities.query_one_mut::<&mut Living>(id)
-                                {
-                                    living.status_director.apply_status(HitFlag::ROOT, 20);
-
-                                    let splash_id = simulation.create_splash(game_io);
-                                    simulation.request_entity_spawn(splash_id, position);
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
+                    simulation.pending_callbacks.push(callback);
                 }
             } else {
                 // apply jump height

@@ -1,7 +1,9 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
-use crate::battle::{AttackBox, Character, Entity, Field, Living, Obstacle, Spell, Tile};
-use crate::bindable::{Direction, EntityId, Team, TileHighlight, TileState};
+use crate::battle::{
+    AttackBox, Character, Entity, Field, Living, Obstacle, Spell, Tile, TileState,
+};
+use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
@@ -51,16 +53,43 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state())
+        lua.pack_multi(tile.state_index())
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_state", |api_ctx, lua, params| {
-        let (table, state): (rollback_mlua::Table, TileState) = lua.unpack_multi(params)?;
+        let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let simulation = &mut api_ctx.simulation;
+        let vms = api_ctx.vms;
 
-        tile.set_state(state);
+        let Some(tile_state) = simulation.tile_states.get(state_index) else {
+            return lua.pack_multi(());
+        };
+
+        let max_lifetime = tile_state.max_lifetime;
+
+        let field = &mut simulation.field;
+        let tile_position = tile_position_from(table)?;
+        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+
+        if tile_state.is_hole && !tile.reservations().is_empty() {
+            // tile must be walkable for entities that are on or are moving to this tile
+            return lua.pack_multi(());
+        }
+
+        let change_request_callback = tile_state.change_request_callback.clone();
+        let change_passed = change_request_callback.call(game_io, simulation, vms, state_index);
+
+        if !change_passed {
+            return lua.pack_multi(());
+        }
+
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+
+        tile.set_state_index(state_index, max_lifetime);
 
         lua.pack_multi(())
     });
@@ -81,23 +110,25 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state() == TileState::Cracked)
+        lua.pack_multi(tile.state_index() == TileState::CRACKED)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_hole", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state().is_hole())
+        let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
+        lua.pack_multi(tile_state.is_hole)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_walkable", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state().is_walkable())
+        let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
+        lua.pack_multi(!tile_state.is_hole)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_hidden", |api_ctx, lua, params| {
@@ -105,7 +136,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state() == TileState::Hidden)
+        lua.pack_multi(tile.state_index() == TileState::HIDDEN)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
@@ -419,8 +450,11 @@ fn tile_from<'a>(
     field: &'a mut Field,
     table: rollback_mlua::Table,
 ) -> rollback_mlua::Result<&'a mut Tile> {
-    let x: i32 = table.raw_get("#x")?;
-    let y: i32 = table.raw_get("#y")?;
+    let tile_position = tile_position_from(table)?;
 
-    field.tile_at_mut((x, y)).ok_or_else(invalid_tile)
+    field.tile_at_mut(tile_position).ok_or_else(invalid_tile)
+}
+
+fn tile_position_from(table: rollback_mlua::Table) -> rollback_mlua::Result<(i32, i32)> {
+    Ok((table.raw_get("#x")?, table.raw_get("#y")?))
 }
