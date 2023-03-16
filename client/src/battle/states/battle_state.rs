@@ -14,6 +14,7 @@ const GRACE_TIME: FrameTime = 5;
 
 #[derive(Clone)]
 pub struct BattleState {
+    time: FrameTime,
     complete: bool,
     message: Option<(&'static str, FrameTime)>,
 }
@@ -100,6 +101,7 @@ impl State for BattleState {
 
         // other players may still be in battle, and some components make use of this
         simulation.battle_time += 1;
+        simulation.time += 1;
 
         self.detect_success_or_failure(simulation);
         self.update_turn_gauge(game_io, simulation);
@@ -164,6 +166,7 @@ impl State for BattleState {
 impl BattleState {
     pub fn new() -> Self {
         Self {
+            time: 0,
             complete: false,
             message: None,
         }
@@ -938,7 +941,10 @@ impl BattleState {
                 continue;
             }
 
-            if input.was_just_pressed(Input::UseCard) && !character.cards.is_empty() {
+            if input.was_just_pressed(Input::UseCard)
+                && !character.cards.is_empty()
+                && self.time >= GRACE_TIME
+            {
                 // using a card
                 player.card_use_requested = true;
             } else if input.was_just_pressed(Input::Special) {
