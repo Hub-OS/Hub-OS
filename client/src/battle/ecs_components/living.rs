@@ -79,14 +79,7 @@ impl Living {
         let time_is_frozen = entity.time_frozen_count > 0;
         let tile_pos = (entity.x, entity.y);
 
-        let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
         let defense_rules = living.defense_rules.clone();
-
-        // resolving tile effects
-        if tile.state() == TileState::Holy {
-            hit_props.damage += 1;
-            hit_props.damage /= 2;
-        }
 
         // filter statuses through defense rules
         DefenseJudge::filter_statuses(game_io, simulation, vms, &mut hit_props, &defense_rules);
@@ -110,6 +103,11 @@ impl Living {
 
         // tile bonus
         let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
+
+        if tile.state() == TileState::Holy {
+            hit_props.damage += 1;
+            hit_props.damage /= 2;
+        }
 
         if tile.apply_bonus_damage(&hit_props) {
             hit_props.damage += original_damage;
