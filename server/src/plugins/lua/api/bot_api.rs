@@ -87,6 +87,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 map_color: (0, 0, 0, 0),
                 current_animation: animation,
                 solid: solid.unwrap_or_default(),
+                child_sprites: Vec::new(),
             };
 
             net.add_bot(bot, warp_in.unwrap_or(true));

@@ -1,6 +1,6 @@
 use super::lua_errors::create_player_error;
 use super::LuaApi;
-use crate::net::Item;
+use crate::net::ItemDefinition;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "get_player_secret", |api_ctx, lua_ctx, params| {
@@ -176,55 +176,82 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(player_data) = &net.get_player_data(player_id_str) {
-            lua_ctx.pack_multi(player_data.items.clone())
+            let items: Vec<_> = player_data
+                .inventory
+                .items()
+                .map(|(id, _)| id.clone())
+                .collect();
+
+            lua_ctx.pack_multi(items)
         } else {
             Err(create_player_error(player_id_str))
         }
     });
 
     lua_api.add_dynamic_function("Net", "give_player_item", |api_ctx, lua_ctx, params| {
-        let (player_id, item_id): (mlua::String, String) = lua_ctx.unpack_multi(params)?;
+        let (player_id, item_id, count): (mlua::String, String, Option<usize>) =
+            lua_ctx.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.give_player_item(player_id_str, item_id);
+        net.give_player_item(player_id_str, item_id, count.unwrap_or(1));
 
         lua_ctx.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "remove_player_item", |api_ctx, lua_ctx, params| {
-        let (player_id, item_id): (mlua::String, mlua::String) = lua_ctx.unpack_multi(params)?;
-        let (player_id_str, item_id_str) = (player_id.to_str()?, item_id.to_str()?);
+        let (player_id, item_id, count): (mlua::String, String, Option<usize>) =
+            lua_ctx.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.remove_player_item(player_id_str, item_id_str);
+        net.remove_player_item(player_id_str, item_id, count.unwrap_or(1));
 
         lua_ctx.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        "Net",
+        "get_player_item_count",
+        |api_ctx, lua_ctx, params| {
+            let (player_id, item_id): (mlua::String, mlua::String) =
+                lua_ctx.unpack_multi(params)?;
+            let (player_id_str, item_id_str) = (player_id.to_str()?, item_id.to_str()?);
+
+            let net = api_ctx.net_ref.borrow();
+
+            if let Some(player_data) = &net.get_player_data(player_id_str) {
+                lua_ctx.pack_multi(player_data.inventory.count_item(item_id_str))
+            } else {
+                Err(create_player_error(player_id_str))
+            }
+        },
+    );
+
     lua_api.add_dynamic_function("Net", "player_has_item", |api_ctx, lua_ctx, params| {
-        let (player_id, item_id): (mlua::String, String) = lua_ctx.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, item_id): (mlua::String, mlua::String) = lua_ctx.unpack_multi(params)?;
+        let (player_id_str, item_id_str) = (player_id.to_str()?, item_id.to_str()?);
 
         let net = api_ctx.net_ref.borrow();
 
         if let Some(player_data) = &net.get_player_data(player_id_str) {
-            lua_ctx.pack_multi(player_data.items.contains(&item_id))
+            lua_ctx.pack_multi(player_data.inventory.count_item(item_id_str) > 0)
         } else {
             Err(create_player_error(player_id_str))
         }
     });
 
-    lua_api.add_dynamic_function("Net", "create_item", |api_ctx, lua_ctx, params| {
+    lua_api.add_dynamic_function("Net", "register_item", |api_ctx, lua_ctx, params| {
         let (item_id, item_table): (String, mlua::Table) = lua_ctx.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let item = Item {
+        let item = ItemDefinition {
             name: item_table.get("name")?,
             description: item_table.get("description")?,
+            consumable: item_table.get("consumable").unwrap_or_default(),
         };
 
         net.set_item(item_id, item);

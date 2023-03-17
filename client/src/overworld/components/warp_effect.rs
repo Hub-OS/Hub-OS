@@ -1,7 +1,7 @@
 use super::{Animator, Excluded};
+use crate::overworld::OverworldArea;
 use crate::render::FrameTime;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::{GameIO, Vec3};
 use packets::structures::Direction;
 
@@ -32,23 +32,23 @@ pub struct WarpEffect {
     pub actor_entity: hecs::Entity,
     pub warp_type: WarpType,
     pub last_frame: Option<usize>,
-    pub callback: Option<Box<dyn FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync>>,
+    pub callback: Option<Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>>,
 }
 
 impl WarpEffect {
     pub fn spawn(
         game_io: &mut GameIO,
-        base_scene: &mut OverworldSceneBase,
+        area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
-        callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync>,
+        callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>,
         warp_type: WarpType,
     ) -> hecs::Entity {
-        let screen_position = base_scene.map.world_3d_to_screen(position);
+        let screen_position = area.map.world_3d_to_screen(position);
 
         let globals = game_io.resource::<Globals>().unwrap();
 
-        if base_scene.ui_camera.bounds().contains(screen_position) {
+        if area.ui_camera.bounds().contains(screen_position) {
             globals.audio.play_sound(&globals.appear_sfx);
         }
 
@@ -59,16 +59,16 @@ impl WarpEffect {
         match warp_type {
             WarpType::In { .. } => {
                 animator.set_state("IN");
-                Excluded::increment(&mut base_scene.entities, target_entity);
+                Excluded::increment(&mut area.entities, target_entity);
             }
             WarpType::Out | WarpType::Full { .. } => {
                 animator.set_state("OUT");
             }
         }
 
-        let warp_entity = base_scene.spawn_artifact(game_io, texture, animator, position);
+        let warp_entity = area.spawn_artifact(game_io, texture, animator, position);
 
-        let entities = &mut base_scene.entities;
+        let entities = &mut area.entities;
         entities
             .insert_one(
                 warp_entity,
@@ -100,16 +100,16 @@ impl WarpEffect {
 
     pub fn warp_out(
         game_io: &mut GameIO,
-        base_scene: &mut OverworldSceneBase,
+        area: &mut OverworldArea,
         target_entity: hecs::Entity,
-        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
     ) -> hecs::Entity {
-        let entities = &mut base_scene.entities;
+        let entities = &mut area.entities;
         let position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
 
         Self::spawn(
             game_io,
-            base_scene,
+            area,
             target_entity,
             position,
             Box::new(callback),
@@ -119,15 +119,15 @@ impl WarpEffect {
 
     pub fn warp_in(
         game_io: &mut GameIO,
-        base_scene: &mut OverworldSceneBase,
+        area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
         direction: Direction,
-        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
     ) -> hecs::Entity {
         Self::spawn(
             game_io,
-            base_scene,
+            area,
             target_entity,
             position,
             Box::new(callback),
@@ -140,18 +140,18 @@ impl WarpEffect {
 
     pub fn warp_full(
         game_io: &mut GameIO,
-        base_scene: &mut OverworldSceneBase,
+        area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
         direction: Direction,
-        callback: impl FnOnce(&mut GameIO, &mut OverworldSceneBase) + Send + Sync + 'static,
+        callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
     ) -> hecs::Entity {
-        let entities = &mut base_scene.entities;
+        let entities = &mut area.entities;
         let out_position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
 
         Self::spawn(
             game_io,
-            base_scene,
+            area,
             target_entity,
             out_position,
             Box::new(callback),

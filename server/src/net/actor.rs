@@ -21,6 +21,7 @@ pub struct Actor {
     pub map_color: (u8, u8, u8, u8),
     pub current_animation: Option<String>,
     pub solid: bool,
+    pub child_sprites: Vec<String>,
 }
 
 impl Actor {

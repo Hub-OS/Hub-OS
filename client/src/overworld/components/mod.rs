@@ -1,5 +1,6 @@
 mod actor_collider;
 mod actor_property_animator;
+mod attachments;
 mod excluded;
 mod interactable_actor;
 mod movement_animator;
@@ -10,6 +11,7 @@ mod warp_effect;
 
 pub use actor_collider::*;
 pub use actor_property_animator::*;
+pub use attachments::*;
 pub use excluded::*;
 pub use interactable_actor::*;
 pub use movement_animator::*;
@@ -21,4 +23,4 @@ pub use warp_effect::*;
 // not necesssary but self documenting
 pub use crate::render::{Animator, Direction};
 pub use framework::graphics::Sprite;
-pub use framework::prelude::Vec3;
+pub use framework::prelude::{Vec2, Vec3};

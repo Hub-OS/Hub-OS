@@ -2,26 +2,25 @@ use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::render::SpriteColorQueue;
 use crate::resources::*;
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 
 const RANGE_EXTENSION: f32 = 4.0;
 const RADIUS_MULTIPLIER: f32 = 2.5;
 
-pub fn system_player_interaction(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
-    let player_data = &mut scene.player_data;
+pub fn system_player_interaction(game_io: &mut GameIO, area: &mut OverworldArea) {
+    let player_data = &mut area.player_data;
 
     player_data.actor_interaction = None;
     player_data.object_interaction = None;
     player_data.tile_interaction = None;
 
-    if scene.is_input_locked(game_io) {
+    if area.is_input_locked(game_io) {
         return;
     }
 
-    let player_data = &mut scene.player_data;
-    let entities = &mut scene.entities;
-    let map = &scene.map;
+    let player_data = &mut area.player_data;
+    let entities = &mut area.entities;
+    let map = &area.map;
 
     let input_util = InputUtil::new(game_io);
 
@@ -82,7 +81,7 @@ fn calculate_interaction_point(map: &Map, entities: &hecs::World, entity: hecs::
 
 pub fn player_interaction_debug_render(
     game_io: &GameIO,
-    scene: &OverworldSceneBase,
+    area: &OverworldArea,
     sprite_queue: &mut SpriteColorQueue,
 ) {
     let globals = game_io.resource::<Globals>().unwrap();
@@ -91,9 +90,9 @@ pub fn player_interaction_debug_render(
         return;
     }
 
-    let entity = scene.player_data.entity;
-    let interaction_point = calculate_interaction_point(&scene.map, &scene.entities, entity);
-    let position = scene.map.world_3d_to_screen(interaction_point);
+    let entity = area.player_data.entity;
+    let interaction_point = calculate_interaction_point(&area.map, &area.entities, entity);
+    let position = area.map.world_3d_to_screen(interaction_point);
 
     let assets = &globals.assets;
     let mut pixel = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);

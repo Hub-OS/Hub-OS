@@ -1,4 +1,4 @@
-use framework::prelude::Vec3;
+use framework::prelude::{NextScene, Vec3};
 use packets::structures::{BattleStatistics, Direction};
 
 pub enum OverworldEvent {
@@ -24,5 +24,6 @@ pub enum OverworldEvent {
     Disconnected {
         message: String,
     },
+    NextScene(NextScene),
     Leave,
 }

@@ -142,3 +142,19 @@ impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
         })
     }
 }
+
+impl<'lua> rollback_mlua::ToLua<'lua> for MoveAction {
+    fn to_lua(
+        self,
+        lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
+        let table = lua.create_table()?;
+
+        table.set("progress", self.progress)?;
+        table.set("delta_frames", self.delta_frames)?;
+        table.set("delay_frames", self.delay_frames)?;
+        table.set("delta_frames", self.endlag_frames)?;
+
+        Ok(rollback_mlua::Value::Table(table))
+    }
+}

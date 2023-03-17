@@ -18,13 +18,9 @@ lazy_static::lazy_static! {
     );
 }
 
-lazy_static::lazy_static! {
-    static ref MOD_CACHE_FOLDER: String =
-        std::env::temp_dir().to_string_lossy().to_string() + "/" + env!("CARGO_PKG_NAME") + "/local_packages/";
-}
-
 impl ResourcePaths {
-    pub const CACHE_FOLDER: &str = "cache/";
+    pub const SERVER_CACHE_FOLDER: &str = "cache/servers/";
+    pub const MOD_CACHE_FOLDER: &str = "cache/mods/";
     pub const IDENTITY_FOLDER: &str = "identity/";
     pub const VIRTUAL_PREFIX: &str = "/virtual/";
     pub const SEPARATOR: &str = "/";
@@ -128,6 +124,14 @@ impl ResourcePaths {
     pub const OVERWORLD_TEXTBOX_ANIMATION: &str = "resources/scenes/overworld/textbox.animation";
     pub const OVERWORLD_WARP: &str = "resources/scenes/overworld/warp.png";
     pub const OVERWORLD_WARP_ANIMATION: &str = "resources/scenes/overworld/warp.animation";
+    pub const OVERWORLD_MAP_BG: &str = "resources/scenes/overworld/map/bg.png";
+    pub const OVERWORLD_MAP_BG_ANIMATION: &str = "resources/scenes/overworld/map/bg.animation";
+    pub const OVERWORLD_MAP_OVERLAY: &str = "resources/scenes/overworld/map/overlay.png";
+    pub const OVERWORLD_MAP_OVERLAY_ARROWS: &str =
+        "resources/scenes/overworld/map/overlay_arrows.png";
+    pub const OVERWORLD_MAP_MARKERS: &str = "resources/scenes/overworld/map/markers.png";
+    pub const OVERWORLD_MAP_MARKERS_ANIMATION: &str =
+        "resources/scenes/overworld/map/markers.animation";
     pub const OVERWORLD_BBS: &str = "resources/scenes/overworld/bbs/bbs.png";
     pub const OVERWORLD_BBS_ANIMATION: &str = "resources/scenes/overworld/bbs/bbs.animation";
     pub const OVERWORLD_SHOP_BG: &str = "resources/scenes/overworld/shop/bg.png";
@@ -175,6 +179,10 @@ impl ResourcePaths {
     pub const CHARACTER_SELECT_CURSOR: &str = "resources/scenes/character_select/cursor.png";
     pub const CHARACTER_SELECT_CURSOR_ANIMATION: &str =
         "resources/scenes/character_select/cursor.animation";
+
+    // KeyItemsScene
+    pub const KEY_ITEMS_LAYOUT_ANIMATION: &str = "resources/scenes/key_items/layout.animation";
+    pub const KEY_ITEMS_MUG: &str = "resources/scenes/key_items/mug.png";
 
     // BattleSelectScene
 
@@ -228,10 +236,6 @@ impl ResourcePaths {
         &GAME_PATH
     }
 
-    pub fn mod_cache_folder() -> &'static str {
-        &MOD_CACHE_FOLDER
-    }
-
     pub fn is_absolute(path_str: &str) -> bool {
         use std::path::Path;
 
@@ -262,9 +266,5 @@ impl ResourcePaths {
         } else {
             path_str.to_string()
         }
-    }
-
-    pub fn delete_mod_cache_folder() {
-        let _ = std::fs::remove_dir_all(ResourcePaths::mod_cache_folder());
     }
 }

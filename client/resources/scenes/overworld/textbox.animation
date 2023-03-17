@@ -10,6 +10,7 @@ point label="TEXT_BOTTOM_RIGHT" x="230" y="55"
 point label="NEXT" x="234" y="58"
 
 animation state="OPEN"
+blank
 frame duration="1f" x="10" y="6" w="238" h="20" originx="119" originy="11" flipx="0" flipy="0"
 frame duration="1f" x="10" y="30" w="238" h="41" originx="119" originy="18" flipx="0" flipy="0"
 frame duration="1f" x="10" y="76" w="238" h="63" originx="119" originy="31" flipx="0" flipy="0"

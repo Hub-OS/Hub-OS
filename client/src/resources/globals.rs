@@ -4,7 +4,7 @@ use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
 use crate::render::ui::PackageListing;
 use crate::render::{
-    Animator, BackgroundPipeline, PostProcessAdjust, PostProcessAdjustConfig,
+    Animator, BackgroundPipeline, MapPipeline, PostProcessAdjust, PostProcessAdjustConfig,
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
@@ -77,6 +77,7 @@ pub struct Globals {
     pub sprite_pipeline_collection: SpritePipelineCollection,
     pub background_pipeline: BackgroundPipeline,
     pub background_sampler: Arc<TextureSampler>,
+    pub map_pipeline: MapPipeline,
 
     // networking
     pub network: Network,
@@ -188,6 +189,7 @@ impl Globals {
                 SamplingFilter::Nearest,
                 EdgeSampling::Repeat,
             ),
+            map_pipeline: MapPipeline::new(game_io),
 
             // networking
             network: Network::new(&args),
@@ -201,6 +203,38 @@ impl Globals {
     // updated by the Overlay
     pub fn tick(&mut self) {
         self.network.tick();
+    }
+
+    pub fn packages(&self, namespace: PackageNamespace) -> impl Iterator<Item = &PackageInfo> {
+        (self
+            .augment_packages
+            .packages(namespace)
+            .map(|package| &package.package_info))
+        .chain(
+            self.card_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.battle_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.library_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.player_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.character_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
     }
 
     pub fn load_virtual_package(

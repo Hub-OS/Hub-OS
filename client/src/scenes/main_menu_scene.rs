@@ -131,7 +131,7 @@ impl Scene for MainMenuScene {
         self.scrolling_text_offset -= 1.0;
         self.scrolling_text_offset %= self.character_data.scrolling_text_wrap;
 
-        self.next_scene = self.navigation_menu.update(game_io);
+        self.next_scene = self.navigation_menu.update(game_io, |_, _| None);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

@@ -72,6 +72,7 @@ impl Client {
                 map_color: (248, 248, 0, 255),
                 current_animation: None,
                 solid: false,
+                child_sprites: Vec::new(),
             },
             warp_in: true,
             warp_area: String::new(),

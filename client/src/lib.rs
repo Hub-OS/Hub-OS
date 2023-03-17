@@ -60,8 +60,6 @@ pub fn main() -> anyhow::Result<()> {
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 
-    ResourcePaths::delete_mod_cache_folder();
-
     Ok(())
 }
 

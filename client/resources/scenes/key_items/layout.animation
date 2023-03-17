@@ -1,0 +1,7 @@
+animation state="DEFAULT"
+blank
+point label="FRAME_START" x="8" y="17"
+point label="FRAME_END" x="232" y="94"
+point label="CURSOR_LEFT" x="16" y="26"
+point label="CURSOR_RIGHT" x="124" y="26"
+point label="TEXT_OFFSET" x="16" y="-2"

@@ -72,8 +72,11 @@ impl ServerAssetManager {
         let address = uri_encode(&address);
 
         const SEP: char = std::path::MAIN_SEPARATOR;
-        let path_prefix =
-            ResourcePaths::clean_folder(&format!("{}{}", ResourcePaths::CACHE_FOLDER, address));
+        let path_prefix = ResourcePaths::clean_folder(&format!(
+            "{}{}",
+            ResourcePaths::SERVER_CACHE_FOLDER,
+            address
+        ));
 
         // find stored assets
         let assets = Self::find_stored_assets(&path_prefix);

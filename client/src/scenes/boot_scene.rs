@@ -10,23 +10,6 @@ use super::{CategoryFilter, MainMenuScene, PackagesScene};
 
 const LOG_MARGIN: f32 = 2.0;
 
-struct StatusUpdate {
-    label: &'static str,
-    progress: usize,
-    total: usize,
-}
-
-enum Event {
-    StatusUpdate(StatusUpdate),
-    PlayerManager(PackageManager<PlayerPackage>),
-    CardManager(PackageManager<CardPackage>),
-    BattleManager(PackageManager<BattlePackage>),
-    AugmentManager(PackageManager<AugmentPackage>),
-    LibraryManager(PackageManager<LibraryPackage>),
-    CharacterManager(PackageManager<CharacterPackage>),
-    Done,
-}
-
 pub struct BootScene {
     camera: Camera,
     background: Background,
@@ -37,7 +20,7 @@ pub struct BootScene {
     status_position: Vec2,
     log_box: LogBox,
     log_receiver: flume::Receiver<LogRecord>,
-    event_receiver: flume::Receiver<Event>,
+    event_receiver: flume::Receiver<PackageEvent>,
     done: bool,
     next_scene: NextScene,
 }
@@ -81,8 +64,7 @@ impl BootScene {
         let log_box = LogBox::new(game_io, log_bounds);
 
         // work thread
-        let (sender, receiver) = flume::unbounded();
-        Self::create_thread(game_io, sender);
+        let receiver = PackageLoader::create_thread(game_io);
 
         BootScene {
             camera: Camera::new_ui(game_io),
@@ -100,148 +82,6 @@ impl BootScene {
         }
     }
 
-    fn create_thread(game_io: &GameIO, sender: flume::Sender<Event>) {
-        let thread_assets = LocalAssetManager::new(game_io);
-
-        std::thread::spawn(move || {
-            // delete cache folder to prevent infinitely growing cache
-            let _ = std::fs::remove_dir_all(ResourcePaths::mod_cache_folder());
-
-            let mut child_packages = Vec::new();
-
-            // load player mods
-            let mut player_packages = PackageManager::<PlayerPackage>::new(PackageCategory::Player);
-            player_packages.load_packages_in_folder(
-                &thread_assets,
-                "./mods/players",
-                |progress, total| {
-                    let status_update = StatusUpdate {
-                        label: "Loading Players",
-                        progress,
-                        total,
-                    };
-
-                    sender.send(Event::StatusUpdate(status_update)).unwrap();
-                },
-            );
-
-            child_packages.extend(player_packages.child_packages(PackageNamespace::Local));
-
-            sender.send(Event::PlayerManager(player_packages)).unwrap();
-
-            // load card mods
-            let mut card_packages = PackageManager::<CardPackage>::new(PackageCategory::Card);
-            card_packages.load_packages_in_folder(
-                &thread_assets,
-                "./mods/cards",
-                |progress, total| {
-                    let status_update = StatusUpdate {
-                        label: "Loading Cards",
-                        progress,
-                        total,
-                    };
-
-                    sender.send(Event::StatusUpdate(status_update)).unwrap();
-                },
-            );
-
-            child_packages.extend(card_packages.child_packages(PackageNamespace::Local));
-
-            sender.send(Event::CardManager(card_packages)).unwrap();
-
-            // load battle mods
-            let mut battle_packages = PackageManager::<BattlePackage>::new(PackageCategory::Battle);
-            battle_packages.load_packages_in_folder(
-                &thread_assets,
-                "./mods/enemies",
-                |progress, total| {
-                    let status_update = StatusUpdate {
-                        label: "Loading Battles",
-                        progress,
-                        total,
-                    };
-
-                    sender.send(Event::StatusUpdate(status_update)).unwrap();
-                },
-            );
-
-            child_packages.extend(battle_packages.child_packages(PackageNamespace::Local));
-
-            sender.send(Event::BattleManager(battle_packages)).unwrap();
-
-            // load augment mods
-            let mut augment_packages =
-                PackageManager::<AugmentPackage>::new(PackageCategory::Augment);
-            augment_packages.load_packages_in_folder(
-                &thread_assets,
-                "./mods/augments",
-                |progress, total| {
-                    let status_update = StatusUpdate {
-                        label: "Loading Augments",
-                        progress,
-                        total,
-                    };
-
-                    sender.send(Event::StatusUpdate(status_update)).unwrap();
-                },
-            );
-
-            child_packages.extend(augment_packages.child_packages(PackageNamespace::Local));
-
-            sender
-                .send(Event::AugmentManager(augment_packages))
-                .unwrap();
-
-            // load libraries
-            let mut library_packages =
-                PackageManager::<LibraryPackage>::new(PackageCategory::Library);
-            library_packages.load_packages_in_folder(
-                &thread_assets,
-                "./mods/libraries",
-                |progress, total| {
-                    let status_update = StatusUpdate {
-                        label: "Loading Libraries",
-                        progress,
-                        total,
-                    };
-
-                    sender.send(Event::StatusUpdate(status_update)).unwrap();
-                },
-            );
-
-            child_packages.extend(library_packages.child_packages(PackageNamespace::Local));
-
-            sender
-                .send(Event::LibraryManager(library_packages))
-                .unwrap();
-
-            // load characters
-            let mut character_packages =
-                PackageManager::<CharacterPackage>::new(PackageCategory::Character);
-
-            // characters and child packages are currently the same
-            let total_child_packages = child_packages.len();
-
-            for (i, child_package) in child_packages.into_iter().enumerate() {
-                let status_update = StatusUpdate {
-                    label: "Loading Enemies",
-                    progress: i,
-                    total: total_child_packages,
-                };
-
-                sender.send(Event::StatusUpdate(status_update)).unwrap();
-
-                character_packages.load_child_package(PackageNamespace::Local, &child_package);
-            }
-
-            sender
-                .send(Event::CharacterManager(character_packages))
-                .unwrap();
-
-            sender.send(Event::Done).unwrap();
-        });
-    }
-
     fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
         while let Ok(record) = self.log_receiver.try_recv() {
             let high_priority = matches!(record.level, LogLevel::Warn | LogLevel::Error);
@@ -257,7 +97,7 @@ impl BootScene {
 
         while let Ok(message) = self.event_receiver.try_recv() {
             match message {
-                Event::StatusUpdate(status_update) => {
+                PackageEvent::ProgressUpdate(status_update) => {
                     // update progress text
                     self.status_label.text = status_update.label.to_string();
 
@@ -265,7 +105,7 @@ impl BootScene {
                     let multiplier = status_update.progress as f32 / status_update.total as f32;
                     self.update_progress_bar(multiplier);
                 }
-                Event::PlayerManager(player_packages) => {
+                PackageEvent::PlayerManager(player_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     globals.player_packages = player_packages;
@@ -286,23 +126,23 @@ impl BootScene {
                         }
                     }
                 }
-                Event::CardManager(card_packages) => {
+                PackageEvent::CardManager(card_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
                 }
-                Event::BattleManager(battle_packages) => {
+                PackageEvent::BattleManager(battle_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().battle_packages = battle_packages;
                 }
-                Event::AugmentManager(augment_packages) => {
+                PackageEvent::AugmentManager(augment_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
                 }
-                Event::LibraryManager(library_packages) => {
+                PackageEvent::LibraryManager(library_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;
                 }
-                Event::CharacterManager(character_packages) => {
+                PackageEvent::CharacterManager(character_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.character_packages = character_packages;
                 }
-                Event::Done => {
+                PackageEvent::Done => {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let mut available_players =
                         globals.player_packages.package_ids(PackageNamespace::Local);

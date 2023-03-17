@@ -1,10 +1,10 @@
 use crate::overworld::components::{ActorPropertyAnimator, MovementAnimator, MovementInterpolator};
-use crate::scenes::OverworldSceneBase;
+use crate::overworld::OverworldArea;
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn system_movement_interpolation(game_io: &GameIO, scene: &mut OverworldSceneBase) {
-    let entities = &mut scene.entities;
+pub fn system_movement_interpolation(game_io: &GameIO, area: &mut OverworldArea) {
+    let entities = &mut area.entities;
 
     type Query<'a> = hecs::Without<
         (

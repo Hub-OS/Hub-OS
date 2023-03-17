@@ -212,27 +212,27 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     color_mode_table.set("Reverse", AnimatorPlaybackMode::Reverse)?;
     globals.set("Playback", color_mode_table)?;
 
-    use crate::bindable::TileState;
+    use crate::battle::TileState;
 
     let tile_state_table = lua.create_table()?;
-    tile_state_table.set("Normal", TileState::Normal)?;
-    tile_state_table.set("Cracked", TileState::Cracked)?;
-    tile_state_table.set("Broken", TileState::Broken)?;
-    tile_state_table.set("Ice", TileState::Ice)?;
-    tile_state_table.set("Grass", TileState::Grass)?;
-    tile_state_table.set("Lava", TileState::Lava)?;
-    tile_state_table.set("Poison", TileState::Poison)?;
-    tile_state_table.set("Empty", TileState::Empty)?;
-    tile_state_table.set("Holy", TileState::Holy)?;
-    tile_state_table.set("DirectionLeft", TileState::DirectionLeft)?;
-    tile_state_table.set("DirectionRight", TileState::DirectionRight)?;
-    tile_state_table.set("DirectionUp", TileState::DirectionUp)?;
-    tile_state_table.set("DirectionDown", TileState::DirectionDown)?;
-    tile_state_table.set("Volcano", TileState::Volcano)?;
-    tile_state_table.set("Sea", TileState::Sea)?;
-    tile_state_table.set("Sand", TileState::Sand)?;
-    tile_state_table.set("Metal", TileState::Metal)?;
-    tile_state_table.set("Hidden", TileState::Hidden)?;
+    tile_state_table.set("Normal", TileState::NORMAL)?;
+    tile_state_table.set("Cracked", TileState::CRACKED)?;
+    tile_state_table.set("Broken", TileState::BROKEN)?;
+    tile_state_table.set("Ice", TileState::ICE)?;
+    tile_state_table.set("Grass", TileState::GRASS)?;
+    tile_state_table.set("Lava", TileState::LAVA)?;
+    tile_state_table.set("Poison", TileState::POISON)?;
+    tile_state_table.set("Empty", TileState::EMPTY)?;
+    tile_state_table.set("Holy", TileState::HOLY)?;
+    tile_state_table.set("DirectionLeft", TileState::DIRECTION_LEFT)?;
+    tile_state_table.set("DirectionRight", TileState::DIRECTION_RIGHT)?;
+    tile_state_table.set("DirectionUp", TileState::DIRECTION_UP)?;
+    tile_state_table.set("DirectionDown", TileState::DIRECTION_DOWN)?;
+    tile_state_table.set("Volcano", TileState::VOLCANO)?;
+    tile_state_table.set("Sea", TileState::SEA)?;
+    tile_state_table.set("Sand", TileState::SAND)?;
+    tile_state_table.set("Metal", TileState::METAL)?;
+    tile_state_table.set("Hidden", TileState::HIDDEN)?;
     globals.set("TileState", tile_state_table)?;
 
     use crate::bindable::TileHighlight;

@@ -1,14 +1,13 @@
 use crate::overworld::components::{WarpController, WarpEffect};
-use crate::overworld::{ObjectData, ObjectType, OverworldEvent};
+use crate::overworld::{ObjectData, ObjectType, OverworldArea, OverworldEvent};
 use crate::resources::{Globals, Network, ServerStatus};
-use crate::scenes::OverworldSceneBase;
 use framework::prelude::*;
 use packets::structures::Direction;
 
-pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
-    let player_data = &scene.player_data;
-    let entities = &mut scene.entities;
-    let map = &mut scene.map;
+pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
+    let player_data = &area.player_data;
+    let entities = &mut area.entities;
+    let map = &mut area.map;
 
     let (position, direction, warp_controller) = entities
         .query_one_mut::<(&mut Vec3, &Direction, &WarpController)>(player_data.entity)
@@ -35,12 +34,12 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
 
     match object_data.object_type {
         ObjectType::CustomWarp | ObjectType::CustomServerWarp => {
-            let callback = move |_: &mut GameIO, scene: &mut OverworldSceneBase| {
+            let callback = move |_: &mut GameIO, area: &mut OverworldArea| {
                 let event = OverworldEvent::PendingWarp { entity };
-                scene.event_sender.send(event).unwrap();
+                area.event_sender.send(event).unwrap();
             };
 
-            WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
+            WarpEffect::warp_out(game_io, area, player_data.entity, callback);
         }
         ObjectType::ServerWarp => {
             let address = object_data.custom_properties.get("address").to_string();
@@ -64,9 +63,9 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
                 Network::poll_server(&send, &receiver).await == ServerStatus::Online
             });
 
-            let callback = move |game_io: &mut GameIO, scene: &mut OverworldSceneBase| {
-                let event_sender = scene.event_sender.clone();
-                let player_entity = scene.player_data.entity;
+            let callback = move |game_io: &mut GameIO, area: &mut OverworldArea| {
+                let event_sender = area.event_sender.clone();
+                let player_entity = area.player_data.entity;
 
                 game_io
                     .spawn_local_task(async move {
@@ -91,7 +90,7 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
                     .detach();
             };
 
-            WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
+            WarpEffect::warp_out(game_io, area, player_data.entity, callback);
         }
         ObjectType::PositionWarp => {
             let target_position = Vec3::new(
@@ -102,7 +101,7 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
 
             WarpEffect::warp_full(
                 game_io,
-                scene,
+                area,
                 player_data.entity,
                 target_position,
                 direction,
@@ -110,12 +109,17 @@ pub fn system_warp(game_io: &mut GameIO, scene: &mut OverworldSceneBase) {
             );
         }
         ObjectType::HomeWarp => {
-            let callback = |game_io: &mut GameIO, scene: &mut OverworldSceneBase| {
+            let callback = |game_io: &mut GameIO, area: &mut OverworldArea| {
                 let transition = crate::transitions::new_connect(game_io);
-                scene.next_scene = NextScene::new_pop().with_transition(transition);
+
+                area.event_sender
+                    .send(OverworldEvent::NextScene(
+                        NextScene::new_pop().with_transition(transition),
+                    ))
+                    .unwrap();
             };
 
-            WarpEffect::warp_out(game_io, scene, player_data.entity, callback);
+            WarpEffect::warp_out(game_io, area, player_data.entity, callback);
         }
         _ => {}
     }

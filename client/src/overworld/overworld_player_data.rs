@@ -3,13 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::resources::Globals;
 use crate::saves::BlockGrid;
 use framework::prelude::{GameIO, Vec3};
-use packets::structures::PackageId;
-
-pub struct Item {
-    pub id: String,
-    pub name: String,
-    pub description: String,
-}
+use packets::structures::{Inventory, PackageId};
 
 pub struct OverworldPlayerData {
     pub entity: hecs::Entity,
@@ -19,7 +13,7 @@ pub struct OverworldPlayerData {
     pub health_boost: i32,
     pub emotion: Emotion,
     pub money: u32,
-    pub items: Vec<Item>,
+    pub inventory: Inventory,
     pub actor_interaction: Option<String>,
     pub object_interaction: Option<u32>,
     pub tile_interaction: Option<Vec3>,
@@ -35,7 +29,7 @@ impl OverworldPlayerData {
             health_boost: 0,
             emotion: Emotion::Normal,
             money: 0,
-            items: Vec::new(),
+            inventory: Inventory::new(),
             actor_interaction: None,
             object_interaction: None,
             tile_interaction: None,

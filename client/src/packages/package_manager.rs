@@ -31,6 +31,13 @@ impl<T: Package> PackageManager<T> {
             .flat_map(|packages| packages.keys())
     }
 
+    pub fn packages(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> {
+        self.package_maps
+            .get(&ns)
+            .into_iter()
+            .flat_map(|packages| packages.values())
+    }
+
     pub fn package_ids_with_fallthrough(
         &self,
         ns: PackageNamespace,
@@ -266,12 +273,17 @@ impl<T: Package> PackageManager<T> {
         };
 
         let hash = FileHash::hash(&data);
-        let path = format!("{}{}.zip", ResourcePaths::mod_cache_folder(), hash);
+        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
 
-        if let Err(e) = std::fs::create_dir_all(ResourcePaths::mod_cache_folder()) {
+        if std::path::Path::new(&path).exists() {
+            // file already cached
+            return Some(hash);
+        }
+
+        if let Err(e) = std::fs::create_dir_all(ResourcePaths::MOD_CACHE_FOLDER) {
             log::error!(
                 "Failed to create cache folder {:?}: {e}",
-                ResourcePaths::mod_cache_folder()
+                ResourcePaths::MOD_CACHE_FOLDER
             );
         }
 

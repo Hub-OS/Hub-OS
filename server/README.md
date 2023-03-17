@@ -321,6 +321,7 @@ Commented functions are in development and require changes to the client (specif
   - [Player API](#player-api)
   - [Widget API](#widget-api)
   - [Player Data API](#player-data-api)
+  - [Sprite API](#sprite-api)
   - [Asset API](#asset-api)
   - [Update Synchronization API](#update-synchronization-api)
 - [Async API](#async-api)
@@ -701,14 +702,27 @@ Net.get_player_emotion(player_id)
 Net.set_player_emotion(player_id, emotion)
 Net.get_player_money(player_id)
 Net.set_player_money(player_id, money)
-Net.get_player_items(player_id) -- string[]
-Net.give_player_item(player_id, item_id)
-Net.remove_player_item(player_id, item_id)
+Net.get_player_items(player_id) -- string[] (unique)
+Net.give_player_item(player_id, item_id, count?)
+Net.remove_player_item(player_id, item_id, count?)
+Net.get_player_item_count(player_id, item_id)
 Net.player_has_item(player_id, item_id)
 
-Net.create_item(item_id, { name, description })
+-- item_definition = { consumable: bool, name: string, description: string }
+Net.register_item(item_id, item_definition)
 Net.get_item_name(item_id)
 Net.get_item_description(item_id)
+```
+
+#### Sprite API
+
+```lua
+Net.create_sprite({ player_id?, parent_id, parent_point?, x?, y?, layer?, texture_path, animation_path?, animation? }) -- sprite_id
+-- player_id restricts visibility
+-- parent_id can be "widget", "hud", or an actor_id
+
+Net.animate_sprite(sprite_id, state_name, loop?)
+Net.delete_sprite(sprite_id)
 ```
 
 #### Asset API

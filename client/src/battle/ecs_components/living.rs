@@ -71,21 +71,15 @@ impl Living {
         entity_id: EntityId,
         mut hit_props: HitProperties,
     ) {
-        let (entity, living) = (simulation.entities)
-            .query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-            .unwrap();
+        let entities = &mut simulation.entities;
+        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+            return;
+        };
 
         let time_is_frozen = entity.time_frozen_count > 0;
         let tile_pos = (entity.x, entity.y);
 
-        let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
         let defense_rules = living.defense_rules.clone();
-
-        // resolving tile effects
-        if tile.state() == TileState::Holy {
-            hit_props.damage += 1;
-            hit_props.damage /= 2;
-        }
 
         // filter statuses through defense rules
         DefenseJudge::filter_statuses(game_io, simulation, vms, &mut hit_props, &defense_rules);
@@ -95,10 +89,8 @@ impl Living {
             hit_props.flags |= HitFlag::NO_COUNTER;
         }
 
-        let (entity, living) = simulation
-            .entities
-            .query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-            .unwrap();
+        let entities = &mut simulation.entities;
+        let entity = entities.query_one_mut::<&Entity>(entity_id.into()).unwrap();
 
         let original_damage = hit_props.damage;
 
@@ -109,11 +101,22 @@ impl Living {
 
         // tile bonus
         let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
+        let tile_state = &simulation.tile_states[tile.state_index()];
+        let bonus_damage_callback = tile_state.calculate_bonus_damage_callback.clone();
 
-        if tile.apply_bonus_damage(&hit_props) {
-            hit_props.damage += original_damage;
-        }
+        hit_props.damage += bonus_damage_callback.call(
+            game_io,
+            simulation,
+            vms,
+            (hit_props.clone(), original_damage),
+        );
 
+        let entities = &mut simulation.entities;
+        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+            return;
+        };
+
+        // apply damage
         living.set_health(living.health - hit_props.damage);
 
         if hit_props.flags & HitFlag::IMPACT != 0 {
