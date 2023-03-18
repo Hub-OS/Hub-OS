@@ -781,7 +781,7 @@ impl OverworldOnlineScene {
             ServerPacket::SelectionAck => {
                 self.menu_manager.acknowledge_selection();
             }
-            ServerPacket::CloseBBS => {
+            ServerPacket::CloseBoard => {
                 if let Some(bbs) = self.menu_manager.bbs_mut() {
                     bbs.close();
                 }

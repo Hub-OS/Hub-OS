@@ -178,7 +178,7 @@ pub enum ServerPacket {
         id: String,
     },
     SelectionAck,
-    CloseBBS,
+    CloseBoard,
     OpenShop {
         mug_texture_path: String,
         mug_animation_path: String,

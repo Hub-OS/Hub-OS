@@ -884,11 +884,11 @@ impl Net {
         }
     }
 
-    pub fn close_bbs(&mut self, player_id: &str) {
+    pub fn close_board(&mut self, player_id: &str) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             player_id,
             Reliability::ReliableOrdered,
-            ServerPacket::CloseBBS,
+            ServerPacket::CloseBoard,
         );
     }
 
