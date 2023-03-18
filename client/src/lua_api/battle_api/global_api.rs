@@ -163,17 +163,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     card_class_table.set("Dark", CardClass::Dark)?;
     globals.set("CardClass", card_class_table)?;
 
-    use crate::bindable::BlockColor;
-
-    let block_color_table = lua.create_table()?;
-    block_color_table.set("White", BlockColor::White)?;
-    block_color_table.set("Red", BlockColor::Red)?;
-    block_color_table.set("Green", BlockColor::Green)?;
-    block_color_table.set("Blue", BlockColor::Blue)?;
-    block_color_table.set("Pink", BlockColor::Pink)?;
-    block_color_table.set("Yellow", BlockColor::Yellow)?;
-    globals.set("Blocks", block_color_table)?;
-
     use crate::bindable::LuaColor;
     use framework::prelude::Color;
 
