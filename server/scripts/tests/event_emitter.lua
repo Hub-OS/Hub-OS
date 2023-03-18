@@ -11,27 +11,27 @@
 
 local emitter = Net.EventEmitter.new()
 
-local a_iter = emitter:async_iter("a") -- also tests :on
+local a_iter = emitter:async_iter("a")    -- also tests :on
 local iter_all = emitter:async_iter_all() -- also tests :any
 local iter_err = emitter:async_iter_all()
 
 -- setup
 local emitted_events = {
-  {"b", 2, '?'},
-  {"a", 1, '?'},
-  {"a", 3, '?'},
-  {"c", 5, '?'},
-  {"a", 4, '?'},
-  {"d", 6, '?'},
-  {"a", 7, '?'},
-  {"e", 8, '?'},
+  { "b", 2, '?' },
+  { "a", 1, '?' },
+  { "a", 3, '?' },
+  { "c", 5, '?' },
+  { "a", 4, '?' },
+  { "d", 6, '?' },
+  { "a", 7, '?' },
+  { "e", 8, '?' },
 }
 
-local a_events = { }
+local a_events = {}
 
 for _, params in ipairs(emitted_events) do
   if params[1] == "a" then
-    a_events[#a_events+1] = params
+    a_events[#a_events + 1] = params
   end
 end
 
@@ -56,7 +56,7 @@ emitter:on_any_once(function(name, num, word)
   end
 end)
 
-Async.promisify(coroutine.create(function()
+Async.create_scope(function()
   -- testing :async_iter
   local i = 1
 
@@ -94,7 +94,7 @@ Async.promisify(coroutine.create(function()
   if not err then
     error("no error created for missing await")
   end
-end))
+end)
 
 for _, params in ipairs(emitted_events) do
   emitter:emit(table.unpack(params))
