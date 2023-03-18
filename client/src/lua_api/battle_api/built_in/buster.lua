@@ -27,8 +27,8 @@ local cooldown_table = {
     { 5, 9, 13, 17, 21, 25 },
     { 4, 8, 11, 15, 18, 21 },
     { 4, 7, 10, 13, 16, 18 },
-    { 3, 5, 7, 9, 11, 13 },
-    { 3, 4, 5, 6, 7, 8 }
+    { 3, 5, 7,  9,  11, 13 },
+    { 3, 4, 5,  6,  7,  8 }
 }
 
 rapid_level = math.max(math.min(rapid_level, #cooldown_table), 1)
