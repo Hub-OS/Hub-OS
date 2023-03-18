@@ -203,10 +203,14 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "never_flip", |node, _, never_flip| {
-        node.set_never_flip(never_flip);
-        Ok(())
-    });
+    setter(
+        lua_api,
+        "never_flip",
+        |node, _, never_flip: Option<bool>| {
+            node.set_never_flip(never_flip.unwrap_or(true));
+            Ok(())
+        },
+    );
 
     setter(
         lua_api,
