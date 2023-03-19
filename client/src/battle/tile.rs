@@ -27,6 +27,7 @@ impl Tile {
         Self {
             position,
             immutable_team,
+            state_index: TileState::NORMAL,
             ..Default::default()
         }
     }
