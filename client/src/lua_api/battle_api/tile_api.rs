@@ -79,7 +79,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let change_request_callback = tile_state.change_request_callback.clone();
+        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
+        let change_request_callback = current_tile_state.change_request_callback.clone();
         let change_passed = change_request_callback.call(game_io, simulation, vms, state_index);
 
         if !change_passed {
