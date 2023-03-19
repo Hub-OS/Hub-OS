@@ -1,8 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
 use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell,
-    Tile, TileState,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell, Tile,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -106,23 +105,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field.is_edge((x, y)))
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "is_cracked", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state_index() == TileState::CRACKED)
-    });
-
-    lua_api.add_dynamic_function(TILE_TABLE, "is_hole", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
-        lua.pack_multi(tile_state.is_hole)
-    });
-
     lua_api.add_dynamic_function(TILE_TABLE, "is_walkable", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -130,14 +112,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
         let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
         lua.pack_multi(!tile_state.is_hole)
-    });
-
-    lua_api.add_dynamic_function(TILE_TABLE, "is_hidden", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state_index() == TileState::HIDDEN)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {

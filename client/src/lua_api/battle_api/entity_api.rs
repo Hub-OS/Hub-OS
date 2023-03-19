@@ -75,6 +75,28 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    getter(lua_api, "get_facing", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.facing)
+    });
+    getter(lua_api, "get_facing_away", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.facing.reversed())
+    });
+    setter(lua_api, "set_facing", |entity: &mut Entity, _, facing| {
+        entity.facing = facing;
+        Ok(())
+    });
+
+    getter(lua_api, "get_team", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.team)
+    });
+    setter(lua_api, "set_team", |entity: &mut Entity, _, team| {
+        entity.team = team;
+        Ok(())
+    });
+    getter(lua_api, "is_team", |entity: &Entity, lua, team| {
+        lua.pack_multi(entity.team == team)
+    });
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_tile", |api_ctx, lua, params| {
         let (table, direction, count): (rollback_mlua::Table, Option<Direction>, Option<i32>) =
             lua.unpack_multi(params)?;
@@ -120,16 +142,40 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_facing", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.facing)
+    setter(
+        lua_api,
+        "set_float_shoe",
+        |entity: &mut Entity, _, enabled| {
+            entity.ignore_tile_effects = enabled;
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_air_shoe",
+        |entity: &mut Entity, _, enabled| {
+            entity.ignore_hole_tiles = enabled;
+            Ok(())
+        },
+    );
+
+    getter(lua_api, "get_tile_offset", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(LuaVector::from(entity.tile_offset))
     });
-    getter(lua_api, "get_facing_away", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.facing.reversed())
+
+    getter(lua_api, "get_offset", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(LuaVector::from(entity.offset))
     });
-    setter(lua_api, "set_facing", |entity: &mut Entity, _, facing| {
-        entity.facing = facing;
-        Ok(())
-    });
+
+    setter(
+        lua_api,
+        "set_offset",
+        |entity: &mut Entity, _, offset: (f32, f32)| {
+            entity.offset = offset.into();
+            Ok(())
+        },
+    );
 
     getter(lua_api, "get_elevation", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.elevation)
@@ -142,6 +188,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
     getter(lua_api, "get_height", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.height)
     });
@@ -150,6 +197,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    setter(
+        lua_api,
+        "never_flip",
+        |entity: &mut Entity, _, never_flip| {
+            entity.sprite_tree.root_mut().set_never_flip(never_flip);
+            Ok(())
+        },
+    );
+
     getter(lua_api, "sprite", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(create_sprite_table(
             lua,
@@ -157,6 +213,158 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             entity.sprite_tree.root_index(),
             Some(entity.animator_index),
         )?)
+    });
+
+    getter(lua_api, "get_texture", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.sprite_tree.root().texture_path())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_texture", |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        let path = absolute_path(lua, path)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let game_io = &api_ctx.game_io;
+        let sprite_node = entity.sprite_tree.root_mut();
+        sprite_node.set_texture(game_io, path);
+        simulation.animators[entity.animator_index].apply(sprite_node);
+
+        lua.pack_multi(())
+    });
+
+    getter(
+        lua_api,
+        "get_current_palette",
+        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.sprite_tree.root().palette_path()),
+    );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
+        let path = path.map(|path| absolute_path(lua, path)).transpose()?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_node = entity.sprite_tree.root_mut();
+        sprite_node.set_palette(api_ctx.game_io, path);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "create_node", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_index = entity
+            .sprite_tree
+            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
+
+        let sprite_table = create_sprite_table(lua, id, sprite_index, None);
+
+        lua.pack_multi(sprite_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_index = entity
+            .sprite_tree
+            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
+
+        // copy derived states
+        let entity_animator = &simulation.animators[entity.animator_index];
+        let derived_states = entity_animator.derived_states().to_vec();
+
+        // create and setup the new animator
+        let mut animator = BattleAnimator::new();
+        animator.set_target(id, sprite_index);
+        animator.copy_derive_states(derived_states);
+        let animator_index = simulation.animators.insert(animator);
+
+        // add the new animator to the sync list
+        let entity_animator = &mut simulation.animators[entity.animator_index];
+        entity_animator.add_synced_animator(animator_index);
+
+        let sync_node_table = create_sync_node_table(lua, id, sprite_index, animator_index);
+
+        lua.pack_multi(sync_node_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_sync_node", |api_ctx, lua, params| {
+        let (table, sync_node_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
+        let animator_index = animator_index.into();
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        if let Some(animator) = simulation.animators.get(animator_index) {
+            let Some(sprite_index) = animator.target_sprite_index() else {
+                return Err(invalid_sync_node());
+            };
+
+            if animator.target_entity_id() != Some(id) {
+                return Err(mismatched_entity());
+            }
+
+            if sprite_index == GenerationalIndex::tree_root() {
+                // prevent scripters from targeting entity.animator_index
+                // we use [] to access entity.animator_index, deletion without deleting the entity would cause a crash
+                return Err(invalid_sync_node());
+            }
+
+            // remove sprite and animator from the simulation
+            entity.sprite_tree.remove(sprite_index);
+            simulation.animators.remove(animator_index);
+        }
+
+        // remove animator from the sync list
+        let entity_animator = &mut simulation.animators[entity.animator_index];
+        entity_animator.remove_synced_animator(animator_index);
+
+        lua.pack_multi(())
     });
 
     setter(lua_api, "hide", |entity: &mut Entity, _, _: ()| {
@@ -179,6 +387,147 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        let path = absolute_path(lua, path)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        entity.set_shadow(api_ctx.game_io, path);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "show_shadow", |api_ctx, lua, params| {
+        let (table, visible): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_node = &mut entity.sprite_tree[entity.shadow_index];
+        sprite_node.set_visible(visible.unwrap_or(true));
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "get_animation", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let animation_table = create_animation_table(lua, entity.animator_index)?;
+
+        lua.pack_multi(animation_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_animation", |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        let path = absolute_path(lua, path)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let animator = &mut simulation.animators[entity.animator_index];
+        let callbacks = animator.load(api_ctx.game_io, &path);
+
+        let root_node = entity.sprite_tree.root_mut();
+        animator.apply(root_node);
+
+        simulation.pending_callbacks.extend(callbacks);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "create_component", |api_ctx, lua, params| {
+        let (entity_table, lifetime): (rollback_mlua::Table, ComponentLifetime) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(entity_id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let component = Component::new(entity_id, lifetime);
+        let id = api_ctx.simulation.components.insert(component);
+
+        if lifetime == ComponentLifetime::Local {
+            entity.local_components.push(id);
+        }
+
+        let table = lua.create_table()?;
+        table.raw_set("#id", GenerationalIndex::from(id))?;
+        table.raw_set("#entity", entity_table)?;
+        inherit_metatable(lua, COMPONENT_TABLE, &table)?;
+
+        lua.pack_multi(table)
+    });
+
+    getter(lua_api, "get_context", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(&entity.hit_context)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "card_action_event", |api_ctx, lua, params| {
+        let (table, action_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let action_index: GenerationalIndex = action_table.raw_get("#id")?;
+
+        let card_action = (simulation.card_actions)
+            .get_mut(action_index.into())
+            .ok_or_else(card_action_not_found)?;
+
+        if card_action.entity != id {
+            return Err(mismatched_entity());
+        }
+
+        if card_action.used {
+            return Err(action_aready_used());
+        }
+
+        let used = simulation.use_card_action(api_ctx.game_io, id, action_index.into());
+
+        lua.pack_multi(used)
+    });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "can_move_to", move |api_ctx, lua, params| {
         let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
@@ -208,33 +557,6 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let can_move = can_move_to_callback.call(api_ctx.game_io, simulation, api_ctx.vms, dest);
 
         lua.pack_multi(can_move)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "card_action_event", |api_ctx, lua, params| {
-        let (table, action_table): (rollback_mlua::Table, rollback_mlua::Table) =
-            lua.unpack_multi(params)?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-
-        let id: EntityId = table.raw_get("#id")?;
-        let action_index: GenerationalIndex = action_table.raw_get("#id")?;
-
-        let card_action = (simulation.card_actions)
-            .get_mut(action_index.into())
-            .ok_or_else(card_action_not_found)?;
-
-        if card_action.entity != id {
-            return Err(mismatched_entity());
-        }
-
-        if card_action.used {
-            return Err(action_aready_used());
-        }
-
-        let used = simulation.use_card_action(api_ctx.game_io, id, action_index.into());
-
-        lua.pack_multi(used)
     });
 
     movement_function(lua_api, "teleport", |dest: (i32, i32), _: ()| {
@@ -358,332 +680,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_team", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.team)
-    });
-    setter(lua_api, "set_team", |entity: &mut Entity, _, team| {
-        entity.team = team;
-        Ok(())
-    });
-    getter(lua_api, "is_team", |entity: &Entity, lua, team| {
-        lua.pack_multi(entity.team == team)
-    });
-
-    getter(lua_api, "get_texture", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.sprite_tree.root().texture_path())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_texture", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let game_io = &api_ctx.game_io;
-        let sprite_node = entity.sprite_tree.root_mut();
-        sprite_node.set_texture(game_io, path);
-        simulation.animators[entity.animator_index].apply(sprite_node);
-
-        lua.pack_multi(())
-    });
-
-    getter(
-        lua_api,
-        "get_current_palette",
-        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.sprite_tree.root().palette_path()),
-    );
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
-        let path = path.map(|path| absolute_path(lua, path)).transpose()?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let sprite_node = entity.sprite_tree.root_mut();
-        sprite_node.set_palette(api_ctx.game_io, path);
-
-        lua.pack_multi(())
-    });
-
-    // no idea if people use these:
-    // todo: get_base_palette
-    // todo: store_base_palette why is this not just set_base_palette?
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_animation", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let animation_table = create_animation_table(lua, entity.animator_index)?;
-
-        lua.pack_multi(animation_table)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_animation", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let animator = &mut simulation.animators[entity.animator_index];
-        let callbacks = animator.load(api_ctx.game_io, &path);
-
-        let root_node = entity.sprite_tree.root_mut();
-        animator.apply(root_node);
-
-        simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "create_node", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let sprite_index = entity
-            .sprite_tree
-            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
-
-        let sprite_table = create_sprite_table(lua, id, sprite_index, None);
-
-        lua.pack_multi(sprite_table)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let sprite_index = entity
-            .sprite_tree
-            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
-
-        // copy derived states
-        let entity_animator = &simulation.animators[entity.animator_index];
-        let derived_states = entity_animator.derived_states().to_vec();
-
-        // create and setup the new animator
-        let mut animator = BattleAnimator::new();
-        animator.set_target(id, sprite_index);
-        animator.copy_derive_states(derived_states);
-        let animator_index = simulation.animators.insert(animator);
-
-        // add the new animator to the sync list
-        let entity_animator = &mut simulation.animators[entity.animator_index];
-        entity_animator.add_synced_animator(animator_index);
-
-        let sync_node_table = create_sync_node_table(lua, id, sprite_index, animator_index);
-
-        lua.pack_multi(sync_node_table)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_sync_node", |api_ctx, lua, params| {
-        let (table, sync_node_table): (rollback_mlua::Table, rollback_mlua::Table) =
-            lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-        let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
-        let animator_index = animator_index.into();
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        if let Some(animator) = simulation.animators.get(animator_index) {
-            let Some(sprite_index) = animator.target_sprite_index() else {
-                return Err(invalid_sync_node());
-            };
-
-            if animator.target_entity_id() != Some(id) {
-                return Err(mismatched_entity());
-            }
-
-            if sprite_index == GenerationalIndex::tree_root() {
-                // prevent scripters from targeting entity.animator_index
-                // we use [] to access entity.animator_index, deletion without deleting the entity would cause a crash
-                return Err(invalid_sync_node());
-            }
-
-            // remove sprite and animator from the simulation
-            entity.sprite_tree.remove(sprite_index);
-            simulation.animators.remove(animator_index);
-        }
-
-        // remove animator from the sync list
-        let entity_animator = &mut simulation.animators[entity.animator_index];
-        entity_animator.remove_synced_animator(animator_index);
-
-        lua.pack_multi(())
-    });
-
-    getter(lua_api, "get_context", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(&entity.hit_context)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        entity.set_shadow(api_ctx.game_io, path);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "show_shadow", |api_ctx, lua, params| {
-        let (table, visible): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let sprite_node = &mut entity.sprite_tree[entity.shadow_index];
-        sprite_node.set_visible(visible);
-
-        lua.pack_multi(())
-    });
-
-    getter(lua_api, "get_tile_offset", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(LuaVector::from(entity.tile_offset))
-    });
-
-    getter(lua_api, "get_offset", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(LuaVector::from(entity.offset))
-    });
-
-    setter(
-        lua_api,
-        "set_offset",
-        |entity: &mut Entity, _, offset: (f32, f32)| {
-            entity.offset = offset.into();
-            Ok(())
-        },
-    );
-
-    setter(
-        lua_api,
-        "never_flip",
-        |entity: &mut Entity, _, never_flip| {
-            entity.sprite_tree.root_mut().set_never_flip(never_flip);
-            Ok(())
-        },
-    );
-
-    setter(
-        lua_api,
-        "set_float_shoe",
-        |entity: &mut Entity, _, enabled| {
-            entity.ignore_tile_effects = enabled;
-            Ok(())
-        },
-    );
-
-    setter(
-        lua_api,
-        "set_air_shoe",
-        |entity: &mut Entity, _, enabled| {
-            entity.ignore_hole_tiles = enabled;
-            Ok(())
-        },
-    );
-
     // todo: has_status?
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "create_component", |api_ctx, lua, params| {
-        let (entity_table, lifetime): (rollback_mlua::Table, ComponentLifetime) =
-            lua.unpack_multi(params)?;
-
-        let entity_id: EntityId = entity_table.get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let component = Component::new(entity_id, lifetime);
-        let id = api_ctx.simulation.components.insert(component);
-
-        if lifetime == ComponentLifetime::Local {
-            entity.local_components.push(id);
-        }
-
-        let table = lua.create_table()?;
-        table.raw_set("#id", GenerationalIndex::from(id))?;
-        table.raw_set("#entity", entity_table)?;
-        inherit_metatable(lua, COMPONENT_TABLE, &table)?;
-
-        lua.pack_multi(table)
-    });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "shake_camera", |api_ctx, lua, params| {
         let (_, power, duration): (rollback_mlua::Table, f32, f32) = lua.unpack_multi(params)?;

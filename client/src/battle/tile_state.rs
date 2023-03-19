@@ -24,24 +24,24 @@ pub struct TileState {
 }
 
 impl TileState {
-    pub const NORMAL: usize = 0;
-    pub const CRACKED: usize = 1;
-    pub const BROKEN: usize = 2;
-    pub const ICE: usize = 3;
-    pub const GRASS: usize = 4;
-    pub const LAVA: usize = 5;
-    pub const POISON: usize = 6;
-    pub const EMPTY: usize = 7;
-    pub const HOLY: usize = 8;
-    pub const DIRECTION_LEFT: usize = 9;
-    pub const DIRECTION_RIGHT: usize = 10;
-    pub const DIRECTION_UP: usize = 11;
-    pub const DIRECTION_DOWN: usize = 12;
-    pub const VOLCANO: usize = 13;
-    pub const SEA: usize = 14;
-    pub const SAND: usize = 15;
-    pub const METAL: usize = 16;
-    pub const HIDDEN: usize = 17;
+    pub const HIDDEN: usize = 0;
+    pub const NORMAL: usize = 1;
+    pub const HOLE: usize = 2;
+    pub const CRACKED: usize = 3;
+    pub const BROKEN: usize = 4;
+    pub const ICE: usize = 5;
+    pub const GRASS: usize = 6;
+    pub const LAVA: usize = 7;
+    pub const POISON: usize = 8;
+    pub const HOLY: usize = 9;
+    pub const DIRECTION_LEFT: usize = 10;
+    pub const DIRECTION_RIGHT: usize = 11;
+    pub const DIRECTION_UP: usize = 12;
+    pub const DIRECTION_DOWN: usize = 13;
+    pub const VOLCANO: usize = 14;
+    pub const SEA: usize = 15;
+    pub const SAND: usize = 16;
+    pub const METAL: usize = 17;
     const TOTAL_BUILT_IN: usize = 18;
 
     pub fn new(state: String) -> Self {
@@ -67,11 +67,26 @@ impl TileState {
     pub fn create_registry() -> Vec<TileState> {
         let mut registry = Vec::new();
 
+        // Hidden
+        debug_assert_eq!(registry.len(), TileState::HIDDEN);
+        let mut hidden_state = TileState::new(String::from(""));
+        hidden_state.is_hole = true;
+        hidden_state.change_request_callback = BattleCallback::stub(false);
+        registry.push(hidden_state);
+
         // Normal
+        debug_assert_eq!(registry.len(), TileState::NORMAL);
         let normal_state = TileState::new(String::from("normal"));
         registry.push(normal_state);
 
+        // Hole
+        debug_assert_eq!(registry.len(), TileState::HOLE);
+        let mut hole_state = TileState::new(String::from("hole"));
+        hole_state.is_hole = true;
+        registry.push(hole_state);
+
         // Cracked
+        debug_assert_eq!(registry.len(), TileState::CRACKED);
         let mut cracked_state = TileState::new(String::from("cracked"));
 
         cracked_state.entity_leave_callback = BattleCallback::new(
@@ -94,12 +109,14 @@ impl TileState {
         registry.push(cracked_state);
 
         // Broken
+        debug_assert_eq!(registry.len(), TileState::BROKEN);
         let mut broken_state = TileState::new(String::from("broken"));
         broken_state.is_hole = true;
         broken_state.max_lifetime = Some(BROKEN_LIFETIME);
         registry.push(broken_state);
 
         // Ice
+        debug_assert_eq!(registry.len(), TileState::ICE);
         let mut ice_state = TileState::new(String::from("ice"));
 
         ice_state.entity_stop_callback = BattleCallback::new(
@@ -135,6 +152,7 @@ impl TileState {
         registry.push(ice_state);
 
         // Grass
+        debug_assert_eq!(registry.len(), TileState::GRASS);
         let mut grass_state = TileState::new(String::from("grass"));
         grass_state.cleanser_element = Some(Element::Fire);
 
@@ -174,6 +192,7 @@ impl TileState {
         registry.push(grass_state);
 
         // Lava
+        debug_assert_eq!(registry.len(), TileState::LAVA);
         let mut lava_state = TileState::new(String::from("lava"));
 
         lava_state.calculate_bonus_damage_callback = BattleCallback::new(
@@ -217,6 +236,7 @@ impl TileState {
         registry.push(lava_state);
 
         // Poison
+        debug_assert_eq!(registry.len(), TileState::POISON);
         let mut poison_state = TileState::new(String::from("poison"));
 
         poison_state.entity_enter_callback =
@@ -240,12 +260,8 @@ impl TileState {
 
         registry.push(poison_state);
 
-        // Empty
-        let mut empty_state = TileState::new(String::from("empty"));
-        empty_state.is_hole = true;
-        registry.push(empty_state);
-
         // Holy
+        debug_assert_eq!(registry.len(), TileState::HOLY);
         let mut holy_state = TileState::new(String::from("holy"));
 
         holy_state.calculate_bonus_damage_callback =
@@ -289,6 +305,7 @@ impl TileState {
         };
 
         // DirectionLeft
+        debug_assert_eq!(registry.len(), TileState::DIRECTION_LEFT);
         let mut direction_left_state = TileState::new_directional(
             String::from("direction_left"),
             String::from("direction_right"),
@@ -300,6 +317,7 @@ impl TileState {
         registry.push(direction_left_state);
 
         // DirectionRight
+        debug_assert_eq!(registry.len(), TileState::DIRECTION_RIGHT);
         let mut direction_right_state = TileState::new_directional(
             String::from("direction_right"),
             String::from("direction_left"),
@@ -311,6 +329,7 @@ impl TileState {
         registry.push(direction_right_state);
 
         // DirectionUp
+        debug_assert_eq!(registry.len(), TileState::DIRECTION_UP);
         let mut direction_up_state = TileState::new(String::from("direction_up"));
         direction_up_state.cleanser_element = Some(Element::Wood);
         direction_up_state.max_lifetime = Some(CONVEYOR_LIFETIME);
@@ -318,6 +337,7 @@ impl TileState {
         registry.push(direction_up_state);
 
         // DirectionDown
+        debug_assert_eq!(registry.len(), TileState::DIRECTION_DOWN);
         let mut direction_down_state = TileState::new(String::from("direction_down"));
         direction_down_state.cleanser_element = Some(Element::Wood);
         direction_down_state.max_lifetime = Some(CONVEYOR_LIFETIME);
@@ -325,11 +345,13 @@ impl TileState {
         registry.push(direction_down_state);
 
         // Volcano
+        debug_assert_eq!(registry.len(), TileState::VOLCANO);
         let mut volcano_state = TileState::new(String::from("volcano"));
         volcano_state.cleanser_element = Some(Element::Aqua);
         registry.push(volcano_state);
 
         // Sea
+        debug_assert_eq!(registry.len(), TileState::SEA);
         let mut sea_state = TileState::new(String::from("sea"));
 
         sea_state.entity_stop_callback = BattleCallback::new(
@@ -365,23 +387,19 @@ impl TileState {
         registry.push(sea_state);
 
         // Sand
+        debug_assert_eq!(registry.len(), TileState::SAND);
         let mut sand_state = TileState::new(String::from("sand"));
         sand_state.cleanser_element = Some(Element::Wind);
         registry.push(sand_state);
 
         // Metal
+        debug_assert_eq!(registry.len(), TileState::METAL);
         let mut metal_state = TileState::new(String::from("metal"));
 
         metal_state.change_request_callback =
             BattleCallback::new(|_, _, _, state_index: usize| state_index != TileState::CRACKED);
 
         registry.push(metal_state);
-
-        // Hidden
-        let mut hidden_state = TileState::new(String::from(""));
-        hidden_state.is_hole = true;
-        hidden_state.change_request_callback = BattleCallback::stub(false);
-        registry.push(hidden_state);
 
         registry
     }

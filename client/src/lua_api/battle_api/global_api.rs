@@ -204,14 +204,15 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     use crate::battle::TileState;
 
     let tile_state_table = lua.create_table()?;
+    tile_state_table.set("Hidden", TileState::HIDDEN)?;
     tile_state_table.set("Normal", TileState::NORMAL)?;
+    tile_state_table.set("Hole", TileState::HOLE)?;
     tile_state_table.set("Cracked", TileState::CRACKED)?;
     tile_state_table.set("Broken", TileState::BROKEN)?;
     tile_state_table.set("Ice", TileState::ICE)?;
     tile_state_table.set("Grass", TileState::GRASS)?;
     tile_state_table.set("Lava", TileState::LAVA)?;
     tile_state_table.set("Poison", TileState::POISON)?;
-    tile_state_table.set("Empty", TileState::EMPTY)?;
     tile_state_table.set("Holy", TileState::HOLY)?;
     tile_state_table.set("DirectionLeft", TileState::DIRECTION_LEFT)?;
     tile_state_table.set("DirectionRight", TileState::DIRECTION_RIGHT)?;
@@ -221,7 +222,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     tile_state_table.set("Sea", TileState::SEA)?;
     tile_state_table.set("Sand", TileState::SAND)?;
     tile_state_table.set("Metal", TileState::METAL)?;
-    tile_state_table.set("Hidden", TileState::HIDDEN)?;
     globals.set("TileState", tile_state_table)?;
 
     use crate::bindable::TileHighlight;
