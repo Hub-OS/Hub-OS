@@ -1168,16 +1168,23 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        for (id, (entity, living)) in simulation
-            .entities
-            .query_mut::<(&mut Entity, &mut Living)>()
-        {
+        let entities = &mut simulation.entities;
+
+        for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
             if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
             if !living.status_director.is_inactionable() {
                 callbacks.push(entity.update_callback.clone());
+
+                let mut player_query = entities.query_one::<&Player>(id).unwrap();
+
+                if let Some(player) = player_query.get() {
+                    if let Some(callback) = player.active_form_update_callback() {
+                        callbacks.push(callback.clone());
+                    }
+                }
 
                 for index in entity.local_components.iter().cloned() {
                     let component = simulation.components.get(index).unwrap();

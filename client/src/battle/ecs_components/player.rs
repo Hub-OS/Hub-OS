@@ -165,6 +165,10 @@ impl Player {
         }
     }
 
+    pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {
+        self.forms[self.active_form?].update_callback.as_ref()
+    }
+
     pub fn attack_level(&self) -> u8 {
         let augment_iter = self.augments.iter();
         let base_attack = augment_iter
