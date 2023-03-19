@@ -278,7 +278,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&Entity>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
-        let contains_entity = entity.spawned && entity.x == x && entity.y == y;
+        let contains_entity = entity.spawned && entity.on_field && entity.x == x && entity.y == y;
 
         lua.pack_multi(contains_entity)
     });
@@ -360,13 +360,7 @@ fn remove_entity(
         .query_one_mut::<&mut Entity>(entity_id.into())
         .map_err(|_| entity_not_found())?;
 
-    if !entity.spawned {
-        return Ok(());
-    }
-
-    let contains_entity = entity.spawned && entity.x == x && entity.y == y;
-
-    if contains_entity {
+    if entity.spawned && entity.x == x && entity.y == y {
         entity.on_field = false;
     }
 
