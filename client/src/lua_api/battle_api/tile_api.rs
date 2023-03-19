@@ -1,8 +1,8 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
 use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Spell, Tile,
-    TileState,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell,
+    Tile, TileState,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -343,6 +343,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     generate_find_hittable_fn::<()>(lua_api, "find_entities");
     generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
     generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_hittable_fn::<&Player>(lua_api, "find_players");
     generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
 }
 
