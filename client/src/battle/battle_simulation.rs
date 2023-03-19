@@ -758,15 +758,15 @@ impl BattleSimulation {
         entity.auto_reserves_tiles = true;
 
         entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
-            if simulation.field.is_edge(dest) {
-                // can't walk on edge tiles
-                return false;
-            }
-
             let tile = match simulation.field.tile_at_mut(dest) {
                 Some(tile) => tile,
                 None => return false,
             };
+
+            if tile.state_index() == TileState::HIDDEN {
+                // can't walk on hidden tiles, even with ignore_hole_tiles
+                return false;
+            }
 
             let entity = simulation
                 .entities
