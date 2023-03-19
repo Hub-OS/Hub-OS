@@ -654,10 +654,10 @@ impl BattleState {
                 } = attack_box;
 
                 // collision callback
-                let spell_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(attacker_id.into())
-                    .unwrap();
+                let entities = &mut simulation.entities;
+                let Ok(spell_entity) = entities.query_one_mut::<&mut Entity>(attacker_id.into()) else {
+                    continue
+                };
 
                 let collision_callback = spell_entity.collision_callback.clone();
                 let attack_callback = spell_entity.attack_callback.clone();
