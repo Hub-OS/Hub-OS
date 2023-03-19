@@ -854,6 +854,11 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_living_api(lua_api: &mut BattleLuaApi) {
+    // todo: living.aggressor is never set
+    // is this function necessary?
+    // the documented usage was for preventing bubbles from the same starfish from hitting each other
+    // but then why not just use the same team for bubbles as entities with the same team can't hit each other?
+    // currently leaving as undocumented
     setter(
         lua_api,
         "ignore_common_aggressor",
@@ -1023,18 +1028,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "slide_when_moving",
-        |player: &mut Player, _, slide: bool| {
-            player.slide_when_moving = slide;
-            Ok(())
-        },
-    );
-
-    setter(
-        lua_api,
-        "boost_max_health",
-        |living: &mut Living, _, health: i32| {
-            living.max_health += health;
-            living.health = living.health.min(living.max_health);
+        |player: &mut Player, _, slide: Option<bool>| {
+            player.slide_when_moving = slide.unwrap_or(true);
             Ok(())
         },
     );
@@ -1063,6 +1058,53 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let form_table = create_player_form_table(lua, table, index)?;
 
         lua.pack_multi(form_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augment", |api_ctx, lua, params| {
+        let (table, augment_id): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let augment_id = augment_id.to_str()?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let mut augment_iter = player.augments.iter();
+        let augment_table = augment_iter
+            .find(|(_, augment)| augment.package_id.as_str() == augment_id)
+            .map(|(index, _)| create_augment_table(lua, id, index))
+            .transpose()?;
+
+        lua.pack_multi(augment_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augments", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let augment_tables: rollback_mlua::Result<Vec<_>> = player
+            .augments
+            .iter()
+            .map(|(index, _)| create_augment_table(lua, id, index))
+            .collect();
+
+        lua.pack_multi(augment_tables?)
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "boost_augment", |api_ctx, lua, params| {
@@ -1140,52 +1182,15 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augment", |api_ctx, lua, params| {
-        let (table, augment_id): (rollback_mlua::Table, rollback_mlua::String) =
-            lua.unpack_multi(params)?;
-
-        let augment_id = augment_id.to_str()?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let mut augment_iter = player.augments.iter();
-        let augment_table = augment_iter
-            .find(|(_, augment)| augment.package_id.as_str() == augment_id)
-            .map(|(index, _)| create_augment_table(lua, id, index))
-            .transpose()?;
-
-        lua.pack_multi(augment_table)
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augments", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let augment_tables: rollback_mlua::Result<Vec<_>> = player
-            .augments
-            .iter()
-            .map(|(index, _)| create_augment_table(lua, id, index))
-            .collect();
-
-        lua.pack_multi(augment_tables?)
-    });
+    setter(
+        lua_api,
+        "boost_max_health",
+        |living: &mut Living, _, health: i32| {
+            living.max_health += health;
+            living.health = living.health.min(living.max_health);
+            Ok(())
+        },
+    );
 
     getter(
         lua_api,
