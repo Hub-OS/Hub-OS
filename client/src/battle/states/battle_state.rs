@@ -662,8 +662,6 @@ impl BattleState {
                 let collision_callback = spell_entity.collision_callback.clone();
                 let attack_callback = spell_entity.attack_callback.clone();
 
-                collision_callback.call(game_io, simulation, vms, id.into());
-
                 // defense check against DefenseOrder::Always
                 simulation.defense_judge = DefenseJudge::new();
 
@@ -691,6 +689,8 @@ impl BattleState {
                         }
                     }
                 }
+
+                collision_callback.call(game_io, simulation, vms, id.into());
 
                 // defense check against DefenseOrder::CollisionOnly
                 DefenseJudge::judge(
