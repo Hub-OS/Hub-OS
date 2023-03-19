@@ -1,7 +1,8 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
 use crate::battle::{
-    AttackBox, Character, Entity, Field, Living, Obstacle, Spell, Tile, TileState,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Spell, Tile,
+    TileState,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -287,32 +288,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(contains_entity)
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity_by_id", |api_ctx, lua, params| {
-        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
-
-        let x: i32 = table.raw_get("#x")?;
-        let y: i32 = table.raw_get("#y")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        if !entity.spawned {
-            return lua.pack_multi(());
-        }
-
-        let contains_entity = entity.spawned && entity.x == x && entity.y == y;
-
-        if contains_entity {
-            entity.on_field = false;
-        }
-
-        lua.pack_multi(())
-    });
-
     lua_api.add_dynamic_function(TILE_TABLE, "add_entity", |api_ctx, lua, params| {
         let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
@@ -349,6 +324,53 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        remove_entity(api_ctx, table, entity_id)?;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity_by_id", |api_ctx, lua, params| {
+        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        remove_entity(api_ctx, table, entity_id)?;
+
+        lua.pack_multi(())
+    });
+}
+
+fn remove_entity(
+    api_ctx: &mut BattleScriptContext,
+    tile_table: rollback_mlua::Table,
+    entity_id: EntityId,
+) -> rollback_mlua::Result<()> {
+    let x: i32 = tile_table.raw_get("#x")?;
+    let y: i32 = tile_table.raw_get("#y")?;
+
+    let entities = &mut api_ctx.simulation.entities;
+
+    let entity = entities
+        .query_one_mut::<&mut Entity>(entity_id.into())
+        .map_err(|_| entity_not_found())?;
+
+    if !entity.spawned {
+        return Ok(());
+    }
+
+    let contains_entity = entity.spawned && entity.x == x && entity.y == y;
+
+    if contains_entity {
+        entity.on_field = false;
+    }
+
+    Ok(())
 }
 
 fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
