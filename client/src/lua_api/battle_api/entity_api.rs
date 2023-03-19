@@ -395,8 +395,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
+        let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
+        let path = path.map(|path| absolute_path(lua, path)).transpose()?;
 
         let id: EntityId = table.raw_get("#id")?;
 
