@@ -262,11 +262,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    generate_find_hittable_fn::<()>(lua_api, "find_entities");
-    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
-    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
-    generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
-
     lua_api.add_dynamic_function(TILE_TABLE, "contains_entity", |api_ctx, lua, params| {
         let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
@@ -344,6 +339,11 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    generate_find_hittable_fn::<()>(lua_api, "find_entities");
+    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
+    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
 }
 
 fn remove_entity(
