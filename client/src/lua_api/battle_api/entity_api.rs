@@ -287,10 +287,17 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
     delete_getter(lua_api, "is_deleted", |entity: &Entity| entity.deleted);
     delete_getter(lua_api, "will_erase_eof", |entity: &Entity| entity.erased);
-    setter(lua_api, "erase", |entity: &mut Entity, _, _: ()| {
-        entity.deleted = true;
-        entity.erased = true;
-        Ok(())
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "erase", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.vms, id);
+
+        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "delete", |api_ctx, lua, params| {

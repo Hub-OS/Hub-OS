@@ -577,6 +577,25 @@ impl BattleSimulation {
         self.call_pending_callbacks(game_io, vms);
     }
 
+    pub fn mark_entity_for_erasure(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityId) {
+        let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(id.into()) else {
+            return;
+        };
+
+        if entity.erased {
+            return;
+        }
+
+        // clear the delete callback
+        entity.delete_callback = BattleCallback::default();
+
+        // mark as erased
+        entity.erased = true;
+
+        // delete
+        self.delete_entity(game_io, vms, id);
+    }
+
     pub fn delete_entity(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityId) {
         let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
             Ok(entity) => entity,
@@ -1136,12 +1155,8 @@ impl BattleSimulation {
         let _ = animator.set_state("DEFAULT");
 
         // delete when the animation completes
-        animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
-            let entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(id.into())
-                .unwrap();
-            entity.erased = true;
+        animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
+            simulation.mark_entity_for_erasure(game_io, vms, id);
         }));
 
         id

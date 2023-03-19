@@ -106,13 +106,9 @@ impl Entity {
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
-            delete_callback: BattleCallback::new(move |_, simulation, _, _| {
+            delete_callback: BattleCallback::new(move |game_io, simulation, vms, _| {
                 // default behavior, just erase
-                let entity = (simulation.entities)
-                    .query_one_mut::<&mut Entity>(id.into())
-                    .unwrap();
-
-                entity.erased = true;
+                simulation.mark_entity_for_erasure(game_io, vms, id);
             }),
             delete_callbacks: Vec::new(),
         }
