@@ -25,7 +25,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
             augment.calculate_charge_time_callback = Some(BattleCallback::default());
             augment.calculate_charge_time_callback.as_mut().unwrap()
         },
-        |lua, _, charge_level: u8| lua.pack_multi(charge_level),
+        |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
