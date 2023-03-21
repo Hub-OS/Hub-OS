@@ -12,6 +12,7 @@ pub struct TileState {
     pub default_animation_state: String,
     pub flipped_animation_state: String,
     pub cleanser_element: Option<Element>,
+    pub blocks_team_change: bool,
     pub is_hole: bool,
     pub max_lifetime: Option<FrameTime>,
     pub change_request_callback: BattleCallback<usize, bool>,
@@ -53,6 +54,7 @@ impl TileState {
             default_animation_state: default_state,
             flipped_animation_state: flipped_state,
             cleanser_element: None,
+            blocks_team_change: false,
             is_hole: false,
             max_lifetime: None,
             change_request_callback: BattleCallback::stub(true),
@@ -70,6 +72,7 @@ impl TileState {
         // Hidden
         debug_assert_eq!(registry.len(), TileState::HIDDEN);
         let mut hidden_state = TileState::new(String::from(""));
+        hidden_state.blocks_team_change = true;
         hidden_state.is_hole = true;
         hidden_state.change_request_callback = BattleCallback::stub(false);
         registry.push(hidden_state);
@@ -82,6 +85,8 @@ impl TileState {
         // Hole
         debug_assert_eq!(registry.len(), TileState::HOLE);
         let mut hole_state = TileState::new(String::from("hole"));
+        hole_state.change_request_callback = BattleCallback::stub(false);
+        hole_state.blocks_team_change = true;
         hole_state.is_hole = true;
         registry.push(hole_state);
 
