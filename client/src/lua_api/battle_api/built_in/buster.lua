@@ -1,5 +1,5 @@
 local user, charged, damage = ...
-local card_action = Battle.CardAction.new(user, "PLAYER_SHOOTING")
+local action = Battle.Action.new(user, "PLAYER_SHOOTING")
 local context = user:get_context()
 local rapid_level = user:get_rapid_level()
 
@@ -7,15 +7,15 @@ local rapid_level = user:get_rapid_level()
 
 local frame_data = { { 1, 1 }, { 2, 2 }, { 3, 2 }, { 1, 1 } }
 
-card_action:override_animation_frames(frame_data)
+action:override_animation_frames(frame_data)
 
 -- setup buster attachment
-local buster_attachment = card_action:add_attachment("BUSTER")
+local buster_attachment = action:add_attachment("BUSTER")
 
 local buster_sprite = buster_attachment:sprite()
 buster_sprite:set_texture(user:get_texture())
 buster_sprite:set_layer(-2)
-buster_sprite:enable_parent_shader()
+buster_sprite:use_root_shader()
 
 local buster_animation = buster_attachment:get_animation()
 buster_animation:copy_from(user:get_animation())
@@ -42,7 +42,7 @@ local can_move = false
 
 spell:set_facing(user:get_facing())
 
-card_action.on_update_func = function()
+action.on_update_func = function()
     if spell_erased_frame == 0 and spell:will_erase_eof() then
         spell_erased_frame = elapsed_frames
     end
@@ -75,17 +75,17 @@ card_action.on_update_func = function()
 
         if (motion_x ~= 0 and user:can_move_to(user:get_tile(Direction.Right, motion_x))) or
             (motion_y ~= 0 and user:can_move_to(user:get_tile(Direction.Down, motion_y))) then
-            card_action:end_action()
+            action:end_action()
         end
     end
 end
 
-card_action:add_anim_action(2, function()
+action:add_anim_action(2, function()
     Engine.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
 
     local field = user:get_field()
 
-    spell:set_hit_props(HitProps.new(
+    spell:set_hit_props(Battle.HitProps.new(
         damage,
         Hit.Impact,
         Element.None,
@@ -133,7 +133,7 @@ card_action:add_anim_action(2, function()
         end
 
         local hit_artifact = Battle.Artifact.new()
-        hit_artifact:set_animation(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.animation")
+        hit_artifact:load_animation(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.animation")
         hit_artifact:set_texture(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.png")
         hit_artifact:set_offset(hit_x, -hit_y)
 
@@ -161,7 +161,7 @@ card_action:add_anim_action(2, function()
 end)
 
 -- flare attachment
-card_action:add_anim_action(3, function()
+action:add_anim_action(3, function()
     can_move = true
     local flare_attachment = buster_attachment:add_attachment("ENDPOINT")
     local flare_sprite = flare_attachment:sprite()
@@ -172,10 +172,10 @@ card_action:add_anim_action(3, function()
     animation:load(_game_folder_path .. "resources/scenes/battle/buster_flare.animation")
     animation:set_state("DEFAULT")
 
-    animation:refresh(flare_sprite)
+    animation:apply(flare_sprite)
 end)
 
-card_action:add_anim_action(4, function()
+action:add_anim_action(4, function()
     local animation = user:get_animation()
 
     animation:on_interrupt(function()
@@ -185,8 +185,8 @@ card_action:add_anim_action(4, function()
     animation:pause()
 end)
 
-card_action.on_animation_end_func = function()
-    card_action:end_action()
+action.on_animation_end_func = function()
+    action:end_action()
 end
 
-return card_action
+return action

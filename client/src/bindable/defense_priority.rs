@@ -7,7 +7,7 @@ pub enum DefensePriority {
     Intangible,
     Barrier,
     Body,
-    CardAction,
+    Action,
     Trap,
     Last, // special case, appends instead of replaces
 }

@@ -259,7 +259,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }
@@ -296,7 +296,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }
@@ -333,7 +333,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }

@@ -1,5 +1,4 @@
 use crate::bindable::LuaVector;
-use crate::lua_api::errors::unexpected_nil;
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -107,52 +106,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     let move_event_table = lua.create_table()?;
     move_event_table.set("new", lua.create_function(|lua, _: ()| lua.create_table())?)?;
-    globals.set("MoveAction", move_event_table)?;
-
-    use crate::bindable::{EntityId, HitContext, HitFlags, HitProperties};
-
-    let hit_props_table = lua.create_table()?;
-    hit_props_table.set(
-        "new",
-        lua.create_function(|lua, params| {
-            let (damage, flags, element, mut rest): (
-                i32,
-                HitFlags,
-                Element,
-                rollback_mlua::MultiValue,
-            ) = lua.unpack_multi(params)?;
-
-            let middle_param = rest.pop_front().ok_or_else(|| unexpected_nil("Element"))?;
-
-            let secondary_element: Element;
-            let context: Option<HitContext>;
-            let drag: Drag;
-
-            match lua.unpack(middle_param.clone()) {
-                Ok(element) => {
-                    secondary_element = element;
-
-                    (context, drag) = lua.unpack_multi(rest)?;
-                }
-                Err(_) => {
-                    secondary_element = Element::None;
-                    context = lua.unpack(middle_param)?;
-                    drag = lua.unpack_multi(rest)?;
-                }
-            };
-
-            Ok(HitProperties {
-                damage,
-                flags,
-                element,
-                secondary_element,
-                aggressor: EntityId::default(),
-                drag,
-                context: context.unwrap_or_default(),
-            })
-        })?,
-    )?;
-    globals.set("HitProps", hit_props_table)?;
+    globals.set("Movement", move_event_table)?;
 
     use crate::bindable::CardClass;
 
@@ -277,7 +231,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     // defense_priority_table.set("Intangible", DefensePriority::Intangible)?; // excluded as modders should use set_intangible
     defense_priority_table.set("Barrier", DefensePriority::Barrier)?;
     defense_priority_table.set("Body", DefensePriority::Body)?;
-    defense_priority_table.set("CardAction", DefensePriority::CardAction)?;
+    defense_priority_table.set("Action", DefensePriority::Action)?;
     defense_priority_table.set("Trap", DefensePriority::Trap)?;
     defense_priority_table.set("Last", DefensePriority::Last)?;
     globals.set("DefensePriority", defense_priority_table)?;

@@ -218,7 +218,7 @@ impl TimeFreezeTracker {
 
         let (team, index) = self.chain.last().cloned().unwrap();
 
-        let Some(action) = simulation.card_actions.get(index) else {
+        let Some(action) = simulation.actions.get(index) else {
             return;
         };
 

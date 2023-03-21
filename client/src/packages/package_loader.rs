@@ -63,7 +63,7 @@ impl PackageLoader {
             // load battles
             let battle_packages = package_loader.load_packages(
                 PackageCategory::Battle,
-                "./mods/enemies",
+                "./mods/battles",
                 "Loading Battles",
             );
 

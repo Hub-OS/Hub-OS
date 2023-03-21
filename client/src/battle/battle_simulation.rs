@@ -33,7 +33,7 @@ pub struct BattleSimulation {
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
     pub animators: Arena<BattleAnimator>,
-    pub card_actions: Arena<CardAction>,
+    pub actions: Arena<Action>,
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: Arena<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
@@ -74,7 +74,7 @@ impl BattleSimulation {
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
             animators: Arena::new(),
-            card_actions: Arena::new(),
+            actions: Arena::new(),
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Arena::new(),
             pending_callbacks: Vec::new(),
@@ -153,7 +153,7 @@ impl BattleSimulation {
             queued_attacks: self.queued_attacks.clone(),
             defense_judge: self.defense_judge,
             animators: self.animators.clone(),
-            card_actions: self.card_actions.clone(),
+            actions: self.actions.clone(),
             time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
@@ -282,7 +282,7 @@ impl BattleSimulation {
             self.pending_callbacks.extend(animator.update());
         }
 
-        for (_, action) in &mut self.card_actions {
+        for (_, action) in &mut self.actions {
             if !action.executed {
                 continue;
             }
@@ -319,7 +319,7 @@ impl BattleSimulation {
             entity.on_field = true;
 
             let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-            tile.handle_auto_reservation_addition(&self.card_actions, entity);
+            tile.handle_auto_reservation_addition(&self.actions, entity);
 
             if entity.team == Team::Unset {
                 entity.team = tile.team();
@@ -355,7 +355,7 @@ impl BattleSimulation {
 
         // update attachment sprites
         // separate loop from entities to account for async actions
-        for (_, action) in &mut self.card_actions {
+        for (_, action) in &mut self.actions {
             if !action.executed {
                 continue;
             }
@@ -398,7 +398,7 @@ impl BattleSimulation {
     fn cleanup_erased_entities(&mut self) {
         let mut pending_removal = Vec::new();
         let mut components_pending_removal = Vec::new();
-        let mut card_actions_pending_removal = Vec::new();
+        let mut actions_pending_removal = Vec::new();
 
         for (id, entity) in self.entities.query_mut::<&Entity>() {
             if !entity.erased {
@@ -415,9 +415,9 @@ impl BattleSimulation {
                 }
             }
 
-            for (index, card_action) in &mut self.card_actions {
-                if card_action.entity == entity.id {
-                    card_actions_pending_removal.push(index);
+            for (index, action) in &mut self.actions {
+                if action.entity == entity.id {
+                    actions_pending_removal.push(index);
                 }
             }
 
@@ -434,9 +434,9 @@ impl BattleSimulation {
             self.components.remove(index);
         }
 
-        for index in card_actions_pending_removal {
+        for index in actions_pending_removal {
             // action_end callbacks would already be handled by delete listeners
-            self.card_actions.remove(index);
+            self.actions.remove(index);
         }
     }
 
@@ -472,7 +472,7 @@ impl BattleSimulation {
         true
     }
 
-    pub fn use_card_action(
+    pub fn use_action(
         &mut self,
         game_io: &GameIO,
         entity_id: EntityId,
@@ -484,24 +484,31 @@ impl BattleSimulation {
 
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
-        if !time_is_frozen && entity.card_action_index.is_some() {
+        if !time_is_frozen && entity.action_index.is_some() {
             // already set
             return false;
         }
 
         // validate index as it may be coming from lua
-        let Some(card_action) = self.card_actions.get_mut(index) else {
-            log::error!("Received invalid CardAction index {index:?}");
+        let Some(action) = self.actions.get_mut(index) else {
+            log::error!("Received invalid Action index {index:?}");
             return false;
         };
 
-        if time_is_frozen && !card_action.properties.time_freeze {
+        if action.used {
+            log::error!("Action already used, ignoring");
             return false;
         }
 
-        card_action.used = true;
+        action.entity = entity_id;
 
-        if card_action.properties.time_freeze {
+        if time_is_frozen && !action.properties.time_freeze {
+            return false;
+        }
+
+        action.used = true;
+
+        if action.properties.time_freeze {
             let time_freeze_tracker = &mut self.time_freeze_tracker;
 
             if time_is_frozen && !self.is_resimulation {
@@ -512,38 +519,38 @@ impl BattleSimulation {
 
             time_freeze_tracker.set_team_action(entity.team, index);
         } else {
-            entity.card_action_index = Some(index);
+            entity.action_index = Some(index);
         }
 
         true
     }
 
-    pub fn delete_card_actions(
+    pub fn delete_actions(
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
         delete_indices: &[generational_arena::Index],
     ) {
         for index in delete_indices {
-            let Some(card_action) = self.card_actions.get_mut(*index) else {
+            let Some(action) = self.actions.get_mut(*index) else {
                 continue;
             };
 
-            if card_action.deleted {
-                // avoid callbacks calling delete_card_actions on this card action
+            if action.deleted {
+                // avoid callbacks calling delete_actions on this card action
                 continue;
             }
 
-            card_action.deleted = true;
+            action.deleted = true;
 
             // remove the index from the entity
             let entity = self
                 .entities
-                .query_one_mut::<&mut Entity>(card_action.entity.into())
+                .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            if entity.card_action_index == Some(*index) {
-                card_action.complete_sync(
+            if entity.action_index == Some(*index) {
+                action.complete_sync(
                     &mut self.entities,
                     &mut self.animators,
                     &mut self.pending_callbacks,
@@ -552,26 +559,26 @@ impl BattleSimulation {
             }
 
             // end callback
-            if let Some(callback) = card_action.end_callback.clone() {
+            if let Some(callback) = action.end_callback.clone() {
                 callback.call(game_io, self, vms, ());
             }
 
-            let card_action = self.card_actions.get(*index).unwrap();
+            let action = self.actions.get(*index).unwrap();
 
             // remove attachments from the entity
             let entity = self
                 .entities
-                .query_one_mut::<&mut Entity>(card_action.entity.into())
+                .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            entity.sprite_tree.remove(card_action.sprite_index);
+            entity.sprite_tree.remove(action.sprite_index);
 
-            for attachment in &card_action.attachments {
+            for attachment in &action.attachments {
                 self.animators.remove(attachment.animator_index);
             }
 
             // finally remove the card action
-            self.card_actions.remove(*index);
+            self.actions.remove(*index);
         }
 
         self.call_pending_callbacks(game_io, vms);
@@ -606,7 +613,7 @@ impl BattleSimulation {
             return;
         }
 
-        let card_indices: Vec<_> = (self.card_actions)
+        let card_indices: Vec<_> = (self.actions)
             .iter()
             .filter(|(_, action)| action.entity == id && action.used)
             .map(|(index, _)| index)
@@ -628,7 +635,7 @@ impl BattleSimulation {
         }
 
         // delete card actions
-        self.delete_card_actions(game_io, vms, &card_indices);
+        self.delete_actions(game_io, vms, &card_indices);
 
         // call delete callbacks after
         self.pending_callbacks.extend(listener_callbacks);
@@ -891,8 +898,8 @@ impl BattleSimulation {
                     .query_one_mut::<&mut Entity>(id.into())
                     .unwrap();
 
-                if let Some(index) = entity.card_action_index {
-                    simulation.delete_card_actions(game_io, vms, &[index]);
+                if let Some(index) = entity.action_index {
+                    simulation.delete_actions(game_io, vms, &[index]);
                 }
 
                 let (entity, living, player) = simulation
@@ -902,7 +909,7 @@ impl BattleSimulation {
 
                 if !living.status_director.is_dragged() {
                     // cancel movement
-                    entity.move_action = None;
+                    entity.movement = None;
                 }
 
                 player.charging_time = 0;
@@ -1442,11 +1449,11 @@ impl BattleSimulation {
             .entities
             .query_mut::<&Entity>()
             .into_iter()
-            .filter(|(_, entity)| entity.card_action_index.is_some())
+            .filter(|(_, entity)| entity.action_index.is_some())
             .count();
 
         let executed_action_count = self
-            .card_actions
+            .actions
             .iter()
             .filter(|(_, action)| action.executed && !action.is_async())
             .count();

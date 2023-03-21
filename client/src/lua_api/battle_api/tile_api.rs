@@ -131,16 +131,55 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(tile.reservations().len() > excluded_count)
     });
 
-    // todo: rename to reserve_by_entity_id?
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_for_id", |api_ctx, lua, params| {
+        let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        tile.reserve_for(id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_for", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        tile.reserve_for(entity_id);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(
         TILE_TABLE,
-        "reserve_entity_by_id",
+        "remove_reservation_for_id",
         |api_ctx, lua, params| {
             let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
             let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-            tile.reserve_for(id);
+            tile.remove_reservation_for(id);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        TILE_TABLE,
+        "remove_reservation_for",
+        |api_ctx, lua, params| {
+            let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+                lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            tile.remove_reservation_for(entity_id);
 
             lua.pack_multi(())
         },
@@ -283,19 +322,19 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let card_actions = &api_ctx.simulation.card_actions;
+        let actions = &api_ctx.simulation.actions;
 
         let field = &mut api_ctx.simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
         current_tile.unignore_attacker(entity.id);
-        current_tile.handle_auto_reservation_removal(card_actions, entity);
+        current_tile.handle_auto_reservation_removal(actions, entity);
 
         entity.on_field = true;
         entity.x = x;
         entity.y = y;
 
         let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.handle_auto_reservation_addition(card_actions, entity);
+        tile.handle_auto_reservation_addition(actions, entity);
 
         lua.pack_multi(())
     });

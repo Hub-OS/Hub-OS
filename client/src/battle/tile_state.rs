@@ -1,5 +1,5 @@
 use super::{BattleCallback, Entity, Living};
-use crate::bindable::{Element, EntityId, HitFlag, HitProperties, MoveAction};
+use crate::bindable::{Element, EntityId, HitFlag, HitProperties, Movement};
 use crate::render::FrameTime;
 use crate::resources::{
     Globals, BROKEN_LIFETIME, CONVEYOR_LIFETIME, CONVEYOR_SLIDE_DURATION, CONVEYOR_WAIT_DELAY,
@@ -17,8 +17,8 @@ pub struct TileState {
     pub max_lifetime: Option<FrameTime>,
     pub change_request_callback: BattleCallback<usize, bool>,
     pub entity_enter_callback: BattleCallback<EntityId>,
-    pub entity_leave_callback: BattleCallback<(EntityId, MoveAction)>,
-    pub entity_stop_callback: BattleCallback<(EntityId, MoveAction)>,
+    pub entity_leave_callback: BattleCallback<(EntityId, Movement)>,
+    pub entity_stop_callback: BattleCallback<(EntityId, Movement)>,
     pub entity_update_callback: BattleCallback<EntityId>,
     // pub card_use_callback: BattleCallback,
     pub calculate_bonus_damage_callback: BattleCallback<(HitProperties, i32), i32>,
@@ -95,8 +95,8 @@ impl TileState {
         let mut cracked_state = TileState::new(String::from("cracked"));
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, simulation, _, (_, move_action): (EntityId, MoveAction)| {
-                let Some(tile) = simulation.field.tile_at_mut(move_action.source) else {
+            |game_io, simulation, _, (_, movement): (EntityId, Movement)| {
+                let Some(tile) = simulation.field.tile_at_mut(movement.source) else {
                     return;
                 };
 
@@ -125,7 +125,7 @@ impl TileState {
         let mut ice_state = TileState::new(String::from("ice"));
 
         ice_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, vms, (entity_id, move_action): (EntityId, MoveAction)| {
+            |game_io, simulation, vms, (entity_id, movement): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -135,12 +135,11 @@ impl TileState {
                     return;
                 }
 
-                let direction = move_action.aligned_direction();
+                let direction = movement.aligned_direction();
                 let offset = direction.i32_vector();
                 let dest = (entity.x + offset.0, entity.y + offset.1);
 
-                let can_move_to_callback =
-                    entity.current_can_move_to_callback(&simulation.card_actions);
+                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if !can_move_to_callback.call(game_io, simulation, vms, dest) {
                     return;
@@ -149,7 +148,7 @@ impl TileState {
                 let entities = &mut simulation.entities;
 
                 if let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) {
-                    entity.move_action = Some(MoveAction::slide(dest, 4));
+                    entity.movement = Some(Movement::slide(dest, 4));
                 }
             },
         );
@@ -286,16 +285,15 @@ impl TileState {
                     return;
                 };
 
-                let elapsed_since_movement = simulation.battle_time - entity.last_movement;
+                let elapsed_since_movement = simulation.battle_time - entity.last_movement_time;
 
-                if entity.move_action.is_some() || elapsed_since_movement < CONVEYOR_WAIT_DELAY {
+                if entity.movement.is_some() || elapsed_since_movement < CONVEYOR_WAIT_DELAY {
                     return;
                 }
 
                 let dest = (entity.x + offset.0, entity.y + offset.1);
 
-                let can_move_to_callback =
-                    entity.current_can_move_to_callback(&simulation.card_actions);
+                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if !can_move_to_callback.call(game_io, simulation, vms, dest) {
                     return;
@@ -303,8 +301,8 @@ impl TileState {
 
                 let entities = &mut simulation.entities;
                 if let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) {
-                    let move_action = MoveAction::slide(dest, CONVEYOR_SLIDE_DURATION);
-                    entity.move_action = Some(move_action);
+                    let movement = Movement::slide(dest, CONVEYOR_SLIDE_DURATION);
+                    entity.movement = Some(movement);
                 }
             })
         };
@@ -360,7 +358,7 @@ impl TileState {
         let mut sea_state = TileState::new(String::from("sea"));
 
         sea_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, _vms, (entity_id, _): (EntityId, MoveAction)| {
+            |game_io, simulation, _vms, (entity_id, _): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
                     return;

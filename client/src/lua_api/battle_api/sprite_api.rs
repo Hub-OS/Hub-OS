@@ -105,7 +105,12 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    setter(lua_api, "show", |node, _, _: ()| {
+    getter(lua_api, "is_visible", |node, _, _: ()| Ok(node.visible()));
+    setter(lua_api, "set_visible", |node, _, visible: bool| {
+        node.set_visible(visible);
+        Ok(())
+    });
+    setter(lua_api, "reveal", |node, _, _: ()| {
         node.set_visible(true);
         Ok(())
     });
@@ -242,7 +247,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "enable_parent_shader",
+        "use_root_shader",
         |node, _, enable: Option<bool>| {
             node.set_using_parent_shader(enable.unwrap_or(true));
             Ok(())

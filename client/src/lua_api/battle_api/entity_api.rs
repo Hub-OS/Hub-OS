@@ -1,6 +1,6 @@
 use super::animation_api::create_animation_table;
 use super::errors::action_aready_used;
-use super::errors::card_action_not_found;
+use super::errors::action_not_found;
 use super::errors::entity_not_found;
 use super::errors::invalid_sync_node;
 use super::errors::mismatched_entity;
@@ -14,6 +14,7 @@ use super::tile_api::create_tile_table;
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
+use crate::lua_api::errors::unexpected_nil;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
@@ -241,11 +242,9 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    getter(
-        lua_api,
-        "get_current_palette",
-        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.sprite_tree.root().palette_path()),
-    );
+    getter(lua_api, "get_palette", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.sprite_tree.root().palette_path())
+    });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
         let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
@@ -444,7 +443,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(animation_table)
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_animation", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "load_animation", |api_ctx, lua, params| {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
@@ -502,7 +501,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(&entity.hit_context)
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "card_action_event", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {
         let (table, action_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 
@@ -512,19 +511,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let id: EntityId = table.raw_get("#id")?;
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
 
-        let card_action = (simulation.card_actions)
+        let action = (simulation.actions)
             .get_mut(action_index.into())
-            .ok_or_else(card_action_not_found)?;
+            .ok_or_else(action_not_found)?;
 
-        if card_action.entity != id {
-            return Err(mismatched_entity());
-        }
-
-        if card_action.used {
+        if action.used {
             return Err(action_aready_used());
         }
 
-        let used = simulation.use_card_action(api_ctx.game_io, id, action_index.into());
+        let used = simulation.use_action(api_ctx.game_io, id, action_index.into());
 
         lua.pack_multi(used)
     });
@@ -553,25 +548,25 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(false);
         }
 
-        let can_move_to_callback = entity.current_can_move_to_callback(&simulation.card_actions);
+        let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
         let can_move = can_move_to_callback.call(api_ctx.game_io, simulation, api_ctx.vms, dest);
 
         lua.pack_multi(can_move)
     });
 
     movement_function(lua_api, "teleport", |dest: (i32, i32), _: ()| {
-        MoveAction::teleport(dest)
+        Movement::teleport(dest)
     });
-    movement_function(lua_api, "slide", MoveAction::slide);
+    movement_function(lua_api, "slide", Movement::slide);
     movement_function(
         lua_api,
         "jump",
         |dest: (i32, i32), (height, frame_time): (f32, FrameTime)| {
-            MoveAction::jump(dest, height, frame_time)
+            Movement::jump(dest, height, frame_time)
         },
     );
-    lua_api.add_dynamic_function(ENTITY_TABLE, "raw_move_event", |api_ctx, lua, params| {
-        let (table, movement): (rollback_mlua::Table, MoveAction) = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(ENTITY_TABLE, "queue_movement", |api_ctx, lua, params| {
+        let (table, movement): (rollback_mlua::Table, Movement) = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         attempt_movement(api_ctx, lua, table, movement)
@@ -579,7 +574,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     getter(lua_api, "is_sliding", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(
             entity
-                .move_action
+                .movement
                 .as_ref()
                 .map(|action| action.is_sliding())
                 .unwrap_or_default(),
@@ -588,7 +583,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     getter(lua_api, "is_jumping", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(
             entity
-                .move_action
+                .movement
                 .as_ref()
                 .map(|action| action.is_jumping())
                 .unwrap_or_default(),
@@ -597,14 +592,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     getter(lua_api, "is_teleporting", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(
             entity
-                .move_action
+                .movement
                 .as_ref()
                 .map(|action| action.is_teleporting())
                 .unwrap_or_default(),
         )
     });
     getter(lua_api, "is_moving", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.move_action.is_some())
+        lua.pack_multi(entity.movement.is_some())
     });
 
     delete_getter(lua_api, "is_deleted", |entity: &Entity| entity.deleted);
@@ -680,15 +675,31 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    // todo: has_status?
+    lua_api.add_dynamic_function(FIELD_TABLE, "on_delete", |api_ctx, lua, params| {
+        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+            lua.unpack_multi(params)?;
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "shake_camera", |api_ctx, lua, params| {
-        let (_, power, duration): (rollback_mlua::Table, f32, f32) = lua.unpack_multi(params)?;
+        let id: EntityId = table.raw_get("#id")?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
 
-        // todo: shouldnt we be using FrameTime for duration and not seconds/f32?
-        api_ctx.simulation.camera.shake(power, duration);
+        let vm_index = api_ctx.vm_index;
+
+        let callback = BattleCallback::new_transformed_lua_callback(
+            lua,
+            vm_index,
+            callback,
+            move |_, lua, _| {
+                let entity_table = create_entity_table(lua, id)?;
+                lua.pack_multi(entity_table)
+            },
+        )?;
+
+        entity.delete_callbacks.push(callback);
 
         lua.pack_multi(())
     });
@@ -799,7 +810,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     //         .query_one_mut::<&Entity>(entity_id.into())
     //         .map_err(|_| entity_not_found())?;
 
-    //     if entity.card_action_index.is_some() {
+    //     if entity.action_index.is_some() {
     //         return lua.pack_multi(false);
     //     }
 
@@ -820,9 +831,47 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_spell_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(HIT_PROPS_TABLE, "new", |_, lua, params| {
+        let (damage, flags, element, mut rest): (
+            i32,
+            HitFlags,
+            Element,
+            rollback_mlua::MultiValue,
+        ) = lua.unpack_multi(params)?;
+
+        let middle_param = rest.pop_front().ok_or_else(|| unexpected_nil("Element"))?;
+
+        let secondary_element: Element;
+        let context: Option<HitContext>;
+        let drag: Drag;
+
+        match lua.unpack(middle_param.clone()) {
+            Ok(element) => {
+                secondary_element = element;
+
+                (context, drag) = lua.unpack_multi(rest)?;
+            }
+            Err(_) => {
+                secondary_element = Element::None;
+                context = lua.unpack(middle_param)?;
+                drag = lua.unpack_multi(rest)?;
+            }
+        };
+
+        lua.pack_multi(HitProperties {
+            damage,
+            flags,
+            element,
+            secondary_element,
+            aggressor: EntityId::default(),
+            drag,
+            context: context.unwrap_or_default(),
+        })
+    });
+
     setter(
         lua_api,
-        "highlight_tile",
+        "set_tile_highlight",
         |spell: &mut Spell, _, mode: TileHighlight| {
             spell.requested_highlight = mode;
             Ok(())
@@ -946,6 +995,8 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(())
         },
     );
+
+    // todo: has_status?
 
     setter(
         lua_api,
@@ -1426,7 +1477,7 @@ fn callback_setter<C, G, P, F, R>(
 fn movement_function<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn((i32, i32), P) -> MoveAction + 'static,
+    F: for<'lua> Fn((i32, i32), P) -> Movement + 'static,
 {
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let (table, tile_table, rest): (
@@ -1471,7 +1522,7 @@ fn attempt_movement<'lua>(
     api_ctx: &mut BattleScriptContext,
     lua: &'lua rollback_mlua::Lua,
     table: rollback_mlua::Table,
-    movement: MoveAction,
+    movement: Movement,
 ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>> {
     let id: EntityId = table.raw_get("#id")?;
 
@@ -1487,7 +1538,7 @@ fn attempt_movement<'lua>(
         .query_one_mut::<&mut Entity>(id.into())
         .map_err(|_| entity_not_found())?;
 
-    if entity.move_action.is_some() {
+    if entity.movement.is_some() {
         return lua.pack_multi(false);
     }
 
@@ -1505,7 +1556,7 @@ fn attempt_movement<'lua>(
         .query_one_mut::<&mut Entity>(id.into())
         .unwrap();
 
-    entity.move_action = Some(movement);
+    entity.movement = Some(movement);
 
     lua.pack_multi(true)
 }
