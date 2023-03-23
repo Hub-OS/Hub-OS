@@ -4,7 +4,7 @@ use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree}
 use generational_arena::Arena;
 
 #[derive(Clone)]
-pub struct CardAction {
+pub struct Action {
     pub active_frames: FrameTime,
     pub deleted: bool,
     pub executed: bool,
@@ -16,11 +16,10 @@ pub struct CardAction {
     pub sprite_index: GenerationalIndex,
     pub properties: CardProperties,
     pub derived_frames: Option<Vec<DerivedFrame>>,
-    pub steps: Vec<CardActionStep>,
+    pub steps: Vec<ActionStep>,
     pub step_index: usize,
-    pub attachments: Vec<CardActionAttachment>,
+    pub attachments: Vec<ActionAttachment>,
     pub lockout_type: ActionLockout,
-    pub time_freeze_blackout_tiles: bool,
     pub old_position: (i32, i32),
     pub can_move_to_callback: Option<BattleCallback<(i32, i32), bool>>,
     pub update_callback: Option<BattleCallback>,
@@ -29,14 +28,14 @@ pub struct CardAction {
     pub animation_end_callback: Option<BattleCallback>,
 }
 
-impl CardAction {
-    pub fn new(entity: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
+impl Action {
+    pub fn new(entity_id: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
         Self {
             active_frames: 0,
             deleted: false,
             executed: false,
             used: false,
-            entity,
+            entity: entity_id,
             state,
             prev_state: None,
             frame_callbacks: Vec::new(),
@@ -47,7 +46,6 @@ impl CardAction {
             step_index: 0,
             attachments: Vec::new(),
             lockout_type: ActionLockout::Animation,
-            time_freeze_blackout_tiles: false,
             old_position: (0, 0),
             can_move_to_callback: None,
             update_callback: None,
@@ -71,8 +69,8 @@ impl CardAction {
         let entity_id = self.entity.into();
         let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
 
-        // unset card_action_index to allow other card actions to be used
-        entity.card_action_index = None;
+        // unset action_index to allow other card actions to be used
+        entity.action_index = None;
 
         // revert animation
         if let Some((state, loop_mode, reversed)) = self.prev_state.take() {
@@ -99,14 +97,14 @@ impl CardAction {
 }
 
 #[derive(Clone)]
-pub struct CardActionAttachment {
+pub struct ActionAttachment {
     pub point_name: String,
     pub sprite_index: GenerationalIndex,
     pub animator_index: generational_arena::Index,
     pub parent_animator_index: generational_arena::Index,
 }
 
-impl CardActionAttachment {
+impl ActionAttachment {
     pub fn new(
         point_name: String,
         sprite_index: GenerationalIndex,
@@ -148,7 +146,7 @@ impl CardActionAttachment {
 }
 
 #[derive(Clone, Default)]
-pub struct CardActionStep {
+pub struct ActionStep {
     pub completed: bool,
     pub callback: BattleCallback,
 }

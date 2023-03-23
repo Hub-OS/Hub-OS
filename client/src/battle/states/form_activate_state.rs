@@ -113,7 +113,7 @@ impl FormActivateState {
             living.status_director.clear_statuses();
 
             // cancel movement
-            entity.move_action = None;
+            entity.movement = None;
 
             // set animation to idle
             let animator = &mut simulation.animators[entity.animator_index];

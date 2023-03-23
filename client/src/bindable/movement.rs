@@ -3,19 +3,19 @@ use crate::battle::BattleCallback;
 use crate::render::FrameTime;
 
 #[derive(Default, Clone)]
-pub struct MoveAction {
+pub struct Movement {
     pub success: bool,
-    pub progress: FrameTime,
-    pub delta_frames: FrameTime, // Frames between tile A and B. If 0, teleport. Else, we could be sliding
-    pub delay_frames: FrameTime, // Startup lag to be used with animations
-    pub endlag_frames: FrameTime, // Wait period before action is complete
+    pub elapsed: FrameTime,
+    pub delta: FrameTime, // Frames between tile A and B. If 0, teleport. Else, we could be sliding
+    pub delay: FrameTime, // Startup lag to be used with animations
+    pub endlag: FrameTime, // Wait period before action is complete
     pub height: f32, // If this is non-zero with delta frames, the character will effectively jump
     pub dest: (i32, i32),
     pub source: (i32, i32),
     pub on_begin: Option<BattleCallback>,
 }
 
-impl MoveAction {
+impl Movement {
     pub fn teleport(dest: (i32, i32)) -> Self {
         Self {
             dest,
@@ -26,7 +26,7 @@ impl MoveAction {
     pub fn slide(dest: (i32, i32), duration: FrameTime) -> Self {
         Self {
             dest,
-            delta_frames: duration,
+            delta: duration,
             ..Default::default()
         }
     }
@@ -35,39 +35,39 @@ impl MoveAction {
         Self {
             dest,
             height,
-            delta_frames: duration,
+            delta: duration,
             ..Default::default()
         }
     }
 
     pub fn is_jumping(&self) -> bool {
-        self.height > 0.0 && self.delta_frames > 0
+        self.height > 0.0 && self.delta > 0
     }
 
     pub fn is_sliding(&self) -> bool {
-        self.delta_frames > 0 && self.height <= 0.0
+        self.delta > 0 && self.height <= 0.0
     }
 
     pub fn is_teleporting(&self) -> bool {
-        self.delta_frames == 0 && self.height == 0.0
+        self.delta == 0 && self.height == 0.0
     }
 
     pub fn is_in_endlag(&self) -> bool {
-        self.progress >= self.delay_frames + self.delta_frames
+        self.elapsed >= self.delay + self.delta
     }
 
     pub fn animation_progress_percent(&self) -> f32 {
-        if self.progress < self.delay_frames {
+        if self.elapsed < self.delay {
             return 0.0;
         }
 
-        let percent = (self.progress - self.delay_frames) as f32 / self.delta_frames as f32;
+        let percent = (self.elapsed - self.delay) as f32 / self.delta as f32;
 
         percent.min(1.0)
     }
 
     pub fn is_complete(&self) -> bool {
-        self.progress >= self.delay_frames + self.delta_frames + self.endlag_frames
+        self.elapsed >= self.delay + self.delta + self.endlag
     }
 
     pub fn direction(&self) -> Direction {
@@ -104,7 +104,7 @@ impl MoveAction {
     }
 }
 
-impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
+impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
         lua: &'lua rollback_mlua::Lua,
@@ -114,7 +114,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
             _ => {
                 return Err(rollback_mlua::Error::FromLuaConversionError {
                     from: lua_value.type_name(),
-                    to: "MoveAction",
+                    to: "Movement",
                     message: None,
                 })
             }
@@ -131,10 +131,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
 
         Ok(Self {
             success: false,
-            progress: 0,
-            delta_frames: table.get("delta_frames").unwrap_or_default(),
-            delay_frames: table.get("delay_frames").unwrap_or_default(),
-            endlag_frames: table.get("endlag_frames").unwrap_or_default(),
+            elapsed: 0,
+            delta: table.get("delta").unwrap_or_default(),
+            delay: table.get("delay").unwrap_or_default(),
+            endlag: table.get("endlag").unwrap_or_default(),
             height: table.get("height").unwrap_or_default(),
             dest,
             source: (0, 0),
@@ -143,17 +143,18 @@ impl<'lua> rollback_mlua::FromLua<'lua> for MoveAction {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for MoveAction {
+impl<'lua> rollback_mlua::ToLua<'lua> for Movement {
     fn to_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
 
-        table.set("progress", self.progress)?;
-        table.set("delta_frames", self.delta_frames)?;
-        table.set("delay_frames", self.delay_frames)?;
-        table.set("delta_frames", self.endlag_frames)?;
+        table.set("elapsed", self.elapsed)?;
+        table.set("delta", self.delta)?;
+        table.set("delay", self.delay)?;
+        table.set("endlag", self.endlag)?;
+        table.set("height", self.height)?;
 
         Ok(rollback_mlua::Value::Table(table))
     }

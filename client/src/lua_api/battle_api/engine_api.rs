@@ -58,9 +58,11 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ENGINE_TABLE, "get_turn_gauge_value", |api_ctx, lua, _| {
-        lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.progress())
-    });
+    lua_api.add_dynamic_function(
+        ENGINE_TABLE,
+        "get_turn_gauge_progress",
+        |api_ctx, lua, _| lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.progress()),
+    );
 
     lua_api.add_dynamic_function(ENGINE_TABLE, "get_turn_gauge_time", |api_ctx, lua, _| {
         lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.time())
@@ -108,7 +110,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         ENGINE_TABLE,
-        "reset_turn_gauge_to_default",
+        "reset_turn_gauge_max_time",
         |api_ctx, lua, _| {
             let mut api_ctx = api_ctx.borrow_mut();
             let turn_gauge = &mut api_ctx.simulation.turn_gauge;

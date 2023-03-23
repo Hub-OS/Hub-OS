@@ -74,12 +74,13 @@ impl BattleLuaApi {
         lua_api.add_static_injector(super::global_api::inject_global_api);
 
         super::math_api::inject_math_api(&mut lua_api);
-        super::include_api::inject_include_api(&mut lua_api);
+        super::require_api::inject_include_api(&mut lua_api);
         super::engine_api::inject_engine_api(&mut lua_api);
         super::entity_api::inject_entity_api(&mut lua_api);
         super::player_form_api::inject_player_form_api(&mut lua_api);
         super::component_api::inject_component_api(&mut lua_api);
-        super::card_action_api::inject_card_action_api(&mut lua_api);
+        super::action_api::inject_action_api(&mut lua_api);
+        super::movement_api::inject_movement_api(&mut lua_api);
         super::augment_api::inject_augment_api(&mut lua_api);
         super::field_api::inject_field_api(&mut lua_api);
         super::tile_api::inject_tile_api(&mut lua_api);

@@ -1,5 +1,4 @@
 use crate::bindable::LuaVector;
-use crate::lua_api::errors::unexpected_nil;
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -107,52 +106,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     let move_event_table = lua.create_table()?;
     move_event_table.set("new", lua.create_function(|lua, _: ()| lua.create_table())?)?;
-    globals.set("MoveAction", move_event_table)?;
-
-    use crate::bindable::{EntityId, HitContext, HitFlags, HitProperties};
-
-    let hit_props_table = lua.create_table()?;
-    hit_props_table.set(
-        "new",
-        lua.create_function(|lua, params| {
-            let (damage, flags, element, mut rest): (
-                i32,
-                HitFlags,
-                Element,
-                rollback_mlua::MultiValue,
-            ) = lua.unpack_multi(params)?;
-
-            let middle_param = rest.pop_front().ok_or_else(|| unexpected_nil("Element"))?;
-
-            let secondary_element: Element;
-            let context: Option<HitContext>;
-            let drag: Drag;
-
-            match lua.unpack(middle_param.clone()) {
-                Ok(element) => {
-                    secondary_element = element;
-
-                    (context, drag) = lua.unpack_multi(rest)?;
-                }
-                Err(_) => {
-                    secondary_element = Element::None;
-                    context = lua.unpack(middle_param)?;
-                    drag = lua.unpack_multi(rest)?;
-                }
-            };
-
-            Ok(HitProperties {
-                damage,
-                flags,
-                element,
-                secondary_element,
-                aggressor: EntityId::default(),
-                drag,
-                context: context.unwrap_or_default(),
-            })
-        })?,
-    )?;
-    globals.set("HitProps", hit_props_table)?;
+    globals.set("Movement", move_event_table)?;
 
     use crate::bindable::CardClass;
 
@@ -162,17 +116,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     card_class_table.set("Giga", CardClass::Giga)?;
     card_class_table.set("Dark", CardClass::Dark)?;
     globals.set("CardClass", card_class_table)?;
-
-    use crate::bindable::BlockColor;
-
-    let block_color_table = lua.create_table()?;
-    block_color_table.set("White", BlockColor::White)?;
-    block_color_table.set("Red", BlockColor::Red)?;
-    block_color_table.set("Green", BlockColor::Green)?;
-    block_color_table.set("Blue", BlockColor::Blue)?;
-    block_color_table.set("Pink", BlockColor::Pink)?;
-    block_color_table.set("Yellow", BlockColor::Yellow)?;
-    globals.set("Blocks", block_color_table)?;
 
     use crate::bindable::LuaColor;
     use framework::prelude::Color;
@@ -215,14 +158,15 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     use crate::battle::TileState;
 
     let tile_state_table = lua.create_table()?;
+    tile_state_table.set("Hidden", TileState::HIDDEN)?;
     tile_state_table.set("Normal", TileState::NORMAL)?;
+    tile_state_table.set("Hole", TileState::HOLE)?;
     tile_state_table.set("Cracked", TileState::CRACKED)?;
     tile_state_table.set("Broken", TileState::BROKEN)?;
     tile_state_table.set("Ice", TileState::ICE)?;
     tile_state_table.set("Grass", TileState::GRASS)?;
     tile_state_table.set("Lava", TileState::LAVA)?;
     tile_state_table.set("Poison", TileState::POISON)?;
-    tile_state_table.set("Empty", TileState::EMPTY)?;
     tile_state_table.set("Holy", TileState::HOLY)?;
     tile_state_table.set("DirectionLeft", TileState::DIRECTION_LEFT)?;
     tile_state_table.set("DirectionRight", TileState::DIRECTION_RIGHT)?;
@@ -232,7 +176,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     tile_state_table.set("Sea", TileState::SEA)?;
     tile_state_table.set("Sand", TileState::SAND)?;
     tile_state_table.set("Metal", TileState::METAL)?;
-    tile_state_table.set("Hidden", TileState::HIDDEN)?;
     globals.set("TileState", tile_state_table)?;
 
     use crate::bindable::TileHighlight;
@@ -288,7 +231,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     // defense_priority_table.set("Intangible", DefensePriority::Intangible)?; // excluded as modders should use set_intangible
     defense_priority_table.set("Barrier", DefensePriority::Barrier)?;
     defense_priority_table.set("Body", DefensePriority::Body)?;
-    defense_priority_table.set("CardAction", DefensePriority::CardAction)?;
+    defense_priority_table.set("Action", DefensePriority::Action)?;
     defense_priority_table.set("Trap", DefensePriority::Trap)?;
     defense_priority_table.set("Last", DefensePriority::Last)?;
     globals.set("DefensePriority", defense_priority_table)?;
@@ -297,15 +240,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     defense_order_table.set("Always", false)?;
     defense_order_table.set("CollisionOnly", true)?;
     globals.set("DefenseOrder", defense_order_table)?;
-
-    use crate::bindable::IntangibleRule;
-
-    let intangible_rule_table = lua.create_table()?;
-    intangible_rule_table.set(
-        "new",
-        lua.create_function(|_, ()| Ok(IntangibleRule::default()))?,
-    )?;
-    globals.set("IntangibleRule", intangible_rule_table)?;
 
     // todo: ActionOrder, currently stubbed
     globals.set("ActionOrder", lua.create_table()?)?;

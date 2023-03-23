@@ -141,7 +141,7 @@ impl State for BattleState {
 
         if let Ok(character) = entities.query_one_mut::<&Character>(entity_id.into()) {
             let action_active = simulation
-                .card_actions
+                .actions
                 .iter()
                 .any(|(_, action)| action.entity == entity_id && action.used);
 
@@ -380,8 +380,8 @@ impl BattleState {
         if time_freeze_tracker.action_should_start() {
             let action_index = time_freeze_tracker.active_action().unwrap();
 
-            if let Some(card_action) = simulation.card_actions.get(action_index) {
-                let entity_id = card_action.entity;
+            if let Some(action) = simulation.actions.get(action_index) {
+                let entity_id = action.entity;
 
                 // unfreeze our entity
                 if let Ok((entity, living)) = simulation
@@ -400,12 +400,12 @@ impl BattleState {
 
                     time_freeze_tracker.back_up_character(
                         entity_id,
-                        entity.card_action_index,
+                        entity.action_index,
                         animator.clone(),
                         std::mem::take(&mut living.status_director),
                     );
 
-                    entity.card_action_index = Some(action_index);
+                    entity.action_index = Some(action_index);
 
                     // reset callbacks as they'll run when the animator is reverted
                     animator.clear_callbacks();
@@ -422,7 +422,7 @@ impl BattleState {
 
         // detect action end
         if let Some(index) = time_freeze_tracker.active_action() {
-            if simulation.card_actions.get(index).is_none() {
+            if simulation.actions.get(index).is_none() {
                 // action completed, update tracking
                 time_freeze_tracker.end_action();
             }
@@ -444,11 +444,11 @@ impl BattleState {
                     entity.time_frozen_count = 1;
 
                     // delete action if it still exists
-                    if let Some(index) = entity.card_action_index.take() {
+                    if let Some(index) = entity.action_index.take() {
                         actions_pending_removal.push(index);
                     }
 
-                    entity.card_action_index = action_index;
+                    entity.action_index = action_index;
 
                     // restore animator
                     simulation.animators[entity.animator_index] = animator;
@@ -473,7 +473,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_card_actions(game_io, vms, &actions_pending_removal);
+        simulation.delete_actions(game_io, vms, &actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {
@@ -654,15 +654,13 @@ impl BattleState {
                 } = attack_box;
 
                 // collision callback
-                let spell_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(attacker_id.into())
-                    .unwrap();
+                let entities = &mut simulation.entities;
+                let Ok(spell_entity) = entities.query_one_mut::<&mut Entity>(attacker_id.into()) else {
+                    continue
+                };
 
                 let collision_callback = spell_entity.collision_callback.clone();
                 let attack_callback = spell_entity.attack_callback.clone();
-
-                collision_callback.call(game_io, simulation, vms, id.into());
 
                 // defense check against DefenseOrder::Always
                 simulation.defense_judge = DefenseJudge::new();
@@ -691,6 +689,8 @@ impl BattleState {
                         }
                     }
                 }
+
+                collision_callback.call(game_io, simulation, vms, id.into());
 
                 // defense check against DefenseOrder::CollisionOnly
                 DefenseJudge::judge(
@@ -847,7 +847,7 @@ impl BattleState {
                 continue;
             }
 
-            let action_active = (simulation.card_actions)
+            let action_active = (simulation.actions)
                 .iter()
                 .any(|(_, action)| action.used && action.entity == entity.id);
 
@@ -860,7 +860,7 @@ impl BattleState {
             let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
 
             if player.card_use_requested
-                && entity.move_action.is_none()
+                && entity.movement.is_none()
                 && !character.cards.is_empty()
                 && is_idle
             {
@@ -993,7 +993,7 @@ impl BattleState {
             });
 
             if let Some(index) = id {
-                if let Some(action) = simulation.card_actions.get_mut(index.into()) {
+                if let Some(action) = simulation.actions.get_mut(index.into()) {
                     action.properties = card_props.clone();
                 }
             }
@@ -1001,19 +1001,19 @@ impl BattleState {
             id
         });
 
-        self.generate_card_action(game_io, simulation, vms, entity_id.into(), callback);
+        self.generate_action(game_io, simulation, vms, entity_id.into(), callback);
     }
 
-    fn generate_card_action(
+    fn generate_action(
         &mut self,
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
         id: hecs::Entity,
-        card_action_callback: BattleCallback<(), Option<GenerationalIndex>>,
+        action_callback: BattleCallback<(), Option<GenerationalIndex>>,
     ) {
-        if let Some(index) = card_action_callback.call(game_io, simulation, vms, ()) {
-            simulation.use_card_action(game_io, id.into(), index.into());
+        if let Some(index) = action_callback.call(game_io, simulation, vms, ()) {
+            simulation.use_action(game_io, id.into(), index.into());
         }
     }
 
@@ -1036,7 +1036,7 @@ impl BattleState {
             entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
         {
             // can't move if there's a blocking card action or immoble
-            if entity.card_action_index.is_some() || living.status_director.is_immobile() {
+            if entity.action_index.is_some() || living.status_director.is_immobile() {
                 continue;
             }
 
@@ -1052,7 +1052,7 @@ impl BattleState {
                 || (face_right && entity.facing != Direction::Right);
 
             // can only move if there's no move action queued and the current animation is PLAYER_IDLE
-            if entity.move_action.is_some() || anim.current_state() != Some(Player::IDLE_STATE) {
+            if entity.movement.is_some() || anim.current_state() != Some(Player::IDLE_STATE) {
                 continue;
             }
 
@@ -1127,11 +1127,11 @@ impl BattleState {
                     .unwrap();
 
                 if slide {
-                    entity.move_action = Some(MoveAction::slide(dest, 14));
+                    entity.movement = Some(Movement::slide(dest, 14));
                 } else {
-                    let mut move_event = MoveAction::teleport(dest);
-                    move_event.delay_frames = 5;
-                    move_event.endlag_frames = 7;
+                    let mut move_event = Movement::teleport(dest);
+                    move_event.delay = 5;
+                    move_event.endlag = 7;
 
                     let anim_index = entity.animator_index;
                     let move_state = entity.move_anim_state.clone();
@@ -1154,7 +1154,7 @@ impl BattleState {
                         }));
                     }));
 
-                    entity.move_action = Some(move_event);
+                    entity.movement = Some(move_event);
                 }
             }
         }
@@ -1168,16 +1168,23 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        for (id, (entity, living)) in simulation
-            .entities
-            .query_mut::<(&mut Entity, &mut Living)>()
-        {
+        let entities = &mut simulation.entities;
+
+        for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
             if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
             if !living.status_director.is_inactionable() {
                 callbacks.push(entity.update_callback.clone());
+
+                let mut player_query = entities.query_one::<&Player>(id).unwrap();
+
+                if let Some(player) = player_query.get() {
+                    if let Some(callback) = player.active_form_update_callback() {
+                        callbacks.push(callback.clone());
+                    }
+                }
 
                 for index in entity.local_components.iter().cloned() {
                     let component = simulation.components.get(index).unwrap();
@@ -1188,7 +1195,7 @@ impl BattleState {
 
             entity.updated = true;
 
-            if living.status_director.is_dragged() && entity.move_action.is_none() {
+            if living.status_director.is_dragged() && entity.movement.is_none() {
                 // let the status director know we're no longer being dragged
                 living.status_director.end_drag()
             }
@@ -1246,7 +1253,7 @@ impl BattleState {
         vms: &[RollbackVM],
     ) {
         self.process_movement(game_io, simulation, vms);
-        self.process_card_actions(game_io, simulation, vms);
+        self.process_actions(game_io, simulation, vms);
     }
 
     fn process_movement(
@@ -1268,7 +1275,7 @@ impl BattleState {
                 }
             }
 
-            if entity.move_action.is_some() {
+            if entity.movement.is_some() {
                 moving_entities.push((id, update_progress));
             }
         }
@@ -1282,34 +1289,33 @@ impl BattleState {
                 .query_one_mut::<&mut Entity>(id)
                 .unwrap();
 
-            let Some(move_action) = entity.move_action.as_mut() else {
+            let Some(movement) = entity.movement.as_mut() else {
                 continue;
             };
 
-            if move_action.progress == 0 {
-                entity.last_movement = simulation.battle_time;
-                move_action.source = (entity.x, entity.y);
+            if movement.elapsed == 0 {
+                entity.last_movement_time = simulation.battle_time;
+                movement.source = (entity.x, entity.y);
             }
 
-            if let Some(callback) = move_action.on_begin.take() {
+            if let Some(callback) = movement.on_begin.take() {
                 simulation.pending_callbacks.push(callback);
             }
 
             if update_progress {
-                move_action.progress += 1;
+                movement.elapsed += 1;
             }
 
-            if !move_action.is_in_endlag() {
-                entity.last_movement = simulation.battle_time;
+            if !movement.is_in_endlag() {
+                entity.last_movement_time = simulation.battle_time;
             }
 
-            let animation_progress = move_action.animation_progress_percent();
+            let animation_progress = movement.animation_progress_percent();
 
-            if animation_progress >= 0.5 && !move_action.success {
+            if animation_progress >= 0.5 && !movement.success {
                 // test to see if the movement is valid
-                let dest = move_action.dest;
-                let can_move_to_callback =
-                    entity.current_can_move_to_callback(&simulation.card_actions);
+                let dest = movement.dest;
+                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if simulation.field.tile_at_mut(dest).is_none()
                     || !can_move_to_callback.call(game_io, simulation, vms, dest)
@@ -1318,7 +1324,7 @@ impl BattleState {
                         .entities
                         .query_one_mut::<&mut Entity>(id)
                         .unwrap();
-                    entity.move_action = None;
+                    entity.movement = None;
                     continue;
                 }
 
@@ -1327,26 +1333,26 @@ impl BattleState {
                     .entities
                     .query_one_mut::<&mut Entity>(id)
                     .unwrap();
-                let Some(move_action) = entity.move_action.as_mut() else {
+                let Some(movement) = entity.movement.as_mut() else {
                     continue;
                 };
 
                 // update tile position
                 entity.x = dest.0;
                 entity.y = dest.1;
-                move_action.success = true;
+                movement.success = true;
 
-                let start_tile = simulation.field.tile_at_mut(move_action.source).unwrap();
+                let start_tile = simulation.field.tile_at_mut(movement.source).unwrap();
                 start_tile.unignore_attacker(entity.id);
-                start_tile.handle_auto_reservation_removal(&simulation.card_actions, entity);
+                start_tile.handle_auto_reservation_removal(&simulation.actions, entity);
 
                 if !entity.ignore_tile_effects {
-                    let move_action = entity.move_action.clone().unwrap();
+                    let movement = entity.movement.clone().unwrap();
 
                     // process stepping off the tile
                     let tile_state = &simulation.tile_states[start_tile.state_index()];
                     let tile_callback = tile_state.entity_leave_callback.clone();
-                    let params = (entity.id, move_action);
+                    let params = (entity.id, movement);
 
                     let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
                         tile_callback.call(game_io, simulation, vms, params.clone());
@@ -1367,17 +1373,17 @@ impl BattleState {
                 }
 
                 let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
-                current_tile.handle_auto_reservation_addition(&simulation.card_actions, entity);
+                current_tile.handle_auto_reservation_addition(&simulation.actions, entity);
             }
 
-            let Some(move_action) = entity.move_action.as_mut() else {
+            let Some(movement) = entity.movement.as_mut() else {
                 continue;
             };
 
-            if move_action.is_complete() {
-                let move_action = entity.move_action.take().unwrap();
+            if movement.is_complete() {
+                let movement = entity.movement.take().unwrap();
 
-                if move_action.success && !entity.ignore_tile_effects {
+                if movement.success && !entity.ignore_tile_effects {
                     let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
 
                     let tile_state = &simulation.tile_states[current_tile.state_index()];
@@ -1385,12 +1391,7 @@ impl BattleState {
                     let entity_id = entity.id;
 
                     let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                        tile_callback.call(
-                            game_io,
-                            simulation,
-                            vms,
-                            (entity_id, move_action.clone()),
-                        );
+                        tile_callback.call(game_io, simulation, vms, (entity_id, movement.clone()));
                     });
 
                     simulation.pending_callbacks.push(callback);
@@ -1398,11 +1399,11 @@ impl BattleState {
             } else {
                 // apply jump height
                 let height_multiplier = crate::ease::quadratic(animation_progress);
-                entity.tile_offset.y -= move_action.height * height_multiplier;
+                entity.tile_offset.y -= movement.height * height_multiplier;
 
                 // calculate slide
-                let start = IVec2::from(move_action.source).as_vec2();
-                let dest = IVec2::from(move_action.dest).as_vec2();
+                let start = IVec2::from(movement.source).as_vec2();
+                let dest = IVec2::from(movement.dest).as_vec2();
 
                 let current = if animation_progress < 0.5 {
                     (dest - start) * animation_progress
@@ -1418,7 +1419,7 @@ impl BattleState {
         simulation.call_pending_callbacks(game_io, vms);
     }
 
-    fn process_card_actions(
+    fn process_actions(
         &mut self,
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
@@ -1427,24 +1428,24 @@ impl BattleState {
         let mut actions_pending_deletion = Vec::new();
         let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
-        let card_action_indices: Vec<_> = (simulation.card_actions)
+        let action_indices: Vec<_> = (simulation.actions)
             .iter()
             .filter(|(_, action)| action.used)
             .map(|(index, _)| index)
             .collect();
 
         // card actions
-        for action_index in card_action_indices {
-            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+        for action_index in action_indices {
+            let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };
 
-            if time_is_frozen && !card_action.properties.time_freeze {
+            if time_is_frozen && !action.properties.time_freeze {
                 // non time freeze action in time freeze
                 continue;
             }
 
-            let entity_id = card_action.entity;
+            let entity_id = action.entity;
 
             let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
                 continue;
@@ -1457,8 +1458,8 @@ impl BattleState {
             let animator_index = entity.animator_index;
 
             // execute
-            if !card_action.executed {
-                if entity.move_action.is_some() {
+            if !action.executed {
+                if entity.movement.is_some() {
                     continue;
                 }
 
@@ -1466,7 +1467,7 @@ impl BattleState {
                     continue;
                 }
 
-                let card_action = &mut simulation.card_actions[action_index];
+                let action = &mut simulation.actions[action_index];
                 let entity = simulation
                     .entities
                     .query_one_mut::<&mut Entity>(entity_id.into())
@@ -1475,21 +1476,21 @@ impl BattleState {
                 // animations
                 let animator = &mut simulation.animators[animator_index];
 
-                card_action.prev_state = animator
+                action.prev_state = animator
                     .current_state()
                     .map(|state| (state.to_string(), animator.loop_mode(), animator.reversed()));
 
-                if let Some(derived_frames) = card_action.derived_frames.take() {
-                    card_action.state = BattleAnimator::derive_state(
+                if let Some(derived_frames) = action.derived_frames.take() {
+                    action.state = BattleAnimator::derive_state(
                         &mut simulation.animators,
-                        &card_action.state,
+                        &action.state,
                         derived_frames,
                         animator_index,
                     );
                 }
 
                 let animator = &mut simulation.animators[animator_index];
-                let callbacks = animator.set_state(&card_action.state);
+                let callbacks = animator.set_state(&action.state);
                 simulation.pending_callbacks.extend(callbacks);
 
                 // update entity sprite
@@ -1497,12 +1498,12 @@ impl BattleState {
                 animator.apply(sprite_node);
 
                 // execute callback
-                if let Some(callback) = card_action.execute_callback.take() {
+                if let Some(callback) = action.execute_callback.take() {
                     callback.call(game_io, simulation, vms, ());
                 }
 
                 // setup frame callbacks
-                let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                let Some(action) = simulation.actions.get_mut(action_index) else {
                     continue;
                 };
 
@@ -1512,27 +1513,27 @@ impl BattleState {
                     .unwrap();
                 let animator = &mut simulation.animators[animator_index];
 
-                for (frame_index, callback) in std::mem::take(&mut card_action.frame_callbacks) {
+                for (frame_index, callback) in std::mem::take(&mut action.frame_callbacks) {
                     animator.on_frame(frame_index, callback, false);
                 }
 
                 // animation end callback
                 let animation_end_callback =
                     BattleCallback::new(move |game_io, simulation, vms, _| {
-                        let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                        let Some(action) = simulation.actions.get_mut(action_index) else {
                             return;
                         };
 
-                        if let Some(callback) = card_action.animation_end_callback.clone() {
+                        if let Some(callback) = action.animation_end_callback.clone() {
                             callback.call(game_io, simulation, vms, ());
                         }
 
-                        let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+                        let Some(action) = simulation.actions.get_mut(action_index) else {
                             return;
                         };
 
-                        if matches!(card_action.lockout_type, ActionLockout::Animation) {
-                            simulation.delete_card_actions(game_io, vms, &[action_index]);
+                        if matches!(action.lockout_type, ActionLockout::Animation) {
+                            simulation.delete_actions(game_io, vms, &[action_index]);
                         }
                     });
 
@@ -1545,34 +1546,34 @@ impl BattleState {
                 animator.on_interrupt(interrupt_callback);
 
                 // update attachments
-                if let Some(sprite) = entity.sprite_tree.get_mut(card_action.sprite_index) {
+                if let Some(sprite) = entity.sprite_tree.get_mut(action.sprite_index) {
                     sprite.set_visible(true);
                 }
 
-                for attachment in &mut card_action.attachments {
+                for attachment in &mut action.attachments {
                     attachment.apply_animation(&mut entity.sprite_tree, &mut simulation.animators);
                 }
 
-                card_action.executed = true;
-                card_action.old_position = (entity.x, entity.y);
+                action.executed = true;
+                action.old_position = (entity.x, entity.y);
             }
 
             // update callback
-            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+            let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };
 
-            if let Some(callback) = card_action.update_callback.clone() {
+            if let Some(callback) = action.update_callback.clone() {
                 callback.call(game_io, simulation, vms, ());
             }
 
             // steps
-            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+            let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };
 
-            while card_action.step_index < card_action.steps.len() {
-                let step = &mut card_action.steps[card_action.step_index];
+            while action.step_index < action.steps.len() {
+                let step = &mut action.steps[action.step_index];
 
                 if !step.completed {
                     let callback = step.callback.clone();
@@ -1581,11 +1582,11 @@ impl BattleState {
                     break;
                 }
 
-                card_action.step_index += 1;
+                action.step_index += 1;
             }
 
             // handling async card actions
-            let Some(card_action) = simulation.card_actions.get_mut(action_index) else {
+            let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };
 
@@ -1593,15 +1594,13 @@ impl BattleState {
 
             let entity = simulation
                 .entities
-                .query_one_mut::<&mut Entity>(card_action.entity.into())
+                .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            if card_action.is_async()
-                && animation_completed
-                && entity.card_action_index == Some(action_index)
+            if action.is_async() && animation_completed && entity.action_index == Some(action_index)
             {
                 // async action completed sync portion
-                card_action.complete_sync(
+                action.complete_sync(
                     &mut simulation.entities,
                     &mut simulation.animators,
                     &mut simulation.pending_callbacks,
@@ -1610,13 +1609,13 @@ impl BattleState {
             }
 
             // detecting end
-            let is_complete = match card_action.lockout_type {
+            let is_complete = match action.lockout_type {
                 ActionLockout::Animation => animation_completed,
-                ActionLockout::Sequence => card_action.step_index >= card_action.steps.len(),
-                ActionLockout::Async(frames) => card_action.active_frames >= frames,
+                ActionLockout::Sequence => action.step_index >= action.steps.len(),
+                ActionLockout::Async(frames) => action.active_frames >= frames,
             };
 
-            card_action.active_frames += 1;
+            action.active_frames += 1;
 
             if is_complete {
                 // queue deletion
@@ -1624,7 +1623,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_card_actions(game_io, vms, &actions_pending_deletion);
+        simulation.delete_actions(game_io, vms, &actions_pending_deletion);
     }
 
     fn apply_status_vfx(

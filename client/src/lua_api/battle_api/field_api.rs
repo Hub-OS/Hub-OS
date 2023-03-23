@@ -7,6 +7,7 @@ use crate::battle::{
     BattleCallback, BattleScriptContext, Character, Entity, Living, Obstacle, Player, Spell,
 };
 use crate::bindable::EntityId;
+use crate::render::FrameTime;
 use crate::resources::Globals;
 use std::cell::RefCell;
 
@@ -134,8 +135,21 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(filtered_tables)
     });
 
-    // todo: should delete listeners move to entity api?
+    lua_api.add_dynamic_function(FIELD_TABLE, "shake", |api_ctx, lua, params| {
+        let (_, power, duration): (rollback_mlua::Table, f32, FrameTime) =
+            lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+
+        let camera = &mut api_ctx.simulation.camera;
+        camera.shake(power, duration as f32 / 60.0);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(FIELD_TABLE, "notify_on_delete", |api_ctx, lua, params| {
+        log::warn!("field:notify_on_delete() is deprecated, use entity:on_delete() instead.");
+
         let (_, target_id, observer_id, callback): (
             rollback_mlua::Table,
             EntityId,
@@ -191,6 +205,8 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "callback_on_delete", |api_ctx, lua, params| {
+        log::warn!("field:callback_on_delete() is deprecated, use entity:on_delete() instead.");
+
         let (_, id, callback): (rollback_mlua::Table, EntityId, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 

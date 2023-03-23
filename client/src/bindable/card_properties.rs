@@ -108,7 +108,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
         Ok(CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
             short_name: table
-                .get("shortname")
+                .get("short_name")
                 .unwrap_or_else(|_| String::from("?????")),
             description: table.get("description").unwrap_or_default(),
             long_description: table.get("long_description").unwrap_or_default(),
@@ -133,7 +133,7 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
-        table.set("shortname", self.short_name.as_str())?;
+        table.set("short_name", self.short_name.as_str())?;
         table.set("description", self.description.as_str())?;
         table.set("long_description", self.long_description.as_str())?;
         table.set("damage", self.damage)?;

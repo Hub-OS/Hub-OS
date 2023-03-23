@@ -32,6 +32,13 @@ pub enum CameraAction {
 }
 
 impl CameraAction {
+    pub fn locks_camera(&self) -> bool {
+        matches!(
+            self,
+            Self::Snap { .. } | Self::Slide { .. } | Self::Wane { .. }
+        )
+    }
+
     pub fn block_duration(&self) -> f32 {
         match self {
             CameraAction::Snap { hold_duration, .. } => *hold_duration,
@@ -62,8 +69,8 @@ impl CameraController {
     }
 
     pub fn queue_action(&mut self, action: CameraAction) {
+        self.locked |= action.locks_camera();
         self.queue.push_back(action);
-        self.locked = true;
     }
 
     pub fn is_locked(&self) -> bool {

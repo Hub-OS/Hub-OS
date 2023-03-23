@@ -165,6 +165,10 @@ impl Player {
         }
     }
 
+    pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {
+        self.forms[self.active_form?].update_callback.as_ref()
+    }
+
     pub fn attack_level(&self) -> u8 {
         let augment_iter = self.augments.iter();
         let base_attack = augment_iter
@@ -255,7 +259,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }
@@ -292,7 +296,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }
@@ -329,7 +333,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_card_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index.into());
                 return;
             }
         }

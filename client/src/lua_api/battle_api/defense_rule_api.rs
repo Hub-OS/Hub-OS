@@ -1,9 +1,12 @@
-use crate::bindable::DefensePriority;
-
 use super::{BattleLuaApi, DEFENSE_JUDGE_TABLE, DEFENSE_RULE_TABLE};
+use crate::{
+    bindable::{DefensePriority, IntangibleRule},
+    lua_api::INTANGIBLE_RULE_TABLE,
+};
 
 pub fn inject_defense_rule_api(lua_api: &mut BattleLuaApi) {
     inject_judge_api(lua_api);
+    inject_intangible_api(lua_api);
 
     lua_api.add_dynamic_function(DEFENSE_RULE_TABLE, "new", |_, lua, params| {
         let (priority, collision_only): (DefensePriority, bool) = lua.unpack_multi(params)?;
@@ -55,4 +58,10 @@ fn inject_judge_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(api_ctx.simulation.defense_judge.impact_blocked)
         },
     );
+}
+
+fn inject_intangible_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(INTANGIBLE_RULE_TABLE, "new", |_, lua, _| {
+        lua.pack_multi(IntangibleRule::default())
+    });
 }

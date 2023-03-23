@@ -32,12 +32,12 @@ pub fn component_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("component deleted"))
 }
 
-pub fn card_action_not_found() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("card action deleted"))
+pub fn action_not_found() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action deleted"))
 }
 
-pub fn card_action_step_not_found() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("card action step deleted"))
+pub fn action_step_not_found() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action step deleted"))
 }
 
 pub fn action_aready_used() -> rollback_mlua::Error {

@@ -30,7 +30,7 @@ pub(super) struct Client {
     pub widget_tracker: WidgetTracker<usize>,
     pub battle_tracker: VecDeque<BattleTrackingInfo>,
     pub player_data: PlayerData,
-    pub is_input_locked: bool,
+    pub input_locks: usize,
 }
 
 impl Client {
@@ -91,7 +91,7 @@ impl Client {
             widget_tracker: WidgetTracker::new(),
             battle_tracker: VecDeque::new(),
             player_data: PlayerData::new(identity),
-            is_input_locked: false,
+            input_locks: 0,
         }
     }
 

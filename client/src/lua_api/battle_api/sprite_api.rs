@@ -105,7 +105,12 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    setter(lua_api, "show", |node, _, _: ()| {
+    getter(lua_api, "is_visible", |node, _, _: ()| Ok(node.visible()));
+    setter(lua_api, "set_visible", |node, _, visible: bool| {
+        node.set_visible(visible);
+        Ok(())
+    });
+    setter(lua_api, "reveal", |node, _, _: ()| {
         node.set_visible(true);
         Ok(())
     });
@@ -203,14 +208,46 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "never_flip", |node, _, never_flip| {
-        node.set_never_flip(never_flip);
-        Ok(())
+    getter(lua_api, "get_palette", |node, _, _: ()| {
+        Ok(node.palette_path().map(String::from))
+    });
+    lua_api.add_dynamic_function(SPRITE_TABLE, "set_palette", move |api_ctx, lua, params| {
+        let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
+        let path = path.map(|path| absolute_path(lua, path)).transpose()?;
+
+        let id: EntityId = table.raw_get("#id")?;
+        let index: GenerationalIndex = table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let sprite_node = entity
+            .sprite_tree
+            .get_mut(index)
+            .ok_or_else(sprite_not_found)?;
+
+        sprite_node.set_palette(api_ctx.game_io, path);
+
+        lua.pack_multi(())
     });
 
     setter(
         lua_api,
-        "enable_parent_shader",
+        "never_flip",
+        |node, _, never_flip: Option<bool>| {
+            node.set_never_flip(never_flip.unwrap_or(true));
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "use_root_shader",
         |node, _, enable: Option<bool>| {
             node.set_using_parent_shader(enable.unwrap_or(true));
             Ok(())

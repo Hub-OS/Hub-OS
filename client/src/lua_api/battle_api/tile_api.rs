@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
 use crate::battle::{
-    AttackBox, Character, Entity, Field, Living, Obstacle, Spell, Tile, TileState,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell, Tile,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -79,7 +79,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let change_request_callback = tile_state.change_request_callback.clone();
+        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
+        let change_request_callback = current_tile_state.change_request_callback.clone();
         let change_passed = change_request_callback.call(game_io, simulation, vms, state_index);
 
         if !change_passed {
@@ -105,23 +106,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field.is_edge((x, y)))
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "is_cracked", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state_index() == TileState::CRACKED)
-    });
-
-    lua_api.add_dynamic_function(TILE_TABLE, "is_hole", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
-        lua.pack_multi(tile_state.is_hole)
-    });
-
     lua_api.add_dynamic_function(TILE_TABLE, "is_walkable", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -129,14 +113,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let tile = tile_from(&mut api_ctx.simulation.field, table)?;
         let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
         lua.pack_multi(!tile_state.is_hole)
-    });
-
-    lua_api.add_dynamic_function(TILE_TABLE, "is_hidden", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-        lua.pack_multi(tile.state_index() == TileState::HIDDEN)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
@@ -155,16 +131,55 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(tile.reservations().len() > excluded_count)
     });
 
-    // todo: rename to reserve_by_entity_id?
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_for_id", |api_ctx, lua, params| {
+        let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        tile.reserve_for(id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_for", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        tile.reserve_for(entity_id);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(
         TILE_TABLE,
-        "reserve_entity_by_id",
+        "remove_reservation_for_id",
         |api_ctx, lua, params| {
             let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
             let tile = tile_from(&mut api_ctx.simulation.field, table)?;
-            tile.reserve_for(id);
+            tile.remove_reservation_for(id);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        TILE_TABLE,
+        "remove_reservation_for",
+        |api_ctx, lua, params| {
+            let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+                lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            tile.remove_reservation_for(entity_id);
 
             lua.pack_multi(())
         },
@@ -181,10 +196,15 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(TILE_TABLE, "set_team", |api_ctx, lua, params| {
         let (table, team): (rollback_mlua::Table, Team) = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
 
-        tile.set_team(team);
+        let tile = tile_from(&mut simulation.field, table)?;
+        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
+
+        if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
+            tile.set_team(team);
+        }
 
         lua.pack_multi(())
     });
@@ -261,11 +281,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    generate_find_hittable_fn::<()>(lua_api, "find_entities");
-    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
-    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
-    generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
-
     lua_api.add_dynamic_function(TILE_TABLE, "contains_entity", |api_ctx, lua, params| {
         let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
@@ -282,35 +297,9 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&Entity>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
-        let contains_entity = entity.spawned && entity.x == x && entity.y == y;
+        let contains_entity = entity.spawned && entity.on_field && entity.x == x && entity.y == y;
 
         lua.pack_multi(contains_entity)
-    });
-
-    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity_by_id", |api_ctx, lua, params| {
-        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
-
-        let x: i32 = table.raw_get("#x")?;
-        let y: i32 = table.raw_get("#y")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        if !entity.spawned {
-            return lua.pack_multi(());
-        }
-
-        let contains_entity = entity.spawned && entity.x == x && entity.y == y;
-
-        if contains_entity {
-            entity.on_field = false;
-        }
-
-        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "add_entity", |api_ctx, lua, params| {
@@ -333,22 +322,69 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let card_actions = &api_ctx.simulation.card_actions;
+        let actions = &api_ctx.simulation.actions;
 
         let field = &mut api_ctx.simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
         current_tile.unignore_attacker(entity.id);
-        current_tile.handle_auto_reservation_removal(card_actions, entity);
+        current_tile.handle_auto_reservation_removal(actions, entity);
 
         entity.on_field = true;
         entity.x = x;
         entity.y = y;
 
         let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.handle_auto_reservation_addition(card_actions, entity);
+        tile.handle_auto_reservation_addition(actions, entity);
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        remove_entity(api_ctx, table, entity_id)?;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "remove_entity_by_id", |api_ctx, lua, params| {
+        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        remove_entity(api_ctx, table, entity_id)?;
+
+        lua.pack_multi(())
+    });
+
+    generate_find_hittable_fn::<()>(lua_api, "find_entities");
+    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
+    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_hittable_fn::<&Player>(lua_api, "find_players");
+    generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
+}
+
+fn remove_entity(
+    api_ctx: &mut BattleScriptContext,
+    tile_table: rollback_mlua::Table,
+    entity_id: EntityId,
+) -> rollback_mlua::Result<()> {
+    let x: i32 = tile_table.raw_get("#x")?;
+    let y: i32 = tile_table.raw_get("#y")?;
+
+    let entities = &mut api_ctx.simulation.entities;
+
+    let entity = entities
+        .query_one_mut::<&mut Entity>(entity_id.into())
+        .map_err(|_| entity_not_found())?;
+
+    if entity.spawned && entity.x == x && entity.y == y {
+        entity.on_field = false;
+    }
+
+    Ok(())
 }
 
 fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {

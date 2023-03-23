@@ -41,13 +41,8 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
     let animator = &mut simulation.animators[artifact_entity.animator_index];
 
-    animator.on_complete(BattleCallback::new(move |_, simulation, _, _| {
-        let artifact_entity = simulation
-            .entities
-            .query_one_mut::<&mut Entity>(artifact_id.into())
-            .unwrap();
-
-        artifact_entity.erased = true;
+    animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
+        simulation.mark_entity_for_erasure(game_io, vms, artifact_id);
     }));
 }
 

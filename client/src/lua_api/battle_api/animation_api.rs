@@ -54,7 +54,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ANIMATION_TABLE, "refresh", move |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ANIMATION_TABLE, "apply", move |api_ctx, lua, params| {
         let (table, sprite_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 

@@ -39,10 +39,10 @@ pub struct Entity {
     pub time_frozen_count: usize,
     pub ignore_hole_tiles: bool,
     pub ignore_tile_effects: bool,
-    pub move_action: Option<MoveAction>,
+    pub movement: Option<Movement>,
     pub move_anim_state: Option<String>,
-    pub last_movement: FrameTime, // stores the simulation.battle_time for the last move_action update, excluding endlag
-    pub card_action_index: Option<generational_arena::Index>,
+    pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
+    pub action_index: Option<generational_arena::Index>,
     pub local_components: Vec<generational_arena::Index>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub update_callback: BattleCallback,
@@ -94,10 +94,10 @@ impl Entity {
             time_frozen_count: 0,
             ignore_hole_tiles: false,
             ignore_tile_effects: false,
-            move_action: None,
+            movement: None,
             move_anim_state: None,
-            last_movement: 0,
-            card_action_index: None,
+            last_movement_time: 0,
+            action_index: None,
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
             update_callback: BattleCallback::stub(()),
@@ -106,13 +106,9 @@ impl Entity {
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
-            delete_callback: BattleCallback::new(move |_, simulation, _, _| {
+            delete_callback: BattleCallback::new(move |game_io, simulation, vms, _| {
                 // default behavior, just erase
-                let entity = (simulation.entities)
-                    .query_one_mut::<&mut Entity>(id.into())
-                    .unwrap();
-
-                entity.erased = true;
+                simulation.mark_entity_for_erasure(game_io, vms, id);
             }),
             delete_callbacks: Vec::new(),
         }
@@ -143,11 +139,11 @@ impl Entity {
 
     pub fn current_can_move_to_callback(
         &self,
-        card_actions: &Arena<CardAction>,
+        actions: &Arena<Action>,
     ) -> BattleCallback<(i32, i32), bool> {
-        if let Some(index) = self.card_action_index {
+        if let Some(index) = self.action_index {
             // does the card action have a special can_move_to_callback?
-            if let Some(callback) = card_actions[index].can_move_to_callback.clone() {
+            if let Some(callback) = actions[index].can_move_to_callback.clone() {
                 return callback;
             }
         }

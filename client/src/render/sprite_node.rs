@@ -151,10 +151,15 @@ impl SpriteNode {
         self.palette.as_ref()
     }
 
-    pub fn set_palette(&mut self, game_io: &GameIO, path: String) {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
-        self.palette = Some(assets.texture(game_io, &path));
-        self.palette_path = path;
+    pub fn set_palette(&mut self, game_io: &GameIO, path: Option<String>) {
+        if let Some(path) = path {
+            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            self.palette = Some(assets.texture(game_io, &path));
+            self.palette_path = path;
+        } else {
+            self.palette = None;
+            self.palette_path = String::new();
+        }
     }
 
     pub fn texture(&self) -> &Arc<Texture> {

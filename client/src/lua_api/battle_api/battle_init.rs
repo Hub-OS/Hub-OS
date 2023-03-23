@@ -57,6 +57,61 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_spawner(lua, package_id, rank)?)
     });
 
+    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "spawn_player", |api_ctx, lua, params| {
+        let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
+            lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        if !simulation.field.in_bounds((x, y)) {
+            return lua.pack_multi(());
+        }
+
+        let config = &mut simulation.config;
+        let spawn_pos = config.player_spawn_positions.get_mut(player_index);
+
+        if let Some(spawn_pos) = spawn_pos {
+            *spawn_pos = (x, y);
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(
+        BATTLE_INIT_TABLE,
+        "set_background",
+        |api_ctx, lua, params| {
+            let (_, texture_path, animation_path, vel_x, vel_y): (
+                rollback_mlua::Table,
+                String,
+                String,
+                Option<f32>,
+                Option<f32>,
+            ) = lua.unpack_multi(params)?;
+
+            let texture_path = absolute_path(lua, texture_path)?;
+            let animation_path = absolute_path(lua, animation_path)?;
+
+            let mut api_ctx = &mut *api_ctx.borrow_mut();
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let assets = &globals.assets;
+
+            let animator = Animator::load_new(assets, &animation_path);
+            let sprite = assets.new_sprite(api_ctx.game_io, &texture_path);
+
+            let mut background = Background::new(animator, sprite);
+
+            if let (Some(vel_x), Some(vel_y)) = (vel_x, vel_y) {
+                background.set_velocity(Vec2::new(vel_x, vel_y));
+            }
+
+            api_ctx.simulation.background = background;
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "set_panels", |api_ctx, lua, params| {
         let (_, texture_paths, animation_path, spacing_x, spacing_y): (
             rollback_mlua::Table,
@@ -90,36 +145,6 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
-        "set_background",
-        |api_ctx, lua, params| {
-            let (_, texture_path, animation_path, vel_x, vel_y): (
-                rollback_mlua::Table,
-                String,
-                String,
-                f32,
-                f32,
-            ) = lua.unpack_multi(params)?;
-
-            let texture_path = absolute_path(lua, texture_path)?;
-            let animation_path = absolute_path(lua, animation_path)?;
-
-            let mut api_ctx = &mut *api_ctx.borrow_mut();
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
-            let assets = &globals.assets;
-
-            let animator = Animator::load_new(assets, &animation_path);
-            let sprite = assets.new_sprite(api_ctx.game_io, &texture_path);
-
-            let mut background = Background::new(animator, sprite);
-            background.set_velocity(Vec2::new(vel_x, vel_y));
-            api_ctx.simulation.background = background;
-
-            lua.pack_multi(())
-        },
-    );
-
     //   "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
     //     mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
     //   },
@@ -133,10 +158,12 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(
         BATTLE_INIT_TABLE,
         "enable_automatic_turn_end",
-        |api_ctx, lua, _| {
+        |api_ctx, lua, params| {
+            let enabled: Option<bool> = lua.unpack_multi(params)?;
+
             let mut api_ctx = api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.config.automatic_turn_end = true;
+            simulation.config.automatic_turn_end = enabled.unwrap_or(true);
 
             lua.pack_multi(())
         },
@@ -155,27 +182,6 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(())
         },
     );
-
-    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "spawn_player", |api_ctx, lua, params| {
-        let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
-            lua.unpack_multi(params)?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-
-        if !simulation.field.in_bounds((x, y)) {
-            return lua.pack_multi(());
-        }
-
-        let config = &mut simulation.config;
-        let spawn_pos = config.player_spawn_positions.get_mut(player_index);
-
-        if let Some(spawn_pos) = spawn_pos {
-            *spawn_pos = (x, y);
-        }
-
-        lua.pack_multi(())
-    });
 
     lua_api.add_dynamic_function(
         BATTLE_INIT_TABLE,

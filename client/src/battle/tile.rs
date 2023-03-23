@@ -1,4 +1,4 @@
-use super::{CardAction, Entity, TileState};
+use super::{Action, Entity, TileState};
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
@@ -27,6 +27,7 @@ impl Tile {
         Self {
             position,
             immutable_team,
+            state_index: TileState::NORMAL,
             ..Default::default()
         }
     }
@@ -164,10 +165,10 @@ impl Tile {
 
     pub fn handle_auto_reservation_addition(
         &mut self,
-        card_actions: &generational_arena::Arena<CardAction>,
+        actions: &generational_arena::Arena<Action>,
         entity: &Entity,
     ) {
-        if !Self::can_auto_reserve(card_actions, entity) {
+        if !Self::can_auto_reserve(actions, entity) {
             return;
         }
 
@@ -176,29 +177,26 @@ impl Tile {
 
     pub fn handle_auto_reservation_removal(
         &mut self,
-        card_actions: &generational_arena::Arena<CardAction>,
+        actions: &generational_arena::Arena<Action>,
         entity: &Entity,
     ) {
-        if !Self::can_auto_reserve(card_actions, entity) {
+        if !Self::can_auto_reserve(actions, entity) {
             return;
         }
 
         self.remove_reservation_for(entity.id);
     }
 
-    fn can_auto_reserve(
-        card_actions: &generational_arena::Arena<CardAction>,
-        entity: &Entity,
-    ) -> bool {
+    fn can_auto_reserve(actions: &generational_arena::Arena<Action>, entity: &Entity) -> bool {
         if !entity.auto_reserves_tiles {
             return false;
         }
 
-        if let Some(index) = entity.card_action_index {
+        if let Some(index) = entity.action_index {
             // synchronous card action
-            let card_action = &card_actions[index];
+            let action = &actions[index];
 
-            if card_action.executed {
+            if action.executed {
                 // card action began, prevent automatic reservation changes
                 return false;
             }

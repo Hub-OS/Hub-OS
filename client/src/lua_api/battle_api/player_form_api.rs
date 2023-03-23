@@ -37,13 +37,6 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        CHARGE_TIMING_FN,
-        |form| &mut form.calculate_charge_time_callback,
-        |lua, _, charge_level: u8| lua.pack_multi(charge_level),
-    );
-
-    callback_setter(
-        lua_api,
         "on_activate_func",
         |form| &mut form.activate_callback,
         |lua, form_table, _| {
@@ -56,6 +49,16 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "on_deactivate_func",
         |form| &mut form.deactivate_callback,
+        |lua, form_table, _| {
+            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
+            lua.pack_multi((form_table, player_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        CHARGE_TIMING_FN,
+        |form| &mut form.calculate_charge_time_callback,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))

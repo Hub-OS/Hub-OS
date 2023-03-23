@@ -131,7 +131,7 @@ impl Living {
         let hit_callbacks = living.hit_callbacks.clone();
 
         // handle drag
-        if hit_props.drags() && entity.move_action.is_none() {
+        if hit_props.drags() && entity.movement.is_none() {
             let can_move_to_callback = entity.can_move_to_callback.clone();
             let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
 
@@ -157,7 +157,7 @@ impl Living {
                     .query_one_mut::<&mut Entity>(entity_id.into())
                     .unwrap();
 
-                entity.move_action = Some(MoveAction::slide(dest.into(), duration));
+                entity.movement = Some(Movement::slide(dest.into(), duration));
             }
         }
 

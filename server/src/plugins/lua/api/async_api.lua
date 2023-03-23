@@ -23,12 +23,14 @@ function Async.await(promise)
     end
   else
     -- awaiting a promise object
+    local co = coroutine.running()
     local pending = true
     local value
 
     promise.and_then(function(...)
       pending = false
       value = { ... }
+      coroutine.resume(co)
     end)
 
     while pending do
@@ -40,6 +42,7 @@ function Async.await(promise)
 end
 
 function Async.await_all(promises)
+  local co = coroutine.running()
   local completed = 0
   local values = {}
 
@@ -47,6 +50,7 @@ function Async.await_all(promises)
     promise.and_then(function(value)
       values[i] = value
       completed = completed + 1
+      coroutine.resume(co)
     end)
   end
 
@@ -55,32 +59,6 @@ function Async.await_all(promises)
   end
 
   return values
-end
-
-function Async.promisify(co)
-  local promise = Async.create_promise(function(resolve)
-    local function update()
-      local output = table.pack(coroutine.resume(co))
-      local ok = output[1]
-
-      if not ok then
-        -- value is an error
-        printerr("runtime error: " .. tostring(output[2]))
-        return true
-      end
-
-      if coroutine.status(co) == "dead" then
-        resolve(table.unpack(output, 2))
-        return true
-      end
-
-      return false
-    end
-
-    tasks[#tasks + 1] = update
-  end)
-
-  return promise
 end
 
 function Async.create_promise(task)
@@ -116,6 +94,26 @@ function Async.create_promise(task)
   task(resolve)
 
   return promise
+end
+
+function Async.create_scope(callback)
+  return Async.create_promise(function(resolve)
+    local co = coroutine.create(function()
+      resolve(callback())
+    end)
+
+    coroutine.resume(co)
+  end)
+end
+
+function Async.create_function(callback)
+  return function(...)
+    local params = table.pack(...)
+
+    return Async.create_scope(function()
+      return callback(table.unpack(params))
+    end)
+  end
 end
 
 function Async.sleep(duration)

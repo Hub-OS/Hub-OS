@@ -8,6 +8,10 @@ use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
+    getter(lua_api, "get_id", |augment, _, _: ()| {
+        Ok(augment.package_id.clone())
+    });
+
     getter(lua_api, "get_level", |augment, _, _: ()| Ok(augment.level));
 
     lua_api.add_dynamic_function(AUGMENT_TABLE, "get_owner", move |_, lua, params| {
@@ -25,7 +29,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
             augment.calculate_charge_time_callback = Some(BattleCallback::default());
             augment.calculate_charge_time_callback.as_mut().unwrap()
         },
-        |lua, _, charge_level: u8| lua.pack_multi(charge_level),
+        |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(

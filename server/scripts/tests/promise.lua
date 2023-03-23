@@ -12,11 +12,20 @@ local promise = Async.create_promise(function(resolve) resolve(1, 2, 3) end)
 
 promise.and_then(create_test("multi value resolve failed"))
 
-local coroutine_promise = Async.promisify(coroutine.create(function()
+local scope_promise = Async.create_scope(function()
   local a, b, c = Async.await(promise)
   create_test("multi value await failed")(a, b, c)
 
   return 1, 2, 3
-end))
+end)
 
-coroutine_promise.and_then(create_test("multi value coroutine failed"))
+scope_promise.and_then(create_test("multi value scope failed"))
+
+local async_function = Async.create_function(function()
+  local a, b, c = Async.await(promise)
+  create_test("multi value await failed")(a, b, c)
+
+  return 1, 2, 3
+end)
+
+async_function().and_then(create_test("multi value scope failed"))

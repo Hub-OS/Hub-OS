@@ -2,7 +2,7 @@ use super::{BattleLuaApi, GLOBAL_TABLE};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 
 pub fn inject_include_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(GLOBAL_TABLE, "include", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(GLOBAL_TABLE, "require", |api_ctx, lua, params| {
         let path: String = lua.unpack_multi(params)?;
 
         let env = lua.environment()?;

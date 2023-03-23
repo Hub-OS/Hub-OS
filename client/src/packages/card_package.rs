@@ -22,7 +22,6 @@ struct CardMeta {
     limit: Option<usize>,
     hit_flags: Option<Vec<String>>,
     can_boost: Option<bool>,
-    counterable: Option<bool>,
     time_freeze: bool,
     skip_time_freeze_intro: bool,
     meta_classes: Vec<String>,
@@ -115,10 +114,6 @@ impl Package for CardPackage {
 
         if let Some(can_boost) = meta.can_boost {
             package.card_properties.can_boost = can_boost;
-        }
-
-        if let Some(counterable) = meta.counterable {
-            package.card_properties.counterable = counterable;
         }
 
         package.card_properties.time_freeze = meta.time_freeze;
