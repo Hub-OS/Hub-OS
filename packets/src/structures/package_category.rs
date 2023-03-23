@@ -22,6 +22,10 @@ impl PackageCategory {
             PackageCategory::Player => "mods/players/",
         }
     }
+
+    pub fn requires_vm(self) -> bool {
+        self != PackageCategory::Library
+    }
 }
 
 impl From<&str> for PackageCategory {
