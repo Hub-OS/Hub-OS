@@ -145,7 +145,7 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    //   "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
+    //   "set_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
     //     mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
     //   },
 
