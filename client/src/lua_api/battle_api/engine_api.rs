@@ -43,7 +43,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ENGINE_TABLE, "stream_music", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENGINE_TABLE, "play_music", |api_ctx, lua, params| {
         // todo: loop points
         let (path, loops, _start_ms, _end_ms): (String, Option<bool>, Option<u64>, Option<u64>) =
             lua.unpack_multi(params)?;

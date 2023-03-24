@@ -129,7 +129,9 @@ impl BattleScene {
         let dependencies = globals.battle_dependencies(game_io, props);
 
         for package_info in dependencies {
-            self.load_vm(game_io, package_info);
+            if package_info.package_category.requires_vm() {
+                self.load_vm(game_io, package_info);
+            }
         }
     }
 
