@@ -755,14 +755,48 @@ impl BattleSimulation {
             )
             .unwrap();
 
-        let entity = self
+        let (entity, living) = self
             .entities
-            .query_one_mut::<&mut Entity>(id.into())
+            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
             .unwrap();
 
         // characters should own their tiles by default
         entity.share_tile = false;
         entity.auto_reserves_tiles = true;
+
+        // hit callback for alert symbol
+        living.register_hit_callback(BattleCallback::new(
+            move |game_io, simulation, _, hit_props: HitProperties| {
+                if hit_props.damage == 0 {
+                    return;
+                }
+
+                let entity = simulation
+                    .entities
+                    .query_one_mut::<&Entity>(id.into())
+                    .unwrap();
+
+                if !entity.element.is_weak_to(hit_props.element)
+                    && !entity.element.is_weak_to(hit_props.secondary_element)
+                {
+                    // not super effective
+                    return;
+                }
+
+                //spawn alert artifact
+                let mut alert_position = entity.full_position();
+                alert_position.offset += Vec2::new(0.0, -entity.height);
+
+                let alert_id = simulation.create_alert(game_io);
+                let alert_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(alert_id.into())
+                    .unwrap();
+
+                alert_entity.copy_full_position(alert_position);
+                alert_entity.pending_spawn = true;
+            },
+        ));
 
         entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
             let tile = match simulation.field.tile_at_mut(dest) {
@@ -984,21 +1018,25 @@ impl BattleSimulation {
                 }
 
                 // spawn shine fx
-                let mut full_position = entity.full_position();
-                full_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+                let mut shine_position = entity.full_position();
+                shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
+                // play revert sfx
+                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
+
+                // play revert sound effect
+                simulation.play_sound(game_io, revert_sfx);
+
+                // actual shine creation as indicated above
                 let shine_id = simulation.create_transformation_shine(game_io);
                 let shine_entity = simulation
                     .entities
                     .query_one_mut::<&mut Entity>(shine_id.into())
                     .unwrap();
 
-                shine_entity.copy_full_position(full_position);
+                // shine position, set to spawn
+                shine_entity.copy_full_position(shine_position);
                 shine_entity.pending_spawn = true;
-
-                // play revert sfx
-                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
-                simulation.play_sound(game_io, revert_sfx);
             },
         ));
 
