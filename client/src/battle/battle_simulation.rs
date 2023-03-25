@@ -755,19 +755,14 @@ impl BattleSimulation {
             )
             .unwrap();
 
-        let entity = self
+        let (entity, living) = self
             .entities
-            .query_one_mut::<&mut Entity>(id.into())
+            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
             .unwrap();
 
         // characters should own their tiles by default
         entity.share_tile = false;
         entity.auto_reserves_tiles = true;
-        
-        let (entity, living) = self
-            .entities
-            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
-            .unwrap();
 
         // hit callback for alert symbol
         living.register_hit_callback(BattleCallback::new(
@@ -776,9 +771,9 @@ impl BattleSimulation {
                     return;
                 }
 
-                let (entity, living) = simulation
+                let entity = simulation
                     .entities
-                    .query_one_mut::<(&Entity, &Living)>(id.into())
+                    .query_one_mut::<&Entity>(id.into())
                     .unwrap();
 
                 if !entity.element.is_weak_to(hit_props.element)
