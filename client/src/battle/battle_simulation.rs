@@ -1129,7 +1129,7 @@ impl BattleSimulation {
             .unwrap();
 
         entity.ignore_hole_tiles = true;
-        entity.ignore_tile_effects = true;
+        entity.ignore_negative_tile_effects = true;
         entity.can_move_to_callback = BattleCallback::stub(true);
 
         id
@@ -1148,7 +1148,7 @@ impl BattleSimulation {
             .unwrap();
 
         entity.ignore_hole_tiles = true;
-        entity.ignore_tile_effects = true;
+        entity.ignore_negative_tile_effects = true;
         entity.can_move_to_callback = BattleCallback::stub(true);
 
         id

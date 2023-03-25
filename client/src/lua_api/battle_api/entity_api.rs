@@ -154,7 +154,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "set_float_shoe",
         |entity: &mut Entity, _, enabled| {
-            entity.ignore_tile_effects = enabled;
+            entity.ignore_negative_tile_effects = enabled;
             Ok(())
         },
     );

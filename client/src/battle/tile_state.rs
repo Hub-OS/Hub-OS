@@ -95,7 +95,15 @@ impl TileState {
         let mut cracked_state = TileState::new(String::from("cracked"));
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, simulation, _, (_, movement): (EntityId, Movement)| {
+            |game_io, simulation, _, (entity_id, movement): (EntityId, Movement)| {
+                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                    return;
+                };
+
+                if entity.ignore_negative_tile_effects {
+                    return;
+                }
+
                 let Some(tile) = simulation.field.tile_at_mut(movement.source) else {
                     return;
                 };
@@ -180,6 +188,7 @@ impl TileState {
                 if entity.element != Element::Wood || living.health >= living.max_health {
                     return;
                 }
+
                 // todo: should entities have individual timers?
                 let heal_interval = if living.health >= 9 {
                     GRASS_HEAL_INTERVAL
@@ -216,7 +225,7 @@ impl TileState {
                     return;
                 };
 
-                if entity.element == Element::Fire {
+                if entity.ignore_negative_tile_effects || entity.element == Element::Fire {
                     return;
                 }
 
@@ -243,24 +252,42 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::POISON);
         let mut poison_state = TileState::new(String::from("poison"));
 
-        poison_state.entity_enter_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+        poison_state.entity_enter_callback = BattleCallback::new(
+            |game_io, simulation, vms, entity_id: EntityId| {
+                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                    return;
+                };
+
+                if entity.ignore_negative_tile_effects {
+                    return;
+                }
+
                 // take 1hp immediately for stepping on poison
                 let mut hit_props = HitProperties::blank();
                 hit_props.damage = 1;
 
                 Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
-            });
+            },
+        );
 
-        poison_state.entity_update_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+        poison_state.entity_update_callback = BattleCallback::new(
+            |game_io, simulation, vms, entity_id: EntityId| {
+                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                    return;
+                };
+
+                if entity.ignore_negative_tile_effects {
+                    return;
+                }
+
                 if simulation.battle_time > 0 && simulation.battle_time % POISON_INTERVAL == 0 {
                     let mut hit_props = HitProperties::blank();
                     hit_props.damage = 1;
 
                     Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
                 }
-            });
+            },
+        );
 
         registry.push(poison_state);
 
@@ -284,6 +311,10 @@ impl TileState {
                 let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else{
                     return;
                 };
+
+                if entity.ignore_negative_tile_effects {
+                    return;
+                }
 
                 let elapsed_since_movement = simulation.battle_time - entity.last_movement_time;
 
