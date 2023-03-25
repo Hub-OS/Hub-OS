@@ -70,7 +70,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    getter(lua_api, "get_texture", |node, _, _: ()| {
+    getter(lua_api, "texture", |node, _, _: ()| {
         Ok(node.texture_path().to_string())
     });
 
@@ -105,7 +105,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    getter(lua_api, "is_visible", |node, _, _: ()| Ok(node.visible()));
+    getter(lua_api, "visible", |node, _, _: ()| Ok(node.visible()));
     setter(lua_api, "set_visible", |node, _, visible: bool| {
         node.set_visible(visible);
         Ok(())
@@ -119,7 +119,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_layer", |node, _, _: ()| Ok(node.layer()));
+    getter(lua_api, "layer", |node, _, _: ()| Ok(node.layer()));
     setter(lua_api, "set_layer", |node, _, layer| {
         node.set_layer(layer);
         Ok(())
@@ -146,7 +146,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     //     return sol::as_table(result);
     //   },
 
-    getter(lua_api, "get_offset", |node, _, _: ()| {
+    getter(lua_api, "offset", |node, _, _: ()| {
         Ok(LuaVector::from(node.offset()))
     });
     setter(lua_api, "set_offset", |node, _, offset: (f32, f32)| {
@@ -154,7 +154,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_origin", |node, _, _: ()| {
+    getter(lua_api, "origin", |node, _, _: ()| {
         Ok(LuaVector::from(node.origin()))
     });
     setter(lua_api, "set_origin", |node, _, origin: (f32, f32)| {
@@ -162,7 +162,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_scale", |node, _, _: ()| {
+    getter(lua_api, "scale", |node, _, _: ()| {
         Ok(LuaVector::from(node.scale()))
     });
     setter(lua_api, "set_scale", |node, _, scale: (f32, f32)| {
@@ -170,7 +170,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "get_size", |node, _, _: ()| {
+    setter(lua_api, "size", |node, _, _: ()| {
         Ok(LuaVector::from(node.size()))
     });
     setter(lua_api, "set_size", |node, _, size: (f32, f32)| {
@@ -178,21 +178,21 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    setter(lua_api, "get_width", |node, _, _: ()| Ok(node.size().x));
+    setter(lua_api, "width", |node, _, _: ()| Ok(node.size().x));
     setter(lua_api, "set_width", |node, _, width| {
         let height = node.size().y;
         node.set_size(Vec2::new(width, height));
         Ok(())
     });
 
-    setter(lua_api, "get_height", |node, _, _: ()| Ok(node.size().y));
+    setter(lua_api, "height", |node, _, _: ()| Ok(node.size().y));
     setter(lua_api, "set_height", |node, _, height| {
         let width = node.size().x;
         node.set_size(Vec2::new(width, height));
         Ok(())
     });
 
-    getter(lua_api, "get_color", |node, _, _: ()| {
+    getter(lua_api, "color", |node, _, _: ()| {
         Ok(LuaColor::from(node.color()))
     });
     setter(lua_api, "set_color", |node, _, color: LuaColor| {
@@ -200,15 +200,17 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_color_mode", |node, _, _: ()| {
-        Ok(node.color_mode())
-    });
+    getter(
+        lua_api,
+        "color_mode",
+        |node, _, _: ()| Ok(node.color_mode()),
+    );
     setter(lua_api, "set_color_mode", |node, _, mode| {
         node.set_color_mode(mode);
         Ok(())
     });
 
-    getter(lua_api, "get_palette", |node, _, _: ()| {
+    getter(lua_api, "palette", |node, _, _: ()| {
         Ok(node.palette_path().map(String::from))
     });
     lua_api.add_dynamic_function(SPRITE_TABLE, "set_palette", move |api_ctx, lua, params| {

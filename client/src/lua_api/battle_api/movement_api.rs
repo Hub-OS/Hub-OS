@@ -7,15 +7,11 @@ pub fn inject_movement_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_movement_table(lua))
     });
 
-    lua_api.add_dynamic_function(
-        MOVEMENT_TABLE,
-        "get_animation_progress",
-        |_, lua, params| {
-            let movement: Movement = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(MOVEMENT_TABLE, "animation_progress", |_, lua, params| {
+        let movement: Movement = lua.unpack_multi(params)?;
 
-            lua.pack_multi(movement.animation_progress_percent())
-        },
-    );
+        lua.pack_multi(movement.animation_progress_percent())
+    });
 
     lua_api.add_dynamic_function(MOVEMENT_TABLE, "is_sliding", |_, lua, params| {
         let movement: Movement = lua.unpack_multi(params)?;

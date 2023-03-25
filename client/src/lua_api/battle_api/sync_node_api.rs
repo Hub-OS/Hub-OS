@@ -12,7 +12,7 @@ pub fn inject_sync_node_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(sprite_table)
     });
 
-    lua_api.add_dynamic_function(SYNC_NODE_TABLE, "get_animation", |_, lua, params| {
+    lua_api.add_dynamic_function(SYNC_NODE_TABLE, "animation", |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
         let animation_table: rollback_mlua::Table = table.get("#animation")?;
 

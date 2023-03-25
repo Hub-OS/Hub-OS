@@ -44,7 +44,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter(lua_api, "get_owner", |action, lua, _: ()| {
+    getter(lua_api, "owner", |action, lua, _: ()| {
         lua.pack_multi(create_entity_table(lua, action.entity)?)
     });
 
@@ -269,7 +269,7 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
 }
 
 pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(ACTION_TABLE, "add_attachment", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ACTION_TABLE, "create_attachment", |api_ctx, lua, params| {
         let (action_table, point_name): (rollback_mlua::Table, String) =
             lua.unpack_multi(params)?;
 
@@ -283,7 +283,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         ATTACHMENT_TABLE,
-        "add_attachment",
+        "create_attachment",
         |api_ctx, lua, params| {
             let (parent_table, point_name): (rollback_mlua::Table, String) =
                 lua.unpack_multi(params)?;
@@ -332,7 +332,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         )?)
     });
 
-    lua_api.add_dynamic_function(ATTACHMENT_TABLE, "get_animation", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ATTACHMENT_TABLE, "animation", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let action_id: GenerationalIndex = table.raw_get("#id")?;

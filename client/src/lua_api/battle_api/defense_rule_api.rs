@@ -15,7 +15,7 @@ pub fn inject_defense_rule_api(lua_api: &mut BattleLuaApi) {
         table.set("#priority", priority)?;
         table.set("#collision_only", collision_only)?;
         table.set(
-            "is_replaced",
+            "replaced",
             lua.create_function(|_, table: rollback_mlua::Table| {
                 Ok(table.get::<_, bool>("#replaced").unwrap_or_default())
             })?,
@@ -40,24 +40,16 @@ fn inject_judge_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(
-        DEFENSE_JUDGE_TABLE,
-        "is_damage_blocked",
-        |api_ctx, lua, _| {
-            let api_ctx = api_ctx.borrow();
+    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "damage_blocked", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
 
-            lua.pack_multi(api_ctx.simulation.defense_judge.damage_blocked)
-        },
-    );
+        lua.pack_multi(api_ctx.simulation.defense_judge.damage_blocked)
+    });
 
-    lua_api.add_dynamic_function(
-        DEFENSE_JUDGE_TABLE,
-        "is_impact_blocked",
-        |api_ctx, lua, _| {
-            let api_ctx = api_ctx.borrow();
-            lua.pack_multi(api_ctx.simulation.defense_judge.impact_blocked)
-        },
-    );
+    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "impact_blocked", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.defense_judge.impact_blocked)
+    });
 }
 
 fn inject_intangible_api(lua_api: &mut BattleLuaApi) {

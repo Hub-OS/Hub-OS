@@ -145,7 +145,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     //     mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
     //   },
 
-    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "get_field", |_, lua, _| {
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "field", |_, lua, _| {
         let field_table = get_field_table(lua)?;
 
         lua.pack_multi(field_table)
