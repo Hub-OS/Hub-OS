@@ -1,7 +1,7 @@
 local user, charged, damage = ...
-local action = Battle.Action.new(user, "PLAYER_SHOOTING")
-local context = user:get_context()
-local rapid_level = user:get_rapid_level()
+local action = Action.new(user, "PLAYER_SHOOTING")
+local context = user:context()
+local rapid_level = user:rapid_level()
 
 -- override animation
 
@@ -10,15 +10,15 @@ local frame_data = { { 1, 1 }, { 2, 2 }, { 3, 2 }, { 1, 1 } }
 action:override_animation_frames(frame_data)
 
 -- setup buster attachment
-local buster_attachment = action:add_attachment("BUSTER")
+local buster_attachment = action:create_attachment("BUSTER")
 
 local buster_sprite = buster_attachment:sprite()
-buster_sprite:set_texture(user:get_texture())
+buster_sprite:set_texture(user:texture())
 buster_sprite:set_layer(-2)
 buster_sprite:use_root_shader()
 
-local buster_animation = buster_attachment:get_animation()
-buster_animation:copy_from(user:get_animation())
+local buster_animation = buster_attachment:animation()
+buster_animation:copy_from(user:animation())
 local derived_state = buster_animation:derive_state("BUSTER", frame_data)
 buster_animation:set_state(derived_state)
 
@@ -37,10 +37,10 @@ local cooldown = cooldown_table[rapid_level][6]
 local elapsed_frames = 0
 local spell_erased_frame = 0
 
-local spell = Battle.Spell.new(user:get_team())
+local spell = Spell.new(user:team())
 local can_move = false
 
-spell:set_facing(user:get_facing())
+spell:set_facing(user:facing())
 
 action.on_update_func = function()
     if spell_erased_frame == 0 and spell:will_erase_eof() then
@@ -50,7 +50,7 @@ action.on_update_func = function()
     elapsed_frames = elapsed_frames + 1
 
     if spell_erased_frame > 0 and elapsed_frames - spell_erased_frame >= cooldown then
-        user:get_animation():resume()
+        user:animation():resume()
     end
 
     if can_move then
@@ -81,11 +81,11 @@ action.on_update_func = function()
 end
 
 action:add_anim_action(2, function()
-    Engine.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
+    Resources.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
 
-    local field = user:get_field()
+    local field = user:field()
 
-    spell:set_hit_props(Battle.HitProps.new(
+    spell:set_hit_props(HitProps.new(
         damage,
         Hit.Impact,
         Element.None,
@@ -105,7 +105,7 @@ action:add_anim_action(2, function()
             return
         end
 
-        local tile = spell:get_tile(spell:get_facing(), 1)
+        local tile = spell:get_tile(spell:facing(), 1)
 
         if tile then
             tiles_travelled = tiles_travelled + 1
@@ -118,32 +118,32 @@ action:add_anim_action(2, function()
     end
 
     spell.on_collision_func = function(self, entity)
-        Engine.play_audio(_game_folder_path .. "resources/sfx/hurt.ogg");
+        Resources.play_audio(_game_folder_path .. "resources/sfx/hurt.ogg");
 
         local hit_x = 0
-        local hit_y = entity:get_height()
+        local hit_y = entity:height()
         local state = "HIT"
 
         if charged then
             hit_y = hit_y / 2
             state = "CHARGED_HIT"
         else
-            hit_x = entity:sprite():get_width() * (math.random(0, 1) - 0.5)
+            hit_x = entity:sprite():width() * (math.random(0, 1) - 0.5)
             hit_y = math.random() * hit_y
         end
 
-        local hit_artifact = Battle.Artifact.new()
+        local hit_artifact = Artifact.new()
         hit_artifact:load_animation(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.animation")
         hit_artifact:set_texture(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.png")
         hit_artifact:set_offset(hit_x, -hit_y)
 
-        local hit_animation = hit_artifact:get_animation()
+        local hit_animation = hit_artifact:animation()
         hit_animation:set_state(state)
         hit_animation:on_complete(function()
             hit_artifact:erase()
         end)
 
-        spell:get_field():spawn(hit_artifact, spell:get_tile())
+        spell:field():spawn(hit_artifact, spell:get_tile())
         spell:delete()
     end
 
@@ -163,12 +163,12 @@ end)
 -- flare attachment
 action:add_anim_action(3, function()
     can_move = true
-    local flare_attachment = buster_attachment:add_attachment("ENDPOINT")
+    local flare_attachment = buster_attachment:create_attachment("ENDPOINT")
     local flare_sprite = flare_attachment:sprite()
     flare_sprite:set_texture(_game_folder_path .. "resources/scenes/battle/buster_flare.png")
     flare_sprite:set_layer(-3)
 
-    local animation = flare_attachment:get_animation()
+    local animation = flare_attachment:animation()
     animation:load(_game_folder_path .. "resources/scenes/battle/buster_flare.animation")
     animation:set_state("DEFAULT")
 
@@ -176,7 +176,7 @@ action:add_anim_action(3, function()
 end)
 
 action:add_anim_action(4, function()
-    local animation = user:get_animation()
+    local animation = user:animation()
 
     animation:on_interrupt(function()
         animation:resume()

@@ -8,13 +8,13 @@ use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
-    getter(lua_api, "get_id", |augment, _, _: ()| {
+    getter(lua_api, "id", |augment, _, _: ()| {
         Ok(augment.package_id.clone())
     });
 
-    getter(lua_api, "get_level", |augment, _, _: ()| Ok(augment.level));
+    getter(lua_api, "level", |augment, _, _: ()| Ok(augment.level));
 
-    lua_api.add_dynamic_function(AUGMENT_TABLE, "get_owner", move |_, lua, params| {
+    lua_api.add_dynamic_function(AUGMENT_TABLE, "owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;

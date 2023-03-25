@@ -38,7 +38,7 @@ pub struct Entity {
     pub hit_context: HitContext,
     pub time_frozen_count: usize,
     pub ignore_hole_tiles: bool,
-    pub ignore_tile_effects: bool,
+    pub ignore_negative_tile_effects: bool,
     pub movement: Option<Movement>,
     pub move_anim_state: Option<String>,
     pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
@@ -93,7 +93,7 @@ impl Entity {
             },
             time_frozen_count: 0,
             ignore_hole_tiles: false,
-            ignore_tile_effects: false,
+            ignore_negative_tile_effects: false,
             movement: None,
             move_anim_state: None,
             last_movement_time: 0,

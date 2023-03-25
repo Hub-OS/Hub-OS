@@ -25,7 +25,7 @@ pub enum PackagePreviewData {
         colors: Vec<BlockColor>,
         shape: [bool; 5 * 5],
     },
-    Battle,
+    Encounter,
     Pack,
     Library,
     Unknown,
@@ -35,7 +35,7 @@ impl PackagePreviewData {
     fn has_image(&self) -> bool {
         matches!(
             self,
-            Self::Card { .. } | Self::Player { .. } | Self::Battle | Self::Pack
+            Self::Card { .. } | Self::Player { .. } | Self::Encounter | Self::Pack
         )
     }
 
@@ -44,7 +44,7 @@ impl PackagePreviewData {
             PackagePreviewData::Card { .. } => Some(PackageCategory::Card),
             PackagePreviewData::Player { .. } => Some(PackageCategory::Player),
             PackagePreviewData::Augment { .. } => Some(PackageCategory::Augment),
-            PackagePreviewData::Battle => Some(PackageCategory::Battle),
+            PackagePreviewData::Encounter => Some(PackageCategory::Encounter),
             PackagePreviewData::Library => Some(PackageCategory::Library),
             _ => None,
         }
@@ -276,7 +276,7 @@ impl PackagePreview {
                     position.x += sprite.size().x + 2.0;
                 }
             }
-            PackagePreviewData::Battle | PackagePreviewData::Pack => {
+            PackagePreviewData::Encounter | PackagePreviewData::Pack => {
                 if let Some(mut sprite) = self.image_sprite.clone() {
                     sprite.set_origin(sprite.frame().size() * 0.5);
                     sprite.set_position(image_bounds.center());

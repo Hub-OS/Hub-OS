@@ -1,7 +1,7 @@
 use super::{rollback_vm::RollbackVM, BattleScriptContext};
 use super::{BattleSimulation, Living};
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties};
-use crate::lua_api::create_entity_table;
+use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
 use crate::resources::Globals;
 use framework::prelude::GameIO;
 use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
@@ -180,9 +180,7 @@ impl DefenseJudge {
                     return Ok(());
                 };
 
-                // todo: use constant?
-                let battle_table: LuaTable = lua.globals().get("Battle")?;
-                let judge_table: LuaTable = battle_table.get("DefenseJudge")?;
+                let judge_table: LuaTable = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
 
                 let attacker_table = create_entity_table(lua, attacker_id)?;
                 let defender_table = create_entity_table(lua, defender_id)?;

@@ -932,11 +932,11 @@ impl OverworldOnlineScene {
                     globals.audio.play_sound(&globals.battle_transition_sfx);
 
                     // get package
-                    let battle_package = globals
-                        .battle_packages
+                    let encounter_package = globals
+                        .encounter_packages
                         .package_or_fallback(PackageNamespace::Server, package_id);
 
-                    let mut props = BattleProps::new_with_defaults(game_io, battle_package);
+                    let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
                     props.data = data;
 
                     let player_setup = &mut props.player_setups[0];
@@ -992,14 +992,14 @@ impl OverworldOnlineScene {
                 });
 
                 // get package
-                let battle_package = package_path
+                let encounter_package = package_path
                     .and_then(|path| self.encounter_packages.get(&path))
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
                 // create scene
                 let props = NetplayProps {
                     background: Some(background),
-                    battle_package,
+                    encounter_package,
                     data,
                     health,
                     base_health,

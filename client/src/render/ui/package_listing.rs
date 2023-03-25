@@ -70,7 +70,7 @@ impl From<&json::Value> for PackageListing {
                     bools.try_into().unwrap_or_default()
                 },
             },
-            "battle" => PackagePreviewData::Battle,
+            "encounter" => PackagePreviewData::Encounter,
             "library" => PackagePreviewData::Library,
             "pack" => PackagePreviewData::Pack,
             _ => PackagePreviewData::Unknown,
@@ -91,7 +91,7 @@ impl From<&json::Value> for PackageListing {
                 (PackageCategory::Augment, into_id(id))
             }));
             dependencies.extend(map_array_values(dependencies_table, "battles", |id| {
-                (PackageCategory::Battle, into_id(id))
+                (PackageCategory::Encounter, into_id(id))
             }));
             dependencies.extend(map_array_values(dependencies_table, "cards", |id| {
                 (PackageCategory::Card, into_id(id))

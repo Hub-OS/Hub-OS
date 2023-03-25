@@ -508,7 +508,7 @@ impl BattleState {
         field.update_tile_states(&mut simulation.entities);
 
         for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if entity.ignore_tile_effects || !entity.on_field || entity.deleted {
+            if !entity.on_field || entity.deleted {
                 continue;
             }
 
@@ -1346,7 +1346,7 @@ impl BattleState {
                 start_tile.unignore_attacker(entity.id);
                 start_tile.handle_auto_reservation_removal(&simulation.actions, entity);
 
-                if !entity.ignore_tile_effects {
+                if !entity.ignore_negative_tile_effects {
                     let movement = entity.movement.clone().unwrap();
 
                     // process stepping off the tile
@@ -1383,7 +1383,7 @@ impl BattleState {
             if movement.is_complete() {
                 let movement = entity.movement.take().unwrap();
 
-                if movement.success && !entity.ignore_tile_effects {
+                if movement.success && !entity.ignore_negative_tile_effects {
                     let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
 
                     let tile_state = &simulation.tile_states[current_tile.state_index()];

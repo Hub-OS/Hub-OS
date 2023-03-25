@@ -833,10 +833,10 @@ impl BattleSimulation {
                     continue;
                 }
 
-                let other_entity = simulation
-                    .entities
-                    .query_one_mut::<&Entity>(entity_id.into())
-                    .unwrap();
+                let Ok(other_entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                    // non entity or erased is reserving?
+                    continue;
+                };
 
                 if !other_entity.share_tile {
                     // another entity is reserving this tile and refusing to share
@@ -1129,7 +1129,7 @@ impl BattleSimulation {
             .unwrap();
 
         entity.ignore_hole_tiles = true;
-        entity.ignore_tile_effects = true;
+        entity.ignore_negative_tile_effects = true;
         entity.can_move_to_callback = BattleCallback::stub(true);
 
         id
@@ -1148,7 +1148,7 @@ impl BattleSimulation {
             .unwrap();
 
         entity.ignore_hole_tiles = true;
-        entity.ignore_tile_effects = true;
+        entity.ignore_negative_tile_effects = true;
         entity.can_move_to_callback = BattleCallback::stub(true);
 
         id

@@ -1,11 +1,11 @@
 local team, damage = ...
 
-local spell = Battle.Spell.new(team)
-spell:set_hit_props(Battle.HitProps.new(
+local spell = Spell.new(team)
+spell:set_hit_props(HitProps.new(
     damage or 0,
     Hit.Flinch | Hit.Impact,
     Element.None,
-    spell:get_context(),
+    spell:context(),
     Drag.None
 ))
 

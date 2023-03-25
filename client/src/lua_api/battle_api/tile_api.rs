@@ -48,7 +48,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(api_ctx.simulation.field.tile_size().y)
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "get_state", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(TILE_TABLE, "state", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -185,7 +185,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(TILE_TABLE, "get_team", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(TILE_TABLE, "team", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
@@ -209,7 +209,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "get_facing", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(TILE_TABLE, "facing", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();

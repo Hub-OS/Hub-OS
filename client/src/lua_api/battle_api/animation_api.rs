@@ -106,7 +106,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(animator.has_state(&state))
     });
 
-    getter(lua_api, "get_state", |animator, lua, _: ()| {
+    getter(lua_api, "state", |animator, lua, _: ()| {
         lua.pack_multi(animator.current_state())
     });
 

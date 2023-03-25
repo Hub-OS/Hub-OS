@@ -52,7 +52,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_cast_fn::<&Player>(lua_api, PLAYER_TABLE);
     generate_cast_fn::<&Character>(lua_api, CHARACTER_TABLE);
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_id", |_, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "id", |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -60,7 +60,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(id)
     });
 
-    getter(lua_api, "get_name", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "name", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.name.clone())
     });
     setter(lua_api, "set_name", |entity: &mut Entity, _, name| {
@@ -68,7 +68,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_element", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "element", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.element)
     });
     setter(lua_api, "set_element", |entity: &mut Entity, _, element| {
@@ -76,10 +76,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_facing", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "facing", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.facing)
     });
-    getter(lua_api, "get_facing_away", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "facing_away", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.facing.reversed())
     });
     setter(lua_api, "set_facing", |entity: &mut Entity, _, facing| {
@@ -87,7 +87,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_team", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "team", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.team)
     });
     setter(lua_api, "set_team", |entity: &mut Entity, _, team| {
@@ -126,28 +126,33 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
-    getter(
-        lua_api,
-        "get_current_tile",
-        |entity: &Entity, lua, _: ()| lua.pack_multi(create_tile_table(lua, (entity.x, entity.y))?),
-    );
+    getter(lua_api, "current_tile", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(create_tile_table(lua, (entity.x, entity.y))?)
+    });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_field", |_, lua, _| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "field", |_, lua, _| {
         let field_table = get_field_table(lua)?;
 
         lua.pack_multi(field_table)
     });
 
-    setter(lua_api, "share_tile", |entity: &mut Entity, _, share| {
-        entity.share_tile = share;
-        Ok(())
+    getter(lua_api, "sharing_tile", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.share_tile)
     });
+    setter(
+        lua_api,
+        "enable_sharing_tile",
+        |entity: &mut Entity, _, share: Option<bool>| {
+            entity.share_tile = share.unwrap_or(true);
+            Ok(())
+        },
+    );
 
     setter(
         lua_api,
         "set_float_shoe",
         |entity: &mut Entity, _, enabled| {
-            entity.ignore_tile_effects = enabled;
+            entity.ignore_negative_tile_effects = enabled;
             Ok(())
         },
     );
@@ -161,11 +166,11 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_tile_offset", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "tile_offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.tile_offset))
     });
 
-    getter(lua_api, "get_offset", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.offset))
     });
 
@@ -178,7 +183,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_elevation", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "elevation", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.elevation)
     });
     setter(
@@ -190,7 +195,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_height", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "height", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.height)
     });
     setter(lua_api, "set_height", |entity: &mut Entity, _, height| {
@@ -216,7 +221,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         )?)
     });
 
-    getter(lua_api, "get_texture", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "texture", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.sprite_tree.root().texture_path())
     });
 
@@ -242,7 +247,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    getter(lua_api, "get_palette", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "palette", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.sprite_tree.root().palette_path())
     });
 
@@ -375,7 +380,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "get_color", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "color", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaColor::from(entity.sprite_tree.root().color()))
     });
     setter(
@@ -425,7 +430,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_animation", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "animation", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -497,7 +502,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter(lua_api, "get_context", |entity: &Entity, lua, _: ()| {
+    getter(lua_api, "context", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(&entity.hit_context)
     });
 
@@ -602,7 +607,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(entity.movement.is_some())
     });
 
-    delete_getter(lua_api, "is_deleted", |entity: &Entity| entity.deleted);
+    delete_getter(lua_api, "deleted", |entity: &Entity| entity.deleted);
     delete_getter(lua_api, "will_erase_eof", |entity: &Entity| entity.erased);
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "erase", |api_ctx, lua, params| {
@@ -825,7 +830,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     //     lua.pack_multi(api_ctx.simulation.is_entity_actionable(entity_id))
     // });
 
-    getter(lua_api, "get_rank", |character: &Character, lua, _: ()| {
+    getter(lua_api, "rank", |character: &Character, lua, _: ()| {
         lua.pack_multi(character.rank)
     });
 }
@@ -917,10 +922,10 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_max_health", |living: &Living, lua, _: ()| {
+    getter(lua_api, "max_health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.max_health)
     });
-    getter(lua_api, "get_health", |living: &Living, lua, _: ()| {
+    getter(lua_api, "health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.health)
     });
     setter(lua_api, "set_health", |living: &mut Living, _, health| {
@@ -930,19 +935,19 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "toggle_hitbox",
-        |living: &mut Living, _, enabled| {
-            living.hitbox_enabled = enabled;
+        "enable_hitbox",
+        |living: &mut Living, _, enabled: Option<bool>| {
+            living.hitbox_enabled = enabled.unwrap_or(true);
             Ok(())
         },
     );
 
-    getter(lua_api, "is_counterable", |living: &Living, lua, _: ()| {
+    getter(lua_api, "counterable", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.counterable)
     });
     setter(
         lua_api,
-        "toggle_counter",
+        "set_counterable",
         |living: &mut Living, _, counterable| {
             living.counterable = counterable;
             Ok(())
@@ -950,7 +955,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     );
     // todo: set_counter_frame_range
 
-    getter(lua_api, "is_intangible", |living: &Living, lua, _: ()| {
+    getter(lua_api, "intangible", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.intangibility.is_enabled())
     });
 
@@ -1243,11 +1248,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
-        lua_api,
-        "get_attack_level",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.attack_level()),
-    );
+    getter(lua_api, "attack_level", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.attack_level())
+    });
     setter(
         lua_api,
         "boost_attack_level",
@@ -1257,7 +1260,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "get_rapid_level", |player: &Player, lua, _: ()| {
+    getter(lua_api, "rapid_level", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.rapid_level())
     });
     setter(
@@ -1269,11 +1272,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
-        lua_api,
-        "get_charge_level",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.charge_level()),
-    );
+    getter(lua_api, "charge_level", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.charge_level())
+    });
     setter(
         lua_api,
         "boost_charge_level",

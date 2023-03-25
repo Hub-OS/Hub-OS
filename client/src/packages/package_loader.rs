@@ -15,7 +15,7 @@ pub enum PackageEvent {
     ProgressUpdate(PackageProgressUpdate),
     PlayerManager(PackageManager<PlayerPackage>),
     CardManager(PackageManager<CardPackage>),
-    BattleManager(PackageManager<BattlePackage>),
+    EncounterManager(PackageManager<EncounterPackage>),
     AugmentManager(PackageManager<AugmentPackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
@@ -61,13 +61,13 @@ impl PackageLoader {
             package_loader.send(PackageEvent::CardManager(card_packages));
 
             // load battles
-            let battle_packages = package_loader.load_packages(
-                PackageCategory::Battle,
-                "./mods/battles",
+            let encounter_packages = package_loader.load_packages(
+                PackageCategory::Encounter,
+                "./mods/encounters",
                 "Loading Battles",
             );
 
-            package_loader.send(PackageEvent::BattleManager(battle_packages));
+            package_loader.send(PackageEvent::EncounterManager(encounter_packages));
 
             // load augments
             let augment_packages = package_loader.load_packages(

@@ -75,7 +75,8 @@ impl BattleLuaApi {
 
         super::math_api::inject_math_api(&mut lua_api);
         super::require_api::inject_require_api(&mut lua_api);
-        super::engine_api::inject_engine_api(&mut lua_api);
+        super::resources_api::inject_engine_api(&mut lua_api);
+        super::turn_gauge_api::inject_turn_gauge_api(&mut lua_api);
         super::entity_api::inject_entity_api(&mut lua_api);
         super::player_form_api::inject_player_form_api(&mut lua_api);
         super::component_api::inject_component_api(&mut lua_api);
@@ -88,7 +89,7 @@ impl BattleLuaApi {
         super::sync_node_api::inject_sync_node_api(&mut lua_api);
         super::animation_api::inject_animation_api(&mut lua_api);
         super::defense_rule_api::inject_defense_rule_api(&mut lua_api);
-        super::battle_init::inject_battle_init_api(&mut lua_api);
+        super::encounter_init::inject_encounter_init_api(&mut lua_api);
         super::built_in_api::inject_built_in_api(&mut lua_api);
 
         lua_api

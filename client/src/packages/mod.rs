@@ -1,7 +1,7 @@
 mod augment_package;
-mod battle_package;
 mod card_package;
 mod character_package;
+mod encounter_package;
 mod library_package;
 mod package;
 mod package_info;
@@ -13,9 +13,9 @@ mod repo_package_updater;
 mod util;
 
 pub use augment_package::*;
-pub use battle_package::*;
 pub use card_package::*;
 pub use character_package::*;
+pub use encounter_package::*;
 pub use library_package::*;
 pub use package::*;
 pub use package_info::*;
