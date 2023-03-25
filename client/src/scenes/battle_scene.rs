@@ -1,6 +1,6 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
-use crate::lua_api::{battle_init, create_battle_vm};
+use crate::lua_api::{create_battle_vm, encounter_init};
 use crate::packages::{Package, PackageInfo};
 use crate::render::*;
 use crate::resources::*;
@@ -85,8 +85,8 @@ impl BattleScene {
         scene.load_vms(game_io, &props);
 
         // load battle package
-        if let Some(battle_package) = props.battle_package {
-            let vm_index = scene.find_vm(battle_package.package_info()).unwrap();
+        if let Some(encounter_package) = props.encounter_package {
+            let vm_index = scene.find_vm(encounter_package.package_info()).unwrap();
 
             let context = BattleScriptContext {
                 vm_index,
@@ -95,7 +95,7 @@ impl BattleScene {
                 simulation: &mut scene.simulation,
             };
 
-            battle_init(context, props.data);
+            encounter_init(context, props.data);
         }
 
         // load the players in the correct order

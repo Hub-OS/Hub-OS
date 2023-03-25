@@ -1,5 +1,5 @@
 local user, charged, damage = ...
-local action = Battle.Action.new(user, "PLAYER_SHOOTING")
+local action = Action.new(user, "PLAYER_SHOOTING")
 local context = user:get_context()
 local rapid_level = user:get_rapid_level()
 
@@ -37,7 +37,7 @@ local cooldown = cooldown_table[rapid_level][6]
 local elapsed_frames = 0
 local spell_erased_frame = 0
 
-local spell = Battle.Spell.new(user:get_team())
+local spell = Spell.new(user:get_team())
 local can_move = false
 
 spell:set_facing(user:get_facing())
@@ -81,11 +81,11 @@ action.on_update_func = function()
 end
 
 action:add_anim_action(2, function()
-    Engine.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
+    Resources.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
 
     local field = user:get_field()
 
-    spell:set_hit_props(Battle.HitProps.new(
+    spell:set_hit_props(HitProps.new(
         damage,
         Hit.Impact,
         Element.None,
@@ -118,7 +118,7 @@ action:add_anim_action(2, function()
     end
 
     spell.on_collision_func = function(self, entity)
-        Engine.play_audio(_game_folder_path .. "resources/sfx/hurt.ogg");
+        Resources.play_audio(_game_folder_path .. "resources/sfx/hurt.ogg");
 
         local hit_x = 0
         local hit_y = entity:get_height()
@@ -132,7 +132,7 @@ action:add_anim_action(2, function()
             hit_y = math.random() * hit_y
         end
 
-        local hit_artifact = Battle.Artifact.new()
+        local hit_artifact = Artifact.new()
         hit_artifact:load_animation(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.animation")
         hit_artifact:set_texture(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.png")
         hit_artifact:set_offset(hit_x, -hit_y)

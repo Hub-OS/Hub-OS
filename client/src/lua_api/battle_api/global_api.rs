@@ -228,7 +228,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     let lifetimes_table = lua.create_table()?;
     lifetimes_table.set("Local", ComponentLifetime::Local)?;
     lifetimes_table.set("Battle", ComponentLifetime::BattleStep)?;
-    lifetimes_table.set("Battlestep", ComponentLifetime::BattleStep)?;
     lifetimes_table.set("Scene", ComponentLifetime::Scene)?;
     globals.set("Lifetimes", lifetimes_table)?;
 

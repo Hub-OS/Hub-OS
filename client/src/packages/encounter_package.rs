@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
-struct BattleMeta {
+struct EncounterMeta {
     category: String,
     name: String,
     description: String,
@@ -12,14 +12,14 @@ struct BattleMeta {
 }
 
 #[derive(Default, Clone)]
-pub struct BattlePackage {
+pub struct EncounterPackage {
     pub package_info: PackageInfo,
     pub name: String,
     pub description: String,
     pub preview_texture_path: String,
 }
 
-impl Package for BattlePackage {
+impl Package for EncounterPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
     }
@@ -35,18 +35,18 @@ impl Package for BattlePackage {
             description: self.description.clone(),
             creator: String::new(),
             hash: self.package_info.hash,
-            preview_data: PackagePreviewData::Battle,
+            preview_data: PackagePreviewData::Encounter,
             dependencies: self.package_info.requirements.clone(),
         }
     }
 
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
-        let mut package = BattlePackage {
+        let mut package = EncounterPackage {
             package_info,
             ..Default::default()
         };
 
-        let meta: BattleMeta = match package_table.try_into() {
+        let meta: EncounterMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {
                 log::error!("Failed to parse {:?}:\n{e}", package.package_info.toml_path);
@@ -54,9 +54,9 @@ impl Package for BattlePackage {
             }
         };
 
-        if meta.category != "battle" {
+        if meta.category != "encounter" {
             log::error!(
-                "Missing `category = \"battle\"` in {:?}",
+                "Missing `category = \"encounter\"` in {:?}",
                 package.package_info.toml_path
             );
         }

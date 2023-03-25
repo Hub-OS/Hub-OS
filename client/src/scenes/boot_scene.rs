@@ -129,8 +129,11 @@ impl BootScene {
                 PackageEvent::CardManager(card_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
                 }
-                PackageEvent::BattleManager(battle_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().battle_packages = battle_packages;
+                PackageEvent::EncounterManager(encounter_packages) => {
+                    game_io
+                        .resource_mut::<Globals>()
+                        .unwrap()
+                        .encounter_packages = encounter_packages;
                 }
                 PackageEvent::AugmentManager(augment_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;

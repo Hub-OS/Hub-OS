@@ -30,7 +30,7 @@ pub enum CategoryFilter {
     #[default]
     Cards,
     Augments,
-    Battle,
+    Encounters,
     Players,
     // Pack
 }
@@ -40,7 +40,7 @@ impl CategoryFilter {
         match self {
             CategoryFilter::Cards => "Cards",
             CategoryFilter::Augments => "Augments",
-            CategoryFilter::Battle => "Battle",
+            CategoryFilter::Encounters => "Battle",
             CategoryFilter::Players => "Players",
         }
     }
@@ -49,7 +49,7 @@ impl CategoryFilter {
         match self {
             CategoryFilter::Cards => "card",
             CategoryFilter::Augments => "augment",
-            CategoryFilter::Battle => "battle",
+            CategoryFilter::Encounters => "encounter",
             CategoryFilter::Players => "player",
         }
     }

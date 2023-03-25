@@ -31,8 +31,8 @@ impl BattleSelectScene {
         preview_sprite.set_position(Vec2::new(12.0 + 44.0, 36.0 + 28.0));
 
         // package list
-        let battle_manager = &globals.battle_packages;
-        let mut package_ids: Vec<_> = battle_manager
+        let encounter_manager = &globals.encounter_packages;
+        let mut package_ids: Vec<_> = encounter_manager
             .package_ids(PackageNamespace::Local)
             .cloned()
             .collect();
@@ -68,9 +68,9 @@ impl BattleSelectScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
-        let battle_manager = &globals.battle_packages;
+        let encounter_manager = &globals.encounter_packages;
 
-        let package = battle_manager
+        let package = encounter_manager
             .package(PackageNamespace::Local, package_id)
             .unwrap();
 
@@ -131,11 +131,11 @@ impl Scene for BattleSelectScene {
 
             // get the battle
             let package_id = &self.package_ids[self.selection];
-            let battle_package = globals
-                .battle_packages
+            let encounter_package = globals
+                .encounter_packages
                 .package_or_fallback(PackageNamespace::Server, package_id);
 
-            let props = BattleProps::new_with_defaults(game_io, battle_package);
+            let props = BattleProps::new_with_defaults(game_io, encounter_package);
 
             // set the next scene
             let scene = BattleScene::new(game_io, props);

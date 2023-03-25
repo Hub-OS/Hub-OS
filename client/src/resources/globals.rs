@@ -23,7 +23,7 @@ pub struct Globals {
     pub global_save: GlobalSave,
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
-    pub battle_packages: PackageManager<BattlePackage>,
+    pub encounter_packages: PackageManager<EncounterPackage>,
     pub character_packages: PackageManager<CharacterPackage>,
     pub augment_packages: PackageManager<AugmentPackage>,
     pub library_packages: PackageManager<LibraryPackage>,
@@ -131,7 +131,7 @@ impl Globals {
             global_save: GlobalSave::load(&assets),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),
-            battle_packages: PackageManager::new(PackageCategory::Battle),
+            encounter_packages: PackageManager::new(PackageCategory::Encounter),
             character_packages: PackageManager::new(PackageCategory::Character),
             augment_packages: PackageManager::new(PackageCategory::Augment),
             library_packages: PackageManager::new(PackageCategory::Library),
@@ -216,7 +216,7 @@ impl Globals {
                 .map(|package| &package.package_info),
         )
         .chain(
-            self.battle_packages
+            self.encounter_packages
                 .packages(namespace)
                 .map(|package| &package.package_info),
         )
@@ -252,8 +252,8 @@ impl Globals {
                 self.card_packages
                     .load_virtual_package(&self.assets, namespace, hash)
             }
-            PackageCategory::Battle => {
-                self.battle_packages
+            PackageCategory::Encounter => {
+                self.encounter_packages
                     .load_virtual_package(&self.assets, namespace, hash)
             }
             PackageCategory::Library => {
@@ -295,8 +295,8 @@ impl Globals {
             PackageCategory::Card => self
                 .card_packages
                 .load_package(&self.assets, namespace, path),
-            PackageCategory::Battle => {
-                self.battle_packages
+            PackageCategory::Encounter => {
+                self.encounter_packages
                     .load_package(&self.assets, namespace, path)
             }
             PackageCategory::Library => {
@@ -347,8 +347,8 @@ impl Globals {
                 self.card_packages
                     .unload_package(&self.assets, namespace, id);
             }
-            PackageCategory::Battle => {
-                self.battle_packages
+            PackageCategory::Encounter => {
+                self.encounter_packages
                     .unload_package(&self.assets, namespace, id);
             }
             PackageCategory::Library => {
@@ -403,14 +403,14 @@ impl Globals {
                 .collect::<Vec<_>>()
         });
 
-        let battle_package_iter = std::iter::once(props.battle_package)
+        let encounter_package_iter = std::iter::once(props.encounter_package)
             .flatten()
             .map(|package| package.package_info().triplet());
 
         let package_iter = player_package_iter
             .chain(card_package_iter)
             .chain(augment_package_iter)
-            .chain(battle_package_iter);
+            .chain(encounter_package_iter);
 
         self.package_dependency_iter(package_iter)
     }
@@ -467,8 +467,8 @@ impl Globals {
         id: &PackageId,
     ) -> Option<&PackageInfo> {
         match category {
-            PackageCategory::Battle => self
-                .battle_packages
+            PackageCategory::Encounter => self
+                .encounter_packages
                 .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Augment => self
@@ -502,8 +502,8 @@ impl Globals {
         let namespace = PackageNamespace::Local;
 
         match category {
-            PackageCategory::Battle => self
-                .battle_packages
+            PackageCategory::Encounter => self
+                .encounter_packages
                 .package(namespace, id)
                 .map(|package| package.create_package_listing()),
             PackageCategory::Augment => self
@@ -534,7 +534,7 @@ impl Globals {
 
         self.library_packages
             .namespaces()
-            .chain(self.battle_packages.namespaces())
+            .chain(self.encounter_packages.namespaces())
             .chain(self.augment_packages.namespaces())
             .chain(self.card_packages.namespaces())
             .chain(self.player_packages.namespaces())
@@ -549,7 +549,7 @@ impl Globals {
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
-        self.battle_packages
+        self.encounter_packages
             .remove_namespace(&self.assets, namespace);
 
         self.augment_packages
@@ -585,7 +585,7 @@ impl Globals {
         &self,
     ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
         let ns = PackageNamespace::Local;
-        let package_ids: Vec<_> = (self.battle_packages.package_ids(ns))
+        let package_ids: Vec<_> = (self.encounter_packages.package_ids(ns))
             .chain(self.augment_packages.package_ids(ns))
             .chain(self.card_packages.package_ids(ns))
             .chain(self.character_packages.package_ids(ns))

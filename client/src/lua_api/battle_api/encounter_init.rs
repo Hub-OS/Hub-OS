@@ -1,5 +1,5 @@
 use super::field_api::get_field_table;
-use super::{create_entity_table, BattleLuaApi, BATTLE_INIT_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
+use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
 use crate::battle::{BattleScriptContext, Entity};
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
@@ -9,17 +9,17 @@ use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
-pub fn battle_init(context: BattleScriptContext, data: Option<String>) {
+pub fn encounter_init(context: BattleScriptContext, data: Option<String>) {
     let globals = context.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
     let vm = &context.vms[context.vm_index];
     let lua = &vm.lua;
 
-    let battle_init: rollback_mlua::Function = match lua.globals().get("battle_init") {
-        Ok(battle_init) => battle_init,
+    let encounter_init: rollback_mlua::Function = match lua.globals().get("encounter_init") {
+        Ok(encounter_init) => encounter_init,
         _ => {
-            log::error!("Missing battle_init() in {:?}", vm.path);
+            log::error!("Missing encounter_init() in {:?}", vm.path);
             return;
         }
     };
@@ -39,25 +39,25 @@ pub fn battle_init(context: BattleScriptContext, data: Option<String>) {
     battle_api.inject_dynamic(lua, &context, |lua| {
         lua.scope(|_| {
             let init_table = lua.create_table()?;
-            inherit_metatable(lua, BATTLE_INIT_TABLE, &init_table)?;
+            inherit_metatable(lua, ENCOUNTER_TABLE, &init_table)?;
 
-            battle_init.call((init_table, chunk))
+            encounter_init.call((init_table, chunk))
         })
     });
 }
 
-pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
+pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     inject_spawner_api(lua_api);
     inject_mutator_api(lua_api);
 
-    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "create_spawner", |_, lua, params| {
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "create_spawner", |_, lua, params| {
         let (_, package_id, rank): (rollback_mlua::Table, String, CharacterRank) =
             lua.unpack_multi(params)?;
 
         lua.pack_multi(create_spawner(lua, package_id, rank)?)
     });
 
-    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "spawn_player", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "spawn_player", |api_ctx, lua, params| {
         let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
             lua.unpack_multi(params)?;
 
@@ -78,41 +78,37 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
-        "set_background",
-        |api_ctx, lua, params| {
-            let (_, texture_path, animation_path, vel_x, vel_y): (
-                rollback_mlua::Table,
-                String,
-                String,
-                Option<f32>,
-                Option<f32>,
-            ) = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_background", |api_ctx, lua, params| {
+        let (_, texture_path, animation_path, vel_x, vel_y): (
+            rollback_mlua::Table,
+            String,
+            String,
+            Option<f32>,
+            Option<f32>,
+        ) = lua.unpack_multi(params)?;
 
-            let texture_path = absolute_path(lua, texture_path)?;
-            let animation_path = absolute_path(lua, animation_path)?;
+        let texture_path = absolute_path(lua, texture_path)?;
+        let animation_path = absolute_path(lua, animation_path)?;
 
-            let mut api_ctx = &mut *api_ctx.borrow_mut();
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
-            let assets = &globals.assets;
+        let mut api_ctx = &mut *api_ctx.borrow_mut();
+        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
-            let animator = Animator::load_new(assets, &animation_path);
-            let sprite = assets.new_sprite(api_ctx.game_io, &texture_path);
+        let animator = Animator::load_new(assets, &animation_path);
+        let sprite = assets.new_sprite(api_ctx.game_io, &texture_path);
 
-            let mut background = Background::new(animator, sprite);
+        let mut background = Background::new(animator, sprite);
 
-            if let (Some(vel_x), Some(vel_y)) = (vel_x, vel_y) {
-                background.set_velocity(Vec2::new(vel_x, vel_y));
-            }
+        if let (Some(vel_x), Some(vel_y)) = (vel_x, vel_y) {
+            background.set_velocity(Vec2::new(vel_x, vel_y));
+        }
 
-            api_ctx.simulation.background = background;
+        api_ctx.simulation.background = background;
 
-            lua.pack_multi(())
-        },
-    );
+        lua.pack_multi(())
+    });
 
-    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "set_panels", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_panels", |api_ctx, lua, params| {
         let (_, texture_paths, animation_path, spacing_x, spacing_y): (
             rollback_mlua::Table,
             [String; 3],
@@ -149,14 +145,14 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
     //     mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
     //   },
 
-    lua_api.add_dynamic_function(BATTLE_INIT_TABLE, "get_field", |_, lua, _| {
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "get_field", |_, lua, _| {
         let field_table = get_field_table(lua)?;
 
         lua.pack_multi(field_table)
     });
 
     lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
+        ENCOUNTER_TABLE,
         "enable_automatic_turn_end",
         |api_ctx, lua, params| {
             let enabled: Option<bool> = lua.unpack_multi(params)?;
@@ -169,22 +165,18 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
-        "set_turn_limit",
-        |api_ctx, lua, params| {
-            let (_, turn_limit): (rollback_mlua::Table, u32) = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_turn_limit", |api_ctx, lua, params| {
+        let (_, turn_limit): (rollback_mlua::Table, u32) = lua.unpack_multi(params)?;
 
-            let mut api_ctx = api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
-            simulation.config.turn_limit = Some(turn_limit);
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        simulation.config.turn_limit = Some(turn_limit);
 
-            lua.pack_multi(())
-        },
-    );
+        lua.pack_multi(())
+    });
 
     lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
+        ENCOUNTER_TABLE,
         "enable_flipping",
         |api_ctx, lua, params| {
             let (_, enable, player_index): (rollback_mlua::Table, Option<bool>, Option<usize>) =
@@ -207,18 +199,14 @@ pub fn inject_battle_init_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(
-        BATTLE_INIT_TABLE,
-        "enable_boss_battle",
-        |api_ctx, lua, _| {
-            let mut api_ctx = api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "enable_boss_battle", |api_ctx, lua, _| {
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
 
-            simulation.statistics.boss_battle = true;
+        simulation.statistics.boss_battle = true;
 
-            lua.pack_multi(())
-        },
-    );
+        lua.pack_multi(())
+    });
 }
 
 fn inject_spawner_api(lua_api: &mut BattleLuaApi) {

@@ -18,7 +18,7 @@ const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
 
 pub struct NetplayProps {
     pub background: Option<Background>,
-    pub battle_package: Option<(PackageNamespace, PackageId)>,
+    pub encounter_package: Option<(PackageNamespace, PackageId)>,
     pub data: Option<String>,
     pub health: i32,
     pub base_health: i32,
@@ -58,7 +58,7 @@ pub struct NetplayInitScene {
     local_index: usize,
     local_health: i32,
     local_base_health: i32,
-    battle_package: Option<(PackageNamespace, PackageId)>,
+    encounter_package: Option<(PackageNamespace, PackageId)>,
     data: Option<String>,
     background: Option<Background>,
     statistics_callback: Option<BattleStatisticsCallback>,
@@ -80,7 +80,7 @@ impl NetplayInitScene {
     pub fn new(game_io: &GameIO, props: NetplayProps) -> Self {
         let NetplayProps {
             background,
-            battle_package,
+            encounter_package,
             data,
             health,
             base_health,
@@ -170,7 +170,7 @@ impl NetplayInitScene {
             local_index,
             local_health: health,
             local_base_health: base_health,
-            battle_package,
+            encounter_package,
             data,
             background,
             statistics_callback,
@@ -604,14 +604,14 @@ impl NetplayInitScene {
             globals.assets.remove_unused_virtual_zips();
 
             // get package
-            let battle_package = self.battle_package.take();
-            let battle_package = battle_package.and_then(|(namespace, package_id)| {
+            let encounter_package = self.encounter_package.take();
+            let encounter_package = encounter_package.and_then(|(namespace, package_id)| {
                 globals
-                    .battle_packages
+                    .encounter_packages
                     .package_or_fallback(namespace, &package_id)
             });
 
-            let mut props = BattleProps::new_with_defaults(game_io, battle_package);
+            let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
 
             props.statistics_callback = self.statistics_callback.take();
             props.data = self.data.take();

@@ -138,10 +138,17 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field_table)
     });
 
-    setter(lua_api, "share_tile", |entity: &mut Entity, _, share| {
-        entity.share_tile = share;
-        Ok(())
+    getter(lua_api, "is_sharing_tile", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.share_tile)
     });
+    setter(
+        lua_api,
+        "enable_sharing_tile",
+        |entity: &mut Entity, _, share: Option<bool>| {
+            entity.share_tile = share.unwrap_or(true);
+            Ok(())
+        },
+    );
 
     setter(
         lua_api,
@@ -930,9 +937,9 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "toggle_hitbox",
-        |living: &mut Living, _, enabled| {
-            living.hitbox_enabled = enabled;
+        "enable_hitbox",
+        |living: &mut Living, _, enabled: Option<bool>| {
+            living.hitbox_enabled = enabled.unwrap_or(true);
             Ok(())
         },
     );
@@ -942,7 +949,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     });
     setter(
         lua_api,
-        "toggle_counter",
+        "set_counterable",
         |living: &mut Living, _, counterable| {
             living.counterable = counterable;
             Ok(())

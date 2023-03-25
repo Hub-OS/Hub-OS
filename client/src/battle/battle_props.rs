@@ -70,7 +70,7 @@ impl<'a> PlayerSetup<'a> {
 pub type BattleStatisticsCallback = Box<dyn FnOnce(Option<BattleStatistics>)>;
 
 pub struct BattleProps<'a> {
-    pub battle_package: Option<&'a BattlePackage>,
+    pub encounter_package: Option<&'a EncounterPackage>,
     pub data: Option<String>,
     pub seed: Option<u64>,
     pub background: Background,
@@ -83,7 +83,7 @@ pub struct BattleProps<'a> {
 impl<'a> BattleProps<'a> {
     pub fn new_with_defaults(
         game_io: &'a GameIO,
-        battle_package: Option<&'a BattlePackage>,
+        encounter_package: Option<&'a EncounterPackage>,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -93,7 +93,7 @@ impl<'a> BattleProps<'a> {
         let background = Background::new(background_animator, background_sprite);
 
         Self {
-            battle_package,
+            encounter_package,
             data: None,
             seed: None,
             background,
