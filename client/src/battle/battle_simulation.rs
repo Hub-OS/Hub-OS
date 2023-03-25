@@ -763,6 +763,45 @@ impl BattleSimulation {
         // characters should own their tiles by default
         entity.share_tile = false;
         entity.auto_reserves_tiles = true;
+        
+        let (entity, living) = self
+            .entities
+            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
+            .unwrap();
+
+        // hit callback for alert symbol
+        living.register_hit_callback(BattleCallback::new(
+            move |game_io, simulation, _, hit_props: HitProperties| {
+                if hit_props.damage == 0 {
+                    return;
+                }
+
+                let (entity, living) = simulation
+                    .entities
+                    .query_one_mut::<(&Entity, &Living)>(id.into())
+                    .unwrap();
+
+                if !entity.element.is_weak_to(hit_props.element)
+                    && !entity.element.is_weak_to(hit_props.secondary_element)
+                {
+                    // not super effective
+                    return;
+                }
+
+                //spawn alert artifact
+                let mut alert_position = entity.full_position();
+                alert_position.offset += Vec2::new(0.0, -entity.height);
+
+                let alert_id = simulation.create_alert(game_io);
+                let alert_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(alert_id.into())
+                    .unwrap();
+
+                alert_entity.copy_full_position(alert_position);
+                alert_entity.pending_spawn = true;
+            },
+        ));
 
         entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
             let tile = match simulation.field.tile_at_mut(dest) {
@@ -983,24 +1022,12 @@ impl BattleSimulation {
                     simulation.pending_callbacks.push(callback);
                 }
 
-                // spawn shine fx & alert fx
+                // spawn shine fx
                 let mut shine_position = entity.full_position();
                 shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
                 // play revert sfx
                 let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
-
-                let mut alert_position = entity.full_position();
-                alert_position.offset += Vec2::new(0.0, -entity.height);
-                
-                let alert_id = simulation.create_alert(game_io);
-                let alert_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(alert_id.into())
-                    .unwrap();
-
-                alert_entity.copy_full_position(alert_position);
-                alert_entity.pending_spawn = true;
 
                 // play revert sound effect
                 simulation.play_sound(game_io, revert_sfx);
@@ -1217,21 +1244,6 @@ impl BattleSimulation {
             game_io,
             ResourcePaths::BATTLE_POOF,
             ResourcePaths::BATTLE_POOF_ANIMATION,
-
-        );
-
-        let entity = self
-            .entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .unwrap();
-
-        // Revisit - does Poof make a sound by default?
-        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
-            // simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().explode_sfx);
-        });
-
-        id
-
         )
     }
 
