@@ -2264,18 +2264,22 @@ impl Net {
             }
         }
 
+        // create sprite
         let sprite = Sprite {
             definition: sprite_definition.clone(),
             public_sprites_index,
             client_id_restriction,
         };
 
+        // resolve relevant scope for notifying creation
         let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, &sprite)
             .map(|scope| scope.into_owned());
 
+        // store sprite
+        self.sprites.insert(id.clone(), sprite);
+
         let Some(scope) = scope else {
             // no clients to send packets to
-            self.sprites.insert(id.clone(), sprite);
             return id;
         };
 
@@ -2294,12 +2298,18 @@ impl Net {
         );
 
         // send creation packet
-        self.message_sprite_aware(id.clone(), |sprite_id| ServerPacket::SpriteCreated {
-            sprite_id,
+        let packet = ServerPacket::SpriteCreated {
+            sprite_id: id.clone(),
             sprite_definition,
-        });
+        };
 
-        self.sprites.insert(id.clone(), sprite);
+        broadcast_to_scope(
+            &mut self.packet_orchestrator.borrow_mut(),
+            scope,
+            &self.areas,
+            Reliability::ReliableOrdered,
+            packet,
+        );
 
         id
     }
