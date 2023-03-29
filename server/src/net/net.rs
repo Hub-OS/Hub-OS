@@ -135,7 +135,7 @@ impl Net {
         use super::asset::get_map_path;
 
         if id == "default" {
-            print!("Can't delete default area!");
+            log::error!("Can't delete default area!");
             return;
         }
 
