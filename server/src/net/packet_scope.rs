@@ -1,27 +1,22 @@
-#[derive(Clone, Copy)]
+use std::borrow::Cow;
+
+#[derive(Debug, Clone)]
 pub enum PacketScope<'a> {
     All,
-    Area(&'a str),
-    Client(&'a str),
-}
-
-#[derive(Clone)]
-pub enum PacketScopeOwned {
-    All,
-    Area(String),
-    Client(String),
+    Area(Cow<'a, str>),
+    Client(Cow<'a, str>),
 }
 
 impl<'a> PacketScope<'a> {
-    pub fn to_owned(self) -> PacketScopeOwned {
+    pub fn into_owned(self) -> PacketScope<'static> {
         match self {
-            PacketScope::All => PacketScopeOwned::All,
-            PacketScope::Area(id) => PacketScopeOwned::Area(id.to_string()),
-            PacketScope::Client(id) => PacketScopeOwned::Client(id.to_string()),
+            PacketScope::All => PacketScope::All,
+            PacketScope::Area(id) => PacketScope::Area(Cow::Owned(id.into_owned())),
+            PacketScope::Client(id) => PacketScope::Client(Cow::Owned(id.into_owned())),
         }
     }
 
-    pub fn is_visible_to(self, area_id: &str, player_id: &str) -> bool {
+    pub fn is_visible_to(&self, area_id: &str, player_id: &str) -> bool {
         match self {
             PacketScope::All => true,
             PacketScope::Area(id) => id == area_id,
