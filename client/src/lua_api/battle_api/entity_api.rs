@@ -148,20 +148,32 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(
+    getter(
         lua_api,
-        "set_float_shoe",
-        |entity: &mut Entity, _, enabled| {
-            entity.ignore_negative_tile_effects = enabled;
-            Ok(())
-        },
+        "ignoring_negative_tile_effects",
+        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.ignore_negative_tile_effects),
     );
 
     setter(
         lua_api,
-        "set_air_shoe",
-        |entity: &mut Entity, _, enabled| {
-            entity.ignore_hole_tiles = enabled;
+        "ignore_negative_tile_effects",
+        |entity: &mut Entity, _, enabled: Option<bool>| {
+            entity.ignore_negative_tile_effects = enabled.unwrap_or(true);
+            Ok(())
+        },
+    );
+
+    getter(
+        lua_api,
+        "ignoring_hole_tiles",
+        |entity: &Entity, lua, _: ()| lua.pack_multi(entity.ignore_hole_tiles),
+    );
+
+    setter(
+        lua_api,
+        "ignore_hole_tiles",
+        |entity: &mut Entity, _, enabled: Option<bool>| {
+            entity.ignore_hole_tiles = enabled.unwrap_or(true);
             Ok(())
         },
     );
