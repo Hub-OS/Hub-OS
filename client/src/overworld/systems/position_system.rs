@@ -46,7 +46,7 @@ pub fn system_position(area: &mut OverworldArea) {
         };
 
         if let Some(animator) = query.get() {
-            let point_offset = animator.point(point_name).unwrap_or_default() - animator.origin();
+            let point_offset = resolve_actor_point(animator, point_name);
             sprite.set_position(sprite.position() + point_offset);
         }
     }
@@ -57,5 +57,29 @@ pub fn system_position(area: &mut OverworldArea) {
         .into_iter()
     {
         sprite.set_position(sprite.position() + offset);
+    }
+}
+
+fn resolve_actor_point(animator: &Animator, name: &str) -> Vec2 {
+    if let Some(point) = animator.point(name) {
+        return point - animator.origin();
+    }
+
+    match name.to_uppercase().as_str() {
+        "EMOTE" => {
+            // use the first frame of the IDLE_D or DL state to decide placement
+            // targeting top center
+            let frame_list = animator
+                .frame_list("IDLE_D")
+                .or_else(|| animator.frame_list("IDLE_DL"));
+
+            let point = frame_list
+                .and_then(|list| list.frames().first())
+                .map(|frame| frame.size() * Vec2::new(0.5, -1.0) - frame.origin)
+                .unwrap_or_default();
+
+            point + Vec2::new(0.0, -16.0)
+        }
+        _ => -animator.origin(),
     }
 }
