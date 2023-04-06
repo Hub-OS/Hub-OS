@@ -16,6 +16,7 @@ pub struct BattleSelectScene {
     preview_sprite: Sprite,
     textbox: Textbox,
     next_scene: NextScene,
+    title_text: String,
 }
 
 impl BattleSelectScene {
@@ -50,6 +51,7 @@ impl BattleSelectScene {
                 .with_accept_input(false)
                 .begin_open(),
             next_scene: NextScene::None,
+            title_text: String::from("BATTLE SELECT: "),
         });
 
         scene.update_preview(game_io);
@@ -73,6 +75,13 @@ impl BattleSelectScene {
         let package = encounter_manager
             .package(PackageNamespace::Local, package_id)
             .unwrap();
+
+        let package_name = package.name.as_str().to_uppercase();
+        if !package.name.is_empty() {
+            self.title_text = format!("BATTLE SELECT: {package_name}");
+        } else {
+            self.title_text = String::from("BATTLE SELECT: ???");
+        }
 
         let preview_texture = assets.texture(game_io, &package.preview_texture_path);
         self.preview_sprite.set_texture(preview_texture);
@@ -161,7 +170,7 @@ impl Scene for BattleSelectScene {
 
         // draw title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("BATTLE SELECT").draw(game_io, &mut sprite_queue);
+        SceneTitle::new(self.title_text.as_str()).draw(game_io, &mut sprite_queue);
 
         // draw preview sprite
         let preview_size = self.preview_sprite.size();
