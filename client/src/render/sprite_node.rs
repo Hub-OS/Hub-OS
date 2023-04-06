@@ -17,6 +17,7 @@ pub struct SpriteNode {
     sprite: Sprite,
     color_mode: SpriteColorMode, // root node resets every frame
     using_parent_shader: bool,
+    pixelate_with_alpha: bool,
     never_flip: bool,
     visible: bool,
     inherited_visible: bool,
@@ -40,6 +41,7 @@ impl SpriteNode {
             sprite,
             color_mode,
             using_parent_shader: false,
+            pixelate_with_alpha: false,
             never_flip: false,
             visible: true,
             inherited_visible: true,
@@ -139,6 +141,14 @@ impl SpriteNode {
         self.color_mode = mode;
     }
 
+    pub fn pixelate_with_alpha(&self) -> bool {
+        self.pixelate_with_alpha
+    }
+
+    pub fn set_pixelate_with_alpha(&mut self, enabled: bool) {
+        self.pixelate_with_alpha = enabled;
+    }
+
     pub fn palette_path(&self) -> Option<&str> {
         #[allow(clippy::question_mark)]
         if self.palette.is_none() {
@@ -187,6 +197,20 @@ impl SpriteNode {
 
     pub fn sprite(&self) -> &Sprite {
         &self.sprite
+    }
+
+    fn shader_effect(&self) -> SpriteShaderEffect {
+        if self.palette.is_some() {
+            if self.pixelate_with_alpha {
+                SpriteShaderEffect::PixelatePalette
+            } else {
+                SpriteShaderEffect::Palette
+            }
+        } else if self.pixelate_with_alpha {
+            SpriteShaderEffect::Pixelate
+        } else {
+            SpriteShaderEffect::Default
+        }
     }
 }
 
@@ -292,6 +316,7 @@ impl Tree<SpriteNode> {
 
         // capture root values before mutable reference
         let root_node = self.root();
+        let root_shader_effect = root_node.shader_effect();
         let root_palette = root_node.palette.clone();
         let root_color_mode = root_node.color_mode();
         let root_color = root_node.color();
@@ -309,26 +334,28 @@ impl Tree<SpriteNode> {
             }
 
             // resolve shader
+            let shader_effect;
             let palette;
             let color_mode;
             let color;
             let original_color = node.color();
 
             if node.using_parent_shader() {
+                shader_effect = root_shader_effect;
                 palette = &root_palette;
                 color_mode = root_color_mode;
                 color = root_color;
             } else {
+                shader_effect = node.shader_effect();
                 palette = &node.palette;
                 color_mode = node.color_mode();
                 color = node.color();
             }
 
+            sprite_queue.set_shader_effect(shader_effect);
+
             if let Some(texture) = palette.as_ref() {
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Palette);
                 sprite_queue.set_palette(texture.clone());
-            } else {
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
 
             sprite_queue.set_color_mode(color_mode);

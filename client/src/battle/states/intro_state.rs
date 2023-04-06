@@ -74,6 +74,7 @@ impl State for IntroState {
                 0.0
             };
 
+            root_node.set_pixelate_with_alpha(alpha < 1.0);
             root_node.set_alpha(alpha);
         }
 
