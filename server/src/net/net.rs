@@ -8,6 +8,7 @@ use crate::threads::ThreadMessage;
 use flume::Sender;
 use generational_arena::Arena;
 use packets::{Reliability, ServerPacket};
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -134,7 +135,7 @@ impl Net {
         use super::asset::get_map_path;
 
         if id == "default" {
-            print!("Can't delete default area!");
+            log::error!("Can't delete default area!");
             return;
         }
 
@@ -2263,18 +2264,22 @@ impl Net {
             }
         }
 
+        // create sprite
         let sprite = Sprite {
             definition: sprite_definition.clone(),
             public_sprites_index,
             client_id_restriction,
         };
 
+        // resolve relevant scope for notifying creation
         let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, &sprite)
-            .map(|scope| scope.to_owned());
+            .map(|scope| scope.into_owned());
+
+        // store sprite
+        self.sprites.insert(id.clone(), sprite);
 
         let Some(scope) = scope else {
             // no clients to send packets to
-            self.sprites.insert(id.clone(), sprite);
             return id;
         };
 
@@ -2285,7 +2290,7 @@ impl Net {
             &self.asset_manager,
             &self.areas,
             &mut self.clients,
-            scope,
+            &scope,
             [
                 &sprite_definition.animation_path,
                 &sprite_definition.texture_path,
@@ -2293,12 +2298,18 @@ impl Net {
         );
 
         // send creation packet
-        self.message_sprite_aware(id.clone(), |sprite_id| ServerPacket::SpriteCreated {
-            sprite_id,
+        let packet = ServerPacket::SpriteCreated {
+            sprite_id: id.clone(),
             sprite_definition,
-        });
+        };
 
-        self.sprites.insert(id.clone(), sprite);
+        broadcast_to_scope(
+            &mut self.packet_orchestrator.borrow_mut(),
+            scope,
+            &self.areas,
+            Reliability::ReliableOrdered,
+            packet,
+        );
 
         id
     }
@@ -2372,7 +2383,7 @@ impl Net {
     ) -> Option<PacketScope<'a>> {
         if let Some(client_id) = &sprite.client_id_restriction {
             // send the packet just to this client
-            return Some(PacketScope::Client(client_id));
+            return Some(PacketScope::Client(Cow::Borrowed(client_id)));
         }
 
         // assume public as there's no client_id_restriction
@@ -2382,7 +2393,7 @@ impl Net {
             let client_area_id = clients.get(actor_id).map(|client| &client.actor.area_id);
             let area_id = client_area_id.or_else(|| bots.get(actor_id).map(|actor| &actor.area_id));
 
-            return Some(PacketScope::Area(area_id?));
+            return Some(PacketScope::Area(Cow::Borrowed(area_id?)));
         }
 
         // broadcast to everyone
@@ -2617,12 +2628,12 @@ fn broadcast_to_scope(
             packet_orchestrator.broadcast_to_clients(reliability, packet);
         }
         PacketScope::Area(area_id) => {
-            if let Some(area) = areas.get(area_id) {
+            if let Some(area) = areas.get(area_id.as_ref()) {
                 broadcast_to_area(packet_orchestrator, area, reliability, packet);
             }
         }
         PacketScope::Client(id) => {
-            packet_orchestrator.send_by_id(id, reliability, packet);
+            packet_orchestrator.send_by_id(&id, reliability, packet);
         }
     }
 }
@@ -2719,14 +2730,14 @@ fn ensure_scope_has_assets<AI, A>(
     asset_manager: &AssetManager,
     areas: &HashMap<String, Area>,
     clients: &mut HashMap<String, Client>,
-    scope: PacketScopeOwned,
+    scope: &PacketScope,
     asset_paths: AI,
 ) where
     AI: IntoIterator<Item = A> + Clone,
     A: AsRef<str>,
 {
     match scope {
-        PacketScopeOwned::All => {
+        PacketScope::All => {
             for area in areas.values() {
                 ensure_assets(
                     packet_orchestrator,
@@ -2738,8 +2749,8 @@ fn ensure_scope_has_assets<AI, A>(
                 );
             }
         }
-        PacketScopeOwned::Area(area_id) => {
-            if let Some(area) = areas.get(&area_id) {
+        PacketScope::Area(area_id) => {
+            if let Some(area) = areas.get(area_id.as_ref()) {
                 ensure_assets(
                     packet_orchestrator,
                     max_payload_size,
@@ -2750,7 +2761,7 @@ fn ensure_scope_has_assets<AI, A>(
                 );
             }
         }
-        PacketScopeOwned::Client(id) => {
+        PacketScope::Client(id) => {
             ensure_assets(
                 packet_orchestrator,
                 max_payload_size,

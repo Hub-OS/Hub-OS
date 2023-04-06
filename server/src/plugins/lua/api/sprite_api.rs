@@ -27,9 +27,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         };
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.create_sprite(client_id_restriction, sprite_definition);
+        let sprite_id = net.create_sprite(client_id_restriction, sprite_definition);
 
-        lua_ctx.pack_multi(())
+        lua_ctx.pack_multi(sprite_id)
     });
 
     lua_api.add_dynamic_function("Net", "animate_sprite", |api_ctx, lua_ctx, params| {
