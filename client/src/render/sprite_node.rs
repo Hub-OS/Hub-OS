@@ -2,6 +2,7 @@ use super::{Animator, SpriteColorQueue, SpriteShaderEffect, Tree, TreeIndex};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
 use framework::prelude::*;
+use smallvec::SmallVec;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -219,7 +220,7 @@ impl Tree<SpriteNode> {
     }
 
     /// Inherit position into sprite + visibility into inherited_visible, adapts scale + adjust for perspective
-    pub fn inherit_from_parent(&mut self, root_offset: Vec2, flipped: bool) {
+    fn inherit_from_parent(&mut self, root_offset: Vec2, flipped: bool) {
         struct InheritedProperties {
             offset: Vec2,
             visible: bool,
@@ -272,12 +273,22 @@ impl Tree<SpriteNode> {
     }
 
     pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        self.draw_with_offset(sprite_queue, Vec2::ZERO, false);
+    }
+
+    pub fn draw_with_offset(
+        &mut self,
+        sprite_queue: &mut SpriteColorQueue,
+        root_offset: Vec2,
+        flipped: bool,
+    ) {
         let intial_shader_effect = sprite_queue.shader_effect();
 
-        // offset each child by parent node
-        self.inherit_from_parent(Vec2::ZERO, false);
+        type SpriteVec<'a> = SmallVec<[&'a mut SpriteNode; 5]>;
+        let mut sprite_nodes = SpriteVec::with_capacity(self.len());
 
-        let mut sprite_nodes = Vec::with_capacity(self.len());
+        // offset each child by parent node
+        self.inherit_from_parent(root_offset, flipped);
 
         // capture root values before mutable reference
         let root_node = self.root();
@@ -290,7 +301,6 @@ impl Tree<SpriteNode> {
         sprite_nodes.sort_by_key(|node| -node.layer());
 
         // draw nodes
-
         for node in sprite_nodes.iter_mut() {
             if !node.inherited_visible() {
                 // could possibly filter earlier,

@@ -2866,6 +2866,7 @@ dependencies = [
  "rust-ini",
  "serde",
  "serde_json",
+ "smallvec",
  "strum",
  "taffy",
  "toml",
