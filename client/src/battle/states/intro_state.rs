@@ -8,7 +8,7 @@ use framework::prelude::*;
 use std::collections::VecDeque;
 
 // max time per entity
-const MAX_ANIMATION_TIME: FrameTime = 30;
+const MAX_ANIMATION_TIME: FrameTime = 32;
 
 #[derive(Clone)]
 pub struct IntroState {
@@ -59,19 +59,22 @@ impl State for IntroState {
         }
 
         for (i, id) in self.tracked_entities.iter().cloned().enumerate() {
-            let entity = match entities.query_one_mut::<&mut Entity>(id.into()) {
-                Ok(entity) => entity,
-                Err(_) => continue,
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) else {
+                continue;
             };
 
             let root_node = entity.sprite_tree.root_mut();
 
             let alpha = if i == 0 {
-                self.animation_time as f32 / MAX_ANIMATION_TIME as f32
+                let max_time = MAX_ANIMATION_TIME / 2;
+                let time = (self.animation_time + 1) / 2;
+
+                time as f32 / max_time as f32
             } else {
                 0.0
             };
 
+            root_node.set_pixelate_with_alpha(alpha < 1.0);
             root_node.set_alpha(alpha);
         }
 

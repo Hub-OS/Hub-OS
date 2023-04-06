@@ -21,8 +21,15 @@ struct VertexOutput {
     @location(1) color: vec4<f32>,
 };
 
-@vertex
-fn vs_main(v_in: VertexInput) -> VertexOutput {
+
+struct PixelateVertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) color: vec4<f32>,
+    @location(2) frame_size: vec2<f32>,
+};
+
+fn plain_vs_main(v_in: VertexInput) -> VertexOutput {
     var v_out : VertexOutput;
 
     let transform = mat3x3<f32>(
@@ -36,13 +43,29 @@ fn vs_main(v_in: VertexInput) -> VertexOutput {
     v_out.position =
         camera.view_proj * vec4<f32>(transformed_position.x, transformed_position.y, 0.0, 1.0);
 
-    v_out.uv.x = v_in.bounds.x + v_in.uv.x * v_in.bounds.z;
-    v_out.uv.y = v_in.bounds.y + v_in.uv.y * v_in.bounds.w;
+    v_out.uv = v_in.bounds.xy + v_in.uv.xy * v_in.bounds.zw;
     v_out.color = v_in.color;
 
     return v_out;
 }
 
+@vertex
+fn vs_main(v_in: VertexInput) -> VertexOutput{
+    return plain_vs_main(v_in);
+}
+
+@vertex
+fn pixelate_vs_main(v_in: VertexInput) -> PixelateVertexOutput {
+    let plain_v_out = plain_vs_main(v_in);
+
+    var v_out : PixelateVertexOutput;
+    v_out.position = plain_v_out.position;
+    v_out.uv = plain_v_out.uv;
+    v_out.color = plain_v_out.color;
+    v_out.frame_size = v_in.bounds.zw;
+
+    return v_out;
+}
 
 @group(1) @binding(0)
 var txture: texture_2d<f32>;
@@ -77,6 +100,34 @@ fn greyscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>)
 
     let greyscale = vec4<f32>(vec3<f32>(average), sample.a);
     var out: vec4<f32> = clamp(color + greyscale, vec4<f32>(), vec4<f32>(1.0));
+    out.w = sample.w * color.w;
+
+    return out;
+}
+
+fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame_size: vec2<f32>) -> vec2<f32> {
+    let pixelation = mix(frame_size * 0.5, vec2<f32>(0.0), color.a);
+
+    if pixelation.x != 0.0 {
+        return trunc(uv / pixelation) * pixelation;
+    } else {
+        return uv;
+    }
+}
+
+@fragment
+fn pixelate_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame_size: vec2<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame_size);
+
+    return color * textureSample(txture, smplr, updated_uv);
+}
+
+@fragment
+fn pixelate_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame_size: vec2<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame_size);
+
+    let sample = textureSample(txture, smplr, updated_uv);
+    var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
     out.w = sample.w * color.w;
 
     return out;

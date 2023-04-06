@@ -1321,12 +1321,8 @@ impl BattleSimulation {
 
         sorted_entities.sort_by_key(|(_, key)| *key);
 
-        // reusing vec to avoid realloctions
-        let mut sprite_nodes_recycled = Vec::new();
-
         for (id, _) in sorted_entities {
             let entity = self.entities.query_one_mut::<&mut Entity>(id).unwrap();
-            let mut sprite_nodes = sprite_nodes_recycled;
 
             // offset for calculating initial placement position
             let mut offset: Vec2 = entity.corrected_offset(perspective_flipped);
@@ -1343,60 +1339,9 @@ impl BattleSimulation {
             // true if only one is true, since flipping twice causes us to no longer be flipped
             let flipped = perspective_flipped ^ entity.flipped();
 
-            // offset each child by parent node accounting for perspective
-            (entity.sprite_tree).inherit_from_parent(initial_position, flipped);
-
-            // capture root values before mutable reference
-            let root_node = entity.sprite_tree.root();
-            let root_palette = root_node.palette().cloned();
-            let root_color_mode = root_node.color_mode();
-            let root_color = root_node.color();
-
-            // sort nodes
-            sprite_nodes.extend(entity.sprite_tree.values_mut());
-            sprite_nodes.sort_by_key(|node| -node.layer());
-
-            // draw nodes
-            for node in sprite_nodes.iter_mut() {
-                if !node.inherited_visible() {
-                    // could possibly filter earlier,
-                    // but not expecting huge trees of invisible nodes
-                    continue;
-                }
-
-                // resolve shader
-                let palette;
-                let color_mode;
-                let color;
-                let original_color = node.color();
-
-                if node.using_parent_shader() {
-                    palette = root_palette.clone();
-                    color_mode = root_color_mode;
-                    color = root_color;
-                } else {
-                    palette = node.palette().cloned();
-                    color_mode = node.color_mode();
-                    color = node.color();
-                }
-
-                if let Some(texture) = palette {
-                    sprite_queue.set_shader_effect(SpriteShaderEffect::Palette);
-                    sprite_queue.set_palette(texture);
-                } else {
-                    sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-                }
-
-                sprite_queue.set_color_mode(color_mode);
-                node.set_color(color);
-
-                // finally drawing the sprite
-                sprite_queue.draw_sprite(node.sprite());
-
-                node.set_color(original_color);
-            }
-
-            sprite_nodes_recycled = recycle_vec(sprite_nodes);
+            // offset each child by parent node accounting for perspective, and draw
+            let sprite_tree = &mut entity.sprite_tree;
+            sprite_tree.draw_with_offset(&mut sprite_queue, initial_position, flipped);
         }
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
@@ -1502,10 +1447,4 @@ impl BattleSimulation {
         // we also can ignore async actions
         assert!(held_action_count >= executed_action_count);
     }
-}
-
-#[allow(clippy::needless_lifetimes)]
-pub fn recycle_vec<'a, 'b, T: ?Sized>(mut data: Vec<&'a mut T>) -> Vec<&'b mut T> {
-    data.clear();
-    unsafe { std::mem::transmute(data) }
 }

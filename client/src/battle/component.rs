@@ -47,6 +47,7 @@ impl Component {
 
             let root_node = entity.sprite_tree.root_mut();
             root_node.set_color(Color::WHITE.multiply_alpha(alpha));
+            root_node.set_pixelate_with_alpha(true);
 
             if elapsed_time >= TOTAL_DURATION {
                 simulation.mark_entity_for_erasure(game_io, vms, entity_id);
