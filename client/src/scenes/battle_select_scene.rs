@@ -76,7 +76,7 @@ impl BattleSelectScene {
             .package(PackageNamespace::Local, package_id)
             .unwrap();
 
-        let package_name = package.name.as_str().to_uppercase();
+        let package_name = package.name.to_uppercase();
         if !package.name.is_empty() {
             self.title_text = format!("BATTLE SELECT: {package_name}");
         } else {
