@@ -2,11 +2,11 @@ use super::*;
 use crate::{render::*, resources::TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
 
-pub struct SceneTitle {
-    title: &'static str,
+pub struct SceneTitle<'a> {
+    title: &'a str,
 }
-impl SceneTitle {
-    pub fn new(title: &'static str) -> Self {
+impl<'a> SceneTitle<'a> {
+    pub fn new(title: &'a str) -> Self {
         Self { title }
     }
 
