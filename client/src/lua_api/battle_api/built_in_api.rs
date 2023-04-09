@@ -45,9 +45,9 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
 
         let hitbox_id = simulation.create_spell(api_ctx.game_io);
 
-        let hitbox_entity = simulation
+        let (hitbox_entity, hitbox_spell) = simulation
             .entities
-            .query_one_mut::<&mut Entity>(hitbox_id.into())
+            .query_one_mut::<(&mut Entity, &mut Spell)>(hitbox_id.into())
             .unwrap();
 
         let start_time = simulation.battle_time;
@@ -98,21 +98,21 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
         });
 
         // forward attack callback
-        hitbox_entity.attack_callback = BattleCallback::new(move |game_io, simulation, vms, params| {
-            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(parent_id.into()) else {
+        hitbox_spell.attack_callback = BattleCallback::new(move |game_io, simulation, vms, params| {
+            let Ok(spell) = simulation.entities.query_one_mut::<&Spell>(parent_id.into()) else {
                 return;
             };
 
-            entity.attack_callback.clone().call(game_io, simulation, vms, params);
+            spell.attack_callback.clone().call(game_io, simulation, vms, params);
         });
 
         // forward collision callback
-        hitbox_entity.collision_callback = BattleCallback::new(move |game_io, simulation, vms, params| {
-            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(parent_id.into()) else {
+        hitbox_spell.collision_callback = BattleCallback::new(move |game_io, simulation, vms, params| {
+            let Ok(spell) = simulation.entities.query_one_mut::<&Spell>(parent_id.into()) else {
                 return;
             };
 
-            entity.collision_callback.clone().call(game_io, simulation, vms, params);
+            spell.collision_callback.clone().call(game_io, simulation, vms, params);
         });
 
         let hitbox_table = create_entity_table(lua, hitbox_id);

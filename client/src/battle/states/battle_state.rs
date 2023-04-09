@@ -655,12 +655,12 @@ impl BattleState {
 
                 // collision callback
                 let entities = &mut simulation.entities;
-                let Ok(spell_entity) = entities.query_one_mut::<&mut Entity>(attacker_id.into()) else {
+                let Ok(spell) = entities.query_one_mut::<&Spell>(attacker_id.into()) else {
                     continue
                 };
 
-                let collision_callback = spell_entity.collision_callback.clone();
-                let attack_callback = spell_entity.attack_callback.clone();
+                let collision_callback = spell.collision_callback.clone();
+                let attack_callback = spell.attack_callback.clone();
 
                 // defense check against DefenseOrder::Always
                 simulation.defense_judge = DefenseJudge::new();

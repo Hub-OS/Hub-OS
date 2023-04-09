@@ -730,26 +730,6 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        ATTACK_FN,
-        |entity: &mut Entity| &mut entity.attack_callback,
-        |lua, table, id| {
-            let other_table = create_entity_table(lua, id);
-            lua.pack_multi((table, other_table))
-        },
-    );
-
-    callback_setter(
-        lua_api,
-        COLLISION_FN,
-        |entity: &mut Entity| &mut entity.collision_callback,
-        |lua, table, id| {
-            let other_table = create_entity_table(lua, id);
-            lua.pack_multi((table, other_table))
-        },
-    );
-
-    callback_setter(
-        lua_api,
         SPAWN_FN,
         |entity: &mut Entity| &mut entity.spawn_callback,
         |lua, table, _| lua.pack_multi(table),
@@ -917,6 +897,26 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    callback_setter(
+        lua_api,
+        ATTACK_FN,
+        |spell: &mut Spell| &mut spell.attack_callback,
+        |lua, table, id| {
+            let other_table = create_entity_table(lua, id);
+            lua.pack_multi((table, other_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        COLLISION_FN,
+        |spell: &mut Spell| &mut spell.collision_callback,
+        |lua, table, id| {
+            let other_table = create_entity_table(lua, id);
+            lua.pack_multi((table, other_table))
+        },
+    );
 }
 
 fn inject_living_api(lua_api: &mut BattleLuaApi) {

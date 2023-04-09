@@ -46,8 +46,6 @@ pub struct Entity {
     pub local_components: Vec<generational_arena::Index>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub update_callback: BattleCallback,
-    pub collision_callback: BattleCallback<EntityId>,
-    pub attack_callback: BattleCallback<EntityId>,
     pub spawn_callback: BattleCallback,
     pub battle_start_callback: BattleCallback,
     pub battle_end_callback: BattleCallback,
@@ -101,8 +99,6 @@ impl Entity {
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
             update_callback: BattleCallback::stub(()),
-            collision_callback: BattleCallback::stub(()),
-            attack_callback: BattleCallback::stub(()),
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
