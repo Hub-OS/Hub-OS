@@ -692,7 +692,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(FIELD_TABLE, "on_delete", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "on_delete", |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
