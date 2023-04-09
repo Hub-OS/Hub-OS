@@ -723,6 +723,13 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
+        SPAWN_FN,
+        |entity: &mut Entity| &mut entity.spawn_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
+    callback_setter(
+        lua_api,
         UPDATE_FN,
         |entity: &mut Entity| &mut entity.update_callback,
         |lua, table, _| lua.pack_multi(table),
@@ -730,8 +737,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        SPAWN_FN,
-        |entity: &mut Entity| &mut entity.spawn_callback,
+        COUNTER_FN,
+        |entity: &mut Entity| &mut entity.counter_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
@@ -1022,6 +1029,13 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             living.register_status_callback(hit_flag, callback);
             Ok(())
         },
+    );
+
+    callback_setter(
+        lua_api,
+        COUNTERED_FN,
+        |living: &mut Living| &mut living.countered_callback,
+        |lua, table, _| lua.pack_multi(table),
     );
 }
 

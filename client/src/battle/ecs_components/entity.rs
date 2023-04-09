@@ -45,8 +45,9 @@ pub struct Entity {
     pub action_index: Option<generational_arena::Index>,
     pub local_components: Vec<generational_arena::Index>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
-    pub update_callback: BattleCallback,
     pub spawn_callback: BattleCallback,
+    pub update_callback: BattleCallback,
+    pub counter_callback: BattleCallback<EntityId>,
     pub battle_start_callback: BattleCallback,
     pub battle_end_callback: BattleCallback,
     pub delete_callback: BattleCallback,
@@ -102,6 +103,7 @@ impl Entity {
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
+            counter_callback: BattleCallback::stub(()),
             delete_callback: BattleCallback::new(move |game_io, simulation, vms, _| {
                 // default behavior, just erase
                 simulation.mark_entity_for_erasure(game_io, vms, id);

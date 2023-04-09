@@ -81,6 +81,10 @@ const EXECUTE_FN: &str = "on_execute_func";
 const DELETE_FN: &str = "on_delete_func";
 const BATTLE_START_FN: &str = "on_battle_start_func";
 const BATTLE_END_FN: &str = "on_battle_end_func";
+const COUNTER_FN: &str = "on_counter_func";
+
+// living
+const COUNTERED_FN: &str = "on_countered_func";
 
 // spells
 const COLLISION_FN: &str = "on_collision_func";

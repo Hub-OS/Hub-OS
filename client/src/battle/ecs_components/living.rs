@@ -19,6 +19,7 @@ pub struct Living {
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub hit_callbacks: Vec<BattleCallback<HitProperties>>,
+    pub countered_callback: BattleCallback,
 }
 
 impl Default for Living {
@@ -37,6 +38,7 @@ impl Default for Living {
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
             hit_callbacks: Vec::new(),
+            countered_callback: BattleCallback::default(),
         }
     }
 }
@@ -130,6 +132,32 @@ impl Living {
         // store callbacks
         let hit_callbacks = living.hit_callbacks.clone();
 
+        // handle counter
+        if living.counterable
+            && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
+            && (hit_props.flags & HitFlag::NO_COUNTER) == 0
+        {
+            living.counterable = false;
+
+            // notify self
+            let self_callback = living.countered_callback.clone();
+            simulation.pending_callbacks.push(self_callback);
+
+            // notify aggressor
+            let aggressor_id = hit_props.context.aggressor;
+
+            let notify_aggressor = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                let Ok(aggressor_entity) = simulation.entities.query_one_mut::<&Entity>(aggressor_id.into()) else {
+                    return;
+                };
+
+                let callback = aggressor_entity.counter_callback.clone();
+                callback.call(game_io, simulation, vms, entity_id);
+            });
+
+            simulation.pending_callbacks.push(notify_aggressor);
+        }
+
         // handle drag
         if hit_props.drags() && entity.movement.is_none() {
             let can_move_to_callback = entity.can_move_to_callback.clone();
@@ -164,5 +192,7 @@ impl Living {
         for callback in hit_callbacks {
             callback.call(game_io, simulation, vms, hit_props.clone());
         }
+
+        simulation.call_pending_callbacks(game_io, vms);
     }
 }
