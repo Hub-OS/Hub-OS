@@ -3042,7 +3042,7 @@ dependencies = [
 [[package]]
 name = "rollback_mlua"
 version = "0.1.0"
-source = "git+https://github.com/Real-PET/rollback-mlua#81cd05919fec12448700e99d23252ce48675ffb1"
+source = "git+https://github.com/Real-PET/rollback-mlua#780dd65a8fc81a993c979eb73e02be03952d59d3"
 dependencies = [
  "bstr",
  "cc",

@@ -47,13 +47,14 @@ impl std::fmt::Debug for PackageId {
     }
 }
 
-impl<'lua> rollback_mlua::FromLua<'lua> for PackageId {
-    fn from_lua(
-        lua_value: rollback_mlua::Value<'lua>,
-        _: &'lua rollback_mlua::Lua,
-    ) -> rollback_mlua::Result<Self> {
-        let rollback_mlua::Value::String(id) = lua_value else {
-            return Err(rollback_mlua::Error::FromLuaConversionError {
+#[cfg(feature = "rollback_mlua")]
+use rollback_mlua as mlua;
+
+#[cfg(feature = "rollback_mlua")]
+impl<'lua> mlua::FromLua<'lua> for PackageId {
+    fn from_lua(lua_value: mlua::Value<'lua>, _: &'lua mlua::Lua) -> mlua::Result<Self> {
+        let mlua::Value::String(id) = lua_value else {
+            return Err(mlua::Error::FromLuaConversionError {
                 from: lua_value.type_name(),
                 to: "PackageId",
                 message: None,
@@ -64,11 +65,9 @@ impl<'lua> rollback_mlua::FromLua<'lua> for PackageId {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for PackageId {
-    fn to_lua(
-        self,
-        lua: &'lua rollback_mlua::Lua,
-    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        lua.create_string(&self.0).map(rollback_mlua::Value::String)
+#[cfg(feature = "rollback_mlua")]
+impl<'lua> mlua::ToLua<'lua> for PackageId {
+    fn to_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+        lua.create_string(&self.0).map(mlua::Value::String)
     }
 }
