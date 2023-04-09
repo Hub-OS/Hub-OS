@@ -88,7 +88,7 @@ impl Entity {
             tile_offset: Vec2::ZERO,
             hit_context: HitContext {
                 aggressor: id,
-                ..Default::default()
+                flags: HitFlag::NO_COUNTER,
             },
             time_frozen_count: 0,
             ignore_hole_tiles: false,

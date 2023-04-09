@@ -1,9 +1,18 @@
-use super::{EntityId, HitFlags};
+use super::{EntityId, HitFlag, HitFlags};
 
-#[derive(Default, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct HitContext {
     pub aggressor: EntityId,
     pub flags: HitFlags,
+}
+
+impl Default for HitContext {
+    fn default() -> Self {
+        Self {
+            aggressor: Default::default(),
+            flags: HitFlag::NO_COUNTER,
+        }
+    }
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for HitContext {

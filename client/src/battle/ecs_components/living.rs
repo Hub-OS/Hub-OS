@@ -88,7 +88,7 @@ impl Living {
 
         if time_is_frozen {
             hit_props.flags |= HitFlag::SHAKE;
-            hit_props.flags |= HitFlag::NO_COUNTER;
+            hit_props.context.flags |= HitFlag::NO_COUNTER;
         }
 
         let entities = &mut simulation.entities;
@@ -126,17 +126,13 @@ impl Living {
             living.hit = true
         }
 
-        // apply statuses
-        living.status_director.apply_hit_flags(hit_props.flags);
-
-        // store callbacks
-        let hit_callbacks = living.hit_callbacks.clone();
-
         // handle counter
         if living.counterable
+            && !living.status_director.is_inactionable()
             && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
-            && (hit_props.flags & HitFlag::NO_COUNTER) == 0
+            && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0
         {
+            living.status_director.apply_status(HitFlag::PARALYZE, 150);
             living.counterable = false;
 
             // notify self
@@ -157,6 +153,12 @@ impl Living {
 
             simulation.pending_callbacks.push(notify_aggressor);
         }
+
+        // apply statuses
+        living.status_director.apply_hit_flags(hit_props.flags);
+
+        // store callbacks
+        let hit_callbacks = living.hit_callbacks.clone();
 
         // handle drag
         if hit_props.drags() && entity.movement.is_none() {

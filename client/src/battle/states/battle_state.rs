@@ -981,6 +981,18 @@ impl BattleState {
             lua_api.inject_dynamic(lua, &api_ctx, |lua| {
                 use rollback_mlua::ToLua;
 
+                {
+                    // allow attacks to counter
+                    let mut api_ctx = api_ctx.borrow_mut();
+                    let entities = &mut api_ctx.simulation.entities;
+
+                    let entity = entities
+                        .query_one_mut::<&mut Entity>(entity_id.into())
+                        .unwrap();
+                    entity.hit_context.flags = HitFlag::NONE;
+                }
+
+                // init card action
                 let entity_table = create_entity_table(lua, entity_id)?;
                 let lua_card_props = card_props.to_lua(lua)?;
 
@@ -988,6 +1000,17 @@ impl BattleState {
 
                 let index = table.raw_get("#id")?;
                 id = Some(index);
+
+                {
+                    // block attacks from countering
+                    let mut api_ctx = api_ctx.borrow_mut();
+                    let entities = &mut api_ctx.simulation.entities;
+
+                    let entity = entities
+                        .query_one_mut::<&mut Entity>(entity_id.into())
+                        .unwrap();
+                    entity.hit_context.flags = HitFlag::NO_COUNTER;
+                }
 
                 Ok(())
             });
@@ -1497,20 +1520,27 @@ impl BattleState {
                 let sprite_node = entity.sprite_tree.root_mut();
                 animator.apply(sprite_node);
 
+                // allow attacks to counter
+                entity.hit_context.flags = HitFlag::NONE;
+
                 // execute callback
                 if let Some(callback) = action.execute_callback.take() {
                     callback.call(game_io, simulation, vms, ());
                 }
+
+                let entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(entity_id.into())
+                    .unwrap();
+
+                // block attacks from countering
+                entity.hit_context.flags = HitFlag::NO_COUNTER;
 
                 // setup frame callbacks
                 let Some(action) = simulation.actions.get_mut(action_index) else {
                     continue;
                 };
 
-                let entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(entity_id.into())
-                    .unwrap();
                 let animator = &mut simulation.animators[animator_index];
 
                 for (frame_index, callback) in std::mem::take(&mut action.frame_callbacks) {
