@@ -4,6 +4,6 @@ use crate::{battle::BattleCallback, bindable::*};
 pub struct Spell {
     pub requested_highlight: TileHighlight,
     pub hit_props: HitProperties,
-    pub collision_callback: BattleCallback<EntityId>, // todo: move to spell?
-    pub attack_callback: BattleCallback<EntityId>,    // todo: move to spell?
+    pub collision_callback: BattleCallback<EntityId>,
+    pub attack_callback: BattleCallback<EntityId>,
 }
