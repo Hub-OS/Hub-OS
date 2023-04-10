@@ -1,5 +1,5 @@
 use super::errors::{entity_not_found, invalid_tile};
-use super::{create_entity_table, BattleLuaApi, TILE_TABLE};
+use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
 use crate::battle::{
     AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell, Tile,
 };
@@ -7,6 +7,8 @@ use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
 
 pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
+    inject_tile_cache(lua_api);
+
     lua_api.add_static_injector(|lua| {
         let table: rollback_mlua::Table = lua.named_registry_value(TILE_TABLE)?;
         let metatable = table.get_metatable().unwrap();
@@ -469,15 +471,34 @@ fn generate_find_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &
     });
 }
 
+fn inject_tile_cache(lua_api: &mut BattleLuaApi) {
+    lua_api.add_static_injector(|lua| {
+        lua.set_named_registry_value(TILE_CACHE_REGISTRY_KEY, lua.create_table()?)?;
+        Ok(())
+    });
+}
+
 pub fn create_tile_table(
     lua: &rollback_mlua::Lua,
     (x, y): (i32, i32),
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
-    let table = lua.create_table()?;
-    table.raw_set("#x", x)?;
-    table.raw_set("#y", y)?;
+    let tile_cache: rollback_mlua::Table = lua.named_registry_value(TILE_CACHE_REGISTRY_KEY)?;
 
-    inherit_metatable(lua, TILE_TABLE, &table)?;
+    let key = ((x as i64) << 4) | y as i64;
+
+    let table = if let Ok(table) = tile_cache.get(key) {
+        table
+    } else {
+        let table = lua.create_table()?;
+        table.raw_set("#x", x)?;
+        table.raw_set("#y", y)?;
+
+        inherit_metatable(lua, TILE_TABLE, &table)?;
+
+        tile_cache.raw_set(key, table.clone())?;
+
+        table
+    };
 
     Ok(table)
 }
