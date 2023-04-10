@@ -477,6 +477,52 @@ impl BattleScene {
             .map(|backup| backup.simulation.exit)
             .unwrap_or(self.simulation.exit)
     }
+
+    fn detect_debug_hotkeys(&self, game_io: &GameIO) {
+        if !game_io.input().is_key_down(Key::F3) {
+            return;
+        }
+
+        // list vms by memory usage
+        if game_io.input().was_key_just_pressed(Key::V) {
+            const NAMESPACE_WIDTH: usize = 9;
+            const MEMORY_WIDTH: usize = 11;
+
+            let mut vms_sorted: Vec<_> = self.vms.iter().collect();
+            vms_sorted.sort_by_key(|vm| vm.lua.unused_memory());
+
+            let package_id_width = vms_sorted
+                .iter()
+                .map(|vm| vm.package_id.as_str().len())
+                .max()
+                .unwrap_or_default()
+                .max(10);
+
+            // margin + header
+            println!(
+                "\n| Namespace | Package ID{:1$} | Used Memory | Free Memory |",
+                " ",
+                package_id_width - 10
+            );
+
+            // border
+            println!("| {:-<NAMESPACE_WIDTH$} | {:-<package_id_width$} | {:-<MEMORY_WIDTH$} | {:-<MEMORY_WIDTH$} |", "", "", "", "");
+
+            // list
+            for vm in vms_sorted {
+                println!(
+                    "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
+                    format!("{:?}", vm.namespace),
+                    vm.package_id,
+                    vm.lua.used_memory(),
+                    vm.lua.unused_memory().unwrap()
+                );
+            }
+
+            // margin
+            println!();
+        }
+    }
 }
 
 impl Scene for BattleScene {
@@ -490,6 +536,8 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        self.detect_debug_hotkeys(game_io);
+
         if !game_io.is_in_transition() && !self.started_music {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_music(&globals.battle_music, true);
