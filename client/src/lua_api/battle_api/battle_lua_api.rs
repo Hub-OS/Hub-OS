@@ -6,6 +6,7 @@ const PRIMARY_TABLE: &str = "Engine";
 
 use super::{DELEGATE_REGISTRY_KEY, DELEGATE_TYPE_REGISTRY_KEY};
 use crate::battle::BattleScriptContext;
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -60,7 +61,7 @@ const GETTER_FUNCTION: u8 = 2;
 
 pub struct BattleLuaApi {
     static_function_injectors: Vec<Box<dyn Fn(&rollback_mlua::Lua) -> rollback_mlua::Result<()>>>,
-    dynamic_functions: Vec<HashMap<(u8, String), LuaApiFunction>>,
+    dynamic_functions: Vec<HashMap<(u8, Cow<'static, str>), LuaApiFunction>>,
     table_paths: Vec<String>,
 }
 
@@ -122,7 +123,7 @@ impl BattleLuaApi {
         };
 
         let prev = self.dynamic_functions[index].insert(
-            (INDEX_CALLBACK, function_name.to_string()),
+            (INDEX_CALLBACK, Cow::Owned(function_name.to_string())),
             LuaApiFunction::new(func),
         );
 
@@ -150,7 +151,7 @@ impl BattleLuaApi {
         };
 
         let prev = self.dynamic_functions[index].insert(
-            (INDEX_CALLBACK, function_name.to_string()),
+            (INDEX_CALLBACK, Cow::Owned(function_name.to_string())),
             LuaApiFunction::new_getter(func),
         );
 
@@ -182,7 +183,7 @@ impl BattleLuaApi {
         };
 
         let prev = self.dynamic_functions[index].insert(
-            (NEWINDEX_CALLBACK, function_name.to_string()),
+            (NEWINDEX_CALLBACK, Cow::Owned(function_name.to_string())),
             LuaApiFunction::new(func),
         );
 
@@ -343,7 +344,14 @@ impl BattleLuaApi {
             lua.set_named_registry_value(
                 DELEGATE_TYPE_REGISTRY_KEY,
                 scope.create_function(
-                    move |_, (table_index, callback_type, function_name): (usize, u8, String)| {
+                    move |_,
+                          (table_index, callback_type, function_name): (
+                        usize,
+                        u8,
+                        rollback_mlua::String,
+                    )| {
+                        let function_name = Cow::Borrowed(function_name.to_str()?);
+
                         // return value is REGULAR_FUNCTION, GETTER_FUNCTION, or 0
                         let function_type = self
                             .dynamic_functions
@@ -364,9 +372,10 @@ impl BattleLuaApi {
                           (table_index, callback_type, function_name, params): (
                         usize,
                         u8,
-                        String,
+                        rollback_mlua::String,
                         rollback_mlua::MultiValue,
                     )| {
+                        let function_name = Cow::Borrowed(function_name.to_str()?);
                         let func = self
                             .dynamic_functions
                             .get(table_index)
