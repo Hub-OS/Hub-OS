@@ -4,6 +4,7 @@
 
 const PRIMARY_TABLE: &str = "Engine";
 
+use super::{DELEGATE_REGISTRY_KEY, DELEGATE_TYPE_REGISTRY_KEY};
 use crate::battle::BattleScriptContext;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -249,7 +250,7 @@ impl BattleLuaApi {
 
                         // try delegate
                         let type_check: Option<rollback_mlua::Function> =
-                            lua.named_registry_value("delegate_type")?;
+                            lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
 
                         let delegate_type: u8 = type_check
                             .map(|type_check| {
@@ -261,7 +262,7 @@ impl BattleLuaApi {
                         match delegate_type {
                             REGULAR_FUNCTION => {
                                 let func: rollback_mlua::Function =
-                                    lua.named_registry_value("delegate")?;
+                                    lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
                                 Ok(rollback_mlua::Value::Function(func.bind((
                                     table_index,
                                     INDEX_CALLBACK,
@@ -270,7 +271,7 @@ impl BattleLuaApi {
                             }
                             GETTER_FUNCTION => {
                                 let func: rollback_mlua::Function =
-                                    lua.named_registry_value("delegate")?;
+                                    lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
                                 func.call((table_index, INDEX_CALLBACK, key, self_table))
                             }
                             _ => Ok(rollback_mlua::Nil),
@@ -289,7 +290,7 @@ impl BattleLuaApi {
                         rollback_mlua::Value,
                     )| {
                         let type_check: Option<rollback_mlua::Function> =
-                            lua.named_registry_value("delegate_type")?;
+                            lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
 
                         let delegate_type: u8 = type_check
                             .map(|type_check| {
@@ -300,7 +301,7 @@ impl BattleLuaApi {
 
                         if delegate_type != 0 {
                             let func: rollback_mlua::Function =
-                                lua.named_registry_value("delegate")?;
+                                lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
 
                             func.call((table_index, NEWINDEX_CALLBACK, key, (self_table, value)))?;
                         } else {
@@ -335,11 +336,12 @@ impl BattleLuaApi {
     {
         let res = lua.scope(move |scope| -> rollback_mlua::Result<()> {
             let old_delegate_type: rollback_mlua::Value =
-                lua.named_registry_value("delegate_type")?;
-            let old_delegate: rollback_mlua::Value = lua.named_registry_value("delegate")?;
+                lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
+            let old_delegate: rollback_mlua::Value =
+                lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
 
             lua.set_named_registry_value(
-                "delegate_type",
+                DELEGATE_TYPE_REGISTRY_KEY,
                 scope.create_function(
                     move |_, (table_index, callback_type, function_name): (usize, u8, String)| {
                         // return value is REGULAR_FUNCTION, GETTER_FUNCTION, or 0
@@ -356,7 +358,7 @@ impl BattleLuaApi {
             )?;
 
             lua.set_named_registry_value(
-                "delegate",
+                DELEGATE_REGISTRY_KEY,
                 scope.create_function(
                     move |lua_ctx,
                           (table_index, callback_type, function_name, params): (
@@ -389,8 +391,8 @@ impl BattleLuaApi {
 
             wrapped_fn(lua)?;
 
-            lua.set_named_registry_value("delegate_type", old_delegate_type)?;
-            lua.set_named_registry_value("delegate", old_delegate)?;
+            lua.set_named_registry_value(DELEGATE_TYPE_REGISTRY_KEY, old_delegate_type)?;
+            lua.set_named_registry_value(DELEGATE_REGISTRY_KEY, old_delegate)?;
 
             Ok(())
         });

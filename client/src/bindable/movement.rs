@@ -1,5 +1,6 @@
 use super::Direction;
 use crate::battle::BattleCallback;
+use crate::lua_api::VM_INDEX_REGISTRY_KEY;
 use crate::render::FrameTime;
 
 #[derive(Default, Clone)]
@@ -124,7 +125,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
         let dest = (dest_table.raw_get("#x")?, dest_table.raw_get("#y")?);
 
         let on_begin: Option<rollback_mlua::Function> = table.get("on_begin_func")?;
-        let vm_index = lua.named_registry_value("vm_index")?;
+        let vm_index = lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?;
         let on_begin = on_begin
             .map(|func| BattleCallback::new_lua_callback(lua, vm_index, func))
             .transpose()?;

@@ -1,5 +1,6 @@
 use super::BattleScriptContext;
 use crate::battle::{BattleSimulation, RollbackVM};
+use crate::lua_api::VM_INDEX_REGISTRY_KEY;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
 use std::cell::RefCell;
@@ -120,7 +121,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for BattleCallback {
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<Self> {
         let function = rollback_mlua::Function::from_lua(lua_value, lua)?;
-        let vm_index = lua.named_registry_value("vm_index")?;
+        let vm_index = lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?;
         Self::new_lua_callback(lua, vm_index, function)
     }
 }

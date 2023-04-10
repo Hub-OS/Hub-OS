@@ -25,7 +25,7 @@ pub use battle_lua_api::*;
 pub use encounter_init::encounter_init;
 pub use entity_api::create_entity_table;
 
-// tables
+// tables, most are stored as named registry values
 pub const GLOBAL_TABLE: &str = "_G";
 pub const RESOURCES_TABLE: &str = "Resources";
 pub const TURN_GAUGE_TABLE: &str = "TurnGauge";
@@ -100,3 +100,9 @@ const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 
 // components
 const INIT_FN: &str = "on_init_func";
+
+// globals, using named registry keys to avoid lua globals / implementation privacy
+pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";
+pub const NAMESPACE_REGISTRY_KEY: &str = "namespace";
+const DELEGATE_TYPE_REGISTRY_KEY: &str = "delegate";
+const DELEGATE_REGISTRY_KEY: &str = "delegate_type";

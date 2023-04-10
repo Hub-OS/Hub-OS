@@ -1,3 +1,4 @@
+use super::{NAMESPACE_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
 use crate::packages::PackageInfo;
 use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
@@ -30,8 +31,9 @@ pub fn create_battle_vm(
     vms.push(vm);
 
     let lua = &vms.last().unwrap().lua;
-    lua.set_named_registry_value("vm_index", vm_index).unwrap();
-    lua.set_named_registry_value("namespace", package_info.namespace)
+    lua.set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
+        .unwrap();
+    lua.set_named_registry_value(NAMESPACE_REGISTRY_KEY, package_info.namespace)
         .unwrap();
 
     globals.battle_api.inject_static(lua).unwrap();

@@ -781,7 +781,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let namespace = lua.named_registry_value("namespace")?;
+        let namespace = lua.named_registry_value(NAMESPACE_REGISTRY_KEY)?;
 
         let id = api_ctx.simulation.load_character(
             api_ctx.game_io,
