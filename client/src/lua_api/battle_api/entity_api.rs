@@ -952,6 +952,9 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    getter(lua_api, "hitbox_enabled", |living: &Living, lua, _: ()| {
+        lua.pack_multi(living.hitbox_enabled)
+    });
     setter(
         lua_api,
         "enable_hitbox",
