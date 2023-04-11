@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PackageNamespace {
+    #[default]
     Local,
     Server,
     Remote(usize),
@@ -38,12 +39,6 @@ impl PackageNamespace {
             PackageNamespace::Server => Some(PackageNamespace::Local),
             PackageNamespace::Local => None,
         }
-    }
-}
-
-impl Default for PackageNamespace {
-    fn default() -> Self {
-        PackageNamespace::Local
     }
 }
 
