@@ -960,10 +960,10 @@ impl BattleState {
             };
 
             let lua = &vms[vm_index].lua;
-            let card_init: rollback_mlua::Function = match lua.globals().get("card_create_action") {
+            let card_init: rollback_mlua::Function = match lua.globals().get("card_init") {
                 Ok(card_init) => card_init,
                 _ => {
-                    log::error!("{package_id} is missing card_create_action()");
+                    log::error!("{package_id} is missing card_init()");
                     return None;
                 }
             };
