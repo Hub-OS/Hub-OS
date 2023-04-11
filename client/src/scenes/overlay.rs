@@ -9,6 +9,7 @@ pub struct Overlay {
     camera: Camera,
     rectangle: FlatModel,
     history: VecDeque<f32>,
+    last_key_pressed: Option<Key>,
 }
 
 const RECT_WIDTH: usize = 1;
@@ -27,12 +28,14 @@ impl Overlay {
             camera,
             rectangle,
             history: VecDeque::new(),
+            last_key_pressed: None,
         }
     }
 }
 
 impl SceneOverlay for Overlay {
     fn update(&mut self, game_io: &mut GameIO) {
+        // update performance history
         let frame_duration = game_io.frame_duration();
         let target_duration = game_io.target_duration();
         let scale = frame_duration.as_secs_f32() / target_duration.as_secs_f32();
@@ -43,13 +46,25 @@ impl SceneOverlay for Overlay {
             self.history.pop_front();
         }
 
-        let pressed_debug = game_io.input().was_key_just_pressed(Key::F3);
+        // testing input
+        let input = game_io.input();
+
+        if input.latest_key().is_some() {
+            self.last_key_pressed = input.latest_key();
+        }
+
+        // check to see if another key was pressed while F3 was held
+        // if another key was pressed, assume a debug hotkey was pressed, such as F3 + V
+        let toggling_debug =
+            input.was_key_released(Key::F3) && self.last_key_pressed == Some(Key::F3);
+
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
-        if pressed_debug {
+        if toggling_debug {
             globals.debug_visible = !globals.debug_visible;
         }
 
+        // tick globals since we run every tick anyway
         globals.tick();
     }
 
