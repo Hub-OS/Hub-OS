@@ -172,7 +172,7 @@ impl LocalAssetManager {
                     let mut bytes = Vec::new();
                     let read_result = file.read_to_end(&mut bytes);
 
-                    let sound = SoundBuffer(Arc::new(bytes));
+                    let sound = SoundBuffer::decode(bytes);
                     sound_cache.insert(virtual_path.clone(), sound);
                     virtual_files.push(virtual_path);
 
@@ -265,7 +265,7 @@ impl AssetManager for LocalAssetManager {
             sound.clone()
         } else {
             let bytes = fs::read(path).unwrap_or_default();
-            let sound = SoundBuffer(Arc::new(bytes));
+            let sound = SoundBuffer::decode(bytes);
             sound_cache.insert(path.to_string(), sound.clone());
             sound
         }

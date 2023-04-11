@@ -346,7 +346,7 @@ impl AssetManager for ServerAssetManager {
         if let Some(sound) = sounds.get(path) {
             sound.clone()
         } else {
-            let sound = SoundBuffer(Arc::new(self.binary(path)));
+            let sound = SoundBuffer::decode(self.binary(path));
             sounds.insert(path.to_string(), sound.clone());
             sound
         }

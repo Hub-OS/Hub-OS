@@ -156,20 +156,10 @@ impl AudioManager {
 
         music_sink.set_volume(self.music_volume);
 
-        use std::io::{BufReader, Cursor};
-        let cursor = Cursor::new(buffer.clone());
-        let reader = BufReader::new(cursor);
-
         if loops {
-            match rodio::Decoder::new_looped(reader) {
-                Ok(decoder) => music_sink.append(decoder),
-                Err(e) => log::error!("{e}"),
-            }
+            music_sink.append(buffer.create_looped_sampler());
         } else {
-            match rodio::Decoder::new(reader) {
-                Ok(decoder) => music_sink.append(decoder),
-                Err(e) => log::error!("{e}"),
-            }
+            music_sink.append(buffer.create_sampler());
         }
 
         *self.music_sink.borrow_mut() = Some(music_sink);
@@ -189,18 +179,12 @@ impl AudioManager {
             None => return,
         };
 
-        use std::io::{BufReader, Cursor};
-        let cursor = Cursor::new(buffer.clone());
-        let reader = BufReader::new(cursor);
-        let decoder = match rodio::Decoder::new(reader) {
-            Ok(decoder) => decoder,
-            Err(e) => {
-                log::error!("{e}");
-                return;
-            }
-        };
+        let source = buffer
+            .create_sampler()
+            .convert_samples()
+            .amplify(self.sfx_volume);
 
-        let res = stream_handle.play_raw(decoder.convert_samples().amplify(self.sfx_volume));
+        let res = stream_handle.play_raw(source);
 
         if let Err(e) = res {
             log::error!("{e}");
