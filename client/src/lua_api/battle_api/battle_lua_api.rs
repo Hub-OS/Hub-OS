@@ -262,13 +262,29 @@ impl BattleLuaApi {
 
                         match delegate_type {
                             REGULAR_FUNCTION => {
-                                let func: rollback_mlua::Function =
-                                    lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
-                                Ok(rollback_mlua::Value::Function(func.bind((
-                                    table_index,
-                                    INDEX_CALLBACK,
-                                    key.clone(),
-                                ))?))
+                                // cache this function to reduce garbage
+                                let key_registry_key = lua.create_registry_value(key.clone())?;
+
+                                let binded_func = lua.create_function(
+                                    move |lua, params: rollback_mlua::MultiValue| {
+                                        let func: rollback_mlua::Function =
+                                            lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
+
+                                        let key: rollback_mlua::String =
+                                            lua.registry_value(&key_registry_key)?;
+
+                                        func.call::<_, rollback_mlua::Value>((
+                                            table_index,
+                                            INDEX_CALLBACK,
+                                            key.clone(),
+                                            params,
+                                        ))
+                                    },
+                                )?;
+
+                                table.set(key, binded_func.clone())?;
+
+                                Ok(rollback_mlua::Value::Function(binded_func))
                             }
                             GETTER_FUNCTION => {
                                 let func: rollback_mlua::Function =
