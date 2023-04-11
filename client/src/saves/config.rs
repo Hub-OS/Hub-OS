@@ -14,6 +14,7 @@ pub enum KeyStyle {
 #[derive(Clone, PartialEq, Eq)]
 pub struct Config {
     pub fullscreen: bool,
+    pub vsync: bool,
     pub lock_aspect_ratio: bool,
     pub brightness: u8,
     pub saturation: u8,
@@ -198,6 +199,7 @@ impl Default for Config {
     fn default() -> Config {
         Config {
             fullscreen: false,
+            vsync: true,
             lock_aspect_ratio: true,
             brightness: 100,
             saturation: 100,
@@ -225,6 +227,7 @@ impl From<&str> for Config {
 
         let mut config = Config {
             fullscreen: false,
+            vsync: true,
             lock_aspect_ratio: true,
             brightness: 100,
             saturation: 100,
@@ -254,6 +257,7 @@ impl From<&str> for Config {
 
         if let Some(properties) = ini.section(Some("Video")) {
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
+            config.vsync = parse_or_default(properties.get("VSync"));
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
@@ -336,6 +340,7 @@ impl ToString for Config {
 
             writeln!(s, "[Video]")?;
             writeln!(s, "Fullscreen = {}", self.fullscreen)?;
+            writeln!(s, "VSync = {}", self.vsync)?;
             writeln!(s, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
             writeln!(s, "Brightness = {}", self.brightness)?;
             writeln!(s, "Saturation = {}", self.saturation)?;

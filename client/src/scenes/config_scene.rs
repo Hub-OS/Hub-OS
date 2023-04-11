@@ -207,6 +207,18 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
+                "VSync",
+                config.borrow().vsync,
+                config.clone(),
+                |game_io, mut config| {
+                    config.vsync = !config.vsync;
+
+                    game_io.graphics_mut().set_vsync_enabled(config.vsync);
+
+                    config.vsync
+                },
+            )),
+            Box::new(UiConfigToggle::new(
                 "Lock Aspect",
                 config.borrow().lock_aspect_ratio,
                 config.clone(),
