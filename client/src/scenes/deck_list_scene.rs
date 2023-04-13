@@ -144,7 +144,8 @@ impl Scene for DeckListScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let decks = &game_io.resource::<Globals>().unwrap().global_save.decks;
+        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        let decks = &global_save.decks;
 
         self.deck_scroll_tracker.set_total_items(decks.len());
 
@@ -153,6 +154,10 @@ impl Scene for DeckListScene {
         if let Some(deck) = decks.get(selected_index) {
             let count = deck.cards.len();
             self.card_scroll_tracker.set_total_items(count);
+        } else {
+            // make sure there's always at least one deck
+            global_save.selected_deck = 0;
+            create_new_deck(self, game_io);
         }
     }
 
@@ -290,6 +295,11 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
             scene.card_scroll_tracker.set_total_items(card_count);
             scene.textbox.close();
+
+            // make sure there's always at least one deck
+            if new_total == 0 {
+                create_new_deck(scene, game_io);
+            }
         }
         Ok(Event::CloseTextbox) => {
             scene.textbox.close();
@@ -432,19 +442,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             scene.textbox.push_interface(textbox_interface);
             scene.textbox.open();
         }
-        DeckOption::New => {
-            let name = String::from("NewFldr");
-            global_save.decks.push(Deck::new(name));
-
-            let total_deckss = global_save.decks.len();
-
-            scene.deck_scroll_tracker.set_total_items(total_deckss);
-
-            scene
-                .deck_scroll_tracker
-                .set_selected_index(total_deckss - 1);
-            scene.card_scroll_tracker.set_total_items(0);
-        }
+        DeckOption::New => create_new_deck(scene, game_io),
         DeckOption::Delete => {
             let event_sender = scene.event_sender.clone();
             let deck_name = &global_save.decks[global_save.selected_deck].name;
@@ -466,4 +464,20 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     }
 
     scene.context_menu.close();
+}
+
+fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
+    let globals = game_io.resource_mut::<Globals>().unwrap();
+    let global_save = &mut globals.global_save;
+
+    let name = String::from("NewFldr");
+    global_save.decks.push(Deck::new(name));
+
+    let total_decks = global_save.decks.len();
+
+    let deck_scroll_tracker = &mut scene.deck_scroll_tracker;
+    deck_scroll_tracker.set_total_items(total_decks);
+    deck_scroll_tracker.set_selected_index(total_decks - 1);
+
+    scene.card_scroll_tracker.set_total_items(0);
 }
