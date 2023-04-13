@@ -257,7 +257,7 @@ impl From<&str> for Config {
 
         if let Some(properties) = ini.section(Some("Video")) {
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
-            config.vsync = parse_or_default(properties.get("VSync"));
+            config.vsync = parse_or(properties.get("VSync"), true);
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
