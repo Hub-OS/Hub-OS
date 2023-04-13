@@ -247,7 +247,10 @@ impl ResourcePaths {
     }
 
     pub fn clean(path_str: &str) -> String {
-        path_clean::clean(&path_str.replace('\\', Self::SEPARATOR))
+        path_clean::clean(path_str)
+            .to_str()
+            .unwrap_or_default()
+            .replace("\\", Self::SEPARATOR)
     }
 
     pub fn clean_folder(path_str: &str) -> String {
@@ -255,9 +258,10 @@ impl ResourcePaths {
     }
 
     pub fn parent(path_str: &str) -> Option<&str> {
-        let index = path_str.rfind('/')?;
+        let last_index = path_str.len().max(1) - 1;
+        let slash_index = path_str[..last_index].rfind('/')?;
 
-        Some(&path_str[..index + 1])
+        Some(&path_str[..slash_index + 1])
     }
 
     pub fn shorten(path_str: &str) -> String {
@@ -266,5 +270,26 @@ impl ResourcePaths {
         } else {
             path_str.to_string()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clean() {
+        assert_eq!(ResourcePaths::clean("./.\\test"), String::from("test"));
+        assert_eq!(ResourcePaths::clean("../test"), String::from("../test"));
+        assert_eq!(ResourcePaths::clean("..\\test"), String::from("../test"));
+    }
+
+    #[test]
+    fn parent() {
+        assert_eq!(ResourcePaths::parent("a/b/c"), Some("a/b/"));
+        assert_eq!(ResourcePaths::parent("a/b/"), Some("a/"));
+        assert_eq!(ResourcePaths::parent("a/"), None);
+        assert_eq!(ResourcePaths::parent("a"), None);
+        assert_eq!(ResourcePaths::parent(""), None);
     }
 }
