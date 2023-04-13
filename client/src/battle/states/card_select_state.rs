@@ -93,7 +93,7 @@ impl State for CardSelectState {
 
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
-            simulation.play_sound(game_io, &globals.card_select_open_sfx);
+            simulation.play_sound(game_io, &globals.sfx.card_select_open);
 
             // initialize selections
         }
@@ -540,7 +540,7 @@ impl CardSelectState {
                     // sfx
                     if !is_resimulation {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.transform_select_sfx);
+                        globals.audio.play_sound(&globals.sfx.transform_select);
                     }
 
                     return;
@@ -591,7 +591,7 @@ impl CardSelectState {
         if prev_row != selection.form_row && selection.local && !is_resimulation {
             // cursor move sfx
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if input.was_just_pressed(Input::Confirm) {
@@ -610,7 +610,7 @@ impl CardSelectState {
             // sfx
             if selection.local && !is_resimulation {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.cursor_select_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_select);
             }
         }
 
@@ -621,7 +621,7 @@ impl CardSelectState {
             // sfx
             if selection.local && !is_resimulation {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.form_select_close_sfx);
+                globals.audio.play_sound(&globals.sfx.form_select_close);
             }
         }
     }
@@ -649,7 +649,7 @@ impl CardSelectState {
             selection.form_open_time = Some(self.time);
 
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.form_select_open_sfx);
+            globals.audio.play_sound(&globals.sfx.form_select_open);
             return;
         }
 
@@ -674,7 +674,7 @@ impl CardSelectState {
         // sfx
         if previous_item != selected_item && selection.local && !is_resimulation {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if input.was_just_pressed(Input::Confirm) {
@@ -685,7 +685,7 @@ impl CardSelectState {
                     // sfx
                     if selection.local && !is_resimulation {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.card_select_confirm_sfx);
+                        globals.audio.play_sound(&globals.sfx.card_select_confirm);
                     }
                 }
                 SelectedItem::Card(index) => {
@@ -697,12 +697,12 @@ impl CardSelectState {
                         // sfx
                         if selection.local && !is_resimulation {
                             let globals = game_io.resource::<Globals>().unwrap();
-                            globals.audio.play_sound(&globals.cursor_select_sfx);
+                            globals.audio.play_sound(&globals.sfx.cursor_select);
                         }
                     } else if selection.local && !is_resimulation {
                         // error sfx
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.cursor_error_sfx);
+                        globals.audio.play_sound(&globals.sfx.cursor_error);
                     }
                 }
                 _ => {}
@@ -721,16 +721,16 @@ impl CardSelectState {
                 applied = true;
 
                 if selection.local && !is_resimulation {
-                    globals.audio.play_sound(&globals.transform_revert_sfx);
+                    globals.audio.play_sound(&globals.sfx.transform_revert);
                 }
             }
 
             // sfx
             if selection.local && !is_resimulation {
                 if applied {
-                    globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
                 } else {
-                    globals.audio.play_sound(&globals.cursor_error_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
             }
         }

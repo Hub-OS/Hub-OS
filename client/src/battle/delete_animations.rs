@@ -5,8 +5,8 @@ use framework::prelude::GameIO;
 
 /// requires Living component
 pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulation, id: EntityId) {
-    let player_deleted_sfx = &game_io.resource::<Globals>().unwrap().player_deleted_sfx;
-    simulation.play_sound(game_io, player_deleted_sfx);
+    let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+    simulation.play_sound(game_io, &sfx.player_deleted);
 
     let (entity, living) = simulation
         .entities

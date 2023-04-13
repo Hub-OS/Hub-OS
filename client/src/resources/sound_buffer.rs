@@ -57,6 +57,12 @@ impl SoundBuffer {
     }
 }
 
+impl Default for SoundBuffer {
+    fn default() -> Self {
+        Self::new_empty()
+    }
+}
+
 pub struct SoundBufferSampler {
     looped: bool,
     index: usize,

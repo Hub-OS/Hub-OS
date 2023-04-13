@@ -264,7 +264,7 @@ impl PackageScene {
 
         if prev_top_index != self.list.top_index() {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         self.buttons.update(game_io, &self.ui_input_tracker);
@@ -277,7 +277,7 @@ impl PackageScene {
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.menu_close_sfx);
+            globals.audio.play_sound(&globals.sfx.menu_close);
         }
     }
 

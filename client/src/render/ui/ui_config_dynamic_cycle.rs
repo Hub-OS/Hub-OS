@@ -119,6 +119,6 @@ impl<T: PartialEq> UiNode for UiConfigDynamicCycle<T> {
 
         self.text_scroller.reset();
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_move_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 }

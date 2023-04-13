@@ -613,7 +613,7 @@ impl ConfigScene {
                 }
                 Event::OpenBindingContextMenu(sender) => {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    globals.audio.play_sound(&globals.cursor_select_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
 
                     self.context_menu.open();
                     self.context_sender = Some(sender);
@@ -875,7 +875,7 @@ impl ConfigScene {
             // no changes, no need to ask if we should save
             let _ = self.event_sender.send(Event::Leave { save: false });
 
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
             return;
         }
 
@@ -915,7 +915,7 @@ impl ConfigScene {
 
         if input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.primary_layout.set_focused(true);
             self.secondary_layout.set_focused(false);

@@ -190,7 +190,7 @@ impl CharacterSelectScene {
         // update sprite and play sfx
         if v_selection_changed || h_selection_changed {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
 
             let package_id = self.selected_package_id();
             let player_package = Self::get_player_package(game_io, package_id);
@@ -235,7 +235,7 @@ impl CharacterSelectScene {
         // test select
         if input_util.was_just_pressed(Input::Confirm) {
             let globals = game_io.resource_mut::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.v_scroll_tracker.remember_index();
             self.h_scroll_tracker.remember_index();
@@ -250,7 +250,7 @@ impl CharacterSelectScene {
 
         if input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);

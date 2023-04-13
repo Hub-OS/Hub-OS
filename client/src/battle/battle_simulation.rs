@@ -514,7 +514,7 @@ impl BattleSimulation {
             if time_is_frozen && !self.is_resimulation {
                 // must be countering, play sfx
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.trap_sfx);
+                globals.audio.play_sound(&globals.sfx.trap);
             }
 
             time_freeze_tracker.set_team_action(entity.team, index);
@@ -970,7 +970,7 @@ impl BattleSimulation {
                     simulation.call_pending_callbacks(game_io, vms);
                 }));
 
-                simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().hurt_sfx);
+                simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
                 simulation.call_pending_callbacks(game_io, vms);
             }),
         );
@@ -1022,10 +1022,8 @@ impl BattleSimulation {
                 shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
                 // play revert sfx
-                let revert_sfx = &game_io.resource::<Globals>().unwrap().transform_revert_sfx;
-
-                // play revert sound effect
-                simulation.play_sound(game_io, revert_sfx);
+                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+                simulation.play_sound(game_io, &sfx.transform_revert);
 
                 // actual shine creation as indicated above
                 let shine_id = simulation.create_transformation_shine(game_io);
@@ -1220,7 +1218,7 @@ impl BattleSimulation {
             .unwrap();
 
         entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
-            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().explode_sfx);
+            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.explode);
         });
 
         id

@@ -122,7 +122,7 @@ impl Scene for MainMenuScene {
         let globals = game_io.resource::<Globals>().unwrap();
 
         if !game_io.is_in_transition() && !globals.audio.is_music_playing() {
-            globals.audio.play_music(&globals.main_menu_music, true);
+            globals.audio.play_music(&globals.music.main_menu, true);
         }
 
         // ui

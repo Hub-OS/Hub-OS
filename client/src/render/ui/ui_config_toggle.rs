@@ -77,9 +77,9 @@ impl UiNode for UiConfigToggle {
 
         if self.value == original_value {
             // toggle failed
-            globals.audio.play_sound(&globals.cursor_error_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_error);
         } else {
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
         }
     }
 }

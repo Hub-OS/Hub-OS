@@ -1,9 +1,8 @@
-use std::collections::HashSet;
-
 use super::*;
-use crate::resources::{LocalAssetManager, ResourcePaths};
+use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
+use std::collections::HashSet;
 
 pub struct PackageProgressUpdate {
     pub label: &'static str,
@@ -13,6 +12,8 @@ pub struct PackageProgressUpdate {
 
 pub enum PackageEvent {
     ProgressUpdate(PackageProgressUpdate),
+    Music(GlobalMusic),
+    Sfx(Box<GlobalSfx>),
     PlayerManager(PackageManager<PlayerPackage>),
     CardManager(PackageManager<CardPackage>),
     EncounterManager(PackageManager<EncounterPackage>),
@@ -41,6 +42,29 @@ impl PackageLoader {
                 child_packages: Vec::new(),
                 hashes: HashSet::new(),
             };
+
+            // todo: rename this struct? loads global resources as well
+            // load music
+            package_loader.send(PackageEvent::ProgressUpdate(PackageProgressUpdate {
+                label: "Loading Music",
+                progress: 0,
+                total: 1,
+            }));
+
+            let music = GlobalMusic::new(&package_loader.assets);
+            package_loader.send(PackageEvent::Music(music));
+
+            // load sfx
+            package_loader.send(PackageEvent::ProgressUpdate(PackageProgressUpdate {
+                label: "Loading SFX",
+                progress: 0,
+                total: 1,
+            }));
+
+            let sfx = Box::new(GlobalSfx::new(&package_loader.assets));
+            package_loader.send(PackageEvent::Sfx(sfx));
+
+            // load packages
 
             // load players
             let player_packages = package_loader.load_packages(

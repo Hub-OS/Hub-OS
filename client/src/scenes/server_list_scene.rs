@@ -360,12 +360,12 @@ impl Scene for ServerListScene {
 
         if self.scroll_tracker.selected_index() != old_index {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         if self.ui_input_tracker.is_active(Input::Option) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             // forget index to prevent issues from new servers shifting items around
             self.scroll_tracker.forget_index();
@@ -374,7 +374,7 @@ impl Scene for ServerListScene {
 
         if !self.statuses.is_empty() && self.ui_input_tracker.is_active(Input::Confirm) {
             let globals = game_io.resource_mut::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if let Some(index) = self.scroll_tracker.forget_index() {
                 let selected_index = self.scroll_tracker.selected_index();
@@ -393,7 +393,7 @@ impl Scene for ServerListScene {
                 if matches!(status, None | Some(ServerStatus::Online)) {
                     // play join sfx
                     globals.audio.push_music_stack();
-                    globals.audio.play_sound(&globals.transmission_sfx);
+                    globals.audio.play_sound(&globals.sfx.transmission);
 
                     // try connecting to the server
                     let scene =
@@ -414,11 +414,11 @@ impl Scene for ServerListScene {
             let globals = game_io.resource::<Globals>().unwrap();
 
             if self.scroll_tracker.remembered_index().is_some() {
-                globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
                 self.scroll_tracker.forget_index();
             } else {
-                globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
                 let transition = crate::transitions::new_scene_pop(game_io);
                 self.next_scene = NextScene::new_pop().with_transition(transition);

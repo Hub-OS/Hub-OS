@@ -269,7 +269,7 @@ impl UiNode for UiConfigBinding {
             // begin new binding
             if input_util.was_just_pressed(Input::Confirm) {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.cursor_select_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_select);
 
                 self.binding = true;
                 self.appending = false;

@@ -401,7 +401,7 @@ impl UiLayout {
 
             if old_index != self.focused_index {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_move);
             }
         }
     }

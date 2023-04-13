@@ -184,12 +184,8 @@ impl FormActivateState {
 
         // play sfx
         let globals = game_io.resource::<Globals>().unwrap();
-
-        let shine_sfx = &globals.shine_sfx;
-        simulation.play_sound(game_io, shine_sfx);
-
-        let transform_sfx = &globals.transform_sfx;
-        simulation.play_sound(game_io, transform_sfx);
+        simulation.play_sound(game_io, &globals.sfx.shine);
+        simulation.play_sound(game_io, &globals.sfx.transform);
     }
 
     fn detect_animation_end(

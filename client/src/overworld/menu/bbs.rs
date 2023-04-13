@@ -185,21 +185,21 @@ impl Menu for Bbs {
             .handle_vertical_input(&self.ui_input_tracker);
 
         if old_index != self.scroll_tracker.selected_index() {
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         // handle selection
         let input_util = InputUtil::new(game_io);
 
         if !self.posts.is_empty() && input_util.was_just_pressed(Input::Confirm) {
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             let post = &mut self.posts[self.scroll_tracker.selected_index()];
             post.read = true;
 
             (self.on_select)(&post.id);
         } else if input_util.was_just_pressed(Input::Cancel) {
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
             self.close();
         }
     }

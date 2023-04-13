@@ -298,7 +298,7 @@ impl CustomizeScene {
             }
 
             if block.rotation != prev_rotation {
-                globals.audio.play_sound(&globals.cursor_move_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 
             if self.input_tracker.is_active(Input::Confirm) {
@@ -311,11 +311,11 @@ impl CustomizeScene {
                 let success = self.grid.install_block(game_io, clone).is_none();
 
                 if success {
-                    globals.audio.play_sound(&globals.cursor_select_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
                     self.held_block = None;
                     self.update_colors();
                 } else {
-                    globals.audio.play_sound(&globals.cursor_error_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
             } else if self.input_tracker.is_active(Input::Cancel) {
                 let block = self.held_block.take().unwrap();
@@ -331,7 +331,7 @@ impl CustomizeScene {
                     self.state = State::ListSelection;
                 }
 
-                globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
             }
         }
 
@@ -356,7 +356,7 @@ impl CustomizeScene {
 
                     self.state = State::GridSelection { x: 5, y: y.max(1) };
 
-                    globals.audio.play_sound(&globals.cursor_select_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
                 } else {
                     // handle scrolling
                     let prev_index = self.scroll_tracker.selected_index();
@@ -373,7 +373,7 @@ impl CustomizeScene {
                     let selected_index = self.scroll_tracker.selected_index();
 
                     if prev_index != selected_index {
-                        globals.audio.play_sound(&globals.cursor_move_sfx);
+                        globals.audio.play_sound(&globals.sfx.cursor_move);
 
                         self.update_text(game_io);
                     }
@@ -393,13 +393,13 @@ impl CustomizeScene {
                             });
                             self.block_returns_to_grid = false;
 
-                            globals.audio.play_sound(&globals.cursor_select_sfx);
+                            globals.audio.play_sound(&globals.sfx.cursor_select);
                             self.state = State::GridSelection { x: 2, y: 2 };
                         } else {
                             // selected APPLY
                             self.state = State::Applying;
 
-                            globals.audio.play_sound(&globals.customize_start_sfx);
+                            globals.audio.play_sound(&globals.sfx.customize_start);
 
                             // save blocks
                             let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -429,7 +429,7 @@ impl CustomizeScene {
                         self.scroll_tracker.set_selected_index(last_index);
                     }
 
-                    globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
                 } else if self.input_tracker.is_active(Input::Confirm) && !prev_held && has_block {
                     self.state = State::BlockContext { x: old_x, y: old_y };
 
@@ -479,7 +479,7 @@ impl CustomizeScene {
                     self.state = State::GridSelection { x, y };
 
                     if self.state != prev_state {
-                        globals.audio.play_sound(&globals.cursor_move_sfx);
+                        globals.audio.play_sound(&globals.sfx.cursor_move);
                     }
                 }
             }
@@ -522,14 +522,14 @@ impl CustomizeScene {
                         GridArrowStatus::Block { position, progress } => {
                             if progress == 0.0 {
                                 if self.grid.get_block(position).is_some() {
-                                    globals.audio.play_sound(&globals.customize_block_sfx);
+                                    globals.audio.play_sound(&globals.sfx.customize_block);
                                 } else {
-                                    globals.audio.play_sound(&globals.customize_empty_sfx);
+                                    globals.audio.play_sound(&globals.sfx.customize_empty);
                                 }
                             }
                         }
                         GridArrowStatus::Fading => {
-                            globals.audio.play_sound(&globals.customize_complete_sfx);
+                            globals.audio.play_sound(&globals.sfx.customize_complete);
                         }
                         _ => {}
                     }
@@ -684,7 +684,7 @@ impl Scene for CustomizeScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.push_music_stack();
-        globals.audio.play_music(&globals.customize_music, true);
+        globals.audio.play_music(&globals.music.customize, true);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

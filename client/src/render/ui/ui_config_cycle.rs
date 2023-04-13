@@ -102,6 +102,6 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         (self.callback)(game_io, self.config.borrow_mut(), value);
 
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_move_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 }

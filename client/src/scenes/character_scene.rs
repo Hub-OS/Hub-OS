@@ -104,7 +104,7 @@ impl CharacterScene {
 
         if input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
@@ -378,7 +378,7 @@ impl StatusPage {
 
         if scrolled {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
     }
 

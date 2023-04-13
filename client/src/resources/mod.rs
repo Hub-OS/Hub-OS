@@ -1,6 +1,8 @@
 mod asset_manager;
 mod audio_manager;
 mod constants;
+mod global_music;
+mod global_sfx;
 mod globals;
 mod input;
 mod input_util;
@@ -12,6 +14,8 @@ mod sound_buffer;
 pub use asset_manager::*;
 pub use audio_manager::*;
 pub use constants::*;
+pub use global_music::*;
+pub use global_sfx::*;
 pub use globals::*;
 pub use input::*;
 pub use input_util::*;

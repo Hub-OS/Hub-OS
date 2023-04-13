@@ -929,7 +929,7 @@ impl OverworldOnlineScene {
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
                     // play sfx
                     globals.audio.stop_music();
-                    globals.audio.play_sound(&globals.battle_transition_sfx);
+                    globals.audio.play_sound(&globals.sfx.battle_transition);
 
                     // get package
                     let encounter_package = globals
@@ -976,7 +976,7 @@ impl OverworldOnlineScene {
                 // play sfx
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.stop_music();
-                globals.audio.play_sound(&globals.battle_transition_sfx);
+                globals.audio.play_sound(&globals.sfx.battle_transition);
 
                 // copy background
                 let background = self

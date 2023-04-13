@@ -540,7 +540,7 @@ impl Scene for BattleScene {
 
         if !game_io.is_in_transition() && !self.started_music {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_music(&globals.battle_music, true);
+            globals.audio.play_music(&globals.music.battle, true);
 
             self.started_music = true;
         }

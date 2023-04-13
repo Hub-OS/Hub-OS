@@ -101,7 +101,7 @@ impl LibraryScene {
             self.update_preview();
 
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         // switching docks
@@ -114,7 +114,7 @@ impl LibraryScene {
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
 

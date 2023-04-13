@@ -105,6 +105,14 @@ impl BootScene {
                     let multiplier = status_update.progress as f32 / status_update.total as f32;
                     self.update_progress_bar(multiplier);
                 }
+                PackageEvent::Music(music) => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.music = music;
+                }
+                PackageEvent::Sfx(sfx) => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.sfx = sfx;
+                }
                 PackageEvent::PlayerManager(player_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
@@ -225,7 +233,7 @@ impl Scene for BootScene {
         // transfer to the next scene
         if self.done && input_util.latest_input().is_some() {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.start_game_sfx);
+            globals.audio.play_sound(&globals.sfx.start_game);
 
             self.transfer(game_io);
         }

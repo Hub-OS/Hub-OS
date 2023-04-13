@@ -80,8 +80,8 @@ impl State for IntroState {
 
         if simulation.time > self.animation_delay {
             if self.animation_time == 0 {
-                let appear_sfx = &game_io.resource::<Globals>().unwrap().appear_sfx;
-                simulation.play_sound(game_io, appear_sfx);
+                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+                simulation.play_sound(game_io, &sfx.appear);
             }
 
             self.animation_time += 1;

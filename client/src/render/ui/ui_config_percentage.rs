@@ -106,7 +106,7 @@ impl UiNode for UiConfigPercentage {
             if left || right || confirm {
                 // focus, play sfx, update, and continue
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.cursor_select_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_select);
 
                 self.locking_focus = true;
             } else {
@@ -116,7 +116,7 @@ impl UiNode for UiConfigPercentage {
         } else if confirm || input_util.was_just_pressed(Input::Cancel) {
             // unfocus and play sfx
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.locking_focus = false;
             return;
@@ -172,7 +172,7 @@ impl UiNode for UiConfigPercentage {
         // play sfx after callback in case the sfx volume is adjusted
         if self.auditory_feedback {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
     }
 }

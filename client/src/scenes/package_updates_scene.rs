@@ -194,12 +194,12 @@ impl PackageUpdatesScene {
                 self.list.set_focused(false);
                 self.buttons.set_focused(true);
 
-                globals.audio.play_sound(&globals.cursor_cancel_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
             } else {
                 let transition = crate::transitions::new_sub_scene_pop(game_io);
                 self.next_scene = NextScene::new_pop().with_transition(transition);
 
-                globals.audio.play_sound(&globals.menu_close_sfx);
+                globals.audio.play_sound(&globals.sfx.menu_close);
             }
         }
     }

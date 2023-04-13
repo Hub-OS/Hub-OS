@@ -427,7 +427,7 @@ impl Textbox {
 
         if !silent_char && self.text_animation_enabled {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.text_blip_sfx);
+            globals.audio.play_sound(&globals.sfx.text_blip);
         }
 
         let animator = match self.avatar_queue.front_mut() {

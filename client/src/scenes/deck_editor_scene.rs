@@ -303,7 +303,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         active_dock.update_preview();
 
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_move_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 
     // selecting dock
@@ -319,7 +319,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     if input_util.was_just_pressed(Input::Confirm) {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_select_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_select);
 
         if let Some(index) = active_dock.scroll_tracker.forget_index() {
             dock_internal_swap(scene, game_io, index);
@@ -334,7 +334,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     // cancelling
     if input_util.was_just_pressed(Input::Cancel) {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_cancel_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         let cancel_handled = scene.deck_dock.scroll_tracker.forget_index().is_some()
             || scene.pack_dock.scroll_tracker.forget_index().is_some();
@@ -367,7 +367,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     // context menu
     if input_util.was_just_pressed(Input::Option) {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_select_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_select);
 
         scene.context_menu.open();
     }

@@ -327,7 +327,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
         if previous_deck_index != deck_index {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
 
             let count = decks[deck_index].cards.len();
             scene.card_scroll_tracker.set_total_items(count);
@@ -355,7 +355,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
     if previous_card_index != scene.card_scroll_tracker.selected_index() {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_move_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_move);
     }
 
     // confirm + cancel
@@ -363,7 +363,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
     if input_util.was_just_pressed(Input::Cancel) {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_cancel_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
         let transition = crate::transitions::new_scene_pop(game_io);
         scene.next_scene = NextScene::new_pop().with_transition(transition);
@@ -372,7 +372,7 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
     if input_util.was_just_pressed(Input::Confirm) {
         let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.cursor_select_sfx);
+        globals.audio.play_sound(&globals.sfx.cursor_select);
 
         let options: &[(&str, DeckOption)] = if total_decks == 0 {
             &[("NEW", DeckOption::New)]

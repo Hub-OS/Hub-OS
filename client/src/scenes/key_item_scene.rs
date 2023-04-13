@@ -134,7 +134,7 @@ impl Scene for KeyItemsScene {
 
         if self.ui_input_tracker.is_active(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             let transition = crate::transitions::new_sub_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
@@ -173,7 +173,7 @@ impl Scene for KeyItemsScene {
         if v_index_changed || h_index_changed {
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
 
             // update textbox
             let item = &self.key_items[v_index * 2 + h_index];

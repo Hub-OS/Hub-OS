@@ -189,7 +189,7 @@ impl BattleState {
         if previously_incomplete {
             // just completed, play a sfx
             let globals = game_io.resource::<Globals>().unwrap();
-            simulation.play_sound(game_io, &globals.turn_gauge_sfx);
+            simulation.play_sound(game_io, &globals.sfx.turn_gauge);
         }
 
         if simulation.config.turn_limit == Some(simulation.statistics.turns) {
@@ -324,7 +324,7 @@ impl BattleState {
                 // play sfx
                 simulation.play_sound(
                     game_io,
-                    &game_io.resource::<Globals>().unwrap().time_freeze_sfx,
+                    &game_io.resource::<Globals>().unwrap().sfx.time_freeze,
                 );
             }
         }
@@ -899,7 +899,7 @@ impl BattleState {
 
                     if !simulation.is_resimulation {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.attack_charging_sfx);
+                        globals.audio.play_sound(&globals.sfx.attack_charging);
                     }
                 }
 
@@ -911,7 +911,7 @@ impl BattleState {
 
                     if !simulation.is_resimulation {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.attack_charged_sfx);
+                        globals.audio.play_sound(&globals.sfx.attack_charged);
                     }
                 }
 

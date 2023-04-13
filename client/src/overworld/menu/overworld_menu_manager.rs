@@ -472,7 +472,7 @@ impl OverworldMenuManager {
 
             if handle_input && input_util.was_just_pressed(Input::Pause) {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.card_select_open_sfx);
+                globals.audio.play_sound(&globals.sfx.card_select_open);
                 self.navigation_menu.open();
             }
         }

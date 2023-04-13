@@ -78,21 +78,21 @@ impl TextboxInterface for TextboxQuestion {
 
         if self.input_tracker.is_active(Input::Left) || self.input_tracker.is_active(Input::Right) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
 
             self.selection = !self.selection;
         }
 
         if input_util.was_just_pressed(Input::Confirm) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.complete = true;
         }
 
         if input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_cancel_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.selection = false;
             self.complete = true;

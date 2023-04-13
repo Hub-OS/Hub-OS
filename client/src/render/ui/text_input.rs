@@ -116,7 +116,7 @@ impl UiNode for TextInput {
             if focused && (self.init_active || input_util.was_just_pressed(Input::Confirm)) {
                 if !self.silent {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    globals.audio.play_sound(&globals.cursor_select_sfx);
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
                 }
 
                 self.init_active = false;
@@ -142,7 +142,7 @@ impl UiNode for TextInput {
 
             if !self.silent {
                 let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.cursor_move_sfx);
+                globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 
             (self.change_callback)(&self.text);

@@ -219,7 +219,7 @@ impl NavigationMenu {
 
         if self.overlay && requesting_close {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.menu_close_sfx);
+            globals.audio.play_sound(&globals.sfx.menu_close);
             self.close();
         }
 
@@ -231,7 +231,7 @@ impl NavigationMenu {
 
         if prev_index != self.scroll_tracker.selected_index() {
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.cursor_move_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_move);
             self.update_item_sprites(prev_index);
         }
 
@@ -278,7 +278,7 @@ impl NavigationMenu {
         let globals = game_io.resource::<Globals>().unwrap();
 
         if let Some(scene) = scene {
-            globals.audio.play_sound(&globals.cursor_select_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_select);
 
             let transition = crate::transitions::new_navigation(game_io);
             NextScene::Push {
@@ -286,7 +286,7 @@ impl NavigationMenu {
                 transition: Some(Box::new(transition)),
             }
         } else {
-            globals.audio.play_sound(&globals.cursor_error_sfx);
+            globals.audio.play_sound(&globals.sfx.cursor_error);
             log::warn!("Not implemented");
             NextScene::None
         }

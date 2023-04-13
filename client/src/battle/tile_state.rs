@@ -111,7 +111,7 @@ impl TileState {
                 if tile.reservations().is_empty() {
                     if !simulation.is_resimulation {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.tile_break_sfx);
+                        globals.audio.play_sound(&globals.sfx.tile_break);
                     }
 
                     tile.set_state_index(TileState::BROKEN, None);
