@@ -1,6 +1,7 @@
-use super::{AssetManager, LocalAssetManager, ResourcePaths, SoundBuffer};
+use super::{ResourcePaths, SoundBuffer};
+use field_count::FieldCount;
 
-#[derive(Default)]
+#[derive(Default, FieldCount)]
 pub struct GlobalSfx {
     pub start_game: SoundBuffer,
     pub cursor_move: SoundBuffer,
@@ -38,41 +39,45 @@ pub struct GlobalSfx {
 }
 
 impl GlobalSfx {
-    pub fn new(assets: &LocalAssetManager) -> Self {
+    pub fn load_with(mut load: impl FnMut(&str) -> SoundBuffer) -> Self {
         Self {
-            start_game: assets.audio(ResourcePaths::START_GAME_SFX),
-            cursor_move: assets.audio(ResourcePaths::CURSOR_MOVE_SFX),
-            cursor_select: assets.audio(ResourcePaths::CURSOR_SELECT_SFX),
-            cursor_cancel: assets.audio(ResourcePaths::CURSOR_CANCEL_SFX),
-            cursor_error: assets.audio(ResourcePaths::CURSOR_ERROR_SFX),
-            menu_close: assets.audio(ResourcePaths::MENU_CLOSE_SFX),
-            page_turn: assets.audio(ResourcePaths::PAGE_TURN_SFX),
-            text_blip: assets.audio(ResourcePaths::TEXT_BLIP_SFX),
-            customize_start: assets.audio(ResourcePaths::CUSTOMIZE_START_SFX),
-            customize_empty: assets.audio(ResourcePaths::CUSTOMIZE_EMPTY_SFX),
-            customize_block: assets.audio(ResourcePaths::CUSTOMIZE_BLOCK_SFX),
-            customize_complete: assets.audio(ResourcePaths::CUSTOMIZE_COMPLETE_SFX),
-            transmission: assets.audio(ResourcePaths::TRANSMISSION_SFX),
-            warp: assets.audio(ResourcePaths::WARP_SFX),
-            battle_transition: assets.audio(ResourcePaths::BATTLE_TRANSITION_SFX),
-            appear: assets.audio(ResourcePaths::APPEAR_SFX),
-            card_select_open: assets.audio(ResourcePaths::CARD_SELECT_OPEN_SFX),
-            card_select_confirm: assets.audio(ResourcePaths::CARD_SELECT_CONFIRM_SFX),
-            form_select_open: assets.audio(ResourcePaths::FORM_SELECT_OPEN_SFX),
-            form_select_close: assets.audio(ResourcePaths::FORM_SELECT_CLOSE_SFX),
-            turn_gauge: assets.audio(ResourcePaths::TURN_GAUGE_SFX),
-            time_freeze: assets.audio(ResourcePaths::TIME_FREEZE_SFX),
-            tile_break: assets.audio(ResourcePaths::TILE_BREAK_SFX),
-            trap: assets.audio(ResourcePaths::TRAP_SFX),
-            shine: assets.audio(ResourcePaths::SHINE_SFX),
-            transform_select: assets.audio(ResourcePaths::TRANSFORM_SELECT_SFX),
-            transform: assets.audio(ResourcePaths::TRANSFORM_SFX),
-            transform_revert: assets.audio(ResourcePaths::TRANSFORM_REVERT_SFX),
-            attack_charging: assets.audio(ResourcePaths::ATTACK_CHARGING_SFX),
-            attack_charged: assets.audio(ResourcePaths::ATTACK_CHARGED_SFX),
-            player_deleted: assets.audio(ResourcePaths::PLAYER_DELETED_SFX),
-            hurt: assets.audio(ResourcePaths::HURT_SFX),
-            explode: assets.audio(ResourcePaths::EXPLODE_SFX),
+            start_game: load(ResourcePaths::START_GAME_SFX),
+            cursor_move: load(ResourcePaths::CURSOR_MOVE_SFX),
+            cursor_select: load(ResourcePaths::CURSOR_SELECT_SFX),
+            cursor_cancel: load(ResourcePaths::CURSOR_CANCEL_SFX),
+            cursor_error: load(ResourcePaths::CURSOR_ERROR_SFX),
+            menu_close: load(ResourcePaths::MENU_CLOSE_SFX),
+            page_turn: load(ResourcePaths::PAGE_TURN_SFX),
+            text_blip: load(ResourcePaths::TEXT_BLIP_SFX),
+            customize_start: load(ResourcePaths::CUSTOMIZE_START_SFX),
+            customize_empty: load(ResourcePaths::CUSTOMIZE_EMPTY_SFX),
+            customize_block: load(ResourcePaths::CUSTOMIZE_BLOCK_SFX),
+            customize_complete: load(ResourcePaths::CUSTOMIZE_COMPLETE_SFX),
+            transmission: load(ResourcePaths::TRANSMISSION_SFX),
+            warp: load(ResourcePaths::WARP_SFX),
+            battle_transition: load(ResourcePaths::BATTLE_TRANSITION_SFX),
+            appear: load(ResourcePaths::APPEAR_SFX),
+            card_select_open: load(ResourcePaths::CARD_SELECT_OPEN_SFX),
+            card_select_confirm: load(ResourcePaths::CARD_SELECT_CONFIRM_SFX),
+            form_select_open: load(ResourcePaths::FORM_SELECT_OPEN_SFX),
+            form_select_close: load(ResourcePaths::FORM_SELECT_CLOSE_SFX),
+            turn_gauge: load(ResourcePaths::TURN_GAUGE_SFX),
+            time_freeze: load(ResourcePaths::TIME_FREEZE_SFX),
+            tile_break: load(ResourcePaths::TILE_BREAK_SFX),
+            trap: load(ResourcePaths::TRAP_SFX),
+            shine: load(ResourcePaths::SHINE_SFX),
+            transform_select: load(ResourcePaths::TRANSFORM_SELECT_SFX),
+            transform: load(ResourcePaths::TRANSFORM_SFX),
+            transform_revert: load(ResourcePaths::TRANSFORM_REVERT_SFX),
+            attack_charging: load(ResourcePaths::ATTACK_CHARGING_SFX),
+            attack_charged: load(ResourcePaths::ATTACK_CHARGED_SFX),
+            player_deleted: load(ResourcePaths::PLAYER_DELETED_SFX),
+            hurt: load(ResourcePaths::HURT_SFX),
+            explode: load(ResourcePaths::EXPLODE_SFX),
         }
+    }
+
+    pub fn total() -> usize {
+        Self::field_count()
     }
 }

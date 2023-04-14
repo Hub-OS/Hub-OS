@@ -1,6 +1,7 @@
-use super::{AssetManager, LocalAssetManager, ResourcePaths, SoundBuffer};
+use super::{ResourcePaths, SoundBuffer};
+use field_count::FieldCount;
 
-#[derive(Default)]
+#[derive(Default, FieldCount)]
 pub struct GlobalMusic {
     pub main_menu: SoundBuffer,
     pub customize: SoundBuffer,
@@ -8,11 +9,15 @@ pub struct GlobalMusic {
 }
 
 impl GlobalMusic {
-    pub fn new(assets: &LocalAssetManager) -> Self {
+    pub fn load_with(mut load: impl FnMut(&str) -> SoundBuffer) -> Self {
         Self {
-            main_menu: assets.audio(ResourcePaths::MAIN_MENU_MUSIC),
-            customize: assets.audio(ResourcePaths::CUSTOMIZE_MUSIC),
-            battle: assets.audio(ResourcePaths::BATTLE_MUSIC),
+            main_menu: load(ResourcePaths::MAIN_MENU_MUSIC),
+            customize: load(ResourcePaths::CUSTOMIZE_MUSIC),
+            battle: load(ResourcePaths::BATTLE_MUSIC),
         }
+    }
+
+    pub fn total() -> usize {
+        Self::field_count()
     }
 }

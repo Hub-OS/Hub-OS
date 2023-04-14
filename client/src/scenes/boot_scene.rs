@@ -20,7 +20,7 @@ pub struct BootScene {
     status_position: Vec2,
     log_box: LogBox,
     log_receiver: flume::Receiver<LogRecord>,
-    event_receiver: flume::Receiver<PackageEvent>,
+    event_receiver: flume::Receiver<BootEvent>,
     done: bool,
     next_scene: NextScene,
 }
@@ -64,7 +64,7 @@ impl BootScene {
         let log_box = LogBox::new(game_io, log_bounds);
 
         // work thread
-        let receiver = PackageLoader::create_thread(game_io);
+        let receiver = BootThread::spawn(game_io);
 
         BootScene {
             camera: Camera::new_ui(game_io),
@@ -97,7 +97,7 @@ impl BootScene {
 
         while let Ok(message) = self.event_receiver.try_recv() {
             match message {
-                PackageEvent::ProgressUpdate(status_update) => {
+                BootEvent::ProgressUpdate(status_update) => {
                     // update progress text
                     self.status_label.text = status_update.label.to_string();
 
@@ -105,15 +105,15 @@ impl BootScene {
                     let multiplier = status_update.progress as f32 / status_update.total as f32;
                     self.update_progress_bar(multiplier);
                 }
-                PackageEvent::Music(music) => {
+                BootEvent::Music(music) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.music = music;
                 }
-                PackageEvent::Sfx(sfx) => {
+                BootEvent::Sfx(sfx) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.sfx = sfx;
                 }
-                PackageEvent::PlayerManager(player_packages) => {
+                BootEvent::PlayerManager(player_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     globals.player_packages = player_packages;
@@ -134,26 +134,26 @@ impl BootScene {
                         }
                     }
                 }
-                PackageEvent::CardManager(card_packages) => {
+                BootEvent::CardManager(card_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
                 }
-                PackageEvent::EncounterManager(encounter_packages) => {
+                BootEvent::EncounterManager(encounter_packages) => {
                     game_io
                         .resource_mut::<Globals>()
                         .unwrap()
                         .encounter_packages = encounter_packages;
                 }
-                PackageEvent::AugmentManager(augment_packages) => {
+                BootEvent::AugmentManager(augment_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
                 }
-                PackageEvent::LibraryManager(library_packages) => {
+                BootEvent::LibraryManager(library_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;
                 }
-                PackageEvent::CharacterManager(character_packages) => {
+                BootEvent::CharacterManager(character_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.character_packages = character_packages;
                 }
-                PackageEvent::Done => {
+                BootEvent::Done => {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let mut available_players =
                         globals.player_packages.package_ids(PackageNamespace::Local);

@@ -1,17 +1,19 @@
-use super::*;
+use crate::packages::*;
 use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use std::collections::HashSet;
 
-pub struct PackageProgressUpdate {
+use super::AssetManager;
+
+pub struct ProgressUpdate {
     pub label: &'static str,
     pub progress: usize,
     pub total: usize,
 }
 
-pub enum PackageEvent {
-    ProgressUpdate(PackageProgressUpdate),
+pub enum BootEvent {
+    ProgressUpdate(ProgressUpdate),
     Music(GlobalMusic),
     Sfx(Box<GlobalSfx>),
     PlayerManager(PackageManager<PlayerPackage>),
@@ -23,112 +25,128 @@ pub enum PackageEvent {
     Done,
 }
 
-pub struct PackageLoader {
-    sender: flume::Sender<PackageEvent>,
+pub struct BootThread {
+    sender: flume::Sender<BootEvent>,
     assets: LocalAssetManager,
     child_packages: Vec<ChildPackageInfo>,
     hashes: HashSet<FileHash>,
 }
 
-impl PackageLoader {
-    pub fn create_thread(game_io: &GameIO) -> flume::Receiver<PackageEvent> {
+impl BootThread {
+    pub fn spawn(game_io: &GameIO) -> flume::Receiver<BootEvent> {
         let (sender, receiver) = flume::unbounded();
         let assets = LocalAssetManager::new(game_io);
 
         std::thread::spawn(move || {
-            let mut package_loader = Self {
+            let mut context = Self {
                 sender,
                 assets,
                 child_packages: Vec::new(),
                 hashes: HashSet::new(),
             };
 
-            // todo: rename this struct? loads global resources as well
-            // load music
-            package_loader.send(PackageEvent::ProgressUpdate(PackageProgressUpdate {
-                label: "Loading Music",
-                progress: 0,
-                total: 1,
-            }));
-
-            let music = GlobalMusic::new(&package_loader.assets);
-            package_loader.send(PackageEvent::Music(music));
-
-            // load sfx
-            package_loader.send(PackageEvent::ProgressUpdate(PackageProgressUpdate {
-                label: "Loading SFX",
-                progress: 0,
-                total: 1,
-            }));
-
-            let sfx = Box::new(GlobalSfx::new(&package_loader.assets));
-            package_loader.send(PackageEvent::Sfx(sfx));
-
-            // load packages
-
-            // load players
-            let player_packages = package_loader.load_packages(
-                PackageCategory::Player,
-                "./mods/players",
-                "Loading Players",
-            );
-
-            package_loader.send(PackageEvent::PlayerManager(player_packages));
-
-            // load cards
-            let card_packages = package_loader.load_packages(
-                PackageCategory::Card,
-                "./mods/cards",
-                "Loading Cards",
-            );
-
-            package_loader.send(PackageEvent::CardManager(card_packages));
-
-            // load battles
-            let encounter_packages = package_loader.load_packages(
-                PackageCategory::Encounter,
-                "./mods/encounters",
-                "Loading Battles",
-            );
-
-            package_loader.send(PackageEvent::EncounterManager(encounter_packages));
-
-            // load augments
-            let augment_packages = package_loader.load_packages(
-                PackageCategory::Augment,
-                "./mods/augments",
-                "Loading Augments",
-            );
-
-            package_loader.send(PackageEvent::AugmentManager(augment_packages));
-
-            // load libraries
-            let library_packages = package_loader.load_packages(
-                PackageCategory::Library,
-                "./mods/libraries",
-                "Loading Libraries",
-            );
-
-            package_loader.send(PackageEvent::LibraryManager(library_packages));
-
-            // load child packages
-            package_loader.load_child_packages();
-
-            // clean cache
-            package_loader.clean_cache_folder();
-
-            // complete
-            package_loader.send(PackageEvent::Done);
+            context.load_audio();
+            context.load_packages();
         });
 
         receiver
     }
 
-    fn send(&mut self, event: PackageEvent) {
+    fn send(&mut self, event: BootEvent) {
         self.sender.send(event).unwrap();
     }
 
-    fn load_packages<P: Package>(
+    fn load_audio(&mut self) {
+        // load music
+        let mut progress = 0;
+        let total = GlobalMusic::total();
+
+        let load = |path: &str| {
+            self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+                label: "Loading Music",
+                progress,
+                total,
+            }));
+
+            progress += 1;
+
+            self.assets.audio(path)
+        };
+
+        let music = GlobalMusic::load_with(load);
+        self.send(BootEvent::Music(music));
+
+        // load sfx
+        let mut progress = 0;
+        let total = GlobalSfx::total();
+
+        let load = |path: &str| {
+            self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+                label: "Loading SFX",
+                progress,
+                total,
+            }));
+
+            progress += 1;
+
+            self.assets.audio(path)
+        };
+
+        let sfx = Box::new(GlobalSfx::load_with(load));
+        self.send(BootEvent::Sfx(sfx));
+    }
+
+    fn load_packages(&mut self) {
+        // load players
+        let player_packages =
+            self.load_package_folder(PackageCategory::Player, "./mods/players", "Loading Players");
+
+        self.send(BootEvent::PlayerManager(player_packages));
+
+        // load cards
+        let card_packages =
+            self.load_package_folder(PackageCategory::Card, "./mods/cards", "Loading Cards");
+
+        self.send(BootEvent::CardManager(card_packages));
+
+        // load battles
+        let encounter_packages = self.load_package_folder(
+            PackageCategory::Encounter,
+            "./mods/encounters",
+            "Loading Battles",
+        );
+
+        self.send(BootEvent::EncounterManager(encounter_packages));
+
+        // load augments
+        let augment_packages = self.load_package_folder(
+            PackageCategory::Augment,
+            "./mods/augments",
+            "Loading Augments",
+        );
+
+        self.send(BootEvent::AugmentManager(augment_packages));
+
+        // load libraries
+        let library_packages = self.load_package_folder(
+            PackageCategory::Library,
+            "./mods/libraries",
+            "Loading Libraries",
+        );
+
+        self.send(BootEvent::LibraryManager(library_packages));
+
+        // load child packages
+        self.load_child_packages();
+
+        // clean cache
+        self.clean_cache_folder();
+
+        // complete
+        self.send(BootEvent::Done);
+    }
+
+    fn load_package_folder<P: Package>(
         &mut self,
         category: PackageCategory,
         folder: &str,
@@ -136,13 +154,13 @@ impl PackageLoader {
     ) -> PackageManager<P> {
         let mut package_manager = PackageManager::<P>::new(category);
         package_manager.load_packages_in_folder(&self.assets, folder, |progress, total| {
-            let status_update = PackageProgressUpdate {
+            let status_update = ProgressUpdate {
                 label,
                 progress,
                 total,
             };
 
-            let event = PackageEvent::ProgressUpdate(status_update);
+            let event = BootEvent::ProgressUpdate(status_update);
             self.sender.send(event).unwrap();
         });
 
@@ -166,19 +184,19 @@ impl PackageLoader {
         let total_child_packages = self.child_packages.len();
 
         for (i, child_package) in self.child_packages.iter().enumerate() {
-            let status_update = PackageProgressUpdate {
+            let status_update = ProgressUpdate {
                 label: "Loading Enemies",
                 progress: i,
                 total: total_child_packages,
             };
 
-            let event = PackageEvent::ProgressUpdate(status_update);
+            let event = BootEvent::ProgressUpdate(status_update);
             self.sender.send(event).unwrap();
 
             character_packages.load_child_package(PackageNamespace::Local, child_package);
         }
 
-        self.send(PackageEvent::CharacterManager(character_packages));
+        self.send(BootEvent::CharacterManager(character_packages));
     }
 
     pub fn clean_cache_folder(&mut self) {
@@ -207,13 +225,13 @@ impl PackageLoader {
         let total = entries.len();
 
         for (i, entry) in entries.into_iter().enumerate() {
-            let status_update = PackageProgressUpdate {
+            let status_update = ProgressUpdate {
                 label: "Cleaning Cache",
                 progress: i,
                 total,
             };
 
-            self.send(PackageEvent::ProgressUpdate(status_update));
+            self.send(BootEvent::ProgressUpdate(status_update));
 
             if let Err(e) = std::fs::remove_file(entry.path()) {
                 log::error!("Failed to delete {:?}: {e}", entry.path());

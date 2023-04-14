@@ -1224,6 +1224,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "field_count"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "284d5f85dd574cf01094bca24aefa69a43539dbfc72b1326f038d540b2daadc7"
+dependencies = [
+ "field_count_derive",
+]
+
+[[package]]
+name = "field_count_derive"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1320970ff3b1c1cacc6a38e8cdb1aced955f29627697cd992c5ded82eb646a8"
+dependencies = [
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "flate2"
 version = "1.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2939,6 +2958,7 @@ dependencies = [
  "chrono",
  "clap",
  "enum-map",
+ "field_count",
  "flate2",
  "flume",
  "framework",

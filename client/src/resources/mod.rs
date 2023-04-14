@@ -1,5 +1,6 @@
 mod asset_manager;
 mod audio_manager;
+mod boot_thread;
 mod constants;
 mod global_music;
 mod global_sfx;
@@ -13,6 +14,7 @@ mod sound_buffer;
 
 pub use asset_manager::*;
 pub use audio_manager::*;
+pub use boot_thread::*;
 pub use constants::*;
 pub use global_music::*;
 pub use global_sfx::*;
