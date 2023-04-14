@@ -91,7 +91,9 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
 
         if right {
             self.selection += 1;
-            self.selection %= self.options.len();
+            self.selection = (self.selection)
+                .checked_rem(self.options.len())
+                .unwrap_or_default();
         }
 
         if self.selection == original_selection {

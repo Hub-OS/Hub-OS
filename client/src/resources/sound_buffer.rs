@@ -99,7 +99,8 @@ impl Iterator for SoundBufferSampler {
         self.index += 1;
 
         if self.looped {
-            self.index %= self.buffer.data.len();
+            let buffer_len = self.buffer.data.len();
+            self.index = self.index.checked_rem(buffer_len).unwrap_or_default();
         }
 
         sample

@@ -121,7 +121,10 @@ impl Scene for BattleSelectScene {
         }
 
         if input_util.was_just_pressed(Input::Right) {
-            self.selection = (self.selection + 1) % self.package_ids.len();
+            self.selection += 1;
+            self.selection = (self.selection)
+                .checked_rem(self.package_ids.len())
+                .unwrap_or_default();
         }
 
         if old_selection != self.selection {

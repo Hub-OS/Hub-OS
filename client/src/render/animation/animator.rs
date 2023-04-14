@@ -598,7 +598,7 @@ impl Animator {
         }
 
         let mut loops = time / frame_list.duration();
-        time %= frame_list.duration();
+        time = time.checked_rem(frame_list.duration()).unwrap_or_default();
 
         if time < 0 {
             // attempt to wrap around

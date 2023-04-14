@@ -332,7 +332,7 @@ impl ScrollTracker {
         let mut new_index = self.selected_index + 1;
 
         if self.wrap {
-            new_index %= self.total_items;
+            new_index = new_index.checked_rem(self.total_items).unwrap_or_default();
         }
 
         self.set_selected_index(new_index);
