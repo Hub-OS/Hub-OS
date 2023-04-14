@@ -45,11 +45,6 @@ jobs:
           crate: cargo-about
           version: "0.5"
 
-      - name: MinGW Setup
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          cc: 0
-
       - name: Make Release Folder
         run: mkdir -p target/release
 
@@ -57,6 +52,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
+          use-cross: true
           args: |
             --bin
             real_pet
@@ -68,6 +64,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
+          use-cross: true
           args: |
             --bin
             real_pet_server
