@@ -106,6 +106,4 @@ const INIT_FN: &str = "on_init_func";
 // naming conflicts with table names are avoided by using snake_case
 pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";
 pub const NAMESPACE_REGISTRY_KEY: &str = "namespace";
-const DELEGATE_TYPE_REGISTRY_KEY: &str = "delegate";
-const DELEGATE_REGISTRY_KEY: &str = "delegate_type";
 const TILE_CACHE_REGISTRY_KEY: &str = "tiles";
