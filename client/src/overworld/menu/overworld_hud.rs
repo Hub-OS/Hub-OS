@@ -1,17 +1,17 @@
 use crate::overworld::{Map, OverworldArea};
-use crate::render::ui::{draw_clock, FontStyle, PlayerHealthUI, Text};
+use crate::render::ui::{draw_clock, FontStyle, PlayerHealthUi, Text};
 use crate::render::SpriteColorQueue;
 use crate::resources::{RESOLUTION_F, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
 
 pub struct OverworldHud {
-    health_ui: PlayerHealthUI,
+    health_ui: PlayerHealthUi,
 }
 
 impl OverworldHud {
     pub fn new(game_io: &GameIO, health: i32) -> Self {
         Self {
-            health_ui: PlayerHealthUI::new(game_io).with_health(health),
+            health_ui: PlayerHealthUi::new(game_io).with_health(health),
         }
     }
 

@@ -1043,6 +1043,18 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
+    getter(lua_api, "emotion", |player: &Player, lua, ()| {
+        lua.pack_multi(player.emotion_window.emotion())
+    });
+    setter(
+        lua_api,
+        "set_emotion",
+        |player: &mut Player, _lua, emotion: Emotion| {
+            player.emotion_window.set_emotion(emotion);
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "input_has", |api_ctx, lua, params| {
         let (table, input_query): (rollback_mlua::Table, InputQuery) = lua.unpack_multi(params)?;
 

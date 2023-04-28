@@ -7,7 +7,7 @@ use crate::resources::*;
 use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
+use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
 use packets::{NetplayPacket, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -22,6 +22,7 @@ pub struct NetplayProps {
     pub data: Option<String>,
     pub health: i32,
     pub base_health: i32,
+    pub emotion: Emotion,
     pub remote_players: Vec<RemotePlayerInfo>,
     pub fallback_address: String,
     pub statistics_callback: Option<BattleStatisticsCallback>,
@@ -42,6 +43,7 @@ struct RemotePlayerConnection {
     player_package: PackageId,
     health: i32,
     base_health: i32,
+    emotion: Emotion,
     deck: Deck,
     blocks: Vec<InstalledBlock>,
     load_map: HashMap<FileHash, PackageCategory>,
@@ -58,6 +60,7 @@ pub struct NetplayInitScene {
     local_index: usize,
     local_health: i32,
     local_base_health: i32,
+    local_emotion: Emotion,
     encounter_package: Option<(PackageNamespace, PackageId)>,
     data: Option<String>,
     background: Option<Background>,
@@ -84,6 +87,7 @@ impl NetplayInitScene {
             data,
             health,
             base_health,
+            emotion,
             remote_players,
             fallback_address,
             statistics_callback,
@@ -147,12 +151,13 @@ impl NetplayInitScene {
         };
 
         let remote_player_connections: Vec<_> = remote_players
-            .iter()
+            .into_iter()
             .map(|info| RemotePlayerConnection {
                 index: info.index,
                 player_package: PackageId::new_blank(),
                 health: info.health,
                 base_health: info.base_health,
+                emotion: info.emotion,
                 deck: Deck::default(),
                 blocks: Vec::new(),
                 load_map: HashMap::new(),
@@ -170,6 +175,7 @@ impl NetplayInitScene {
             local_index,
             local_health: health,
             local_base_health: base_health,
+            local_emotion: emotion,
             encounter_package,
             data,
             background,
@@ -627,9 +633,10 @@ impl NetplayInitScene {
             local_setup.index = self.local_index;
             local_setup.health = self.local_health;
             local_setup.base_health = self.local_base_health;
+            local_setup.emotion = self.local_emotion.clone();
 
             // setup other players
-            for connection in &mut self.player_connections {
+            for mut connection in std::mem::take(&mut self.player_connections) {
                 let namespace = PackageNamespace::Remote(connection.index);
                 let package = globals
                     .player_packages
@@ -651,11 +658,12 @@ impl NetplayInitScene {
                     player_package,
                     health: connection.health,
                     base_health: connection.base_health,
+                    emotion: connection.emotion,
                     deck: connection.deck.clone(),
                     blocks: connection.blocks.clone(),
                     index: connection.index,
                     local: false,
-                    input_buffer: std::mem::take(&mut connection.input_buffer),
+                    input_buffer: connection.input_buffer,
                 });
 
                 if let Some(send) = connection.send.take() {

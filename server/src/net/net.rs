@@ -1007,6 +1007,7 @@ impl Net {
                     address: client.socket_address,
                     health: client.player_data.health,
                     base_health: client.player_data.base_health,
+                    emotion: client.player_data.emotion.clone(),
                 })
             })
             .collect();
@@ -1029,19 +1030,11 @@ impl Net {
 
                 client.battle_tracker.push_back(tracking_info);
 
-                let info = remote_players
-                    .iter()
-                    .find(|info| info.index == player_index)
-                    .unwrap();
-
                 let remote_players: Vec<_> = remote_players
                     .iter()
                     .filter(|info| info.index != player_index)
                     .cloned()
                     .collect();
-
-                let health = info.health;
-                let base_health = info.base_health;
 
                 orchestrator.send(
                     client.socket_address,
@@ -1050,8 +1043,6 @@ impl Net {
                         package_path: package_path.clone(),
                         data: data.clone(),
                         remote_players,
-                        health,
-                        base_health,
                     },
                 );
             }
@@ -1225,8 +1216,6 @@ impl Net {
             ServerPacket::InitiateEncounter {
                 package_path: package_path.to_string(),
                 data: data.map(|s| s.to_string()),
-                health: client.player_data.health,
-                base_health: client.player_data.base_health,
             },
         );
     }
@@ -1285,9 +1274,9 @@ impl Net {
         }
     }
 
-    pub fn set_player_emotion(&mut self, player_id: &str, emotion: u8) {
+    pub fn set_player_emotion(&mut self, player_id: &str, emotion: Emotion) {
         if let Some(client) = self.clients.get_mut(player_id) {
-            client.player_data.emotion = emotion;
+            client.player_data.emotion = emotion.clone();
 
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,

@@ -27,7 +27,7 @@ impl OverworldPlayerData {
             health: 0,
             base_health: 0,
             health_boost: 0,
-            emotion: Emotion::Normal,
+            emotion: Emotion::default(),
             money: 0,
             inventory: Inventory::new(),
             actor_interaction: None,

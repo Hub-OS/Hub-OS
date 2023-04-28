@@ -837,6 +837,7 @@ impl CardSelectState {
 
             root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
 
+            // note: moving health ui also moves emotion ui
             (simulation.local_health_ui)
                 .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
         }
@@ -854,6 +855,7 @@ impl CardSelectState {
         let root_node = self.sprites.root_mut();
         root_node.set_visible(false);
 
+        // note: moving health ui also moves emotion ui
         (simulation.local_health_ui).set_position(Vec2::new(BATTLE_UI_MARGIN, 0.0));
     }
 
@@ -861,6 +863,7 @@ impl CardSelectState {
         let root_node = self.sprites.root_mut();
         root_node.set_visible(true);
 
+        // note: moving health ui also moves emotion ui
         let width = root_node.size().x;
         (simulation.local_health_ui).set_position(Vec2::new(width + BATTLE_UI_MARGIN, 0.0));
     }

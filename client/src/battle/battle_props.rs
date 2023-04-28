@@ -4,13 +4,14 @@ use crate::resources::*;
 use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use framework::prelude::*;
-use packets::structures::{BattleStatistics, InstalledBlock};
+use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
 use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
     pub player_package: &'a PlayerPackage,
     pub health: i32,
     pub base_health: i32,
+    pub emotion: Emotion,
     pub deck: Deck,
     pub blocks: Vec<InstalledBlock>,
     pub index: usize,
@@ -24,6 +25,7 @@ impl<'a> PlayerSetup<'a> {
             player_package,
             health: 9999,
             base_health: 9999,
+            emotion: Emotion::default(),
             deck: Deck::new(String::new()),
             blocks: Vec::new(),
             index,
@@ -58,6 +60,7 @@ impl<'a> PlayerSetup<'a> {
             player_package,
             health: player_package.health + health_boost,
             base_health: player_package.health,
+            emotion: Emotion::default(),
             index: 0,
             deck,
             blocks,

@@ -3,10 +3,10 @@ use super::*;
 use crate::bindable::*;
 use crate::lua_api::{create_augment_table, create_entity_table};
 use crate::packages::{PackageId, PackageNamespace};
-use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
+use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BlockGrid, Card, Deck};
+use crate::saves::{BlockGrid, Card};
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::{BattleStatistics, BattleSurvivor};
@@ -38,7 +38,7 @@ pub struct BattleSimulation {
     pub components: Arena<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityId,
-    pub local_health_ui: PlayerHealthUI,
+    pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
     pub intro_complete: bool,
     pub is_resimulation: bool,
@@ -79,7 +79,7 @@ impl BattleSimulation {
             components: Arena::new(),
             pending_callbacks: Vec::new(),
             local_player_id: EntityId::DANGLING,
-            local_health_ui: PlayerHealthUI::new(game_io),
+            local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
             intro_complete: false,
             is_resimulation: false,
@@ -441,8 +441,13 @@ impl BattleSimulation {
     }
 
     fn update_ui(&mut self) {
-        if let Ok(living) = (self.entities).query_one_mut::<&Living>(self.local_player_id.into()) {
+        let entities = &mut self.entities;
+
+        if let Ok((player, living)) =
+            entities.query_one_mut::<(&mut Player, &Living)>(self.local_player_id.into())
+        {
             self.local_health_ui.set_health(living.health);
+            player.emotion_window.update();
         } else {
             self.local_health_ui.set_health(0);
         }
@@ -858,22 +863,17 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
-        setup: PlayerSetup,
+        mut setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
-        let PlayerSetup {
-            player_package,
-            index,
-            local,
-            deck: Deck { cards, .. },
-            blocks,
-            ..
-        } = setup;
+        let local = setup.local;
+        let player_package = setup.player_package;
+        let blocks = std::mem::take(&mut setup.blocks);
 
         // namespace for using cards / attacks
         let namespace = if local {
             PackageNamespace::Local
         } else {
-            PackageNamespace::Remote(index)
+            PackageNamespace::Remote(setup.index)
         };
 
         let id = self.create_character(game_io, CharacterRank::V1, namespace)?;
@@ -889,7 +889,7 @@ impl BattleSimulation {
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
-        living.status_director.set_input_index(index);
+        living.status_director.set_input_index(setup.index);
 
         // derive states
         let move_anim_state = BattleAnimator::derive_state(
@@ -1051,10 +1051,7 @@ impl BattleSimulation {
 
         // insert entity
         self.entities
-            .insert(
-                id.into(),
-                (Player::new(game_io, index, local, charge_index, cards),),
-            )
+            .insert_one(id.into(), Player::new(game_io, setup, charge_index))
             .unwrap();
 
         // call init function
@@ -1077,19 +1074,19 @@ impl BattleSimulation {
             let index = player.augments.insert(Augment::from((package, level)));
 
             let lua = &vms[vm_index].lua;
-            let has_init = lua
-                .globals()
-                .contains_key("augment_init")
-                .unwrap_or_default();
+            let lua_globals = lua.globals();
+            let has_init = lua_globals.contains_key("augment_init").unwrap_or_default();
 
-            if has_init {
-                let result = self.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
-                    create_augment_table(lua, id, index)
-                });
+            if !has_init {
+                continue;
+            }
 
-                if let Err(e) = result {
-                    log::error!("{e}");
-                }
+            let result = self.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
+                create_augment_table(lua, id, index)
+            });
+
+            if let Err(e) = result {
+                log::error!("{e}");
             }
         }
 
@@ -1421,6 +1418,17 @@ impl BattleSimulation {
 
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.local_health_ui.draw(game_io, sprite_queue);
+
+        let entities = &mut self.entities;
+
+        if let Ok(player) = entities.query_one_mut::<&mut Player>(self.local_player_id.into()) {
+            let local_health_bounds = self.local_health_ui.bounds();
+            let mut emotion_window_position = local_health_bounds.position();
+            emotion_window_position.y += local_health_bounds.height + 1.0;
+
+            player.emotion_window.set_position(emotion_window_position);
+            player.emotion_window.draw(sprite_queue);
+        }
     }
 
     #[cfg(debug_assertions)]

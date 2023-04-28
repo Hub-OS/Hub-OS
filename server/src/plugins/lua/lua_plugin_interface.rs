@@ -798,7 +798,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("score", battle_stats.score)?;
                 event.set("time", battle_stats.time)?;
                 event.set("ran", battle_stats.ran)?;
-                event.set("emotion", battle_stats.emotion as u8)?;
+                event.set("emotion", battle_stats.emotion.as_str())?;
                 event.set("turns", battle_stats.turns)?;
 
                 // ally list

@@ -1,3 +1,4 @@
+use super::Emotion;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
@@ -7,4 +8,5 @@ pub struct RemotePlayerInfo {
     pub index: usize,
     pub health: i32,
     pub base_health: i32,
+    pub emotion: Emotion,
 }

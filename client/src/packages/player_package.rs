@@ -23,6 +23,7 @@ struct PlayerMeta {
     mugshot_texture_path: String,
     mugshot_animation_path: String,
     emotions_texture_path: String,
+    emotions_animation_path: String,
 }
 
 #[derive(Default, Clone)]
@@ -39,6 +40,7 @@ pub struct PlayerPackage {
     pub mugshot_texture_path: String,
     pub mugshot_animation_path: String,
     pub emotions_texture_path: String,
+    pub emotions_animation_path: String,
 }
 
 impl PlayerPackage {
@@ -144,6 +146,7 @@ impl Package for PlayerPackage {
         package.mugshot_texture_path = base_path.clone() + &meta.mugshot_texture_path;
         package.mugshot_animation_path = base_path.clone() + &meta.mugshot_animation_path;
         package.emotions_texture_path = base_path.clone() + &meta.emotions_texture_path;
+        package.emotions_animation_path = base_path.clone() + &meta.emotions_animation_path;
 
         package
     }

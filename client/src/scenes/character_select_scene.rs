@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PlayerHealthUI, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
+    ElementSprite, FontStyle, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
     Textbox, TextboxMessage, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -20,7 +20,7 @@ pub struct CharacterSelectScene {
     background: Background,
     frame: SubSceneFrame,
     preview_sprite: Sprite,
-    health_ui: PlayerHealthUI,
+    health_ui: PlayerHealthUi,
     element_sprite: Sprite,
     name_position: Vec2,
     cursor_sprite: Sprite,
@@ -92,7 +92,7 @@ impl CharacterSelectScene {
         let icon_start_offset = layout_animator.point("LIST_START").unwrap_or_default();
 
         // health_ui
-        let mut health_ui = PlayerHealthUI::new(game_io);
+        let mut health_ui = PlayerHealthUi::new(game_io);
         health_ui.set_position(layout_animator.point("HP").unwrap_or_default());
         health_ui.snap_health(player_package.health);
 

@@ -1,6 +1,6 @@
 use super::{InitialConnectScene, NetplayInitScene, NetplayProps};
 use crate::battle::BattleProps;
-use crate::bindable::{Emotion, SpriteColorMode};
+use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
@@ -473,11 +473,7 @@ impl OverworldOnlineScene {
                 self.menu_manager.update_player_data(player_data);
             }
             ServerPacket::Emotion { emotion } => {
-                use num_traits::FromPrimitive;
-
-                if let Some(emotion) = Emotion::from_u8(emotion) {
-                    self.area.player_data.emotion = emotion;
-                }
+                self.area.player_data.emotion = emotion;
             }
             ServerPacket::Money { money } => {
                 let player_data = &mut self.area.player_data;
@@ -918,12 +914,7 @@ impl OverworldOnlineScene {
             ServerPacket::ModBlacklist { blacklist_path } => {
                 log::warn!("ModBlacklist hasn't been implemented")
             }
-            ServerPacket::InitiateEncounter {
-                package_path,
-                data,
-                health,
-                base_health,
-            } => {
+            ServerPacket::InitiateEncounter { package_path, data } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
@@ -940,8 +931,10 @@ impl OverworldOnlineScene {
                     props.data = data;
 
                     let player_setup = &mut props.player_setups[0];
-                    player_setup.health = health;
-                    player_setup.base_health = base_health;
+                    let player_data = &self.area.player_data;
+                    player_setup.health = player_data.health;
+                    player_setup.base_health = player_data.base_health;
+                    player_setup.emotion = player_data.emotion.clone();
 
                     // callback
                     let event_sender = self.area.event_sender.clone();
@@ -968,8 +961,6 @@ impl OverworldOnlineScene {
                 package_path,
                 data,
                 remote_players,
-                health,
-                base_health,
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
@@ -997,12 +988,14 @@ impl OverworldOnlineScene {
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
                 // create scene
+                let player_data = &self.area.player_data;
                 let props = NetplayProps {
                     background: Some(background),
                     encounter_package,
                     data,
-                    health,
-                    base_health,
+                    health: player_data.health,
+                    base_health: player_data.base_health,
+                    emotion: player_data.emotion.clone(),
                     remote_players,
                     fallback_address: self.server_address.clone(),
                     statistics_callback: Some(statistics_callback),
@@ -1399,7 +1392,7 @@ impl OverworldOnlineScene {
                         Some(statistics) => statistics,
                         None => BattleStatistics {
                             health: player_data.health,
-                            emotion: player_data.emotion,
+                            emotion: player_data.emotion.clone(),
                             ran: true,
                             ..Default::default()
                         },

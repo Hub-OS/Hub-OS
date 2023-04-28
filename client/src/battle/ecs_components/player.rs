@@ -24,6 +24,7 @@ pub struct Player {
     pub charge_animator: Animator,
     pub charged_color: Color,
     pub slide_when_moving: bool,
+    pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
     pub augments: Arena<Augment>,
@@ -49,19 +50,13 @@ impl Player {
 
     pub const HIT_FRAMES: [DerivedFrame; 2] = [DerivedFrame::new(0, 15), DerivedFrame::new(1, 7)];
 
-    pub fn new(
-        game_io: &GameIO,
-        index: usize,
-        local: bool,
-        charge_sprite_index: TreeIndex,
-        cards: Vec<Card>,
-    ) -> Self {
+    pub fn new(game_io: &GameIO, setup: PlayerSetup, charge_sprite_index: TreeIndex) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
-            index,
-            local,
-            cards,
+            index: setup.index,
+            local: setup.local,
+            cards: setup.deck.cards,
             card_use_requested: false,
             can_flip: true,
             flip_requested: false,
@@ -74,6 +69,11 @@ impl Player {
             charge_animator: Animator::load_new(assets, ResourcePaths::BATTLE_CHARGE_ANIMATION),
             charged_color: Color::MAGENTA,
             slide_when_moving: false,
+            emotion_window: EmotionUi::new(
+                setup.emotion,
+                assets.new_sprite(game_io, &setup.player_package.emotions_texture_path),
+                Animator::load_new(assets, &setup.player_package.emotions_animation_path),
+            ),
             forms: Vec::new(),
             active_form: None,
             augments: Arena::new(),
