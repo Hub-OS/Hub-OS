@@ -59,6 +59,8 @@ The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickPro
 
 ## Prerequisite
 
+Windows requires [MSVC++](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022) for building Lua.
+
 Install [rust](https://www.rust-lang.org/tools/install)
 
 Run `cargo install cargo-about`. [cargo-about](https://crates.io/crates/cargo-about) is used for creating a license list file for distribution.
