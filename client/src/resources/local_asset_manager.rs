@@ -213,7 +213,7 @@ impl AssetManager for LocalAssetManager {
         let res = fs::read(path);
 
         if let Err(err) = &res {
-            log::warn!("Failed to load {:?}: {}", path, err);
+            log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
         }
 
         res.unwrap_or_default()
@@ -228,7 +228,7 @@ impl AssetManager for LocalAssetManager {
             let res = fs::read_to_string(path);
 
             if let Err(err) = &res {
-                log::warn!("Failed to load {:?}: {}", path, err);
+                log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
             }
 
             let text = res.unwrap_or_default();
@@ -248,7 +248,7 @@ impl AssetManager for LocalAssetManager {
             let texture = match Texture::load_from_memory(game_io, &bytes) {
                 Ok(texture) => texture,
                 Err(err) => {
-                    log::warn!("Failed to load {:?}: {}", path, err);
+                    log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
                     texture_cache.get(ResourcePaths::BLANK).unwrap().clone()
                 }
             };
