@@ -445,7 +445,7 @@ impl BattleScene {
             }
         }
 
-        if self.input_synced() {
+        if self.input_synced() && self.player_controllers.len() > 1 {
             use std::io::Write;
 
             let mut file = std::fs::OpenOptions::new()
