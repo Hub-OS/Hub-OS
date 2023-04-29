@@ -1,15 +1,24 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::lua_api::{create_battle_vm, encounter_init};
-use crate::packages::{Package, PackageInfo};
+use crate::packages::{Package, PackageInfo, PackageNamespace};
+use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use packets::structures::PackageId;
 use packets::NetplayPacket;
 use std::collections::VecDeque;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const BUFFER_TOLERANCE: usize = 3;
+
+pub enum BattleEvent {
+    DescribeCard(PackageId),
+    RequestFlee,
+    AttemptFlee,
+    CompleteFlee(bool),
+}
 
 #[derive(Default, Clone)]
 struct PlayerController {
@@ -25,6 +34,9 @@ struct Backup {
 pub struct BattleScene {
     battle_duration: FrameTime,
     ui_camera: Camera,
+    textbox: Textbox,
+    textbox_is_blocking_input: bool,
+    event_receiver: flume::Receiver<BattleEvent>,
     synced_time: FrameTime,
     shared_assets: SharedBattleAssets,
     simulation: BattleSimulation,
@@ -48,11 +60,16 @@ impl BattleScene {
     pub fn new(game_io: &GameIO, mut props: BattleProps) -> Self {
         props.player_setups.sort_by_key(|setup| setup.index);
 
+        let (event_sender, event_receiver) = flume::unbounded();
+
         let mut scene = Self {
             battle_duration: 0,
             ui_camera: Camera::new(game_io),
+            textbox: Textbox::new_overworld(game_io),
+            textbox_is_blocking_input: false,
+            event_receiver,
             synced_time: 0,
-            shared_assets: SharedBattleAssets::new(game_io),
+            shared_assets: SharedBattleAssets::new(game_io, event_sender),
             simulation: BattleSimulation::new(
                 game_io,
                 props.background.clone(),
@@ -167,6 +184,96 @@ impl BattleScene {
 
     fn is_solo(&self) -> bool {
         self.player_controllers.len() == 1
+    }
+
+    fn update_textbox(&mut self, game_io: &mut GameIO) {
+        while let Ok(event) = self.event_receiver.try_recv() {
+            match event {
+                BattleEvent::DescribeCard(package_id) => {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let ns = PackageNamespace::Server;
+
+                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id) else {
+                        continue;
+                    };
+
+                    self.textbox.use_blank_avatar(game_io);
+                    let interface =
+                        TextboxMessage::new(package.card_properties.long_description.clone());
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+                BattleEvent::RequestFlee => {
+                    // fleeing is not currently possible in multiplayer
+                    // since we use self.shared_assets in a non rollback friendly way
+                    let multiplayer = self.player_controllers.len() > 1;
+                    let is_boss_battle = self.simulation.statistics.boss_battle;
+                    let can_run = !is_boss_battle && !multiplayer;
+
+                    self.textbox.use_player_avatar(game_io);
+
+                    if can_run {
+                        // confirm
+                        let event_sender = self.shared_assets.event_sender.clone();
+                        let text = String::from("Should we run?");
+
+                        let interface = TextboxQuestion::new(text, move |yes| {
+                            if yes {
+                                event_sender.send(BattleEvent::AttemptFlee).unwrap();
+                            }
+                        });
+
+                        self.textbox.push_interface(interface);
+                    } else {
+                        // can't run
+                        let text = String::from("This is no time to run!");
+                        let interface = TextboxMessage::new(text);
+
+                        self.textbox.push_interface(interface);
+                    }
+
+                    self.textbox.open();
+                }
+                BattleEvent::AttemptFlee => {
+                    // todo: check for success using some method in battle_init
+
+                    self.shared_assets.attempting_flee = true;
+
+                    let event_sender = self.shared_assets.event_sender.clone();
+                    let text = String::from("\x01...\x01OK!\nWe got away!");
+                    let interface = TextboxMessage::new(text).with_callback(move || {
+                        event_sender.send(BattleEvent::CompleteFlee(true)).unwrap();
+                    });
+
+                    self.textbox.use_player_avatar(game_io);
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+                BattleEvent::CompleteFlee(success) => {
+                    if success {
+                        self.exit(game_io, true);
+                    } else {
+                        self.shared_assets.attempting_flee = false;
+                    }
+                }
+            }
+        }
+
+        if self.textbox.is_complete() {
+            self.textbox.close()
+        }
+
+        if self.textbox.is_open() {
+            self.textbox_is_blocking_input = true;
+        } else if self.textbox_is_blocking_input {
+            // we only stop blocking when the player lifts up every button
+            let input_util = InputUtil::new(game_io);
+
+            self.textbox_is_blocking_input =
+                Input::BATTLE.iter().any(|&input| input_util.is_down(input));
+        }
+
+        self.textbox.update(game_io);
     }
 
     fn handle_packets(&mut self, game_io: &GameIO) {
@@ -300,9 +407,11 @@ impl BattleScene {
         // gather input
         let mut pressed = Vec::new();
 
-        for input in Input::BATTLE {
-            if input_util.is_down(input) {
-                pressed.push(input);
+        if self.exiting || !self.textbox_is_blocking_input {
+            for input in Input::BATTLE {
+                if input_util.is_down(input) {
+                    pressed.push(input);
+                }
             }
         }
 
@@ -516,6 +625,28 @@ impl BattleScene {
             println!();
         }
     }
+
+    fn exit(&mut self, game_io: &GameIO, fleeing: bool) {
+        self.exiting = true;
+        self.broadcast(NetplayPacket::Disconnect {
+            index: self.local_index,
+        });
+
+        if let Some(statistics_callback) = self.statistics_callback.take() {
+            self.simulation.wrap_up_statistics();
+            let mut statistics = self.simulation.statistics.clone();
+            statistics.ran = fleeing;
+            statistics_callback(Some(statistics));
+        }
+
+        let transition = crate::transitions::new_battle_pop(game_io);
+        self.next_scene = NextScene::new_pop().with_transition(transition);
+
+        // clean up music stack
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.pop_music_stack();
+        globals.audio.restart_music();
+    }
 }
 
 impl Scene for BattleScene {
@@ -538,6 +669,7 @@ impl Scene for BattleScene {
             self.started_music = true;
         }
 
+        self.update_textbox(game_io);
         self.handle_packets(game_io);
 
         let input_util = InputUtil::new(game_io);
@@ -581,23 +713,7 @@ impl Scene for BattleScene {
         self.simulation.camera.update(game_io);
 
         if !self.exiting && self.detect_exit_request() {
-            self.exiting = true;
-            self.broadcast(NetplayPacket::Disconnect {
-                index: self.local_index,
-            });
-
-            if let Some(statistics_callback) = self.statistics_callback.take() {
-                self.simulation.wrap_up_statistics();
-                statistics_callback(Some(self.simulation.statistics.clone()));
-            }
-
-            let transition = crate::transitions::new_battle_pop(game_io);
-            self.next_scene = NextScene::new_pop().with_transition(transition);
-
-            // clean up music stack
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.pop_music_stack();
-            globals.audio.restart_music();
+            self.exit(game_io, false);
         }
     }
 
@@ -612,6 +728,9 @@ impl Scene for BattleScene {
         self.simulation.draw_ui(game_io, &mut sprite_queue);
         self.state
             .draw_ui(game_io, &mut self.simulation, &mut sprite_queue);
+
+        // draw textbox over everything
+        self.textbox.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }

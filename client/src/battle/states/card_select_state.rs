@@ -7,6 +7,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
+use crate::scenes::BattleEvent;
 use framework::prelude::*;
 use std::sync::Arc;
 
@@ -83,7 +84,7 @@ impl State for CardSelectState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
@@ -127,7 +128,13 @@ impl State for CardSelectState {
             }
 
             let input = &simulation.inputs[player.index];
-            self.handle_input(game_io, player, input, simulation.is_resimulation);
+            self.handle_input(
+                game_io,
+                shared_assets,
+                player,
+                input,
+                simulation.is_resimulation,
+            );
         }
 
         self.animate_form_list(simulation);
@@ -523,6 +530,7 @@ impl CardSelectState {
     fn handle_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -556,7 +564,7 @@ impl CardSelectState {
         if selection.form_open_time.is_some() {
             self.handle_form_input(game_io, player, input, is_resimulation);
         } else {
-            self.handle_card_input(game_io, player, input, is_resimulation);
+            self.handle_card_input(game_io, shared_assets, player, input, is_resimulation);
         }
     }
 
@@ -629,6 +637,7 @@ impl CardSelectState {
     fn handle_card_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -732,6 +741,38 @@ impl CardSelectState {
                 } else {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
+            }
+        }
+
+        // this will desync if shared_assets.attempting_flee is ever set to true during netplay
+        // currently there's a check in the handler for BattleEvent::RequestFlee to block that
+        // if we do want to be able to flee in multiplayer, we'll need to send some signal for
+        // connected clients to clear out our selection, likely synced through PlayerInput
+        if shared_assets.attempting_flee {
+            // clear selection
+            selection.selected_card_indices.clear();
+            selection.selected_form_index.take();
+
+            // confirm
+            selection.confirm_time = self.time;
+        }
+
+        if selection.confirm_time != 0 || is_resimulation {
+            // the rest can be ignored if we're already closing or if this is a resimulation
+            return;
+        }
+
+        if input.was_just_pressed(Input::Flee) {
+            let event = BattleEvent::RequestFlee;
+            shared_assets.event_sender.send(event).unwrap();
+        }
+
+        if input.was_just_pressed(Input::Info) {
+            if let SelectedItem::Card(index) = selected_item {
+                let card = &player.cards[index];
+
+                let event = BattleEvent::DescribeCard(card.package_id.clone());
+                shared_assets.event_sender.send(event).unwrap();
             }
         }
     }

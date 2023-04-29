@@ -104,10 +104,15 @@ impl State for TurnStartState {
     fn update(
         &mut self,
         _game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
+        if shared_assets.attempting_flee {
+            // wait for the flee attempt to complete
+            return;
+        }
+
         if self.start_time == 0 {
             self.start_time = simulation.time;
             self.init_message(simulation);
