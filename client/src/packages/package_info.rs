@@ -43,6 +43,13 @@ impl PackageInfo {
     // returns the [package] table and processes properties shared among every package type
     pub(crate) fn parse_toml(&mut self, assets: &LocalAssetManager) -> Option<toml::Table> {
         let toml_text = assets.text(&self.toml_path);
+
+        if toml_text.is_empty() {
+            // assume no file / not a mod
+            // attempting to access the file will already provide a warning
+            return None;
+        }
+
         let meta_table: toml::Table = match toml_text.parse() {
             Ok(toml) => toml,
             Err(e) => {
