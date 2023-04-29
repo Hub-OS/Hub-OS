@@ -1,4 +1,4 @@
-use crate::structures::{FileHash, InstalledBlock, PackageCategory};
+use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -43,7 +43,7 @@ pub enum NetplayPacket {
     },
     Input {
         index: usize,
-        pressed: Vec<u8>,
+        pressed: Vec<Input>,
         buffer_sizes: Vec<usize>,
     },
     Disconnect {

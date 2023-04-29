@@ -1,9 +1,23 @@
 use num_derive::FromPrimitive;
+use serde::{Deserialize, Serialize};
 use std::hash::Hash;
-use strum::{EnumIter, IntoStaticStr};
+use strum::{EnumCount, EnumIter, IntoStaticStr};
 
 #[repr(u8)]
-#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug, EnumIter, FromPrimitive, IntoStaticStr)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    Debug,
+    EnumCount,
+    EnumIter,
+    FromPrimitive,
+    IntoStaticStr,
+)]
 pub enum Input {
     Up,
     Down,

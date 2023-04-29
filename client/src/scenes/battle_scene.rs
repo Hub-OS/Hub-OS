@@ -224,8 +224,6 @@ impl BattleScene {
     }
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
-        use num_traits::FromPrimitive;
-
         match packet {
             NetplayPacket::Input {
                 index,
@@ -247,9 +245,6 @@ impl BattleScene {
                             self.slow_cooldown = SLOW_COOLDOWN;
                         }
                     }
-
-                    // convert input
-                    let pressed: Vec<_> = pressed.into_iter().flat_map(Input::from_u8).collect();
 
                     if let Some(input) = self.simulation.inputs.get(index) {
                         if !input.matches(&pressed) {
@@ -311,10 +306,8 @@ impl BattleScene {
             }
         }
 
-        let pressed_bytes: Vec<_> = pressed.iter().map(|input| *input as u8).collect();
-
         // update local buffer
-        local_controller.input_buffer.push_back(pressed);
+        local_controller.input_buffer.push_back(pressed.clone());
 
         // gather buffer sizes for remotes to know if they should slow down
         let buffer_sizes = self
@@ -325,7 +318,7 @@ impl BattleScene {
 
         self.broadcast(NetplayPacket::Input {
             index: self.local_index,
-            pressed: pressed_bytes,
+            pressed,
             buffer_sizes,
         });
     }

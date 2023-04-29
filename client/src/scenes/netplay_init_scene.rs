@@ -413,11 +413,7 @@ impl NetplayInitScene {
                 connection.ready = true;
             }
             NetplayPacket::Input { pressed, .. } => {
-                use num_traits::FromPrimitive;
-
-                let pressed_inputs: Vec<_> = pressed.into_iter().flat_map(Input::from_u8).collect();
-
-                connection.input_buffer.push_back(pressed_inputs);
+                connection.input_buffer.push_back(pressed);
             }
             NetplayPacket::Disconnect { .. } => {
                 self.failed = true;
