@@ -250,7 +250,7 @@ impl ResourcePaths {
         path_clean::clean(path_str)
             .to_str()
             .unwrap_or_default()
-            .replace("\\", Self::SEPARATOR)
+            .replace('\\', Self::SEPARATOR)
     }
 
     pub fn clean_folder(path_str: &str) -> String {
