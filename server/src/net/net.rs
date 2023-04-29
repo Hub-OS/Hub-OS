@@ -698,6 +698,24 @@ impl Net {
         );
     }
 
+    pub fn set_hud_visibility(&mut self, id: &str, visible: bool) {
+        let Some(client) = self.clients.get(id) else {
+            return;
+        };
+
+        let packet = if visible {
+            ServerPacket::ShowHud
+        } else {
+            ServerPacket::HideHud
+        };
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            packet,
+        );
+    }
+
     pub fn message_player(
         &mut self,
         id: &str,

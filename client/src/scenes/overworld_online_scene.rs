@@ -624,6 +624,12 @@ impl OverworldOnlineScene {
                     *set_direction = direction;
                 }
             }
+            ServerPacket::HideHud => {
+                self.hud.set_visible(false);
+            }
+            ServerPacket::ShowHud => {
+                self.hud.set_visible(true);
+            }
             ServerPacket::Message {
                 message,
                 mug_texture_path,

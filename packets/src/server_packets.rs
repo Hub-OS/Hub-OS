@@ -138,6 +138,8 @@ pub enum ServerPacket {
         z: f32,
         direction: Direction,
     },
+    HideHud,
+    ShowHud,
     Message {
         message: String,
         mug_texture_path: String,

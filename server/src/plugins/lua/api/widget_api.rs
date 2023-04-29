@@ -26,6 +26,26 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(is_shopping)
     });
 
+    lua_api.add_dynamic_function("Net", "hide_hud", |api_ctx, lua, params| {
+        let player_id: mlua::String = lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.set_hud_visibility(player_id_str, false);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "show_hud", |api_ctx, lua, params| {
+        let player_id: mlua::String = lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.set_hud_visibility(player_id_str, true);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "_message_player", |api_ctx, lua, params| {
         let (player_id, message, mug_texture_path, mug_animation_path): (
             mlua::String,
