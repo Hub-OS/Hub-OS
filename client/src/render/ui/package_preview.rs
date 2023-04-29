@@ -101,10 +101,8 @@ impl PackagePreview {
 
         let uri = format!("{repo}/api/mods/{encoded_id}/preview");
 
-        let task = game_io.spawn_local_task(async move {
-            let bytes = crate::http::request(&uri).await.unwrap_or_default();
-            bytes
-        });
+        let task = game_io
+            .spawn_local_task(async move { crate::http::request(&uri).await.unwrap_or_default() });
 
         self.image_task = Some(task);
     }

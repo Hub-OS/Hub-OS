@@ -181,7 +181,7 @@ impl<T> Tree<T> {
             return None;
         }
 
-        let removed_node = std::mem::replace(&mut self.nodes.get_mut(index)?.1, None)?;
+        let removed_node = self.nodes.get_mut(index)?.1.take()?;
 
         if let Some(parent) = &mut self.nodes[removed_node.parent.unwrap().index].1 {
             // remove node from the parent list
