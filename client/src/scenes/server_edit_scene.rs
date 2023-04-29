@@ -1,3 +1,4 @@
+use crate::bindable::GenerationalIndex;
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::*;
 use crate::render::*;
@@ -30,6 +31,7 @@ pub struct ServerEditScene {
     ui_input_tracker: UiInputTracker,
     ui_layout: UiLayout,
     ui_receiver: flume::Receiver<UiMessage>,
+    save_handle: GenerationalIndex,
     next_scene: NextScene,
 }
 
@@ -82,6 +84,8 @@ impl ServerEditScene {
 
         // define ui with callbacks
         let (ui_sender, ui_receiver) = flume::unbounded();
+
+        let mut save_handle = None;
 
         let ui_layout = UiLayout::new_vertical(
             Rect::new(8.0, 20.0, RESOLUTION_F.x - 16.0, RESOLUTION_F.y - 28.0),
@@ -146,7 +150,8 @@ impl ServerEditScene {
                                 move || sender.send(UiMessage::Save).unwrap()
                             }),
                         )
-                        .with_style(button_style.clone()),
+                        .with_style(button_style.clone())
+                        .with_handle(&mut save_handle),
                         UiLayoutNode::new(
                             UiButton::new_text(game_io, FontStyle::Thick, "Cancel").on_activate({
                                 let sender = ui_sender;
@@ -182,6 +187,7 @@ impl ServerEditScene {
             ui_input_tracker: UiInputTracker::new(),
             ui_layout,
             ui_receiver,
+            save_handle: save_handle.unwrap(),
             next_scene: NextScene::None,
         }
     }
@@ -248,11 +254,20 @@ impl Scene for ServerEditScene {
         // detect leaving
         let input_util = InputUtil::new(game_io);
 
-        if !self.ui_layout.is_focus_locked() && input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+        if !self.ui_layout.is_focus_locked() {
+            if input_util.was_just_pressed(Input::End) {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_move);
 
-            leaving = true;
+                self.ui_layout.set_focused_index(Some(self.save_handle));
+            }
+
+            if input_util.was_just_pressed(Input::Cancel) {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+                leaving = true;
+            }
         }
 
         if leaving {
