@@ -29,6 +29,10 @@ impl EmotionUi {
         self.sprite.set_position(position);
     }
 
+    pub fn emotions(&self) -> impl Iterator<Item = &str> {
+        self.animator.iter_states().map(|(s, _)| s.as_str())
+    }
+
     pub fn emotion(&self) -> &Emotion {
         &self.emotion
     }
