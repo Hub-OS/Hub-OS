@@ -104,11 +104,11 @@ impl State for TurnStartState {
     fn update(
         &mut self,
         _game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        _shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
-        if shared_assets.attempting_flee {
+        if simulation.inputs.iter().any(|input| input.fleeing()) {
             // wait for the flee attempt to complete
             return;
         }

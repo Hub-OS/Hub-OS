@@ -7,7 +7,7 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use packets::structures::PackageId;
-use packets::NetplayPacket;
+use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
 use std::collections::VecDeque;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
@@ -23,7 +23,7 @@ pub enum BattleEvent {
 #[derive(Default, Clone)]
 struct PlayerController {
     connected: bool,
-    input_buffer: VecDeque<Vec<Input>>,
+    buffer: VecDeque<NetplayBufferItem>,
 }
 
 struct Backup {
@@ -37,6 +37,7 @@ pub struct BattleScene {
     textbox: Textbox,
     textbox_is_blocking_input: bool,
     event_receiver: flume::Receiver<BattleEvent>,
+    pending_signals: Vec<NetplaySignal>,
     synced_time: FrameTime,
     shared_assets: SharedBattleAssets,
     simulation: BattleSimulation,
@@ -68,6 +69,7 @@ impl BattleScene {
             textbox: Textbox::new_overworld(game_io),
             textbox_is_blocking_input: false,
             event_receiver,
+            pending_signals: Vec::new(),
             synced_time: 0,
             shared_assets: SharedBattleAssets::new(game_io, event_sender),
             simulation: BattleSimulation::new(
@@ -122,7 +124,7 @@ impl BattleScene {
             }
 
             if let Some(remote_controller) = scene.player_controllers.get_mut(setup.index) {
-                remote_controller.input_buffer = std::mem::take(&mut setup.input_buffer);
+                remote_controller.buffer = std::mem::take(&mut setup.buffer);
                 remote_controller.connected = true;
             }
 
@@ -204,11 +206,8 @@ impl BattleScene {
                     self.textbox.open();
                 }
                 BattleEvent::RequestFlee => {
-                    // fleeing is not currently possible in multiplayer
-                    // since we use self.shared_assets in a non rollback friendly way
-                    let multiplayer = self.player_controllers.len() > 1;
                     let is_boss_battle = self.simulation.statistics.boss_battle;
-                    let can_run = !is_boss_battle && !multiplayer;
+                    let can_run = !is_boss_battle;
 
                     self.textbox.use_player_avatar(game_io);
 
@@ -237,7 +236,7 @@ impl BattleScene {
                 BattleEvent::AttemptFlee => {
                     // todo: check for success using some method in battle_init
 
-                    self.shared_assets.attempting_flee = true;
+                    self.pending_signals.push(NetplaySignal::AttemptingFlee);
 
                     let event_sender = self.shared_assets.event_sender.clone();
                     let text = String::from("\x01...\x01OK!\nWe got away!");
@@ -252,9 +251,9 @@ impl BattleScene {
                 BattleEvent::CompleteFlee(success) => {
                     if success {
                         self.exit(game_io, true);
-                    } else {
-                        self.shared_assets.attempting_flee = false;
                     }
+
+                    self.pending_signals.push(NetplaySignal::CompletedFlee);
                 }
             }
         }
@@ -294,7 +293,10 @@ impl BattleScene {
                     continue;
                 }
 
-                let is_disconnect = matches!(packet, NetplayPacket::Disconnect { .. });
+                let is_disconnect = matches!(
+                    &packet,
+                    NetplayPacket::Buffer { data, .. } if data.signals.contains(&NetplaySignal::Disconnect)
+                );
 
                 packets.push(packet);
 
@@ -332,21 +334,26 @@ impl BattleScene {
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
         match packet {
-            NetplayPacket::Input {
+            NetplayPacket::Buffer {
                 index,
-                pressed,
+                data,
                 buffer_sizes,
             } => {
                 let mut resimulation_time = self.simulation.time;
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
+                    // check disconnect
+                    if data.signals.contains(&NetplaySignal::Disconnect) {
+                        controller.connected = false;
+                    }
+
                     // figure out if we should slow down
                     if let Some(remote_received_size) = buffer_sizes.get(self.local_index).cloned()
                     {
-                        let local_remote_size = controller.input_buffer.len();
+                        let local_remote_size = controller.buffer.len();
 
-                        let has_substantial_diff =
-                            remote_received_size > local_remote_size + BUFFER_TOLERANCE;
+                        let has_substantial_diff = controller.connected
+                            && remote_received_size > local_remote_size + BUFFER_TOLERANCE;
 
                         if self.slow_cooldown == 0 && has_substantial_diff {
                             self.slow_cooldown = SLOW_COOLDOWN;
@@ -354,20 +361,19 @@ impl BattleScene {
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index) {
-                        if !input.matches(&pressed) {
+                        if !input.matches(&data) {
                             // resolve the time of the input if it differs from our simulation
                             resimulation_time =
-                                self.synced_time + controller.input_buffer.len() as FrameTime;
+                                self.synced_time + controller.buffer.len() as FrameTime;
                         }
                     }
 
-                    controller.input_buffer.push_back(pressed);
+                    if !data.signals.is_empty() {
+                        log::debug!("Received {:?} from {index}", data.signals);
+                    }
+
+                    controller.buffer.push_back(data);
                     self.resimulate(game_io, resimulation_time);
-                }
-            }
-            NetplayPacket::Disconnect { index } => {
-                if let Some(controller) = self.player_controllers.get_mut(index) {
-                    controller.connected = false;
                 }
             }
             NetplayPacket::Heartbeat { .. } => {}
@@ -389,14 +395,10 @@ impl BattleScene {
     fn input_synced(&self) -> bool {
         self.player_controllers
             .iter()
-            .all(|controller| !controller.connected || !controller.input_buffer.is_empty())
+            .all(|controller| !controller.connected || !controller.buffer.is_empty())
     }
 
     fn handle_local_input(&mut self, game_io: &GameIO) {
-        if self.exiting {
-            return;
-        }
-
         let input_util = InputUtil::new(game_io);
 
         let local_controller = match self.player_controllers.get_mut(self.local_index) {
@@ -415,19 +417,25 @@ impl BattleScene {
             }
         }
 
+        // create buffer item
+        let data = NetplayBufferItem {
+            pressed,
+            signals: std::mem::take(&mut self.pending_signals),
+        };
+
         // update local buffer
-        local_controller.input_buffer.push_back(pressed.clone());
+        local_controller.buffer.push_back(data.clone());
 
         // gather buffer sizes for remotes to know if they should slow down
         let buffer_sizes = self
             .player_controllers
             .iter()
-            .map(|controller| controller.input_buffer.len())
+            .map(|controller| controller.buffer.len())
             .collect();
 
-        self.broadcast(NetplayPacket::Input {
+        self.broadcast(NetplayPacket::Buffer {
             index: self.local_index,
-            pressed,
+            data,
             buffer_sizes,
         });
     }
@@ -439,8 +447,8 @@ impl BattleScene {
             if let Some(controller) = self.player_controllers.get(index) {
                 let index = (self.simulation.time - self.synced_time) as usize;
 
-                if let Some(inputs) = controller.input_buffer.get(index) {
-                    player_input.set_pressed_input(inputs.clone());
+                if let Some(data) = controller.buffer.get(index) {
+                    player_input.load_data(data.clone());
                 }
             }
         }
@@ -459,8 +467,8 @@ impl BattleScene {
             self.synced_time += 1;
 
             for controller in self.player_controllers.iter_mut() {
-                let _ = writeln!(&mut file, "  {:?}", controller.input_buffer.front());
-                controller.input_buffer.pop_front();
+                let _ = writeln!(&mut file, "  {:?}", controller.buffer.front());
+                controller.buffer.pop_front();
             }
 
             let _ = writeln!(&mut file, "Archetypes: [");
@@ -628,9 +636,7 @@ impl BattleScene {
 
     fn exit(&mut self, game_io: &GameIO, fleeing: bool) {
         self.exiting = true;
-        self.broadcast(NetplayPacket::Disconnect {
-            index: self.local_index,
-        });
+        self.pending_signals.push(NetplaySignal::Disconnect);
 
         if let Some(statistics_callback) = self.statistics_callback.take() {
             self.simulation.wrap_up_statistics();
@@ -638,9 +644,6 @@ impl BattleScene {
             statistics.ran = fleeing;
             statistics_callback(Some(statistics));
         }
-
-        let transition = crate::transitions::new_battle_pop(game_io);
-        self.next_scene = NextScene::new_pop().with_transition(transition);
 
         // clean up music stack
         let globals = game_io.resource::<Globals>().unwrap();
@@ -714,6 +717,13 @@ impl Scene for BattleScene {
 
         if !self.exiting && self.detect_exit_request() {
             self.exit(game_io, false);
+        }
+
+        if self.exiting && !game_io.is_in_transition() && self.pending_signals.is_empty() {
+            // need to exit, not currently exiting, no pending signals that must be shared
+            // safe to exit
+            let transition = crate::transitions::new_battle_pop(game_io);
+            self.next_scene = NextScene::new_pop().with_transition(transition);
         }
     }
 

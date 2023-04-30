@@ -8,7 +8,6 @@ pub struct SharedBattleAssets {
     pub statuses_texture: Arc<Texture>,
     pub statuses_animator: Animator,
     pub event_sender: flume::Sender<BattleEvent>,
-    pub attempting_flee: bool,
 }
 
 impl SharedBattleAssets {
@@ -19,7 +18,6 @@ impl SharedBattleAssets {
             statuses_texture: assets.texture(game_io, ResourcePaths::BATTLE_STATUSES),
             statuses_animator: Animator::load_new(assets, ResourcePaths::BATTLE_STATUSES_ANIMATION),
             event_sender,
-            attempting_flee: false,
         }
     }
 }

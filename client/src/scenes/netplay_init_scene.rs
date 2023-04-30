@@ -8,7 +8,7 @@ use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
-use packets::{NetplayPacket, SERVER_TICK_RATE};
+use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -53,7 +53,7 @@ struct RemotePlayerConnection {
     ready: bool,
     send: Option<NetplayPacketSender>,
     receiver: Option<NetplayPacketReceiver>,
-    input_buffer: VecDeque<Vec<Input>>,
+    buffer: VecDeque<NetplayBufferItem>,
 }
 
 pub struct NetplayInitScene {
@@ -167,7 +167,7 @@ impl NetplayInitScene {
                 ready: false,
                 send: None,
                 receiver: None,
-                input_buffer: VecDeque::new(),
+                buffer: VecDeque::new(),
             })
             .collect();
 
@@ -282,7 +282,7 @@ impl NetplayInitScene {
 
         if !matches!(
             packet,
-            NetplayPacket::Input { .. } | NetplayPacket::Heartbeat { .. }
+            NetplayPacket::Buffer { .. } | NetplayPacket::Heartbeat { .. }
         ) {
             let packet_name: &'static str = (&packet).into();
             log::debug!("Received {packet_name} from {index}");
@@ -412,11 +412,12 @@ impl NetplayInitScene {
                 self.seed = self.seed.max(seed);
                 connection.ready = true;
             }
-            NetplayPacket::Input { pressed, .. } => {
-                connection.input_buffer.push_back(pressed);
-            }
-            NetplayPacket::Disconnect { .. } => {
-                self.failed = true;
+            NetplayPacket::Buffer { data, .. } => {
+                if data.signals.contains(&NetplaySignal::Disconnect) {
+                    self.failed = true;
+                }
+
+                connection.buffer.push_back(data);
             }
         }
     }
@@ -590,10 +591,22 @@ impl NetplayInitScene {
 
     fn handle_transition(&mut self, game_io: &mut GameIO) {
         if self.failed {
+            // let other player's know we're giving up on them
+            self.broadcast(NetplayPacket::Buffer {
+                index: self.local_index,
+                data: NetplayBufferItem {
+                    pressed: Vec::new(),
+                    signals: vec![NetplaySignal::Disconnect],
+                },
+                buffer_sizes: Vec::new(),
+            });
+
+            // make sure the statistics callback gets called
             if let Some(callback) = self.statistics_callback.take() {
                 callback(None);
             }
 
+            // move on
             let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
             return;
@@ -659,7 +672,7 @@ impl NetplayInitScene {
                     blocks: connection.blocks.clone(),
                     index: connection.index,
                     local: false,
-                    input_buffer: connection.input_buffer,
+                    buffer: connection.buffer,
                 });
 
                 if let Some(send) = connection.send.take() {

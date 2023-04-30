@@ -1,3 +1,5 @@
+use packets::{NetplayBufferItem, NetplaySignal};
+
 use crate::render::*;
 use crate::resources::Input;
 
@@ -7,6 +9,8 @@ pub struct PlayerInput {
     pressed_input: Vec<Input>,
     held_navigation_input: Vec<Input>,
     navigation_held_duration: FrameTime,
+    signals: Vec<NetplaySignal>,
+    fleeing: bool,
 }
 
 impl PlayerInput {
@@ -47,12 +51,31 @@ impl PlayerInput {
         self.previous_input.contains(&input) && !self.pressed_input.contains(&input)
     }
 
-    pub fn matches(&self, pressed_input: &[Input]) -> bool {
-        self.pressed_input == pressed_input
+    pub fn fleeing(&self) -> bool {
+        self.fleeing
     }
 
-    pub fn set_pressed_input(&mut self, inputs: Vec<Input>) {
-        self.pressed_input = inputs;
+    pub fn has_signal(&mut self, signal: NetplaySignal) -> bool {
+        self.signals.contains(&signal)
+    }
+
+    pub fn matches(&self, data: &NetplayBufferItem) -> bool {
+        data.signals.is_empty() && self.pressed_input == data.pressed
+    }
+
+    pub fn load_data(&mut self, data: NetplayBufferItem) {
+        self.pressed_input = data.pressed;
+        self.signals = data.signals;
+
+        if self.has_signal(NetplaySignal::AttemptingFlee) {
+            self.fleeing = true;
+        }
+
+        if self.has_signal(NetplaySignal::CompletedFlee)
+            || self.has_signal(NetplaySignal::Disconnect)
+        {
+            self.fleeing = false;
+        }
     }
 
     pub fn simulate_input(&mut self, input: Input, pressed: bool) {
@@ -70,6 +93,7 @@ impl PlayerInput {
     pub fn flush(&mut self) {
         // copy previous state
         self.previous_input = self.pressed_input.clone();
+        self.signals.clear();
 
         let navigation_held = self
             .previous_input

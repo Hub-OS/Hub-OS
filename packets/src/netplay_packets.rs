@@ -2,6 +2,19 @@ use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum NetplaySignal {
+    AttemptingFlee,
+    CompletedFlee,
+    Disconnect,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct NetplayBufferItem {
+    pub pressed: Vec<Input>,
+    pub signals: Vec<NetplaySignal>,
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum NetplayPacket {
     Heartbeat {
@@ -41,13 +54,10 @@ pub enum NetplayPacket {
         index: usize,
         seed: u64,
     },
-    Input {
+    Buffer {
         index: usize,
-        pressed: Vec<Input>,
+        data: NetplayBufferItem,
         buffer_sizes: Vec<usize>,
-    },
-    Disconnect {
-        index: usize,
     },
 }
 
@@ -63,8 +73,7 @@ impl NetplayPacket {
             NetplayPacket::ReadyForPackages { index } => *index,
             NetplayPacket::PackageZip { index, .. } => *index,
             NetplayPacket::Ready { index, .. } => *index,
-            NetplayPacket::Input { index, .. } => *index,
-            NetplayPacket::Disconnect { index } => *index,
+            NetplayPacket::Buffer { index, .. } => *index,
         }
     }
 }

@@ -5,6 +5,7 @@ use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use framework::prelude::*;
 use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
+use packets::NetplayBufferItem;
 use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
@@ -16,7 +17,7 @@ pub struct PlayerSetup<'a> {
     pub blocks: Vec<InstalledBlock>,
     pub index: usize,
     pub local: bool,
-    pub input_buffer: VecDeque<Vec<Input>>,
+    pub buffer: VecDeque<NetplayBufferItem>,
 }
 
 impl<'a> PlayerSetup<'a> {
@@ -30,7 +31,7 @@ impl<'a> PlayerSetup<'a> {
             blocks: Vec::new(),
             index,
             local,
-            input_buffer: VecDeque::new(),
+            buffer: VecDeque::new(),
         }
     }
 
@@ -65,7 +66,7 @@ impl<'a> PlayerSetup<'a> {
             deck,
             blocks,
             local: true,
-            input_buffer: VecDeque::new(),
+            buffer: VecDeque::new(),
         }
     }
 }

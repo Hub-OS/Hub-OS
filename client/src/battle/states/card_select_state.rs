@@ -744,11 +744,7 @@ impl CardSelectState {
             }
         }
 
-        // this will desync if shared_assets.attempting_flee is ever set to true during netplay
-        // currently there's a check in the handler for BattleEvent::RequestFlee to block that
-        // if we do want to be able to flee in multiplayer, we'll need to send some signal for
-        // connected clients to clear out our selection, likely synced through PlayerInput
-        if shared_assets.attempting_flee {
+        if input.fleeing() {
             // clear selection
             selection.selected_card_indices.clear();
             selection.selected_form_index.take();
@@ -757,8 +753,8 @@ impl CardSelectState {
             selection.confirm_time = self.time;
         }
 
-        if selection.confirm_time != 0 || is_resimulation {
-            // the rest can be ignored if we're already closing or if this is a resimulation
+        if selection.confirm_time != 0 || is_resimulation || !selection.local {
+            // the rest deals with signals
             return;
         }
 
