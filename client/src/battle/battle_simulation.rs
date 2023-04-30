@@ -949,6 +949,9 @@ impl BattleSimulation {
         // spawn immediately
         entity.pending_spawn = true;
 
+        // prevent attacks from countering by default
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
+
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();

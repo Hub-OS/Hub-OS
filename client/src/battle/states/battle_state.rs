@@ -981,7 +981,7 @@ impl BattleState {
             lua_api.inject_dynamic(lua, &api_ctx, |lua| {
                 use rollback_mlua::ToLua;
 
-                {
+                let original_context_flags = {
                     // allow attacks to counter
                     let mut api_ctx = api_ctx.borrow_mut();
                     let entities = &mut api_ctx.simulation.entities;
@@ -989,8 +989,12 @@ impl BattleState {
                     let entity = entities
                         .query_one_mut::<&mut Entity>(entity_id.into())
                         .unwrap();
+
+                    let original_flags = entity.hit_context.flags;
                     entity.hit_context.flags = HitFlag::NONE;
-                }
+
+                    original_flags
+                };
 
                 // init card action
                 let entity_table = create_entity_table(lua, entity_id)?;
@@ -1002,14 +1006,14 @@ impl BattleState {
                 id = Some(index);
 
                 {
-                    // block attacks from countering
+                    // revert context flags
                     let mut api_ctx = api_ctx.borrow_mut();
                     let entities = &mut api_ctx.simulation.entities;
 
                     let entity = entities
                         .query_one_mut::<&mut Entity>(entity_id.into())
                         .unwrap();
-                    entity.hit_context.flags = HitFlag::NO_COUNTER;
+                    entity.hit_context.flags = original_context_flags;
                 }
 
                 Ok(())
@@ -1521,6 +1525,7 @@ impl BattleState {
                 animator.apply(sprite_node);
 
                 // allow attacks to counter
+                let original_context_flags = entity.hit_context.flags;
                 entity.hit_context.flags = HitFlag::NONE;
 
                 // execute callback
@@ -1533,8 +1538,8 @@ impl BattleState {
                     .query_one_mut::<&mut Entity>(entity_id.into())
                     .unwrap();
 
-                // block attacks from countering
-                entity.hit_context.flags = HitFlag::NO_COUNTER;
+                // revert context
+                entity.hit_context.flags = original_context_flags;
 
                 // setup frame callbacks
                 let Some(action) = simulation.actions.get_mut(action_index) else {
