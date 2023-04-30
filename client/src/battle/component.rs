@@ -22,12 +22,23 @@ impl Component {
         }
     }
 
-    /// deletes the entity on the next battle frame
-    pub fn new_battle_deleter(simulation: &mut BattleSimulation, entity_id: EntityId) {
+    /// deletes the entity after a specified amount of battle frames
+    pub fn new_delayed_deleter(
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        lifetime: ComponentLifetime,
+        delay: FrameTime,
+    ) {
+        let start_time = simulation.battle_time;
+
         simulation.components.insert_with(|index| {
-            let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
+            let mut component = Self::new(entity_id, lifetime);
 
             component.update_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
+                if simulation.battle_time - start_time < delay {
+                    return;
+                }
+
                 simulation.delete_entity(game_io, vms, entity_id);
                 Component::eject(simulation, index);
             });
