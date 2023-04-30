@@ -562,7 +562,7 @@ impl CardSelectState {
         }
 
         if selection.form_open_time.is_some() {
-            self.handle_form_input(game_io, player, input, is_resimulation);
+            self.handle_form_input(game_io, shared_assets, player, input, is_resimulation);
         } else {
             self.handle_card_input(game_io, shared_assets, player, input, is_resimulation);
         }
@@ -571,6 +571,7 @@ impl CardSelectState {
     fn handle_form_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -630,6 +631,18 @@ impl CardSelectState {
             if selection.local && !is_resimulation {
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.sfx.form_select_close);
+            }
+        }
+
+        if is_resimulation || !selection.local {
+            // the rest deals with signals
+            return;
+        }
+
+        if input.was_just_pressed(Input::Info) {
+            if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
+                let event = BattleEvent::Description((*form.description).clone());
+                shared_assets.event_sender.send(event).unwrap();
             }
         }
     }

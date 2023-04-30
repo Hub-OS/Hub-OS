@@ -7,6 +7,7 @@ use crate::battle::{BattleCallback, Player, PlayerForm};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
+use std::sync::Arc;
 
 pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(
@@ -30,6 +31,28 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
             let game_io = &api_ctx.game_io;
             let assets = &game_io.resource::<Globals>().unwrap().assets;
             form.mug_texture = Some(assets.texture(game_io, &path));
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        PLAYER_FORM_TABLE,
+        "set_description",
+        move |api_ctx, lua, params| {
+            let (table, description): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = table.raw_get("#entity_id")?;
+            let index: usize = table.raw_get("#index")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
+            let player = entities
+                .query_one_mut::<&mut Player>(entity_id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+            form.description = Arc::new(description);
 
             lua.pack_multi(())
         },

@@ -14,6 +14,7 @@ const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const BUFFER_TOLERANCE: usize = 3;
 
 pub enum BattleEvent {
+    Description(String),
     DescribeCard(PackageId),
     RequestFlee,
     AttemptFlee,
@@ -192,6 +193,13 @@ impl BattleScene {
     fn update_textbox(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
+                BattleEvent::Description(description) => {
+                    if !description.is_empty() {
+                        let interface = TextboxMessage::new(description);
+                        self.textbox.push_interface(interface);
+                        self.textbox.open();
+                    }
+                }
                 BattleEvent::DescribeCard(package_id) => {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let ns = PackageNamespace::Server;
@@ -200,9 +208,14 @@ impl BattleScene {
                         continue;
                     };
 
+                    let description = if package.card_properties.long_description.is_empty() {
+                        package.card_properties.description.clone()
+                    } else {
+                        package.card_properties.long_description.clone()
+                    };
+
                     self.textbox.use_blank_avatar(game_io);
-                    let interface =
-                        TextboxMessage::new(package.card_properties.long_description.clone());
+                    let interface = TextboxMessage::new(description);
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 }
