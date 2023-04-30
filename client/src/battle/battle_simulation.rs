@@ -15,7 +15,6 @@ use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
 pub struct BattleSimulation {
-    pub battle_started: bool,
     pub config: BattleConfig,
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
@@ -40,6 +39,8 @@ pub struct BattleSimulation {
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
+    pub music_stack_depth: usize,
+    pub battle_started: bool,
     pub intro_complete: bool,
     pub is_resimulation: bool,
     pub exit: bool,
@@ -53,10 +54,10 @@ impl BattleSimulation {
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let globals = &game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
         Self {
-            battle_started: false,
             config: BattleConfig::new(player_count),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
@@ -81,6 +82,8 @@ impl BattleSimulation {
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
+            music_stack_depth: globals.audio.music_stack_len() + 1,
+            battle_started: false,
             intro_complete: false,
             is_resimulation: false,
             exit: false,
@@ -135,7 +138,6 @@ impl BattleSimulation {
         }
 
         Self {
-            battle_started: self.battle_started,
             config: self.config.clone(),
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
@@ -160,6 +162,8 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             local_team: self.local_team,
+            music_stack_depth: self.music_stack_depth,
+            battle_started: self.battle_started,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,
             exit: self.exit,
@@ -177,6 +181,24 @@ impl BattleSimulation {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(sound_buffer);
         }
+    }
+
+    pub fn play_music(
+        &self,
+        game_io: &GameIO,
+        sound_buffer: &SoundBuffer,
+        loops: bool,
+        // todo:
+        _start_ms: Option<u64>,
+        _end_ms: Option<u64>,
+    ) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if globals.audio.music_stack_len() != self.music_stack_depth {
+            return;
+        }
+
+        globals.audio.play_music(sound_buffer, loops);
     }
 
     pub fn wrap_up_statistics(&mut self) {
