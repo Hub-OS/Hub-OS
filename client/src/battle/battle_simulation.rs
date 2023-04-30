@@ -7,9 +7,11 @@ use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card};
+use crate::scenes::BattleEvent;
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::{BattleStatistics, BattleSurvivor};
+use packets::NetplaySignal;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
@@ -235,6 +237,23 @@ impl BattleSimulation {
         }
 
         self.statistics.calculate_score();
+    }
+
+    pub fn handle_local_signals(
+        &mut self,
+        local_index: usize,
+        shared_assets: &mut SharedBattleAssets,
+    ) {
+        let input = &self.inputs[local_index];
+
+        // handle flee
+        if !self.is_resimulation && input.has_signal(NetplaySignal::AttemptingFlee) {
+            // todo: check for success using some method in battle_init
+            shared_assets
+                .event_sender
+                .send(BattleEvent::FleeResult(true))
+                .unwrap();
+        }
     }
 
     pub fn pre_update(&mut self, game_io: &GameIO, vms: &[RollbackVM], state: &dyn State) {

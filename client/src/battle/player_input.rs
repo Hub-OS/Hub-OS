@@ -55,7 +55,7 @@ impl PlayerInput {
         self.fleeing
     }
 
-    pub fn has_signal(&mut self, signal: NetplaySignal) -> bool {
+    pub fn has_signal(&self, signal: NetplaySignal) -> bool {
         self.signals.contains(&signal)
     }
 

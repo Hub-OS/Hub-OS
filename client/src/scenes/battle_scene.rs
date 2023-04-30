@@ -17,6 +17,7 @@ pub enum BattleEvent {
     DescribeCard(PackageId),
     RequestFlee,
     AttemptFlee,
+    FleeResult(bool),
     CompleteFlee(bool),
 }
 
@@ -234,14 +235,21 @@ impl BattleScene {
                     self.textbox.open();
                 }
                 BattleEvent::AttemptFlee => {
-                    // todo: check for success using some method in battle_init
-
+                    // pass signal for BattleSimulation::handle_local_signals to resolve the success
                     self.pending_signals.push(NetplaySignal::AttemptingFlee);
-
+                }
+                BattleEvent::FleeResult(success) => {
                     let event_sender = self.shared_assets.event_sender.clone();
-                    let text = String::from("\x01...\x01OK!\nWe got away!");
+                    let text = if success {
+                        String::from("\x01...\x01OK!\nWe got away!")
+                    } else {
+                        String::from("\x01...\x01It's no good!\nWe can't run away!")
+                    };
+
                     let interface = TextboxMessage::new(text).with_callback(move || {
-                        event_sender.send(BattleEvent::CompleteFlee(true)).unwrap();
+                        event_sender
+                            .send(BattleEvent::CompleteFlee(success))
+                            .unwrap();
                     });
 
                     self.textbox.use_player_avatar(game_io);
@@ -566,6 +574,9 @@ impl BattleScene {
         if let Some(state) = self.state.next_state(game_io) {
             self.state = state;
         }
+
+        self.simulation
+            .handle_local_signals(self.local_index, &mut self.shared_assets);
 
         self.simulation.pre_update(game_io, &self.vms, &*self.state);
         self.state.update(
