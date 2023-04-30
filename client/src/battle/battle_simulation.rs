@@ -271,6 +271,9 @@ impl BattleSimulation {
             self.update_animations();
         }
 
+        // process disconnects
+        self.process_disconnects();
+
         // spawn pending entities
         self.spawn_pending();
 
@@ -346,6 +349,25 @@ impl BattleSimulation {
                 let animator = &mut self.animators[attachment.animator_index];
                 self.pending_callbacks.extend(animator.update());
             }
+        }
+    }
+
+    fn process_disconnects(&mut self) {
+        let mut pending_deletion = Vec::new();
+
+        let entities = &mut self.entities;
+        for (id, (entity, player)) in entities.query_mut::<(&mut Entity, &Player)>() {
+            let input = &self.inputs[player.index];
+
+            if entity.deleted || !input.has_signal(NetplaySignal::Disconnect) {
+                continue;
+            }
+
+            pending_deletion.push(id);
+        }
+
+        for id in pending_deletion {
+            Component::new_battle_deleter(self, id.into());
         }
     }
 

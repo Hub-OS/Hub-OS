@@ -1,4 +1,4 @@
-use super::errors::{component_not_found, entity_not_found};
+use super::errors::component_not_found;
 use super::{BattleLuaApi, COMPONENT_TABLE, INIT_FN, UPDATE_FN};
 use crate::battle::*;
 use crate::bindable::*;
@@ -21,27 +21,7 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let component = api_ctx
-            .simulation
-            .components
-            .remove(id.into())
-            .ok_or_else(component_not_found)?;
-
-        if component.lifetime == ComponentLifetime::Local {
-            let entities = &mut api_ctx.simulation.entities;
-
-            let entity = entities
-                .query_one_mut::<&mut Entity>(component.entity.into())
-                .map_err(|_| entity_not_found())?;
-
-            let arena_index: generational_arena::Index = id.into();
-            let index = (entity.local_components)
-                .iter()
-                .position(|stored_index| *stored_index == arena_index)
-                .unwrap();
-
-            entity.local_components.swap_remove(index);
-        }
+        Component::eject(api_ctx.simulation, id.into());
 
         lua.pack_multi(())
     });
