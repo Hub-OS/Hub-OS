@@ -1268,60 +1268,61 @@ impl OverworldOnlineScene {
                 sprite_id,
                 sprite_definition,
             } => {
-                let entities = &mut self.area.entities;
-                let assets = &self.assets;
+                self.sprite_id_map.entry(sprite_id).or_insert_with(|| {
+                    let entities = &mut self.area.entities;
+                    let assets = &self.assets;
 
-                // setup sprite
-                let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
+                    // setup sprite
+                    let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
 
-                // setup offset
-                let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
-                sprite.set_position(offset);
+                    // setup offset
+                    let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
+                    sprite.set_position(offset);
 
-                // setup layer
-                let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
-                    // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
-                    sprite_definition.layer - 1
-                } else {
-                    sprite_definition.layer
-                });
+                    // setup layer
+                    let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
+                        // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
+                        sprite_definition.layer - 1
+                    } else {
+                        sprite_definition.layer
+                    });
 
-                // setup animator
-                let mut animator = Animator::load_new(assets, &sprite_definition.animation_path);
-                animator.set_state(&sprite_definition.animation_state);
+                    // setup animator
+                    let mut animator =
+                        Animator::load_new(assets, &sprite_definition.animation_path);
+                    animator.set_state(&sprite_definition.animation_state);
 
-                if sprite_definition.animation_loops {
-                    animator.set_loop_mode(AnimatorLoopMode::Loop);
-                } else if let Some(frame_list) =
-                    animator.frame_list(&sprite_definition.animation_state)
-                {
-                    // end the state
-                    animator.sync_time(frame_list.duration());
-                }
+                    if sprite_definition.animation_loops {
+                        animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    } else if let Some(frame_list) =
+                        animator.frame_list(&sprite_definition.animation_state)
+                    {
+                        // end the state
+                        animator.sync_time(frame_list.duration());
+                    }
 
-                let entity = entities.spawn((animator, sprite, offset, layer));
+                    let entity = entities.spawn((animator, sprite, offset, layer));
 
-                // set attachment
-                let _ = match sprite_definition.parent {
-                    SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
-                    SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
-                    SpriteParent::Actor(actor_id) => entities.insert(
-                        entity,
-                        (
-                            ActorAttachment {
+                    // set attachment
+                    let _ = match sprite_definition.parent {
+                        SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
+                        SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
+                        SpriteParent::Actor(actor_id) => {
+                            let attachment = ActorAttachment {
                                 actor_entity: self
                                     .actor_id_map
                                     .get_by_left(&actor_id)
                                     .cloned()
                                     .unwrap_or(hecs::Entity::DANGLING),
                                 point: sprite_definition.parent_point,
-                            },
-                            Vec3::ZERO,
-                        ),
-                    ),
-                };
+                            };
 
-                self.sprite_id_map.insert(sprite_id, entity);
+                            entities.insert(entity, (attachment, Vec3::ZERO))
+                        }
+                    };
+
+                    entity
+                });
             }
             ServerPacket::SpriteAnimate {
                 sprite_id,

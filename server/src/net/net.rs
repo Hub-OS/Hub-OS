@@ -1799,8 +1799,6 @@ impl Net {
 
     // handles first join and completed transfer
     pub(super) fn mark_client_ready(&mut self, id: &str) {
-        use packets::serialize;
-
         let client = match self.clients.get_mut(id) {
             Some(client) => client,
             None => return,
@@ -1814,18 +1812,28 @@ impl Net {
         client.ready = true;
         client.transferring = false;
 
-        let packet = client.actor.create_spawn_packet(
+        let spawn_packet = client.actor.create_spawn_packet(
             client.warp_x,
             client.warp_y,
             client.warp_z,
             client.warp_in,
         );
 
-        let packet_bytes = serialize(packet);
+        self.packet_orchestrator.borrow_mut().broadcast_to_room(
+            area.id(),
+            Reliability::ReliableOrdered,
+            spawn_packet,
+        );
 
-        self.packet_orchestrator
-            .borrow_mut()
-            .broadcast_bytes_to_room(area.id(), Reliability::ReliableOrdered, packet_bytes);
+        for sprite_id in client.actor.child_sprites.clone() {
+            let sprite = self.sprites.get(&sprite_id).unwrap();
+            let sprite_definition = sprite.definition.clone();
+
+            self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteCreated {
+                sprite_id,
+                sprite_definition,
+            });
+        }
     }
 
     pub(super) fn remove_player(&mut self, id: &str, warp_out: bool) {
@@ -2322,6 +2330,11 @@ impl Net {
     }
 
     pub fn animate_sprite(&mut self, sprite_id: String, state: String, loop_animation: bool) {
+        if let Some(sprite) = self.sprites.get_mut(&sprite_id) {
+            sprite.definition.animation_state = state.clone();
+            sprite.definition.animation_loops = loop_animation;
+        }
+
         self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteAnimate {
             sprite_id,
             state,
@@ -2397,8 +2410,17 @@ impl Net {
 
         if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
             // send just to clients in the same area as the actor
-            let client_area_id = clients.get(actor_id).map(|client| &client.actor.area_id);
-            let area_id = client_area_id.or_else(|| bots.get(actor_id).map(|actor| &actor.area_id));
+            let area_id = if let Some(client) = clients.get(actor_id) {
+                if !client.ready {
+                    // if the client isn't ready only send to the client
+                    // we'll send sprites again when the client is marked ready
+                    return Some(PacketScope::Client(Cow::Borrowed(&client.actor.id)));
+                }
+
+                Some(&client.actor.area_id)
+            } else {
+                bots.get(actor_id).map(|actor| &actor.area_id)
+            };
 
             return Some(PacketScope::Area(Cow::Borrowed(area_id?)));
         }

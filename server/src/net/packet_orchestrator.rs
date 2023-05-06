@@ -458,31 +458,6 @@ impl PacketOrchestrator {
         }
     }
 
-    pub fn broadcast_bytes_to_room(
-        &mut self,
-        room_id: &str,
-        reliability: Reliability,
-        bytes: Vec<u8>,
-    ) {
-        let room = if let Some(room) = self.rooms.get_mut(room_id) {
-            room
-        } else {
-            return;
-        };
-
-        for index in room {
-            let connection = &mut self.connections[*index];
-
-            internal_send_bytes(
-                self.synchronize_updates,
-                &mut self.synchronize_locked_clients,
-                connection,
-                reliability,
-                &bytes,
-            );
-        }
-    }
-
     #[allow(dead_code)]
     pub fn broadcast_packets_to_room(
         &mut self,
