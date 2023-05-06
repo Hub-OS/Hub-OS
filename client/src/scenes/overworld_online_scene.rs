@@ -150,7 +150,7 @@ impl OverworldOnlineScene {
         let global_save = &globals.global_save;
 
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
 
         let packet = ClientPacket::Boost {
             health_boost: self.area.player_data.health_boost,

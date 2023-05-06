@@ -461,7 +461,7 @@ impl Globals {
         }
     }
 
-    pub fn remote_namespaces(&self) -> Vec<PackageNamespace> {
+    pub fn netplay_namespaces(&self) -> Vec<PackageNamespace> {
         let mut namespace_set = HashSet::new();
 
         self.library_packages
@@ -472,7 +472,7 @@ impl Globals {
             .chain(self.player_packages.namespaces())
             .chain(self.character_packages.namespaces())
             .chain(self.library_packages.namespaces())
-            .filter(|ns| ns.is_remote())
+            .filter(|ns| ns.is_netplay())
             .for_each(|namespace| {
                 namespace_set.insert(namespace);
             });

@@ -80,7 +80,7 @@ impl CustomizeScene {
         // load block packages
         let mut packages: Vec<_> = globals
             .augment_packages
-            .packages_with_fallthrough(PackageNamespace::Server)
+            .packages_with_override(PackageNamespace::Local)
             .filter(|package| package.has_shape)
             .flat_map(|package| {
                 package
@@ -169,7 +169,7 @@ impl CustomizeScene {
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
             colors: Vec::new(),
-            grid: BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks),
+            grid: BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks),
             arrow: GridArrow::new(game_io),
             block_preview: None,
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
@@ -214,7 +214,7 @@ impl CustomizeScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_fallback(PackageNamespace::Server, &block.package_id)
+                        .package_or_fallback(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     package.description.clone()
@@ -231,7 +231,7 @@ impl CustomizeScene {
 
                     let package = globals
                         .augment_packages
-                        .package_or_fallback(PackageNamespace::Server, &package.id)
+                        .package_or_fallback(PackageNamespace::Local, &package.id)
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
@@ -260,7 +260,7 @@ impl CustomizeScene {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let package = globals
                             .augment_packages
-                            .package_or_fallback(PackageNamespace::Server, &block.package_id)
+                            .package_or_fallback(PackageNamespace::Local, &block.package_id)
                             .unwrap();
 
                         &package.name
@@ -573,7 +573,7 @@ impl CustomizeScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let package = globals
             .augment_packages
-            .package_or_fallback(PackageNamespace::Server, &block.package_id)
+            .package_or_fallback(PackageNamespace::Local, &block.package_id)
             .unwrap();
 
         self.packages.insert(
@@ -781,7 +781,7 @@ impl Scene for CustomizeScene {
 
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_fallback(PackageNamespace::Server, &block.package_id)
+                        .package_or_fallback(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     if package.is_flat {
@@ -871,7 +871,7 @@ impl Scene for CustomizeScene {
         if let Some(block) = &self.held_block {
             let packages = &globals.augment_packages;
             let package = packages
-                .package_or_fallback(PackageNamespace::Server, &block.package_id)
+                .package_or_fallback(PackageNamespace::Local, &block.package_id)
                 .unwrap();
 
             // create sprite

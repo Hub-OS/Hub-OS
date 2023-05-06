@@ -145,7 +145,7 @@ impl Scene for BattleSelectScene {
             let package_id = &self.package_ids[self.selection];
             let encounter_package = globals
                 .encounter_packages
-                .package_or_fallback(PackageNamespace::Server, package_id);
+                .package_or_fallback(PackageNamespace::Local, package_id);
 
             let props = BattleProps::new_with_defaults(game_io, encounter_package);
 

@@ -38,25 +38,31 @@ impl<T: Package> PackageManager<T> {
             .flat_map(|packages| packages.values())
     }
 
-    pub fn package_ids_with_fallthrough(
+    pub fn package_ids_with_override(
         &self,
         ns: PackageNamespace,
     ) -> impl Iterator<Item = &PackageId> + '_ {
         // gather all ids into a hashset to avoid duplicates
         let mut ids = HashSet::new();
 
-        let mut temp_ns = Some(ns);
+        let flow = match ns {
+            PackageNamespace::Netplay(_) => {
+                vec![PackageNamespace::Server, ns, PackageNamespace::Local]
+            }
+            PackageNamespace::Local | PackageNamespace::Server => {
+                vec![PackageNamespace::Server, PackageNamespace::Local]
+            }
+        };
 
-        while let Some(ns) = temp_ns {
+        for ns in flow {
             ids.extend(self.package_ids(ns));
-            temp_ns = ns.fallback();
         }
 
         ids.into_iter()
     }
 
-    pub fn packages_with_fallthrough(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
-        self.package_ids_with_fallthrough(ns)
+    pub fn packages_with_override(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
+        self.package_ids_with_override(ns)
             .flat_map(move |id| self.package_or_fallback(ns, id))
     }
 
@@ -65,17 +71,7 @@ impl<T: Package> PackageManager<T> {
     }
 
     pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
-        let package = self.package(ns, id);
-
-        match ns {
-            PackageNamespace::Remote(_) => {
-                package.or_else(|| self.package_or_fallback(PackageNamespace::Server, id))
-            }
-            PackageNamespace::Server => {
-                package.or_else(|| self.package_or_fallback(PackageNamespace::Local, id))
-            }
-            PackageNamespace::Local => package,
-        }
+        ns.find_with_overrides(|ns| self.package(ns, id))
     }
 
     pub fn child_packages(&self, ns: PackageNamespace) -> Vec<ChildPackageInfo> {

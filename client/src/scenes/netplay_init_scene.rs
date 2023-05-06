@@ -301,13 +301,10 @@ impl NetplayInitScene {
                 blocks,
                 ..
             } => {
-                connection.player_package = player_package.into();
+                connection.player_package = player_package;
                 connection.deck.cards = cards
                     .into_iter()
-                    .map(|(package_id, code)| Card {
-                        package_id: package_id.into(),
-                        code,
-                    })
+                    .map(|(package_id, code)| Card { package_id, code })
                     .collect();
                 connection.blocks = blocks;
             }
@@ -319,10 +316,9 @@ impl NetplayInitScene {
                 // track what needs to be loaded once downloaded
                 let load_list: Vec<_> = packages
                     .into_iter()
-                    .map(|(category, id, hash)| (category, PackageId::from(id), hash))
                     .filter(|(category, id, hash)| {
                         globals
-                            .package_or_fallback_info(*category, PackageNamespace::Server, id)
+                            .package_or_fallback_info(*category, PackageNamespace::Local, id)
                             .map(|package_info| package_info.hash != *hash) // hashes differ
                             .unwrap_or(true) // non existent
                     })
@@ -334,14 +330,10 @@ impl NetplayInitScene {
 
                 // track files we need to download
                 let missing_packages: Vec<_> = load_list
-                    .iter()
-                    .filter(|(_, _, hash)| !self.missing_packages.contains(hash))
-                    .map(|(_, _, hash)| *hash)
+                    .into_iter()
+                    .map(|(_, _, hash)| hash)
+                    .filter(|hash| self.missing_packages.insert(*hash))
                     .collect();
-
-                // track missing packages
-                self.missing_packages
-                    .extend(missing_packages.iter().cloned());
 
                 if missing_packages.is_empty() && self.received_every_zip() {
                     self.broadcast_ready();
@@ -394,7 +386,7 @@ impl NetplayInitScene {
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
-                            let namespace = PackageNamespace::Remote(connection.index);
+                            let namespace = PackageNamespace::Netplay(connection.index);
                             globals.load_virtual_package(category, namespace, hash);
                         }
                     }
@@ -491,7 +483,7 @@ impl NetplayInitScene {
             .map(|package_info| {
                 (
                     package_info.package_category,
-                    package_info.id.clone().into(),
+                    package_info.id.clone(),
                     package_info.hash,
                 )
             })
@@ -508,13 +500,13 @@ impl NetplayInitScene {
             .deck
             .cards
             .iter()
-            .map(|card| (card.package_id.clone().into(), card.code.clone()))
+            .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
         let blocks = player_setup.blocks.clone();
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
-            player_package: player_package_info.id.clone().into(),
+            player_package: player_package_info.id.clone(),
             cards,
             blocks,
         })
@@ -547,31 +539,33 @@ impl NetplayInitScene {
                     data,
                 });
             }
-        } else {
-            // send individually to each client
-            for i in 0..self.player_connections.len() {
-                let connection = &mut self.player_connections[i];
-                let connection_index = connection.index;
 
-                for hash in connection.requested_packages.take().unwrap() {
-                    let assets = &game_io.resource::<Globals>().unwrap().assets;
+            return;
+        }
 
-                    let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
-                        bytes
-                    } else {
-                        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+        // send individually to each client
+        for i in 0..self.player_connections.len() {
+            let connection = &mut self.player_connections[i];
+            let connection_index = connection.index;
 
-                        assets.binary(&path)
-                    };
+            for hash in connection.requested_packages.take().unwrap() {
+                let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-                    self.send(
-                        connection_index,
-                        NetplayPacket::PackageZip {
-                            index: self.local_index,
-                            data,
-                        },
-                    );
-                }
+                let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
+                    bytes
+                } else {
+                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+
+                    assets.binary(&path)
+                };
+
+                self.send(
+                    connection_index,
+                    NetplayPacket::PackageZip {
+                        index: self.local_index,
+                        data,
+                    },
+                );
             }
         }
     }
@@ -646,7 +640,7 @@ impl NetplayInitScene {
 
             // setup other players
             for mut connection in std::mem::take(&mut self.player_connections) {
-                let namespace = PackageNamespace::Remote(connection.index);
+                let namespace = PackageNamespace::Netplay(connection.index);
                 let package = globals
                     .player_packages
                     .package_or_fallback(namespace, &connection.player_package);
@@ -706,7 +700,7 @@ impl Scene for NetplayInitScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
-        for namespace in globals.remote_namespaces() {
+        for namespace in globals.netplay_namespaces() {
             globals.remove_namespace(namespace);
         }
 

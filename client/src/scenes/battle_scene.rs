@@ -95,6 +95,11 @@ impl BattleScene {
             next_scene: NextScene::None,
         };
 
+        if let Some(setup) = props.player_setups.iter().find(|setup| setup.local) {
+            // resolve local index early for namespace remapping in vm creation
+            scene.local_index = setup.index;
+        }
+
         scene.ui_camera.snap(RESOLUTION_F * 0.5);
 
         // seed before running any vm
@@ -121,10 +126,6 @@ impl BattleScene {
 
         // load the players in the correct order
         for mut setup in props.player_setups {
-            if setup.local {
-                scene.local_index = setup.index;
-            }
-
             if let Some(remote_controller) = scene.player_controllers.get_mut(setup.index) {
                 remote_controller.buffer = std::mem::take(&mut setup.buffer);
                 remote_controller.connected = true;
@@ -165,25 +166,31 @@ impl BattleScene {
     fn load_vm(&mut self, game_io: &GameIO, package_info: &PackageInfo) -> usize {
         let existing_vm = self.find_vm(package_info);
 
-        if let Some(vm_index) = existing_vm {
+        let vm_index = if let Some(vm_index) = existing_vm {
+            // recycle a vm
             let vm = &mut self.vms[vm_index];
 
-            if vm.namespace > package_info.namespace {
-                // drop the vm to a lower namespace to make it more accessible
-                vm.namespace = package_info.namespace;
+            if !vm.namespaces.contains(&package_info.namespace) {
+                vm.namespaces.push(package_info.namespace);
             }
 
-            if !vm.namespace.is_remote()
-                && !package_info.namespace.is_remote()
-                && vm.namespace != package_info.namespace
-            {
-                // vm already exists so no need to add a new one
-                // exception for two different remotes, as with 3+ players recycling is more difficult
-                return vm_index;
+            vm_index
+        } else {
+            // new vm
+            create_battle_vm(game_io, &mut self.simulation, &mut self.vms, package_info)
+        };
+
+        // remapping ns for RollbackVM::preferred_namespace()
+        if package_info.namespace == PackageNamespace::Local {
+            let remapped_ns = PackageNamespace::Netplay(self.local_index);
+            let vm = &mut self.vms[vm_index];
+
+            if !vm.namespaces.contains(&remapped_ns) {
+                vm.namespaces.push(remapped_ns);
             }
         }
 
-        create_battle_vm(game_io, &mut self.simulation, &mut self.vms, package_info)
+        vm_index
     }
 
     fn is_solo(&self) -> bool {
@@ -202,7 +209,7 @@ impl BattleScene {
                 }
                 BattleEvent::DescribeCard(package_id) => {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    let ns = PackageNamespace::Server;
+                    let ns = PackageNamespace::Local;
 
                     let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id) else {
                         continue;
@@ -619,7 +626,7 @@ impl BattleScene {
 
         // list vms by memory usage
         if game_io.input().was_key_just_pressed(Key::V) {
-            const NAMESPACE_WIDTH: usize = 9;
+            const NAMESPACE_WIDTH: usize = 10;
             const MEMORY_WIDTH: usize = 11;
 
             let mut vms_sorted: Vec<_> = self.vms.iter().collect();
@@ -634,7 +641,7 @@ impl BattleScene {
 
             // margin + header
             println!(
-                "\n| Namespace | Package ID{:1$} | Used Memory | Free Memory |",
+                "\n| Namespace  | Package ID{:1$} | Used Memory | Free Memory |",
                 " ",
                 package_id_width - 10
             );
@@ -646,7 +653,9 @@ impl BattleScene {
             for vm in vms_sorted {
                 println!(
                     "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
-                    format!("{:?}", vm.namespace),
+                    // todo: maybe we should list every namespace in a compressed format
+                    // ex: [Server, Local, Netplay(0)] -> S L 0
+                    format!("{:?}", vm.preferred_namespace()),
                     vm.package_id,
                     vm.lua.used_memory(),
                     vm.lua.unused_memory().unwrap()

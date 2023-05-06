@@ -218,7 +218,8 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
         let package_id: PackageId = table.get("#package_id")?;
         let rank = table.get("#rank")?;
 
-        let namespace = api_ctx.vms[api_ctx.vm_index].namespace;
+        let vm = &api_ctx.vms[api_ctx.vm_index];
+        let namespace = vm.preferred_namespace();
 
         let id = api_ctx.simulation.load_character(
             api_ctx.game_io,

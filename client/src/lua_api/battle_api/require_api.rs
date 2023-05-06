@@ -1,4 +1,4 @@
-use super::{BattleLuaApi, GLOBAL_TABLE, NAMESPACE_REGISTRY_KEY};
+use super::{BattleLuaApi, GLOBAL_TABLE};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 
 pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
@@ -11,7 +11,7 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         let globals = api_ctx.game_io.resource::<Globals>().unwrap();
 
         // try to resolve from library packages
-        let ns = lua.named_registry_value(NAMESPACE_REGISTRY_KEY)?;
+        let ns = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
 
         let package_id = path.into();
 

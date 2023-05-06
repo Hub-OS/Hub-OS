@@ -758,9 +758,10 @@ impl BattleSimulation {
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
         let vm_index = namespace
-            .find_with_fallback(|namespace| {
-                vms.iter()
-                    .position(|vm| vm.package_id == *package_id && vm.namespace == namespace)
+            .find_with_overrides(|namespace| {
+                vms.iter().position(|vm| {
+                    vm.package_id == *package_id && vm.namespaces.contains(&namespace)
+                })
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
@@ -933,12 +934,7 @@ impl BattleSimulation {
         let blocks = std::mem::take(&mut setup.blocks);
 
         // namespace for using cards / attacks
-        let namespace = if local {
-            PackageNamespace::Local
-        } else {
-            PackageNamespace::Remote(setup.index)
-        };
-
+        let namespace = setup.namespace();
         let id = self.create_character(game_io, CharacterRank::V1, namespace)?;
 
         let (entity, living) = self

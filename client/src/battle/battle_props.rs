@@ -36,11 +36,7 @@ impl<'a> PlayerSetup<'a> {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        if self.local {
-            PackageNamespace::Local
-        } else {
-            PackageNamespace::Remote(self.index)
-        }
+        PackageNamespace::Netplay(self.index)
     }
 
     pub fn from_globals(game_io: &'a GameIO) -> Self {

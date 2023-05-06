@@ -158,11 +158,7 @@ impl Player {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        if self.local {
-            PackageNamespace::Local
-        } else {
-            PackageNamespace::Remote(self.index)
-        }
+        PackageNamespace::Netplay(self.index)
     }
 
     pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {

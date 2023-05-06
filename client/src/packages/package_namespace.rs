@@ -1,57 +1,30 @@
 use rollback_mlua::LuaSerdeExt;
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 
-#[repr(u8)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PackageNamespace {
     #[default]
     Local,
     Server,
-    Remote(usize),
+    Netplay(usize),
 }
 
 impl PackageNamespace {
-    pub fn is_remote(self) -> bool {
-        matches!(self, PackageNamespace::Remote(_))
+    pub fn is_netplay(self) -> bool {
+        matches!(self, PackageNamespace::Netplay(_))
     }
 
-    pub fn find_with_fallback<T, F>(self, mut callback: F) -> Option<T>
+    pub fn find_with_overrides<T, F>(self, mut callback: F) -> Option<T>
     where
         F: FnMut(Self) -> Option<T>,
     {
-        let result = callback(self);
-
-        if result.is_some() {
-            return result;
-        }
-
         match self {
-            PackageNamespace::Remote(_) => PackageNamespace::Server.find_with_fallback(callback),
-            PackageNamespace::Server => callback(PackageNamespace::Local),
-            PackageNamespace::Local => None,
-        }
-    }
-
-    pub fn fallback(&self) -> Option<Self> {
-        match self {
-            PackageNamespace::Remote(_) => Some(PackageNamespace::Server),
-            PackageNamespace::Server => Some(PackageNamespace::Local),
-            PackageNamespace::Local => None,
-        }
-    }
-}
-
-impl PartialOrd for PackageNamespace {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self, other) {
-            (PackageNamespace::Local, PackageNamespace::Server | PackageNamespace::Remote(_))
-            | (PackageNamespace::Server, PackageNamespace::Remote(_)) => Some(Ordering::Less),
-            (PackageNamespace::Server, PackageNamespace::Local)
-            | (PackageNamespace::Remote(_), PackageNamespace::Local | PackageNamespace::Server) => {
-                Some(Ordering::Greater)
+            PackageNamespace::Netplay(_) => callback(PackageNamespace::Server)
+                .or_else(|| callback(self))
+                .or_else(|| callback(PackageNamespace::Local)),
+            PackageNamespace::Server | PackageNamespace::Local => {
+                callback(PackageNamespace::Server).or_else(|| callback(PackageNamespace::Local))
             }
-            _ => Some(Ordering::Equal),
         }
     }
 }

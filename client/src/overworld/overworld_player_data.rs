@@ -56,7 +56,7 @@ impl OverworldPlayerData {
 
         // health_boost
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
 
         let mut health_boost = 0;
 
