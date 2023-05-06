@@ -306,20 +306,28 @@ impl Globals {
         }
     }
 
-    pub fn battle_dependencies(&self, game_io: &GameIO, props: &BattleProps) -> Vec<&PackageInfo> {
-        let player_package_iter = props
-            .player_setups
-            .iter()
-            .map(|setup| setup.player_package.package_info.triplet());
+    // returns package info, and the namespace the package should be loaded with
+    pub fn battle_dependencies<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+        props: &'a BattleProps,
+    ) -> Vec<(&PackageInfo, PackageNamespace)> {
+        let player_triplet_iter = props.player_setups.iter().map(|setup| {
+            (
+                PackageCategory::Player,
+                setup.namespace(),
+                setup.player_package.package_info.id.clone(),
+            )
+        });
 
-        let card_package_iter = props.player_setups.iter().flat_map(|setup| {
+        let card_triplet_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
             let card_iter = setup.deck.cards.iter();
             card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
         });
 
-        let augment_package_iter = props.player_setups.iter().flat_map(|setup| {
+        let augment_triplet_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
             BlockGrid::new(ns)
@@ -335,19 +343,20 @@ impl Globals {
                 .collect::<Vec<_>>()
         });
 
-        let encounter_package_iter = std::iter::once(props.encounter_package)
+        let encounter_triplet_iter = std::iter::once(props.encounter_package)
             .flatten()
             .map(|package| package.package_info().triplet());
 
-        let package_iter = player_package_iter
-            .chain(card_package_iter)
-            .chain(augment_package_iter)
-            .chain(encounter_package_iter);
+        let triplet_iter = player_triplet_iter
+            .chain(card_triplet_iter)
+            .chain(augment_triplet_iter)
+            .chain(encounter_triplet_iter);
 
-        self.package_dependency_iter(package_iter)
+        self.package_dependency_iter(triplet_iter)
     }
 
-    pub fn package_dependency_iter<I>(&self, iter: I) -> Vec<&PackageInfo>
+    // returns package info, and the namespace the package should be loaded with
+    pub fn package_dependency_iter<I>(&self, iter: I) -> Vec<(&PackageInfo, PackageNamespace)>
     where
         I: IntoIterator<Item = (PackageCategory, PackageNamespace, PackageId)>,
     {
@@ -359,11 +368,14 @@ impl Globals {
 
         let resolve =
             |(package_category, ns, id): (PackageCategory, PackageNamespace, PackageId)| {
-                self.package_or_fallback_info(package_category, ns, &id)
+                Some((
+                    self.package_or_fallback_info(package_category, ns, &id)?,
+                    ns,
+                ))
             };
 
         let mut package_infos = Vec::new();
-        let mut prev_package_infos: Vec<&PackageInfo> = iter
+        let mut prev_package_infos: Vec<_> = iter
             .into_iter()
             .filter(&mut is_unresolved)
             .flat_map(resolve)
@@ -373,13 +385,11 @@ impl Globals {
         while !prev_package_infos.is_empty() {
             let latest_package_infos: Vec<_> = prev_package_infos
                 .iter()
-                .flat_map(|package_info| {
-                    let ns = package_info.namespace;
-
+                .flat_map(|(package_info, ns)| {
                     package_info
                         .requirements
                         .iter()
-                        .map(move |(package_category, id)| (*package_category, ns, id.clone()))
+                        .map(move |(category, id)| (*category, *ns, id.clone()))
                 })
                 .filter(&mut is_unresolved)
                 .flat_map(resolve)

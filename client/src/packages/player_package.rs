@@ -61,8 +61,8 @@ impl PlayerPackage {
             package_info.id.clone(),
         ));
 
-        for package_info in globals.package_dependency_iter(inital_iter) {
-            create_battle_vm(game_io, &mut simulation, &mut vms, package_info);
+        for (package_info, ns) in globals.package_dependency_iter(inital_iter) {
+            create_battle_vm(game_io, &mut simulation, &mut vms, package_info, ns);
         }
 
         // load player into the simulation

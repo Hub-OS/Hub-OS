@@ -1,6 +1,6 @@
 use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
-use crate::packages::PackageInfo;
+use crate::packages::{PackageInfo, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
 use framework::prelude::GameIO;
 use std::cell::RefCell;
@@ -13,6 +13,7 @@ pub fn create_battle_vm(
     simulation: &mut BattleSimulation,
     vms: &mut Vec<RollbackVM>,
     package_info: &PackageInfo,
+    namespace: PackageNamespace,
 ) -> usize {
     let globals = game_io.resource::<Globals>().unwrap();
 
@@ -23,7 +24,11 @@ pub fn create_battle_vm(
     let vm = RollbackVM {
         lua,
         package_id: package_info.id.clone(),
-        namespaces: vec![package_info.namespace],
+        namespaces: if namespace == package_info.namespace {
+            vec![namespace]
+        } else {
+            vec![namespace, package_info.namespace]
+        },
         path: package_info.script_path.clone(),
     };
 

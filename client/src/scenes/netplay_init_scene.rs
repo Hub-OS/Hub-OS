@@ -480,7 +480,7 @@ impl NetplayInitScene {
 
         let packages = dependencies
             .iter()
-            .map(|package_info| {
+            .map(|(package_info, _)| {
                 (
                     package_info.package_category,
                     package_info.id.clone(),

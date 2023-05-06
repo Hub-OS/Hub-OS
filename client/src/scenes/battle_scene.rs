@@ -150,9 +150,9 @@ impl BattleScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let dependencies = globals.battle_dependencies(game_io, props);
 
-        for package_info in dependencies {
+        for (package_info, namespace) in dependencies {
             if package_info.package_category.requires_vm() {
-                self.load_vm(game_io, package_info);
+                self.load_vm(game_io, package_info, namespace);
             }
         }
     }
@@ -163,34 +163,37 @@ impl BattleScene {
             .position(|vm| vm.path == package_info.script_path)
     }
 
-    fn load_vm(&mut self, game_io: &GameIO, package_info: &PackageInfo) -> usize {
+    fn load_vm(
+        &mut self,
+        game_io: &GameIO,
+        package_info: &PackageInfo,
+        namespace: PackageNamespace,
+    ) -> usize {
+        // expecting local namespace to be converted to a Netplay namespace
+        // before being passed to this function
+        assert_ne!(namespace, PackageNamespace::Local);
+
         let existing_vm = self.find_vm(package_info);
 
-        let vm_index = if let Some(vm_index) = existing_vm {
+        if let Some(vm_index) = existing_vm {
             // recycle a vm
             let vm = &mut self.vms[vm_index];
 
-            if !vm.namespaces.contains(&package_info.namespace) {
-                vm.namespaces.push(package_info.namespace);
+            if !vm.namespaces.contains(&namespace) {
+                vm.namespaces.push(namespace);
             }
 
-            vm_index
-        } else {
-            // new vm
-            create_battle_vm(game_io, &mut self.simulation, &mut self.vms, package_info)
-        };
-
-        // remapping ns for RollbackVM::preferred_namespace()
-        if package_info.namespace == PackageNamespace::Local {
-            let remapped_ns = PackageNamespace::Netplay(self.local_index);
-            let vm = &mut self.vms[vm_index];
-
-            if !vm.namespaces.contains(&remapped_ns) {
-                vm.namespaces.push(remapped_ns);
-            }
+            return vm_index;
         }
 
-        vm_index
+        // new vm
+        create_battle_vm(
+            game_io,
+            &mut self.simulation,
+            &mut self.vms,
+            package_info,
+            namespace,
+        )
     }
 
     fn is_solo(&self) -> bool {
