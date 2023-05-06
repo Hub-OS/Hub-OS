@@ -81,7 +81,7 @@ action.on_update_func = function()
 end
 
 action:add_anim_action(2, function()
-    Resources.play_audio(_game_folder_path .. "resources/sfx/pew.ogg", AudioPriority.High);
+    Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg", AudioPriority.High);
 
     local field = user:field()
 
@@ -118,7 +118,7 @@ action:add_anim_action(2, function()
     end
 
     spell.on_collision_func = function(self, entity)
-        Resources.play_audio(_game_folder_path .. "resources/sfx/hurt.ogg");
+        Resources.play_audio(Resources.game_folder() .. "resources/sfx/hurt.ogg");
 
         local hit_x = 0
         local hit_y = entity:height()
@@ -133,8 +133,8 @@ action:add_anim_action(2, function()
         end
 
         local hit_artifact = Artifact.new()
-        hit_artifact:load_animation(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.animation")
-        hit_artifact:set_texture(_game_folder_path .. "resources/scenes/battle/spell_bullet_hit.png")
+        hit_artifact:load_animation(Resources.game_folder() .. "resources/scenes/battle/spell_bullet_hit.animation")
+        hit_artifact:set_texture(Resources.game_folder() .. "resources/scenes/battle/spell_bullet_hit.png")
         hit_artifact:set_offset(hit_x, -hit_y)
 
         local hit_animation = hit_artifact:animation()
@@ -162,15 +162,17 @@ end)
 
 -- flare attachment
 action:add_anim_action(3, function()
-    can_move = true
     local flare_attachment = buster_attachment:create_attachment("ENDPOINT")
     local flare_sprite = flare_attachment:sprite()
-    flare_sprite:set_texture(_game_folder_path .. "resources/scenes/battle/buster_flare.png")
+    flare_sprite:set_texture(Resources.game_folder() .. "resources/scenes/battle/buster_flare.png")
     flare_sprite:set_layer(-3)
 
     local animation = flare_attachment:animation()
-    animation:load(_game_folder_path .. "resources/scenes/battle/buster_flare.animation")
+    animation:load(Resources.game_folder() .. "resources/scenes/battle/buster_flare.animation")
     animation:set_state("DEFAULT")
+    animation:on_frame(3, function()
+        can_move = true
+    end)
 
     animation:apply(flare_sprite)
 end)

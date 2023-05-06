@@ -107,3 +107,4 @@ const INIT_FN: &str = "on_init_func";
 pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";
 pub const NAMESPACE_REGISTRY_KEY: &str = "namespace";
 const TILE_CACHE_REGISTRY_KEY: &str = "tiles";
+pub const GAME_FOLDER_KEY: &str = "game_folder";

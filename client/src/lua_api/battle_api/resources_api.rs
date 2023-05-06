@@ -1,4 +1,4 @@
-use super::{BattleLuaApi, RESOURCES_TABLE};
+use super::{BattleLuaApi, GAME_FOLDER_KEY, RESOURCES_TABLE};
 use crate::lua_api::helpers::absolute_path;
 use crate::resources::{AssetManager, Globals};
 
@@ -56,5 +56,10 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         simulation.play_music(game_io, &sound_buffer, loops, start_ms, end_ms);
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "game_folder", |_, lua, _| {
+        let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_KEY)?;
+        lua.pack_multi(path_str)
     });
 }
