@@ -345,7 +345,10 @@ impl Globals {
 
         let encounter_triplet_iter = std::iter::once(props.encounter_package)
             .flatten()
-            .map(|package| package.package_info().triplet());
+            .map(|package| package.package_info().triplet())
+            // remapping namespace to avoid using Local namespace, breaking an assert
+            // in this case, Local is serving the battle anyway. so this isn't innacurate
+            .map(|(category, _, id)| (category, PackageNamespace::Server, id));
 
         let triplet_iter = player_triplet_iter
             .chain(card_triplet_iter)
