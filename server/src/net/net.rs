@@ -2402,6 +2402,19 @@ impl Net {
         sprite: &'a Sprite,
     ) -> Option<PacketScope<'a>> {
         if let Some(client_id) = &sprite.client_id_restriction {
+            if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+                // test if the parent actor has spawned
+                let actor_spawned = client_id == actor_id
+                    || clients
+                        .get(actor_id)
+                        .map(|client| client.ready)
+                        .unwrap_or(true);
+
+                if !actor_spawned {
+                    return None;
+                }
+            }
+
             // send the packet just to this client
             return Some(PacketScope::Client(Cow::Borrowed(client_id)));
         }
