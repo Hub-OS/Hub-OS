@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub enum KeyStyle {
-    Wasd,
     #[default]
+    Wasd,
     Emulator,
 }
 
