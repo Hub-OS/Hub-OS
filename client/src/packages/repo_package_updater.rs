@@ -217,17 +217,6 @@ impl RepoPackageUpdater {
         globals.unload_package(category, PackageNamespace::Local, &id);
         globals.load_package(category, PackageNamespace::Local, &path);
 
-        // resolve player package
-        let global_save = &mut globals.global_save;
-        let selected_player_exists = globals
-            .player_packages
-            .package(PackageNamespace::Local, &global_save.selected_character)
-            .is_some();
-
-        if category == PackageCategory::Player && !selected_player_exists {
-            global_save.selected_character = id;
-        }
-
         // continue working on queue
         self.request_latest_listing(game_io);
     }
