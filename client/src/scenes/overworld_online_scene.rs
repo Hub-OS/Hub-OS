@@ -431,7 +431,7 @@ impl OverworldOnlineScene {
                         self.assets.texture(game_io, &asset_path);
                     }
                     AssetDataType::Audio => {
-                        self.assets.audio(&asset_path);
+                        self.assets.audio(game_io, &asset_path);
                     }
                     AssetDataType::Unknown => {
                         log::warn!("Server sent unknown AssetType? {:?}", asset_path);
@@ -494,7 +494,7 @@ impl OverworldOnlineScene {
                 self.area.player_data.inventory.remove_item(&id, count);
             }
             ServerPacket::PlaySound { path } => {
-                let sound = self.assets.audio(&path);
+                let sound = self.assets.audio(game_io, &path);
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&sound);
             }

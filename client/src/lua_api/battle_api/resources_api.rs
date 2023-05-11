@@ -21,8 +21,9 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         // cache the sound
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
-        globals.assets.audio(&path);
+        let game_io = &api_ctx.game_io;
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.assets.audio(game_io, &path);
 
         lua.pack_multi(path)
     });
@@ -34,8 +35,9 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = api_ctx.borrow();
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
+        let globals = game_io.resource::<Globals>().unwrap();
 
-        let sound_buffer = game_io.resource::<Globals>().unwrap().assets.audio(&path);
+        let sound_buffer = globals.assets.audio(game_io, &path);
         simulation.play_sound(game_io, &sound_buffer);
 
         lua.pack_multi(())
@@ -45,6 +47,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let (path, loops, start_ms, end_ms): (String, Option<bool>, Option<u64>, Option<u64>) =
             lua.unpack_multi(params)?;
 
+        let path = absolute_path(lua, path)?;
         let loops = loops.unwrap_or(true);
 
         let api_ctx = api_ctx.borrow();
@@ -52,7 +55,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let game_io = api_ctx.game_io;
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let sound_buffer = globals.assets.audio(&path);
+        let sound_buffer = globals.assets.audio(game_io, &path);
         simulation.play_music(game_io, &sound_buffer, loops, start_ms, end_ms);
 
         lua.pack_multi(())

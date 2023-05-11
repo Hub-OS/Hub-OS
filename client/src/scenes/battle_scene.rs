@@ -53,7 +53,6 @@ pub struct BattleScene {
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     already_snapped: bool,
-    started_music: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
@@ -89,7 +88,6 @@ impl BattleScene {
             slow_cooldown: 0,
             frame_by_frame_debug: false,
             already_snapped: false,
-            started_music: false,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
@@ -700,13 +698,6 @@ impl Scene for BattleScene {
 
     fn update(&mut self, game_io: &mut GameIO) {
         self.detect_debug_hotkeys(game_io);
-
-        if !game_io.is_in_transition() && !self.started_music {
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_music(&globals.music.battle, true);
-
-            self.started_music = true;
-        }
 
         self.update_textbox(game_io);
         self.handle_packets(game_io);

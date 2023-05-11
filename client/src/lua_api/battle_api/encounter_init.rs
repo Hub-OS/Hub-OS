@@ -1,6 +1,6 @@
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
-use crate::battle::{BattleScriptContext, Entity};
+use crate::battle::{BattleInitMusic, BattleScriptContext, Entity};
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
@@ -141,9 +141,32 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    //   "set_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
-    //     mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
-    //   },
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_music", |api_ctx, lua, params| {
+        let (_, path, loops, start_ms, end_ms): (
+            rollback_mlua::Table,
+            String,
+            Option<bool>,
+            Option<u64>,
+            Option<u64>,
+        ) = lua.unpack_multi(params)?;
+
+        let path = absolute_path(lua, path)?;
+        let loops = loops.unwrap_or(true);
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let game_io = api_ctx.game_io;
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        simulation.config.battle_init_music = Some(BattleInitMusic {
+            buffer: globals.assets.audio(game_io, &path),
+            loops,
+            start_ms,
+            end_ms,
+        });
+
+        lua.pack_multi(())
+    });
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "field", |_, lua, _| {
         let field_table = get_field_table(lua)?;

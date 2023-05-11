@@ -1,3 +1,6 @@
+use super::BattleInitMusic;
+use crate::resources::Globals;
+
 const DEFAULT_PLAYER_LAYOUTS: [[(i32, i32); 4]; 4] = [
     [(2, 2), (0, 0), (0, 0), (0, 0)],
     [(2, 2), (5, 2), (0, 0), (0, 0)],
@@ -11,10 +14,11 @@ pub struct BattleConfig {
     pub player_flippable: Vec<Option<bool>>,
     pub turn_limit: Option<u32>,
     pub automatic_turn_end: bool,
+    pub battle_init_music: Option<BattleInitMusic>,
 }
 
 impl BattleConfig {
-    pub fn new(player_count: usize) -> Self {
+    pub fn new(globals: &Globals, player_count: usize) -> Self {
         let spawn_count = player_count.min(4);
         let mut player_spawn_positions = DEFAULT_PLAYER_LAYOUTS[spawn_count - 1].to_vec();
         player_spawn_positions.resize(spawn_count, (0, 0));
@@ -24,6 +28,12 @@ impl BattleConfig {
             player_flippable: vec![None; spawn_count],
             turn_limit: None,
             automatic_turn_end: false,
+            battle_init_music: Some(BattleInitMusic {
+                buffer: globals.music.battle.clone(),
+                loops: true,
+                start_ms: None,
+                end_ms: None,
+            }),
         }
     }
 }

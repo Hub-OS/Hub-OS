@@ -56,11 +56,11 @@ impl BattleSimulation {
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
-        let globals = &game_io.resource::<Globals>().unwrap();
+        let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
         Self {
-            config: BattleConfig::new(player_count),
+            config: BattleConfig::new(globals, player_count),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
             time: 0,

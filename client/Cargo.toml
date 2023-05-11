@@ -39,11 +39,13 @@ path-clean = "1.0"
 futures = "0.3"
 walkdir = "2.3"
 toml = "0.7"
-serde_json = "1.0.91"
+serde_json = "1.0"
 isahc = "1.7"
 enum-map = "2.4"
-smallvec = "1.10.0"
-field_count = "0.1.1"
+smallvec = "1.10"
+field_count = "0.1"
+# use a version number when a new release is made
+rustysynth = { git = "https://github.com/sinshu/rustysynth.git" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk-glue = "0.7"

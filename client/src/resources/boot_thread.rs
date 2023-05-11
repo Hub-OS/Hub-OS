@@ -57,9 +57,20 @@ impl BootThread {
     }
 
     fn load_audio(&mut self) {
+        // total for music, add 1 for sound font
+        let total = GlobalMusic::total() + 1;
+
+        // load sound font for music
+        self.send(BootEvent::ProgressUpdate(ProgressUpdate {
+            label: "Loading Music",
+            progress: 0,
+            total,
+        }));
+
+        let sound_font_bytes = self.assets.binary(ResourcePaths::SOUND_FONT);
+
         // load music
-        let mut progress = 0;
-        let total = GlobalMusic::total();
+        let mut progress = 1;
 
         let load = |path: &str| {
             self.send(BootEvent::ProgressUpdate(ProgressUpdate {
@@ -70,10 +81,10 @@ impl BootThread {
 
             progress += 1;
 
-            self.assets.audio(path)
+            self.assets.non_midi_audio(path)
         };
 
-        let music = GlobalMusic::load_with(load);
+        let music = GlobalMusic::load_with(sound_font_bytes, load);
         self.send(BootEvent::Music(music));
 
         // load sfx
@@ -89,7 +100,7 @@ impl BootThread {
 
             progress += 1;
 
-            self.assets.audio(path)
+            self.assets.non_midi_audio(path)
         };
 
         let sfx = Box::new(GlobalSfx::load_with(load));

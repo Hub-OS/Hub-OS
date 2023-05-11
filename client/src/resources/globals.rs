@@ -105,8 +105,8 @@ impl Globals {
 
             // sounds
             audio,
-            sfx: Box::default(),
             music: GlobalMusic::default(),
+            sfx: Box::default(),
 
             // assets
             font_texture,
