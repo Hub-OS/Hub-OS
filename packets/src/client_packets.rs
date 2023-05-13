@@ -1,4 +1,4 @@
-// Increment VERSION_ITERATION src/packets/mod.rs if packets are added or modified
+// Increment VERSION_ITERATION packets/src/lib.rs if packets are added or modified
 
 use super::structures::{BattleStatistics, Direction};
 use crate::structures::PackageId;

@@ -3,8 +3,8 @@ use packets::structures::SpriteDefinition;
 use packets::structures::SpriteParent;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
-    lua_api.add_dynamic_function("Net", "create_sprite", |api_ctx, lua_ctx, params| {
-        let table: mlua::Table = lua_ctx.unpack_multi(params)?;
+    lua_api.add_dynamic_function("Net", "create_sprite", |api_ctx, lua, params| {
+        let table: mlua::Table = lua.unpack_multi(params)?;
 
         let client_id_restriction = table.get("player_id")?;
         let parent_name: String = table.get("parent_id")?;
@@ -29,25 +29,25 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
         let sprite_id = net.create_sprite(client_id_restriction, sprite_definition);
 
-        lua_ctx.pack_multi(sprite_id)
+        lua.pack_multi(sprite_id)
     });
 
-    lua_api.add_dynamic_function("Net", "animate_sprite", |api_ctx, lua_ctx, params| {
+    lua_api.add_dynamic_function("Net", "animate_sprite", |api_ctx, lua, params| {
         let (sprite_id, animation_state, loops): (String, String, bool) =
-            lua_ctx.unpack_multi(params)?;
+            lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
         net.animate_sprite(sprite_id, animation_state, loops);
 
-        lua_ctx.pack_multi(())
+        lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "delete_sprite", |api_ctx, lua_ctx, params| {
-        let sprite_id: String = lua_ctx.unpack_multi(params)?;
+    lua_api.add_dynamic_function("Net", "delete_sprite", |api_ctx, lua, params| {
+        let sprite_id: String = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
         net.delete_sprite(sprite_id);
 
-        lua_ctx.pack_multi(())
+        lua.pack_multi(())
     });
 }

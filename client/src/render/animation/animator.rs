@@ -461,6 +461,10 @@ impl Animator {
         self.states.contains_key(&state.to_uppercase())
     }
 
+    pub fn iter_states(&self) -> impl Iterator<Item = (&String, &FrameList)> {
+        self.states.iter()
+    }
+
     pub fn set_state(&mut self, state: &str) {
         // reset progress
         self.frame_index = 0;

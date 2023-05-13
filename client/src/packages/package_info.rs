@@ -1,5 +1,5 @@
 use super::*;
-use crate::resources::{AssetManager, LocalAssetManager};
+use crate::resources::{AssetManager, LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
 
 pub struct ChildPackageInfo {
@@ -43,10 +43,20 @@ impl PackageInfo {
     // returns the [package] table and processes properties shared among every package type
     pub(crate) fn parse_toml(&mut self, assets: &LocalAssetManager) -> Option<toml::Table> {
         let toml_text = assets.text(&self.toml_path);
+
+        if toml_text.is_empty() {
+            // assume no file / not a mod
+            // attempting to access the file will already provide a warning
+            return None;
+        }
+
         let meta_table: toml::Table = match toml_text.parse() {
             Ok(toml) => toml,
             Err(e) => {
-                log::error!("Failed to parse {:?}:\n{e}", self.toml_path);
+                log::error!(
+                    "Failed to parse {:?}:\n{e}",
+                    ResourcePaths::shorten(&self.toml_path)
+                );
                 return None;
             }
         };
@@ -69,7 +79,10 @@ impl PackageInfo {
         let package_table = match package_table {
             Some(table) => table,
             None => {
-                log::error!("Missing [package] section in {:?}", self.toml_path);
+                log::error!(
+                    "Missing [package] section in {:?}",
+                    ResourcePaths::shorten(&self.toml_path)
+                );
                 return None;
             }
         };

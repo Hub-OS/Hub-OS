@@ -2,10 +2,18 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::EntityId;
 use crate::render::FrameTime;
-use crate::resources::Globals;
+use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::DEFAULT_FADE_DURATION;
 use framework::prelude::*;
 use std::collections::VecDeque;
+
+#[derive(Clone)]
+pub struct BattleInitMusic {
+    pub buffer: SoundBuffer,
+    pub loops: bool,
+    pub start_ms: Option<u64>,
+    pub end_ms: Option<u64>,
+}
 
 // max time per entity
 const MAX_ANIMATION_TIME: FrameTime = 32;
@@ -38,12 +46,21 @@ impl State for IntroState {
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
-        let entities = &mut simulation.entities;
-
         // first frame setup
         if simulation.time == 0 {
+            if let Some(init_music) = simulation.config.battle_init_music.take() {
+                simulation.play_music(
+                    game_io,
+                    &init_music.buffer,
+                    init_music.loops,
+                    init_music.start_ms,
+                    init_music.end_ms,
+                );
+            }
+
             use hecs::Without;
 
+            let entities = &mut simulation.entities;
             for (_, (entity, _)) in
                 entities.query_mut::<Without<(&mut Entity, &Character), &Player>>()
             {
@@ -57,6 +74,8 @@ impl State for IntroState {
                 root_node.set_alpha(0.0);
             }
         }
+
+        let entities = &mut simulation.entities;
 
         for (i, id) in self.tracked_entities.iter().cloned().enumerate() {
             let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) else {

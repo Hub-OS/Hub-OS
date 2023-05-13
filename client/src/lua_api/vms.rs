@@ -1,6 +1,6 @@
-use super::{NAMESPACE_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY};
+use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
-use crate::packages::PackageInfo;
+use crate::packages::{PackageInfo, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
 use framework::prelude::GameIO;
 use std::cell::RefCell;
@@ -13,6 +13,7 @@ pub fn create_battle_vm(
     simulation: &mut BattleSimulation,
     vms: &mut Vec<RollbackVM>,
     package_info: &PackageInfo,
+    namespace: PackageNamespace,
 ) -> usize {
     let globals = game_io.resource::<Globals>().unwrap();
 
@@ -23,7 +24,11 @@ pub fn create_battle_vm(
     let vm = RollbackVM {
         lua,
         package_id: package_info.id.clone(),
-        namespace: package_info.namespace,
+        namespaces: if namespace == package_info.namespace {
+            vec![namespace]
+        } else {
+            vec![namespace, package_info.namespace]
+        },
         path: package_info.script_path.clone(),
     };
 
@@ -32,8 +37,6 @@ pub fn create_battle_vm(
 
     let lua = &vms.last().unwrap().lua;
     lua.set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
-        .unwrap();
-    lua.set_named_registry_value(NAMESPACE_REGISTRY_KEY, package_info.namespace)
         .unwrap();
 
     globals.battle_api.inject_static(lua).unwrap();
@@ -63,8 +66,7 @@ fn load_root_script(
         ResourcePaths::clean_folder(&package_info.base_path),
     )?;
 
-    lua.globals()
-        .set("_game_folder_path", ResourcePaths::game_folder())?;
+    lua.set_named_registry_value(GAME_FOLDER_KEY, ResourcePaths::game_folder())?;
 
     let chunk = lua
         .load(&script_source)

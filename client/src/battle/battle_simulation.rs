@@ -3,19 +3,20 @@ use super::*;
 use crate::bindable::*;
 use crate::lua_api::{create_augment_table, create_entity_table};
 use crate::packages::{PackageId, PackageNamespace};
-use crate::render::ui::{FontStyle, PlayerHealthUI, Text};
+use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BlockGrid, Card, Deck};
+use crate::saves::{BlockGrid, Card};
+use crate::scenes::BattleEvent;
 use framework::prelude::*;
 use generational_arena::Arena;
 use packets::structures::{BattleStatistics, BattleSurvivor};
+use packets::NetplaySignal;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
 pub struct BattleSimulation {
-    pub battle_started: bool,
     pub config: BattleConfig,
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
@@ -38,8 +39,10 @@ pub struct BattleSimulation {
     pub components: Arena<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityId,
-    pub local_health_ui: PlayerHealthUI,
+    pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
+    pub music_stack_depth: usize,
+    pub battle_started: bool,
     pub intro_complete: bool,
     pub is_resimulation: bool,
     pub exit: bool,
@@ -53,11 +56,11 @@ impl BattleSimulation {
         let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
         let default_seed = game_run_duration.as_secs();
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
         Self {
-            battle_started: false,
-            config: BattleConfig::new(player_count),
+            config: BattleConfig::new(globals, player_count),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
             time: 0,
@@ -79,8 +82,10 @@ impl BattleSimulation {
             components: Arena::new(),
             pending_callbacks: Vec::new(),
             local_player_id: EntityId::DANGLING,
-            local_health_ui: PlayerHealthUI::new(game_io),
+            local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
+            music_stack_depth: globals.audio.music_stack_len() + 1,
+            battle_started: false,
             intro_complete: false,
             is_resimulation: false,
             exit: false,
@@ -135,7 +140,6 @@ impl BattleSimulation {
         }
 
         Self {
-            battle_started: self.battle_started,
             config: self.config.clone(),
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
@@ -160,6 +164,8 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             local_team: self.local_team,
+            music_stack_depth: self.music_stack_depth,
+            battle_started: self.battle_started,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,
             exit: self.exit,
@@ -177,6 +183,24 @@ impl BattleSimulation {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(sound_buffer);
         }
+    }
+
+    pub fn play_music(
+        &self,
+        game_io: &GameIO,
+        sound_buffer: &SoundBuffer,
+        loops: bool,
+        // todo:
+        _start_ms: Option<u64>,
+        _end_ms: Option<u64>,
+    ) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if globals.audio.music_stack_len() != self.music_stack_depth {
+            return;
+        }
+
+        globals.audio.play_music(sound_buffer, loops);
     }
 
     pub fn wrap_up_statistics(&mut self) {
@@ -215,6 +239,23 @@ impl BattleSimulation {
         self.statistics.calculate_score();
     }
 
+    pub fn handle_local_signals(
+        &mut self,
+        local_index: usize,
+        shared_assets: &mut SharedBattleAssets,
+    ) {
+        let input = &self.inputs[local_index];
+
+        // handle flee
+        if !self.is_resimulation && input.has_signal(NetplaySignal::AttemptingFlee) {
+            // todo: check for success using some method in battle_init
+            shared_assets
+                .event_sender
+                .send(BattleEvent::FleeResult(true))
+                .unwrap();
+        }
+    }
+
     pub fn pre_update(&mut self, game_io: &GameIO, vms: &[RollbackVM], state: &dyn State) {
         #[cfg(debug_assertions)]
         self.assertions();
@@ -229,6 +270,9 @@ impl BattleSimulation {
             // update animations
             self.update_animations();
         }
+
+        // process disconnects
+        self.process_disconnects();
 
         // spawn pending entities
         self.spawn_pending();
@@ -305,6 +349,25 @@ impl BattleSimulation {
                 let animator = &mut self.animators[attachment.animator_index];
                 self.pending_callbacks.extend(animator.update());
             }
+        }
+    }
+
+    fn process_disconnects(&mut self) {
+        let mut pending_deletion = Vec::new();
+
+        let entities = &mut self.entities;
+        for (id, (entity, player)) in entities.query_mut::<(&mut Entity, &Player)>() {
+            let input = &self.inputs[player.index];
+
+            if entity.deleted || !input.has_signal(NetplaySignal::Disconnect) {
+                continue;
+            }
+
+            pending_deletion.push(id);
+        }
+
+        for id in pending_deletion {
+            Component::new_delayed_deleter(self, id.into(), ComponentLifetime::BattleStep, 0);
         }
     }
 
@@ -441,8 +504,13 @@ impl BattleSimulation {
     }
 
     fn update_ui(&mut self) {
-        if let Ok(living) = (self.entities).query_one_mut::<&Living>(self.local_player_id.into()) {
+        let entities = &mut self.entities;
+
+        if let Ok((player, living)) =
+            entities.query_one_mut::<(&mut Player, &Living)>(self.local_player_id.into())
+        {
             self.local_health_ui.set_health(living.health);
+            player.emotion_window.update();
         } else {
             self.local_health_ui.set_health(0);
         }
@@ -690,9 +758,10 @@ impl BattleSimulation {
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
         let vm_index = namespace
-            .find_with_fallback(|namespace| {
-                vms.iter()
-                    .position(|vm| vm.package_id == *package_id && vm.namespace == namespace)
+            .find_with_overrides(|namespace| {
+                vms.iter().position(|vm| {
+                    vm.package_id == *package_id && vm.namespaces.contains(&namespace)
+                })
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
@@ -858,24 +927,14 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         vms: &[RollbackVM],
-        setup: PlayerSetup,
+        mut setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
-        let PlayerSetup {
-            player_package,
-            index,
-            local,
-            deck: Deck { cards, .. },
-            blocks,
-            ..
-        } = setup;
+        let local = setup.local;
+        let player_package = setup.player_package;
+        let blocks = std::mem::take(&mut setup.blocks);
 
         // namespace for using cards / attacks
-        let namespace = if local {
-            PackageNamespace::Local
-        } else {
-            PackageNamespace::Remote(index)
-        };
-
+        let namespace = setup.namespace();
         let id = self.create_character(game_io, CharacterRank::V1, namespace)?;
 
         let (entity, living) = self
@@ -886,10 +945,13 @@ impl BattleSimulation {
         // spawn immediately
         entity.pending_spawn = true;
 
+        // prevent attacks from countering by default
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
+
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
-        living.status_director.set_input_index(index);
+        living.status_director.set_input_index(setup.index);
 
         // derive states
         let move_anim_state = BattleAnimator::derive_state(
@@ -1051,10 +1113,7 @@ impl BattleSimulation {
 
         // insert entity
         self.entities
-            .insert(
-                id.into(),
-                (Player::new(game_io, index, local, charge_index, cards),),
-            )
+            .insert_one(id.into(), Player::new(game_io, setup, charge_index))
             .unwrap();
 
         // call init function
@@ -1077,19 +1136,19 @@ impl BattleSimulation {
             let index = player.augments.insert(Augment::from((package, level)));
 
             let lua = &vms[vm_index].lua;
-            let has_init = lua
-                .globals()
-                .contains_key("augment_init")
-                .unwrap_or_default();
+            let lua_globals = lua.globals();
+            let has_init = lua_globals.contains_key("augment_init").unwrap_or_default();
 
-            if has_init {
-                let result = self.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
-                    create_augment_table(lua, id, index)
-                });
+            if !has_init {
+                continue;
+            }
 
-                if let Err(e) = result {
-                    log::error!("{e}");
-                }
+            let result = self.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
+                create_augment_table(lua, id, index)
+            });
+
+            if let Err(e) = result {
+                log::error!("{e}");
             }
         }
 
@@ -1421,6 +1480,17 @@ impl BattleSimulation {
 
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.local_health_ui.draw(game_io, sprite_queue);
+
+        let entities = &mut self.entities;
+
+        if let Ok(player) = entities.query_one_mut::<&mut Player>(self.local_player_id.into()) {
+            let local_health_bounds = self.local_health_ui.bounds();
+            let mut emotion_window_position = local_health_bounds.position();
+            emotion_window_position.y += local_health_bounds.height + 1.0;
+
+            player.emotion_window.set_position(emotion_window_position);
+            player.emotion_window.draw(sprite_queue);
+        }
     }
 
     #[cfg(debug_assertions)]

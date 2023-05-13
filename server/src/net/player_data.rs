@@ -1,4 +1,4 @@
-use packets::structures::Inventory;
+use packets::structures::{Emotion, Inventory};
 
 pub struct PlayerData {
     pub identity: Vec<u8>,
@@ -7,7 +7,7 @@ pub struct PlayerData {
     pub health: i32,
     pub base_health: i32,
     pub health_boost: i32,
-    pub emotion: u8,
+    pub emotion: Emotion,
     pub money: u32,
     pub inventory: Inventory,
 }
@@ -21,7 +21,7 @@ impl PlayerData {
             health: 0,
             base_health: 0,
             health_boost: 0,
-            emotion: 0,
+            emotion: Emotion::default(),
             money: 0,
             inventory: Inventory::new(),
         }

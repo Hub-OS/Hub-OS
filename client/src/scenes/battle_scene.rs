@@ -1,20 +1,31 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::lua_api::{create_battle_vm, encounter_init};
-use crate::packages::{Package, PackageInfo};
+use crate::packages::{Package, PackageInfo, PackageNamespace};
+use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use packets::NetplayPacket;
+use packets::structures::PackageId;
+use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
 use std::collections::VecDeque;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const BUFFER_TOLERANCE: usize = 3;
 
+pub enum BattleEvent {
+    Description(String),
+    DescribeCard(PackageId),
+    RequestFlee,
+    AttemptFlee,
+    FleeResult(bool),
+    CompleteFlee(bool),
+}
+
 #[derive(Default, Clone)]
 struct PlayerController {
     connected: bool,
-    input_buffer: VecDeque<Vec<Input>>,
+    buffer: VecDeque<NetplayBufferItem>,
 }
 
 struct Backup {
@@ -25,6 +36,10 @@ struct Backup {
 pub struct BattleScene {
     battle_duration: FrameTime,
     ui_camera: Camera,
+    textbox: Textbox,
+    textbox_is_blocking_input: bool,
+    event_receiver: flume::Receiver<BattleEvent>,
+    pending_signals: Vec<NetplaySignal>,
     synced_time: FrameTime,
     shared_assets: SharedBattleAssets,
     simulation: BattleSimulation,
@@ -38,7 +53,6 @@ pub struct BattleScene {
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     already_snapped: bool,
-    started_music: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
@@ -48,11 +62,17 @@ impl BattleScene {
     pub fn new(game_io: &GameIO, mut props: BattleProps) -> Self {
         props.player_setups.sort_by_key(|setup| setup.index);
 
+        let (event_sender, event_receiver) = flume::unbounded();
+
         let mut scene = Self {
             battle_duration: 0,
             ui_camera: Camera::new(game_io),
+            textbox: Textbox::new_overworld(game_io),
+            textbox_is_blocking_input: false,
+            event_receiver,
+            pending_signals: Vec::new(),
             synced_time: 0,
-            shared_assets: SharedBattleAssets::new(game_io),
+            shared_assets: SharedBattleAssets::new(game_io, event_sender),
             simulation: BattleSimulation::new(
                 game_io,
                 props.background.clone(),
@@ -68,11 +88,15 @@ impl BattleScene {
             slow_cooldown: 0,
             frame_by_frame_debug: false,
             already_snapped: false,
-            started_music: false,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
         };
+
+        if let Some(setup) = props.player_setups.iter().find(|setup| setup.local) {
+            // resolve local index early for namespace remapping in vm creation
+            scene.local_index = setup.index;
+        }
 
         scene.ui_camera.snap(RESOLUTION_F * 0.5);
 
@@ -100,12 +124,8 @@ impl BattleScene {
 
         // load the players in the correct order
         for mut setup in props.player_setups {
-            if setup.local {
-                scene.local_index = setup.index;
-            }
-
             if let Some(remote_controller) = scene.player_controllers.get_mut(setup.index) {
-                remote_controller.input_buffer = std::mem::take(&mut setup.input_buffer);
+                remote_controller.buffer = std::mem::take(&mut setup.buffer);
                 remote_controller.connected = true;
             }
 
@@ -128,9 +148,9 @@ impl BattleScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let dependencies = globals.battle_dependencies(game_io, props);
 
-        for package_info in dependencies {
+        for (package_info, namespace) in dependencies {
             if package_info.package_category.requires_vm() {
-                self.load_vm(game_io, package_info);
+                self.load_vm(game_io, package_info, namespace);
             }
         }
     }
@@ -141,32 +161,147 @@ impl BattleScene {
             .position(|vm| vm.path == package_info.script_path)
     }
 
-    fn load_vm(&mut self, game_io: &GameIO, package_info: &PackageInfo) -> usize {
+    fn load_vm(
+        &mut self,
+        game_io: &GameIO,
+        package_info: &PackageInfo,
+        namespace: PackageNamespace,
+    ) -> usize {
+        // expecting local namespace to be converted to a Netplay namespace
+        // before being passed to this function
+        assert_ne!(namespace, PackageNamespace::Local);
+
         let existing_vm = self.find_vm(package_info);
 
         if let Some(vm_index) = existing_vm {
+            // recycle a vm
             let vm = &mut self.vms[vm_index];
 
-            if vm.namespace > package_info.namespace {
-                // drop the vm to a lower namespace to make it more accessible
-                vm.namespace = package_info.namespace;
+            if !vm.namespaces.contains(&namespace) {
+                vm.namespaces.push(namespace);
             }
 
-            if !vm.namespace.is_remote()
-                && !package_info.namespace.is_remote()
-                && vm.namespace != package_info.namespace
-            {
-                // vm already exists so no need to add a new one
-                // exception for two different remotes, as with 3+ players recycling is more difficult
-                return vm_index;
-            }
+            return vm_index;
         }
 
-        create_battle_vm(game_io, &mut self.simulation, &mut self.vms, package_info)
+        // new vm
+        create_battle_vm(
+            game_io,
+            &mut self.simulation,
+            &mut self.vms,
+            package_info,
+            namespace,
+        )
     }
 
     fn is_solo(&self) -> bool {
         self.player_controllers.len() == 1
+    }
+
+    fn update_textbox(&mut self, game_io: &mut GameIO) {
+        while let Ok(event) = self.event_receiver.try_recv() {
+            match event {
+                BattleEvent::Description(description) => {
+                    if !description.is_empty() {
+                        let interface = TextboxMessage::new(description);
+                        self.textbox.push_interface(interface);
+                        self.textbox.open();
+                    }
+                }
+                BattleEvent::DescribeCard(package_id) => {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let ns = PackageNamespace::Local;
+
+                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id) else {
+                        continue;
+                    };
+
+                    let description = if package.card_properties.long_description.is_empty() {
+                        package.card_properties.description.clone()
+                    } else {
+                        package.card_properties.long_description.clone()
+                    };
+
+                    self.textbox.use_blank_avatar(game_io);
+                    let interface = TextboxMessage::new(description);
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+                BattleEvent::RequestFlee => {
+                    let is_boss_battle = self.simulation.statistics.boss_battle;
+                    let can_run = !is_boss_battle;
+
+                    self.textbox.use_player_avatar(game_io);
+
+                    if can_run {
+                        // confirm
+                        let event_sender = self.shared_assets.event_sender.clone();
+                        let text = String::from("Should we run?");
+
+                        let interface = TextboxQuestion::new(text, move |yes| {
+                            if yes {
+                                event_sender.send(BattleEvent::AttemptFlee).unwrap();
+                            }
+                        });
+
+                        self.textbox.push_interface(interface);
+                    } else {
+                        // can't run
+                        let text = String::from("This is no time to run!");
+                        let interface = TextboxMessage::new(text);
+
+                        self.textbox.push_interface(interface);
+                    }
+
+                    self.textbox.open();
+                }
+                BattleEvent::AttemptFlee => {
+                    // pass signal for BattleSimulation::handle_local_signals to resolve the success
+                    self.pending_signals.push(NetplaySignal::AttemptingFlee);
+                }
+                BattleEvent::FleeResult(success) => {
+                    let event_sender = self.shared_assets.event_sender.clone();
+                    let text = if success {
+                        String::from("\x01...\x01OK!\nWe got away!")
+                    } else {
+                        String::from("\x01...\x01It's no good!\nWe can't run away!")
+                    };
+
+                    let interface = TextboxMessage::new(text).with_callback(move || {
+                        event_sender
+                            .send(BattleEvent::CompleteFlee(success))
+                            .unwrap();
+                    });
+
+                    self.textbox.use_player_avatar(game_io);
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
+                BattleEvent::CompleteFlee(success) => {
+                    if success {
+                        self.exit(game_io, true);
+                    }
+
+                    self.pending_signals.push(NetplaySignal::CompletedFlee);
+                }
+            }
+        }
+
+        if self.textbox.is_complete() {
+            self.textbox.close()
+        }
+
+        if self.textbox.is_open() {
+            self.textbox_is_blocking_input = true;
+        } else if self.textbox_is_blocking_input {
+            // we only stop blocking when the player lifts up every button
+            let input_util = InputUtil::new(game_io);
+
+            self.textbox_is_blocking_input =
+                Input::BATTLE.iter().any(|&input| input_util.is_down(input));
+        }
+
+        self.textbox.update(game_io);
     }
 
     fn handle_packets(&mut self, game_io: &GameIO) {
@@ -187,7 +322,10 @@ impl BattleScene {
                     continue;
                 }
 
-                let is_disconnect = matches!(packet, NetplayPacket::Disconnect { .. });
+                let is_disconnect = matches!(
+                    &packet,
+                    NetplayPacket::Buffer { data, .. } if data.signals.contains(&NetplaySignal::Disconnect)
+                );
 
                 packets.push(packet);
 
@@ -224,48 +362,47 @@ impl BattleScene {
     }
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
-        use num_traits::FromPrimitive;
-
         match packet {
-            NetplayPacket::Input {
+            NetplayPacket::Buffer {
                 index,
-                pressed,
+                data,
                 buffer_sizes,
             } => {
                 let mut resimulation_time = self.simulation.time;
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
+                    // check disconnect
+                    if data.signals.contains(&NetplaySignal::Disconnect) {
+                        controller.connected = false;
+                    }
+
                     // figure out if we should slow down
                     if let Some(remote_received_size) = buffer_sizes.get(self.local_index).cloned()
                     {
-                        let local_remote_size = controller.input_buffer.len();
+                        let local_remote_size = controller.buffer.len();
 
-                        let has_substantial_diff =
-                            remote_received_size > local_remote_size + BUFFER_TOLERANCE;
+                        let has_substantial_diff = controller.connected
+                            && remote_received_size > local_remote_size + BUFFER_TOLERANCE;
 
                         if self.slow_cooldown == 0 && has_substantial_diff {
                             self.slow_cooldown = SLOW_COOLDOWN;
                         }
                     }
 
-                    // convert input
-                    let pressed: Vec<_> = pressed.into_iter().flat_map(Input::from_u8).collect();
-
                     if let Some(input) = self.simulation.inputs.get(index) {
-                        if !input.matches(&pressed) {
+                        if !input.matches(&data) {
                             // resolve the time of the input if it differs from our simulation
                             resimulation_time =
-                                self.synced_time + controller.input_buffer.len() as FrameTime;
+                                self.synced_time + controller.buffer.len() as FrameTime;
                         }
                     }
 
-                    controller.input_buffer.push_back(pressed);
+                    if !data.signals.is_empty() {
+                        log::debug!("Received {:?} from {index}", data.signals);
+                    }
+
+                    controller.buffer.push_back(data);
                     self.resimulate(game_io, resimulation_time);
-                }
-            }
-            NetplayPacket::Disconnect { index } => {
-                if let Some(controller) = self.player_controllers.get_mut(index) {
-                    controller.connected = false;
                 }
             }
             NetplayPacket::Heartbeat { .. } => {}
@@ -287,14 +424,10 @@ impl BattleScene {
     fn input_synced(&self) -> bool {
         self.player_controllers
             .iter()
-            .all(|controller| !controller.connected || !controller.input_buffer.is_empty())
+            .all(|controller| !controller.connected || !controller.buffer.is_empty())
     }
 
     fn handle_local_input(&mut self, game_io: &GameIO) {
-        if self.exiting {
-            return;
-        }
-
         let input_util = InputUtil::new(game_io);
 
         let local_controller = match self.player_controllers.get_mut(self.local_index) {
@@ -305,27 +438,33 @@ impl BattleScene {
         // gather input
         let mut pressed = Vec::new();
 
-        for input in Input::BATTLE {
-            if input_util.is_down(input) {
-                pressed.push(input);
+        if self.exiting || !self.textbox_is_blocking_input {
+            for input in Input::BATTLE {
+                if input_util.is_down(input) {
+                    pressed.push(input);
+                }
             }
         }
 
-        let pressed_bytes: Vec<_> = pressed.iter().map(|input| *input as u8).collect();
+        // create buffer item
+        let data = NetplayBufferItem {
+            pressed,
+            signals: std::mem::take(&mut self.pending_signals),
+        };
 
         // update local buffer
-        local_controller.input_buffer.push_back(pressed);
+        local_controller.buffer.push_back(data.clone());
 
         // gather buffer sizes for remotes to know if they should slow down
         let buffer_sizes = self
             .player_controllers
             .iter()
-            .map(|controller| controller.input_buffer.len())
+            .map(|controller| controller.buffer.len())
             .collect();
 
-        self.broadcast(NetplayPacket::Input {
+        self.broadcast(NetplayPacket::Buffer {
             index: self.local_index,
-            pressed: pressed_bytes,
+            data,
             buffer_sizes,
         });
     }
@@ -337,13 +476,13 @@ impl BattleScene {
             if let Some(controller) = self.player_controllers.get(index) {
                 let index = (self.simulation.time - self.synced_time) as usize;
 
-                if let Some(inputs) = controller.input_buffer.get(index) {
-                    player_input.set_pressed_input(inputs.clone());
+                if let Some(data) = controller.buffer.get(index) {
+                    player_input.load_data(data.clone());
                 }
             }
         }
 
-        if self.input_synced() {
+        if self.input_synced() && self.player_controllers.len() > 1 {
             use std::io::Write;
 
             let mut file = std::fs::OpenOptions::new()
@@ -357,8 +496,8 @@ impl BattleScene {
             self.synced_time += 1;
 
             for controller in self.player_controllers.iter_mut() {
-                let _ = writeln!(&mut file, "  {:?}", controller.input_buffer.front());
-                controller.input_buffer.pop_front();
+                let _ = writeln!(&mut file, "  {:?}", controller.buffer.front());
+                controller.buffer.pop_front();
             }
 
             let _ = writeln!(&mut file, "Archetypes: [");
@@ -457,6 +596,9 @@ impl BattleScene {
             self.state = state;
         }
 
+        self.simulation
+            .handle_local_signals(self.local_index, &mut self.shared_assets);
+
         self.simulation.pre_update(game_io, &self.vms, &*self.state);
         self.state.update(
             game_io,
@@ -485,7 +627,7 @@ impl BattleScene {
 
         // list vms by memory usage
         if game_io.input().was_key_just_pressed(Key::V) {
-            const NAMESPACE_WIDTH: usize = 9;
+            const NAMESPACE_WIDTH: usize = 10;
             const MEMORY_WIDTH: usize = 11;
 
             let mut vms_sorted: Vec<_> = self.vms.iter().collect();
@@ -500,7 +642,7 @@ impl BattleScene {
 
             // margin + header
             println!(
-                "\n| Namespace | Package ID{:1$} | Used Memory | Free Memory |",
+                "\n| Namespace  | Package ID{:1$} | Used Memory | Free Memory |",
                 " ",
                 package_id_width - 10
             );
@@ -512,7 +654,9 @@ impl BattleScene {
             for vm in vms_sorted {
                 println!(
                     "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
-                    format!("{:?}", vm.namespace),
+                    // todo: maybe we should list every namespace in a compressed format
+                    // ex: [Server, Local, Netplay(0)] -> S L 0
+                    format!("{:?}", vm.preferred_namespace()),
                     vm.package_id,
                     vm.lua.used_memory(),
                     vm.lua.unused_memory().unwrap()
@@ -522,6 +666,23 @@ impl BattleScene {
             // margin
             println!();
         }
+    }
+
+    fn exit(&mut self, game_io: &GameIO, fleeing: bool) {
+        self.exiting = true;
+        self.pending_signals.push(NetplaySignal::Disconnect);
+
+        if let Some(statistics_callback) = self.statistics_callback.take() {
+            self.simulation.wrap_up_statistics();
+            let mut statistics = self.simulation.statistics.clone();
+            statistics.ran = fleeing;
+            statistics_callback(Some(statistics));
+        }
+
+        // clean up music stack
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.pop_music_stack();
+        globals.audio.restart_music();
     }
 }
 
@@ -538,13 +699,7 @@ impl Scene for BattleScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.detect_debug_hotkeys(game_io);
 
-        if !game_io.is_in_transition() && !self.started_music {
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_music(&globals.music.battle, true);
-
-            self.started_music = true;
-        }
-
+        self.update_textbox(game_io);
         self.handle_packets(game_io);
 
         let input_util = InputUtil::new(game_io);
@@ -588,23 +743,14 @@ impl Scene for BattleScene {
         self.simulation.camera.update(game_io);
 
         if !self.exiting && self.detect_exit_request() {
-            self.exiting = true;
-            self.broadcast(NetplayPacket::Disconnect {
-                index: self.local_index,
-            });
+            self.exit(game_io, false);
+        }
 
-            if let Some(statistics_callback) = self.statistics_callback.take() {
-                self.simulation.wrap_up_statistics();
-                statistics_callback(Some(self.simulation.statistics.clone()));
-            }
-
+        if self.exiting && !game_io.is_in_transition() && self.pending_signals.is_empty() {
+            // need to exit, not currently exiting, no pending signals that must be shared
+            // safe to exit
             let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
-
-            // clean up music stack
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.pop_music_stack();
-            globals.audio.restart_music();
         }
     }
 
@@ -619,6 +765,9 @@ impl Scene for BattleScene {
         self.simulation.draw_ui(game_io, &mut sprite_queue);
         self.state
             .draw_ui(game_io, &mut self.simulation, &mut sprite_queue);
+
+        // draw textbox over everything
+        self.textbox.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
     }

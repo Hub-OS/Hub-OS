@@ -9,7 +9,7 @@ use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use std::collections::HashMap;
 
-const NAMESPACE: PackageNamespace = PackageNamespace::Server;
+const NAMESPACE: PackageNamespace = PackageNamespace::Local;
 
 enum Event {
     Leave(bool),
@@ -826,7 +826,7 @@ impl CardListItem {
         }
 
         package_manager
-            .packages_with_fallthrough(NAMESPACE)
+            .packages_with_override(NAMESPACE)
             .flat_map(|package| {
                 let package_info = package.package_info();
 

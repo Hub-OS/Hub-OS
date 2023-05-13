@@ -1,7 +1,7 @@
 use generational_arena::{Arena, Index};
 use packets::{
-    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
-    PacketSender, Reliability, ServerCommPacket, ServerPacket,
+    serialize, ChannelSender, ConnectionBuilder, NetplayBufferItem, NetplayPacket, NetplaySignal,
+    PacketChannels, PacketReceiver, PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
 use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
@@ -162,7 +162,17 @@ impl PacketOrchestrator {
             };
 
             let index = connection.netplay_index;
-            self.forward_netplay_packet(socket_address, NetplayPacket::Disconnect { index });
+            self.forward_netplay_packet(
+                socket_address,
+                NetplayPacket::Buffer {
+                    index,
+                    data: NetplayBufferItem {
+                        pressed: Vec::new(),
+                        signals: vec![NetplaySignal::Disconnect],
+                    },
+                    buffer_sizes: Vec::new(),
+                },
+            );
         }
 
         // must leave rooms before dropping client_room_map
@@ -434,31 +444,6 @@ impl PacketOrchestrator {
         };
 
         let bytes = packets::serialize(&packet);
-
-        for index in room {
-            let connection = &mut self.connections[*index];
-
-            internal_send_bytes(
-                self.synchronize_updates,
-                &mut self.synchronize_locked_clients,
-                connection,
-                reliability,
-                &bytes,
-            );
-        }
-    }
-
-    pub fn broadcast_bytes_to_room(
-        &mut self,
-        room_id: &str,
-        reliability: Reliability,
-        bytes: Vec<u8>,
-    ) {
-        let room = if let Some(room) = self.rooms.get_mut(room_id) {
-            room
-        } else {
-            return;
-        };
 
         for index in room {
             let connection = &mut self.connections[*index];

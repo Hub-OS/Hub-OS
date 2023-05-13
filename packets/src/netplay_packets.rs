@@ -1,6 +1,19 @@
-use crate::structures::{FileHash, InstalledBlock, PackageCategory};
+use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum NetplaySignal {
+    AttemptingFlee,
+    CompletedFlee,
+    Disconnect,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct NetplayBufferItem {
+    pub pressed: Vec<Input>,
+    pub signals: Vec<NetplaySignal>,
+}
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize, IntoStaticStr)]
 pub enum NetplayPacket {
@@ -15,15 +28,15 @@ pub enum NetplayPacket {
     },
     PlayerSetup {
         index: usize,
-        player_package: String,
+        player_package: PackageId,
         // package_id, code
-        cards: Vec<(String, String)>,
+        cards: Vec<(PackageId, String)>,
         blocks: Vec<InstalledBlock>,
     },
     PackageList {
         index: usize,
         // category, package_id, hash
-        packages: Vec<(PackageCategory, String, FileHash)>,
+        packages: Vec<(PackageCategory, PackageId, FileHash)>,
     },
     MissingPackages {
         index: usize,
@@ -41,13 +54,10 @@ pub enum NetplayPacket {
         index: usize,
         seed: u64,
     },
-    Input {
+    Buffer {
         index: usize,
-        pressed: Vec<u8>,
+        data: NetplayBufferItem,
         buffer_sizes: Vec<usize>,
-    },
-    Disconnect {
-        index: usize,
     },
 }
 
@@ -63,8 +73,7 @@ impl NetplayPacket {
             NetplayPacket::ReadyForPackages { index } => *index,
             NetplayPacket::PackageZip { index, .. } => *index,
             NetplayPacket::Ready { index, .. } => *index,
-            NetplayPacket::Input { index, .. } => *index,
-            NetplayPacket::Disconnect { index } => *index,
+            NetplayPacket::Buffer { index, .. } => *index,
         }
     }
 }

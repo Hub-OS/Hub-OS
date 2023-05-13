@@ -781,8 +781,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let namespace = lua.named_registry_value(NAMESPACE_REGISTRY_KEY)?;
-
+        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
         let id = api_ctx.simulation.load_character(
             api_ctx.game_io,
             api_ctx.vms,
@@ -1043,6 +1042,24 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
+    getter(lua_api, "emotions", |player: &Player, lua, ()| {
+        let emotions = player.emotion_window.emotions();
+        let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
+
+        lua.pack_multi(table)
+    });
+    getter(lua_api, "emotion", |player: &Player, lua, ()| {
+        lua.pack_multi(player.emotion_window.emotion())
+    });
+    setter(
+        lua_api,
+        "set_emotion",
+        |player: &mut Player, _lua, emotion: Emotion| {
+            player.emotion_window.set_emotion(emotion);
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "input_has", |api_ctx, lua, params| {
         let (table, input_query): (rollback_mlua::Table, InputQuery) = lua.unpack_multi(params)?;
 

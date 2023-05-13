@@ -1,6 +1,6 @@
 use crate::{
-    battle::{AttackBox, BattleCallback, Entity, Spell},
-    bindable::EntityId,
+    battle::{AttackBox, BattleCallback, Entity, Spell, Component},
+    bindable::{EntityId, ComponentLifetime},
     lua_api::create_entity_table,
     render::FrameTime,
 };
@@ -50,7 +50,11 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<(&mut Entity, &mut Spell)>(hitbox_id.into())
             .unwrap();
 
-        let start_time = simulation.battle_time;
+        if let Some(lifetime) = lifetime {
+            hitbox_entity.spawn_callback = BattleCallback::new(move |_, simulation, _, _| {
+                Component::new_delayed_deleter(simulation, hitbox_id, ComponentLifetime::Local, lifetime);
+            });
+        }
 
         hitbox_entity.update_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
             // get properties from the parent
@@ -89,12 +93,6 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
                 simulation.queued_attacks.push(attack_box);
             }
 
-            // see if the entity should expire
-            if let Some(lifetime) = lifetime {
-                if simulation.battle_time - start_time >= lifetime {
-                    simulation.delete_entity(game_io, vms, hitbox_id);
-                }
-            }
         });
 
         // forward attack callback

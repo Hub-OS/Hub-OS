@@ -117,22 +117,6 @@ impl BootScene {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     globals.player_packages = player_packages;
-
-                    // make sure there's a playable character available
-                    let playable_characters: Vec<_> = globals
-                        .player_packages
-                        .package_ids(PackageNamespace::Local)
-                        .cloned()
-                        .collect();
-
-                    if !playable_characters.is_empty() {
-                        let selected_id = &globals.global_save.selected_character;
-
-                        if !playable_characters.contains(selected_id) {
-                            globals.global_save.selected_character = playable_characters[0].clone();
-                            globals.global_save.save();
-                        }
-                    }
                 }
                 BootEvent::CardManager(card_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;

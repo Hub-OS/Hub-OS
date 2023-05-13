@@ -95,7 +95,7 @@ impl ServerAssetManager {
 
         sounds.insert(
             ResourcePaths::BLANK.to_string(),
-            local_assets.audio(ResourcePaths::BLANK),
+            local_assets.audio(game_io, ResourcePaths::BLANK),
         );
 
         Self {
@@ -252,7 +252,7 @@ impl ServerAssetManager {
             AssetDataType::Audio => {
                 // cache as audio
                 self.sounds.borrow_mut().remove(&remote_path);
-                self.audio(&remote_path);
+                self.audio(game_io, &remote_path);
             }
             _ => {}
         }
@@ -340,13 +340,13 @@ impl AssetManager for ServerAssetManager {
         }
     }
 
-    fn audio(&self, path: &str) -> SoundBuffer {
+    fn audio(&self, game_io: &GameIO, path: &str) -> SoundBuffer {
         let mut sounds = self.sounds.borrow_mut();
 
         if let Some(sound) = sounds.get(path) {
             sound.clone()
         } else {
-            let sound = SoundBuffer::decode(self.binary(path));
+            let sound = SoundBuffer::decode(game_io, self.binary(path));
             sounds.insert(path.to_string(), sound.clone());
             sound
         }

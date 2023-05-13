@@ -22,6 +22,31 @@ impl Component {
         }
     }
 
+    /// deletes the entity after a specified amount of battle frames
+    pub fn new_delayed_deleter(
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        lifetime: ComponentLifetime,
+        delay: FrameTime,
+    ) {
+        let start_time = simulation.battle_time;
+
+        simulation.components.insert_with(|index| {
+            let mut component = Self::new(entity_id, lifetime);
+
+            component.update_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
+                if simulation.battle_time - start_time < delay {
+                    return;
+                }
+
+                simulation.delete_entity(game_io, vms, entity_id);
+                Component::eject(simulation, index);
+            });
+
+            component
+        });
+    }
+
     pub fn new_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityId) {
         const START_DELAY: FrameTime = 25;
         const TOTAL_DURATION: FrameTime = 50;
@@ -122,5 +147,28 @@ impl Component {
         });
 
         simulation.components.insert(component);
+    }
+
+    pub fn eject(simulation: &mut BattleSimulation, index: generational_arena::Index) {
+        let Some(component) = simulation.components.remove(index) else {
+            return;
+        };
+
+        if component.lifetime != ComponentLifetime::Local {
+            return;
+        }
+
+        let entities = &mut simulation.entities;
+
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(component.entity.into()) else {
+            return;
+        };
+
+        let index = (entity.local_components)
+            .iter()
+            .position(|stored_index| *stored_index == index)
+            .unwrap();
+
+        entity.local_components.swap_remove(index);
     }
 }

@@ -7,7 +7,7 @@ pub trait AssetManager {
     fn binary(&self, path: &str) -> Vec<u8>;
     fn text(&self, path: &str) -> String;
     fn texture(&self, game_io: &GameIO, path: &str) -> Arc<Texture>;
-    fn audio(&self, path: &str) -> SoundBuffer;
+    fn audio(&self, game_io: &GameIO, path: &str) -> SoundBuffer;
 
     fn new_sprite(&self, game_io: &GameIO, texture_path: &str) -> Sprite {
         let texture = self.texture(game_io, texture_path);

@@ -172,7 +172,7 @@ impl LocalAssetManager {
                     let mut bytes = Vec::new();
                     let read_result = file.read_to_end(&mut bytes);
 
-                    let sound = SoundBuffer::decode(bytes);
+                    let sound = SoundBuffer::decode(game_io, bytes);
                     sound_cache.insert(virtual_path.clone(), sound);
                     virtual_files.push(virtual_path);
 
@@ -198,6 +198,19 @@ impl LocalAssetManager {
 
         meta
     }
+
+    pub fn non_midi_audio(&self, path: &str) -> SoundBuffer {
+        let mut sound_cache = self.sound_cache.borrow_mut();
+
+        if let Some(sound) = sound_cache.get(path) {
+            sound.clone()
+        } else {
+            let bytes = fs::read(path).unwrap_or_default();
+            let sound = SoundBuffer::decode_non_midi(bytes);
+            sound_cache.insert(path.to_string(), sound.clone());
+            sound
+        }
+    }
 }
 
 impl AssetManager for LocalAssetManager {
@@ -213,7 +226,7 @@ impl AssetManager for LocalAssetManager {
         let res = fs::read(path);
 
         if let Err(err) = &res {
-            log::warn!("Failed to load {:?}: {}", path, err);
+            log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
         }
 
         res.unwrap_or_default()
@@ -228,7 +241,7 @@ impl AssetManager for LocalAssetManager {
             let res = fs::read_to_string(path);
 
             if let Err(err) = &res {
-                log::warn!("Failed to load {:?}: {}", path, err);
+                log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
             }
 
             let text = res.unwrap_or_default();
@@ -248,7 +261,7 @@ impl AssetManager for LocalAssetManager {
             let texture = match Texture::load_from_memory(game_io, &bytes) {
                 Ok(texture) => texture,
                 Err(err) => {
-                    log::warn!("Failed to load {:?}: {}", path, err);
+                    log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
                     texture_cache.get(ResourcePaths::BLANK).unwrap().clone()
                 }
             };
@@ -258,14 +271,14 @@ impl AssetManager for LocalAssetManager {
         }
     }
 
-    fn audio(&self, path: &str) -> SoundBuffer {
+    fn audio(&self, game_io: &GameIO, path: &str) -> SoundBuffer {
         let mut sound_cache = self.sound_cache.borrow_mut();
 
         if let Some(sound) = sound_cache.get(path) {
             sound.clone()
         } else {
             let bytes = fs::read(path).unwrap_or_default();
-            let sound = SoundBuffer::decode(bytes);
+            let sound = SoundBuffer::decode(game_io, bytes);
             sound_cache.insert(path.to_string(), sound.clone());
             sound
         }

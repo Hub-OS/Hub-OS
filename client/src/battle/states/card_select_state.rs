@@ -7,6 +7,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
+use crate::scenes::BattleEvent;
 use framework::prelude::*;
 use std::sync::Arc;
 
@@ -83,7 +84,7 @@ impl State for CardSelectState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
@@ -127,7 +128,13 @@ impl State for CardSelectState {
             }
 
             let input = &simulation.inputs[player.index];
-            self.handle_input(game_io, player, input, simulation.is_resimulation);
+            self.handle_input(
+                game_io,
+                shared_assets,
+                player,
+                input,
+                simulation.is_resimulation,
+            );
         }
 
         self.animate_form_list(simulation);
@@ -523,6 +530,7 @@ impl CardSelectState {
     fn handle_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -554,15 +562,16 @@ impl CardSelectState {
         }
 
         if selection.form_open_time.is_some() {
-            self.handle_form_input(game_io, player, input, is_resimulation);
+            self.handle_form_input(game_io, shared_assets, player, input, is_resimulation);
         } else {
-            self.handle_card_input(game_io, player, input, is_resimulation);
+            self.handle_card_input(game_io, shared_assets, player, input, is_resimulation);
         }
     }
 
     fn handle_form_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -624,11 +633,24 @@ impl CardSelectState {
                 globals.audio.play_sound(&globals.sfx.form_select_close);
             }
         }
+
+        if is_resimulation || !selection.local {
+            // the rest deals with signals
+            return;
+        }
+
+        if input.was_just_pressed(Input::Info) {
+            if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
+                let event = BattleEvent::Description((*form.description).clone());
+                shared_assets.event_sender.send(event).unwrap();
+            }
+        }
     }
 
     fn handle_card_input(
         &mut self,
         game_io: &GameIO,
+        shared_assets: &mut SharedBattleAssets,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -734,6 +756,34 @@ impl CardSelectState {
                 }
             }
         }
+
+        if input.fleeing() {
+            // clear selection
+            selection.selected_card_indices.clear();
+            selection.selected_form_index.take();
+
+            // confirm
+            selection.confirm_time = self.time;
+        }
+
+        if selection.confirm_time != 0 || is_resimulation || !selection.local {
+            // the rest deals with signals
+            return;
+        }
+
+        if input.was_just_pressed(Input::Flee) {
+            let event = BattleEvent::RequestFlee;
+            shared_assets.event_sender.send(event).unwrap();
+        }
+
+        if input.was_just_pressed(Input::Info) {
+            if let SelectedItem::Card(index) = selected_item {
+                let card = &player.cards[index];
+
+                let event = BattleEvent::DescribeCard(card.package_id.clone());
+                shared_assets.event_sender.send(event).unwrap();
+            }
+        }
     }
 
     fn complete(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
@@ -837,6 +887,7 @@ impl CardSelectState {
 
             root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
 
+            // note: moving health ui also moves emotion ui
             (simulation.local_health_ui)
                 .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
         }
@@ -854,6 +905,7 @@ impl CardSelectState {
         let root_node = self.sprites.root_mut();
         root_node.set_visible(false);
 
+        // note: moving health ui also moves emotion ui
         (simulation.local_health_ui).set_position(Vec2::new(BATTLE_UI_MARGIN, 0.0));
     }
 
@@ -861,6 +913,7 @@ impl CardSelectState {
         let root_node = self.sprites.root_mut();
         root_node.set_visible(true);
 
+        // note: moving health ui also moves emotion ui
         let width = root_node.size().x;
         (simulation.local_health_ui).set_position(Vec2::new(width + BATTLE_UI_MARGIN, 0.0));
     }

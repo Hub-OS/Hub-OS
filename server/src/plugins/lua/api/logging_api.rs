@@ -1,12 +1,12 @@
 use super::LuaApi;
 
 pub fn inject_static(lua_api: &mut LuaApi) {
-    lua_api.add_static_injector(|lua_ctx| {
-        let globals = lua_ctx.globals();
+    lua_api.add_static_injector(|lua| {
+        let globals = lua.globals();
 
         globals.set(
             "print",
-            lua_ctx.create_function(|_lua_ctx, args: mlua::MultiValue| {
+            lua.create_function(|_lua, args: mlua::MultiValue| {
                 log::info!("{}", format_args(args));
                 Ok(mlua::Value::Nil)
             })?,
@@ -14,7 +14,7 @@ pub fn inject_static(lua_api: &mut LuaApi) {
 
         globals.set(
             "printerr",
-            lua_ctx.create_function(|_lua_ctx, args: mlua::MultiValue| {
+            lua.create_function(|_lua, args: mlua::MultiValue| {
                 log::error!("{}", format_args(args));
                 Ok(mlua::Value::Nil)
             })?,
@@ -22,7 +22,7 @@ pub fn inject_static(lua_api: &mut LuaApi) {
 
         globals.set(
             "warn",
-            lua_ctx.create_function(|_lua_ctx, args: mlua::MultiValue| {
+            lua.create_function(|_lua, args: mlua::MultiValue| {
                 log::warn!("{}", format_args(args));
                 Ok(mlua::Value::Nil)
             })?,
@@ -30,7 +30,7 @@ pub fn inject_static(lua_api: &mut LuaApi) {
 
         globals.set(
             "tostring",
-            lua_ctx.create_function(|_lua_ctx, value: mlua::Value| Ok(tostring(value)))?,
+            lua.create_function(|_lua, value: mlua::Value| Ok(tostring(value)))?,
         )?;
 
         Ok(())

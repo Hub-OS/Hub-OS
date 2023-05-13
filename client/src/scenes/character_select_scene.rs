@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PlayerHealthUI, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
+    ElementSprite, FontStyle, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
     Textbox, TextboxMessage, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -20,7 +20,7 @@ pub struct CharacterSelectScene {
     background: Background,
     frame: SubSceneFrame,
     preview_sprite: Sprite,
-    health_ui: PlayerHealthUI,
+    health_ui: PlayerHealthUi,
     element_sprite: Sprite,
     name_position: Vec2,
     cursor_sprite: Sprite,
@@ -43,7 +43,7 @@ impl CharacterSelectScene {
 
         let mut package_ids: Vec<_> = globals
             .player_packages
-            .package_ids_with_fallthrough(PackageNamespace::Server)
+            .package_ids_with_override(PackageNamespace::Local)
             .collect();
 
         package_ids.sort();
@@ -92,7 +92,7 @@ impl CharacterSelectScene {
         let icon_start_offset = layout_animator.point("LIST_START").unwrap_or_default();
 
         // health_ui
-        let mut health_ui = PlayerHealthUI::new(game_io);
+        let mut health_ui = PlayerHealthUi::new(game_io);
         health_ui.set_position(layout_animator.point("HP").unwrap_or_default());
         health_ui.snap_health(player_package.health);
 
@@ -134,7 +134,7 @@ impl CharacterSelectScene {
 
         globals
             .player_packages
-            .package_or_fallback(PackageNamespace::Server, character_id)
+            .package_or_fallback(PackageNamespace::Local, character_id)
             .unwrap()
     }
 
@@ -215,7 +215,7 @@ impl CharacterSelectScene {
             let package_id = self.selected_package_id();
             let player_packages = &globals.player_packages;
             let package = player_packages
-                .package_or_fallback(PackageNamespace::Server, package_id)
+                .package_or_fallback(PackageNamespace::Local, package_id)
                 .unwrap();
 
             // set avatar
@@ -374,7 +374,7 @@ impl IconRow {
     fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a PackageId>) -> Self {
         let player_packages = &game_io.resource::<Globals>().unwrap().player_packages;
         let compact_package_data = package_ids
-            .flat_map(|id| player_packages.package_or_fallback(PackageNamespace::Server, id))
+            .flat_map(|id| player_packages.package_or_fallback(PackageNamespace::Local, id))
             .map(|package| CompactPackageInfo {
                 package_id: package.package_info.id.clone(),
                 name: package.name.clone(),

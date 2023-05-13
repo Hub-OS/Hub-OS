@@ -2,7 +2,7 @@ use super::{CharacterSelectScene, CustomizeScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PageTracker, PlayerHealthUI, SceneTitle, ScrollableList,
+    ElementSprite, FontStyle, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
     SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -193,7 +193,7 @@ impl<'a> StatusData<'a> {
         let player_package = global_save.player_package(game_io).unwrap();
 
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
 
         let mut health = player_package.health;
         let mut attack_level = 1;
@@ -229,7 +229,7 @@ struct StatusPage {
     sprites: Vec<Sprite>,
     animators: Vec<(Animator, usize)>,
     lists: Vec<ScrollableList>,
-    player_health_ui: Vec<PlayerHealthUI>,
+    player_health_ui: Vec<PlayerHealthUi>,
 }
 
 impl StatusPage {
@@ -257,7 +257,7 @@ impl StatusPage {
         }
 
         if let Some(point) = layout_animator.point("HEALTH") {
-            let mut player_health_ui = PlayerHealthUI::new(game_io);
+            let mut player_health_ui = PlayerHealthUi::new(game_io);
             player_health_ui.snap_health(data.health);
             player_health_ui.set_position(point);
 

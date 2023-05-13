@@ -4,18 +4,20 @@ use crate::resources::*;
 use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use framework::prelude::*;
-use packets::structures::{BattleStatistics, InstalledBlock};
+use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
+use packets::NetplayBufferItem;
 use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
     pub player_package: &'a PlayerPackage,
     pub health: i32,
     pub base_health: i32,
+    pub emotion: Emotion,
     pub deck: Deck,
     pub blocks: Vec<InstalledBlock>,
     pub index: usize,
     pub local: bool,
-    pub input_buffer: VecDeque<Vec<Input>>,
+    pub buffer: VecDeque<NetplayBufferItem>,
 }
 
 impl<'a> PlayerSetup<'a> {
@@ -24,20 +26,17 @@ impl<'a> PlayerSetup<'a> {
             player_package,
             health: 9999,
             base_health: 9999,
+            emotion: Emotion::default(),
             deck: Deck::new(String::new()),
             blocks: Vec::new(),
             index,
             local,
-            input_buffer: VecDeque::new(),
+            buffer: VecDeque::new(),
         }
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        if self.local {
-            PackageNamespace::Local
-        } else {
-            PackageNamespace::Remote(self.index)
-        }
+        PackageNamespace::Netplay(self.index)
     }
 
     pub fn from_globals(game_io: &'a GameIO) -> Self {
@@ -58,11 +57,12 @@ impl<'a> PlayerSetup<'a> {
             player_package,
             health: player_package.health + health_boost,
             base_health: player_package.health,
+            emotion: Emotion::default(),
             index: 0,
             deck,
             blocks,
             local: true,
-            input_buffer: VecDeque::new(),
+            buffer: VecDeque::new(),
         }
     }
 }

@@ -26,6 +26,7 @@ impl ResourcePaths {
     pub const SEPARATOR: &str = "/";
 
     // Music
+    pub const SOUND_FONT: &str = "resources/music/soundfont.sf2";
     pub const MAIN_MENU_MUSIC: &str = "resources/music/main_menu.ogg";
     pub const CUSTOMIZE_MUSIC: &str = "resources/music/customize.ogg";
     pub const BATTLE_MUSIC: &str = "resources/music/battle.ogg";
@@ -250,7 +251,7 @@ impl ResourcePaths {
         path_clean::clean(path_str)
             .to_str()
             .unwrap_or_default()
-            .replace("\\", Self::SEPARATOR)
+            .replace('\\', Self::SEPARATOR)
     }
 
     pub fn clean_folder(path_str: &str) -> String {

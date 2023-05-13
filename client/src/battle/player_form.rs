@@ -9,6 +9,7 @@ pub struct PlayerForm {
     pub activated: bool,
     pub deactivated: bool,
     pub mug_texture: Option<Arc<Texture>>,
+    pub description: Arc<String>,
     pub activate_callback: Option<BattleCallback>,
     pub deactivate_callback: Option<BattleCallback>,
     pub update_callback: Option<BattleCallback>,

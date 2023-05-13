@@ -50,9 +50,8 @@ impl LuaApi {
             table_names: Vec::new(),
         };
 
-        lua_api.add_static_injector(|lua_ctx| {
-            lua_ctx
-                .load(include_str!("event_emitter.lua"))
+        lua_api.add_static_injector(|lua| {
+            lua.load(include_str!("event_emitter.lua"))
                 .set_name("internal: event_emitter.lua")?
                 .exec()
         });
@@ -105,15 +104,15 @@ impl LuaApi {
         self.dynamic_functions.insert(function_id, Box::new(func));
     }
 
-    pub fn inject_static(&self, lua_ctx: &mlua::Lua) -> mlua::Result<()> {
-        let globals = lua_ctx.globals();
+    pub fn inject_static(&self, lua: &mlua::Lua) -> mlua::Result<()> {
+        let globals = lua.globals();
 
         for table_name in &self.table_names {
-            globals.set(table_name.as_str(), lua_ctx.create_table()?)?;
+            globals.set(table_name.as_str(), lua.create_table()?)?;
         }
 
         for static_function_injector in &self.static_function_injectors {
-            static_function_injector(lua_ctx)?;
+            static_function_injector(lua)?;
         }
 
         for (table_name, function_name) in &self.dynamic_function_table_and_name_pairs {
@@ -123,8 +122,8 @@ impl LuaApi {
 
             table.set(
                 function_name.as_str(),
-                lua_ctx.create_function(move |lua_ctx, values: mlua::MultiValue| {
-                    let globals = lua_ctx.globals();
+                lua.create_function(move |lua, values: mlua::MultiValue| {
+                    let globals = lua.globals();
                     let net_table: mlua::Table = globals.get("Net")?;
                     let func: mlua::Function = net_table.get("_delegate")?;
 
@@ -140,7 +139,7 @@ impl LuaApi {
 
     pub fn inject_dynamic<'lua, F>(
         &mut self,
-        lua_ctx: &'lua mlua::Lua,
+        lua: &'lua mlua::Lua,
         api_ctx: ApiContext,
         wrapped_fn: F,
     ) -> mlua::Result<()>
@@ -149,18 +148,18 @@ impl LuaApi {
     {
         let mut wrapped_fn = wrapped_fn;
 
-        lua_ctx.scope(move |scope| -> mlua::Result<()> {
-            let globals = lua_ctx.globals();
+        lua.scope(move |scope| -> mlua::Result<()> {
+            let globals = lua.globals();
             let table: mlua::Table = globals.get("Net")?;
 
             table.set(
                 "_delegate",
                 scope.create_function_mut(
-                    move |lua_ctx, (function_id, params): (String, mlua::MultiValue)| {
+                    move |lua, (function_id, params): (String, mlua::MultiValue)| {
                         let func = self.dynamic_functions.get_mut(&function_id);
 
                         if let Some(func) = func {
-                            func(&api_ctx, lua_ctx, params)
+                            func(&api_ctx, lua, params)
                         } else {
                             Err(mlua::Error::RuntimeError(format!(
                                 "Function {:?} does not exist",
@@ -171,7 +170,7 @@ impl LuaApi {
                 )?,
             )?;
 
-            wrapped_fn(lua_ctx)?;
+            wrapped_fn(lua)?;
 
             Ok(())
         })?;

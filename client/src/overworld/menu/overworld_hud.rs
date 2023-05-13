@@ -1,18 +1,24 @@
 use crate::overworld::{Map, OverworldArea};
-use crate::render::ui::{draw_clock, FontStyle, PlayerHealthUI, Text};
+use crate::render::ui::{draw_clock, FontStyle, PlayerHealthUi, Text};
 use crate::render::SpriteColorQueue;
 use crate::resources::{RESOLUTION_F, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
 
 pub struct OverworldHud {
-    health_ui: PlayerHealthUI,
+    visible: bool,
+    health_ui: PlayerHealthUi,
 }
 
 impl OverworldHud {
     pub fn new(game_io: &GameIO, health: i32) -> Self {
         Self {
-            health_ui: PlayerHealthUI::new(game_io).with_health(health),
+            visible: true,
+            health_ui: PlayerHealthUi::new(game_io).with_health(health),
         }
+    }
+
+    pub fn set_visible(&mut self, visible: bool) {
+        self.visible = visible;
     }
 
     pub fn update(&mut self, area: &OverworldArea) {
@@ -21,6 +27,10 @@ impl OverworldHud {
     }
 
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, map: &Map) {
+        if !self.visible {
+            return;
+        }
+
         draw_clock(game_io, sprite_queue);
         draw_map_name(game_io, sprite_queue, map);
         self.health_ui.draw(game_io, sprite_queue);

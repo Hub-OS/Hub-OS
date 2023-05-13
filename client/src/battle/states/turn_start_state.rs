@@ -108,6 +108,11 @@ impl State for TurnStartState {
         simulation: &mut BattleSimulation,
         _vms: &[RollbackVM],
     ) {
+        if simulation.inputs.iter().any(|input| input.fleeing()) {
+            // wait for the flee attempt to complete
+            return;
+        }
+
         if self.start_time == 0 {
             self.start_time = simulation.time;
             self.init_message(simulation);

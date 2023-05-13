@@ -35,7 +35,7 @@ impl LibraryScene {
         // docks
         let mut available_packages: Vec<_> = globals
             .card_packages
-            .package_ids_with_fallthrough(PackageNamespace::Server)
+            .package_ids_with_override(PackageNamespace::Local)
             .cloned()
             .collect();
 
@@ -204,7 +204,7 @@ impl Dock {
             .flat_map(|id| {
                 globals
                     .card_packages
-                    .package_or_fallback(PackageNamespace::Server, id)
+                    .package_or_fallback(PackageNamespace::Local, id)
             })
             .filter(|package| package.card_properties.card_class == card_class)
             .map(|package| Card {

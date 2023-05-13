@@ -1,6 +1,6 @@
 use super::{InitialConnectScene, NetplayInitScene, NetplayProps};
 use crate::battle::BattleProps;
-use crate::bindable::{Emotion, SpriteColorMode};
+use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
@@ -150,7 +150,7 @@ impl OverworldOnlineScene {
         let global_save = &globals.global_save;
 
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(PackageNamespace::Server).with_blocks(game_io, blocks);
+        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
 
         let packet = ClientPacket::Boost {
             health_boost: self.area.player_data.health_boost,
@@ -431,7 +431,7 @@ impl OverworldOnlineScene {
                         self.assets.texture(game_io, &asset_path);
                     }
                     AssetDataType::Audio => {
-                        self.assets.audio(&asset_path);
+                        self.assets.audio(game_io, &asset_path);
                     }
                     AssetDataType::Unknown => {
                         log::warn!("Server sent unknown AssetType? {:?}", asset_path);
@@ -473,11 +473,7 @@ impl OverworldOnlineScene {
                 self.menu_manager.update_player_data(player_data);
             }
             ServerPacket::Emotion { emotion } => {
-                use num_traits::FromPrimitive;
-
-                if let Some(emotion) = Emotion::from_u8(emotion) {
-                    self.area.player_data.emotion = emotion;
-                }
+                self.area.player_data.emotion = emotion;
             }
             ServerPacket::Money { money } => {
                 let player_data = &mut self.area.player_data;
@@ -498,7 +494,7 @@ impl OverworldOnlineScene {
                 self.area.player_data.inventory.remove_item(&id, count);
             }
             ServerPacket::PlaySound { path } => {
-                let sound = self.assets.audio(&path);
+                let sound = self.assets.audio(game_io, &path);
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&sound);
             }
@@ -627,6 +623,12 @@ impl OverworldOnlineScene {
                     *set_position = position;
                     *set_direction = direction;
                 }
+            }
+            ServerPacket::HideHud => {
+                self.hud.set_visible(false);
+            }
+            ServerPacket::ShowHud => {
+                self.hud.set_visible(true);
             }
             ServerPacket::Message {
                 message,
@@ -918,12 +920,7 @@ impl OverworldOnlineScene {
             ServerPacket::ModBlacklist { blacklist_path } => {
                 log::warn!("ModBlacklist hasn't been implemented")
             }
-            ServerPacket::InitiateEncounter {
-                package_path,
-                data,
-                health,
-                base_health,
-            } => {
+            ServerPacket::InitiateEncounter { package_path, data } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
@@ -940,8 +937,10 @@ impl OverworldOnlineScene {
                     props.data = data;
 
                     let player_setup = &mut props.player_setups[0];
-                    player_setup.health = health;
-                    player_setup.base_health = base_health;
+                    let player_data = &self.area.player_data;
+                    player_setup.health = player_data.health;
+                    player_setup.base_health = player_data.base_health;
+                    player_setup.emotion = player_data.emotion.clone();
 
                     // callback
                     let event_sender = self.area.event_sender.clone();
@@ -968,8 +967,6 @@ impl OverworldOnlineScene {
                 package_path,
                 data,
                 remote_players,
-                health,
-                base_health,
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
@@ -997,12 +994,14 @@ impl OverworldOnlineScene {
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
                 // create scene
+                let player_data = &self.area.player_data;
                 let props = NetplayProps {
                     background: Some(background),
                     encounter_package,
                     data,
-                    health,
-                    base_health,
+                    health: player_data.health,
+                    base_health: player_data.base_health,
+                    emotion: player_data.emotion.clone(),
                     remote_players,
                     fallback_address: self.server_address.clone(),
                     statistics_callback: Some(statistics_callback),
@@ -1269,60 +1268,61 @@ impl OverworldOnlineScene {
                 sprite_id,
                 sprite_definition,
             } => {
-                let entities = &mut self.area.entities;
-                let assets = &self.assets;
+                self.sprite_id_map.entry(sprite_id).or_insert_with(|| {
+                    let entities = &mut self.area.entities;
+                    let assets = &self.assets;
 
-                // setup sprite
-                let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
+                    // setup sprite
+                    let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
 
-                // setup offset
-                let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
-                sprite.set_position(offset);
+                    // setup offset
+                    let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
+                    sprite.set_position(offset);
 
-                // setup layer
-                let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
-                    // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
-                    sprite_definition.layer - 1
-                } else {
-                    sprite_definition.layer
-                });
+                    // setup layer
+                    let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
+                        // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
+                        sprite_definition.layer - 1
+                    } else {
+                        sprite_definition.layer
+                    });
 
-                // setup animator
-                let mut animator = Animator::load_new(assets, &sprite_definition.animation_path);
-                animator.set_state(&sprite_definition.animation_state);
+                    // setup animator
+                    let mut animator =
+                        Animator::load_new(assets, &sprite_definition.animation_path);
+                    animator.set_state(&sprite_definition.animation_state);
 
-                if sprite_definition.animation_loops {
-                    animator.set_loop_mode(AnimatorLoopMode::Loop);
-                } else if let Some(frame_list) =
-                    animator.frame_list(&sprite_definition.animation_state)
-                {
-                    // end the state
-                    animator.sync_time(frame_list.duration());
-                }
+                    if sprite_definition.animation_loops {
+                        animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    } else if let Some(frame_list) =
+                        animator.frame_list(&sprite_definition.animation_state)
+                    {
+                        // end the state
+                        animator.sync_time(frame_list.duration());
+                    }
 
-                let entity = entities.spawn((animator, sprite, offset, layer));
+                    let entity = entities.spawn((animator, sprite, offset, layer));
 
-                // set attachment
-                let _ = match sprite_definition.parent {
-                    SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
-                    SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
-                    SpriteParent::Actor(actor_id) => entities.insert(
-                        entity,
-                        (
-                            ActorAttachment {
+                    // set attachment
+                    let _ = match sprite_definition.parent {
+                        SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
+                        SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
+                        SpriteParent::Actor(actor_id) => {
+                            let attachment = ActorAttachment {
                                 actor_entity: self
                                     .actor_id_map
                                     .get_by_left(&actor_id)
                                     .cloned()
                                     .unwrap_or(hecs::Entity::DANGLING),
                                 point: sprite_definition.parent_point,
-                            },
-                            Vec3::ZERO,
-                        ),
-                    ),
-                };
+                            };
 
-                self.sprite_id_map.insert(sprite_id, entity);
+                            entities.insert(entity, (attachment, Vec3::ZERO))
+                        }
+                    };
+
+                    entity
+                });
             }
             ServerPacket::SpriteAnimate {
                 sprite_id,
@@ -1399,7 +1399,7 @@ impl OverworldOnlineScene {
                         Some(statistics) => statistics,
                         None => BattleStatistics {
                             health: player_data.health,
-                            emotion: player_data.emotion,
+                            emotion: player_data.emotion.clone(),
                             ran: true,
                             ..Default::default()
                         },

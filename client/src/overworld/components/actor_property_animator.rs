@@ -163,7 +163,7 @@ impl ActorPropertyAnimator {
                         let globals = game_io.resource::<Globals>().unwrap();
 
                         if let ActorProperty::SoundEffect(path) = &first_frame.property {
-                            let sfx = assets.audio(path);
+                            let sfx = assets.audio(game_io, path);
                             globals.audio.play_sound(&sfx);
                         }
                     }
@@ -284,7 +284,7 @@ impl ActorPropertyAnimator {
                             && swapped_key_frame
                             && !active_string_value.is_empty()
                         {
-                            let sfx = assets.audio(active_string_value);
+                            let sfx = assets.audio(game_io, active_string_value);
 
                             let globals = game_io.resource::<Globals>().unwrap();
                             globals.audio.play_sound(&sfx);

@@ -47,6 +47,8 @@ pub fn main() -> anyhow::Result<()> {
         let _ = log_sender.send(log);
     });
 
+    log::info!("Version {}", env!("CARGO_PKG_VERSION"));
+
     let game = Game::new("Personal Terminal", TRUE_RESOLUTION.into())
         .with_resizable(true)
         .with_setup(|game_io| {

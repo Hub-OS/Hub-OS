@@ -1,4 +1,4 @@
-use super::{BattleLuaApi, RESOURCES_TABLE};
+use super::{BattleLuaApi, GAME_FOLDER_KEY, RESOURCES_TABLE};
 use crate::lua_api::helpers::absolute_path;
 use crate::resources::{AssetManager, Globals};
 
@@ -21,8 +21,9 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         // cache the sound
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
-        globals.assets.audio(&path);
+        let game_io = &api_ctx.game_io;
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.assets.audio(game_io, &path);
 
         lua.pack_multi(path)
     });
@@ -34,25 +35,34 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = api_ctx.borrow();
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
+        let globals = game_io.resource::<Globals>().unwrap();
 
-        let sound_buffer = game_io.resource::<Globals>().unwrap().assets.audio(&path);
+        let sound_buffer = globals.assets.audio(game_io, &path);
         simulation.play_sound(game_io, &sound_buffer);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function(RESOURCES_TABLE, "play_music", |api_ctx, lua, params| {
-        // todo: loop points
-        let (path, loops, _start_ms, _end_ms): (String, Option<bool>, Option<u64>, Option<u64>) =
+        let (path, loops, start_ms, end_ms): (String, Option<bool>, Option<u64>, Option<u64>) =
             lua.unpack_multi(params)?;
 
+        let path = absolute_path(lua, path)?;
         let loops = loops.unwrap_or(true);
 
         let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
-        let sound_buffer = globals.assets.audio(&path);
-        globals.audio.play_music(&sound_buffer, loops);
+        let simulation = &api_ctx.simulation;
+        let game_io = api_ctx.game_io;
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let sound_buffer = globals.assets.audio(game_io, &path);
+        simulation.play_music(game_io, &sound_buffer, loops, start_ms, end_ms);
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "game_folder", |_, lua, _| {
+        let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_KEY)?;
+        lua.pack_multi(path_str)
     });
 }

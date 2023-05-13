@@ -1,4 +1,9 @@
+use crate::resources::Globals;
+use framework::prelude::GameIO;
+use itertools::Itertools;
 use rodio::Source;
+use rustysynth::{MidiFile, MidiFileSequencer, Synthesizer, SynthesizerSettings};
+use std::io::Cursor;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,9 +16,15 @@ pub struct SoundBuffer {
 }
 
 impl SoundBuffer {
-    pub fn decode(raw: Vec<u8>) -> Self {
-        use std::io::Cursor;
+    pub fn decode(game_io: &GameIO, raw: Vec<u8>) -> Self {
+        if raw.starts_with(b"MThd") {
+            return Self::decode_midi(game_io, raw);
+        }
 
+        Self::decode_non_midi(raw)
+    }
+
+    pub fn decode_non_midi(raw: Vec<u8>) -> Self {
         let cursor = Cursor::new(raw);
         let Ok(decoder) = rodio::Decoder::new(cursor) else {
             return Self::new_empty();
@@ -24,6 +35,56 @@ impl SoundBuffer {
             sample_rate: decoder.sample_rate(),
             duration: decoder.total_duration().unwrap_or_default(),
             data: Arc::new(decoder.collect::<Vec<_>>()),
+        }
+    }
+
+    fn decode_midi(game_io: &GameIO, raw: Vec<u8>) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let Some(sound_font) = globals.music.sound_font.as_ref() else {
+            // no sound font loaded
+            return Self::new_empty()
+        };
+
+        // create the sythesizer and midi sequencer
+        let mut synth_settings = SynthesizerSettings::new(44100);
+        synth_settings.enable_reverb_and_chorus = false;
+
+        let synthesizer = Synthesizer::new(sound_font, &synth_settings).unwrap();
+        let mut sequencer = MidiFileSequencer::new(synthesizer);
+
+        // pass midi file
+        let mut cursor = Cursor::new(raw);
+
+        let Ok(midi_file) = MidiFile::new(&mut cursor) else {
+            log::warn!("Invalid midi file");
+            return Self::new_empty();
+        };
+
+        let midi_file = Arc::new(midi_file);
+        sequencer.play(&midi_file, false);
+
+        // the output buffer
+        let sample_rate = synth_settings.sample_rate as u32;
+        let sample_count = (sample_rate as f64 * midi_file.get_length()) as usize;
+        let mut left: Vec<f32> = vec![0_f32; sample_count];
+        let mut right: Vec<f32> = vec![0_f32; sample_count];
+
+        sequencer.render(&mut left, &mut right);
+
+        // merge left + right channels, alternating from left to right
+        let iterator = left.into_iter().interleave(right.into_iter());
+
+        // convert into i16
+        let multiplier = i16::MAX as f32;
+        let data = iterator
+            .map(|sample| (sample * multiplier) as i16)
+            .collect();
+
+        Self {
+            channels: 2,
+            sample_rate,
+            duration: Duration::from_secs_f64(midi_file.get_length()),
+            data: Arc::new(data),
         }
     }
 

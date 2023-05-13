@@ -2,13 +2,11 @@
 // however there's some lifetime issues as the ApiContext usually stores references
 // and rust does not allow the type parameter to store dynamic/anonymous lifetimes
 
-const PRIMARY_TABLE: &str = "Engine";
-
-use super::{DELEGATE_REGISTRY_KEY, DELEGATE_TYPE_REGISTRY_KEY};
 use crate::battle::BattleScriptContext;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 type LuaApiFn = dyn for<'lua> Fn(
     &RefCell<BattleScriptContext>,
@@ -56,12 +54,11 @@ impl LuaApiFunction {
 const INDEX_CALLBACK: u8 = 1;
 const NEWINDEX_CALLBACK: u8 = 2;
 
-const REGULAR_FUNCTION: u8 = 1;
-const GETTER_FUNCTION: u8 = 2;
+type DynamicFunctionMap = HashMap<(u8, Cow<'static, str>), LuaApiFunction>;
 
 pub struct BattleLuaApi {
     static_function_injectors: Vec<Box<dyn Fn(&rollback_mlua::Lua) -> rollback_mlua::Result<()>>>,
-    dynamic_functions: Vec<HashMap<(u8, Cow<'static, str>), LuaApiFunction>>,
+    dynamic_functions: Vec<DynamicFunctionMap>,
     table_paths: Vec<String>,
 }
 
@@ -238,7 +235,7 @@ impl BattleLuaApi {
                         let value: rollback_mlua::Value = self_table.raw_get(key.clone())?;
 
                         if value != rollback_mlua::Nil {
-                            return Ok(value);
+                            return lua.pack_multi(value);
                         }
 
                         // try value on table
@@ -246,52 +243,42 @@ impl BattleLuaApi {
                         let value: rollback_mlua::Value = table.raw_get(key.clone())?;
 
                         if value != rollback_mlua::Nil {
-                            return Ok(value);
+                            return lua.pack_multi(value);
                         }
 
-                        // try delegate
-                        let type_check: Option<rollback_mlua::Function> =
-                            lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
+                        // try dynamic function
+                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
+                            return lua.pack_multi(());
+                        };
 
-                        let delegate_type: u8 = type_check
-                            .map(|type_check| {
-                                type_check.call((table_index, INDEX_CALLBACK, key.clone()))
-                            })
-                            .transpose()?
-                            .unwrap_or_default();
+                        let function_name = key.to_str()?;
+                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, INDEX_CALLBACK, function_name) else {
+                            return lua.pack_multi(());
+                        };
 
-                        match delegate_type {
-                            REGULAR_FUNCTION => {
-                                // cache this function to reduce garbage
-                                let key_registry_key = lua.create_registry_value(key.clone())?;
+                        if dynamic_function.is_getter {
+                            (dynamic_function.function)(dynamic_api_ctx.api_ctx, lua, lua.pack_multi(self_table)?)
+                        } else {
+                            // cache this function to reduce garbage
+                            let owned_name = function_name.to_string();
 
-                                let binded_func = lua.create_function(
-                                    move |lua, params: rollback_mlua::MultiValue| {
-                                        let func: rollback_mlua::Function =
-                                            lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
+                            let binded_func = lua.create_function(
+                                move |lua, params: rollback_mlua::MultiValue| {
+                                    let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
+                                        return lua.pack_multi(());
+                                    };
 
-                                        let key: rollback_mlua::String =
-                                            lua.registry_value(&key_registry_key)?;
+                                    let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, INDEX_CALLBACK, &owned_name) else {
+                                        return lua.pack_multi(());
+                                    };
 
-                                        func.call::<_, rollback_mlua::Value>((
-                                            table_index,
-                                            INDEX_CALLBACK,
-                                            key.clone(),
-                                            params,
-                                        ))
-                                    },
-                                )?;
+                                    (dynamic_function.function)(dynamic_api_ctx.api_ctx, lua, params)
+                                },
+                            )?;
 
-                                table.set(key, binded_func.clone())?;
+                            table.set(key, binded_func.clone())?;
 
-                                Ok(rollback_mlua::Value::Function(binded_func))
-                            }
-                            GETTER_FUNCTION => {
-                                let func: rollback_mlua::Function =
-                                    lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
-                                func.call((table_index, INDEX_CALLBACK, key, self_table))
-                            }
-                            _ => Ok(rollback_mlua::Nil),
+                            lua.pack_multi(binded_func)
                         }
                     },
                 )?,
@@ -306,25 +293,21 @@ impl BattleLuaApi {
                         rollback_mlua::String,
                         rollback_mlua::Value,
                     )| {
-                        let type_check: Option<rollback_mlua::Function> =
-                            lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
-
-                        let delegate_type: u8 = type_check
-                            .map(|type_check| {
-                                type_check.call((table_index, NEWINDEX_CALLBACK, key.clone()))
-                            })
-                            .transpose()?
-                            .unwrap_or_default();
-
-                        if delegate_type != 0 {
-                            let func: rollback_mlua::Function =
-                                lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
-
-                            func.call((table_index, NEWINDEX_CALLBACK, key, (self_table, value)))?;
-                        } else {
+                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
                             // try value on self
                             self_table.raw_set(key, value)?;
-                        }
+                            return Ok(());
+                        };
+
+                        let function_name = key.to_str()?;
+                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, NEWINDEX_CALLBACK, function_name) else {
+                            // try value on self
+                            self_table.raw_set(key, value)?;
+                            return Ok(());
+                        };
+
+                        let params = lua.pack_multi((self_table, value))?;
+                        (dynamic_function.function)(dynamic_api_ctx.api_ctx, lua, params)?;
 
                         Ok(())
                     },
@@ -351,79 +334,52 @@ impl BattleLuaApi {
     ) where
         F: FnOnce(&'lua rollback_mlua::Lua) -> rollback_mlua::Result<()>,
     {
-        let res = lua.scope(move |scope| -> rollback_mlua::Result<()> {
-            let old_delegate_type: rollback_mlua::Value =
-                lua.named_registry_value(DELEGATE_TYPE_REGISTRY_KEY)?;
-            let old_delegate: rollback_mlua::Value =
-                lua.named_registry_value(DELEGATE_REGISTRY_KEY)?;
+        let dynamic_api = DynamicApiCtx::new(api_ctx, &self.dynamic_functions);
+        let old_dynamic_api = lua.set_app_data(Rc::new(unsafe {
+            // unsafe if remove_app_data is never called,
+            // and if this data is stored outside of a function scope during usage (long term closure + struct storage)
+            // usage should be limited to this file for verification
+            std::mem::transmute::<DynamicApiCtx, DynamicApiCtx<'static, 'static>>(dynamic_api)
+        }));
 
-            lua.set_named_registry_value(
-                DELEGATE_TYPE_REGISTRY_KEY,
-                scope.create_function(
-                    move |_,
-                          (table_index, callback_type, function_name): (
-                        usize,
-                        u8,
-                        rollback_mlua::String,
-                    )| {
-                        let function_name = Cow::Borrowed(function_name.to_str()?);
-
-                        // return value is REGULAR_FUNCTION, GETTER_FUNCTION, or 0
-                        let function_type = self
-                            .dynamic_functions
-                            .get(table_index)
-                            .and_then(|functions| functions.get(&(callback_type, function_name)))
-                            .map(|function| 1 + function.is_getter as u8)
-                            .unwrap_or_default();
-
-                        Ok(function_type)
-                    },
-                )?,
-            )?;
-
-            lua.set_named_registry_value(
-                DELEGATE_REGISTRY_KEY,
-                scope.create_function(
-                    move |lua_ctx,
-                          (table_index, callback_type, function_name, params): (
-                        usize,
-                        u8,
-                        rollback_mlua::String,
-                        rollback_mlua::MultiValue,
-                    )| {
-                        let function_name = Cow::Borrowed(function_name.to_str()?);
-                        let func = self
-                            .dynamic_functions
-                            .get(table_index)
-                            .ok_or_else(|| {
-                                rollback_mlua::Error::RuntimeError(
-                                    "invalid table index".to_string(),
-                                )
-                            })?
-                            .get(&(callback_type, function_name));
-
-                        if let Some(func) = func {
-                            (func.function)(api_ctx, lua_ctx, params)
-                                as rollback_mlua::Result<rollback_mlua::MultiValue>
-                        } else {
-                            Err(rollback_mlua::Error::RuntimeError(String::from(
-                                "Function does not exist",
-                            )))
-                        }
-                    },
-                )?,
-            )?;
-
-            wrapped_fn(lua)?;
-
-            lua.set_named_registry_value(DELEGATE_TYPE_REGISTRY_KEY, old_delegate_type)?;
-            lua.set_named_registry_value(DELEGATE_REGISTRY_KEY, old_delegate)?;
-
-            Ok(())
-        });
-
-        if let Err(err) = res {
+        // call the function
+        if let Err(err) = wrapped_fn(lua) {
             log::error!("{err}");
         }
+
+        // cleanup
+        lua.remove_app_data::<DynamicApiCtx>();
+
+        if let Some(dynamic_api) = old_dynamic_api {
+            lua.set_app_data(dynamic_api);
+        }
+    }
+}
+
+struct DynamicApiCtx<'a, 'b> {
+    api_ctx: &'a RefCell<BattleScriptContext<'b>>,
+    dynamic_functions: &'a [DynamicFunctionMap],
+}
+
+impl<'a, 'b> DynamicApiCtx<'a, 'b> {
+    fn new(
+        api_ctx: &'a RefCell<BattleScriptContext<'b>>,
+        dynamic_functions: &'a [DynamicFunctionMap],
+    ) -> Self {
+        Self {
+            api_ctx,
+            dynamic_functions,
+        }
+    }
+
+    fn dynamic_function<'c>(
+        &'c self,
+        table_index: usize,
+        callback_type: u8,
+        function_name: &'c str,
+    ) -> Option<&LuaApiFunction> {
+        let table_functions = self.dynamic_functions.get(table_index)?;
+
+        table_functions.get(&(callback_type, Cow::Borrowed(function_name)))
     }
 }

@@ -1,10 +1,10 @@
 use super::{FontStyle, Text};
 use crate::render::*;
 use crate::resources::*;
-use framework::prelude::{GameIO, Sprite, Vec2};
+use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 
 #[derive(Clone)]
-pub struct PlayerHealthUI {
+pub struct PlayerHealthUi {
     current_health: i32,
     target_health: i32,
     style_change_cooldown: FrameTime,
@@ -13,7 +13,7 @@ pub struct PlayerHealthUI {
     frame_sprite: Sprite,
 }
 
-impl PlayerHealthUI {
+impl PlayerHealthUi {
     pub fn new(game_io: &GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -52,7 +52,11 @@ impl PlayerHealthUI {
         self.text.text = format!("{:>4}", self.current_health);
     }
 
-    pub fn position(&mut self) -> Vec2 {
+    pub fn bounds(&self) -> Rect {
+        self.frame_sprite.bounds()
+    }
+
+    pub fn position(&self) -> Vec2 {
         self.frame_sprite.position()
     }
 

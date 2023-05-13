@@ -13,11 +13,34 @@ struct CharacterData {
 }
 
 impl CharacterData {
-    fn load(game_io: &GameIO, text_style: &TextStyle) -> Self {
+    fn ensure_selected_player(game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+
+        let player_packages = &globals.player_packages;
+        let has_selected_character = player_packages
+            .package_ids(PackageNamespace::Local)
+            .any(|player_id| *player_id == globals.global_save.selected_character);
+
+        if has_selected_character {
+            return;
+        }
+
+        let global_save = &mut globals.global_save;
+        global_save.selected_character = player_packages
+            .package_ids(PackageNamespace::Local)
+            .next()
+            .unwrap()
+            .clone();
+        global_save.save();
+    }
+
+    fn load(game_io: &mut GameIO, text_style: &TextStyle) -> Self {
+        Self::ensure_selected_player(game_io);
+
         let globals = game_io.resource::<Globals>().unwrap();
+        let player_id = &globals.global_save.selected_character;
         let assets = &globals.assets;
 
-        let player_id = &globals.global_save.selected_character;
         let player_package = globals
             .player_packages
             .package(PackageNamespace::Local, player_id)

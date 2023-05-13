@@ -11,7 +11,7 @@ pub struct BattleSurvivor {
 pub struct BattleStatistics {
     pub health: i32,
     pub emotion: Emotion, // todo: track
-    pub ran: bool,        // todo: track
+    pub ran: bool,
     pub turns: u32,
     pub score: i32,
     pub ally_survivors: Vec<BattleSurvivor>,
