@@ -126,16 +126,17 @@ impl Asset {
 
     fn resolve_tsx_dependencies(&mut self) {
         let data = if let AssetData::Text(data) = &self.data {
-            data
+            data.clone()
         } else {
             return;
         };
-
-        if let Ok(tileset_element) = data.parse::<minidom::Element>() {
+        
+        if let Ok(tileset_document) = roxmltree::Document::parse(&data) {
+            let tileset_element = tileset_document.root_element();
             for child in tileset_element.children() {
-                match child.name() {
+                match child.tag_name().name() {
                     "image" => {
-                        let source = child.attr("source").unwrap_or_default();
+                        let source = child.attribute("source").unwrap_or_default();
 
                         if source.starts_with("/server/") {
                             self.dependencies
@@ -143,7 +144,7 @@ impl Asset {
                         }
                     }
                     "tile" => {
-                        self.resolve_tile_dependencies(child);
+                        self.resolve_tile_dependencies(&child);
                     }
                     _ => {}
                 }
@@ -151,10 +152,10 @@ impl Asset {
         }
     }
 
-    fn resolve_tile_dependencies(&mut self, tile_element: &minidom::Element) {
+    fn resolve_tile_dependencies(&mut self, tile_element: &roxmltree::Node) {
         let tile_class_option = tile_element
-            .attr("class")
-            .or_else(|| tile_element.attr("type"));
+            .attribute("class")
+            .or_else(|| tile_element.attribute("type"));
 
         let tile_class = if let Some(tile_class) = tile_class_option {
             tile_class
@@ -162,19 +163,13 @@ impl Asset {
             return;
         };
 
-        let properties_element = if let Some(properties_element) =
-            tile_element.get_child("properties", minidom::NSChoice::Any)
-        {
-            properties_element
-        } else {
-            return;
-        };
+        let properties_element = tile_element.children();
 
-        for property_element in properties_element.children() {
+        for property_element in properties_element {
             #[allow(clippy::single_match)]
-            match (tile_class, property_element.attr("name")) {
+            match (tile_class, property_element.attribute("name")) {
                 ("Conveyor" | "Ice", Some("Sound Effect")) => {
-                    let value = property_element.attr("value").unwrap_or_default();
+                    let value = property_element.attribute("value").unwrap_or_default();
 
                     if value.starts_with("/server/") {
                         self.dependencies
