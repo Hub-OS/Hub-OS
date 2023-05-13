@@ -17,6 +17,7 @@ uuid = { version = "1.1", features = ["v4"] }
 mlua = { version = "0.8", features = ["vendored", "lua54"] }
 clap = "3.2"
 minidom = "0.12"
+roxmltree = "0.18"
 itertools = "0.10"
 multi_mut = "0.1"
 base64 = "0.21"

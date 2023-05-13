@@ -3013,6 +3013,7 @@ dependencies = [
  "multi_mut",
  "packets",
  "rand",
+ "roxmltree",
  "termcolor",
  "toml",
  "uuid",
