@@ -304,16 +304,19 @@ impl BattleScene {
         self.textbox.update(game_io);
     }
 
+    fn count_connected_players(&self) -> usize {
+        self.player_controllers
+            .iter()
+            .enumerate()
+            .filter(|(i, controller)| controller.connected && *i != self.local_index)
+            .count()
+    }
+
     fn handle_packets(&mut self, game_io: &GameIO) {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
 
-        let mut connected_count = self
-            .player_controllers
-            .iter()
-            .enumerate()
-            .filter(|(i, controller)| controller.connected && *i != self.local_index)
-            .count();
+        let mut connected_count = self.count_connected_players();
 
         'main_loop: for (i, (index, receiver)) in self.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
@@ -341,13 +344,27 @@ impl BattleScene {
             }
 
             if receiver.is_disconnected() {
-                if let Some(index) = index {
-                    if let Some(controller) = self.player_controllers.get_mut(*index) {
-                        controller.connected = false;
-                    }
-                }
-
                 pending_removal.push(i);
+            }
+        }
+
+        // remove disconnected receivers
+        for i in pending_removal.into_iter().rev() {
+            let (player_index, _) = self.receivers.remove(i);
+
+            let Some(index) = player_index else {
+                continue;
+            };
+
+            let Some(controller) = self.player_controllers.get_mut(index) else {
+                continue;
+            };
+
+            if controller.connected {
+                // possible desync when there's another player we need to sync a disconnect with
+                log::error!("Possible desync from a player disconnect without a Disconnect signal");
+
+                packets.push(NetplayPacket::new_disconnect_signal(index));
             }
         }
 
