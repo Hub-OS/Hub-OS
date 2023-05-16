@@ -1606,13 +1606,21 @@ impl OverworldOnlineScene {
     }
 
     fn update_music(&mut self, game_io: &GameIO) {
-        if game_io.is_in_transition() || self.active_music_path == self.area.map.music_path() {
+        if game_io.is_in_transition() {
+            return;
+        }
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if !self.active_music_path.is_empty() && !globals.audio.is_music_playing() {
+            globals.audio.restart_music();
+        }
+
+        if self.active_music_path == self.area.map.music_path() {
             return;
         }
 
         self.active_music_path = self.area.map.music_path().to_string();
-
-        let globals = game_io.resource::<Globals>().unwrap();
 
         if self.active_music_path.is_empty() {
             globals.audio.stop_music();

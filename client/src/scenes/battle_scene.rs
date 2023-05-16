@@ -682,7 +682,6 @@ impl BattleScene {
         // clean up music stack
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.pop_music_stack();
-        globals.audio.restart_music();
     }
 }
 

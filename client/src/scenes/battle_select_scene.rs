@@ -92,6 +92,14 @@ impl BattleSelectScene {
         self.textbox.advance_interface(game_io);
         self.textbox.push_interface(textbox_interface);
     }
+
+    fn handle_music(&self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if !globals.audio.is_music_playing() {
+            globals.audio.restart_music();
+        }
+    }
 }
 
 impl Scene for BattleSelectScene {
@@ -108,6 +116,8 @@ impl Scene for BattleSelectScene {
         if game_io.is_in_transition() {
             return;
         }
+
+        self.handle_music(game_io);
 
         let input_util = InputUtil::new(game_io);
         let old_selection = self.selection;
