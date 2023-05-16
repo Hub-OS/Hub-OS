@@ -13,7 +13,7 @@ pub struct Map {
     rows: u32,
     tile_size: IVec2,
     name: String,
-    song_path: String,
+    music_path: String,
     background_properties: BackgroundProperties,
     foreground_properties: BackgroundProperties,
     shadow_map: ShadowMap,
@@ -34,7 +34,7 @@ impl Map {
             rows,
             tile_size: IVec2::new(tile_width, tile_height),
             name: String::new(),
-            song_path: String::new(),
+            music_path: String::new(),
             background_properties: BackgroundProperties::default(),
             foreground_properties: BackgroundProperties::default(),
             shadow_map: ShadowMap::new(cols as usize, rows as usize),
@@ -81,12 +81,12 @@ impl Map {
         self.foreground_properties = foreground_properties;
     }
 
-    pub fn song_path(&self) -> &str {
-        &self.song_path
+    pub fn music_path(&self) -> &str {
+        &self.music_path
     }
 
-    pub fn set_song_path(&mut self, path: String) {
-        self.song_path = path;
+    pub fn set_music_path(&mut self, path: String) {
+        self.music_path = path;
     }
 
     pub fn cols(&self) -> u32 {

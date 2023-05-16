@@ -26,6 +26,7 @@ pub struct OverworldOnlineScene {
     hud: OverworldHud,
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
+    active_music_path: String,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -82,6 +83,7 @@ impl OverworldOnlineScene {
             hud,
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
+            active_music_path: String::new(),
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -1602,6 +1604,23 @@ impl OverworldOnlineScene {
 
         self.next_scene = next_scene;
     }
+
+    fn update_music(&mut self, game_io: &GameIO) {
+        if game_io.is_in_transition() || self.active_music_path == self.area.map.music_path() {
+            return;
+        }
+
+        self.active_music_path = self.area.map.music_path().to_string();
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if self.active_music_path.is_empty() {
+            globals.audio.stop_music();
+        } else {
+            let sound_buffer = self.assets.audio(game_io, &self.active_music_path);
+            globals.audio.play_music(&sound_buffer, true);
+        }
+    }
 }
 
 impl Scene for OverworldOnlineScene {
@@ -1663,6 +1682,8 @@ impl Scene for OverworldOnlineScene {
         if ui_is_locking_input {
             self.area.remove_input_lock();
         }
+
+        self.update_music(game_io);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
