@@ -304,16 +304,19 @@ impl BattleScene {
         self.textbox.update(game_io);
     }
 
+    fn count_connected_players(&self) -> usize {
+        self.player_controllers
+            .iter()
+            .enumerate()
+            .filter(|(i, controller)| controller.connected && *i != self.local_index)
+            .count()
+    }
+
     fn handle_packets(&mut self, game_io: &GameIO) {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
 
-        let mut connected_count = self
-            .player_controllers
-            .iter()
-            .enumerate()
-            .filter(|(i, controller)| controller.connected && *i != self.local_index)
-            .count();
+        let mut connected_count = self.count_connected_players();
 
         'main_loop: for (i, (index, receiver)) in self.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
@@ -341,13 +344,27 @@ impl BattleScene {
             }
 
             if receiver.is_disconnected() {
-                if let Some(index) = index {
-                    if let Some(controller) = self.player_controllers.get_mut(*index) {
-                        controller.connected = false;
-                    }
-                }
-
                 pending_removal.push(i);
+            }
+        }
+
+        // remove disconnected receivers
+        for i in pending_removal.into_iter().rev() {
+            let (player_index, _) = self.receivers.remove(i);
+
+            let Some(index) = player_index else {
+                continue;
+            };
+
+            let Some(controller) = self.player_controllers.get_mut(index) else {
+                continue;
+            };
+
+            if controller.connected {
+                // possible desync when there's another player we need to sync a disconnect with
+                log::error!("Possible desync from a player disconnect without a Disconnect signal");
+
+                packets.push(NetplayPacket::new_disconnect_signal(index));
             }
         }
 
@@ -613,13 +630,6 @@ impl BattleScene {
         }
     }
 
-    fn detect_exit_request(&self) -> bool {
-        self.backups
-            .front()
-            .map(|backup| backup.simulation.exit)
-            .unwrap_or(self.simulation.exit)
-    }
-
     fn detect_debug_hotkeys(&self, game_io: &GameIO) {
         if !game_io.input().is_key_down(Key::F3) {
             return;
@@ -682,25 +692,12 @@ impl BattleScene {
         // clean up music stack
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.pop_music_stack();
-        globals.audio.restart_music();
-    }
-}
-
-impl Scene for BattleScene {
-    fn next_scene(&mut self) -> &mut NextScene {
-        &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.push_music_stack();
-    }
-
-    fn update(&mut self, game_io: &mut GameIO) {
-        self.detect_debug_hotkeys(game_io);
-
-        self.update_textbox(game_io);
-        self.handle_packets(game_io);
+    fn core_update(&mut self, game_io: &mut GameIO) {
+        if game_io.is_in_transition() {
+            return;
+        }
 
         let input_util = InputUtil::new(game_io);
 
@@ -739,10 +736,16 @@ impl Scene for BattleScene {
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
+    }
 
-        self.simulation.camera.update(game_io);
+    fn handle_exit_requests(&mut self, game_io: &GameIO) {
+        let oldest_backup = self.backups.front();
 
-        if !self.exiting && self.detect_exit_request() {
+        let requested_exit = oldest_backup
+            .map(|backup| backup.simulation.exit)
+            .unwrap_or(self.simulation.exit);
+
+        if !self.exiting && requested_exit {
             self.exit(game_io, false);
         }
 
@@ -752,6 +755,26 @@ impl Scene for BattleScene {
             let transition = crate::transitions::new_battle_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
         }
+    }
+}
+
+impl Scene for BattleScene {
+    fn next_scene(&mut self) -> &mut NextScene {
+        &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.push_music_stack();
+    }
+
+    fn update(&mut self, game_io: &mut GameIO) {
+        self.update_textbox(game_io);
+        self.handle_packets(game_io);
+        self.core_update(game_io);
+        self.detect_debug_hotkeys(game_io);
+        self.handle_exit_requests(game_io);
+        self.simulation.camera.update(game_io);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

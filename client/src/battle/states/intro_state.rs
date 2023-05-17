@@ -3,7 +3,6 @@ use crate::battle::*;
 use crate::bindable::EntityId;
 use crate::render::FrameTime;
 use crate::resources::{Globals, SoundBuffer};
-use crate::transitions::DEFAULT_FADE_DURATION;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -21,7 +20,6 @@ const MAX_ANIMATION_TIME: FrameTime = 32;
 #[derive(Clone)]
 pub struct IntroState {
     completed: bool,
-    animation_delay: FrameTime,
     animation_time: FrameTime, // animation time for the current entity
     tracked_entities: VecDeque<EntityId>,
 }
@@ -48,16 +46,6 @@ impl State for IntroState {
     ) {
         // first frame setup
         if simulation.time == 0 {
-            if let Some(init_music) = simulation.config.battle_init_music.take() {
-                simulation.play_music(
-                    game_io,
-                    &init_music.buffer,
-                    init_music.loops,
-                    init_music.start_ms,
-                    init_music.end_ms,
-                );
-            }
-
             use hecs::Without;
 
             let entities = &mut simulation.entities;
@@ -72,6 +60,17 @@ impl State for IntroState {
 
                 let root_node = entity.sprite_tree.root_mut();
                 root_node.set_alpha(0.0);
+            }
+
+            // start music
+            if let Some(init_music) = simulation.config.battle_init_music.take() {
+                simulation.play_music(
+                    game_io,
+                    &init_music.buffer,
+                    init_music.loops,
+                    init_music.start_ms,
+                    init_music.end_ms,
+                );
             }
         }
 
@@ -97,23 +96,24 @@ impl State for IntroState {
             root_node.set_alpha(alpha);
         }
 
-        if simulation.time > self.animation_delay {
-            if self.animation_time == 0 {
-                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
-                simulation.play_sound(game_io, &sfx.appear);
-            }
+        // play a sound if this is the first frame of the entity's introduction
+        if self.animation_time == 0 {
+            let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+            simulation.play_sound(game_io, &sfx.appear);
+        }
 
-            self.animation_time += 1;
+        self.animation_time += 1;
 
-            if self.animation_time >= MAX_ANIMATION_TIME {
-                self.animation_time = 0;
-                self.tracked_entities.pop_front();
-            }
+        // move on to the next entity if we passed the max animation time
+        if self.animation_time >= MAX_ANIMATION_TIME {
+            self.animation_time = 0;
+            self.tracked_entities.pop_front();
+        }
 
-            if self.tracked_entities.is_empty() {
-                self.completed = true;
-                simulation.intro_complete = true;
-            }
+        // mark completion if there's no more entities to introduce
+        if self.tracked_entities.is_empty() {
+            self.completed = true;
+            simulation.intro_complete = true;
         }
     }
 }
@@ -122,7 +122,6 @@ impl IntroState {
     pub fn new() -> Self {
         Self {
             completed: false,
-            animation_delay: (DEFAULT_FADE_DURATION.as_secs_f32() * 60.0) as FrameTime,
             animation_time: 0,
             tracked_entities: VecDeque::new(),
         }

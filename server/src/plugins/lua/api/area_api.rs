@@ -219,19 +219,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "get_song", |api_ctx, lua, params| {
+        log::warn!("Net.get_song() is deprecated, use Net.get_music() instead.");
+
         let area_id: mlua::String = lua.unpack_multi(params)?;
         let area_id_str = area_id.to_str()?;
 
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            lua.pack_multi(area.map().song_path())
+            lua.pack_multi(area.map().music_path())
         } else {
             Err(create_area_error(area_id_str))
         }
     });
 
     lua_api.add_dynamic_function("Net", "set_song", |api_ctx, lua, params| {
+        log::warn!("Net.set_song() is deprecated, use Net.set_music() instead.");
+
         let (area_id, path): (mlua::String, String) = lua.unpack_multi(params)?;
         let area_id_str = area_id.to_str()?;
 
@@ -240,7 +244,37 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         if let Some(area) = net.get_area_mut(area_id_str) {
             let map = area.map_mut();
 
-            map.set_song_path(path);
+            map.set_music_path(path);
+
+            lua.pack_multi(())
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "get_music", |api_ctx, lua, params| {
+        let area_id: mlua::String = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(area) = net.get_area(area_id_str) {
+            lua.pack_multi(area.map().music_path())
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "set_music", |api_ctx, lua, params| {
+        let (area_id, path): (mlua::String, String) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(area) = net.get_area_mut(area_id_str) {
+            let map = area.map_mut();
+
+            map.set_music_path(path);
 
             lua.pack_multi(())
         } else {

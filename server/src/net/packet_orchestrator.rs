@@ -1,7 +1,7 @@
 use generational_arena::{Arena, Index};
 use packets::{
-    serialize, ChannelSender, ConnectionBuilder, NetplayBufferItem, NetplayPacket, NetplaySignal,
-    PacketChannels, PacketReceiver, PacketSender, Reliability, ServerCommPacket, ServerPacket,
+    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
+    PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
 use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
@@ -164,14 +164,7 @@ impl PacketOrchestrator {
             let index = connection.netplay_index;
             self.forward_netplay_packet(
                 socket_address,
-                NetplayPacket::Buffer {
-                    index,
-                    data: NetplayBufferItem {
-                        pressed: Vec::new(),
-                        signals: vec![NetplaySignal::Disconnect],
-                    },
-                    buffer_sizes: Vec::new(),
-                },
+                NetplayPacket::new_disconnect_signal(index),
             );
         }
 

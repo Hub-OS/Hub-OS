@@ -24,7 +24,7 @@ pub struct Map {
     foreground_vel_x: f32,
     foreground_vel_y: f32,
     foreground_parallax: f32,
-    song_path: String,
+    music_path: String,
     custom_properties: HashMap<String, String>,
     width: usize,
     height: usize,
@@ -58,7 +58,7 @@ impl Map {
             foreground_vel_x: 0.0,
             foreground_vel_y: 0.0,
             foreground_parallax: 0.0,
-            song_path: String::new(),
+            music_path: String::new(),
             custom_properties: HashMap::new(),
             width: 0,
             height: 0,
@@ -258,15 +258,16 @@ impl Map {
         self.mark_dirty();
     }
 
-    pub fn song_path(&self) -> &str {
-        &self.song_path
+    pub fn music_path(&self) -> &str {
+        &self.music_path
     }
 
-    pub fn set_song_path(&mut self, path: String) {
+    pub fn set_music_path(&mut self, path: String) {
         self.custom_properties
-            .insert(String::from("Song"), path.clone());
+            .insert(String::from("Music"), path.clone());
+        self.custom_properties.remove("Song");
 
-        self.song_path = path;
+        self.music_path = path;
         self.mark_dirty();
     }
 
@@ -415,8 +416,8 @@ impl Map {
             "Foreground Parallax" => {
                 self.foreground_parallax = value.parse().unwrap_or_default();
             }
-            "Song" => {
-                self.song_path = value;
+            "Music" | "Song" => {
+                self.music_path = value;
             }
             _ => {}
         }
@@ -675,7 +676,7 @@ impl Map {
             .chain(std::iter::once(&self.background_animation_path))
             .chain(std::iter::once(&self.foreground_texture_path))
             .chain(std::iter::once(&self.foreground_animation_path))
-            .chain(std::iter::once(&self.song_path))
+            .chain(std::iter::once(&self.music_path))
             .filter(|path| path.starts_with("/server/")) // provided by server
             .cloned()
             .map(AssetId::AssetPath)

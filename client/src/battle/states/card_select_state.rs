@@ -757,7 +757,7 @@ impl CardSelectState {
             }
         }
 
-        if input.fleeing() {
+        if input.fleeing() || input.disconnected() {
             // clear selection
             selection.selected_card_indices.clear();
             selection.selected_form_index.take();

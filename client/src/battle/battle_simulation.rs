@@ -353,6 +353,12 @@ impl BattleSimulation {
     }
 
     fn process_disconnects(&mut self) {
+        if self.exit {
+            // if we're exiting we'll just ignore disconnects
+            // prevents player deletion from disconnect after a victory
+            return;
+        }
+
         let mut pending_deletion = Vec::new();
 
         let entities = &mut self.entities;
