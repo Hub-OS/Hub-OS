@@ -21,6 +21,10 @@ impl SoundBuffer {
             return Self::decode_midi(game_io, raw);
         }
 
+        if raw.is_empty() {
+            return Self::new_empty();
+        }
+
         Self::decode_non_midi(raw)
     }
 

@@ -62,6 +62,17 @@ pub enum NetplayPacket {
 }
 
 impl NetplayPacket {
+    pub fn new_disconnect_signal(index: usize) -> NetplayPacket {
+        NetplayPacket::Buffer {
+            index,
+            data: NetplayBufferItem {
+                pressed: Vec::new(),
+                signals: vec![NetplaySignal::Disconnect],
+            },
+            buffer_sizes: Vec::new(),
+        }
+    }
+
     pub fn index(&self) -> usize {
         match self {
             NetplayPacket::Hello { index } => *index,
