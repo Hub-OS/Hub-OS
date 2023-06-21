@@ -310,13 +310,16 @@ impl Scene for ServerListScene {
         self.context_menu.close();
 
         // clean up music after we've left every server
-        let globals = game_io.resource::<Globals>().unwrap();
+        let globals = game_io.resource_mut::<Globals>().unwrap();
 
         globals.audio.truncate_music_stack(self.music_stack_len);
 
         if !globals.audio.is_music_playing() {
             globals.audio.restart_music();
         }
+
+        // reset restrictions
+        globals.restrictions = Restrictions::default();
     }
 
     fn next_scene(&mut self) -> &mut NextScene {

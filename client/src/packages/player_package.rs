@@ -4,10 +4,9 @@ use crate::bindable::Element;
 use crate::lua_api::create_battle_vm;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::{Animator, Background};
-use crate::resources::{AssetManager, Globals, ResourcePaths};
-use framework::prelude::{GameIO, Texture};
+use crate::resources::{Globals, ResourcePaths};
+use framework::prelude::GameIO;
 use serde::Deserialize;
-use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -44,7 +43,8 @@ pub struct PlayerPackage {
 }
 
 impl PlayerPackage {
-    pub fn resolve_battle_sprite(&self, game_io: &GameIO) -> (Arc<Texture>, Animator) {
+    /// Returns (texture_path, animator)
+    pub fn resolve_battle_sprite(&self, game_io: &GameIO) -> (String, Animator) {
         let globals = game_io.resource::<Globals>().unwrap();
         let package_info = &self.package_info;
 
@@ -69,7 +69,7 @@ impl PlayerPackage {
         let setup = PlayerSetup::new(self, 0, true);
 
         let Ok(entity_id) = simulation.load_player(game_io, &vms, setup) else {
-            return (globals.assets.texture(game_io, ResourcePaths::BLANK), Animator::new())
+            return (ResourcePaths::BLANK.to_string(), Animator::new())
         };
 
         // grab the entitiy
@@ -78,15 +78,15 @@ impl PlayerPackage {
             .query_one_mut::<&Entity>(entity_id.into())
             .unwrap();
 
-        // clone the texture
+        // clone the texture path
         let sprite_node = entity.sprite_tree.root();
-        let texture = sprite_node.texture().clone();
+        let texture_path = sprite_node.texture_path().to_string();
 
         // clone the animator
-        let battle_animator = &simulation.animators[entity.animator_index];
-        let animator = battle_animator.animator().clone();
+        let battle_animator = simulation.animators.remove(entity.animator_index).unwrap();
+        let animator = battle_animator.take_animator();
 
-        (texture, animator)
+        (texture_path, animator)
     }
 }
 

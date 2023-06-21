@@ -187,3 +187,6 @@ frame duration="50f" x="222" y="105" w="20" h="20" originx="0" originy="0" flipx
 
 animation state="YELLOW_INDICATOR"
 frame duration="50f" x="243" y="106" w="12" h="7" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="INVALID_FRAME"
+frame duration="50f" x="140" y="22" w="22" h="22" originx="1" originy="1" flipx="0" flipy="0"

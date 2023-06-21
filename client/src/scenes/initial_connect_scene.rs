@@ -174,6 +174,9 @@ impl Scene for InitialConnectScene {
             let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.remove_namespace(PackageNamespace::Server);
 
+            // reset restrictions before applying deferred packets
+            globals.restrictions = Restrictions::default();
+
             let mut online_scene = self.online_scene.take().unwrap();
 
             for packet in std::mem::take(&mut self.deferred_packets) {

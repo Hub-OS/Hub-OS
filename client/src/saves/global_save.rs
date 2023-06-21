@@ -1,4 +1,4 @@
-use super::{Deck, InstalledBlock, ServerInfo};
+use super::{BlockGrid, Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::GameIO;
@@ -76,6 +76,30 @@ impl GlobalSave {
 
     pub fn active_blocks(&self) -> Option<&Vec<InstalledBlock>> {
         self.installed_blocks.get(&self.selected_character)
+    }
+
+    pub fn valid_augments<'a>(
+        &self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + 'a {
+        const NAMESPACE: PackageNamespace = PackageNamespace::Local;
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let global_save = &globals.global_save;
+        let restrictions = &globals.restrictions;
+
+        let blocks: Vec<_> = if let Some(blocks) = global_save.active_blocks() {
+            restrictions
+                .filter_blocks(game_io, NAMESPACE, blocks.iter())
+                .cloned()
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        let block_grid = BlockGrid::new(NAMESPACE).with_blocks(game_io, blocks);
+
+        block_grid.augments(game_io)
     }
 }
 

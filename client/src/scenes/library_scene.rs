@@ -302,7 +302,7 @@ impl Dock {
             let mut position = self.list_position + offset;
             position.y += relative_index as f32 * self.scroll_tracker.cursor_multiplier();
 
-            card.draw_list_item(game_io, sprite_queue, position);
+            card.draw_list_item(game_io, sprite_queue, position, true);
         }
 
         // draw scrollbar

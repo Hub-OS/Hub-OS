@@ -1118,17 +1118,43 @@ impl BattleSimulation {
         living.set_health(setup.health);
 
         // insert entity
+        let script_enabled = setup.script_enabled;
         self.entities
             .insert_one(id.into(), Player::new(game_io, setup, charge_index))
             .unwrap();
 
-        // call init function
-        let package_info = &player_package.package_info;
-        let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
+        // init player
+        if script_enabled {
+            // call init function
+            let package_info = &player_package.package_info;
+            let vm_index = Self::find_vm(vms, &package_info.id, package_info.namespace)?;
 
-        self.call_global(game_io, vms, vm_index, "player_init", move |lua| {
-            create_entity_table(lua, id)
-        })?;
+            self.call_global(game_io, vms, vm_index, "player_init", move |lua| {
+                create_entity_table(lua, id)
+            })?;
+        } else {
+            // default init, sprites + animation only
+            let (texture_path, animator) = player_package.resolve_battle_sprite(game_io);
+
+            // regrab entity
+            let entity = self
+                .entities
+                .query_one_mut::<&mut Entity>(id.into())
+                .unwrap();
+
+            // adopt texture
+            let sprite_node = entity.sprite_tree.root_mut();
+            sprite_node.set_texture(game_io, texture_path);
+
+            // adopt animator
+            let battle_animator = &mut self.animators[entity.animator_index];
+            let callbacks = battle_animator.copy_from_animator(&animator);
+            battle_animator.find_and_apply_to_target(&mut self.entities);
+
+            // callbacks
+            self.pending_callbacks.extend(callbacks);
+            self.call_pending_callbacks(game_io, vms);
+        }
 
         // init blocks
         for (package, level) in grid.augments(game_io) {

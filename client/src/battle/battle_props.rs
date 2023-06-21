@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 
 pub struct PlayerSetup<'a> {
     pub player_package: &'a PlayerPackage,
+    pub script_enabled: bool,
     pub health: i32,
     pub base_health: i32,
     pub emotion: Emotion,
@@ -24,6 +25,7 @@ impl<'a> PlayerSetup<'a> {
     pub fn new(player_package: &'a PlayerPackage, index: usize, local: bool) -> Self {
         Self {
             player_package,
+            script_enabled: true,
             health: 9999,
             base_health: 9999,
             emotion: Emotion::default(),
@@ -42,19 +44,44 @@ impl<'a> PlayerSetup<'a> {
     pub fn from_globals(game_io: &'a GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
+        let restrictions = &globals.restrictions;
+        let mut deck_restriction = restrictions.default_deck_restrictions.clone();
 
         let player_package = global_save.player_package(game_io).unwrap();
-        let deck = global_save.active_deck().cloned().unwrap_or_default();
-        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
+        let script_enabled =
+            restrictions.validate_package_tree(game_io, player_package.package_info.triplet());
 
-        let grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks.clone());
+        let ns = PackageNamespace::Local;
 
+        // blocks
+        let blocks: Vec<_> = if let Some(blocks) = global_save.active_blocks() {
+            restrictions
+                .filter_blocks(game_io, ns, blocks.iter())
+                .cloned()
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
+
+        // resolve health
         let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
             acc + package.health_boost * level as i32
         });
 
+        // deck
+        deck_restriction.apply_augments(grid.augments(game_io));
+
+        let deck = global_save
+            .active_deck()
+            .filter(|deck| deck_restriction.validate_deck(game_io, ns, deck).is_valid())
+            .cloned()
+            .unwrap_or_default();
+
         Self {
             player_package,
+            script_enabled,
             health: player_package.health + health_boost,
             base_health: player_package.health,
             emotion: Emotion::default(),

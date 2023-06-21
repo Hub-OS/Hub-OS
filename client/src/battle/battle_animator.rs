@@ -37,6 +37,10 @@ impl BattleAnimator {
         &self.animator
     }
 
+    pub fn take_animator(self) -> Animator {
+        self.animator
+    }
+
     pub fn set_target(&mut self, entity_id: EntityId, sprite_index: GenerationalIndex) {
         self.target = Some((entity_id.into(), sprite_index));
     }
@@ -183,6 +187,19 @@ impl BattleAnimator {
     #[must_use]
     pub fn copy_from(&mut self, other: &Self) -> Vec<BattleCallback> {
         self.animator.copy_from(&other.animator);
+
+        if let Some(state) = self.current_state() {
+            // activate interrupt callbacks and clear other listeners by resetting state
+            // resets progress as well
+            self.set_state(&state.to_string())
+        } else {
+            Vec::new()
+        }
+    }
+
+    #[must_use]
+    pub fn copy_from_animator(&mut self, animator: &Animator) -> Vec<BattleCallback> {
+        self.animator.copy_from(animator);
 
         if let Some(state) = self.current_state() {
             // activate interrupt callbacks and clear other listeners by resetting state
