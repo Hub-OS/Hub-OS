@@ -1,5 +1,6 @@
 use super::DeckEditorScene;
 use crate::bindable::SpriteColorMode;
+use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -33,6 +34,8 @@ pub struct DeckListScene {
     deck_sprite: Sprite,
     deck_frame_sprite: Sprite,
     deck_start_position: Vec2,
+    deck_restrictions: DeckRestrictions,
+    deck_validities: Vec<DeckValidity>,
     deck_scroll_tracker: ScrollTracker,
     card_scroll_tracker: ScrollTracker,
     card_list_position: Vec2,
@@ -100,6 +103,16 @@ impl DeckListScene {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
+        // deck validities
+        let global_save = &globals.global_save;
+        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        deck_restrictions.apply_augments(global_save.valid_augments(game_io));
+
+        let deck_validities = (globals.global_save.decks)
+            .iter()
+            .map(|deck| deck_restrictions.validate_deck(game_io, PackageNamespace::Local, deck))
+            .collect();
+
         Box::new(Self {
             camera,
             background: Background::new_sub_scene(game_io),
@@ -112,6 +125,8 @@ impl DeckListScene {
             deck_sprite,
             deck_frame_sprite,
             deck_start_position,
+            deck_restrictions,
+            deck_validities,
             deck_scroll_tracker,
             card_scroll_tracker,
             card_list_position,
@@ -144,7 +159,7 @@ impl Scene for DeckListScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        let global_save = &game_io.resource::<Globals>().unwrap().global_save;
         let decks = &global_save.decks;
 
         self.deck_scroll_tracker.set_total_items(decks.len());
@@ -152,9 +167,17 @@ impl Scene for DeckListScene {
         let selected_index = self.deck_scroll_tracker.selected_index();
 
         if let Some(deck) = decks.get(selected_index) {
+            // update scroll tracker
             let count = deck.cards.len();
             self.card_scroll_tracker.set_total_items(count);
+
+            // update validity
+            self.deck_validities[selected_index] =
+                self.deck_restrictions
+                    .validate_deck(game_io, PackageNamespace::Local, deck);
         } else {
+            let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+
             // make sure there's always at least one deck
             global_save.selected_deck = 0;
             create_new_deck(self, game_io);
@@ -226,6 +249,12 @@ impl Scene for DeckListScene {
             }
 
             // deck label
+            label.color = if self.deck_validities[i].is_valid() {
+                Color::WHITE
+            } else {
+                Color::ORANGE
+            };
+
             label.bounds.set_position(position + LABEL_OFFSET);
             label.draw(game_io, &mut sprite_queue, &deck.name);
         }
@@ -239,12 +268,16 @@ impl Scene for DeckListScene {
 
             // draw cards
             let deck_index = self.deck_scroll_tracker.selected_index();
+            let deck_validity = &self.deck_validities[deck_index];
             let cards = &global_save.decks[deck_index].cards;
             let range = self.card_scroll_tracker.view_range();
             let mut card_position = self.card_list_position;
 
             for i in range {
-                cards[i].draw_list_item(game_io, &mut sprite_queue, card_position);
+                let card = &cards[i];
+                let valid = deck_validity.is_card_valid(card);
+
+                card.draw_list_item(game_io, &mut sprite_queue, card_position, valid);
                 card_position.y += 16.0;
             }
 
@@ -276,6 +309,7 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
         Ok(Event::Delete) => {
             let deck_index = scene.deck_scroll_tracker.selected_index();
             global_save.decks.remove(deck_index);
+            scene.deck_validities.remove(deck_index);
 
             let new_total = global_save.decks.len();
             scene.deck_scroll_tracker.set_total_items(new_total);
@@ -472,6 +506,7 @@ fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
     let name = String::from("NewFldr");
     global_save.decks.push(Deck::new(name));
+    scene.deck_validities.push(DeckValidity::default());
 
     let total_decks = global_save.decks.len();
 

@@ -204,9 +204,9 @@ impl BlockGrid {
     }
 
     pub fn augments<'a>(
-        &'a self,
+        &self,
         game_io: &'a GameIO,
-    ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> {
+    ) -> impl Iterator<Item = (&'a AugmentPackage, usize)> + 'a {
         let globals = game_io.resource::<Globals>().unwrap();
         let augment_packages = &globals.augment_packages;
 
@@ -247,11 +247,10 @@ impl BlockGrid {
         list.sort_by_key(|(_, _, priority)| *priority);
 
         // iterate in reverse to put priority first
-        list.into_iter().rev().flat_map(|(id, count, _)| {
-            Some((
-                augment_packages.package_or_fallback(self.namespace, id)?,
-                count,
-            ))
+        let namespace = self.namespace;
+
+        list.into_iter().rev().flat_map(move |(id, count, _)| {
+            Some((augment_packages.package_or_fallback(namespace, id)?, count))
         })
     }
 

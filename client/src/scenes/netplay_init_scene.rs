@@ -41,6 +41,7 @@ enum Event {
 struct RemotePlayerConnection {
     index: usize,
     player_package: PackageId,
+    script_enabled: bool,
     health: i32,
     base_health: i32,
     emotion: Emotion,
@@ -155,6 +156,7 @@ impl NetplayInitScene {
             .map(|info| RemotePlayerConnection {
                 index: info.index,
                 player_package: PackageId::new_blank(),
+                script_enabled: true,
                 health: info.health,
                 base_health: info.base_health,
                 emotion: info.emotion,
@@ -297,11 +299,13 @@ impl NetplayInitScene {
             }
             NetplayPacket::PlayerSetup {
                 player_package,
+                script_enabled,
                 cards,
                 blocks,
                 ..
             } => {
                 connection.player_package = player_package;
+                connection.script_enabled = script_enabled;
                 connection.deck.cards = cards
                     .into_iter()
                     .map(|(package_id, code)| Card { package_id, code })
@@ -496,10 +500,7 @@ impl NetplayInitScene {
 
         let player_setup = &props.player_setups[0];
         let player_package_info = &player_setup.player_package.package_info;
-        let cards = player_setup
-            .deck
-            .cards
-            .iter()
+        let cards = (player_setup.deck.cards.iter())
             .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
         let blocks = player_setup.blocks.clone();
@@ -507,6 +508,7 @@ impl NetplayInitScene {
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
             player_package: player_package_info.id.clone(),
+            script_enabled: player_setup.script_enabled,
             cards,
             blocks,
         })
@@ -659,6 +661,7 @@ impl NetplayInitScene {
 
                 props.player_setups.push(PlayerSetup {
                     player_package,
+                    script_enabled: connection.script_enabled,
                     health: connection.health,
                     base_health: connection.base_health,
                     emotion: connection.emotion,

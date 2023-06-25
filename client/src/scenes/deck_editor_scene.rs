@@ -4,7 +4,6 @@ use crate::packages::*;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::BlockGrid;
 use crate::saves::{Card, Deck};
 use framework::prelude::*;
 use std::collections::HashMap;
@@ -29,8 +28,7 @@ enum Sorting {
 
 pub struct DeckEditorScene {
     deck_index: usize,
-    mega_limit: usize,
-    giga_limit: usize,
+    deck_restrictions: DeckRestrictions,
     camera: Camera,
     background: Background,
     frame: SubSceneFrame,
@@ -54,16 +52,8 @@ impl DeckEditorScene {
 
         // limits
         let global_save = &globals.global_save;
-        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(NAMESPACE).with_blocks(game_io, blocks);
-
-        let mut mega_limit = MAX_MEGA as isize;
-        let mut giga_limit = MAX_GIGA as isize;
-
-        for (package, level) in block_grid.augments(game_io) {
-            mega_limit += package.mega_boost * level as isize;
-            giga_limit += package.giga_boost * level as isize;
-        }
+        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        deck_restrictions.apply_augments(global_save.valid_augments(game_io));
 
         // ui
         let assets = &globals.assets;
@@ -75,11 +65,11 @@ impl DeckEditorScene {
         let deck = &globals.global_save.decks[deck_index];
         let mut deck_dock = Dock::new(
             game_io,
-            CardListItem::vec_from_deck(deck),
+            CardListItem::vec_from_deck(&deck_restrictions, deck),
             ResourcePaths::DECK_DOCK,
             ResourcePaths::DECK_DOCK_ANIMATION,
         );
-        deck_dock.update_card_count();
+        deck_dock.validate(game_io, &deck_restrictions);
 
         // pack_dock
         let pack_dock = Dock::new(
@@ -101,8 +91,7 @@ impl DeckEditorScene {
 
         Self {
             deck_index,
-            mega_limit: mega_limit.max(0) as usize,
-            giga_limit: giga_limit.max(0) as usize,
+            deck_restrictions,
             camera,
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
@@ -220,13 +209,13 @@ impl Scene for DeckEditorScene {
         let card_count = self.deck_dock.card_count;
 
         count_text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-        count_text.style.color = if card_count == MAX_CARDS {
+        count_text.style.color = if card_count == self.deck_restrictions.required_total {
             Color::from((173, 255, 189))
         } else {
             Color::from((255, 181, 74))
         };
 
-        count_text.text = format!("{card_count:>2}/{MAX_CARDS}");
+        count_text.text = format!("{card_count:>2}/{}", self.deck_restrictions.required_total);
         count_text.draw(game_io, &mut sprite_queue);
 
         // draw docks
@@ -412,9 +401,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
 
             package.card_properties.element as u8
         }),
-        Sorting::Number => {
-            sort_card_items(card_slots, |item: &CardListItem| -(item.count as isize))
-        }
+        Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
         Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
                 .package_or_fallback(NAMESPACE, &item.card.package_id)
@@ -447,7 +434,8 @@ fn dock_internal_swap(scene: &mut DeckEditorScene, game_io: &GameIO, index: usiz
         let selected_index = scene.deck_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
-            transfer_to_pack(scene, index);
+            let pack_index = transfer_to_pack(scene, game_io, index);
+            transfer_to_pack_cleanup(scene, pack_index);
         } else {
             scene.deck_dock.card_slots.swap(selected_index, index);
         }
@@ -483,9 +471,13 @@ fn inter_dock_swap(
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
-    let stored_index = transfer_to_pack(scene, deck_index);
+    let stored_index = transfer_to_pack(scene, game_io, deck_index);
 
     let Some(index) = transfer_to_deck(scene, game_io, pack_index) else {
+        if transfer_to_pack_cleanup(scene, stored_index) {
+            return Some(());
+        }
+
         if let Some(stored_index) = stored_index {
             // move it back
             let index = transfer_to_deck(scene, game_io, stored_index)?;
@@ -513,7 +505,8 @@ fn inter_dock_swap(
     // otherwise it's moved to the first empty slot and not the one we're selecting
     scene.deck_dock.card_slots.swap(index, deck_index);
 
-    scene.deck_dock.update_card_count();
+    transfer_to_pack_cleanup(scene, stored_index);
+    scene.deck_dock.validate(game_io, &scene.deck_restrictions);
     scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
@@ -526,6 +519,12 @@ fn transfer_to_deck(
     from_index: usize,
 ) -> Option<usize> {
     let card_item = scene.pack_dock.card_slots.get_mut(from_index)?.as_mut()?;
+
+    // can't move negative count
+    // negative counts exist when an invalid deck is viewed
+    if card_item.count <= 0 {
+        return None;
+    }
 
     let deck_dock = &mut scene.deck_dock;
 
@@ -547,21 +546,21 @@ fn transfer_to_deck(
         CardClass::Mega => {
             let mega_count = deck_dock.count_class(card_manager, CardClass::Mega);
 
-            if mega_count >= scene.mega_limit {
+            if mega_count >= scene.deck_restrictions.mega_limit {
                 return None;
             }
         }
         CardClass::Giga => {
             let giga_count = deck_dock.count_class(card_manager, CardClass::Giga);
 
-            if giga_count >= scene.giga_limit {
+            if giga_count >= scene.deck_restrictions.giga_limit {
                 return None;
             }
         }
         CardClass::Dark => {
             let dark_count = deck_dock.count_class(card_manager, CardClass::Dark);
 
-            if dark_count >= MAX_DARK {
+            if dark_count >= scene.deck_restrictions.dark_limit {
                 return None;
             }
         }
@@ -575,6 +574,7 @@ fn transfer_to_deck(
 
     deck_slots[empty_index] = Some(CardListItem {
         card: card_item.card.clone(),
+        valid: true, // we'll validate this later
         count: 1,
         show_count: false,
     });
@@ -588,17 +588,21 @@ fn transfer_to_deck(
         scene.pack_dock.scroll_tracker.set_total_items(pack_size);
     }
 
-    scene.deck_dock.update_card_count();
+    scene.deck_dock.validate(game_io, &scene.deck_restrictions);
     scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
     Some(empty_index)
 }
 
-fn transfer_to_pack(scene: &mut DeckEditorScene, from_index: usize) -> Option<usize> {
+fn transfer_to_pack(
+    scene: &mut DeckEditorScene,
+    game_io: &GameIO,
+    from_index: usize,
+) -> Option<usize> {
     let card = scene.deck_dock.card_slots.get_mut(from_index)?.take()?.card;
 
-    scene.deck_dock.update_card_count();
+    scene.deck_dock.validate(game_io, &scene.deck_restrictions);
     scene.deck_dock.update_preview();
 
     let pack_slots = &mut scene.pack_dock.card_slots;
@@ -610,6 +614,7 @@ fn transfer_to_pack(scene: &mut DeckEditorScene, from_index: usize) -> Option<us
     let Some(pack_index) = pack_index else {
         pack_slots.push(Some(CardListItem {
             card,
+            valid: true,
             count: 1,
             show_count: true,
         }));
@@ -624,6 +629,27 @@ fn transfer_to_pack(scene: &mut DeckEditorScene, from_index: usize) -> Option<us
     item.count += 1;
 
     Some(pack_index)
+}
+
+fn transfer_to_pack_cleanup(scene: &mut DeckEditorScene, pack_index: Option<usize>) -> bool {
+    let Some(pack_index) = pack_index else {
+        return false;
+    };
+
+    let slot = &scene.pack_dock.card_slots[pack_index];
+
+    if slot.as_ref().unwrap().count != 0 {
+        return false;
+    }
+
+    // remove slot
+    scene.pack_dock.card_slots.remove(pack_index);
+
+    // update pack size
+    let pack_size = scene.pack_dock.card_slots.len();
+    scene.pack_dock.scroll_tracker.set_total_items(pack_size);
+
+    true
 }
 
 struct Dock {
@@ -717,8 +743,17 @@ impl Dock {
             .count()
     }
 
-    fn update_card_count(&mut self) {
-        self.card_count = self.card_slots.iter().filter(|item| item.is_some()).count();
+    fn validate(&mut self, game_io: &GameIO, deck_restrictions: &DeckRestrictions) {
+        let card_iterator = self.card_slots.iter().flatten().map(|item| &item.card);
+        let deck_validation = deck_restrictions.validate_cards(game_io, NAMESPACE, card_iterator);
+        let mut total_cards = 0;
+
+        for card_item in self.card_slots.iter_mut().flatten() {
+            card_item.valid = deck_validation.is_card_valid(&card_item.card);
+            total_cards += 1;
+        }
+
+        self.card_count = total_cards;
     }
 
     fn update_preview(&mut self) -> Option<()> {
@@ -786,26 +821,31 @@ impl Dock {
 
 struct CardListItem {
     card: Card,
-    count: usize,
+    valid: bool,
+    count: isize,
     show_count: bool,
 }
 
 impl CardListItem {
-    pub fn vec_from_deck(deck: &Deck) -> Vec<Option<CardListItem>> {
+    pub fn vec_from_deck(
+        deck_restrictions: &DeckRestrictions,
+        deck: &Deck,
+    ) -> Vec<Option<CardListItem>> {
         let mut card_items: Vec<_> = deck
             .cards
             .iter()
             .map(|card| {
                 Some(CardListItem {
                     card: card.clone(),
+                    valid: true,
                     count: 0,
                     show_count: false,
                 })
             })
             .collect();
 
-        // force 30 items
-        card_items.resize_with(30, || None);
+        // force total requirement
+        card_items.resize_with(deck_restrictions.required_total, || None);
 
         card_items
     }
@@ -814,7 +854,9 @@ impl CardListItem {
         game_io: &GameIO,
         active_deck: &Deck,
     ) -> Vec<Option<CardListItem>> {
-        let package_manager = &game_io.resource::<Globals>().unwrap().card_packages;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let package_manager = &globals.card_packages;
+        let restrictions = &globals.restrictions;
 
         let mut use_counts = HashMap::new();
 
@@ -827,6 +869,9 @@ impl CardListItem {
 
         package_manager
             .packages_with_override(NAMESPACE)
+            .filter(|package| {
+                restrictions.validate_package_tree(game_io, package.package_info.triplet())
+            })
             .flat_map(|package| {
                 let package_info = package.package_info();
 
@@ -840,10 +885,11 @@ impl CardListItem {
                         };
 
                         let use_count = use_counts.get(&card).cloned().unwrap_or_default();
-                        let count = package.card_properties.limit.max(use_count) - use_count;
+                        let count = package.card_properties.limit as isize - use_count;
 
                         CardListItem {
                             card,
+                            valid: count > 0,
                             count,
                             show_count: true,
                         }
@@ -860,7 +906,8 @@ impl CardListItem {
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
     ) {
-        self.card.draw_list_item(game_io, sprite_queue, position);
+        self.card
+            .draw_list_item(game_io, sprite_queue, position, self.valid);
 
         if !self.show_count {
             return;
@@ -869,6 +916,13 @@ impl CardListItem {
         const COUNT_OFFSET: Vec2 = Vec2::new(120.0, 3.0);
 
         let mut label = Text::new(game_io, FontStyle::Thick);
+
+        label.style.color = if self.valid {
+            Color::WHITE
+        } else {
+            Color::ORANGE
+        };
+
         label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         label.style.bounds.set_position(COUNT_OFFSET + position);
         label.text = format!("{:>2}", self.count.min(99));
