@@ -43,7 +43,8 @@ impl TileState {
     pub const SEA: usize = 15;
     pub const SAND: usize = 16;
     pub const METAL: usize = 17;
-    const TOTAL_BUILT_IN: usize = 18;
+    pub const DARK: usize = 18;
+    const TOTAL_BUILT_IN: usize = 19;
 
     pub fn new(state: String) -> Self {
         Self::new_directional(state.clone(), state)
@@ -239,6 +240,9 @@ impl TileState {
                     ..Default::default()
                 };
 
+                let explosion_id = simulation.create_explosion(game_io);
+                simulation.request_entity_spawn(explosion_id, position);
+
                 Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
 
                 if let Some(tile) = simulation.field.tile_at_mut(position) {
@@ -395,7 +399,7 @@ impl TileState {
                     return;
                 };
 
-                if entity.element == Element::Aqua {
+                if entity.element == Element::Aqua || entity.ignore_negative_tile_effects == true {
                     return;
                 }
 
@@ -424,6 +428,25 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::SAND);
         let mut sand_state = TileState::new(String::from("sand"));
         sand_state.cleanser_element = Some(Element::Wind);
+        sand_state.entity_stop_callback = BattleCallback::new(
+            |game_io, simulation, _vms, (entity_id, _): (EntityId, Movement)| {
+                let entities = &mut simulation.entities;
+                let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+                    return;
+                };
+
+                if entity.ignore_negative_tile_effects == true {
+                    return;
+                }
+
+                let position = (entity.x, entity.y);
+
+                living.status_director.apply_status(HitFlag::ROOT, 20);
+
+                let poof_id = simulation.create_poof(game_io);
+                simulation.request_entity_spawn(poof_id, position);
+            },
+        );
         registry.push(sand_state);
 
         // Metal
@@ -434,6 +457,12 @@ impl TileState {
             BattleCallback::new(|_, _, _, state_index: usize| state_index != TileState::CRACKED);
 
         registry.push(metal_state);
+
+        // Dark Hole
+        // TODO: karma effects? "fallen" players move safely on them, "light" players delete on touch, and any undecided can't move over?
+        debug_assert_eq!(registry.len(), TileState::DARK);
+        let dark_hole_state = TileState::new(String::from("dark"));
+        registry.push(dark_hole_state);
 
         registry
     }
