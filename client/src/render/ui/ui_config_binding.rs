@@ -159,12 +159,16 @@ impl UiConfigBinding {
         }
     }
 
-    fn bound_text_str(&self) -> &str {
-        if self.binding {
-            return "...";
-        }
+    fn displayed_text(&self) -> &str {
+        let text = if self.binding {
+            "..."
+        } else {
+            &self.bound_text
+        };
 
-        &self.bound_text
+        let range = self.text_scroller.text_range(text);
+
+        &text[range]
     }
 }
 
@@ -196,8 +200,7 @@ impl UiNode for UiConfigBinding {
         text_style.draw(game_io, sprite_queue, text);
 
         // draw binding
-        let range = self.text_scroller.text_range(&self.bound_text);
-        let text = &self.bound_text_str()[range];
+        let text = self.displayed_text();
 
         let metrics = text_style.measure(text);
         text_style.bounds.x += bounds.width - metrics.size.x - 1.0;
