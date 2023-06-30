@@ -1,13 +1,12 @@
 use super::{CharacterSelectScene, CustomizeScene};
 use crate::bindable::SpriteColorMode;
-use crate::packages::{PackageNamespace, PlayerPackage};
+use crate::packages::PlayerPackage;
 use crate::render::ui::{
     ElementSprite, FontStyle, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
     SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
-use crate::saves::BlockGrid;
 use framework::prelude::*;
 
 enum Event {
@@ -177,13 +176,12 @@ impl Scene for CharacterScene {
 
 struct StatusData<'a> {
     player_package: &'a PlayerPackage,
-    block_grid: BlockGrid,
+    visible_augments: Vec<String>,
     health: i32,
     charge_level: i8,
     attack_level: i8,
     rapid_level: i8,
-    mega_limit: isize,
-    giga_limit: isize,
+    deck_restrictions: DeckRestrictions,
 }
 
 impl<'a> StatusData<'a> {
@@ -192,34 +190,40 @@ impl<'a> StatusData<'a> {
         let global_save = &globals.global_save;
         let player_package = global_save.player_package(game_io).unwrap();
 
-        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
-        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
-
+        // resolve changes from augments
         let mut health = player_package.health;
         let mut attack_level = 1;
         let mut rapid_level = 1;
         let mut charge_level = 1;
-        let mut mega_limit = MAX_MEGA as isize;
-        let mut giga_limit = MAX_GIGA as isize;
 
-        for (package, level) in block_grid.augments(game_io) {
+        let augments: Vec<_> = global_save.valid_augments(game_io).collect();
+
+        for &(package, level) in &augments {
             health += package.health_boost * level as i32;
             attack_level += package.attack_boost * level as i8;
             rapid_level += package.rapid_boost * level as i8;
             charge_level += package.charge_boost * level as i8;
-            mega_limit += package.mega_boost * level as isize;
-            giga_limit += package.giga_boost * level as isize;
         }
+
+        // resolve visible augments
+        let visible_augments = augments
+            .iter()
+            .filter(|(augment, _)| augment.has_shape)
+            .flat_map(|(augment, level)| std::iter::repeat(augment.name.clone()).take(*level))
+            .collect();
+
+        // resolve deck restrictions
+        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        deck_restrictions.apply_augments(augments.into_iter());
 
         Self {
             player_package,
-            block_grid,
+            visible_augments,
             health,
             attack_level: attack_level.clamp(1, 5),
             rapid_level: rapid_level.clamp(1, 5),
             charge_level: charge_level.clamp(1, 5),
-            mega_limit: mega_limit.max(0),
-            giga_limit: giga_limit.max(0),
+            deck_restrictions,
         }
     }
 }
@@ -265,9 +269,11 @@ impl StatusPage {
         }
 
         if let Some(point) = layout_animator.point("PLAYER") {
-            let (texture, mut animator) = data.player_package.resolve_battle_sprite(game_io);
+            let (texture_path, mut animator) = data.player_package.resolve_battle_sprite(game_io);
 
-            let mut sprite = Sprite::new(game_io, texture);
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            let mut sprite = globals.assets.new_sprite(game_io, &texture_path);
             sprite.set_position(point);
 
             animator.set_state("PLAYER_IDLE");
@@ -320,12 +326,18 @@ impl StatusPage {
                 .with_children(vec![
                     Box::new(
                         Text::new_monospace(game_io, FontStyle::Thin)
-                            .with_string(format!("MegaLimit {}", data.mega_limit))
+                            .with_string(format!(
+                                "MegaLim {:>2}",
+                                data.deck_restrictions.mega_limit
+                            ))
                             .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                     ),
                     Box::new(
                         Text::new_monospace(game_io, FontStyle::Thin)
-                            .with_string(format!("GigaLimit {}", data.giga_limit))
+                            .with_string(format!(
+                                "GigaLim {:>2}",
+                                data.deck_restrictions.giga_limit
+                            ))
                             .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                     ),
                 ]);
@@ -338,16 +350,16 @@ impl StatusPage {
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)
-                .with_label_str("BLOCKS")
+                .with_label_str("AUGMENTS")
                 .with_focus(false)
                 .with_children(
-                    data.block_grid
-                        .installed_packages(game_io)
-                        .map(|package| -> Box<dyn UiNode> {
+                    data.visible_augments
+                        .iter()
+                        .map(|name| -> Box<dyn UiNode> {
                             Box::new(
                                 Text::new(game_io, FontStyle::Thin)
                                     .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
-                                    .with_str(&package.name),
+                                    .with_str(name),
                             )
                         })
                         .collect(),

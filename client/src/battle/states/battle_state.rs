@@ -494,37 +494,15 @@ impl BattleState {
         simulation: &mut BattleSimulation,
         vms: &[RollbackVM],
     ) {
-        let field = &mut simulation.field;
-
-        field.reset_highlight();
+        simulation.field.reset_highlight();
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // skip tile effect processing if time is frozen
             return;
         }
 
-        field.update_tile_states(&mut simulation.entities);
-
-        for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if !entity.on_field || entity.deleted {
-                continue;
-            }
-
-            let tile_pos = (entity.x, entity.y);
-            let tile = field.tile_at_mut(tile_pos).unwrap();
-
-            let tile_state = &simulation.tile_states[tile.state_index()];
-            let tile_callback = tile_state.entity_update_callback.clone();
-            let entity_id = entity.id;
-
-            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                tile_callback.call(game_io, simulation, vms, entity_id);
-            });
-
-            simulation.pending_callbacks.push(callback);
-        }
-
-        simulation.call_pending_callbacks(game_io, vms)
+        simulation.field.update_tiles(&mut simulation.entities);
+        Field::apply_side_effects(game_io, simulation, vms);
     }
 
     fn update_spells(

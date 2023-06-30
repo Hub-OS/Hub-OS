@@ -25,6 +25,7 @@ pub struct CharacterSelectScene {
     name_position: Vec2,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
+    invalid_sprite: Sprite,
     icon_rows: Vec<IconRow>,
     icon_start_offset: Vec2,
     scroll_offset: Vec2,
@@ -103,6 +104,15 @@ impl CharacterSelectScene {
         // name_position
         let name_position = layout_animator.point("NAME").unwrap_or_default();
 
+        // invalid sprite
+        let mut invalid_sprite =
+            assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_INVALID);
+        let invalid_animator =
+            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_INVALID_ANIMATION)
+                .with_state("DEFAULT");
+
+        invalid_animator.apply(&mut invalid_sprite);
+
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
@@ -113,6 +123,7 @@ impl CharacterSelectScene {
             name_position,
             cursor_sprite,
             cursor_animator,
+            invalid_sprite,
             icon_start_offset,
             icon_rows,
             scroll_offset: Vec2::ZERO,
@@ -320,7 +331,13 @@ impl Scene for CharacterSelectScene {
         for i in range_start..range_end {
             let row = &mut self.icon_rows[i];
 
-            row.draw(game_io, &mut sprite_queue, offset, saved_package_id);
+            row.draw(
+                game_io,
+                &mut sprite_queue,
+                &mut self.invalid_sprite,
+                offset,
+                saved_package_id,
+            );
 
             offset.y += ICON_Y_OFFSET;
         }
@@ -363,6 +380,7 @@ struct CompactPackageInfo {
     name: String,
     texture_path: String,
     animation_path: String,
+    valid: bool,
 }
 
 struct IconRow {
@@ -372,7 +390,10 @@ struct IconRow {
 
 impl IconRow {
     fn new<'a>(game_io: &GameIO, package_ids: impl Iterator<Item = &'a PackageId>) -> Self {
-        let player_packages = &game_io.resource::<Globals>().unwrap().player_packages;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let restrictions = &globals.restrictions;
+        let player_packages = &globals.player_packages;
+
         let compact_package_data = package_ids
             .flat_map(|id| player_packages.package_or_fallback(PackageNamespace::Local, id))
             .map(|package| CompactPackageInfo {
@@ -380,6 +401,7 @@ impl IconRow {
                 name: package.name.clone(),
                 texture_path: package.mugshot_texture_path.clone(),
                 animation_path: package.mugshot_animation_path.clone(),
+                valid: restrictions.validate_package_tree(game_io, package.package_info.triplet()),
             })
             .collect();
 
@@ -430,13 +452,16 @@ impl IconRow {
         &mut self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        invalid_sprite: &mut Sprite,
         mut offset: Vec2,
         saved_package_id: &PackageId,
     ) {
         self.ensure_sprites(game_io);
 
         for (i, sprite) in self.sprites.iter_mut().enumerate() {
-            if &self.compact_package_data[i].package_id == saved_package_id {
+            let data = &self.compact_package_data[i];
+
+            if data.package_id == *saved_package_id {
                 sprite.set_color(Color::WHITE.multiply_color(0.6));
             } else {
                 sprite.set_color(Color::WHITE);
@@ -444,6 +469,11 @@ impl IconRow {
 
             sprite.set_position(offset);
             sprite_queue.draw_sprite(sprite);
+
+            if !data.valid {
+                invalid_sprite.set_position(offset);
+                sprite_queue.draw_sprite(invalid_sprite);
+            }
 
             offset.x += ICON_X_OFFSET;
         }

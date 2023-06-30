@@ -1,4 +1,4 @@
-use super::TileState;
+use super::{BattleCallback, BattleSimulation, Living, RollbackVM, TileState};
 use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
@@ -188,12 +188,15 @@ impl Field {
         }
     }
 
-    pub fn update_tile_states(&mut self, entities: &mut hecs::World) {
+    pub fn update_tiles(&mut self, entities: &mut hecs::World) {
         for tile in &mut self.tiles {
             tile.update_state();
         }
 
-        // sync team timers
+        self.sync_team_timers(entities);
+    }
+
+    fn sync_team_timers(&mut self, entities: &mut hecs::World) {
         for col in 0..self.cols as i32 {
             let mut col_timer = FrameTime::MAX;
             let mut revert_blocked = false;
@@ -250,6 +253,49 @@ impl Field {
                 }
             }
         }
+    }
+
+    pub fn apply_side_effects(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
+        // per entity update
+        for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
+            if !entity.on_field || entity.deleted {
+                continue;
+            }
+
+            let tile_pos = (entity.x, entity.y);
+            let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
+
+            let tile_state = &simulation.tile_states[tile.state_index()];
+            let tile_callback = tile_state.entity_update_callback.clone();
+            let entity_id = entity.id;
+
+            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                tile_callback.call(game_io, simulation, vms, entity_id);
+            });
+
+            simulation.pending_callbacks.push(callback);
+        }
+
+        simulation.call_pending_callbacks(game_io, vms);
+
+        // per tile update
+        for tile in &mut simulation.field.tiles {
+            let tile_state = &simulation.tile_states[tile.state_index()];
+            let tile_callback = tile_state.update_callback.clone();
+            let tile_position = tile.position();
+
+            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
+                tile_callback.call(game_io, simulation, vms, tile_position);
+            });
+
+            simulation.pending_callbacks.push(callback);
+        }
+
+        simulation.call_pending_callbacks(game_io, vms);
     }
 
     pub fn update_animations(&mut self) {
