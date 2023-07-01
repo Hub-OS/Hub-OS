@@ -499,38 +499,52 @@ impl BattleScene {
             }
         }
 
-        if self.input_synced() && self.player_controllers.len() > 1 {
-            use std::io::Write;
+        if self.input_synced() {
+            // log inputs if we're in multiplayer to help track desyncs
+            if self.player_controllers.len() > 1 {
+                if let Err(e) = self.log_input_to_file() {
+                    log::error!("{e:?}");
+                }
+            }
 
-            let mut file = std::fs::OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open("_input_buffers.txt")
-                .unwrap();
-
-            let _ = writeln!(&mut file, "F: {}", self.synced_time);
-
-            self.synced_time += 1;
-
+            // prevent buffers from infinitely growing
             for controller in self.player_controllers.iter_mut() {
-                let _ = writeln!(&mut file, "  {:?}", controller.buffer.front());
                 controller.buffer.pop_front();
             }
 
-            let _ = writeln!(&mut file, "Archetypes: [");
+            self.synced_time += 1;
+        }
+    }
 
-            for archetype in self.simulation.entities.archetypes() {
-                let _ = write!(&mut file, "(");
+    fn log_input_to_file(&self) -> std::io::Result<()> {
+        use std::io::Write;
 
-                for t in archetype.component_types() {
-                    let _ = write!(&mut file, "{t:?}, ");
-                }
+        let mut file = std::fs::OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open("_input_buffers.txt")?;
 
-                let _ = write!(&mut file, "), ");
+        writeln!(&mut file, "F: {}", self.synced_time)?;
+
+        for controller in &self.player_controllers {
+            writeln!(&mut file, "  {:?}", controller.buffer.front())?;
+        }
+
+        writeln!(&mut file, "Archetypes: [")?;
+
+        for archetype in self.simulation.entities.archetypes() {
+            write!(&mut file, "(")?;
+
+            for t in archetype.component_types() {
+                write!(&mut file, "{t:?}, ")?;
             }
 
-            let _ = writeln!(&mut file, "]");
+            write!(&mut file, "), ")?;
         }
+
+        writeln!(&mut file, "]")?;
+
+        Ok(())
     }
 
     fn resimulate(&mut self, game_io: &GameIO, start_time: FrameTime) {
