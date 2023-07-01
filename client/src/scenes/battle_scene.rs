@@ -130,7 +130,7 @@ impl BattleScene {
             }
 
             // shuffle cards
-            setup.deck.shuffle(&mut scene.simulation.rng, game_io);
+            setup.deck.shuffle(game_io, &mut scene.simulation.rng);
 
             let result = scene.simulation.load_player(game_io, &scene.vms, setup);
 
