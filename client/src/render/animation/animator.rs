@@ -90,7 +90,7 @@ impl Animator {
         self.bounced = other.bounced;
         self.reversed = other.reversed;
         self.states = other.states.clone();
-        // skip derived states instructions as well
+        self.rederive_states();
     }
 
     pub fn load(&mut self, assets: &impl AssetManager, path: &str) {

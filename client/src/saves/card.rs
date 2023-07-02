@@ -140,6 +140,7 @@ impl Card {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
+        valid: bool,
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -179,9 +180,12 @@ impl Card {
         sprite.set_position(ICON_OFFSET + position);
         sprite_queue.draw_sprite(&sprite);
 
-        // name
+        // text style
         let mut label = TextStyle::new(game_io, FontStyle::Thick);
         label.shadow_color = TEXT_DARK_SHADOW_COLOR;
+        label.color = if valid { Color::WHITE } else { Color::ORANGE };
+
+        // name
         label.bounds.set_position(NAME_OFFSET + position);
         label.draw(game_io, sprite_queue, short_name);
 
@@ -192,6 +196,7 @@ impl Card {
 
         // code
         label.bounds.set_position(CODE_OFFSET + position);
+        label.color = Color::WHITE;
         label.draw(game_io, sprite_queue, &self.code);
 
         // limit

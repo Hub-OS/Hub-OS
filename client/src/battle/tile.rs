@@ -32,6 +32,10 @@ impl Tile {
         }
     }
 
+    pub fn position(&self) -> (i32, i32) {
+        self.position
+    }
+
     pub fn state_index(&self) -> usize {
         self.state_index
     }

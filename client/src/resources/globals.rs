@@ -15,12 +15,15 @@ use packets::structures::FileHash;
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use super::restrictions::Restrictions;
+
 pub struct Globals {
     pub config: Config,
     pub post_process_adjust_config: PostProcessAdjustConfig,
     pub post_process_ghosting: f32,
     pub post_process_color_blindness: u8,
     pub global_save: GlobalSave,
+    pub restrictions: Restrictions,
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
     pub encounter_packages: PackageManager<EncounterPackage>,
@@ -95,6 +98,7 @@ impl Globals {
             post_process_ghosting,
             post_process_color_blindness,
             global_save: GlobalSave::load(&assets),
+            restrictions: Restrictions::default(),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),
             encounter_packages: PackageManager::new(PackageCategory::Encounter),

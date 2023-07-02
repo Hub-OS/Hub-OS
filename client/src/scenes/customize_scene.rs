@@ -10,6 +10,8 @@ use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, S
 use crate::resources::*;
 use crate::saves::{BlockGrid, InstalledBlock};
 use framework::prelude::*;
+use packets::structures::PackageCategory;
+use std::collections::HashSet;
 
 const DIM_COLOR: Color = Color::new(0.75, 0.75, 0.75, 1.0);
 
@@ -53,6 +55,7 @@ pub struct CustomizeScene {
     scroll_tracker: ScrollTracker,
     colors: Vec<BlockColor>,
     grid: BlockGrid,
+    tracked_invalid: HashSet<PackageId>,
     arrow: GridArrow,
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
@@ -75,6 +78,7 @@ impl CustomizeScene {
 
         // installed blocks
         let global_save = &globals.global_save;
+        let restrictions = &globals.restrictions;
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
 
         // load block packages
@@ -82,16 +86,17 @@ impl CustomizeScene {
             .augment_packages
             .packages_with_override(PackageNamespace::Local)
             .filter(|package| package.has_shape)
+            .filter(|package| {
+                restrictions.validate_package_tree(game_io, package.package_info.triplet())
+            })
             .flat_map(|package| {
-                package
-                    .block_colors
-                    .iter()
-                    .cloned()
-                    .map(|color| CompactPackageInfo {
-                        id: package.package_info.id.clone(),
-                        name: package.name.clone(),
-                        color,
-                    })
+                let color_iter = package.block_colors.iter();
+
+                color_iter.map(|&color| CompactPackageInfo {
+                    id: package.package_info.id.clone(),
+                    name: package.name.clone(),
+                    color,
+                })
             })
             .filter(|compact_package_info| {
                 // only include blocks that are not already on the grid
@@ -103,6 +108,22 @@ impl CustomizeScene {
             .collect();
 
         packages.sort_by(|a, b| a.id.cmp(&b.id));
+
+        // track initial placed invalid packages
+        let tracked_invalid: HashSet<_> = blocks
+            .iter()
+            .map(|block| &block.package_id)
+            .filter(|&package_id| {
+                let triplet = (
+                    PackageCategory::Augment,
+                    PackageNamespace::Local,
+                    package_id.clone(),
+                );
+
+                !restrictions.validate_package_tree(game_io, triplet)
+            })
+            .cloned()
+            .collect();
 
         // load ui sprites
         let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
@@ -170,6 +191,7 @@ impl CustomizeScene {
             scroll_tracker,
             colors: Vec::new(),
             grid: BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks),
+            tracked_invalid,
             arrow: GridArrow::new(game_io),
             block_preview: None,
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
@@ -192,16 +214,26 @@ impl CustomizeScene {
     fn update_colors(&mut self) {
         // retain colors that are on the grid
         self.colors.retain(|color| {
-            self.grid
-                .installed_blocks()
-                .any(|block| block.color == *color)
+            self.grid.installed_blocks().any(|block| {
+                block.color == *color && !self.tracked_invalid.contains(&block.package_id)
+            })
         });
 
         // add colors missing from our list
         for block in self.grid.installed_blocks() {
-            if !self.colors.contains(&block.color) {
+            let is_valid = !self.tracked_invalid.contains(&block.package_id);
+
+            if !self.colors.contains(&block.color) && is_valid {
                 self.colors.push(block.color);
             }
+        }
+    }
+
+    fn package_text_color(&self, package_id: &PackageId) -> Color {
+        if self.tracked_invalid.contains(package_id) {
+            Color::ORANGE
+        } else {
+            Color::WHITE
         }
     }
 
@@ -210,16 +242,17 @@ impl CustomizeScene {
 
         match self.state {
             State::GridSelection { x, y } => {
-                self.information_text.text = if let Some(block) = self.grid.get_block((x, y)) {
+                if let Some(block) = self.grid.get_block((x, y)) {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let packages = &globals.augment_packages;
                     let package = packages
                         .package_or_fallback(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
-                    package.description.clone()
+                    self.information_text.text = package.description.clone();
+                    self.information_text.style.color = self.package_text_color(&block.package_id);
                 } else {
-                    String::new()
+                    self.information_text.text.clear();
                 }
             }
             State::ListSelection => {
@@ -235,6 +268,8 @@ impl CustomizeScene {
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
+                    self.information_text.style.color =
+                        self.package_text_color(&package.package_info.id);
 
                     // update block preview
                     self.animator.set_state("OPTION");
@@ -252,6 +287,7 @@ impl CustomizeScene {
                     self.block_preview = Some(block_preview);
                 } else {
                     self.information_text.text = String::from("RUN?");
+                    self.information_text.style.color = Color::WHITE;
                 }
             }
             State::Applying => match self.arrow.status() {
@@ -562,6 +598,11 @@ impl CustomizeScene {
     }
 
     fn uninstall(&mut self, game_io: &GameIO, block: InstalledBlock) {
+        if self.tracked_invalid.contains(&block.package_id) {
+            // drop invalid blocks
+            return;
+        }
+
         let index = self
             .packages
             .binary_search_by(|package| package.id.cmp(&block.package_id));
@@ -777,8 +818,6 @@ impl Scene for CustomizeScene {
                 } else if x == 0 {
                     self.animator.set_state("OVERLAP_L");
                 } else {
-                    block_sprite.set_position(position);
-
                     let packages = &globals.augment_packages;
                     let package = packages
                         .package_or_fallback(PackageNamespace::Local, &block.package_id)
@@ -793,13 +832,33 @@ impl Scene for CustomizeScene {
 
                 self.animator.apply(&mut block_sprite);
                 sprite_queue.draw_sprite(&block_sprite);
-
-                block_sprite.set_rotation(0.0);
             }
         }
 
-        // draw rail on top
+        // draw rail on top of blocks
         sprite_queue.draw_sprite(&self.rail_sprite);
+
+        // draw a border around invalid blocks, recycling the block sprite
+        self.animator.set_state("INVALID_FRAME");
+        self.animator.apply(&mut block_sprite);
+
+        for y in 1..BlockGrid::SIDE_LEN - 1 {
+            for x in 1..BlockGrid::SIDE_LEN - 1 {
+                let Some(block) = self.grid.get_block((x, y)) else {
+                    continue;
+                };
+
+                if !self.tracked_invalid.contains(&block.package_id) {
+                    continue;
+                }
+
+                let position =
+                    Vec2::new(x as f32, y as f32) * self.grid_increment + self.grid_start;
+                block_sprite.set_position(position);
+
+                sprite_queue.draw_sprite(&block_sprite);
+            }
+        }
 
         // draw package list
         let mut recycled_sprite = Sprite::new(game_io, self.grid_sprite.texture().clone());
@@ -859,8 +918,8 @@ impl Scene for CustomizeScene {
             self.animator.apply(&mut recycled_sprite);
             sprite_queue.draw_sprite(&recycled_sprite);
 
-            let package_name = &self.packages[i].name;
-            text_style.draw(game_io, &mut sprite_queue, package_name)
+            let compact_info = &self.packages[i];
+            text_style.draw(game_io, &mut sprite_queue, &compact_info.name)
         }
 
         // draw information text
