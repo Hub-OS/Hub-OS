@@ -19,7 +19,7 @@ impl Deck {
     }
 
     // todo: handle card classes, likely will need to take in game_io and namespace for resolving card classes
-    pub fn shuffle(&mut self, game_io: &GameIO, rng: &mut impl rand::Rng) {
+    pub fn shuffle(&mut self, game_io: &GameIO, rng: &mut impl rand::Rng, namespace: PackageNamespace) {
         use rand::seq::SliceRandom;
         let globals = game_io.resource::<Globals>().unwrap();
         self.cards.shuffle(rng);
@@ -31,7 +31,7 @@ impl Deck {
         for count in 0..=9 {
             // Get the card we're on, skip loop if it's blank somehow
             let card = &self.cards[count];
-            let Some(package) = globals.card_packages.package_or_fallback(PackageNamespace::Local, &card.package_id) else {
+            let Some(package) = globals.card_packages.package_or_fallback(namespace, &card.package_id) else {
                     continue;
                 };
             // If it's not giga, don't proceed.
@@ -41,7 +41,7 @@ impl Deck {
             loop {
                 let rand_slot = rng.gen_range(9..self.cards.len());
                 let rand_card = &self.cards[rand_slot];
-                let Some(rand_package) = globals.card_packages.package_or_fallback(PackageNamespace::Local, &rand_card.package_id) else {
+                let Some(rand_package) = globals.card_packages.package_or_fallback(namespace, &rand_card.package_id) else {
                             continue;
                         };
                 if rand_package.card_properties.card_class != CardClass::Giga {
