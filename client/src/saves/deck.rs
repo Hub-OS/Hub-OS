@@ -19,12 +19,17 @@ impl Deck {
     }
 
     // todo: handle card classes, likely will need to take in game_io and namespace for resolving card classes
-    pub fn shuffle(&mut self, game_io: &GameIO, rng: &mut impl rand::Rng, namespace: PackageNamespace) {
+    pub fn shuffle(
+        &mut self,
+        game_io: &GameIO,
+        rng: &mut impl rand::Rng,
+        namespace: PackageNamespace,
+    ) {
         use rand::seq::SliceRandom;
         let globals = game_io.resource::<Globals>().unwrap();
         self.cards.shuffle(rng);
-        // If the deck is larger than 10 cards
-        if self.cards.len() < 10 {
+        // If the deck is less than 20 cards, don't try to giga shuffle.
+        if self.cards.len() <= 20 {
             return;
         }
         // Cycle the initial 10 starting at index 0
@@ -38,14 +43,13 @@ impl Deck {
             if package.card_properties.card_class != CardClass::Giga {
                 continue;
             }
-            loop {
-                let rand_slot = rng.gen_range(9..self.cards.len());
-                let rand_card = &self.cards[rand_slot];
-                let Some(rand_package) = globals.card_packages.package_or_fallback(namespace, &rand_card.package_id) else {
-                            continue;
-                        };
-                if rand_package.card_properties.card_class != CardClass::Giga {
-                    self.cards.swap(count, rand_slot);
+            for swap_index in 11..self.cards.len(){
+                let swap_card = &self.cards[swap_index];
+                let Some(swap_package) = globals.card_packages.package_or_fallback(namespace, &swap_card.package_id) else {
+                    continue;
+                };
+                if swap_package.card_properties.card_class != CardClass::Giga {
+                    self.cards.swap(count, swap_index);
                     break;
                 };
             }
