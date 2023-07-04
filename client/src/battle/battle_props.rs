@@ -45,11 +45,12 @@ impl<'a> PlayerSetup<'a> {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
-        let mut deck_restriction = restrictions.default_deck_restrictions.clone();
+        let mut deck_restriction = restrictions.base_deck_restrictions();
 
         let player_package = global_save.player_package(game_io).unwrap();
-        let script_enabled =
-            restrictions.validate_package_tree(game_io, player_package.package_info.triplet());
+
+        let script_enabled = restrictions.owns_player(&player_package.package_info.id)
+            && restrictions.validate_package_tree(game_io, player_package.package_info.triplet());
 
         let ns = PackageNamespace::Local;
 

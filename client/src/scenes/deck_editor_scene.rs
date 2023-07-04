@@ -52,7 +52,7 @@ impl DeckEditorScene {
 
         // limits
         let global_save = &globals.global_save;
-        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
         deck_restrictions.apply_augments(global_save.valid_augments(game_io));
 
         // ui
@@ -526,19 +526,30 @@ fn transfer_to_deck(
         return None;
     }
 
+    let globals = game_io.resource::<Globals>().unwrap();
+    let card_manager = &globals.card_packages;
+    let package = card_manager.package_or_fallback(NAMESPACE, &card_item.card.package_id)?;
     let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
-    let duplicate_count = deck_dock
+    let package_count = deck_dock
         .card_items()
         .filter(|item| item.card.package_id == card_item.card.package_id)
         .count();
 
-    let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
-    let package = card_manager.package_or_fallback(NAMESPACE, &card_item.card.package_id)?;
+    if package_count >= package.card_properties.limit {
+        return None;
+    }
 
-    if duplicate_count >= package.card_properties.limit {
-        // deck already has too many
+    // maintain ownership requirement
+    let restrictions = &globals.restrictions;
+
+    let card_count = deck_dock
+        .card_items()
+        .filter(|item| item.card == card_item.card)
+        .count();
+
+    if card_count > restrictions.card_count(game_io, &card_item.card) {
         return None;
     }
 
@@ -885,7 +896,8 @@ impl CardListItem {
                         };
 
                         let use_count = use_counts.get(&card).cloned().unwrap_or_default();
-                        let count = package.card_properties.limit as isize - use_count;
+                        let use_limit = restrictions.card_count(game_io, &card);
+                        let count = use_limit as isize - use_count;
 
                         CardListItem {
                             card,

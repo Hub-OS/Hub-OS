@@ -90,7 +90,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let texture_path = absolute_path(lua, texture_path)?;
         let animation_path = absolute_path(lua, animation_path)?;
 
-        let mut api_ctx = &mut *api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let globals = api_ctx.game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
