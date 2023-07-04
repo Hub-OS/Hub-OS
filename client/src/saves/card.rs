@@ -14,7 +14,7 @@ pub struct Card {
 }
 
 impl Card {
-    // used in netplay, luckily we shouldnt see what remotes have, so using server namespace is fine
+    // used in netplay, luckily we shouldnt see what remotes have, so using local namespace is fine
     pub fn draw_icon(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, position: Vec2) {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;

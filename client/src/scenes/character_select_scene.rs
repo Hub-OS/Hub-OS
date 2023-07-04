@@ -396,12 +396,18 @@ impl IconRow {
 
         let compact_package_data = package_ids
             .flat_map(|id| player_packages.package_or_fallback(PackageNamespace::Local, id))
-            .map(|package| CompactPackageInfo {
-                package_id: package.package_info.id.clone(),
-                name: package.name.clone(),
-                texture_path: package.mugshot_texture_path.clone(),
-                animation_path: package.mugshot_animation_path.clone(),
-                valid: restrictions.validate_package_tree(game_io, package.package_info.triplet()),
+            .map(|package| {
+                let package_id = &package.package_info.id;
+                let valid = restrictions.owns_player(package_id)
+                    && restrictions.validate_package_tree(game_io, package.package_info.triplet());
+
+                CompactPackageInfo {
+                    package_id: package_id.clone(),
+                    name: package.name.clone(),
+                    texture_path: package.mugshot_texture_path.clone(),
+                    animation_path: package.mugshot_animation_path.clone(),
+                    valid,
+                }
             })
             .collect();
 

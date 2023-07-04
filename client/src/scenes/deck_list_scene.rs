@@ -105,7 +105,7 @@ impl DeckListScene {
 
         // deck validities
         let global_save = &globals.global_save;
-        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
         deck_restrictions.apply_augments(global_save.valid_augments(game_io));
 
         let deck_validities = (globals.global_save.decks)

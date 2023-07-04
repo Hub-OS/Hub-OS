@@ -104,6 +104,7 @@ struct DeckValidator<'a> {
     giga_count: usize,
     dark_count: usize,
     id_counts: HashMap<&'a PackageId, usize>,
+    card_counts: HashMap<&'a Card, usize>,
 }
 
 impl<'a> DeckValidator<'a> {
@@ -125,16 +126,19 @@ impl<'a> DeckValidator<'a> {
             giga_count: 0,
             dark_count: 0,
             id_counts: HashMap::new(),
+            card_counts: HashMap::new(),
         }
     }
 
-    fn process_cards(&mut self, cards: &[&Card]) {
+    fn process_cards(&mut self, cards: &[&'a Card]) {
         for card in cards {
             self.process_card(card);
         }
     }
 
-    fn process_card(&mut self, card: &Card) {
+    fn process_card(&mut self, card: &'a Card) {
+        self.total_cards += 1;
+
         let Some(package) = self.card_packages.package(self.namespace, &card.package_id) else {
             return;
         };
@@ -150,6 +154,12 @@ impl<'a> DeckValidator<'a> {
         // update package specific count
         (self.id_counts)
             .entry(&package.package_info.id)
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
+
+        // update card count
+        (self.card_counts)
+            .entry(card)
             .and_modify(|count| *count += 1)
             .or_insert(1);
     }
@@ -172,14 +182,21 @@ impl<'a> DeckValidator<'a> {
             return false;
         }
 
-        // test count
-        let count = self
+        // test package count
+        let package_count = self
             .id_counts
             .get(&package.package_info.id)
             .cloned()
             .unwrap_or_default();
 
-        if count > package.card_properties.limit {
+        if package_count > package.card_properties.limit {
+            return false;
+        }
+
+        // test code count
+        let count = self.card_counts.get(card).cloned().unwrap_or(0);
+
+        if count > self.restrictions.card_count(self.game_io, card) {
             return false;
         }
 

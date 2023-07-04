@@ -10,8 +10,10 @@ use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, S
 use crate::resources::*;
 use crate::saves::{BlockGrid, InstalledBlock};
 use framework::prelude::*;
+use itertools::Itertools;
 use packets::structures::PackageCategory;
-use std::collections::HashSet;
+use std::borrow::Cow;
+use std::collections::{HashMap, HashSet};
 
 const DIM_COLOR: Color = Color::new(0.75, 0.75, 0.75, 1.0);
 
@@ -26,6 +28,7 @@ enum BlockOption {
     Remove,
 }
 
+#[derive(Clone)]
 struct CompactPackageInfo {
     id: PackageId,
     name: String,
@@ -55,7 +58,7 @@ pub struct CustomizeScene {
     scroll_tracker: ScrollTracker,
     colors: Vec<BlockColor>,
     grid: BlockGrid,
-    tracked_invalid: HashSet<PackageId>,
+    tracked_invalid: HashSet<(Cow<'static, PackageId>, BlockColor)>,
     arrow: GridArrow,
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
@@ -81,6 +84,18 @@ impl CustomizeScene {
         let restrictions = &globals.restrictions;
         let blocks = global_save.active_blocks().cloned().unwrap_or_default();
 
+        // track count
+        let mut block_counts = HashMap::new();
+
+        for block in blocks.iter() {
+            let id = &block.package_id;
+
+            block_counts
+                .entry((id, block.color))
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+        }
+
         // load block packages
         let mut packages: Vec<_> = globals
             .augment_packages
@@ -92,38 +107,24 @@ impl CustomizeScene {
             .flat_map(|package| {
                 let color_iter = package.block_colors.iter();
 
-                color_iter.map(|&color| CompactPackageInfo {
-                    id: package.package_info.id.clone(),
-                    name: package.name.clone(),
-                    color,
-                })
-            })
-            .filter(|compact_package_info| {
-                // only include blocks that are not already on the grid
-                !blocks.iter().any(|block| {
-                    block.package_id == compact_package_info.id
-                        && block.color == compact_package_info.color
+                color_iter.unique().flat_map(|&color| {
+                    let id = &package.package_info.id;
+
+                    let max_count = restrictions.block_count(game_io, id, color);
+                    let placed_count = block_counts.get(&(id, color)).cloned().unwrap_or(0);
+                    let list_count = max_count.max(placed_count) - placed_count;
+
+                    std::iter::repeat(CompactPackageInfo {
+                        id: package.package_info.id.clone(),
+                        name: package.name.clone(),
+                        color,
+                    })
+                    .take(list_count)
                 })
             })
             .collect();
 
         packages.sort_by(|a, b| a.id.cmp(&b.id));
-
-        // track initial placed invalid packages
-        let tracked_invalid: HashSet<_> = blocks
-            .iter()
-            .map(|block| &block.package_id)
-            .filter(|&package_id| {
-                let triplet = (
-                    PackageCategory::Augment,
-                    PackageNamespace::Local,
-                    package_id.clone(),
-                );
-
-                !restrictions.validate_package_tree(game_io, triplet)
-            })
-            .cloned()
-            .collect();
 
         // load ui sprites
         let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
@@ -191,7 +192,7 @@ impl CustomizeScene {
             scroll_tracker,
             colors: Vec::new(),
             grid: BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks),
-            tracked_invalid,
+            tracked_invalid: HashSet::new(),
             arrow: GridArrow::new(game_io),
             block_preview: None,
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
@@ -211,17 +212,69 @@ impl CustomizeScene {
         }
     }
 
+    fn update_invalid(&mut self, game_io: &GameIO) {
+        self.tracked_invalid.clear();
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let restrictions = &globals.restrictions;
+
+        // test ownership
+        let mut block_counts = HashMap::new();
+
+        for block in self.grid.installed_blocks() {
+            let id = &block.package_id;
+
+            let count = *block_counts
+                .entry((id, block.color))
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+
+            if count == restrictions.block_count(game_io, id, block.color) + 1 {
+                let key = (Cow::Owned(id.clone()), block.color);
+                self.tracked_invalid.insert(key);
+            }
+        }
+
+        // test package validity
+        for block in self.grid.installed_blocks() {
+            let key = (Cow::Borrowed(&block.package_id), block.color);
+
+            if self.tracked_invalid.contains(&key) {
+                // don't need to check the tree if this block is already marked as invalid
+                continue;
+            }
+
+            let triplet = (
+                PackageCategory::Augment,
+                PackageNamespace::Local,
+                block.package_id.clone(),
+            );
+
+            if restrictions.validate_package_tree(game_io, triplet) {
+                // valid package, skip
+                continue;
+            }
+
+            let key = (Cow::Owned(block.package_id.clone()), block.color);
+            self.tracked_invalid.insert(key);
+        }
+    }
+
     fn update_colors(&mut self) {
         // retain colors that are on the grid
+
         self.colors.retain(|color| {
             self.grid.installed_blocks().any(|block| {
-                block.color == *color && !self.tracked_invalid.contains(&block.package_id)
+                let tracked_invalid_key = (Cow::Borrowed(&block.package_id), *color);
+
+                block.color == *color && !self.tracked_invalid.contains(&tracked_invalid_key)
             })
         });
 
         // add colors missing from our list
         for block in self.grid.installed_blocks() {
-            let is_valid = !self.tracked_invalid.contains(&block.package_id);
+            let tracked_invalid_key = (Cow::Borrowed(&block.package_id), block.color);
+            let is_valid = !self.tracked_invalid.contains(&tracked_invalid_key);
 
             if !self.colors.contains(&block.color) && is_valid {
                 self.colors.push(block.color);
@@ -229,8 +282,10 @@ impl CustomizeScene {
         }
     }
 
-    fn package_text_color(&self, package_id: &PackageId) -> Color {
-        if self.tracked_invalid.contains(package_id) {
+    fn package_text_color(&self, package_id: &PackageId, block_color: BlockColor) -> Color {
+        let tracked_invalid_key = (Cow::Borrowed(package_id), block_color);
+
+        if self.tracked_invalid.contains(&tracked_invalid_key) {
             Color::ORANGE
         } else {
             Color::WHITE
@@ -250,7 +305,8 @@ impl CustomizeScene {
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
-                    self.information_text.style.color = self.package_text_color(&block.package_id);
+                    self.information_text.style.color =
+                        self.package_text_color(&block.package_id, block.color);
                 } else {
                     self.information_text.text.clear();
                 }
@@ -260,7 +316,7 @@ impl CustomizeScene {
 
                 if let Some(package) = self.packages.get(index) {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    let color = package.color;
+                    let block_color = package.color;
 
                     let package = globals
                         .augment_packages
@@ -269,7 +325,7 @@ impl CustomizeScene {
 
                     self.information_text.text = package.description.clone();
                     self.information_text.style.color =
-                        self.package_text_color(&package.package_info.id);
+                        self.package_text_color(&package.package_info.id, block_color);
 
                     // update block preview
                     self.animator.set_state("OPTION");
@@ -281,7 +337,7 @@ impl CustomizeScene {
                     position += self.animator.point("BLOCK_PREVIEW").unwrap_or_default();
 
                     let block_preview =
-                        BlockPreview::new(game_io, color, package.is_flat, package.shape)
+                        BlockPreview::new(game_io, block_color, package.is_flat, package.shape)
                             .with_position(position);
 
                     self.block_preview = Some(block_preview);
@@ -598,7 +654,11 @@ impl CustomizeScene {
     }
 
     fn uninstall(&mut self, game_io: &GameIO, block: InstalledBlock) {
-        if self.tracked_invalid.contains(&block.package_id) {
+        let tracked_invalid_key = (Cow::Borrowed(&block.package_id), block.color);
+
+        if self.tracked_invalid.contains(&tracked_invalid_key) {
+            self.update_invalid(game_io);
+
             // drop invalid blocks
             return;
         }
@@ -722,6 +782,7 @@ impl Scene for CustomizeScene {
         self.update_text(game_io);
         self.update_grid_sprite();
         self.update_colors();
+        self.update_invalid(game_io);
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.push_music_stack();
@@ -848,7 +909,9 @@ impl Scene for CustomizeScene {
                     continue;
                 };
 
-                if !self.tracked_invalid.contains(&block.package_id) {
+                let tracked_invalid_key = (Cow::Borrowed(&block.package_id), block.color);
+
+                if !self.tracked_invalid.contains(&tracked_invalid_key) {
                     continue;
                 }
 

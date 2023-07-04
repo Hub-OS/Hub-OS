@@ -213,7 +213,7 @@ impl<'a> StatusData<'a> {
             .collect();
 
         // resolve deck restrictions
-        let mut deck_restrictions = globals.restrictions.default_deck_restrictions.clone();
+        let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
         deck_restrictions.apply_augments(augments.into_iter());
 
         Self {
