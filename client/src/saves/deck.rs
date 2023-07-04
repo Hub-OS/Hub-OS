@@ -73,6 +73,7 @@ impl Deck {
                 continue;
             };
             
+            // Swap the cards.
             self.cards.swap(count, swap_index);
         }
     }
