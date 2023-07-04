@@ -1481,7 +1481,7 @@ impl Net {
         area.add_player(player_id.to_string());
         self.send_area(player_id, &area_id);
 
-        let mut client = self.clients.get_mut(player_id).unwrap();
+        let client = self.clients.get_mut(player_id).unwrap();
 
         client.actor.area_id = area_id.to_string();
         client.transferring = true;
