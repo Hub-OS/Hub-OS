@@ -9,13 +9,10 @@ pub struct CardProperties {
     pub package_id: PackageId,
     // action: String, // ????
     pub short_name: String,
-    pub description: String,
-    pub long_description: String,
     pub damage: i32,
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
-    pub limit: usize,
     pub hit_flags: HitFlags,
     pub can_boost: bool,
     pub counterable: bool,
@@ -29,15 +26,12 @@ impl Default for CardProperties {
         Self {
             package_id: PackageId::new_blank(),
             short_name: String::from("?????"),
-            description: String::new(),
-            long_description: String::new(),
             damage: 0,
             element: Element::None,
             secondary_element: Element::None,
             time_freeze: false,
             card_class: CardClass::Standard,
             hit_flags: 0,
-            limit: 5,
             can_boost: true,
             counterable: true,
             skip_time_freeze_intro: false,
@@ -110,13 +104,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             short_name: table
                 .get("short_name")
                 .unwrap_or_else(|_| String::from("?????")),
-            description: table.get("description").unwrap_or_default(),
-            long_description: table.get("long_description").unwrap_or_default(),
             damage: table.get("damage").unwrap_or_default(),
             element: table.get("element").unwrap_or_default(),
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
-            limit: table.get("limit").unwrap_or(5),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
             can_boost: table.get("can_boost").unwrap_or(true),
             counterable: table.get("counterable").unwrap_or(true),
@@ -134,13 +125,10 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
         table.set("short_name", self.short_name.as_str())?;
-        table.set("description", self.description.as_str())?;
-        table.set("long_description", self.long_description.as_str())?;
         table.set("damage", self.damage)?;
         table.set("element", self.element)?;
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;
-        table.set("limit", self.limit)?;
         table.set("hit_flags", self.hit_flags)?;
         table.set("can_boost", self.can_boost)?;
         table.set("counterable", self.counterable)?;

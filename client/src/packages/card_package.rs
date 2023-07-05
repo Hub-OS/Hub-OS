@@ -33,6 +33,9 @@ pub struct CardPackage {
     pub icon_texture_path: String,
     pub preview_texture_path: String,
     pub card_properties: CardProperties,
+    pub description: String,
+    pub long_description: String,
+    pub limit: usize,
     pub default_codes: Vec<String>,
 }
 
@@ -49,10 +52,10 @@ impl Package for CardPackage {
         PackageListing {
             id: self.package_info.id.clone(),
             name: self.card_properties.short_name.clone(),
-            description: if !self.card_properties.long_description.is_empty() {
-                self.card_properties.long_description.clone()
+            description: if !self.long_description.is_empty() {
+                self.long_description.clone()
             } else {
-                self.card_properties.description.clone()
+                self.description.clone()
             },
             creator: String::new(),
             hash: self.package_info.hash,
@@ -91,18 +94,18 @@ impl Package for CardPackage {
 
         package.icon_texture_path = base_path.clone() + &meta.icon_texture_path;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
+        package.description = meta.description;
+        package.long_description = meta.long_description;
         package.default_codes = meta.codes;
+        package.limit = meta.limit.unwrap_or(5);
 
         // card properties
         package.card_properties.package_id = package.package_info.id.clone();
         package.card_properties.short_name = meta.name;
-        package.card_properties.description = meta.description;
-        package.card_properties.long_description = meta.long_description;
         package.card_properties.damage = meta.damage;
         package.card_properties.element = meta.element.into();
         package.card_properties.secondary_element = meta.secondary_element.into();
         package.card_properties.card_class = meta.card_class.into();
-        package.card_properties.limit = meta.limit.unwrap_or(package.card_properties.limit);
 
         if let Some(hit_flags) = meta.hit_flags {
             package.card_properties.hit_flags = hit_flags

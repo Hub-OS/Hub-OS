@@ -35,7 +35,7 @@ impl Restrictions {
 
             card_packages
                 .package_or_fallback(PackageNamespace::Local, &card.package_id)
-                .map(|package| package.card_properties.limit)
+                .map(|package| package.limit)
                 .unwrap_or(0)
         } else {
             // use self.owned_cards

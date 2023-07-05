@@ -119,7 +119,7 @@ impl FullCard {
 
         // draw description
         if let Some(package) = package {
-            let description = &package.card_properties.description;
+            let description = &package.description;
 
             self.description_style
                 .draw(game_io, sprite_queue, description);

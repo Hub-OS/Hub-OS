@@ -212,14 +212,15 @@ impl BattleScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let ns = PackageNamespace::Local;
 
-                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id) else {
+                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id)
+                    else {
                         continue;
                     };
 
-                    let description = if package.card_properties.long_description.is_empty() {
-                        package.card_properties.description.clone()
+                    let description = if package.long_description.is_empty() {
+                        package.description.clone()
                     } else {
-                        package.card_properties.long_description.clone()
+                        package.long_description.clone()
                     };
 
                     self.textbox.use_blank_avatar(game_io);

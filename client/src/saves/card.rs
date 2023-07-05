@@ -48,7 +48,9 @@ impl Card {
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
         let package_manager = &globals.card_packages;
-        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id) else {
+        let Some(package) =
+            package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
+        else {
             return;
         };
 
@@ -72,7 +74,9 @@ impl Card {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let Some(package) = package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id) else {
+        let Some(package) =
+            package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
+        else {
             return;
         };
 
@@ -154,7 +158,7 @@ impl Card {
             icon_texture_path = package.icon_texture_path.as_str();
             short_name = package.card_properties.short_name.as_str();
             element = package.card_properties.element;
-            limit = package.card_properties.limit;
+            limit = package.limit;
         } else {
             icon_texture_path = ResourcePaths::CARD_ICON_MISSING;
             short_name = "?????";

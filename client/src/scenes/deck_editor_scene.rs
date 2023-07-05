@@ -537,7 +537,7 @@ fn transfer_to_deck(
         .filter(|item| item.card.package_id == card_item.card.package_id)
         .count();
 
-    if package_count >= package.card_properties.limit {
+    if package_count >= package.limit {
         return None;
     }
 
@@ -630,7 +630,10 @@ fn transfer_to_pack(
             show_count: true,
         }));
 
-        scene.pack_dock.scroll_tracker.set_total_items(pack_slots.len());
+        scene
+            .pack_dock
+            .scroll_tracker
+            .set_total_items(pack_slots.len());
 
         return Some(pack_slots.len() - 1);
     };
