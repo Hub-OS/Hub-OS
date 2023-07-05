@@ -15,30 +15,7 @@ pub struct Restrictions {
     owned_cards: HashMap<Card, usize>,
     owned_blocks: HashMap<(Cow<'static, PackageId>, BlockColor), usize>,
     owned_players: HashSet<PackageId>,
-    // battle restrictions, used to generate initial BattleConfig
-    // todo: not in use
-    // pub status_durations: [FrameTime; 3],
-    // pub intangibility_duration: FrameTime,
-    // pub super_effective_multiplier: f32,
-    // pub turn_limit: Option<u32>,
 }
-
-// impl Default for Restrictions {
-//     fn default() -> Self {
-//         Self {
-//             package_whitelist: HashSet::new(),
-//             package_blacklist: HashSet::new(),
-//             owned_cards: HashMap::new(),
-//             owned_blocks: HashMap::new(),
-//             owned_players: HashSet::new(),
-//             default_deck_restrictions: DeckRestrictions::default(),
-//             status_durations: [90, 120, 150],
-//             intangibility_duration: 120,
-//             super_effective_multiplier: 2.0,
-//             turn_limit: None,
-//         }
-//     }
-// }
 
 impl Restrictions {
     fn is_hash_allowed(&self, hash: &FileHash) -> bool {
