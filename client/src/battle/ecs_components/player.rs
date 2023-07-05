@@ -213,7 +213,8 @@ impl Player {
         entity_id: EntityId,
         level: Option<u8>,
     ) -> FrameTime {
-        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return 0;
         };
 
@@ -242,7 +243,8 @@ impl Player {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
@@ -267,7 +269,8 @@ impl Player {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
@@ -304,7 +307,8 @@ impl Player {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let Ok(player) = simulation.entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 

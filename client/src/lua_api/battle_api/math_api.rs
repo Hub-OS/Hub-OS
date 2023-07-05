@@ -21,7 +21,7 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
         let mut api_ctx = api_ctx.borrow_mut();
         let rng = &mut api_ctx.simulation.rng;
 
-        let Some( mut n) = n else {
+        let Some(mut n) = n else {
             return lua.pack_multi(rng.gen::<f32>());
         };
 

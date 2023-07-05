@@ -79,7 +79,10 @@ impl BlockGrid {
     ) -> Option<Vec<(usize, usize)>> {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let Some(package) = globals.augment_packages.package_or_fallback(self.namespace, &block.package_id) else {
+        let Some(package) = globals
+            .augment_packages
+            .package_or_fallback(self.namespace, &block.package_id)
+        else {
             return Some(Vec::new());
         };
 
@@ -224,7 +227,9 @@ impl BlockGrid {
             };
 
         for (_, block) in &self.blocks {
-            let Some(package) = augment_packages.package_or_fallback(self.namespace, &block.package_id) else {
+            let Some(package) =
+                augment_packages.package_or_fallback(self.namespace, &block.package_id)
+            else {
                 continue;
             };
 

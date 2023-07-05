@@ -90,7 +90,8 @@ impl BattleAnimator {
             return;
         };
 
-        let Some(state) = battle_animator.current_state().map(|state| state.to_string()) else {
+        let state = battle_animator.current_state();
+        let Some(state) = state.map(|state| state.to_string()) else {
             return;
         };
 

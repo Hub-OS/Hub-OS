@@ -27,8 +27,8 @@ impl From<&json::Value> for PackageListing {
                 creator: String::new(),
                 hash: FileHash::ZERO,
                 preview_data: PackagePreviewData::Unknown,
-                dependencies: Vec::new()
-            }
+                dependencies: Vec::new(),
+            };
         };
 
         let category = get_str(package_table, "category");
@@ -115,7 +115,7 @@ impl From<&json::Value> for PackageListing {
 
 fn get_unknown_as_string(table: &json::Value, key: &str) -> String {
     let Some(value) = table.get(key) else {
-        return String::new()
+        return String::new();
     };
 
     (value.as_str().map(|s| s.to_string()))

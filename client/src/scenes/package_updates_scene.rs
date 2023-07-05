@@ -304,7 +304,9 @@ impl Scene for PackageUpdatesScene {
         self.requires_update = std::mem::take(&mut self.requires_update)
             .into_iter()
             .filter(|(category, id, hash)| {
-                let Some(package_info) = globals.package_or_fallback_info(*category, PackageNamespace::Local, id) else {
+                let Some(package_info) =
+                    globals.package_or_fallback_info(*category, PackageNamespace::Local, id)
+                else {
                     // deleted
                     return false;
                 };

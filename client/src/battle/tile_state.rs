@@ -98,7 +98,8 @@ impl TileState {
 
         cracked_state.entity_leave_callback = BattleCallback::new(
             |game_io, simulation, _, (entity_id, movement): (EntityId, Movement)| {
-                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                let entities = &mut simulation.entities;
+                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
                 };
 
@@ -180,10 +181,12 @@ impl TileState {
             },
         );
 
-        grass_state.entity_update_callback = BattleCallback::new(
-            |_, simulation, _, entity_id: EntityId| {
+        grass_state.entity_update_callback =
+            BattleCallback::new(|_, simulation, _, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
-                let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+                let Ok((entity, living)) =
+                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+                else {
                     return;
                 };
 
@@ -201,8 +204,7 @@ impl TileState {
                 if simulation.battle_time > 0 && simulation.battle_time % heal_interval == 0 {
                     living.health += 1;
                 }
-            },
-        );
+            });
 
         registry.push(grass_state);
 
@@ -254,9 +256,10 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::POISON);
         let mut poison_state = TileState::new(String::from("poison"));
 
-        poison_state.entity_enter_callback = BattleCallback::new(
-            |game_io, simulation, vms, entity_id: EntityId| {
-                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+        poison_state.entity_enter_callback =
+            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+                let entities = &mut simulation.entities;
+                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
                 };
 
@@ -269,12 +272,12 @@ impl TileState {
                 hit_props.damage = 1;
 
                 Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
-            },
-        );
+            });
 
-        poison_state.entity_update_callback = BattleCallback::new(
-            |game_io, simulation, vms, entity_id: EntityId| {
-                let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+        poison_state.entity_update_callback =
+            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+                let entities = &mut simulation.entities;
+                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
                 };
 
@@ -288,8 +291,7 @@ impl TileState {
 
                     Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
                 }
-            },
-        );
+            });
 
         registry.push(poison_state);
 
@@ -310,7 +312,7 @@ impl TileState {
 
             BattleCallback::new(move |game_io, simulation, vms, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else{
+                let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
                     return;
                 };
 
@@ -393,7 +395,9 @@ impl TileState {
         sea_state.entity_stop_callback = BattleCallback::new(
             |game_io, simulation, _vms, (entity_id, _): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
-                let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+                let Ok((entity, living)) =
+                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+                else {
                     return;
                 };
 

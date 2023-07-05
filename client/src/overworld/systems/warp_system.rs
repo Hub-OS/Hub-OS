@@ -20,7 +20,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
     let (position, direction) = (*position, *direction);
 
     let Some(entity) = map.tile_object_at(position.xy(), position.z as i32, false) else {
-      return;
+        return;
     };
 
     let object_data = map
@@ -57,7 +57,7 @@ pub fn system_warp(game_io: &mut GameIO, area: &mut OverworldArea) {
 
             let poll_task = game_io.spawn_local_task(async move {
                 let Some((send, receiver)) = subscription.await else {
-                    return false
+                    return false;
                 };
 
                 Network::poll_server(&send, &receiver).await == ServerStatus::Online

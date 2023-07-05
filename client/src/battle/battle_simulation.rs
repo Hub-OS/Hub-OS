@@ -331,7 +331,9 @@ impl BattleSimulation {
                 continue;
             }
 
-            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+            let entities = &mut self.entities;
+
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
                 continue;
             };
 
@@ -429,7 +431,8 @@ impl BattleSimulation {
                 continue;
             }
 
-            let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
+            let entities = &mut self.entities;
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(action.entity.into()) else {
                 continue;
             };
 
@@ -908,7 +911,8 @@ impl BattleSimulation {
                     continue;
                 }
 
-                let Ok(other_entity) = simulation.entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                let entities = &mut simulation.entities;
+                let Ok(other_entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     // non entity or erased is reserving?
                     continue;
                 };

@@ -1750,7 +1750,8 @@ impl Net {
         for (_, sprite_id) in &self.public_sprites {
             let sprite = &self.sprites[sprite_id];
 
-            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+            else {
                 continue;
             };
 
@@ -2239,7 +2240,8 @@ impl Net {
                 ],
             );
 
-            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+            let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+            else {
                 continue;
             };
 
@@ -2381,7 +2383,8 @@ impl Net {
             return;
         };
 
-        let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite) else {
+        let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
+        else {
             return;
         };
 

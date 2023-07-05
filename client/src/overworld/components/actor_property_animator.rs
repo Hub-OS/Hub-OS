@@ -118,7 +118,9 @@ impl ActorPropertyAnimator {
             &'a mut MovementAnimator,
         );
 
-        let Ok((property_animator, position, direction, sprite, animator, movement_animator)) = entities.query_one_mut::<Query>(entity) else {
+        let Ok((property_animator, position, direction, sprite, animator, movement_animator)) =
+            entities.query_one_mut::<Query>(entity)
+        else {
             return;
         };
 

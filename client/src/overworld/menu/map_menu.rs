@@ -273,7 +273,8 @@ impl MapMenu {
     }
 
     fn center_on_player(&mut self, area: &mut OverworldArea) {
-        let Ok(&position) = area.entities.query_one_mut::<&Vec3>(area.player_data.entity) else {
+        let entities = &mut area.entities;
+        let Ok(&position) = entities.query_one_mut::<&Vec3>(area.player_data.entity) else {
             return;
         };
 

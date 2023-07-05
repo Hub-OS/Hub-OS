@@ -247,32 +247,51 @@ impl BattleLuaApi {
                         }
 
                         // try dynamic function
-                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
+                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data()
+                        else {
                             return lua.pack_multi(());
                         };
 
                         let function_name = key.to_str()?;
-                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, INDEX_CALLBACK, function_name) else {
+                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(
+                            table_index,
+                            INDEX_CALLBACK,
+                            function_name,
+                        ) else {
                             return lua.pack_multi(());
                         };
 
                         if dynamic_function.is_getter {
-                            (dynamic_function.function)(dynamic_api_ctx.api_ctx, lua, lua.pack_multi(self_table)?)
+                            (dynamic_function.function)(
+                                dynamic_api_ctx.api_ctx,
+                                lua,
+                                lua.pack_multi(self_table)?,
+                            )
                         } else {
                             // cache this function to reduce garbage
                             let owned_name = function_name.to_string();
 
                             let binded_func = lua.create_function(
                                 move |lua, params: rollback_mlua::MultiValue| {
-                                    let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
+                                    let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> =
+                                        lua.app_data()
+                                    else {
                                         return lua.pack_multi(());
                                     };
 
-                                    let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, INDEX_CALLBACK, &owned_name) else {
+                                    let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(
+                                        table_index,
+                                        INDEX_CALLBACK,
+                                        &owned_name,
+                                    ) else {
                                         return lua.pack_multi(());
                                     };
 
-                                    (dynamic_function.function)(dynamic_api_ctx.api_ctx, lua, params)
+                                    (dynamic_function.function)(
+                                        dynamic_api_ctx.api_ctx,
+                                        lua,
+                                        params,
+                                    )
                                 },
                             )?;
 
@@ -293,14 +312,19 @@ impl BattleLuaApi {
                         rollback_mlua::String,
                         rollback_mlua::Value,
                     )| {
-                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data() else {
+                        let Some(dynamic_api_ctx): Option<Rc<DynamicApiCtx>> = lua.app_data()
+                        else {
                             // try value on self
                             self_table.raw_set(key, value)?;
                             return Ok(());
                         };
 
                         let function_name = key.to_str()?;
-                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(table_index, NEWINDEX_CALLBACK, function_name) else {
+                        let Some(dynamic_function) = dynamic_api_ctx.dynamic_function(
+                            table_index,
+                            NEWINDEX_CALLBACK,
+                            function_name,
+                        ) else {
                             // try value on self
                             self_table.raw_set(key, value)?;
                             return Ok(());

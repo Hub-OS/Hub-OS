@@ -46,7 +46,7 @@ impl SoundBuffer {
         let globals = game_io.resource::<Globals>().unwrap();
         let Some(sound_font) = globals.music.sound_font.as_ref() else {
             // no sound font loaded
-            return Self::new_empty()
+            return Self::new_empty();
         };
 
         // create the sythesizer and midi sequencer
@@ -76,7 +76,7 @@ impl SoundBuffer {
         sequencer.render(&mut left, &mut right);
 
         // merge left + right channels, alternating from left to right
-        let iterator = left.into_iter().interleave(right.into_iter());
+        let iterator = left.into_iter().interleave(right);
 
         // convert into i16
         let multiplier = i16::MAX as f32;

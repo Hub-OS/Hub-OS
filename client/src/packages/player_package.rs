@@ -69,7 +69,7 @@ impl PlayerPackage {
         let setup = PlayerSetup::new(self, 0, true);
 
         let Ok(entity_id) = simulation.load_player(game_io, &vms, setup) else {
-            return (ResourcePaths::BLANK.to_string(), Animator::new())
+            return (ResourcePaths::BLANK.to_string(), Animator::new());
         };
 
         // grab the entitiy

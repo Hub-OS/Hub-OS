@@ -632,7 +632,7 @@ impl BattleState {
                 // collision callback
                 let entities = &mut simulation.entities;
                 let Ok(spell) = entities.query_one_mut::<&Spell>(attacker_id.into()) else {
-                    continue
+                    continue;
                 };
 
                 let collision_callback = spell.collision_callback.clone();
@@ -1337,9 +1337,10 @@ impl BattleState {
                 continue;
             }
 
+            let entities = &mut simulation.entities;
             let entity_id = action.entity;
 
-            let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
                 continue;
             };
 

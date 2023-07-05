@@ -370,8 +370,7 @@ fn forward_jump(text: &str, start: usize) -> usize {
 fn backward_jump(text: &str, end: usize) -> usize {
     text[..end]
         .split_word_bounds()
-        .rev()
-        .next()
+        .next_back()
         .map(|s| s.len())
         .unwrap_or_default()
 }

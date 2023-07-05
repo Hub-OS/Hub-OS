@@ -150,7 +150,7 @@ impl PackagesScene {
             };
 
             let Some(list) = value.as_array() else {
-                return Vec::new()
+                return Vec::new();
             };
 
             list.iter().map(|v| v.into()).collect()

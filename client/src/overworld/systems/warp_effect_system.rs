@@ -95,7 +95,9 @@ pub fn system_warp_effect(game_io: &mut GameIO, area: &mut OverworldArea) {
             } => {
                 Excluded::decrement(entities, actor_entity);
 
-                let Ok(components) = entities.query_one_mut::<(&mut Vec3, &mut Direction)>(actor_entity) else {
+                let Ok(components) =
+                    entities.query_one_mut::<(&mut Vec3, &mut Direction)>(actor_entity)
+                else {
                     continue;
                 };
 
@@ -120,11 +122,17 @@ fn handle_walk_out(
     actor_entity: hecs::Entity,
     mut direction: Direction,
 ) -> bool {
-    let Ok(mut components) = entities.query_one::<(&Vec3, &Direction, &mut WarpController, &mut MovementAnimator)>(actor_entity) else {
+    let Ok(mut components) = entities.query_one::<(
+        &Vec3,
+        &Direction,
+        &mut WarpController,
+        &mut MovementAnimator,
+    )>(actor_entity) else {
         return false;
     };
 
-    let Some((position, player_direction, warp_controller, movement_animator)) = components.get() else {
+    let Some((position, player_direction, warp_controller, movement_animator)) = components.get()
+    else {
         return false;
     };
 

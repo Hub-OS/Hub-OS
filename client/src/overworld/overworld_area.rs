@@ -156,7 +156,8 @@ impl OverworldArea {
 
     fn animating_position(&self) -> bool {
         let entities = &self.entities;
-        let Ok(mut query) = entities.query_one::<&ActorPropertyAnimator>(self.player_data.entity) else {
+        let Ok(mut query) = entities.query_one::<&ActorPropertyAnimator>(self.player_data.entity)
+        else {
             return false;
         };
 

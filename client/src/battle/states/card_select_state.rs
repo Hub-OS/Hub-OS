@@ -834,7 +834,8 @@ impl CardSelectState {
     }
 
     fn animate_form_list(&mut self, simulation: &mut BattleSimulation) {
-        let Some(selection) = self.player_selections.iter().find(|selection| selection.local) else {
+        let mut selections_iter = self.player_selections.iter();
+        let Some(selection) = selections_iter.find(|selection| selection.local) else {
             return;
         };
 

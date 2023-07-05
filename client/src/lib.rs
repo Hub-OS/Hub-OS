@@ -11,6 +11,8 @@
 #![allow(clippy::needless_collect)]
 // it should be easy to read conditions, i don't want clever compression
 #![allow(clippy::nonminimal_bool)]
+// unit structs may eventually gain properties
+#![allow(clippy::default_constructed_unit_structs)]
 
 mod args;
 mod battle;

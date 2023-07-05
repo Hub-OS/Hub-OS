@@ -74,7 +74,9 @@ impl Living {
         mut hit_props: HitProperties,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+        let Ok((entity, living)) =
+            entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+        else {
             return;
         };
 
@@ -114,7 +116,9 @@ impl Living {
         );
 
         let entities = &mut simulation.entities;
-        let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into()) else {
+        let Ok((entity, living)) =
+            entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+        else {
             return;
         };
 
@@ -143,7 +147,9 @@ impl Living {
             let aggressor_id = hit_props.context.aggressor;
 
             let notify_aggressor = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                let Ok(aggressor_entity) = simulation.entities.query_one_mut::<&Entity>(aggressor_id.into()) else {
+                let entities = &mut simulation.entities;
+                let Ok(aggressor_entity) = entities.query_one_mut::<&Entity>(aggressor_id.into())
+                else {
                     return;
                 };
 
