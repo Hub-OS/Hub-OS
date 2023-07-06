@@ -4,7 +4,7 @@ The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickPro
 
 ## Special Thanks
 
-- Alison Allbright
+- Abigail Allbright
 - Alrysc
 - cantrem404
 - CosmicNobab
@@ -17,6 +17,7 @@ The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickPro
 - FrozenLake
 - Gemini
 - Gray Nine
+- Gwyneth Hestin
 - JamesKing
 - JonTheBurger
 - KayThree
@@ -28,6 +29,7 @@ The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickPro
 - Mars
 - Mint
 - Mithalan
+- Mx. Claris Glennwood
 - nickblock
 - OuroYisus
 - Pion
