@@ -17,8 +17,7 @@ impl Deck {
             cards: Vec::new(),
         }
     }
-
-    // todo: handle card classes, likely will need to take in game_io and namespace for resolving card classes
+    
     pub fn shuffle(
         &mut self,
         game_io: &GameIO,
@@ -29,22 +28,22 @@ impl Deck {
         let globals = game_io.resource::<Globals>().unwrap();
         self.cards.shuffle(rng);
         
-        // If the deck is less than 20 cards, don't try to giga shuffle.
+        // If the deck is less than 10 cards, don't try to giga shuffle.
         if self.cards.len() < 10 {
             return;
         }
         
         let mut non_giga_vec = Vec::new();
         // Cycle every card past the required 10 to count non-gigas
-        for count in 10..self.cards.len() {
-            let non_giga_card = &self.cards[count];
+        for i in 10..self.cards.len() {
+            let non_giga_card = &self.cards[i];
             let Some(package) = globals.card_packages.package_or_fallback(namespace, &non_giga_card.package_id) else {
                 continue;
             };
             if package.card_properties.card_class == CardClass::Giga {
                 continue;
             }
-            non_giga_vec.push(count);
+            non_giga_vec.push(i);
         }
         
         // Do not proceed without non-giga
@@ -56,9 +55,9 @@ impl Deck {
         non_giga_vec.shuffle(rng);
 
         // Cycle the initial 10 starting at index 0
-        for count in 0..=9 {
+        for i in 0..=9 {
             // Get the card we're on, skip loop if it's blank somehow
-            let card = &self.cards[count];
+            let card = &self.cards[i];
             let Some(package) = globals.card_packages.package_or_fallback(namespace, &card.package_id) else {
                 continue;
             };
@@ -74,7 +73,7 @@ impl Deck {
             };
             
             // Swap the cards.
-            self.cards.swap(count, swap_index);
+            self.cards.swap(i, swap_index);
         }
     }
 }
