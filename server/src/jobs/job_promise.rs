@@ -25,7 +25,7 @@ impl JobPromise {
         if let Ok(lock) = self.internal_promise.try_lock() {
             let promise_option = &*lock;
 
-            return matches!(promise_option, None);
+            return promise_option.is_none();
         }
 
         true
@@ -33,7 +33,7 @@ impl JobPromise {
 
     pub fn get_value(&mut self) -> Option<PromiseValue> {
         if let Ok(mut lock) = self.internal_promise.try_lock() {
-            return (*lock).take();
+            return lock.take();
         }
 
         None
