@@ -13,7 +13,9 @@ pub struct MapLayer {
 }
 
 impl MapLayer {
-    pub fn new(id: u32, name: String, width: usize, height: usize, data: Vec<u32>) -> MapLayer {
+    pub fn new(id: u32, name: String, width: usize, height: usize, mut data: Vec<u32>) -> MapLayer {
+        data.resize(width * height, 0);
+
         MapLayer {
             id,
             name,
@@ -36,9 +38,15 @@ impl MapLayer {
     }
 
     pub fn get_tile(&self, x: usize, y: usize) -> Tile {
-        let raw = self.data[y * self.width + x];
+        if x >= self.width || y >= self.height {
+            return Tile::default();
+        }
 
-        Tile::from(raw)
+        let Some(raw) = self.data.get(y * self.width + x) else {
+            return Tile::default();
+        };
+
+        Tile::from(*raw)
     }
 
     pub fn set_tile(&mut self, x: usize, y: usize, tile: Tile) {

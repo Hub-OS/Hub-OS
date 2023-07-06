@@ -78,15 +78,20 @@ impl Map {
             cached_string: String::from(""),
         };
 
-        let map_element: minidom::Element = text.parse().expect("Invalid Tiled map file");
+        let Ok(map_document) = roxmltree::Document::parse(text) else {
+            log::error!("Invalid Tiled map file");
+            return map;
+        };
 
-        map.width = unwrap_and_parse_or_default(map_element.attr("width"));
-        map.height = unwrap_and_parse_or_default(map_element.attr("height"));
-        map.tile_width = unwrap_and_parse_or_default(map_element.attr("tilewidth"));
-        map.tile_height = unwrap_and_parse_or_default(map_element.attr("tileheight"));
+        let map_element = map_document.root_element();
 
-        map.next_layer_id = unwrap_and_parse_or_default(map_element.attr("nextlayerid"));
-        map.next_object_id = unwrap_and_parse_or_default(map_element.attr("nextobjectid"));
+        map.width = unwrap_and_parse_or_default(map_element.attribute("width"));
+        map.height = unwrap_and_parse_or_default(map_element.attribute("height"));
+        map.tile_width = unwrap_and_parse_or_default(map_element.attribute("tilewidth"));
+        map.tile_height = unwrap_and_parse_or_default(map_element.attribute("tileheight"));
+
+        map.next_layer_id = unwrap_and_parse_or_default(map_element.attribute("nextlayerid"));
+        map.next_object_id = unwrap_and_parse_or_default(map_element.attribute("nextobjectid"));
 
         let scale_x = 1.0 / (map.tile_width as f32 * 0.5);
         let scale_y = 1.0 / map.tile_height as f32;
@@ -94,21 +99,21 @@ impl Map {
         let mut object_layers = 0;
 
         for child in map_element.children() {
-            match child.name() {
+            match child.tag_name().name() {
                 "properties" => {
                     for property in child.children() {
-                        let name = property.attr("name").unwrap_or_default();
+                        let name = property.attribute("name").unwrap_or_default();
                         let value = property
-                            .attr("value")
-                            .map(|value| value.to_string())
-                            .unwrap_or_else(|| child.text());
+                            .attribute("value")
+                            .or_else(|| child.text())
+                            .unwrap_or_default();
 
-                        map.set_custom_property(name, value);
+                        map.set_custom_property(name, value.to_string());
                     }
                 }
                 "tileset" => {
-                    let first_gid: u32 = unwrap_and_parse_or_default(child.attr("firstgid"));
-                    let mut path = child.attr("source").unwrap_or_default().to_string();
+                    let first_gid: u32 = unwrap_and_parse_or_default(child.attribute("firstgid"));
+                    let mut path = child.attribute("source").unwrap_or_default().to_string();
 
                     const ASSETS_RELATIVE_PATH: &str = "../assets/";
 
@@ -120,41 +125,45 @@ impl Map {
                     map.tilesets.push(TilesetInfo { first_gid, path });
                 }
                 "layer" => {
-                    let id: u32 = unwrap_and_parse_or_default(child.attr("id"));
-                    let name: String = child.attr("name").unwrap_or_default().to_string();
+                    let id: u32 = unwrap_and_parse_or_default(child.attribute("id"));
+                    let name: String = child.attribute("name").unwrap_or_default().to_string();
 
                     // map name might be missing if the file wasn't generated
                     map.indicate_layer_offset_issues(name.as_str(), map.layers.len(), child);
 
-                    let data_element = child
-                        .get_child("data", minidom::NSChoice::Any)
-                        .unwrap_or_else(|| {
-                            panic!("{}: Missing data element for layer {:?}!", map.name, name)
-                        });
+                    let Some(data_element) =
+                        child.children().find(|el| el.tag_name().name() == "data")
+                    else {
+                        log::error!("{}: Missing data element for layer {:?}!", map.name, name);
+                        continue;
+                    };
 
-                    if data_element.attr("encoding") != Some("csv") {
+                    if data_element.attribute("encoding") != Some("csv") {
                         log::warn!(
                             "{}: Layer {:?} is using incorrect format, only CSV format is supported! (Check map properties)",
                             map.name, name
                         );
+                        MapLayer::new(id, name, map.width, map.height, Vec::new());
+                        continue;
                     }
 
                     // actual handling
-                    let data: Vec<u32> = data_element
-                        .text()
+                    let text = data_element.text().unwrap_or_default();
+
+                    let data: Vec<u32> = text
                         .split(',')
                         .map(|value| value.trim().parse().unwrap_or_default())
                         .collect();
 
                     let mut layer = MapLayer::new(id, name, map.width, map.height, data);
 
-                    let visible = child.attr("visible").unwrap_or_default() != "0";
+                    let visible = child.attribute("visible").unwrap_or_default() != "0";
                     layer.set_visible(visible);
 
                     map.layers.push(layer);
                 }
                 "objectgroup" => {
-                    let name: &str = child.attr("name").unwrap_or_default();
+                    let name: &str = child.attribute("name").unwrap_or_default();
 
                     // map name might be missing if the file wasn't generated
                     map.indicate_layer_offset_issues(name, object_layers, child);
@@ -196,15 +205,15 @@ impl Map {
             }
         }
 
-        if map_element.attr("orientation") != Some("isometric") {
+        if map_element.attribute("orientation") != Some("isometric") {
             log::warn!("{}: Only Isometric orientation is supported!", map.name);
         }
 
-        if map_element.attr("infinite") == Some("1") {
+        if map_element.attribute("infinite") == Some("1") {
             log::warn!("{}: Infinite maps are not supported!", map.name);
         }
 
-        if !matches!(map_element.attr("staggerindex"), None | Some("odd")) {
+        if !matches!(map_element.attribute("staggerindex"), None | Some("odd")) {
             log::warn!("{}: Stagger Index must be set to Odd!", map.name);
         }
 
@@ -215,13 +224,13 @@ impl Map {
         &self,
         layer_name: &str,
         layer_index: usize,
-        layer_element: &minidom::Element,
+        layer_element: roxmltree::Node,
     ) {
         // warnings
         let manual_horizontal_offset: i32 =
-            unwrap_and_parse_or_default(layer_element.attr("offsetx"));
+            unwrap_and_parse_or_default(layer_element.attribute("offsetx"));
         let manual_vertical_offset: i32 =
-            unwrap_and_parse_or_default(layer_element.attr("offsety"));
+            unwrap_and_parse_or_default(layer_element.attribute("offsety"));
         let correct_vertical_offset = layer_index as i32 * -((self.tile_height / 2) as i32);
 
         if manual_horizontal_offset != 0 {
@@ -464,11 +473,11 @@ impl Map {
     }
 
     pub fn get_tile(&self, x: usize, y: usize, z: usize) -> Tile {
-        if self.layers.len() <= z || self.width <= x || self.height <= y {
-            Tile::default()
-        } else {
-            self.layers[z].get_tile(x, y)
-        }
+        let Some(layer) = self.layers.get(z) else {
+            return Tile::default();
+        };
+
+        layer.get_tile(x, y)
     }
 
     pub fn set_tile(&mut self, x: usize, y: usize, z: usize, tile: Tile) {

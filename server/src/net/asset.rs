@@ -130,7 +130,7 @@ impl Asset {
         } else {
             return;
         };
-        
+
         if let Ok(tileset_document) = roxmltree::Document::parse(&data) {
             let tileset_element = tileset_document.root_element();
             for child in tileset_element.children() {
@@ -364,17 +364,34 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
 
 fn translate_tsx(path: &std::path::Path, data: &str) -> Option<String> {
     use crate::helpers::normalize_path;
+    use std::ops::Range;
 
     let root_path = std::path::Path::new("/server");
     let path_base = path.parent()?;
-    let mut tileset_element = data.parse::<minidom::Element>().ok()?;
+    let tileset_document = roxmltree::Document::parse(data).ok()?;
+    let tileset_element = tileset_document.root_element();
 
-    for child in tileset_element.children_mut() {
-        if child.name() != "image" {
+    let start_offset = data.as_ptr() as usize;
+    let mut patches = Vec::new();
+
+    for child in tileset_element.children() {
+        if child.tag_name().name() != "image" {
             continue;
         }
 
-        let source = path_base.join(child.attr("source")?);
+        let Some(original_source) = child.attribute("source") else {
+            continue;
+        };
+
+        // resolve range
+        let range_start = original_source.as_ptr() as usize - start_offset;
+        let range = Range {
+            start: range_start,
+            end: original_source.len() + range_start,
+        };
+
+        // create replacement text
+        let source = path_base.join(original_source);
         let mut normalized_source = normalize_path(&source);
 
         if normalized_source.starts_with("assets") {
@@ -385,12 +402,15 @@ fn translate_tsx(path: &std::path::Path, data: &str) -> Option<String> {
         // adjust windows paths
         let corrected_source = normalized_source.to_string_lossy().replace('\\', "/");
 
-        child.set_attr("source", corrected_source);
+        patches.push((range, corrected_source));
     }
 
-    let mut output: Vec<u8> = Vec::new();
+    // apply patches
+    let mut updated_data = data.to_string();
 
-    tileset_element.write_to(&mut output).ok()?;
+    for (range, text) in patches.into_iter().rev() {
+        updated_data.replace_range(range, &text);
+    }
 
-    Some(String::from_utf8_lossy(&output[..]).into_owned())
+    Some(updated_data)
 }

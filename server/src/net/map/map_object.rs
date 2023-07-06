@@ -43,65 +43,60 @@ pub enum MapObjectData {
 }
 
 impl MapObject {
-    pub fn from(element: &minidom::Element, layer: usize, scale_x: f32, scale_y: f32) -> MapObject {
-        let name = element.attr("name").unwrap_or_default().to_string();
+    pub fn from(element: roxmltree::Node, layer: usize, scale_x: f32, scale_y: f32) -> MapObject {
+        let name = element.attribute("name").unwrap_or_default().to_string();
         let class = element
-            .attr("class")
-            .or_else(|| element.attr("type"))
+            .attribute("class")
+            .or_else(|| element.attribute("type"))
             .unwrap_or_default()
             .to_string();
-        let visible: bool = element.attr("visible").unwrap_or_default() != "0";
-        let id: u32 = unwrap_and_parse_or_default(element.attr("id"));
-        let gid: u32 = unwrap_and_parse_or_default(element.attr("gid"));
-        let x = unwrap_and_parse_or_default::<f32>(element.attr("x")) * scale_x;
-        let y = unwrap_and_parse_or_default::<f32>(element.attr("y")) * scale_y;
-        let width = unwrap_and_parse_or_default::<f32>(element.attr("width")) * scale_x;
-        let height = unwrap_and_parse_or_default::<f32>(element.attr("height")) * scale_y;
-        let rotation: f32 = unwrap_and_parse_or_default(element.attr("rotation"));
+        let visible: bool = element.attribute("visible").unwrap_or_default() != "0";
+        let id: u32 = unwrap_and_parse_or_default(element.attribute("id"));
+        let gid: u32 = unwrap_and_parse_or_default(element.attribute("gid"));
+        let x = unwrap_and_parse_or_default::<f32>(element.attribute("x")) * scale_x;
+        let y = unwrap_and_parse_or_default::<f32>(element.attribute("y")) * scale_y;
+        let width = unwrap_and_parse_or_default::<f32>(element.attribute("width")) * scale_x;
+        let height = unwrap_and_parse_or_default::<f32>(element.attribute("height")) * scale_y;
+        let rotation: f32 = unwrap_and_parse_or_default(element.attribute("rotation"));
 
         let mut custom_properties = HashMap::new();
 
-        if let Some(properties_element) = element.get_child("properties", minidom::NSChoice::Any) {
+        let is_properties_element = |el: &roxmltree::Node| el.tag_name().name() == "properties";
+
+        if let Some(properties_element) = element.children().find(is_properties_element) {
             for child in properties_element.children() {
-                if child.name() != "property" {
+                if child.tag_name().name() != "property" {
                     continue;
                 }
 
-                let name = child.attr("name").unwrap_or_default();
-                let value = child
-                    .attr("value")
-                    .map(|value| value.to_string())
-                    .unwrap_or_else(|| child.text());
+                let name = child.attribute("name").unwrap_or_default();
+                let value = child.attribute("value").or_else(|| child.text());
 
-                custom_properties.insert(name.to_string(), value);
+                custom_properties.insert(name.to_string(), value.unwrap_or_default().to_string());
             }
         }
+
+        let is_polyline_element = |el: &roxmltree::Node| el.tag_name().name() == "polyline";
+        let is_polygon_element = |el: &roxmltree::Node| el.tag_name().name() == "polygon";
+        let is_ellipse_element = |el: roxmltree::Node| el.tag_name().name() == "ellipse";
 
         let data = if gid != 0 {
             MapObjectData::TileObject {
                 tile: Tile::from(gid),
             }
-        } else if element.has_child("polyline", minidom::NSChoice::Any) {
-            let points_element = element
-                .get_child("polyline", minidom::NSChoice::Any)
-                .unwrap();
-
-            let points_str = points_element.attr("points").unwrap_or_default();
+        } else if let Some(points_element) = element.children().find(is_polyline_element) {
+            let points_str = points_element.attribute("points").unwrap_or_default();
 
             MapObjectData::Polyline {
                 points: read_points(points_str),
             }
-        } else if element.has_child("polygon", minidom::NSChoice::Any) {
-            let points_element = element
-                .get_child("polygon", minidom::NSChoice::Any)
-                .unwrap();
-
-            let points_str = points_element.attr("points").unwrap_or_default();
+        } else if let Some(points_element) = element.children().find(is_polygon_element) {
+            let points_str = points_element.attribute("points").unwrap_or_default();
 
             MapObjectData::Polygon {
                 points: read_points(points_str),
             }
-        } else if element.has_child("ellipse", minidom::NSChoice::Any) {
+        } else if element.children().any(is_ellipse_element) {
             MapObjectData::Ellipse
         } else if width == 0.0 && height == 0.0 {
             MapObjectData::Point
