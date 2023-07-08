@@ -55,7 +55,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(game_io: &GameIO, id: EntityId, animator_index: generational_arena::Index) -> Self {
+    fn new(game_io: &GameIO, id: EntityId, animator_index: generational_arena::Index) -> Self {
         let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
 
         let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
@@ -110,6 +110,36 @@ impl Entity {
             }),
             delete_callbacks: Vec::new(),
         }
+    }
+
+    pub fn create(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
+        let id: EntityId = Self::reserve(simulation);
+
+        let mut animator = BattleAnimator::new();
+        animator.set_target(id, GenerationalIndex::tree_root());
+        animator.disable();
+
+        let animator_index = simulation.animators.insert(animator);
+
+        simulation
+            .entities
+            .spawn_at(id.into(), (Entity::new(game_io, id, animator_index),));
+
+        id
+    }
+
+    fn reserve(simulation: &mut BattleSimulation) -> EntityId {
+        let id = simulation.entities.reserve_entity();
+
+        let match_id = |stored: &&mut hecs::Entity| stored.id() == id.id();
+
+        if let Some(stored) = simulation.generation_tracking.iter_mut().find(match_id) {
+            *stored = id;
+        } else {
+            simulation.generation_tracking.push(id);
+        }
+
+        id.into()
     }
 
     pub fn full_position(&self) -> FullEntityPosition {

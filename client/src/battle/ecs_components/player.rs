@@ -3,7 +3,7 @@ use crate::bindable::*;
 use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Card;
+use crate::saves::{BlockGrid, Card};
 use framework::prelude::*;
 use generational_arena::Arena;
 
@@ -50,7 +50,7 @@ impl Player {
 
     pub const HIT_FRAMES: [DerivedFrame; 2] = [DerivedFrame::new(0, 15), DerivedFrame::new(1, 7)];
 
-    pub fn new(game_io: &GameIO, setup: PlayerSetup, charge_sprite_index: TreeIndex) -> Self {
+    fn new(game_io: &GameIO, setup: PlayerSetup, charge_sprite_index: TreeIndex) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
@@ -84,6 +84,268 @@ impl Player {
             charged_attack_callback: BattleCallback::stub(None),
             special_attack_callback: BattleCallback::stub(None),
         }
+    }
+
+    pub fn load(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        mut setup: PlayerSetup,
+    ) -> rollback_mlua::Result<EntityId> {
+        let local = setup.local;
+        let player_package = setup.player_package;
+        let blocks = std::mem::take(&mut setup.blocks);
+
+        // namespace for using cards / attacks
+        let namespace = setup.namespace();
+        let id = Character::create(game_io, simulation, CharacterRank::V1, namespace)?;
+
+        let (entity, living) = simulation
+            .entities
+            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
+            .unwrap();
+
+        // spawn immediately
+        entity.pending_spawn = true;
+
+        // prevent attacks from countering by default
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
+
+        // use preloaded package properties
+        entity.element = player_package.element;
+        entity.name = player_package.name.clone();
+        living.status_director.set_input_index(setup.index);
+
+        // derive states
+        let move_anim_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_MOVE",
+            Player::MOVE_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        let flinch_anim_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_HIT",
+            Player::HIT_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        entity.move_anim_state = Some(move_anim_state);
+        living.flinch_anim_state = Some(flinch_anim_state);
+
+        let charge_index =
+            (entity.sprite_tree).insert_root_child(SpriteNode::new(game_io, SpriteColorMode::Add));
+        let charge_sprite = &mut entity.sprite_tree[charge_index];
+        charge_sprite.set_texture(game_io, ResourcePaths::BATTLE_CHARGE.to_string());
+        charge_sprite.set_visible(false);
+        charge_sprite.set_layer(-2);
+        charge_sprite.set_offset(Vec2::new(0.0, -20.0));
+
+        // delete callback
+        entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
+            delete_player_animation(game_io, simulation, id);
+        });
+
+        // flinch callback
+        living.register_status_callback(
+            HitFlag::FLINCH,
+            BattleCallback::new(move |game_io, simulation, vms, _| {
+                // cancel previous action
+                let entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(id.into())
+                    .unwrap();
+
+                if let Some(index) = entity.action_index {
+                    simulation.delete_actions(game_io, vms, &[index]);
+                }
+
+                let (entity, living, player) = simulation
+                    .entities
+                    .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
+                    .unwrap();
+
+                if !living.status_director.is_dragged() {
+                    // cancel movement
+                    entity.movement = None;
+                }
+
+                player.charging_time = 0;
+
+                // play flinch animation
+                let animator = &mut simulation.animators[entity.animator_index];
+
+                let callbacks = animator.set_state(living.flinch_anim_state.as_ref().unwrap());
+                simulation.pending_callbacks.extend(callbacks);
+
+                // on complete will return to idle
+                animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
+                    let entity = simulation
+                        .entities
+                        .query_one_mut::<&Entity>(id.into())
+                        .unwrap();
+
+                    let animator = &mut simulation.animators[entity.animator_index];
+
+                    let callbacks = animator.set_state(Player::IDLE_STATE);
+                    animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    simulation.pending_callbacks.extend(callbacks);
+
+                    simulation.call_pending_callbacks(game_io, vms);
+                }));
+
+                simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
+                simulation.call_pending_callbacks(game_io, vms);
+            }),
+        );
+
+        // hit callback for decross
+        living.register_hit_callback(BattleCallback::new(
+            move |game_io, simulation, _, hit_props: HitProperties| {
+                if hit_props.damage == 0 {
+                    return;
+                }
+
+                if local {
+                    simulation.statistics.hits_taken += 1;
+                }
+
+                let (entity, living, player) = simulation
+                    .entities
+                    .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
+                    .unwrap();
+
+                if living.health <= 0 || entity.deleted {
+                    // skip decross if we're already deleted
+                    return;
+                }
+
+                if !entity.element.is_weak_to(hit_props.element)
+                    && !entity.element.is_weak_to(hit_props.secondary_element)
+                {
+                    // not super effective
+                    return;
+                }
+
+                // deactivate form
+                let Some(index) = player.active_form.take() else {
+                    return;
+                };
+
+                simulation.time_freeze_tracker.start_decross();
+
+                let form = &mut player.forms[index];
+                form.deactivated = true;
+
+                if let Some(callback) = form.deactivate_callback.clone() {
+                    simulation.pending_callbacks.push(callback);
+                }
+
+                // spawn shine fx
+                let mut shine_position = entity.full_position();
+                shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+
+                // play revert sfx
+                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+                simulation.play_sound(game_io, &sfx.transform_revert);
+
+                // actual shine creation as indicated above
+                let shine_id = Artifact::create_transformation_shine(game_io, simulation);
+                let shine_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(shine_id.into())
+                    .unwrap();
+
+                // shine position, set to spawn
+                shine_entity.copy_full_position(shine_position);
+                shine_entity.pending_spawn = true;
+            },
+        ));
+
+        // resolve health boost
+        // todo: move to Augment?
+        let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
+
+        let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
+            acc + package.health_boost * level as i32
+        });
+
+        living.max_health = setup.base_health + health_boost;
+        living.set_health(setup.health);
+
+        // insert entity
+        let script_enabled = setup.script_enabled;
+        simulation
+            .entities
+            .insert_one(id.into(), Player::new(game_io, setup, charge_index))
+            .unwrap();
+
+        // init player
+        if script_enabled {
+            // call init function
+            let package_info = &player_package.package_info;
+            let vm_index =
+                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+
+            simulation.call_global(game_io, vms, vm_index, "player_init", move |lua| {
+                crate::lua_api::create_entity_table(lua, id)
+            })?;
+        } else {
+            // default init, sprites + animation only
+            let (texture_path, animator) = player_package.resolve_battle_sprite(game_io);
+
+            // regrab entity
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(id.into())
+                .unwrap();
+
+            // adopt texture
+            let sprite_node = entity.sprite_tree.root_mut();
+            sprite_node.set_texture(game_io, texture_path);
+
+            // adopt animator
+            let battle_animator = &mut simulation.animators[entity.animator_index];
+            let callbacks = battle_animator.copy_from_animator(&animator);
+            battle_animator.find_and_apply_to_target(&mut simulation.entities);
+
+            // callbacks
+            simulation.pending_callbacks.extend(callbacks);
+            simulation.call_pending_callbacks(game_io, vms);
+        }
+
+        // init blocks
+        for (package, level) in grid.augments(game_io) {
+            let package_info = &package.package_info;
+            let vm_index =
+                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+
+            let player = simulation
+                .entities
+                .query_one_mut::<&mut Player>(id.into())
+                .unwrap();
+            let index = player.augments.insert(Augment::from((package, level)));
+
+            let lua = &vms[vm_index].lua;
+            let lua_globals = lua.globals();
+            let has_init = lua_globals.contains_key("augment_init").unwrap_or_default();
+
+            if !has_init {
+                continue;
+            }
+
+            let result =
+                simulation.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
+                    crate::lua_api::create_augment_table(lua, id, index)
+                });
+
+            if let Err(e) = result {
+                log::error!("{e}");
+            }
+        }
+
+        Ok(id)
     }
 
     pub fn initialize_uninitialized(simulation: &mut BattleSimulation) {

@@ -130,9 +130,10 @@ impl BattleScene {
             }
 
             // shuffle cards
-            setup.deck.shuffle(game_io, &mut scene.simulation.rng, setup.namespace());
+            let rng = &mut scene.simulation.rng;
+            setup.deck.shuffle(game_io, rng, setup.namespace());
 
-            let result = scene.simulation.load_player(game_io, &scene.vms, setup);
+            let result = Player::load(game_io, &mut scene.simulation, &scene.vms, setup);
 
             if let Err(e) = result {
                 log::error!("{e}");

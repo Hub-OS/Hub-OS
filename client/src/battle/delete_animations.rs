@@ -1,4 +1,4 @@
-use super::{BattleCallback, BattleSimulation, Component, Entity, Living};
+use super::{Artifact, BattleCallback, BattleSimulation, Component, Entity, Living};
 use crate::bindable::EntityId;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
@@ -29,7 +29,7 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
     // create transformation shine artifact
     Component::new_player_deletion(simulation, id);
 
-    let artifact_id = simulation.create_transformation_shine(game_io);
+    let artifact_id = Artifact::create_transformation_shine(game_io, simulation);
     let artifact_entity = simulation
         .entities
         .query_one_mut::<&mut Entity>(artifact_id.into())

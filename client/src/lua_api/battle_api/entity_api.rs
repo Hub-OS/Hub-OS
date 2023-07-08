@@ -1,11 +1,8 @@
 use super::animation_api::create_animation_table;
-use super::errors::action_aready_used;
-use super::errors::action_not_found;
-use super::errors::entity_not_found;
-use super::errors::invalid_sync_node;
-use super::errors::mismatched_entity;
-use super::errors::package_not_loaded;
-use super::errors::too_many_forms;
+use super::errors::{
+    action_aready_used, action_not_found, entity_not_found, invalid_sync_node, mismatched_entity,
+    package_not_loaded, too_many_forms,
+};
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
@@ -28,22 +25,25 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     inject_player_api(lua_api);
 
     generate_constructor_fn(lua_api, ARTIFACT_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_artifact(api_ctx.game_io))
+        Ok(Artifact::create(api_ctx.game_io, api_ctx.simulation))
     });
     generate_constructor_fn(lua_api, SPELL_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_spell(api_ctx.game_io))
+        Ok(Spell::create(api_ctx.game_io, api_ctx.simulation))
     });
     generate_constructor_fn(lua_api, OBSTACLE_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_obstacle(api_ctx.game_io))
+        Ok(Obstacle::create(api_ctx.game_io, api_ctx.simulation))
     });
     generate_constructor_fn(lua_api, EXPLOSION_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_explosion(api_ctx.game_io))
+        Ok(Artifact::create_explosion(
+            api_ctx.game_io,
+            api_ctx.simulation,
+        ))
     });
     generate_constructor_fn(lua_api, POOF_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_poof(api_ctx.game_io))
+        Ok(Artifact::create_poof(api_ctx.game_io, api_ctx.simulation))
     });
     generate_constructor_fn(lua_api, ALERT_TABLE, |api_ctx| {
-        Ok(api_ctx.simulation.create_alert(api_ctx.game_io))
+        Ok(Artifact::create_alert(api_ctx.game_io, api_ctx.simulation))
     });
 
     generate_cast_fn::<&Artifact>(lua_api, ARTIFACT_TABLE);
@@ -782,8 +782,9 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
-        let id = api_ctx.simulation.load_character(
+        let id = Character::load(
             api_ctx.game_io,
+            api_ctx.simulation,
             api_ctx.vms,
             &package_id,
             namespace,

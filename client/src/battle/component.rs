@@ -1,4 +1,5 @@
 use super::{BattleCallback, BattleSimulation, Entity};
+use crate::battle::Artifact;
 use crate::bindable::{ComponentLifetime, EntityId};
 use crate::render::FrameTime;
 use framework::prelude::{Color, Vec2};
@@ -119,7 +120,7 @@ impl Component {
                 entity.offset + entity.tile_offset + Vec2::new(0.0, entity.elevation);
 
             if elapsed_time % EXPLOSION_RATE == 0 && elapsed_time < total_duration - END_DELAY {
-                let id = simulation.create_explosion(game_io);
+                let id = Artifact::create_explosion(game_io, simulation);
                 let explosion_entity = simulation
                     .entities
                     .query_one_mut::<&mut Entity>(id.into())

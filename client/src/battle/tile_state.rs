@@ -1,4 +1,5 @@
 use super::{BattleCallback, Entity, Living};
+use crate::battle::Artifact;
 use crate::bindable::{Element, EntityId, HitFlag, HitProperties, Movement};
 use crate::render::FrameTime;
 use crate::resources::{
@@ -409,7 +410,7 @@ impl TileState {
 
                 living.status_director.apply_status(HitFlag::ROOT, 20);
 
-                let splash_id = simulation.create_splash(game_io);
+                let splash_id = Artifact::create_splash(game_io, simulation);
                 simulation.request_entity_spawn(splash_id, position);
             },
         );

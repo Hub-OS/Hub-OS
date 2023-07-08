@@ -43,7 +43,7 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        let hitbox_id = simulation.create_spell(api_ctx.game_io);
+        let hitbox_id = Spell::create(api_ctx.game_io, simulation);
 
         let (hitbox_entity, hitbox_spell) = simulation
             .entities

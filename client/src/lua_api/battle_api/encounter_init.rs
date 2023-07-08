@@ -1,6 +1,6 @@
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
-use crate::battle::{BattleInitMusic, BattleScriptContext, Entity};
+use crate::battle::{BattleInitMusic, BattleScriptContext, Character, Entity};
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
@@ -244,8 +244,9 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
         let vm = &api_ctx.vms[api_ctx.vm_index];
         let namespace = vm.preferred_namespace();
 
-        let id = api_ctx.simulation.load_character(
+        let id = Character::load(
             api_ctx.game_io,
+            api_ctx.simulation,
             api_ctx.vms,
             &package_id,
             namespace,

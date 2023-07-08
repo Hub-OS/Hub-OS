@@ -1,5 +1,5 @@
 use super::*;
-use crate::battle::{BattleSimulation, Entity, PlayerSetup};
+use crate::battle::{BattleSimulation, Entity, Player, PlayerSetup};
 use crate::bindable::Element;
 use crate::lua_api::create_battle_vm;
 use crate::render::ui::{PackageListing, PackagePreviewData};
@@ -68,7 +68,7 @@ impl PlayerPackage {
         // load player into the simulation
         let setup = PlayerSetup::new(self, 0, true);
 
-        let Ok(entity_id) = simulation.load_player(game_io, &vms, setup) else {
+        let Ok(entity_id) = Player::load(game_io, &mut simulation, &vms, setup) else {
             return (ResourcePaths::BLANK.to_string(), Animator::new());
         };
 

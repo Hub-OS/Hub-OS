@@ -1,5 +1,7 @@
 use super::{State, TurnStartState};
-use crate::battle::{BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets};
+use crate::battle::{
+    Artifact, BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets,
+};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::{AnimatorLoopMode, FrameTime};
@@ -170,7 +172,7 @@ impl FormActivateState {
             let mut full_position = entity.full_position();
             full_position.offset += Vec2::new(0.0, -entity.height * 0.5);
 
-            let shine_id = simulation.create_transformation_shine(game_io);
+            let shine_id = Artifact::create_transformation_shine(game_io, simulation);
             let shine_entity = simulation
                 .entities
                 .query_one_mut::<&mut Entity>(shine_id.into())
