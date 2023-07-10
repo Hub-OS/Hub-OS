@@ -1,4 +1,4 @@
-imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/fonts/fonts.png"
+imagePath="fonts.png"
 
 animation state="SMALL_U000041"
 frame duration="0" x="4" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
@@ -1362,6 +1362,9 @@ frame duration="0.05" x="748" y="113" w="7" h="11" originx="0" originy="0" flipx
 
 animation state="GRADIENT_ORANGE_U00002D"
 frame duration="0.05" x="738" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="GRADIENT_ORANGE_U000041"
+frame duration="0.05" x="836" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="THICK_U00E000"
 frame duration="0.05" x="298" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
