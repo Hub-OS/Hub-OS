@@ -128,15 +128,17 @@ impl Card {
         label.draw(game_io, sprite_queue, &self.code);
 
         // damage
-        label.color = Color::WHITE;
-        let text = format!("{:>3}", package.card_properties.damage);
+        if package.card_properties.damage > 0 {
+            label.color = Color::WHITE;
+            let text = format!("{:>3}", package.card_properties.damage);
 
-        let damage_width = label.measure(&text).size.x;
-        let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
-        damage_offset.x -= DAMAGE_OFFSET.x - DAMAGE_OFFSET.x * scale.x;
+            let damage_width = label.measure(&text).size.x;
+            let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
+            damage_offset.x -= DAMAGE_OFFSET.x - DAMAGE_OFFSET.x * scale.x;
 
-        label.bounds.set_position(damage_offset + position);
-        label.draw(game_io, sprite_queue, &text);
+            label.bounds.set_position(damage_offset + position);
+            label.draw(game_io, sprite_queue, &text);
+        }
     }
 
     pub fn draw_list_item(
