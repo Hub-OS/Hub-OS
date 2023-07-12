@@ -74,6 +74,14 @@ impl Restrictions {
         self.base_deck_restrictions.clone()
     }
 
+    pub fn card_ownership_enabled(&self) -> bool {
+        !self.owned_cards.is_empty()
+    }
+
+    pub fn card_iter(&self) -> impl Iterator<Item = (&Card, usize)> {
+        self.owned_cards.iter().map(|(card, count)| (card, *count))
+    }
+
     pub fn card_count(&self, game_io: &GameIO, card: &Card) -> usize {
         if self.owned_cards.is_empty() {
             // use package info

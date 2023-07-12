@@ -874,6 +874,7 @@ impl CardListItem {
         let package_manager = &globals.card_packages;
         let restrictions = &globals.restrictions;
 
+        // track card usage for resolving cards remaining in pack
         let mut use_counts = HashMap::new();
 
         for card in &active_deck.cards {
@@ -883,38 +884,72 @@ impl CardListItem {
                 .or_insert(1);
         }
 
-        package_manager
-            .packages_with_override(NAMESPACE)
-            .filter(|package| {
-                restrictions.validate_package_tree(game_io, package.package_info.triplet())
-            })
-            .flat_map(|package| {
-                let package_info = package.package_info();
+        let map_to_item_with_count = |(valid_package, card, use_limit)| {
+            let use_count = use_counts.get(&card).cloned().unwrap_or_default();
+            let count = use_limit as isize - use_count;
 
-                package
-                    .default_codes
-                    .iter()
-                    .map(|code| {
+            CardListItem {
+                card,
+                valid: valid_package && count > 0,
+                count,
+                show_count: true,
+            }
+        };
+
+        if restrictions.card_ownership_enabled() {
+            // use owned cards list + existing cards in folder for pack
+            let mut package_validity = HashMap::new();
+
+            let existing_iter = use_counts.keys().map(|card| (*card, 0));
+            let owned_iter = restrictions.card_iter().filter(|(card, _)| {
+                // filter for installed cards only
+                package_manager
+                    .package_or_fallback(NAMESPACE, &card.package_id)
+                    .is_some()
+            });
+
+            let cards: HashMap<_, _> = existing_iter.chain(owned_iter).collect();
+
+            cards
+                .into_iter()
+                .map(|(card, count)| {
+                    let valid_package =
+                        *package_validity.entry(&card.package_id).or_insert_with(|| {
+                            let package_id = card.package_id.clone();
+                            let triplet = (PackageCategory::Card, NAMESPACE, package_id);
+
+                            restrictions.validate_package_tree(game_io, triplet)
+                        });
+
+                    (valid_package, card.clone(), count)
+                })
+                .map(map_to_item_with_count)
+                .filter(|item| item.count != 0)
+                .map(Some)
+                .collect()
+        } else {
+            // use all packages for pack
+            package_manager
+                .packages_with_override(NAMESPACE)
+                .flat_map(|package| {
+                    let package_info = package.package_info();
+                    let triplet = package.package_info.triplet();
+                    let valid_package = restrictions.validate_package_tree(game_io, triplet);
+
+                    package.default_codes.iter().map(move |code| {
                         let card = Card {
                             package_id: package_info.id.clone(),
                             code: code.clone(),
                         };
 
-                        let use_count = use_counts.get(&card).cloned().unwrap_or_default();
-                        let use_limit = restrictions.card_count(game_io, &card);
-                        let count = use_limit as isize - use_count;
-
-                        CardListItem {
-                            card,
-                            valid: count > 0,
-                            count,
-                            show_count: true,
-                        }
+                        (valid_package, card, package.limit)
                     })
-                    .filter(|item| item.count != 0)
-                    .map(Some)
-            })
-            .collect()
+                })
+                .map(map_to_item_with_count)
+                .filter(|item| item.count != 0)
+                .map(Some)
+                .collect()
+        }
     }
 
     pub fn draw_list_item(
