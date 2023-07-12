@@ -72,6 +72,34 @@ impl Restrictions {
         self.owned_players.is_empty() || self.owned_players.contains(id)
     }
 
+    pub fn add_card(&mut self, card: Card, count: isize) {
+        self.owned_cards
+            .entry(card)
+            .and_modify(|existing_count| {
+                *existing_count = (*existing_count as isize + count).max(0) as usize;
+            })
+            .or_insert(if count > 0 { count as usize } else { 0 });
+    }
+
+    pub fn add_block(&mut self, package_id: PackageId, color: BlockColor, count: isize) {
+        let key = (Cow::Owned(package_id), color);
+
+        self.owned_blocks
+            .entry(key)
+            .and_modify(|existing_count| {
+                *existing_count = (*existing_count as isize + count).max(0) as usize;
+            })
+            .or_insert(if count > 0 { count as usize } else { 0 });
+    }
+
+    pub fn enable_player_character(&mut self, package_id: PackageId, enabled: bool) {
+        if enabled {
+            self.owned_players.insert(package_id);
+        } else {
+            self.owned_players.remove(&package_id);
+        }
+    }
+
     /// Returns true if the package and its dependencies are valid
     pub fn validate_package_tree(
         &self,

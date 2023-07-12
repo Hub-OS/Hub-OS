@@ -21,19 +21,17 @@ impl Inventory {
         self.items.iter()
     }
 
-    pub fn give_item(&mut self, item_id: &str, count: usize) {
-        if let Some((_, c)) = self.items.iter_mut().find(|(id, _)| id == item_id) {
-            *c += count;
-        } else {
-            self.items.push((item_id.to_string(), count));
-        }
-    }
+    pub fn give_item(&mut self, item_id: &str, count: isize) {
+        let item_iter = self.items.iter_mut();
 
-    pub fn remove_item(&mut self, item_id: &str, count: usize) {
-        if let Some((_, c)) = self.items.iter_mut().find(|(id, _)| id == item_id) {
-            // we don't delete this item, only set the count to zero
-            // allows us to keep this item marked as registered
-            *c = (*c).max(count) - count;
+        if let Some((index, (_, c))) = item_iter.enumerate().find(|(_, (id, _))| id == item_id) {
+            *c = (*c as isize + count).max(0) as usize;
+
+            if *c == 0 {
+                self.items.swap_remove(index);
+            }
+        } else if count > 0 {
+            self.items.push((item_id.to_string(), count as usize));
         }
     }
 

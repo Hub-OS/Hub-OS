@@ -10,7 +10,7 @@ use crate::render::ui::{
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
-use crate::saves::BlockGrid;
+use crate::saves::{BlockGrid, Card};
 use crate::scenes::BattleScene;
 use bimap::BiMap;
 use framework::prelude::*;
@@ -492,8 +492,31 @@ impl OverworldOnlineScene {
             ServerPacket::AddItem { id, count } => {
                 self.area.player_data.inventory.give_item(&id, count);
             }
-            ServerPacket::RemoveItem { id, count } => {
-                self.area.player_data.inventory.remove_item(&id, count);
+            ServerPacket::AddCard {
+                package_id,
+                code,
+                count,
+            } => {
+                let card = Card { package_id, code };
+
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                globals.restrictions.add_card(card, count);
+            }
+            ServerPacket::AddBlock {
+                package_id,
+                color,
+                count,
+            } => {
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                globals.restrictions.add_block(package_id, color, count);
+            }
+            ServerPacket::EnablePlayableCharacter {
+                package_id,
+                enabled,
+            } => {
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let restrictions = &mut globals.restrictions;
+                restrictions.enable_player_character(package_id, enabled);
             }
             ServerPacket::PlaySound { path } => {
                 let sound = self.assets.audio(game_io, &path);

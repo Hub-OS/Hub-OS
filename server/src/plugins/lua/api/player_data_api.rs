@@ -1,7 +1,8 @@
 use super::lua_errors::create_player_error;
 use super::LuaApi;
 use crate::net::ItemDefinition;
-use packets::structures::Emotion;
+use packets::structures::{BlockColor, Emotion, PackageId};
+use std::borrow::Cow;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "get_player_secret", |api_ctx, lua, params| {
@@ -174,25 +175,13 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "give_player_item", |api_ctx, lua, params| {
-        let (player_id, item_id, count): (mlua::String, String, Option<usize>) =
+        let (player_id, item_id, count): (mlua::String, String, Option<isize>) =
             lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.give_player_item(player_id_str, item_id, count.unwrap_or(1));
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "remove_player_item", |api_ctx, lua, params| {
-        let (player_id, item_id, count): (mlua::String, String, Option<usize>) =
-            lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.remove_player_item(player_id_str, item_id, count.unwrap_or(1));
 
         lua.pack_multi(())
     });
@@ -259,5 +248,122 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let description = item.map(|item| item.description.clone());
 
         lua.pack_multi(description)
+    });
+
+    lua_api.add_dynamic_function("Net", "get_player_card_count", |api_ctx, lua, params| {
+        let (player_id, card_id, code): (mlua::String, mlua::String, mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let (player_id_str, card_str, code_str) =
+            (player_id.to_str()?, card_id.to_str()?, code.to_str()?);
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(player_data) = &net.get_player_data(player_id_str) {
+            let key = (Cow::Borrowed(card_str), Cow::Borrowed(code_str));
+            let stored_count = player_data.owned_cards.get(&key);
+            let count = stored_count.cloned().unwrap_or_default();
+
+            lua.pack_multi(count)
+        } else {
+            Err(create_player_error(player_id_str))
+        }
+    });
+
+    // ### `Net.give_player_card(player_id, package_id, code, amount?)`
+    lua_api.add_dynamic_function("Net", "give_player_card", |api_ctx, lua, params| {
+        let (player_id, package_id, code, count): (
+            mlua::String,
+            mlua::String,
+            mlua::String,
+            isize,
+        ) = lua.unpack_multi(params)?;
+
+        let (player_id_str, package_id_str, code_str) =
+            (player_id.to_str()?, package_id.to_str()?, code.to_str()?);
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.give_player_card(
+            player_id_str,
+            PackageId::from(package_id_str),
+            code_str.to_string(),
+            count,
+        );
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "get_player_block_count", |api_ctx, lua, params| {
+        let (player_id, package_id, color_string): (mlua::String, mlua::String, mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let (player_id_str, package_id_str, color_str) = (
+            player_id.to_str()?,
+            package_id.to_str()?,
+            color_string.to_str()?,
+        );
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(player_data) = &net.get_player_data(player_id_str) {
+            let color = BlockColor::from(color_str);
+
+            let key = (Cow::Borrowed(package_id_str), color);
+            let stored_count = player_data.owned_blocks.get(&key);
+            let count = stored_count.cloned().unwrap_or_default();
+
+            lua.pack_multi(count)
+        } else {
+            Err(create_player_error(player_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "give_player_block", |api_ctx, lua, params| {
+        let (player_id, package_id, color_string, count): (
+            mlua::String,
+            mlua::String,
+            mlua::String,
+            isize,
+        ) = lua.unpack_multi(params)?;
+
+        let (player_id_str, package_id_str, color_str) = (
+            player_id.to_str()?,
+            package_id.to_str()?,
+            color_string.to_str()?,
+        );
+
+        let color = BlockColor::from(color_str);
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.give_player_block(player_id_str, PackageId::from(package_id_str), color, count);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "player_character_enabled", |api_ctx, lua, params| {
+        let (player_id, package_id): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
+        let (player_id_str, package_id_str) = (player_id.to_str()?, package_id.to_str()?);
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(player_data) = &net.get_player_data(player_id_str) {
+            let owns_character = player_data.owned_players.contains(package_id_str);
+
+            lua.pack_multi(owns_character)
+        } else {
+            Err(create_player_error(player_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "enable_player_character", |api_ctx, lua, params| {
+        let (player_id, package_id, enabled): (mlua::String, mlua::String, bool) =
+            lua.unpack_multi(params)?;
+
+        let (player_id_str, package_id_str) = (player_id.to_str()?, package_id.to_str()?);
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.enable_player_character(player_id_str, PackageId::from(package_id_str), enabled);
+
+        lua.pack_multi(())
     });
 }

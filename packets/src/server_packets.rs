@@ -80,11 +80,21 @@ pub enum ServerPacket {
     },
     AddItem {
         id: String,
-        count: usize,
+        count: isize,
     },
-    RemoveItem {
-        id: String,
-        count: usize,
+    AddCard {
+        package_id: PackageId,
+        code: String,
+        count: isize,
+    },
+    AddBlock {
+        package_id: PackageId,
+        color: BlockColor,
+        count: isize,
+    },
+    EnablePlayableCharacter {
+        package_id: PackageId,
+        enabled: bool,
     },
     PlaySound {
         path: String,

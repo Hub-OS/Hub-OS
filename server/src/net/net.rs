@@ -1324,7 +1324,7 @@ impl Net {
         self.item_registry.insert(item_id, item);
     }
 
-    pub fn give_player_item(&mut self, player_id: &str, item_id: String, count: usize) {
+    pub fn give_player_item(&mut self, player_id: &str, item_id: String, count: isize) {
         let client = if let Some(client) = self.clients.get_mut(player_id) {
             client
         } else {
@@ -1361,14 +1361,68 @@ impl Net {
         );
     }
 
-    pub fn remove_player_item(&mut self, player_id: &str, item_id: String, count: usize) {
+    pub fn give_player_card(
+        &mut self,
+        player_id: &str,
+        package_id: PackageId,
+        code: String,
+        count: isize,
+    ) {
         if let Some(client) = self.clients.get_mut(player_id) {
-            client.player_data.inventory.remove_item(&item_id, count);
+            client.player_data.add_card(&package_id, &code, count);
 
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
-                ServerPacket::RemoveItem { id: item_id, count },
+                ServerPacket::AddCard {
+                    package_id,
+                    code,
+                    count,
+                },
+            );
+        }
+    }
+
+    pub fn give_player_block(
+        &mut self,
+        player_id: &str,
+        package_id: PackageId,
+        color: BlockColor,
+        count: isize,
+    ) {
+        if let Some(client) = self.clients.get_mut(player_id) {
+            client.player_data.add_block(&package_id, color, count);
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::AddBlock {
+                    package_id,
+                    color,
+                    count,
+                },
+            );
+        }
+    }
+
+    pub fn enable_player_character(
+        &mut self,
+        player_id: &str,
+        package_id: PackageId,
+        enabled: bool,
+    ) {
+        if let Some(client) = self.clients.get_mut(player_id) {
+            client
+                .player_data
+                .enable_player_character(&package_id, enabled);
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::EnablePlayableCharacter {
+                    package_id,
+                    enabled,
+                },
             );
         }
     }
