@@ -551,8 +551,10 @@ impl BattleState {
             }
         }
 
+        let queued_attacks = std::mem::take(&mut simulation.queued_attacks);
+
         // interactions between attack boxes and tiles
-        for attack_box in &simulation.queued_attacks {
+        for attack_box in &queued_attacks {
             let field = &mut simulation.field;
             let Some(tile) = field.tile_at_mut((attack_box.x, attack_box.y)) else {
                 continue;
@@ -586,7 +588,7 @@ impl BattleState {
 
             let mut attack_boxes = Vec::new();
 
-            for attack_box in &simulation.queued_attacks {
+            for attack_box in &queued_attacks {
                 if entity.x != attack_box.x || entity.y != attack_box.y {
                     // not on the same tile
                     continue;
@@ -708,7 +710,6 @@ impl BattleState {
         }
 
         simulation.field.resolve_wash();
-        simulation.queued_attacks.clear();
     }
 
     fn mark_deleted(
