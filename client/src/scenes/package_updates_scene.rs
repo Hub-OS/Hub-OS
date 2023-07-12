@@ -15,7 +15,7 @@ use super::PackageScene;
 
 enum Event {
     ViewList,
-    ViewPackage { listing: PackageListing },
+    ViewPackage { listing: Box<PackageListing> },
     Update,
     Leave,
 }
@@ -111,7 +111,7 @@ impl PackageUpdatesScene {
 
                     move || {
                         let event = Event::ViewPackage {
-                            listing: listing.clone(),
+                            listing: Box::new(listing.clone()),
                         };
 
                         event_sender.send(event).unwrap();
@@ -216,7 +216,7 @@ impl PackageUpdatesScene {
                     self.buttons.set_focused(false);
                 }
                 Event::ViewPackage { listing } => {
-                    self.next_scene = NextScene::new_push(PackageScene::new(game_io, listing))
+                    self.next_scene = NextScene::new_push(PackageScene::new(game_io, *listing))
                         .with_transition(crate::transitions::new_sub_scene(game_io));
                 }
                 Event::Update => {

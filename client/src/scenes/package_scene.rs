@@ -391,7 +391,7 @@ impl PackageScene {
     fn request_author(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let repo = globals.config.package_repo.clone();
+        let repo = &globals.config.package_repo;
         let listing = self.preview.listing();
         let encoded_id = uri_encode(&listing.creator);
         let uri = format!("{repo}/api/users/{encoded_id}");

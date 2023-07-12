@@ -6,7 +6,7 @@ use packets::address_parsing::uri_encode;
 use packets::structures::{PackageCategory, PackageId};
 
 enum Event {
-    ReceivedListing(PackageListing),
+    ReceivedListing(Box<PackageListing>),
     InstallPackage,
     Failed,
     Success,
@@ -138,7 +138,7 @@ impl RepoPackageUpdater {
 
             let listing = PackageListing::from(&value);
 
-            Event::ReceivedListing(listing)
+            Event::ReceivedListing(Box::new(listing))
         });
 
         self.task = Some(task);
