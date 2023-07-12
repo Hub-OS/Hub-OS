@@ -642,19 +642,9 @@ impl ConfigScene {
                     global_save.save();
                 }
                 Event::ViewPackages => {
-                    let globals = &mut game_io.resource::<Globals>().unwrap();
-
-                    if !globals.connected_to_server {
-                        let scene = PackagesScene::new(game_io, CategoryFilter::default());
-                        let transition = crate::transitions::new_sub_scene(game_io);
-                        self.next_scene = NextScene::new_push(scene).with_transition(transition);
-                    } else {
-                        let message = String::from("You should jack out before updating mods.");
-                        let interface = TextboxMessage::new(message);
-
-                        self.textbox.push_interface(interface);
-                        self.textbox.open();
-                    }
+                    let scene = PackagesScene::new(game_io, CategoryFilter::default());
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::UpdatePackages => {
                     let globals = &mut game_io.resource::<Globals>().unwrap();

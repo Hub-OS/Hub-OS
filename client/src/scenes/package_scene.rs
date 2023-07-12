@@ -318,15 +318,26 @@ impl PackageScene {
                 self.package_updater.begin(game_io, [listing.id.clone()]);
             }
             Event::Delete => {
-                self.delete_package(game_io);
-                self.reload_buttons(game_io);
+                let globals = game_io.resource::<Globals>().unwrap();
 
-                // update player avatar
-                self.textbox.use_player_avatar(game_io);
+                if globals.connected_to_server {
+                    let interface = TextboxMessage::new(String::from(
+                        "Package can't be deleted while connected to a server.",
+                    ));
 
-                let interface = TextboxMessage::new(String::from("Package deleted."));
-                self.textbox.push_interface(interface);
-                self.textbox.open();
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                } else {
+                    self.delete_package(game_io);
+                    self.reload_buttons(game_io);
+
+                    // update player avatar
+                    self.textbox.use_player_avatar(game_io);
+
+                    let interface = TextboxMessage::new(String::from("Package deleted."));
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
+                }
             }
         }
     }
