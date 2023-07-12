@@ -1,3 +1,4 @@
+use crate::render::ui::PackageListing;
 use framework::prelude::{NextScene, Vec3};
 use packets::structures::{BattleStatistics, Direction};
 
@@ -24,6 +25,7 @@ pub enum OverworldEvent {
     Disconnected {
         message: String,
     },
+    PackageReferred(PackageListing),
     NextScene(NextScene),
     Leave,
 }

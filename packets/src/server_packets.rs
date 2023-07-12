@@ -207,6 +207,9 @@ pub enum ServerPacket {
     RemoveShopItem {
         id: String,
     },
+    ReferPackage {
+        package_id: PackageId,
+    },
     OfferPackage {
         name: String,
         id: String,

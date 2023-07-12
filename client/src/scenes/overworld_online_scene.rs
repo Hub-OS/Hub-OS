@@ -1,12 +1,12 @@
-use super::{InitialConnectScene, NetplayInitScene, NetplayProps};
+use super::{InitialConnectScene, NetplayInitScene, NetplayProps, PackageScene};
 use crate::battle::BattleProps;
 use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage, TextboxPrompt,
-    TextboxQuestion, TextboxQuiz,
+    PackageListing, TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage,
+    TextboxPrompt, TextboxQuestion, TextboxQuiz,
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
@@ -14,6 +14,7 @@ use crate::saves::{BlockGrid, Card};
 use crate::scenes::BattleScene;
 use bimap::BiMap;
 use framework::prelude::*;
+use packets::address_parsing::uri_encode;
 use packets::structures::{ActorProperty, BattleStatistics, FileHash, SpriteParent};
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -902,6 +903,26 @@ impl OverworldOnlineScene {
                     shop.remove_item(&id);
                 }
             }
+            ServerPacket::ReferPackage { package_id } => {
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                let repo = &globals.config.package_repo;
+                let encoded_id = uri_encode(package_id.as_str());
+                let uri = format!("{repo}/api/mods/{encoded_id}/meta");
+
+                let event_sender = self.area.event_sender.clone();
+
+                game_io
+                    .spawn_local_task(async move {
+                        let Some(value) = crate::http::request_json(&uri).await else {
+                            return;
+                        };
+
+                        let listing = PackageListing::from(&value);
+                        let _ = event_sender.send(OverworldEvent::PackageReferred(listing));
+                    })
+                    .detach()
+            }
             ServerPacket::OfferPackage {
                 id,
                 name,
@@ -1499,6 +1520,13 @@ impl OverworldOnlineScene {
                     }
 
                     self.connected = false;
+                }
+                OverworldEvent::PackageReferred(listing) => {
+                    let scene = PackageScene::new(game_io, listing);
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let next_scene = NextScene::new_push(scene).with_transition(transition);
+
+                    self.next_scene_queue.push_back(next_scene);
                 }
                 OverworldEvent::NextScene(next_scene) => {
                     self.next_scene_queue.push_back(next_scene);

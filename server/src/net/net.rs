@@ -1088,6 +1088,20 @@ impl Net {
         );
     }
 
+    pub fn refer_package(&mut self, player_id: &str, package_id: PackageId) {
+        let client = if let Some(client) = self.clients.get_mut(player_id) {
+            client
+        } else {
+            return;
+        };
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::ReferPackage { package_id },
+        );
+    }
+
     pub fn offer_package(&mut self, player_id: &str, package_path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
