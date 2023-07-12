@@ -111,7 +111,10 @@ impl Scene for InitialConnectScene {
                     ServerPacket::LoadPackage { .. }
                     | ServerPacket::InitiateEncounter { .. }
                     | ServerPacket::InitiateNetplay { .. }
-                    | ServerPacket::Restrictions { .. } => {
+                    | ServerPacket::Restrictions { .. }
+                    | ServerPacket::AddCard { .. }
+                    | ServerPacket::AddBlock { .. }
+                    | ServerPacket::EnablePlayableCharacter { .. } => {
                         self.deferred_packets.push(packet);
                     }
                     packet => {

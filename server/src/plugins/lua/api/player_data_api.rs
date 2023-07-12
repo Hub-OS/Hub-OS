@@ -270,13 +270,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
-    // ### `Net.give_player_card(player_id, package_id, code, amount?)`
     lua_api.add_dynamic_function("Net", "give_player_card", |api_ctx, lua, params| {
         let (player_id, package_id, code, count): (
             mlua::String,
             mlua::String,
             mlua::String,
-            isize,
+            Option<isize>,
         ) = lua.unpack_multi(params)?;
 
         let (player_id_str, package_id_str, code_str) =
@@ -287,7 +286,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             player_id_str,
             PackageId::from(package_id_str),
             code_str.to_string(),
-            count,
+            count.unwrap_or(1),
         );
 
         lua.pack_multi(())
@@ -323,7 +322,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             mlua::String,
             mlua::String,
             mlua::String,
-            isize,
+            Option<isize>,
         ) = lua.unpack_multi(params)?;
 
         let (player_id_str, package_id_str, color_str) = (
@@ -335,7 +334,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let color = BlockColor::from(color_str);
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.give_player_block(player_id_str, PackageId::from(package_id_str), color, count);
+        net.give_player_block(
+            player_id_str,
+            PackageId::from(package_id_str),
+            color,
+            count.unwrap_or(1),
+        );
 
         lua.pack_multi(())
     });
@@ -356,13 +360,17 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "enable_player_character", |api_ctx, lua, params| {
-        let (player_id, package_id, enabled): (mlua::String, mlua::String, bool) =
+        let (player_id, package_id, enabled): (mlua::String, mlua::String, Option<bool>) =
             lua.unpack_multi(params)?;
 
         let (player_id_str, package_id_str) = (player_id.to_str()?, package_id.to_str()?);
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.enable_player_character(player_id_str, PackageId::from(package_id_str), enabled);
+        net.enable_player_character(
+            player_id_str,
+            PackageId::from(package_id_str),
+            enabled.unwrap_or(true),
+        );
 
         lua.pack_multi(())
     });
