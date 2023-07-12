@@ -3,15 +3,18 @@ use std::fmt::{Debug, Display};
 
 #[derive(Default, Hash, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub struct FileHash {
-    bytes: [u8; 16],
+    bytes: [u8; 32],
 }
 
 impl FileHash {
-    pub const ZERO: FileHash = FileHash { bytes: [0; 16] };
+    pub const ZERO: FileHash = FileHash { bytes: [0; 32] };
 
     pub fn hash(data: &[u8]) -> Self {
+        let mut hasher = hmac_sha256::Hash::new();
+        hasher.update(data);
+
         Self {
-            bytes: md5::compute(data).0,
+            bytes: hasher.finalize(),
         }
     }
 

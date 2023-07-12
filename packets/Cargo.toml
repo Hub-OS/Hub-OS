@@ -15,7 +15,7 @@ rollback_mlua = { git = "https://github.com/Real-PET/rollback-mlua", optional = 
 log = "0.4"
 async-std = "1.12"
 strum = { version = "0.24", features = ["derive"] }
-md5 = "0.7"
+hmac-sha256 = "1"
 hex = "0.4.3"
 enum-map = "2.4"
 
