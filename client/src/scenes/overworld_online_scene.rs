@@ -939,11 +939,15 @@ impl OverworldOnlineScene {
                         .insert(package_path, package_info.id.clone());
                 }
             }
-            ServerPacket::ModWhitelist { whitelist_path } => {
-                log::warn!("ModWhitelist hasn't been implemented")
-            }
-            ServerPacket::ModBlacklist { blacklist_path } => {
-                log::warn!("ModBlacklist hasn't been implemented")
+            ServerPacket::Restrictions { restrictions_path } => {
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let restrictions = &mut globals.restrictions;
+
+                let restrictions_text = restrictions_path
+                    .map(|path| self.assets.text(&path))
+                    .unwrap_or_default();
+
+                restrictions.load_restrictions_toml(restrictions_text);
             }
             ServerPacket::InitiateEncounter { package_path, data } => {
                 let globals = game_io.resource::<Globals>().unwrap();

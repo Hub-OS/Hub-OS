@@ -858,8 +858,10 @@ impl CardListItem {
             })
             .collect();
 
-        // force total requirement
-        card_items.resize_with(deck_restrictions.required_total, || None);
+        // ensure enough slots for the total requirement
+        if card_items.len() < deck_restrictions.required_total {
+            card_items.resize_with(deck_restrictions.required_total, || None);
+        }
 
         card_items
     }

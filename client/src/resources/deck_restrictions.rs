@@ -4,9 +4,11 @@ use crate::packages::{AugmentPackage, CardPackage, PackageManager, PackageNamesp
 use crate::saves::{Card, Deck};
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
+use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
+#[serde(default)]
 pub struct DeckRestrictions {
     pub required_total: usize,
     pub mega_limit: usize,

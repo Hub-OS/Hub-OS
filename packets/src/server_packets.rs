@@ -217,11 +217,8 @@ pub enum ServerPacket {
         category: PackageCategory,
         package_path: String,
     },
-    ModWhitelist {
-        whitelist_path: Option<String>,
-    },
-    ModBlacklist {
-        blacklist_path: Option<String>,
+    Restrictions {
+        restrictions_path: Option<String>,
     },
     InitiateEncounter {
         package_path: String,

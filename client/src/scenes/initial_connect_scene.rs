@@ -110,7 +110,8 @@ impl Scene for InitialConnectScene {
                     }
                     ServerPacket::LoadPackage { .. }
                     | ServerPacket::InitiateEncounter { .. }
-                    | ServerPacket::InitiateNetplay { .. } => {
+                    | ServerPacket::InitiateNetplay { .. }
+                    | ServerPacket::Restrictions { .. } => {
                         self.deferred_packets.push(packet);
                     }
                     packet => {

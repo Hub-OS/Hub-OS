@@ -2,10 +2,8 @@ use super::{DeckRestrictions, Globals};
 use crate::{packages::PackageNamespace, saves::Card};
 use framework::prelude::GameIO;
 use packets::structures::{BlockColor, FileHash, InstalledBlock, PackageCategory, PackageId};
-use std::{
-    borrow::Cow,
-    collections::{HashMap, HashSet},
-};
+use std::borrow::Cow;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Default)]
 pub struct Restrictions {
@@ -18,6 +16,55 @@ pub struct Restrictions {
 }
 
 impl Restrictions {
+    pub fn load_restrictions_toml(&mut self, text: String) {
+        let mut root_table: toml::Table = text.parse().unwrap_or_else(|err| {
+            log::error!("Failed to parse restrictions: {err}");
+            toml::Table::default()
+        });
+
+        // [deck]
+        self.base_deck_restrictions = root_table
+            .remove("deck")
+            .and_then(|value| match toml::Value::try_into(value) {
+                Ok(restrictions) => Some(restrictions),
+                Err(err) => {
+                    log::error!("Failed to parse deck restrictions: {err}");
+                    None
+                }
+            })
+            .unwrap_or_default();
+
+        // [packages]
+        let mut packages_table = root_table.remove("packages").and_then(|value| match value {
+            toml::Value::Table(table) => Some(table),
+            _ => None,
+        });
+
+        let file_hashset_mapper = |mut value: toml::Value| {
+            value.as_array_mut().map(|array| {
+                let values = std::mem::take(array);
+
+                values
+                    .into_iter()
+                    .flat_map(|value| value.as_str().and_then(FileHash::from_hex))
+                    .collect::<HashSet<FileHash>>()
+            })
+        };
+
+        // packages.whitelist
+        self.package_whitelist = packages_table
+            .as_mut()
+            .and_then(|packages_table| packages_table.remove("whitelist"))
+            .and_then(file_hashset_mapper)
+            .unwrap_or_default();
+
+        // packages.blacklist
+        self.package_blacklist = packages_table
+            .and_then(|mut packages_table| packages_table.remove("blacklist"))
+            .and_then(file_hashset_mapper)
+            .unwrap_or_default();
+    }
+
     fn is_hash_allowed(&self, hash: &FileHash) -> bool {
         (self.package_whitelist.is_empty() || self.package_whitelist.contains(hash))
             && (self.package_blacklist.is_empty() || !self.package_blacklist.contains(hash))

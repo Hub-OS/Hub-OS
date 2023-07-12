@@ -1067,44 +1067,23 @@ impl Net {
         }
     }
 
-    pub fn set_mod_whitelist_for_player(&mut self, player_id: &str, whitelist_path: Option<&str>) {
-        if let Some(whitelist_path) = whitelist_path {
+    pub fn set_player_restrictions(&mut self, player_id: &str, restrictions_path: Option<&str>) {
+        if let Some(restrictions_path) = restrictions_path {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
                 self.config.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 &[String::from(player_id)],
-                whitelist_path,
+                restrictions_path,
             );
         };
 
         self.packet_orchestrator.borrow_mut().send_by_id(
             player_id,
             Reliability::ReliableOrdered,
-            ServerPacket::ModWhitelist {
-                whitelist_path: whitelist_path.map(|s| s.to_string()),
-            },
-        );
-    }
-
-    pub fn set_mod_blacklist_for_player(&mut self, player_id: &str, blacklist_path: Option<&str>) {
-        if let Some(blacklist_path) = blacklist_path {
-            ensure_asset(
-                &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
-                &self.asset_manager,
-                &mut self.clients,
-                &[String::from(player_id)],
-                blacklist_path,
-            );
-        }
-
-        self.packet_orchestrator.borrow_mut().send_by_id(
-            player_id,
-            Reliability::ReliableOrdered,
-            ServerPacket::ModBlacklist {
-                blacklist_path: blacklist_path.map(|s| s.to_string()),
+            ServerPacket::Restrictions {
+                restrictions_path: restrictions_path.map(|s| s.to_string()),
             },
         );
     }
