@@ -24,9 +24,10 @@ pub enum UpdateStatus {
 pub struct RepoPackageUpdater {
     status: UpdateStatus,
     task: Option<AsyncTask<Event>>,
-    queue: Vec<(Option<PackageCategory>, PackageId)>,
+    queue: Vec<PackageId>,
     queue_position: usize,
-    total_updated: usize,
+    install_required: Vec<(PackageCategory, PackageId)>,
+    install_position: usize,
 }
 
 impl RepoPackageUpdater {
@@ -36,12 +37,13 @@ impl RepoPackageUpdater {
             task: None,
             queue: Vec::new(),
             queue_position: 0,
-            total_updated: 0,
+            install_required: Vec::new(),
+            install_position: 0,
         }
     }
 
     pub fn total_updated(&self) -> usize {
-        self.total_updated
+        self.install_position
     }
 
     pub fn status(&self) -> UpdateStatus {
@@ -52,15 +54,14 @@ impl RepoPackageUpdater {
         self.queue_position
     }
 
-    pub fn begin<I>(&mut self, game_io: &mut GameIO, i: I)
+    pub fn begin<I>(&mut self, game_io: &mut GameIO, into_iter: I)
     where
         I: IntoIterator<Item = PackageId>,
     {
-        self.queue.clear();
+        self.queue = into_iter.into_iter().collect();
         self.queue_position = 0;
-        self.total_updated = 0;
-
-        self.queue.extend(i.into_iter().map(|id| (None, id)));
+        self.install_required.clear();
+        self.install_position = 0;
 
         self.request_latest_listing(game_io);
     }
@@ -77,34 +78,32 @@ impl RepoPackageUpdater {
 
         match event {
             Event::ReceivedListing(listing) => {
-                for (category, id) in listing.dependencies {
-                    let dependency = (Some(category), id);
-
+                for (_, id) in listing.dependencies {
                     // add only unique dependencies to avoid recursive chains
-                    if !self.queue.contains(&dependency) {
-                        self.queue.push(dependency)
+                    if !self.queue.contains(&id) {
+                        self.queue.push(id);
                     }
                 }
 
-                let (optional_category, id) = self.queue.get_mut(self.queue_position).unwrap();
-                *optional_category = listing.preview_data.category();
-
                 let globals = game_io.resource::<Globals>().unwrap();
-                let existing_hash = if let Some(category) = optional_category {
-                    globals
-                        .package_info(*category, PackageNamespace::Local, id)
-                        .map(|package| package.hash)
-                } else {
-                    None
-                };
 
-                if existing_hash == Some(listing.hash) {
-                    // already up to date, get the next package
-                    self.queue_position += 1;
-                    self.request_latest_listing(game_io);
-                } else {
-                    self.download_package(game_io)
+                // test for required install
+                if let Some(category) = listing.preview_data.category() {
+                    let id = &self.queue[self.queue_position];
+
+                    let existing_hash = globals
+                        .package_info(category, PackageNamespace::Local, id)
+                        .map(|package| package.hash);
+
+                    if existing_hash != Some(listing.hash) {
+                        // save package id for install pass
+                        self.install_required.push((category, id.clone()));
+                    }
                 }
+
+                // get the next package
+                self.queue_position += 1;
+                self.request_latest_listing(game_io);
             }
             Event::InstallPackage => {
                 self.install_package(game_io);
@@ -119,8 +118,8 @@ impl RepoPackageUpdater {
     }
 
     fn request_latest_listing(&mut self, game_io: &mut GameIO) {
-        let Some((_, id)) = self.queue.get(self.queue_position) else {
-            self.status = UpdateStatus::Success;
+        let Some(id) = self.queue.get(self.queue_position) else {
+            self.download_package(game_io);
             return;
         };
 
@@ -146,20 +145,10 @@ impl RepoPackageUpdater {
     }
 
     fn download_package(&mut self, game_io: &mut GameIO) {
-        let Some((category, id)) = self.queue.get(self.queue_position) else {
+        let Some(&(category, ref id)) = self.install_required.get(self.install_position) else {
             self.status = UpdateStatus::Success;
             return;
         };
-
-        let Some(category) = *category else {
-            // can't download this (special category such as "pack")
-            // move onto the next queue item
-            self.queue_position += 1;
-            self.request_latest_listing(game_io);
-            return;
-        };
-
-        self.total_updated += 1;
 
         let globals = game_io.resource::<Globals>().unwrap();
         let repo = globals.config.package_repo.clone();
@@ -200,15 +189,8 @@ impl RepoPackageUpdater {
     }
 
     fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, id) = self.queue[self.queue_position].clone();
-        self.queue_position += 1;
-
-        let Some(category) = category else {
-            // special category such as "pack"
-            // just continue working on the queue
-            self.request_latest_listing(game_io);
-            return;
-        };
+        let (category, id) = self.install_required[self.install_position].clone();
+        self.install_position += 1;
 
         // reload package
         let globals = game_io.resource_mut::<Globals>().unwrap();

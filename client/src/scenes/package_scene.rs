@@ -358,13 +358,7 @@ impl PackageScene {
         let message = match status {
             UpdateStatus::Idle => unreachable!(),
             UpdateStatus::CheckingForUpdate => "Checking for updates...",
-            UpdateStatus::DownloadingPackage => {
-                if self.package_updater.processed_packages() == 0 {
-                    "Downloading package..."
-                } else {
-                    "Downloading dependency..."
-                }
-            }
+            UpdateStatus::DownloadingPackage => "Downloading...",
             UpdateStatus::Failed => "Download failed.",
             UpdateStatus::Success => {
                 if self.package_updater.total_updated() == 0 {
