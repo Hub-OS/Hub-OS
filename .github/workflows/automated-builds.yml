@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Real PET
+    name: HubOS
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
@@ -55,7 +55,7 @@ jobs:
           use-cross: true
           args: |
             -p
-            real_pet
+            hub_os
             --release
             --target
             x86_64-pc-windows-gnu
@@ -67,15 +67,15 @@ jobs:
           use-cross: true
           args: |
             -p
-            real_pet_server
+            hub_os_server
             --release
             --target
             x86_64-pc-windows-gnu
 
       - name: Copy Windows Executables
         run: |
-          cp target/x86_64-pc-windows-gnu/release/real_pet.exe target/release/real_pet.exe
-          cp target/x86_64-pc-windows-gnu/release/real_pet_server.exe target/release/real_pet_server.exe
+          cp target/x86_64-pc-windows-gnu/release/hub_os.exe target/release/hub_os.exe
+          cp target/x86_64-pc-windows-gnu/release/hub_os_server.exe target/release/hub_os_server.exe
 
       - name: Install Linux Dependencies
         run: sudo apt install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev

@@ -88,7 +88,7 @@ NOTE: If you're distributing files you should also use `cargo run --bin dist-lic
 
 # Source Tinkering
 
-Same prerequisites as [Building](#building). There's two primary projects in this repo `real_pet` in the `client` folder and `real_pet_server` in the `server` folder.
+Same prerequisites as [Building](#building). There's two primary projects in this repo `hub_os` in the `client` folder and `hub_os_server` in the `server` folder.
 
 These subprojects require files from their respective subfolders to run, such as `resources` for the client. So running the client requires you to use `cargo run` in the client folder where the `resources` folder is available, and running the server must occur within the server folder.
 
