@@ -54,7 +54,7 @@ impl Package for LibraryPackage {
             }
         };
 
-        if meta.category != "library" {
+        if meta.category != "library" && meta.category != "pack" {
             log::error!(
                 "Missing `category = \"library\"` in {:?}",
                 package.package_info.toml_path

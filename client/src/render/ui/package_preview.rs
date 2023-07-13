@@ -45,7 +45,9 @@ impl PackagePreviewData {
             PackagePreviewData::Player { .. } => Some(PackageCategory::Player),
             PackagePreviewData::Augment { .. } => Some(PackageCategory::Augment),
             PackagePreviewData::Encounter => Some(PackageCategory::Encounter),
-            PackagePreviewData::Library => Some(PackageCategory::Library),
+            PackagePreviewData::Library | PackagePreviewData::Pack => {
+                Some(PackageCategory::Library)
+            }
             _ => None,
         }
     }
