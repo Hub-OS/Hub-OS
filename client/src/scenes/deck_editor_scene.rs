@@ -381,7 +381,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         }),
         Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(NAMESPACE, &item.card.package_id)
+                .package_or_override(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.short_name.clone()
@@ -389,14 +389,14 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
         Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(NAMESPACE, &item.card.package_id)
+                .package_or_override(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             -package.card_properties.damage
         }),
         Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(NAMESPACE, &item.card.package_id)
+                .package_or_override(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.element as u8
@@ -404,7 +404,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
         Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_fallback(NAMESPACE, &item.card.package_id)
+                .package_or_override(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.card_class as u8
@@ -528,7 +528,7 @@ fn transfer_to_deck(
 
     let globals = game_io.resource::<Globals>().unwrap();
     let card_manager = &globals.card_packages;
-    let package = card_manager.package_or_fallback(NAMESPACE, &card_item.card.package_id)?;
+    let package = card_manager.package_or_override(NAMESPACE, &card_item.card.package_id)?;
     let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
@@ -752,7 +752,7 @@ impl Dock {
         card_class: CardClass,
     ) -> usize {
         self.card_items()
-            .flat_map(|item| card_manager.package_or_fallback(NAMESPACE, &item.card.package_id))
+            .flat_map(|item| card_manager.package_or_override(NAMESPACE, &item.card.package_id))
             .filter(|package| package.card_properties.card_class == card_class)
             .count()
     }
@@ -904,7 +904,7 @@ impl CardListItem {
             let owned_iter = restrictions.card_iter().filter(|(card, _)| {
                 // filter for installed cards only
                 package_manager
-                    .package_or_fallback(NAMESPACE, &card.package_id)
+                    .package_or_override(NAMESPACE, &card.package_id)
                     .is_some()
             });
 

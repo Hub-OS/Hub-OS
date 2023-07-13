@@ -214,7 +214,7 @@ impl Globals {
         self.character_packages
             .load_child_packages(namespace, child_packages);
 
-        self.package_or_fallback_info(category, namespace, &id)
+        self.package_or_override_info(category, namespace, &id)
     }
 
     pub fn load_package(
@@ -257,7 +257,7 @@ impl Globals {
         self.character_packages
             .load_child_packages(namespace, child_packages);
 
-        self.package_or_fallback_info(category, namespace, &id)
+        self.package_or_override_info(category, namespace, &id)
     }
 
     pub fn unload_package(
@@ -266,7 +266,7 @@ impl Globals {
         namespace: PackageNamespace,
         id: &PackageId,
     ) {
-        let Some(package_info) = self.package_or_fallback_info(category, namespace, id) else {
+        let Some(package_info) = self.package_or_override_info(category, namespace, id) else {
             return;
         };
 
@@ -376,7 +376,7 @@ impl Globals {
         let resolve =
             |(package_category, ns, id): (PackageCategory, PackageNamespace, PackageId)| {
                 Some((
-                    self.package_or_fallback_info(package_category, ns, &id)?,
+                    self.package_or_override_info(package_category, ns, &id)?,
                     ns,
                 ))
             };
@@ -409,7 +409,7 @@ impl Globals {
         package_infos
     }
 
-    pub fn package_or_fallback_info(
+    pub fn package_info(
         &self,
         category: PackageCategory,
         namespace: PackageNamespace,
@@ -418,27 +418,61 @@ impl Globals {
         match category {
             PackageCategory::Encounter => self
                 .encounter_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Augment => self
                 .augment_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Card => self
                 .card_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Character => self
                 .character_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Library => self
                 .library_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Player => self
                 .player_packages
-                .package_or_fallback(namespace, id)
+                .package(namespace, id)
+                .map(|package| package.package_info()),
+        }
+    }
+
+    pub fn package_or_override_info(
+        &self,
+        category: PackageCategory,
+        namespace: PackageNamespace,
+        id: &PackageId,
+    ) -> Option<&PackageInfo> {
+        match category {
+            PackageCategory::Encounter => self
+                .encounter_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Augment => self
+                .augment_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Card => self
+                .card_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Character => self
+                .character_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Library => self
+                .library_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Player => self
+                .player_packages
+                .package_or_override(namespace, id)
                 .map(|package| package.package_info()),
         }
     }
@@ -521,7 +555,7 @@ impl Globals {
         category: PackageCategory,
         id: &PackageId,
     ) -> String {
-        if let Some(package) = self.package_or_fallback_info(category, PackageNamespace::Local, id)
+        if let Some(package) = self.package_or_override_info(category, PackageNamespace::Local, id)
         {
             package.base_path.clone()
         } else {

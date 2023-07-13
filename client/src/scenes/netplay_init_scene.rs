@@ -322,7 +322,7 @@ impl NetplayInitScene {
                     .into_iter()
                     .filter(|(category, id, hash)| {
                         globals
-                            .package_or_fallback_info(*category, PackageNamespace::Local, id)
+                            .package_or_override_info(*category, PackageNamespace::Local, id)
                             .map(|package_info| package_info.hash != *hash) // hashes differ
                             .unwrap_or(true) // non existent
                     })
@@ -619,7 +619,7 @@ impl NetplayInitScene {
             let encounter_package = encounter_package.and_then(|(namespace, package_id)| {
                 globals
                     .encounter_packages
-                    .package_or_fallback(namespace, &package_id)
+                    .package_or_override(namespace, &package_id)
             });
 
             let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
@@ -645,7 +645,7 @@ impl NetplayInitScene {
                 let namespace = PackageNamespace::Netplay(connection.index);
                 let package = globals
                     .player_packages
-                    .package_or_fallback(namespace, &connection.player_package);
+                    .package_or_override(namespace, &connection.player_package);
 
                 let player_package = match package {
                     Some(package) => package,

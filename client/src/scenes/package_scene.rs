@@ -154,7 +154,7 @@ impl PackageScene {
 
         let installed = if let Some(category) = listing.preview_data.category() {
             globals
-                .package_or_fallback_info(category, PackageNamespace::Local, &listing.id)
+                .package_or_override_info(category, PackageNamespace::Local, &listing.id)
                 .is_some()
         } else {
             false

@@ -63,14 +63,14 @@ impl<T: Package> PackageManager<T> {
 
     pub fn packages_with_override(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
         self.package_ids_with_override(ns)
-            .flat_map(move |id| self.package_or_fallback(ns, id))
+            .flat_map(move |id| self.package_or_override(ns, id))
     }
 
     pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         self.package_maps.get(&ns)?.get(id)
     }
 
-    pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
+    pub fn package_or_override(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         ns.find_with_overrides(|ns| self.package(ns, id))
     }
 

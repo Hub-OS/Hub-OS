@@ -89,7 +89,7 @@ impl Restrictions {
             let card_packages = &globals.card_packages;
 
             card_packages
-                .package_or_fallback(PackageNamespace::Local, &card.package_id)
+                .package_or_override(PackageNamespace::Local, &card.package_id)
                 .map(|package| package.limit)
                 .unwrap_or(0)
         } else {
@@ -105,7 +105,7 @@ impl Restrictions {
             let augment_packages = &globals.augment_packages;
 
             augment_packages
-                .package_or_fallback(PackageNamespace::Local, id)
+                .package_or_override(PackageNamespace::Local, id)
                 .map(|package| {
                     package
                         .block_colors
@@ -221,7 +221,7 @@ impl Restrictions {
             }
 
             // test package validity
-            let Some(augment) = augment_packages.package_or_fallback(namespace, id) else {
+            let Some(augment) = augment_packages.package_or_override(namespace, id) else {
                 return false;
             };
 

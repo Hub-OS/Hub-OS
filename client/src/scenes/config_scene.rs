@@ -671,7 +671,7 @@ impl ConfigScene {
                     let requires_update: Vec<_> = results
                         .into_iter()
                         .filter(|(category, id, hash)| {
-                            let Some(package_info) = globals.package_or_fallback_info(
+                            let Some(package_info) = globals.package_or_override_info(
                                 *category,
                                 PackageNamespace::Local,
                                 id,

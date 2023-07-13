@@ -92,7 +92,7 @@ impl RepoPackageUpdater {
                 let globals = game_io.resource::<Globals>().unwrap();
                 let existing_hash = if let Some(category) = optional_category {
                     globals
-                        .package_or_fallback_info(*category, PackageNamespace::Local, id)
+                        .package_info(*category, PackageNamespace::Local, id)
                         .map(|package| package.hash)
                 } else {
                     None

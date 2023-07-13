@@ -213,7 +213,7 @@ impl BattleScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let ns = PackageNamespace::Local;
 
-                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id)
+                    let Some(package) = globals.card_packages.package_or_override(ns, &package_id)
                     else {
                         continue;
                     };

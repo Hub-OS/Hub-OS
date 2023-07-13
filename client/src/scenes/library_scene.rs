@@ -204,7 +204,7 @@ impl Dock {
             .flat_map(|id| {
                 globals
                     .card_packages
-                    .package_or_fallback(PackageNamespace::Local, id)
+                    .package_or_override(PackageNamespace::Local, id)
             })
             .filter(|package| package.card_properties.card_class == card_class)
             .map(|package| Card {

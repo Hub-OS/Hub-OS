@@ -305,7 +305,7 @@ impl Scene for PackageUpdatesScene {
             .into_iter()
             .filter(|(category, id, hash)| {
                 let Some(package_info) =
-                    globals.package_or_fallback_info(*category, PackageNamespace::Local, id)
+                    globals.package_or_override_info(*category, PackageNamespace::Local, id)
                 else {
                     // deleted
                     return false;

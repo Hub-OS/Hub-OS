@@ -1248,7 +1248,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let package_id = PackageId::from(augment_id);
             let package = globals
                 .augment_packages
-                .package_or_fallback(player.namespace(), &package_id)
+                .package_or_override(player.namespace(), &package_id)
                 .ok_or_else(|| package_not_loaded(&package_id))?;
 
             let package_info = &package.package_info;

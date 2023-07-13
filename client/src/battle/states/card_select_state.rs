@@ -813,7 +813,7 @@ impl CardSelectState {
                 let card = &player.cards[*i];
 
                 if let Some(package) =
-                    card_packages.package_or_fallback(namespace, &card.package_id)
+                    card_packages.package_or_override(namespace, &card.package_id)
                 {
                     character.cards.push(package.card_properties.clone());
                 }

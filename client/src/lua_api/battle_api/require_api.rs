@@ -17,7 +17,7 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
 
         if let Some(package) = globals
             .library_packages
-            .package_or_fallback(ns, &package_id)
+            .package_or_override(ns, &package_id)
         {
             source_path = package.package_info.script_path.clone();
         } else {

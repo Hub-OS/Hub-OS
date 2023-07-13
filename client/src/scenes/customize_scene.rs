@@ -301,7 +301,7 @@ impl CustomizeScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_fallback(PackageNamespace::Local, &block.package_id)
+                        .package_or_override(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
@@ -320,7 +320,7 @@ impl CustomizeScene {
 
                     let package = globals
                         .augment_packages
-                        .package_or_fallback(PackageNamespace::Local, &package.id)
+                        .package_or_override(PackageNamespace::Local, &package.id)
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
@@ -352,7 +352,7 @@ impl CustomizeScene {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let package = globals
                             .augment_packages
-                            .package_or_fallback(PackageNamespace::Local, &block.package_id)
+                            .package_or_override(PackageNamespace::Local, &block.package_id)
                             .unwrap();
 
                         &package.name
@@ -674,7 +674,7 @@ impl CustomizeScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let package = globals
             .augment_packages
-            .package_or_fallback(PackageNamespace::Local, &block.package_id)
+            .package_or_override(PackageNamespace::Local, &block.package_id)
             .unwrap();
 
         self.packages.insert(
@@ -881,7 +881,7 @@ impl Scene for CustomizeScene {
                 } else {
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_fallback(PackageNamespace::Local, &block.package_id)
+                        .package_or_override(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     if package.is_flat {
@@ -993,7 +993,7 @@ impl Scene for CustomizeScene {
         if let Some(block) = &self.held_block {
             let packages = &globals.augment_packages;
             let package = packages
-                .package_or_fallback(PackageNamespace::Local, &block.package_id)
+                .package_or_override(PackageNamespace::Local, &block.package_id)
                 .unwrap();
 
             // create sprite
