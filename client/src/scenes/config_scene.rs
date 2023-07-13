@@ -715,11 +715,10 @@ impl ConfigScene {
                             Err(e) => {
                                 log::error!("{e}");
 
-                                match e.kind() {
-                                    std::io::ErrorKind::NotFound => {
-                                        String::from("Cache is already empty.")
-                                    }
-                                    _ => String::from("Failed to clear cache."),
+                                if matches!(e.kind(), std::io::ErrorKind::NotFound) {
+                                    String::from("Cache is already empty.")
+                                } else {
+                                    String::from("Failed to clear cache.")
                                 }
                             }
                         }
