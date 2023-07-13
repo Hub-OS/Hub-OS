@@ -1,10 +1,10 @@
 [package]
-name = "real_pet_server"
+name = "hub_os_server"
 version = "0.1.0"
 authors = ["Arthur <arthurcose@gmail.com>"]
 edition = "2021"
 license = "GPL-3.0"
-default-run = "real_pet_server"
+default-run = "hub_os_server"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

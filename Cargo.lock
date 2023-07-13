@@ -1321,7 +1321,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Real-PET/framework#85172f510b23303550cccc21850a7139df5a97c4"
+source = "git+https://github.com/Hub-OS/framework#85172f510b23303550cccc21850a7139df5a97c4"
 dependencies = [
  "anyhow",
  "arboard",
@@ -1804,6 +1804,78 @@ dependencies = [
  "bytes",
  "fnv",
  "itoa",
+]
+
+[[package]]
+name = "hub_os"
+version = "0.4.0"
+dependencies = [
+ "anyhow",
+ "bimap",
+ "bytemuck",
+ "chrono",
+ "clap",
+ "enum-map",
+ "field_count",
+ "flate2",
+ "flume",
+ "framework",
+ "futures",
+ "generational-arena",
+ "hecs",
+ "isahc",
+ "itertools",
+ "lazy_static",
+ "log",
+ "ndk-glue",
+ "num-derive",
+ "num-traits",
+ "packets",
+ "path-clean",
+ "rand",
+ "rand_xoshiro",
+ "rmp-serde",
+ "rodio",
+ "rollback_mlua",
+ "roxmltree",
+ "rust-ini",
+ "rustysynth",
+ "serde",
+ "serde_json",
+ "smallvec",
+ "strum",
+ "taffy",
+ "toml",
+ "unicode-segmentation",
+ "unicode_categories",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "hub_os_server"
+version = "0.1.0"
+dependencies = [
+ "async-std",
+ "base64",
+ "byteorder",
+ "clap",
+ "flate2",
+ "flume",
+ "futures",
+ "generational-arena",
+ "isahc",
+ "itertools",
+ "log",
+ "mlua",
+ "multi_mut",
+ "packets",
+ "rand",
+ "roxmltree",
+ "termcolor",
+ "toml",
+ "uuid",
+ "zip",
 ]
 
 [[package]]
@@ -2965,78 +3037,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "real_pet"
-version = "0.4.0"
-dependencies = [
- "anyhow",
- "bimap",
- "bytemuck",
- "chrono",
- "clap",
- "enum-map",
- "field_count",
- "flate2",
- "flume",
- "framework",
- "futures",
- "generational-arena",
- "hecs",
- "isahc",
- "itertools",
- "lazy_static",
- "log",
- "ndk-glue",
- "num-derive",
- "num-traits",
- "packets",
- "path-clean",
- "rand",
- "rand_xoshiro",
- "rmp-serde",
- "rodio",
- "rollback_mlua",
- "roxmltree",
- "rust-ini",
- "rustysynth",
- "serde",
- "serde_json",
- "smallvec",
- "strum",
- "taffy",
- "toml",
- "unicode-segmentation",
- "unicode_categories",
- "walkdir",
- "zip",
-]
-
-[[package]]
-name = "real_pet_server"
-version = "0.1.0"
-dependencies = [
- "async-std",
- "base64",
- "byteorder",
- "clap",
- "flate2",
- "flume",
- "futures",
- "generational-arena",
- "isahc",
- "itertools",
- "log",
- "mlua",
- "multi_mut",
- "packets",
- "rand",
- "roxmltree",
- "termcolor",
- "toml",
- "uuid",
- "zip",
-]
-
-[[package]]
 name = "redox_syscall"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3110,7 +3110,7 @@ dependencies = [
 [[package]]
 name = "rollback_mlua"
 version = "0.1.0"
-source = "git+https://github.com/Real-PET/rollback-mlua#7daf662774672bb6e8db4e2a46771c17518913d8"
+source = "git+https://github.com/Hub-OS/rollback-mlua#7daf662774672bb6e8db4e2a46771c17518913d8"
 dependencies = [
  "bstr",
  "cc",

@@ -14,5 +14,5 @@ fn main() {
     }));
 
     // check lib.rs
-    real_pet::main().unwrap()
+    hub_os::main().unwrap()
 }

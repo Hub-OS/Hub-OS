@@ -51,7 +51,7 @@ pub fn main() -> anyhow::Result<()> {
 
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
-    let game = Game::new("Personal Terminal", TRUE_RESOLUTION.into())
+    let game = Game::new("HubOS", TRUE_RESOLUTION.into())
         .with_resizable(true)
         .with_setup(|game_io| {
             let globals = Globals::new(game_io, args);

@@ -1,7 +1,7 @@
 use std::fs;
 use std::process::{Command, ExitCode};
 
-const BIN_NAME: &str = "real_pet";
+const BIN_NAME: &str = "hub_os";
 
 fn main() -> ExitCode {
     let build_output = Command::new("cargo")

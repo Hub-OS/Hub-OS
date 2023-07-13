@@ -1,7 +1,7 @@
 use crate::render::FrameTime;
 use framework::prelude::{Color, UVec2, Vec2};
 
-pub const DEFAULT_PACKAGE_REPO: &str = "https://real-pet.konstinople.dev";
+pub const DEFAULT_PACKAGE_REPO: &str = "https://hubos.dev";
 
 pub const INPUT_BUFFER_LIMIT: usize = 20;
 pub const IDENTITY_LEN: usize = 32;
