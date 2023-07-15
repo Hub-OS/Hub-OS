@@ -69,8 +69,8 @@ pub struct PacketOrchestrator {
 impl PacketOrchestrator {
     pub fn new(socket: Rc<UdpSocket>, server_config: Rc<ServerConfig>) -> PacketOrchestrator {
         let connection_config = packets::Config {
-            mtu: server_config.max_payload_size,
-            bytes_per_tick: server_config.resend_budget,
+            mtu: server_config.args.max_payload_size,
+            bytes_per_tick: server_config.args.resend_budget,
             rtt_resend_factor: 0.5,
             initial_rtt: Duration::from_millis(500),
         };
@@ -640,18 +640,20 @@ mod tests {
 
         let config = ServerConfig {
             public_ip: socket.local_addr().unwrap().ip(),
-            port: 8765,
-            log_connections: false,
-            log_packets: false,
-            max_payload_size: 1000,
-            resend_budget: 0,
-            receiving_drop_rate: 0.0,
-            player_asset_limit: 0,
-            avatar_dimensions_limit: 0,
-            custom_emotes_path: None,
             max_idle_packet_duration: 0.0,
             max_silence_duration: 0.0,
             heartbeat_rate: 0.0,
+            args: crate::args::Args {
+                port: 8765,
+                log_connections: false,
+                log_packets: false,
+                max_payload_size: 1000,
+                resend_budget: 0,
+                receiving_drop_rate: 0.0,
+                player_asset_limit: 0,
+                avatar_dimensions_limit: 0,
+                custom_emotes_path: None,
+            },
         };
 
         PacketOrchestrator::new(Rc::new(socket), Rc::new(config))

@@ -23,12 +23,12 @@ impl ServerBuilder {
     }
 
     pub async fn start(self) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = format!("0.0.0.0:{}", self.config.port);
+        let addr = format!("0.0.0.0:{}", self.config.args.port);
         let socket = UdpSocket::bind(addr)?;
 
         socket.take_error()?;
 
-        log::info!("Server listening on: {}", self.config.port);
+        log::info!("Server listening on: {}", self.config.args.port);
 
         let (message_sender, message_receiver) = flume::unbounded();
 

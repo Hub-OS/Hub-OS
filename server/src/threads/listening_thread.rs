@@ -25,7 +25,7 @@ async fn listen_loop(
 ) {
     use futures::FutureExt;
 
-    let mut buf = vec![0; config.max_payload_size as usize];
+    let mut buf = vec![0; config.args.max_payload_size as usize];
 
     let mut packet_receivers = HashMap::new();
 
@@ -48,7 +48,7 @@ async fn listen_loop(
                 }
             }
             wrapped_packet = async_socket.recv_from(&mut buf).fuse() => {
-                if should_drop(config.receiving_drop_rate) {
+                if should_drop(config.args.receiving_drop_rate) {
                     // this must come after the recv_from
                     continue;
                 }
@@ -63,7 +63,7 @@ async fn listen_loop(
 
                 let filled_buf = &buf[..number_of_bytes];
 
-                if config.log_packets {
+                if config.args.log_packets {
                     log::debug!("Received packet from {}", socket_address);
                 }
 
@@ -74,7 +74,7 @@ async fn listen_loop(
                         }
                         Ok(None) => {}
                         Err(e) => {
-                            if config.log_packets {
+                            if config.args.log_packets {
                                 log::debug!("Failed to decode packet from {}: {e}", socket_address);
                             }
                         }
@@ -110,7 +110,7 @@ async fn decode_messages(
             }
         }
         PacketChannels::Server => {
-            if config.log_packets {
+            if config.args.log_packets {
                 log::debug!("Received unexpected server packet from {}", socket_address);
             }
         }

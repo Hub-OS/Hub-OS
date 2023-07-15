@@ -98,7 +98,7 @@ impl Net {
 
         update_cached_clients(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &path,
@@ -176,7 +176,7 @@ impl Net {
         if let Some(area) = self.areas.get_mut(area_id) {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
@@ -191,7 +191,7 @@ impl Net {
         if let Some(area) = self.areas.get(area_id) {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
@@ -260,7 +260,7 @@ impl Net {
 
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             area.connected_players(),
@@ -409,7 +409,7 @@ impl Net {
 
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
@@ -448,7 +448,7 @@ impl Net {
 
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[String::from(id)],
@@ -468,7 +468,7 @@ impl Net {
     pub fn play_sound_for_player(&mut self, id: &str, path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
@@ -725,7 +725,7 @@ impl Net {
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
@@ -756,7 +756,7 @@ impl Net {
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
@@ -789,7 +789,7 @@ impl Net {
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
@@ -818,7 +818,7 @@ impl Net {
             client.widget_tracker.track_textbox(self.active_plugin);
 
             // reliability + id + type + u16 size
-            let available_space = self.config.max_payload_size - 1 - 8 - 4 - 2 - 4;
+            let available_space = self.config.args.max_payload_size - 1 - 8 - 4 - 2 - 4;
 
             let character_limit = std::cmp::min(character_limit, available_space);
 
@@ -924,7 +924,7 @@ impl Net {
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[player_id.to_string()],
@@ -1071,7 +1071,7 @@ impl Net {
         if let Some(restrictions_path) = restrictions_path {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 &[String::from(player_id)],
@@ -1105,7 +1105,7 @@ impl Net {
     pub fn offer_package(&mut self, player_id: &str, package_path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[String::from(player_id)],
@@ -1159,7 +1159,7 @@ impl Net {
     pub fn preload_package(&mut self, player_ids: &[String], package_path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             player_ids,
@@ -1518,7 +1518,7 @@ impl Net {
 
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             area.connected_players(),
@@ -1649,7 +1649,7 @@ impl Net {
         client.mugshot_texture_buffer.clear();
         client.mugshot_animation_buffer.clear();
 
-        let avatar_dimensions_limit = self.config.avatar_dimensions_limit;
+        let avatar_dimensions_limit = self.config.args.avatar_dimensions_limit;
 
         if find_longest_frame_length(&animation_data) > avatar_dimensions_limit {
             let reason = format!(
@@ -1719,7 +1719,7 @@ impl Net {
 
             ensure_assets(
                 packet_orchestrator,
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
@@ -1815,7 +1815,7 @@ impl Net {
             });
         }
 
-        if let Some(custom_emotes_path) = &self.config.custom_emotes_path {
+        if let Some(custom_emotes_path) = &self.config.args.custom_emotes_path {
             asset_paths.push(custom_emotes_path.clone());
             packets.push(ServerPacket::CustomEmotesPath {
                 asset_path: custom_emotes_path.clone(),
@@ -1832,7 +1832,7 @@ impl Net {
         for asset_path in asset_paths {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 &asset_recievers[..],
@@ -1961,7 +1961,7 @@ impl Net {
 
             ensure_assets(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
@@ -2072,7 +2072,7 @@ impl Net {
 
         update_cached_clients(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             texture_path,
@@ -2080,7 +2080,7 @@ impl Net {
 
         update_cached_clients(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             animation_path,
@@ -2255,7 +2255,7 @@ impl Net {
 
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             area.connected_players(),
@@ -2277,7 +2277,7 @@ impl Net {
 
             ensure_assets(
                 &mut self.packet_orchestrator.borrow_mut(),
-                self.config.max_payload_size,
+                self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
@@ -2350,7 +2350,7 @@ impl Net {
         // send assets
         ensure_scope_has_assets(
             &mut self.packet_orchestrator.borrow_mut(),
-            self.config.max_payload_size,
+            self.config.args.max_payload_size,
             &self.asset_manager,
             &self.areas,
             &mut self.clients,
@@ -2601,7 +2601,7 @@ impl Net {
                 self.asset_manager.set_asset(map_path.clone(), map_asset);
                 update_cached_clients(
                     &mut self.packet_orchestrator.borrow_mut(),
-                    self.config.max_payload_size,
+                    self.config.args.max_payload_size,
                     &self.asset_manager,
                     &mut self.clients,
                     &map_path,

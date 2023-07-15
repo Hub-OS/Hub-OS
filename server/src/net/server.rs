@@ -203,7 +203,7 @@ impl Server {
     }
 
     fn handle_server_comm_packet(&mut self, socket_address: SocketAddr, packet: ServerCommPacket) {
-        if self.config.log_packets {
+        if self.config.args.log_packets {
             let packet_name: &'static str = (&packet).into();
             log::debug!("Received ServerCommPacket::{packet_name} packet from {socket_address}");
         }
@@ -234,7 +234,7 @@ impl Server {
     fn handle_client_packet(&mut self, socket_address: SocketAddr, client_packet: ClientPacket) {
         let net = &mut self.net;
 
-        if self.config.log_packets {
+        if self.config.args.log_packets {
             let packet_name: &'static str = (&client_packet).into();
             log::debug!("Received {packet_name} packet from {socket_address}");
         }
@@ -272,10 +272,10 @@ impl Server {
                     }
                 }
                 ClientPacket::Asset { asset_type, data } => {
-                    if data.len() > self.config.player_asset_limit {
+                    if data.len() > self.config.args.player_asset_limit {
                         let reason = format!(
                             "Avatar asset larger than {}KiB",
-                            self.config.player_asset_limit / 1024
+                            self.config.args.player_asset_limit / 1024
                         );
 
                         net.kick_player(player_id, &reason, true);
@@ -299,7 +299,7 @@ impl Server {
                     }
                 }
                 ClientPacket::Authorize { .. } | ClientPacket::Login { .. } => {
-                    if self.config.log_packets {
+                    if self.config.args.log_packets {
                         log::debug!(
                             "Previous packet shouldn't be sent if the client is already connected"
                         );
@@ -312,7 +312,7 @@ impl Server {
 
                     net.connect_client(player_id);
 
-                    if self.config.log_connections {
+                    if self.config.args.log_connections {
                         log::debug!("{} connected", player_id);
                     }
                 }
@@ -582,7 +582,7 @@ impl Server {
                         .handle_player_request(net, &player_id, &data);
                 }
                 _ => {
-                    if self.config.log_packets {
+                    if self.config.args.log_packets {
                         log::debug!(
                             "Previous packet requires connection yet the client is disconnected ",
                         );
@@ -599,10 +599,10 @@ impl Server {
 
             self.net.remove_player(&player_id, warp_out);
 
-            if self.config.log_connections {
+            if self.config.args.log_connections {
                 log::debug!("{} disconnected for {}", player_id, reason);
             }
-        } else if self.config.log_connections {
+        } else if self.config.args.log_connections {
             log::debug!("{} disconnected for {}", socket_address, reason);
         }
     }
