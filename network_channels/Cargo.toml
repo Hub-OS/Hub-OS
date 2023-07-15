@@ -7,6 +7,6 @@ license = "Zlib"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-bincode = { version = "2.0.0-rc.2", features = ["serde"] }
+bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 flume = "0.10"
 instant = "0.1"

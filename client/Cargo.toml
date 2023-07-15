@@ -14,11 +14,11 @@ chrono = "0.4"
 flume = "0.10"
 generational-arena = "0.2"
 hecs = "0.10"
-itertools = "0.10"
+itertools = "0.11"
 lazy_static = "1.4"
 log = "0.4"
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
-num-derive = "0.3"
+num-derive = "0.4"
 num-traits = "0.2"
 rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
@@ -27,7 +27,7 @@ rodio = "0.17"
 roxmltree = "0.18"
 rust-ini = "0.19"
 serde = { version = "1.0", features = ["derive"] }
-strum = { version = "0.24", features = ["derive"] }
+strum = { version = "0.25", features = ["derive"] }
 taffy = "0.1"
 unicode-segmentation = "1.10"
 clap = { version = "3.2", features = ["derive"] }
