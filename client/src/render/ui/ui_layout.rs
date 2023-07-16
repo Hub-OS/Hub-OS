@@ -3,14 +3,14 @@ use crate::bindable::GenerationalIndex;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use std::cell::Cell;
-use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::Mutex;
 use taffy::node::MeasureFunc as TaffyMeasureFunc;
-use taffy::prelude::Number as TaffyNumber;
 use taffy::prelude::Size as TaffySize;
+use taffy::style::LengthPercentage;
 
 pub use taffy::prelude::{
-    AlignItems, AlignSelf, Dimension, FlexDirection, JustifyContent, PositionType,
+    AlignItems, AlignSelf, Dimension, FlexDirection, JustifyContent, LengthPercentageAuto, Position,
 };
 
 pub trait UiNode {
@@ -45,23 +45,23 @@ impl UiNode for () {
 pub struct UiStyle {
     pub flex_direction: FlexDirection,
     /// aligning children on main axis
-    pub justify_content: JustifyContent,
+    pub justify_content: Option<JustifyContent>,
     /// aligning children on cross axis
-    pub align_items: AlignItems,
+    pub align_items: Option<AlignItems>,
     /// align self on cross axis
-    pub align_self: AlignSelf,
+    pub align_self: Option<AlignSelf>,
     pub flex_grow: f32,
     pub flex_shrink: f32,
     pub flex_basis: Dimension,
-    pub position_type: PositionType,
-    pub left: Dimension,
-    pub right: Dimension,
-    pub top: Dimension,
-    pub bottom: Dimension,
-    pub margin_left: Dimension,
-    pub margin_right: Dimension,
-    pub margin_top: Dimension,
-    pub margin_bottom: Dimension,
+    pub position: Position,
+    pub left: LengthPercentageAuto,
+    pub right: LengthPercentageAuto,
+    pub top: LengthPercentageAuto,
+    pub bottom: LengthPercentageAuto,
+    pub margin_left: LengthPercentageAuto,
+    pub margin_right: LengthPercentageAuto,
+    pub margin_top: LengthPercentageAuto,
+    pub margin_bottom: LengthPercentageAuto,
     pub padding_left: f32,
     pub padding_right: f32,
     pub padding_top: f32,
@@ -77,29 +77,29 @@ impl Default for UiStyle {
     fn default() -> Self {
         Self {
             flex_direction: FlexDirection::default(),
-            justify_content: JustifyContent::default(),
-            align_items: AlignItems::default(),
-            align_self: AlignSelf::default(),
+            justify_content: None,
+            align_items: None,
+            align_self: None,
             flex_grow: 0.0,
             flex_shrink: 1.0,
             flex_basis: Dimension::Auto,
-            position_type: PositionType::default(),
-            left: Dimension::Undefined,
-            right: Dimension::Undefined,
-            top: Dimension::Undefined,
-            bottom: Dimension::Undefined,
-            margin_left: Dimension::Undefined,
-            margin_right: Dimension::Undefined,
-            margin_top: Dimension::Undefined,
-            margin_bottom: Dimension::Undefined,
+            position: Position::default(),
+            left: LengthPercentageAuto::Auto,
+            right: LengthPercentageAuto::Auto,
+            top: LengthPercentageAuto::Auto,
+            bottom: LengthPercentageAuto::Auto,
+            margin_left: LengthPercentageAuto::Points(0.0),
+            margin_right: LengthPercentageAuto::Points(0.0),
+            margin_top: LengthPercentageAuto::Points(0.0),
+            margin_bottom: LengthPercentageAuto::Points(0.0),
             padding_left: 0.0,
             padding_right: 0.0,
             padding_top: 0.0,
             padding_bottom: 0.0,
-            min_width: Dimension::Undefined,
-            min_height: Dimension::Undefined,
-            max_width: Dimension::Undefined,
-            max_height: Dimension::Undefined,
+            min_width: Dimension::Auto,
+            min_height: Dimension::Auto,
+            max_width: Dimension::Auto,
+            max_height: Dimension::Auto,
             nine_patch: None,
         }
     }
@@ -145,7 +145,7 @@ impl<'a> UiLayoutNode<'a> {
 
 struct InternalUiElement {
     taffy_node: taffy::prelude::Node,
-    taffy_size: Rc<Cell<Vec2>>,
+    taffy_size: Arc<Mutex<Vec2>>,
     content: Box<dyn UiNode>,
     nine_patch: Option<NinePatch>,
     padding_left: f32,
@@ -289,7 +289,7 @@ impl UiLayout {
             let element = node.value();
 
             // remove node from taffy
-            self.taffy.remove(element.taffy_node);
+            let _ = self.taffy.remove(element.taffy_node);
 
             // prevent focus on dead nodes
             if self.focused_index == Some(node.index()) {
@@ -388,7 +388,7 @@ impl UiLayout {
             element.content.update(game_io, element.bounds, focused);
 
             if element.content.ui_size_dirty() {
-                self.taffy.mark_dirty(element.taffy_node).unwrap();
+                // self.taffy.mark_dirty(element.taffy_node).unwrap();
                 self.calculated = false;
             }
         }
@@ -605,12 +605,21 @@ impl UiLayout {
 
         for value in self.tree.values_mut() {
             let size = value.content.measure_ui_size(game_io);
-            value.taffy_size.set(size);
+
+            if let Ok(mut stored) = value.taffy_size.lock() {
+                *stored = size;
+            }
         }
 
         let taffy_root = self.tree.root().taffy_node;
         self.taffy
-            .compute_layout(taffy_root, TaffySize::undefined())
+            .compute_layout(
+                taffy_root,
+                TaffySize {
+                    width: taffy::style::AvailableSpace::MaxContent,
+                    height: taffy::style::AvailableSpace::MaxContent,
+                },
+            )
             .unwrap();
 
         self.tree.inherit(
@@ -674,10 +683,10 @@ impl UiLayout {
 }
 
 fn to_internal_node(taffy: &mut taffy::Taffy, node: UiLayoutNode) -> InternalUiElement {
-    let taffy_size = Rc::new(Cell::new(Vec2::ZERO));
+    let taffy_size = Arc::new(Mutex::new(Vec2::ZERO));
 
     let taffy_node = taffy
-        .new_leaf(
+        .new_leaf_with_measure(
             derive_taffy_style(&node.style),
             create_taffy_measure_fn(taffy_size.clone(), &node.style),
         )
@@ -696,7 +705,7 @@ fn to_internal_node(taffy: &mut taffy::Taffy, node: UiLayoutNode) -> InternalUiE
     }
 }
 
-fn create_taffy_measure_fn(size_cell: Rc<Cell<Vec2>>, style: &UiStyle) -> TaffyMeasureFunc {
+fn create_taffy_measure_fn(size_cell: Arc<Mutex<Vec2>>, style: &UiStyle) -> TaffyMeasureFunc {
     let mut size = (style.nine_patch.as_ref())
         .map(|nine_patch| {
             Vec2::new(
@@ -709,17 +718,17 @@ fn create_taffy_measure_fn(size_cell: Rc<Cell<Vec2>>, style: &UiStyle) -> TaffyM
     size.x += style.padding_left + style.padding_right;
     size.y += style.padding_top + style.padding_bottom;
 
-    TaffyMeasureFunc::Boxed(Box::new(move |incoming_size| {
-        let calculated_size = size_cell.get() + size;
+    TaffyMeasureFunc::Boxed(Box::new(move |incoming_size, _available_space| {
+        let calculated_size = size_cell.lock().as_deref().cloned().unwrap_or_default() + size;
 
         let width = match incoming_size.width {
-            TaffyNumber::Defined(width) => width.max(calculated_size.x),
-            TaffyNumber::Undefined => calculated_size.x,
+            Some(width) => width.max(calculated_size.x),
+            None => calculated_size.x,
         };
 
         let height = match incoming_size.height {
-            TaffyNumber::Defined(height) => height.max(calculated_size.y),
-            TaffyNumber::Undefined => calculated_size.y,
+            Some(height) => height.max(calculated_size.y),
+            None => calculated_size.y,
         };
 
         TaffySize { width, height }
@@ -731,12 +740,12 @@ fn derive_taffy_style(style: &UiStyle) -> taffy::prelude::Style {
 
     let border = (style.nine_patch.as_ref())
         .map(|nine_patch| TaffyRect {
-            start: Dimension::Points(nine_patch.left_width()),
-            end: Dimension::Points(nine_patch.right_width()),
-            top: Dimension::Points(nine_patch.top_height()),
-            bottom: Dimension::Points(nine_patch.bottom_height()),
+            left: LengthPercentage::Points(nine_patch.left_width()),
+            right: LengthPercentage::Points(nine_patch.right_width()),
+            top: LengthPercentage::Points(nine_patch.top_height()),
+            bottom: LengthPercentage::Points(nine_patch.bottom_height()),
         })
-        .unwrap_or_default();
+        .unwrap_or(TaffyRect::zero());
 
     taffy::prelude::Style {
         flex_direction: style.flex_direction,
@@ -748,26 +757,26 @@ fn derive_taffy_style(style: &UiStyle) -> taffy::prelude::Style {
         flex_shrink: style.flex_shrink,
         flex_basis: style.flex_basis,
 
-        position_type: style.position_type,
-        position: TaffyRect {
-            start: style.left,
-            end: style.right,
+        position: style.position,
+        inset: TaffyRect {
+            left: style.left,
+            right: style.right,
             top: style.top,
             bottom: style.bottom,
         },
 
         margin: TaffyRect {
-            start: style.margin_left,
-            end: style.margin_right,
+            left: style.margin_left,
+            right: style.margin_right,
             top: style.margin_top,
             bottom: style.margin_bottom,
         },
 
         padding: TaffyRect {
-            start: Dimension::Points(style.padding_left),
-            end: Dimension::Points(style.padding_right),
-            top: Dimension::Points(style.padding_top),
-            bottom: Dimension::Points(style.padding_bottom),
+            left: LengthPercentage::Points(style.padding_left),
+            right: LengthPercentage::Points(style.padding_right),
+            top: LengthPercentage::Points(style.padding_top),
+            bottom: LengthPercentage::Points(style.padding_bottom),
         },
 
         border,

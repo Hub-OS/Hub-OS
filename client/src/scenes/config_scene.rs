@@ -3,10 +3,10 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
     build_9patch, BindingContextOption, ContextMenu, Dimension, FlexDirection, FontStyle,
-    SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
-    TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton, UiConfigBinding, UiConfigCycle,
-    UiConfigDynamicCycle, UiConfigPercentage, UiConfigToggle, UiInputTracker, UiLayout,
-    UiLayoutNode, UiNode, UiStyle,
+    LengthPercentageAuto, SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxDoorstop,
+    TextboxDoorstopRemover, TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton,
+    UiConfigBinding, UiConfigCycle, UiConfigDynamicCycle, UiConfigPercentage, UiConfigToggle,
+    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{
     Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
@@ -140,7 +140,7 @@ impl ConfigScene {
         let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let option_style = UiStyle {
-            margin_bottom: Dimension::Points(0.0),
+            margin_bottom: LengthPercentageAuto::Points(0.0),
             nine_patch: Some(button_9patch),
             ..Default::default()
         };
@@ -170,7 +170,7 @@ impl ConfigScene {
         )
         .with_style(UiStyle {
             flex_direction: FlexDirection::Column,
-            min_width: Dimension::Undefined,
+            min_width: Dimension::Auto,
             ..Default::default()
         })
     }

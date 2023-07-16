@@ -1,10 +1,10 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
-    build_9patch, FontStyle, PackageListing, PackagePreview, PackagePreviewData, SceneTitle,
-    ScrollableList, SubSceneFrame, Text, TextStyle, Textbox, TextboxDoorstop,
-    TextboxDoorstopRemover, TextboxMessage, UiButton, UiInputTracker, UiLayout, UiLayoutNode,
-    UiNode, UiStyle,
+    build_9patch, FontStyle, LengthPercentageAuto, PackageListing, PackagePreview,
+    PackagePreviewData, SceneTitle, ScrollableList, SubSceneFrame, Text, TextStyle, Textbox,
+    TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, UiButton, UiInputTracker, UiLayout,
+    UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, LocalAssetManager, ResourcePaths};
@@ -188,8 +188,8 @@ impl PackageScene {
         let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let button_style = UiStyle {
-            margin_top: Dimension::Auto,
-            margin_right: Dimension::Points(2.0),
+            margin_top: LengthPercentageAuto::Auto,
+            margin_right: LengthPercentageAuto::Points(2.0),
             nine_patch: Some(button_9patch),
             ..Default::default()
         };
@@ -205,7 +205,7 @@ impl PackageScene {
             // flex_direction: FlexDirection::RowReverse,
             flex_direction: FlexDirection::Row,
             flex_grow: 1.0,
-            align_items: AlignItems::FlexEnd,
+            align_items: Some(AlignItems::FlexEnd),
             min_width: Dimension::Points(bounds.width),
             min_height: Dimension::Points(bounds.height),
             ..Default::default()

@@ -28,7 +28,7 @@ roxmltree = "0.18"
 rust-ini = "0.19"
 serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.25", features = ["derive"] }
-taffy = "0.1"
+taffy = "0.3"
 unicode-segmentation = "1.10"
 clap = { version = "4.3", features = ["derive"] }
 unicode_categories = "0.1"

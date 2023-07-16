@@ -57,21 +57,21 @@ impl ServerEditScene {
         let input_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "TEXT_INPUT");
 
         let label_style = UiStyle {
-            align_self: AlignSelf::FlexStart,
-            margin_left: Dimension::Points(3.0),
-            margin_bottom: Dimension::Points(2.0),
+            align_self: Some(AlignSelf::FlexStart),
+            margin_left: LengthPercentageAuto::Points(3.0),
+            margin_bottom: LengthPercentageAuto::Points(2.0),
             ..Default::default()
         };
 
         let button_style = UiStyle {
-            margin_top: Dimension::Auto,
-            margin_right: Dimension::Points(2.0),
+            margin_top: LengthPercentageAuto::Auto,
+            margin_right: LengthPercentageAuto::Points(2.0),
             nine_patch: Some(button_9patch.clone()),
             ..Default::default()
         };
 
         let input_style = UiStyle {
-            margin_bottom: Dimension::Points(2.0),
+            margin_bottom: LengthPercentageAuto::Points(2.0),
             padding_top: 1.0,
             padding_left: 3.0,
             padding_right: 3.0,
@@ -139,7 +139,7 @@ impl ServerEditScene {
                     .with_style(UiStyle {
                         flex_direction: FlexDirection::RowReverse,
                         flex_grow: 1.0,
-                        align_items: AlignItems::FlexEnd,
+                        align_items: Some(AlignItems::FlexEnd),
                         ..Default::default()
                     })
                     .with_children(vec![

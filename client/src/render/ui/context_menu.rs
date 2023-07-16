@@ -77,7 +77,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         .with_wrapped_selection()
         .with_style(UiStyle {
             flex_direction: FlexDirection::Column,
-            min_width: Dimension::Undefined,
+            min_width: Dimension::Auto,
             ..Default::default()
         });
 
@@ -130,7 +130,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
     pub fn set_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
         let option_style = UiStyle {
-            margin_top: Dimension::Points(3.0),
+            margin_top: LengthPercentageAuto::Points(3.0),
             ..Default::default()
         };
 

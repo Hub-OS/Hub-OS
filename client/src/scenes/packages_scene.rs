@@ -2,9 +2,9 @@ use super::PackageScene;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, FontStyle, PackageListing, SceneTitle, ScrollableList, SubSceneFrame, Textbox,
-    TextboxMessage, TextboxPrompt, UiButton, UiInputTracker, UiLayout, UiLayoutNode, UiNode,
-    UiStyle,
+    build_9patch, FontStyle, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
+    SubSceneFrame, Textbox, TextboxMessage, TextboxPrompt, UiButton, UiInputTracker, UiLayout,
+    UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
@@ -174,7 +174,7 @@ impl PackagesScene {
         let button_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "BUTTON");
 
         let option_style = UiStyle {
-            margin_bottom: Dimension::Points(0.0),
+            margin_bottom: LengthPercentageAuto::Points(0.0),
             nine_patch: Some(button_9patch),
             ..Default::default()
         };
