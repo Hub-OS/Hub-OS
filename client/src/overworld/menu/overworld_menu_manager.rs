@@ -1,9 +1,7 @@
-use super::Bbs;
-use super::Shop;
+use super::{Bbs, Shop};
 use crate::ease::inverse_lerp;
 use crate::overworld::components::WidgetAttachment;
-use crate::overworld::OverworldArea;
-use crate::overworld::OverworldPlayerData;
+use crate::overworld::{OverworldArea, OverworldPlayerData};
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -390,8 +388,10 @@ impl OverworldMenuManager {
             }
         }
 
+        let menus_block_view = self.is_blocking_view();
+        let in_transition = self.fade_time != self.max_fade_time;
         let mut handle_input =
-            !self.navigation_menu.is_open() && self.fade_time == self.max_fade_time;
+            (menus_block_view || !self.navigation_menu.is_open()) && !in_transition;
 
         // update textbox
         if self.textbox.is_complete() {
@@ -477,6 +477,11 @@ impl OverworldMenuManager {
             }
         }
 
+        if menus_block_view || in_transition {
+            // skip updating navigation menu if menus or transitions are blocking it
+            return NextScene::None;
+        }
+
         self.navigation_menu
             .update(game_io, |game_io, selection| match selection {
                 SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
@@ -523,6 +528,11 @@ impl OverworldMenuManager {
         // draw widget attachments
         area.draw_screen_attachments::<WidgetAttachment>(sprite_queue);
 
+        if !self.is_blocking_view() {
+            // draw navigation menu
+            self.navigation_menu.draw(game_io, sprite_queue);
+        }
+
         // draw fade
         if self.fade_time < self.max_fade_time {
             let mut color = self.fade_sprite.color();
@@ -531,8 +541,5 @@ impl OverworldMenuManager {
 
             sprite_queue.draw_sprite(&self.fade_sprite);
         }
-
-        // draw navigation menu
-        self.navigation_menu.draw(game_io, sprite_queue);
     }
 }
