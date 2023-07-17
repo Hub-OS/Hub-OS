@@ -24,12 +24,8 @@ impl Inventory {
     pub fn give_item(&mut self, item_id: &str, count: isize) {
         let item_iter = self.items.iter_mut();
 
-        if let Some((index, (_, c))) = item_iter.enumerate().find(|(_, (id, _))| id == item_id) {
+        if let Some((_, (_, c))) = item_iter.enumerate().find(|(_, (id, _))| id == item_id) {
             *c = (*c as isize + count).max(0) as usize;
-
-            if *c == 0 {
-                self.items.swap_remove(index);
-            }
         } else if count > 0 {
             self.items.push((item_id.to_string(), count as usize));
         }

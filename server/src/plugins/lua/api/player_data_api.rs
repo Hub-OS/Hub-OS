@@ -162,13 +162,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(player_data) = &net.get_player_data(player_id_str) {
-            let items: Vec<_> = player_data
+            let item_iter = player_data
                 .inventory
                 .items()
-                .map(|(id, _)| id.clone())
-                .collect();
+                .filter(|(_, count)| *count > 0)
+                .enumerate()
+                .map(|(i, (id, _))| (i + 1, id.as_str()));
 
-            lua.pack_multi(items)
+            let item_table = lua.create_table_from(item_iter)?;
+
+            lua.pack_multi(item_table)
         } else {
             Err(create_player_error(player_id_str))
         }
