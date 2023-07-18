@@ -460,11 +460,11 @@ impl Player {
 
     pub fn calculate_default_charge_time(level: u8) -> FrameTime {
         match level {
-            0 | 1 => 60,
-            2 => 70,
+            0 | 1 => 100,
+            2 => 90,
             3 => 80,
-            4 => 90,
-            _ => 100,
+            4 => 70,
+            _ => 60,
         }
     }
 
