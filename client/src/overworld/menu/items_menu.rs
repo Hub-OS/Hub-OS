@@ -104,6 +104,7 @@ impl ItemsMenu {
         let mut description_text = Text::new(game_io, FontStyle::Thin);
         description_text.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
         description_text.style.bounds = Rect::from_corners(description_start, description_end);
+        description_text.text = String::from("You have no items.");
 
         Self {
             background: Background::new_sub_scene(game_io),
@@ -233,12 +234,14 @@ impl Menu for ItemsMenu {
         }
 
         // handle selection
-        if self.scroll_tracker.total_items() > 0 && input_util.was_just_pressed(Input::Confirm) {
-            let (item_id, _, count) = Self::consumables_iter(area).nth(index).unwrap();
-
-            if count > 0 {
-                globals.audio.play_sound(&globals.sfx.cursor_select);
-                (self.on_select)(item_id);
+        if input_util.was_just_pressed(Input::Confirm) {
+            if let Some((item_id, _, count)) = Self::consumables_iter(area).nth(index) {
+                if count > 0 {
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
+                    (self.on_select)(item_id);
+                } else {
+                    globals.audio.play_sound(&globals.sfx.cursor_error);
+                }
             } else {
                 globals.audio.play_sound(&globals.sfx.cursor_error);
             }
@@ -284,27 +287,31 @@ impl Menu for ItemsMenu {
 
         text_style.bounds.set_position(self.items_start);
 
-        let step_y = patch_bounds.height
-            + self.button_nine_patch.top_height()
-            + self.button_nine_patch.bottom_height();
+        if self.scroll_tracker.total_items() > 0 {
+            let step_y = patch_bounds.height
+                + self.button_nine_patch.top_height()
+                + self.button_nine_patch.bottom_height();
 
-        for (_, item_definition, count) in consumable_iter {
-            // draw item button
+            for (_, item_definition, count) in consumable_iter {
+                // draw item button
+                self.button_nine_patch.draw(sprite_queue, patch_bounds);
+
+                // create + render text
+                let text = format!("{:8} {:>3}", item_definition.name, count);
+                text_style.draw(game_io, sprite_queue, &text);
+
+                // update bounds
+                text_style.bounds.y += step_y;
+                patch_bounds.y += step_y;
+            }
+        } else {
+            // display a default item
             self.button_nine_patch.draw(sprite_queue, patch_bounds);
-
-            // create + render text
-            let text = format!("{:8} {:>3}", item_definition.name, count);
-            text_style.draw(game_io, sprite_queue, &text);
-
-            // update bounds
-            text_style.bounds.y += step_y;
-            patch_bounds.y += step_y;
+            text_style.draw(game_io, sprite_queue, "No Items");
         }
 
         // draw cursor
-        if self.scroll_tracker.total_items() > 0 {
-            self.scroll_tracker.draw_cursor(sprite_queue);
-        }
+        self.scroll_tracker.draw_cursor(sprite_queue);
 
         // draw health
         self.health_ui.draw(game_io, sprite_queue);

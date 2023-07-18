@@ -208,29 +208,37 @@ impl Scene for KeyItemsScene {
         let mut text_style = TextStyle::new(game_io, FontStyle::Thin);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
-        let mut item_range = self.v_scroll_tracker.view_range();
-        item_range.start *= 2;
-        item_range.end *= 2;
-        item_range.end = item_range.end.min(self.key_items.len());
+        if !self.key_items.is_empty() {
+            let mut item_range = self.v_scroll_tracker.view_range();
+            item_range.start *= 2;
+            item_range.end *= 2;
+            item_range.end = item_range.end.min(self.key_items.len());
 
-        let mut y_offset = 0.0;
+            let mut y_offset = 0.0;
 
-        for (i, item) in self.key_items[item_range].iter().enumerate() {
-            let mut position = if i % 2 == 0 {
-                self.cursor_left_start
-            } else {
-                self.cursor_right_start
-            };
+            for (i, item) in self.key_items[item_range].iter().enumerate() {
+                let mut position = if i % 2 == 0 {
+                    self.cursor_left_start
+                } else {
+                    self.cursor_right_start
+                };
 
-            position += self.text_offset;
-            position.y += y_offset;
+                position += self.text_offset;
+                position.y += y_offset;
+
+                text_style.bounds.set_position(position);
+                text_style.draw(game_io, &mut sprite_queue, &item.name);
+
+                if i % 2 == 1 {
+                    y_offset += LINE_HEIGHT;
+                }
+            }
+        } else {
+            // default for no key items
+            let position = self.cursor_left_start + self.text_offset;
 
             text_style.bounds.set_position(position);
-            text_style.draw(game_io, &mut sprite_queue, &item.name);
-
-            if i % 2 == 1 {
-                y_offset += LINE_HEIGHT;
-            }
+            text_style.draw(game_io, &mut sprite_queue, "Empty");
         }
 
         // draw scrollbar and cursor
