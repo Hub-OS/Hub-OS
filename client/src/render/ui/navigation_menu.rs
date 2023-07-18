@@ -11,6 +11,7 @@ use super::{FontStyle, TextStyle};
 pub enum SceneOption {
     Servers,
     Decks,
+    Items,
     Library,
     Character,
     KeyItems,
@@ -42,12 +43,17 @@ impl SceneOption {
         match self {
             SceneOption::Servers => "SERVERS_LABEL",
             SceneOption::Decks => "DECKS_LABEL",
+            SceneOption::Items => "ITEMS_LABEL",
             SceneOption::Library => "LIBRARY_LABEL",
             SceneOption::Character => "CHARACTER_LABEL",
             SceneOption::KeyItems => "KEY_ITEMS_LABEL",
             SceneOption::BattleSelect => "BATTLE_SELECT_LABEL",
             SceneOption::Config => "CONFIG_LABEL",
         }
+    }
+
+    fn uses_false_scene(&self) -> bool {
+        matches!(self, SceneOption::Items)
     }
 }
 
@@ -91,7 +97,7 @@ impl NavigationMenu {
         animator.apply(&mut top_bar_sprite);
 
         // scroll tracker
-        let mut scroll_tracker = ScrollTracker::new(game_io, 6).with_wrap(true);
+        let mut scroll_tracker = ScrollTracker::new(game_io, 7).with_wrap(true);
         scroll_tracker.set_total_items(items.len());
 
         // menu items
@@ -193,7 +199,7 @@ impl NavigationMenu {
     pub fn update(
         &mut self,
         game_io: &mut GameIO,
-        override_callback: impl Fn(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
+        override_callback: impl FnMut(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
     ) -> NextScene {
         let mut next_scene = NextScene::None;
 
@@ -257,7 +263,7 @@ impl NavigationMenu {
     fn select_item(
         &mut self,
         game_io: &mut GameIO,
-        override_callback: impl Fn(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
+        mut override_callback: impl FnMut(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
     ) -> NextScene {
         let selection = self.scroll_tracker.selected_index();
         let selected_option = self.items[selection].target_scene;
@@ -286,8 +292,13 @@ impl NavigationMenu {
                 transition: Some(Box::new(transition)),
             }
         } else {
-            globals.audio.play_sound(&globals.sfx.cursor_error);
-            log::warn!("Not implemented");
+            if selected_option.uses_false_scene() {
+                globals.audio.play_sound(&globals.sfx.cursor_select);
+            } else {
+                globals.audio.play_sound(&globals.sfx.cursor_error);
+                log::warn!("Not implemented");
+            }
+
             NextScene::None
         }
     }

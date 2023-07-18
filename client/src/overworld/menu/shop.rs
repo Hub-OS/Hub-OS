@@ -213,7 +213,7 @@ impl Menu for Shop {
         }
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO, textbox: &mut Textbox) {
+    fn handle_input(&mut self, game_io: &mut GameIO, _: &mut OverworldArea, textbox: &mut Textbox) {
         if self.closed || self.close_time.is_some() {
             return;
         }

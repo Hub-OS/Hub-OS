@@ -98,6 +98,9 @@ pub enum ClientPacket {
     ShopDescriptionRequest {
         item_id: String,
     },
+    ItemUse {
+        item_id: String,
+    },
     EncounterStart,
     BattleResults {
         battle_stats: BattleStatistics,

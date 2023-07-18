@@ -6,6 +6,7 @@ pub enum OverworldEvent {
     SystemMessage {
         message: String,
     },
+    ItemUse(String),
     TextboxResponse(u8),
     PromptResponse(String),
     BattleStatistics(Option<BattleStatistics>),

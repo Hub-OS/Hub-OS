@@ -767,6 +767,25 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
+    fn handle_item_use(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+        handle_event(
+            &mut self.scripts,
+            &self.all_scripts,
+            &mut self.widget_trackers,
+            &mut self.battle_trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua, callback| {
+                let event = lua.create_table()?;
+                event.set("player_id", player_id)?;
+                event.set("item_id", item_id)?;
+
+                callback.call(("item_use", event))
+            },
+        );
+    }
+
     fn handle_battle_results(
         &mut self,
         net: &mut Net,

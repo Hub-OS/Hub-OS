@@ -1430,6 +1430,12 @@ impl OverworldOnlineScene {
                     let interface = TextboxMessage::new(message);
                     self.menu_manager.push_textbox_interface(interface);
                 }
+                OverworldEvent::ItemUse(item_id) => {
+                    (self.send_packet)(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::ItemUse { item_id },
+                    );
+                }
                 OverworldEvent::TextboxResponse(response) => {
                     (self.send_packet)(
                         Reliability::ReliableOrdered,

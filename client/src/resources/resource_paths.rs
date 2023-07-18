@@ -139,6 +139,8 @@ impl ResourcePaths {
     pub const OVERWORLD_SHOP_BG_ANIMATION: &str = "resources/scenes/overworld/shop/bg.animation";
     pub const OVERWORLD_SHOP: &str = "resources/scenes/overworld/shop/ui.png";
     pub const OVERWORLD_SHOP_ANIMATION: &str = "resources/scenes/overworld/shop/ui.animation";
+    pub const ITEMS_LAYOUT_ANIMATION: &str = "resources/scenes/overworld/items/layout.animation";
+    pub const ITEM_DESCRIPTION: &str = "resources/scenes/overworld/items/item_bg.png";
 
     // DeckListScene
     pub const DECKS_LAYOUT_ANIMATION: &str = "resources/scenes/deck_list/layout.animation";

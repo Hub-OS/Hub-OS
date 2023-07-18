@@ -1,7 +1,7 @@
-use super::{Bbs, Shop};
+use super::{Bbs, ItemsMenu, Shop};
 use crate::ease::inverse_lerp;
 use crate::overworld::components::WidgetAttachment;
-use crate::overworld::{OverworldArea, OverworldPlayerData};
+use crate::overworld::{OverworldArea, OverworldEvent, OverworldPlayerData};
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -26,7 +26,12 @@ pub trait Menu {
     fn is_open(&self) -> bool;
     fn open(&mut self);
     fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea);
-    fn handle_input(&mut self, game_io: &mut GameIO, textbox: &mut Textbox);
+    fn handle_input(
+        &mut self,
+        game_io: &mut GameIO,
+        area: &mut OverworldArea,
+        textbox: &mut Textbox,
+    );
     fn draw(
         &mut self,
         game_io: &GameIO,
@@ -70,7 +75,7 @@ impl OverworldMenuManager {
             game_io,
             vec![
                 SceneOption::Decks,
-                // SceneOption::Items,
+                SceneOption::Items,
                 SceneOption::Library,
                 SceneOption::Character,
                 // SceneOption::Email,
@@ -413,7 +418,7 @@ impl OverworldMenuManager {
             let menu = &mut self.menus[index];
 
             if handle_input {
-                menu.handle_input(game_io, &mut self.textbox);
+                menu.handle_input(game_io, area, &mut self.textbox);
             }
 
             menu.update(game_io, area);
@@ -435,7 +440,7 @@ impl OverworldMenuManager {
         // update bbs
         if let Some(bbs) = &mut self.bbs {
             if handle_input {
-                bbs.handle_input(game_io, &mut self.textbox);
+                bbs.handle_input(game_io, area, &mut self.textbox);
             }
 
             bbs.update(game_io, area);
@@ -447,7 +452,7 @@ impl OverworldMenuManager {
         // update shop
         if let Some(shop) = &mut self.shop {
             if handle_input {
-                shop.handle_input(game_io, &mut self.textbox);
+                shop.handle_input(game_io, area, &mut self.textbox);
             }
 
             shop.update(game_io, area);
@@ -482,15 +487,39 @@ impl OverworldMenuManager {
             return NextScene::None;
         }
 
-        self.navigation_menu
-            .update(game_io, |game_io, selection| match selection {
-                SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
-                    game_io,
-                    &area.item_registry,
-                    &area.player_data.inventory,
-                ))),
-                _ => None,
-            })
+        // handle navigation menu, possible scene or menu changes
+        let mut navigation_selection = None;
+
+        let next_scene =
+            self.navigation_menu
+                .update(game_io, |game_io, selection| match selection {
+                    SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
+                        game_io,
+                        &area.item_registry,
+                        &area.player_data.inventory,
+                    ))),
+                    _ => {
+                        navigation_selection = Some(selection);
+                        None
+                    }
+                });
+
+        if let Some(SceneOption::Items) = navigation_selection {
+            let menu_event_sender = self.event_sender.clone();
+            let area_event_sender = area.event_sender.clone();
+
+            let on_select = move |id: &str| {
+                menu_event_sender.send(Event::SelectionMade).unwrap();
+
+                let overworld_event = OverworldEvent::ItemUse(id.to_string());
+                area_event_sender.send(overworld_event).unwrap();
+            };
+
+            let menu_index = self.register_menu(Box::new(ItemsMenu::new(game_io, area, on_select)));
+            self.open_menu(menu_index);
+        }
+
+        next_scene
     }
 
     pub fn draw(

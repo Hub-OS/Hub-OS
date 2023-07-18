@@ -313,7 +313,7 @@ impl Menu for MapMenu {
         }
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO, _textbox: &mut Textbox) {
+    fn handle_input(&mut self, game_io: &mut GameIO, _: &mut OverworldArea, _: &mut Textbox) {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) || input_util.was_just_pressed(Input::Map) {

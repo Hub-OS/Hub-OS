@@ -1,0 +1,11 @@
+animation state="DEFAULT"
+blank
+point label="HEALTH" x="3" y="16"
+point label="ELEMENT" x="112" y="17"
+point label="PLAYER" x="68" y="90"
+point label="CURSOR_START" x="128" y="20"
+point label="ITEMS_START" x="140" y="20"
+point label="ITEM_SIZE" x="83" y="0"
+point label="DESCRIPTION_BG" x="8" y="100"
+point label="DESCRIPTION_START" x="14" y="105"
+point label="DESCRIPTION_END" x="118" y="150"

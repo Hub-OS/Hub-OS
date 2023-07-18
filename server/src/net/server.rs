@@ -530,6 +530,16 @@ impl Server {
                         ServerPacket::SelectionAck,
                     );
                 }
+                ClientPacket::ItemUse { item_id } => {
+                    self.plugin_wrapper
+                        .handle_item_use(net, player_id, &item_id);
+
+                    self.packet_orchestrator.borrow_mut().send(
+                        socket_address,
+                        Reliability::ReliableOrdered,
+                        ServerPacket::SelectionAck,
+                    );
+                }
                 ClientPacket::EncounterStart => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         if let Some(info) = client.battle_tracker.front() {

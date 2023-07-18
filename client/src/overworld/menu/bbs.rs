@@ -173,7 +173,7 @@ impl Menu for Bbs {
         self.unread_animator.update();
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO, _: &mut Textbox) {
+    fn handle_input(&mut self, game_io: &mut GameIO, _: &mut OverworldArea, _: &mut Textbox) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         self.ui_input_tracker.update(game_io);

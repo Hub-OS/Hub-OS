@@ -55,6 +55,7 @@ pub trait PluginInterface {
     fn handle_shop_close(&mut self, net: &mut Net, player_id: &str);
     fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str);
     fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str);
+    fn handle_item_use(&mut self, net: &mut Net, player_id: &str, item_id: &str);
     fn handle_battle_results(
         &mut self,
         net: &mut Net,
