@@ -92,12 +92,15 @@ impl KeyItemsScene {
             ResourcePaths::BLANK,
         );
 
-        if let Some(item) = key_items.first() {
-            let (mut interface, _) = TextboxDoorstop::new();
-            interface = interface.with_str(&item.description);
+        let (mut interface, _) = TextboxDoorstop::new();
 
-            textbox.push_interface(interface);
-        }
+        interface = interface.with_str(if let Some(item) = key_items.first() {
+            &item.description
+        } else {
+            "You have no Key Items."
+        });
+
+        textbox.push_interface(interface);
 
         Self {
             camera: Camera::new_ui(game_io),
@@ -238,7 +241,7 @@ impl Scene for KeyItemsScene {
             let position = self.cursor_left_start + self.text_offset;
 
             text_style.bounds.set_position(position);
-            text_style.draw(game_io, &mut sprite_queue, "Empty");
+            text_style.draw(game_io, &mut sprite_queue, "None");
         }
 
         // draw scrollbar and cursor
