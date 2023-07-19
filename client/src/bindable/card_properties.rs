@@ -7,9 +7,10 @@ use framework::prelude::{Color, GameIO, Vec2};
 #[derive(Clone)]
 pub struct CardProperties {
     pub package_id: PackageId,
-    // action: String, // ????
+    pub code: String,
     pub short_name: String,
     pub damage: i32,
+    pub boosted_damage: i32,
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
@@ -25,8 +26,10 @@ impl Default for CardProperties {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
+            code: String::new(),
             short_name: String::from("?????"),
             damage: 0,
+            boosted_damage: 0,
             element: Element::None,
             secondary_element: Element::None,
             time_freeze: false,
@@ -55,8 +58,18 @@ impl CardProperties {
         let name_text = &self.short_name;
         let damage_text = if self.damage == 0 {
             String::new()
-        } else {
+        } else if self.boosted_damage == 0 {
             format!("{}", self.damage)
+        } else {
+            // negative sign will be provided from negative boosted_damage
+            let sign_str = if self.boosted_damage > 0 { "+" } else { "" };
+
+            format!(
+                "{}{}{}",
+                self.damage - self.boosted_damage,
+                sign_str,
+                self.boosted_damage
+            )
         };
 
         // measure text
@@ -101,10 +114,12 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
 
         Ok(CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
+            code: table.get("code").unwrap_or_default(),
             short_name: table
                 .get("short_name")
                 .unwrap_or_else(|_| String::from("?????")),
             damage: table.get("damage").unwrap_or_default(),
+            boosted_damage: table.get("boosted_damage").unwrap_or_default(),
             element: table.get("element").unwrap_or_default(),
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
@@ -124,8 +139,11 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
+        table.set("package_id", self.package_id.as_str())?;
+        table.set("code", self.code.as_str())?;
         table.set("short_name", self.short_name.as_str())?;
         table.set("damage", self.damage)?;
+        table.set("boosted_damage", self.boosted_damage)?;
         table.set("element", self.element)?;
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;

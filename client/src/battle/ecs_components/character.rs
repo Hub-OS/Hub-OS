@@ -13,17 +13,19 @@ use super::{Artifact, Living};
 
 #[derive(Clone)]
 pub struct Character {
+    pub namespace: PackageNamespace,
     pub rank: CharacterRank,
     pub cards: Vec<CardProperties>,
-    pub namespace: PackageNamespace,
+    pub next_card_mutation: Option<usize>,
 }
 
 impl Character {
     fn new(rank: CharacterRank, namespace: PackageNamespace) -> Self {
         Self {
+            namespace,
             rank,
             cards: Vec::new(),
-            namespace,
+            next_card_mutation: None,
         }
     }
 
@@ -258,5 +260,9 @@ impl Character {
         if let Some(index) = callback.call(game_io, simulation, vms, ()) {
             simulation.use_action(game_io, entity_id, index.into());
         }
+    }
+
+    pub fn invert_card_index(&self, index: usize) -> usize {
+        self.cards.len().wrapping_sub(index).wrapping_sub(1)
     }
 }

@@ -798,7 +798,86 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id))
     });
 
-    // todo: get_held_card_props
+    getter(lua_api, "cards", |character: &Character, lua, _: ()| {
+        let table = lua.create_table_from(character.cards.iter().rev().enumerate());
+
+        lua.pack_multi(table)
+    });
+
+    getter(
+        lua_api,
+        "card",
+        |character: &Character, lua, index: isize| {
+            // accepting index as isize to prevent type errors when we can just return nil
+            let index = character.invert_card_index(index as usize);
+            let card = character.cards.get(index);
+
+            lua.pack_multi(card)
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_card",
+        |character: &mut Character, _, (index, card): (isize, CardProperties)| {
+            // accepting index as isize to prevent type errors when we can just return nil
+            let index = character.invert_card_index(index as usize);
+
+            let Some(card_ref) = character.cards.get_mut(index) else {
+                return Ok(());
+            };
+
+            let should_restart_mutations = card_ref.package_id != card.package_id;
+
+            *card_ref = card;
+
+            if should_restart_mutations {
+                character.next_card_mutation = Some(0);
+            }
+
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "remove_card",
+        |character: &mut Character, _, index: isize| {
+            // accepting index as isize to prevent type errors when we can just return nil
+            let index = character.invert_card_index(index as usize);
+
+            if character.cards.get(index).is_some() {
+                character.cards.remove(index);
+            }
+
+            if let Some(next_index) = &mut character.next_card_mutation {
+                if *next_index == index + 1 {
+                    *next_index = index;
+                }
+            }
+
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "insert_card",
+        |character: &mut Character, _, (index, card): (isize, CardProperties)| {
+            // accepting index as isize to prevent type errors when we can just return nil
+            let index = character.invert_card_index(index as usize);
+
+            if index > character.cards.len() {
+                character.cards.push(card);
+            } else {
+                character.cards.insert(index, card);
+            }
+
+            character.next_card_mutation = Some(0);
+
+            Ok(())
+        },
+    );
 
     // todo: can_attack, maybe better inverted and described as is_idle?
     // nothing is stoping a card action from being queued other than another card action

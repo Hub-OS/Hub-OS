@@ -805,6 +805,7 @@ impl CardSelectState {
             }
 
             character.cards.clear();
+            character.next_card_mutation = Some(0);
 
             // load cards in reverse as we'll pop them off in battle state (first item must be last)
             for i in selection.selected_card_indices.iter().rev() {
@@ -815,7 +816,9 @@ impl CardSelectState {
                 if let Some(package) =
                     card_packages.package_or_override(namespace, &card.package_id)
                 {
-                    character.cards.push(package.card_properties.clone());
+                    let mut card_properties = package.card_properties.clone();
+                    card_properties.code = card.code.clone();
+                    character.cards.push(card_properties);
                 }
             }
 
