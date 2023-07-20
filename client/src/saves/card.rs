@@ -48,11 +48,10 @@ impl Card {
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
         let package_manager = &globals.card_packages;
-        let Some(package) =
-            package_manager.package_or_override(PackageNamespace::Local, &self.package_id)
-        else {
-            return;
-        };
+        let name = package_manager
+            .package_or_override(PackageNamespace::Local, &self.package_id)
+            .map(|package| package.card_properties.short_name.as_str())
+            .unwrap_or("?????");
 
         let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
         text_style.letter_spacing = 2.0;
@@ -61,7 +60,7 @@ impl Card {
         text_style.bounds.x -= 27.0;
         text_style.bounds.y -= text_style.line_height() + text_style.line_spacing;
 
-        text_style.draw(game_io, sprite_queue, &package.card_properties.short_name);
+        text_style.draw(game_io, sprite_queue, name);
     }
 
     pub fn draw_preview(
@@ -74,11 +73,22 @@ impl Card {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let Some(package) =
+
+        let (preview_texture_path, element, secondary_element, damage);
+
+        if let Some(package) =
             package_manager.package_or_override(PackageNamespace::Local, &self.package_id)
-        else {
-            return;
-        };
+        {
+            preview_texture_path = package.preview_texture_path.as_str();
+            element = package.card_properties.element;
+            secondary_element = package.card_properties.secondary_element;
+            damage = package.card_properties.damage;
+        } else {
+            preview_texture_path = "";
+            element = Element::None;
+            secondary_element = Element::None;
+            damage = 0;
+        }
 
         const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
         const ELEMENT_OFFSET: Vec2 = Vec2::new(-23.0, 49.0);
@@ -89,7 +99,7 @@ impl Card {
         let scale = Vec2::new(scale, 1.0);
 
         // preview
-        let mut preview_texture = assets.texture(game_io, &package.preview_texture_path);
+        let mut preview_texture = assets.texture(game_io, preview_texture_path);
 
         if preview_texture.size() == UVec2::new(1, 1) {
             preview_texture = assets.texture(game_io, ResourcePaths::CARD_PREVIEW_MISSING);
@@ -102,9 +112,8 @@ impl Card {
         sprite_queue.draw_sprite(&sprite);
 
         // secondary_element
-        if package.card_properties.secondary_element != Element::None {
-            let mut element_sprite =
-                ElementSprite::new(game_io, package.card_properties.secondary_element);
+        if secondary_element != Element::None {
+            let mut element_sprite = ElementSprite::new(game_io, secondary_element);
             element_sprite.set_origin(-ELEMENT2_OFFSET);
             element_sprite.set_position(position);
             element_sprite.set_scale(scale);
@@ -112,7 +121,7 @@ impl Card {
         }
 
         // element
-        let mut element_sprite = ElementSprite::new(game_io, package.card_properties.element);
+        let mut element_sprite = ElementSprite::new(game_io, element);
         element_sprite.set_origin(-ELEMENT_OFFSET);
         element_sprite.set_position(position);
         element_sprite.set_scale(scale);
@@ -128,9 +137,9 @@ impl Card {
         label.draw(game_io, sprite_queue, &self.code);
 
         // damage
-        if package.card_properties.damage > 0 {
+        if damage > 0 {
             label.color = Color::WHITE;
-            let text = format!("{:>3}", package.card_properties.damage);
+            let text = format!("{:>3}", damage);
 
             let damage_width = label.measure(&text).size.x;
             let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
