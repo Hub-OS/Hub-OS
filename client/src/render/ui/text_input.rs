@@ -110,9 +110,9 @@ impl UiNode for TextInput {
     }
 
     fn update(&mut self, game_io: &mut GameIO, bounds: Rect, focused: bool) {
-        if !self.active {
-            let input_util = InputUtil::new(game_io);
+        let input_util = InputUtil::new(game_io);
 
+        if !self.active {
             if focused && (self.init_active || input_util.was_just_pressed(Input::Confirm)) {
                 if !self.silent {
                     let globals = game_io.resource::<Globals>().unwrap();
@@ -128,6 +128,8 @@ impl UiNode for TextInput {
             return;
         }
 
+        let controller_pressing_cancel = input_util.controller_pressing_cancel();
+
         let input = game_io.input_mut();
         let holding_shift = input.is_key_down(Key::LShift) || input.is_key_down(Key::RShift);
         let pressed_return =
@@ -136,6 +138,7 @@ impl UiNode for TextInput {
         if input.was_key_just_pressed(Key::Escape)
             || (!holding_shift && pressed_return)
             || (!self.paged && input.was_key_just_pressed(Key::Tab))
+            || controller_pressing_cancel
         {
             self.active = false;
             input.end_text_input();
