@@ -1,6 +1,7 @@
 use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::resources::LocalAssetManager;
+use crate::saves::GlobalSave;
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use serde::Deserialize;
@@ -110,10 +111,27 @@ impl PackageManager<ResourcePackage> {
     pub fn apply(
         &self,
         game_io: &GameIO,
-        resource_package_order: &[(PackageId, bool)],
+        global_save: &mut GlobalSave,
         assets: &LocalAssetManager,
     ) {
-        for (id, enabled) in resource_package_order.iter().rev() {
+        let saved_order = &mut global_save.resource_package_order;
+
+        // update global save with missing entries
+        let missing_entries: Vec<_> = self
+            .package_ids(PackageNamespace::Local)
+            .filter(|id| !saved_order.iter().any(|(saved_id, _)| *saved_id == **id))
+            .map(|id| (id.clone(), true))
+            .collect();
+
+        if !missing_entries.is_empty() {
+            saved_order.extend(missing_entries);
+            global_save.save();
+        }
+
+        // apply the final order
+        let saved_order = &mut global_save.resource_package_order;
+
+        for (id, enabled) in saved_order.iter().rev() {
             if !enabled {
                 continue;
             }

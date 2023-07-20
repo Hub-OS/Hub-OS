@@ -62,7 +62,7 @@ impl Globals {
         let assets = LocalAssetManager::new(game_io);
 
         // load save
-        let global_save = GlobalSave::load(&assets);
+        let mut global_save = GlobalSave::load(&assets);
 
         // apply resource overrides
         let mut resource_packages: PackageManager<ResourcePackage> =
@@ -70,7 +70,7 @@ impl Globals {
 
         let resources_mod_path = resource_packages.category().path();
         resource_packages.load_packages_in_folder(&assets, resources_mod_path, |_, _| {});
-        resource_packages.apply(game_io, &global_save.resource_package_order, &assets);
+        resource_packages.apply(game_io, &mut global_save, &assets);
 
         // load font
         let font_texture = assets.texture(game_io, ResourcePaths::FONTS);

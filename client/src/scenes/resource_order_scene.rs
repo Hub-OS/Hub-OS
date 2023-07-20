@@ -89,7 +89,7 @@ impl ResourceOrderScene {
         let missing_iter = packages
             .package_ids(PackageNamespace::Local)
             .filter(|id| !saved_order.iter().any(|(saved_id, _)| *saved_id == **id))
-            .map(|id| (id.clone(), false));
+            .map(|id| (id.clone(), true));
 
         let package_order_iter = tracked_iter.chain(missing_iter).flat_map(|(id, enabled)| {
             let package = packages.package(PackageNamespace::Local, &id)?;
