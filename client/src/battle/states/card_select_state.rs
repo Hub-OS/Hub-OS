@@ -813,13 +813,13 @@ impl CardSelectState {
 
                 let card = &player.cards[*i];
 
-                if let Some(package) =
-                    card_packages.package_or_override(namespace, &card.package_id)
-                {
-                    let mut card_properties = package.card_properties.clone();
-                    card_properties.code = card.code.clone();
-                    character.cards.push(card_properties);
-                }
+                let mut card_properties = card_packages
+                    .package_or_override(namespace, &card.package_id)
+                    .map(|package| package.card_properties.clone())
+                    .unwrap_or_default();
+
+                card_properties.code = card.code.clone();
+                character.cards.push(card_properties);
             }
 
             // remove the cards from the deck
