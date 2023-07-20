@@ -324,6 +324,10 @@ impl From<&str> for Config {
                 .get("PackageRepo")
                 .unwrap_or(DEFAULT_PACKAGE_REPO)
                 .to_string();
+
+            if config.package_repo.is_empty() {
+                config.package_repo = String::from(DEFAULT_PACKAGE_REPO);
+            }
         }
 
         config
@@ -398,6 +402,8 @@ impl ToString for Config {
 
             if self.package_repo != DEFAULT_PACKAGE_REPO {
                 writeln!(s, "PackageRepo = {}", self.package_repo)?;
+            } else {
+                writeln!(s, "PackageRepo = ",)?;
             }
 
             Ok(s)
