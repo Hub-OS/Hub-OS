@@ -5,7 +5,7 @@ use crate::render::ui::{
     SubSceneFrame, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
-use crate::resources::{Globals, ResourcePaths};
+use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
 use packets::structures::{Input, PackageId};
 
@@ -325,7 +325,9 @@ impl Scene for ResourceOrderScene {
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
         // draw items
-        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thin);
+        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
         let start_position = self.list_bounds.top_left();
         text_style.bounds.set_position(start_position);
 

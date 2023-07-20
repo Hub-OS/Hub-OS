@@ -1,6 +1,6 @@
 animation state="DEFAULT"
 blank
-point label="LIST_PADDING" x="4" y="1"
+point label="LIST_PADDING" x="3" y="2"
 point label="LIST_START" x="7" y="17"
 point label="LIST_END" x="234" y="143"
 point label="CONTEXT_MENU" x="147" y="27"
