@@ -32,6 +32,7 @@ pub enum CategoryFilter {
     Augments,
     Encounters,
     Players,
+    Resource,
     Packs,
 }
 
@@ -42,6 +43,7 @@ impl CategoryFilter {
             CategoryFilter::Augments => "Augments",
             CategoryFilter::Encounters => "Battle",
             CategoryFilter::Players => "Players",
+            CategoryFilter::Resource => "Resource",
             CategoryFilter::Packs => "Packs",
         }
     }
@@ -52,6 +54,7 @@ impl CategoryFilter {
             CategoryFilter::Augments => "augment",
             CategoryFilter::Encounters => "encounter",
             CategoryFilter::Players => "player",
+            CategoryFilter::Resource => "resource",
             CategoryFilter::Packs => "pack",
         }
     }
