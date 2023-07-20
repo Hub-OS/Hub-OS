@@ -1,10 +1,9 @@
+use super::{AssetManager, Globals};
 use crate::packages::*;
 use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use std::collections::HashSet;
-
-use super::AssetManager;
 
 pub struct ProgressUpdate {
     pub label: &'static str,
@@ -35,7 +34,8 @@ pub struct BootThread {
 impl BootThread {
     pub fn spawn(game_io: &GameIO) -> flume::Receiver<BootEvent> {
         let (sender, receiver) = flume::unbounded();
-        let assets = LocalAssetManager::new(game_io);
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = globals.assets.clone();
 
         std::thread::spawn(move || {
             let mut context = Self {

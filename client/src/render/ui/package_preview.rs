@@ -28,6 +28,7 @@ pub enum PackagePreviewData {
     Encounter,
     Pack,
     Library,
+    Resources,
     Unknown,
 }
 
@@ -48,6 +49,7 @@ impl PackagePreviewData {
             PackagePreviewData::Library | PackagePreviewData::Pack => {
                 Some(PackageCategory::Library)
             }
+            PackagePreviewData::Resources => Some(PackageCategory::Resource),
             _ => None,
         }
     }
@@ -276,14 +278,13 @@ impl PackagePreview {
                     position.x += sprite.size().x + 2.0;
                 }
             }
-            PackagePreviewData::Encounter | PackagePreviewData::Pack => {
+            _ => {
                 if let Some(mut sprite) = self.image_sprite.clone() {
                     sprite.set_origin(sprite.frame().size() * 0.5);
                     sprite.set_position(image_bounds.center());
                     self.sprites.push(sprite);
                 }
             }
-            PackagePreviewData::Library | PackagePreviewData::Unknown => {}
         }
     }
 

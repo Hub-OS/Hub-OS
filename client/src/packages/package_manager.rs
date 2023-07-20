@@ -20,6 +20,10 @@ impl<T: Package> PackageManager<T> {
         }
     }
 
+    pub fn category(&self) -> PackageCategory {
+        self.package_category
+    }
+
     pub fn namespaces(&self) -> impl Iterator<Item = PackageNamespace> + '_ {
         self.package_maps.keys().cloned()
     }

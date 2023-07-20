@@ -1,17 +1,8 @@
-use super::{CategoryFilter, PackageUpdatesScene, PackagesScene};
+use super::{CategoryFilter, PackageUpdatesScene, PackagesScene, ResourceOrderScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{
-    build_9patch, BindingContextOption, ContextMenu, Dimension, FlexDirection, FontStyle,
-    LengthPercentageAuto, SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxDoorstop,
-    TextboxDoorstopRemover, TextboxMessage, TextboxPrompt, TextboxQuestion, UiButton,
-    UiConfigBinding, UiConfigCycle, UiConfigDynamicCycle, UiConfigPercentage, UiConfigToggle,
-    UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
-};
-use crate::render::{
-    Animator, AnimatorLoopMode, Background, Camera, PostProcessAdjust, PostProcessAdjustConfig,
-    PostProcessColorBlindness, PostProcessGhosting, SpriteColorQueue,
-};
+use crate::render::ui::*;
+use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Config, KeyStyle};
 use framework::prelude::*;
@@ -20,6 +11,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 
+#[derive(Clone)]
 enum Event {
     CategoryChange(ConfigCategory),
     EnterCategory,
@@ -30,6 +22,7 @@ enum Event {
     UpdatePackages,
     ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
     ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
+    ReorderResources,
     ClearCache,
     Leave { save: bool },
 }
@@ -517,43 +510,22 @@ impl ConfigScene {
         game_io: &GameIO,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
+        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
+            let event_sender = event_sender.clone();
+
+            Box::new(
+                UiButton::new_text(game_io, FontStyle::Thick, name).on_activate(move || {
+                    let _ = event_sender.send(event.clone());
+                }),
+            )
+        };
+
         vec![
-            Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Change Nickname").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        let _ = event_sender.send(Event::RequestNicknameChange);
-                    }
-                }),
-            ),
-            Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Manage Mods").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        let _ = event_sender.send(Event::ViewPackages);
-                    }
-                }),
-            ),
-            Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Update Mods").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        let _ = event_sender.send(Event::UpdatePackages);
-                    }
-                }),
-            ),
-            Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Clear Cache").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        let _ = event_sender.send(Event::ClearCache);
-                    }
-                }),
-            ),
+            create_button("Change Nickname", Event::RequestNicknameChange),
+            create_button("Manage Mods", Event::ViewPackages),
+            create_button("Update Mods", Event::UpdatePackages),
+            create_button("Reorder Resources", Event::ReorderResources),
+            create_button("Clear Cache", Event::ClearCache),
         ]
     }
 }
@@ -702,6 +674,11 @@ impl ConfigScene {
                 Event::ViewUpdates(requires_update) => {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let scene = PackageUpdatesScene::new(game_io, requires_update);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::ReorderResources => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = ResourceOrderScene::new(game_io);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::ClearCache => {

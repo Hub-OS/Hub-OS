@@ -238,6 +238,10 @@ impl ResourcePaths {
     pub const PACKAGE_UPDATES_LAYOUT_ANIMATION: &str =
         "resources/scenes/package_updates/layout.animation";
 
+    // ResourceOrderScene
+    pub const RESOURCE_ORDER_LAYOUT_ANIMATION: &str =
+        "resources/scenes/resource_order/layout.animation";
+
     pub fn game_folder() -> &'static str {
         &GAME_PATH
     }

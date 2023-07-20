@@ -245,9 +245,8 @@ impl ServerListScene {
     }
 
     fn update_context_menu(&mut self, game_io: &mut GameIO) {
-        let option = match self.context_menu.update(game_io, &self.ui_input_tracker) {
-            Some(option) => option,
-            None => return,
+        let Some(option) = self.context_menu.update(game_io, &self.ui_input_tracker) else {
+            return;
         };
 
         match option {

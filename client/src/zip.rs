@@ -62,9 +62,8 @@ where
             .sorted_by_cached_key(|entry| entry.path().to_path_buf());
 
         for entry in entry_iter {
-            let metadata = match entry.metadata() {
-                Ok(metadata) => metadata,
-                _ => continue,
+            let Ok(metadata) = entry.metadata() else {
+                continue;
             };
 
             if metadata.is_dir() {
@@ -72,9 +71,8 @@ where
                 continue;
             }
 
-            let mut file = match File::open(entry.path()) {
-                Ok(file) => file,
-                _ => continue,
+            let Ok(mut file) = File::open(entry.path()) else {
+                continue;
             };
 
             let _ = file.read_to_end(&mut buffer);

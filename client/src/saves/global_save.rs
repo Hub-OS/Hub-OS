@@ -14,6 +14,7 @@ pub struct GlobalSave {
     pub selected_deck: usize,
     pub server_list: Vec<ServerInfo>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
+    pub resource_package_order: Vec<(PackageId, bool)>,
 }
 
 impl GlobalSave {
@@ -112,6 +113,7 @@ impl Default for GlobalSave {
             selected_deck: 0,
             server_list: Vec::new(),
             installed_blocks: HashMap::new(),
+            resource_package_order: Vec::new(),
         }
     }
 }

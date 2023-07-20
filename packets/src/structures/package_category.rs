@@ -10,6 +10,7 @@ pub enum PackageCategory {
     #[default]
     Library,
     Player,
+    Resource,
 }
 
 impl PackageCategory {
@@ -20,6 +21,7 @@ impl PackageCategory {
             PackageCategory::Card => "mods/cards/",
             PackageCategory::Library => "mods/libraries/",
             PackageCategory::Player => "mods/players/",
+            PackageCategory::Resource => "mods/resources/",
         }
     }
 

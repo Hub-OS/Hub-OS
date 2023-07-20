@@ -17,6 +17,7 @@ mod overworld_online_scene;
 mod package_scene;
 mod package_updates_scene;
 mod packages_scene;
+mod resource_order_scene;
 mod server_edit_scene;
 mod server_list_scene;
 
@@ -39,5 +40,6 @@ pub use overworld_online_scene::*;
 pub use package_scene::*;
 pub use package_updates_scene::*;
 pub use packages_scene::*;
+pub use resource_order_scene::*;
 pub use server_edit_scene::*;
 pub use server_list_scene::*;

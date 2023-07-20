@@ -11,6 +11,7 @@ pub struct VirtualZipMeta {
     pub virtual_prefix: String,
 }
 
+#[derive(Clone)]
 struct VirtualZipTracking {
     meta: VirtualZipMeta,
     virtual_files: Vec<String>,
@@ -18,6 +19,7 @@ struct VirtualZipTracking {
     bytes: Vec<u8>,
 }
 
+#[derive(Clone)]
 pub struct LocalAssetManager {
     loaded_zips: RefCell<HashMap<FileHash, VirtualZipTracking>>,
     text_cache: RefCell<HashMap<String, String>>,
@@ -223,6 +225,55 @@ impl LocalAssetManager {
         text_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
         texture_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
         sound_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
+    }
+
+    pub fn override_cache(&self, game_io: &GameIO, path: &str, file_path: &str) {
+        let Ok(bytes) = std::fs::read(file_path) else {
+            return;
+        };
+
+        match AssetDataType::from_path_str(path) {
+            AssetDataType::Text => {
+                let mut text_cache = self.text_cache.borrow_mut();
+
+                let text = String::from_utf8_lossy(&bytes).to_string();
+                text_cache.insert(path.to_string(), text.clone());
+
+                let absolute_path = ResourcePaths::game_folder().to_owned() + path;
+                text_cache.insert(absolute_path, text);
+            }
+            AssetDataType::CompressedText => {
+                // only used for server sent data
+                unreachable!()
+            }
+            AssetDataType::Texture => {
+                let mut texture_cache = self.texture_cache.borrow_mut();
+
+                if let Ok(texture) = Texture::load_from_memory(game_io, &bytes) {
+                    texture_cache.insert(path.to_string(), texture.clone());
+
+                    let absolute_path = ResourcePaths::game_folder().to_owned() + path;
+                    texture_cache.insert(absolute_path, texture);
+                } else {
+                    log::error!("Failed to load texture: {file_path}");
+                }
+            }
+            AssetDataType::Audio => {
+                let mut sound_cache = self.sound_cache.borrow_mut();
+
+                let sound = SoundBuffer::decode(game_io, bytes);
+                sound_cache.insert(path.to_string(), sound.clone());
+
+                let absolute_path = ResourcePaths::game_folder().to_owned() + path;
+                sound_cache.insert(absolute_path, sound);
+            }
+            AssetDataType::Data => {
+                // used for zips, ignore
+            }
+            AssetDataType::Unknown => {
+                log::error!("Attempted to override resource with unknown file type: {file_path}");
+            }
+        }
     }
 }
 

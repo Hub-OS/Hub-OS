@@ -30,6 +30,7 @@ pub struct Globals {
     pub character_packages: PackageManager<CharacterPackage>,
     pub augment_packages: PackageManager<AugmentPackage>,
     pub library_packages: PackageManager<LibraryPackage>,
+    pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
 
     // sounds
@@ -59,8 +60,22 @@ pub struct Globals {
 impl Globals {
     pub fn new(game_io: &mut GameIO, args: Args) -> Self {
         let assets = LocalAssetManager::new(game_io);
+
+        // load save
+        let global_save = GlobalSave::load(&assets);
+
+        // apply resource overrides
+        let mut resource_packages: PackageManager<ResourcePackage> =
+            PackageManager::new(PackageCategory::Resource);
+
+        let resources_mod_path = resource_packages.category().path();
+        resource_packages.load_packages_in_folder(&assets, resources_mod_path, |_, _| {});
+        resource_packages.apply(game_io, &global_save.resource_package_order, &assets);
+
+        // load font
         let font_texture = assets.texture(game_io, ResourcePaths::FONTS);
 
+        // load config
         let config = Config::load(&assets);
         let music_volume = config.music_volume();
         let sfx_volume = config.sfx_volume();
@@ -97,7 +112,7 @@ impl Globals {
             post_process_adjust_config,
             post_process_ghosting,
             post_process_color_blindness,
-            global_save: GlobalSave::load(&assets),
+            global_save,
             restrictions: Restrictions::default(),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),
@@ -105,6 +120,7 @@ impl Globals {
             character_packages: PackageManager::new(PackageCategory::Character),
             augment_packages: PackageManager::new(PackageCategory::Augment),
             library_packages: PackageManager::new(PackageCategory::Library),
+            resource_packages,
             battle_api: BattleLuaApi::new(),
 
             // sounds
@@ -204,6 +220,10 @@ impl Globals {
                 log::error!("Attempt to load Character package");
                 None
             }
+            PackageCategory::Resource => {
+                log::error!("Attempt to load virtual Resource package");
+                None
+            }
         }?;
 
         // load child packages
@@ -246,6 +266,10 @@ impl Globals {
             PackageCategory::Character => {
                 log::error!("Attempt to load Character package");
                 None
+            }
+            PackageCategory::Resource => {
+                self.resource_packages
+                    .load_package(&self.assets, namespace, path)
             }
         }?;
 
@@ -297,6 +321,10 @@ impl Globals {
             }
             PackageCategory::Character => {
                 self.character_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Resource => {
+                self.resource_packages
                     .unload_package(&self.assets, namespace, id);
             }
         }
@@ -440,6 +468,10 @@ impl Globals {
                 .player_packages
                 .package(namespace, id)
                 .map(|package| package.package_info()),
+            PackageCategory::Resource => self
+                .resource_packages
+                .package(namespace, id)
+                .map(|package| package.package_info()),
         }
     }
 
@@ -472,6 +504,10 @@ impl Globals {
                 .map(|package| package.package_info()),
             PackageCategory::Player => self
                 .player_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Resource => self
+                .resource_packages
                 .package_or_override(namespace, id)
                 .map(|package| package.package_info()),
         }
@@ -507,6 +543,10 @@ impl Globals {
                 .map(|package| package.create_package_listing()),
             PackageCategory::Player => self
                 .player_packages
+                .package(namespace, id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Resource => self
+                .resource_packages
                 .package(namespace, id)
                 .map(|package| package.create_package_listing()),
         }
