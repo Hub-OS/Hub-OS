@@ -524,7 +524,7 @@ impl ConfigScene {
             create_button("Change Nickname", Event::RequestNicknameChange),
             create_button("Manage Mods", Event::ViewPackages),
             create_button("Update Mods", Event::UpdatePackages),
-            create_button("Reorder Resources", Event::ReorderResources),
+            create_button("Resource Mods", Event::ReorderResources),
             create_button("Clear Cache", Event::ClearCache),
         ]
     }
