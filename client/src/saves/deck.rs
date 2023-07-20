@@ -1,5 +1,9 @@
-use crate::{bindable::CardClass, packages::PackageNamespace, resources::Globals, saves::Card};
+use crate::bindable::CardClass;
+use crate::packages::PackageNamespace;
+use crate::resources::{DeckRestrictions, Globals};
+use crate::saves::Card;
 use framework::prelude::GameIO;
+use packets::structures::PackageId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -16,6 +20,27 @@ impl Deck {
             name,
             cards: Vec::new(),
         }
+    }
+
+    pub fn conform(
+        &mut self,
+        game_io: &GameIO,
+        namespace: PackageNamespace,
+        deck_restrictions: &DeckRestrictions,
+    ) {
+        let deck_validity = deck_restrictions.validate_deck(game_io, namespace, self);
+
+        // preserve only valid cards
+        self.cards.retain(|card| deck_validity.is_card_valid(card));
+
+        // fill the rest of the deck
+        let default_card = Card {
+            package_id: PackageId::default(),
+            code: String::from("!"),
+        };
+
+        let new_len = deck_restrictions.required_total;
+        self.cards.resize(new_len, default_card);
     }
 
     pub fn shuffle(

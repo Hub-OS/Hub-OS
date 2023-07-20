@@ -45,7 +45,7 @@ impl<'a> PlayerSetup<'a> {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
-        let mut deck_restriction = restrictions.base_deck_restrictions();
+        let mut deck_restrictions = restrictions.base_deck_restrictions();
 
         let player_package = global_save.player_package(game_io).unwrap();
 
@@ -72,13 +72,10 @@ impl<'a> PlayerSetup<'a> {
         });
 
         // deck
-        deck_restriction.apply_augments(grid.augments(game_io));
+        deck_restrictions.apply_augments(grid.augments(game_io));
 
-        let deck = global_save
-            .active_deck()
-            .filter(|deck| deck_restriction.validate_deck(game_io, ns, deck).is_valid())
-            .cloned()
-            .unwrap_or_default();
+        let mut deck = global_save.active_deck().cloned().unwrap_or_default();
+        deck.conform(game_io, PackageNamespace::Local, &deck_restrictions);
 
         Self {
             player_package,
