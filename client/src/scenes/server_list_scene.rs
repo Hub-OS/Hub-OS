@@ -28,6 +28,7 @@ pub struct ServerListScene {
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
     context_menu: ContextMenu<MenuOption>,
+    option_tip: OptionTip,
     active_poll_task: Option<(String, AsyncTask<ServerStatus>)>,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
@@ -68,6 +69,12 @@ impl ServerListScene {
         let context_position = layout_animator.point("CONTEXT_MENU").unwrap_or_default();
         let context_menu = ContextMenu::new(game_io, "OPTIONS", context_position);
 
+        // option tip
+        let option_tip_top_right = layout_animator
+            .point("MENU_TIP_TOP_RIGHT")
+            .unwrap_or_default();
+        let option_tip = OptionTip::new(String::from("MENU"), option_tip_top_right);
+
         // events
         let (event_sender, event_receiver) = flume::unbounded();
 
@@ -84,8 +91,9 @@ impl ServerListScene {
             statuses: Vec::new(),
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
-            active_poll_task: None,
             context_menu,
+            option_tip,
+            active_poll_task: None,
             textbox: Textbox::new_navigation(game_io),
             event_sender,
             event_receiver,
@@ -485,19 +493,7 @@ impl Scene for ServerListScene {
         self.context_menu.draw(game_io, &mut sprite_queue);
 
         // draw help
-        const NEW_LABEL: &str = "OPTION:";
-        const NEW_POSITION: Vec2 = Vec2::new(160.0, RESOLUTION_F.y - 15.0);
-
-        text_style.monospace = false;
-        text_style.font_style = FontStyle::Context;
-
-        text_style.bounds.set_position(NEW_POSITION);
-        text_style.draw(game_io, &mut sprite_queue, NEW_LABEL);
-
-        text_style.color = Color::GREEN;
-        text_style.bounds.set_position(NEW_POSITION);
-        text_style.bounds.x += text_style.measure(NEW_LABEL).size.x + text_style.letter_spacing;
-        text_style.draw(game_io, &mut sprite_queue, "MENU");
+        self.option_tip.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
