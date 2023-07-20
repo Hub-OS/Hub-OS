@@ -211,6 +211,19 @@ impl LocalAssetManager {
             sound
         }
     }
+
+    pub fn clear_local_mod_assets(&self) {
+        let mut text_cache = self.text_cache.borrow_mut();
+        let mut texture_cache = self.texture_cache.borrow_mut();
+        let mut sound_cache = self.sound_cache.borrow_mut();
+
+        let base_mod_folder = ResourcePaths::game_folder().to_string() + "mods";
+        let base_mod_folder = ResourcePaths::clean_folder(&base_mod_folder);
+
+        text_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
+        texture_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
+        sound_cache.retain(|key, _| !key.starts_with(&base_mod_folder));
+    }
 }
 
 impl AssetManager for LocalAssetManager {

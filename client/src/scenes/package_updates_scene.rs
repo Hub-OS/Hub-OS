@@ -6,7 +6,7 @@ use crate::render::ui::{
     UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, Input, InputUtil, LocalAssetManager, ResourcePaths};
+use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
 use framework::prelude::{GameIO, NextScene, Rect, RenderPass, Scene, Sprite};
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use taffy::style::{AlignItems, Dimension, FlexDirection, JustifyContent};
@@ -263,9 +263,8 @@ impl PackageUpdatesScene {
         }
 
         // clear cached assets
-        let assets = LocalAssetManager::new(game_io);
-        let globals = game_io.resource_mut::<Globals>().unwrap();
-        globals.assets = assets;
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.assets.clear_local_mod_assets();
 
         // update player avatar
         self.textbox.use_player_avatar(game_io);
