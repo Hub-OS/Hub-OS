@@ -90,7 +90,13 @@ impl Restrictions {
 
             card_packages
                 .package_or_override(PackageNamespace::Local, &card.package_id)
-                .map(|package| package.limit)
+                .map(|package| {
+                    if package.default_codes.contains(&card.code) {
+                        package.limit
+                    } else {
+                        0
+                    }
+                })
                 .unwrap_or(0)
         } else {
             // use self.owned_cards
