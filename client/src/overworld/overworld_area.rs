@@ -1,5 +1,6 @@
 use crate::overworld::components::*;
 use crate::overworld::*;
+use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -252,6 +253,38 @@ impl OverworldArea {
         for (sprite, _) in render_order {
             sprite_queue.draw_sprite(sprite);
         }
+    }
+
+    pub fn draw_player_names(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
+        // find the closest named entity under the mouse
+        let camera_scale = self.world_camera.scale();
+        let mouse_position = (game_io.input().mouse_position() * Vec2::new(0.5, -0.5) + 0.5)
+            * RESOLUTION_F
+            * camera_scale;
+
+        let mouse_screen =
+            mouse_position + self.world_camera.position() - self.world_camera.size() * 0.5;
+
+        let mut query = self.entities.query::<(&Sprite, &Vec3, &NameLabel)>();
+        let query_iter = query.into_iter().map(|(_, pair)| pair);
+
+        let Some((.., name_label)) = query_iter
+            .filter(|(.., name_label)| !name_label.0.is_empty())
+            .filter(|(sprite, ..)| sprite.bounds().contains(mouse_screen))
+            .max_by_key(|(_, position, _)| self.map.world_3d_to_screen(**position).y as i32)
+        else {
+            return;
+        };
+
+        // render the entity's name
+        let name = &name_label.0;
+
+        let mut text_style = TextStyle::new(game_io, FontStyle::Tiny);
+        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+        text_style.bounds.set_position(mouse_position);
+        text_style.bounds -= text_style.measure(name).size * Vec2::new(0.5, 1.0);
+        text_style.bounds.y -= 2.0;
+        text_style.draw(game_io, sprite_queue, name);
     }
 
     pub fn draw(

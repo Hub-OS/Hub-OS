@@ -1102,7 +1102,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
- "libloading 0.8.0",
+ "libloading 0.7.4",
 ]
 
 [[package]]
@@ -1233,9 +1233,9 @@ dependencies = [
 
 [[package]]
 name = "exr"
-version = "1.6.5"
+version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85a7b44a196573e272e0cf0bcf130281c71e9a0c67062954b3323fd364bfdac9"
+checksum = "d1e481eb11a482815d3e9d618db8c42a93207134662873809335a92327440c18"
 dependencies = [
  "bit_field",
  "flume",
@@ -1367,7 +1367,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#23712edeaf0407e657aded0da5a5ffc333d805d9"
+source = "git+https://github.com/Hub-OS/framework#1288103fe5ffee4fa528555a38ea8cc5cf0fc6b0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -1609,7 +1609,7 @@ dependencies = [
  "vec_map",
  "wasm-bindgen",
  "web-sys",
- "windows 0.48.0",
+ "windows 0.46.0",
 ]
 
 [[package]]
@@ -1647,9 +1647,9 @@ dependencies = [
 
 [[package]]
 name = "glow"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "807edf58b70c0b5b2181dd39fe1839dbdb3ba02645630dc5f753e23da307f762"
+checksum = "ca0fe580e4b60a8ab24a868bc08e2f03cbcb20d3d676601fa909386713333728"
 dependencies = [
  "js-sys",
  "slotmap",
@@ -2417,9 +2417,9 @@ checksum = "816df386e5557ac1843a96f1ba8a7cbf4ab175d05ccc15c87a3cda27b4fbdece"
 
 [[package]]
 name = "naga"
-version = "0.12.2"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80cd00bd6180a8790f1c020ed258a46b8d73dd5bd6af104a238c9d71f806938e"
+checksum = "bbcc2e0513220fd2b598e6068608d4462db20322c0e77e47f6f488dfcfc279cb"
 dependencies = [
  "bit-set",
  "bitflags 1.3.2",
@@ -4104,9 +4104,9 @@ checksum = "9193164d4de03a926d909d3bc7c30543cecb35400c02114792c2cae20d5e2dbb"
 
 [[package]]
 name = "wgpu"
-version = "0.16.1"
+version = "0.16.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3059ea4ddec41ca14f356833e2af65e7e38c0a8f91273867ed526fb9bafcca95"
+checksum = "480c965c9306872eb6255fa55e4b4953be55a8b64d57e61d7ff840d3dcc051cd"
 dependencies = [
  "arrayvec 0.7.4",
  "cfg-if",
@@ -4151,9 +4151,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-hal"
-version = "0.16.1"
+version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74851c2c8e5d97652e74c241d41b0656b31c924a45dcdecde83975717362cfa4"
+checksum = "1ecb3258078e936deee14fd4e0febe1cfe9bbb5ffef165cb60218d2ee5eb4448"
 dependencies = [
  "android_system_properties",
  "arrayvec 0.7.4",
@@ -4193,9 +4193,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-types"
-version = "0.16.0"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bd33a976130f03dcdcd39b3810c0c3fc05daf86f0aaf867db14bfb7c4a9a32b"
+checksum = "d0c153280bb108c2979eb5c7391cb18c56642dd3c072e55f52065e13e2a1252a"
 dependencies = [
  "bitflags 2.3.3",
  "js-sys",
@@ -4536,9 +4536,9 @@ dependencies = [
 
 [[package]]
 name = "xml-rs"
-version = "0.8.15"
+version = "0.8.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a56c84a8ccd4258aed21c92f70c0f6dea75356b6892ae27c24139da456f9336"
+checksum = "47430998a7b5d499ccee752b41567bc3afc57e1327dc855b1a2aa44ce29b5fa1"
 
 [[package]]
 name = "xmlparser"

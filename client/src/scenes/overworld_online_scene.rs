@@ -1133,6 +1133,7 @@ impl OverworldOnlineScene {
                         (
                             InteractableActor(actor_id.clone()),
                             MovementInterpolator::new(game_io, position, initial_direction),
+                            NameLabel(name),
                         ),
                     );
 

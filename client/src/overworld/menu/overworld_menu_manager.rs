@@ -529,6 +529,11 @@ impl OverworldMenuManager {
         sprite_queue: &mut SpriteColorQueue,
         area: &OverworldArea,
     ) {
+        // draw names
+        if !self.navigation_menu.is_open() {
+            area.draw_player_names(game_io, sprite_queue);
+        }
+
         let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
 
         // draw menus
