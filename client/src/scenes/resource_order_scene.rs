@@ -342,8 +342,10 @@ impl Scene for ResourceOrderScene {
             };
 
             // draw package name
-            if package_listing.name.len() >= 16 {
-                let name = format!("{}...", &package_listing.name[0..13]);
+            const CHAR_LIMIT: usize = 20;
+
+            if package_listing.name.len() >= CHAR_LIMIT {
+                let name = format!("{}...", &package_listing.name[0..CHAR_LIMIT - 3]);
                 text_style.draw(game_io, &mut sprite_queue, &name);
             } else {
                 text_style.draw(game_io, &mut sprite_queue, &package_listing.name);
