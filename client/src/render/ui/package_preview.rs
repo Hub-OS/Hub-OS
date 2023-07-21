@@ -34,10 +34,7 @@ pub enum PackagePreviewData {
 
 impl PackagePreviewData {
     fn has_image(&self) -> bool {
-        matches!(
-            self,
-            Self::Card { .. } | Self::Player { .. } | Self::Encounter | Self::Pack
-        )
+        !matches!(self, Self::Augment { .. })
     }
 
     pub fn category(&self) -> Option<PackageCategory> {
