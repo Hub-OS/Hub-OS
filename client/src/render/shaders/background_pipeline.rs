@@ -22,12 +22,13 @@ impl BackgroundPipeline {
 
         Self {
             render_pipeline,
-            mesh: Self::create_mesh(),
+            mesh: Self::create_mesh(game_io),
         }
     }
 
-    fn create_mesh() -> Arc<Mesh<Vec2>> {
+    fn create_mesh(game_io: &GameIO) -> Arc<Mesh<Vec2>> {
         Mesh::new(
+            game_io,
             &[
                 Vec2::new(0.0, 0.0),
                 Vec2::new(0.0, 1.0),

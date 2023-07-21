@@ -21,7 +21,7 @@ impl Overlay {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        let mut rectangle = FlatModel::new_square_model();
+        let mut rectangle = FlatModel::new_square_model(game_io);
         rectangle.set_origin(Vec2::new(-0.5, 0.5));
 
         Self {
