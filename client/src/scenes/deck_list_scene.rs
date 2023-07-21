@@ -214,9 +214,8 @@ impl Scene for DeckListScene {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
-        // draw title
-        self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("FOLDER LIST").draw(game_io, &mut sprite_queue);
+        // draw selected deck frame
+        sprite_queue.draw_sprite(&self.deck_frame_sprite);
 
         // deck offset calculations
         let deck_top_index = self.deck_scroll_tracker.top_index();
@@ -259,9 +258,7 @@ impl Scene for DeckListScene {
             label.draw(game_io, &mut sprite_queue, &deck.name);
         }
 
-        // draw selected deck
-        sprite_queue.draw_sprite(&self.deck_frame_sprite);
-
+        // draw selected deck card list
         if !global_save.decks.is_empty() {
             // draw deck cursor
             self.deck_scroll_tracker.draw_cursor(&mut sprite_queue);
@@ -281,9 +278,13 @@ impl Scene for DeckListScene {
                 card_position.y += 16.0;
             }
 
-            // draw card cursor
+            // draw scrollbar
             self.card_scroll_tracker.draw_scrollbar(&mut sprite_queue);
         }
+
+        // draw frame and title
+        self.frame.draw(&mut sprite_queue);
+        SceneTitle::new("FOLDER LIST").draw(game_io, &mut sprite_queue);
 
         // draw context menu
         self.context_menu.draw(game_io, &mut sprite_queue);
