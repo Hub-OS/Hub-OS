@@ -153,12 +153,8 @@ impl ResourcePaths {
     pub const DECKS_EQUIPPED_ANIMATION: &str = "resources/scenes/deck_list/equip.animation";
 
     // DeckEditorScene
-    pub const DECK_SIZE: &str = "resources/scenes/deck_editor/size.png";
-    pub const DECK_DOCK: &str = "resources/scenes/deck_editor/dock.png";
-    pub const DECK_DOCK_ANIMATION: &str = "resources/scenes/deck_editor/dock.animation";
-    pub const DECK_PACK_DOCK: &str = "resources/scenes/deck_editor/pack_dock.png";
-    pub const DECK_PACK_DOCK_ANIMATION: &str = "resources/scenes/deck_editor/pack_dock.animation";
-    pub const DECK_SORT_MENU: &str = "resources/scenes/deck_editor/sort.png";
+    pub const DECK_UI: &str = "resources/scenes/deck_editor/ui.png";
+    pub const DECK_UI_ANIMATION: &str = "resources/scenes/deck_editor/ui.animation";
 
     // LibraryScene
     pub const LIBRARY_LAYOUT_ANIMATION: &str = "resources/scenes/library/layout.animation";

@@ -39,7 +39,8 @@ pub struct DeckEditorScene {
     last_sort: Option<Sorting>,
     deck_dock: Dock,
     pack_dock: Dock,
-    deck_size_sprite: Sprite,
+    deck_total_sprite: Sprite,
+    deck_total_text: Text,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
@@ -55,19 +56,35 @@ impl DeckEditorScene {
         let mut deck_restrictions = globals.restrictions.base_deck_restrictions();
         deck_restrictions.apply_augments(global_save.valid_augments(game_io));
 
-        // ui
-        let assets = &globals.assets;
-
+        // camera
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
+
+        // ui
+        let assets = &globals.assets;
+        let ui_sprite = assets.new_sprite(game_io, ResourcePaths::DECK_UI);
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::DECK_UI_ANIMATION);
+
+        // total sprite
+        let mut deck_total_sprite = ui_sprite.clone();
+        ui_animator.set_state("TOTAL_FRAME");
+        ui_animator.apply(&mut deck_total_sprite);
+
+        // total text
+        let mut deck_total_text = Text::new(game_io, FontStyle::Wide);
+        let deck_total_position =
+            ui_animator.point("TEXT_START").unwrap_or_default() - ui_animator.origin();
+
+        (deck_total_text.style.bounds).set_position(deck_total_position);
+        deck_total_text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
         // deck_dock
         let deck = &globals.global_save.decks[deck_index];
         let mut deck_dock = Dock::new(
             game_io,
             CardListItem::vec_from_deck(&deck_restrictions, deck),
-            ResourcePaths::DECK_DOCK,
-            ResourcePaths::DECK_DOCK_ANIMATION,
+            ui_sprite.clone(),
+            ui_animator.clone().with_state("DECK_DOCK"),
         );
         deck_dock.validate(game_io, &deck_restrictions);
 
@@ -75,17 +92,9 @@ impl DeckEditorScene {
         let pack_dock = Dock::new(
             game_io,
             CardListItem::pack_vec_from_packages(game_io, deck),
-            ResourcePaths::DECK_PACK_DOCK,
-            ResourcePaths::DECK_PACK_DOCK_ANIMATION,
+            ui_sprite.clone(),
+            ui_animator.with_state("PACK_DOCK"),
         );
-
-        // static sprites
-        let mut deck_size_sprite = assets.new_sprite(game_io, ResourcePaths::DECK_SIZE);
-        deck_size_sprite.set_origin(Vec2::new(0.0, deck_size_sprite.size().y * 0.5));
-        deck_size_sprite.set_position(Vec2::new(
-            RESOLUTION_F.x - deck_size_sprite.size().x,
-            10.0 + deck_size_sprite.size().y * 0.5,
-        ));
 
         let (event_sender, event_receiver) = flume::unbounded();
 
@@ -114,7 +123,8 @@ impl DeckEditorScene {
             last_sort: None,
             deck_dock,
             pack_dock,
-            deck_size_sprite,
+            deck_total_sprite,
+            deck_total_text,
             textbox: Textbox::new_navigation(game_io),
             event_sender,
             event_receiver,
@@ -192,31 +202,32 @@ impl Scene for DeckEditorScene {
         self.frame.draw(&mut sprite_queue);
         SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
 
-        // draw deck size
+        // draw deck total frame
         let offset = Vec2::new(self.page_tracker.page_offset(0), 0.0);
-        let original_size_position = self.deck_size_sprite.position();
-        let adjusted_size_position = original_size_position + offset;
+        let original_total_position = self.deck_total_sprite.position();
+        let adjusted_total_position = original_total_position + offset;
 
-        self.deck_size_sprite.set_position(adjusted_size_position);
-        sprite_queue.draw_sprite(&self.deck_size_sprite);
-        self.deck_size_sprite.set_position(original_size_position);
+        self.deck_total_sprite.set_position(adjusted_total_position);
+        sprite_queue.draw_sprite(&self.deck_total_sprite);
+        self.deck_total_sprite.set_position(original_total_position);
 
-        let mut count_text = Text::new(game_io, FontStyle::Wide);
-        (count_text.style.bounds).set_position(adjusted_size_position);
-        count_text.style.bounds.x += 10.0;
-        count_text.style.bounds.y -= 3.0;
-
+        // draw deck total
         let card_count = self.deck_dock.card_count;
 
-        count_text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-        count_text.style.color = if card_count == self.deck_restrictions.required_total {
+        let original_total_pos = self.deck_total_text.style.bounds.position();
+        self.deck_total_text.style.bounds += offset;
+
+        self.deck_total_text.style.color = if card_count == self.deck_restrictions.required_total {
             Color::from((173, 255, 189))
         } else {
             Color::from((255, 181, 74))
         };
 
-        count_text.text = format!("{card_count:>2}/{}", self.deck_restrictions.required_total);
-        count_text.draw(game_io, &mut sprite_queue);
+        self.deck_total_text.text =
+            format!("{card_count:>2}/{}", self.deck_restrictions.required_total);
+        self.deck_total_text.draw(game_io, &mut sprite_queue);
+
+        (self.deck_total_text.style.bounds).set_position(original_total_pos);
 
         // draw docks
         for (page, offset) in self.page_tracker.visible_pages() {
@@ -682,40 +693,34 @@ impl Dock {
     fn new(
         game_io: &GameIO,
         card_slots: Vec<Option<CardListItem>>,
-        texture_path: &str,
-        animation_path: &str,
+        mut dock_sprite: Sprite,
+        mut dock_animator: Animator,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-
         // dock
-        let mut dock_sprite = assets.new_sprite(game_io, texture_path);
-        let mut dock_animator = Animator::load_new(assets, animation_path);
-        dock_animator.set_state("default");
         dock_animator.set_loop_mode(AnimatorLoopMode::Loop);
         dock_animator.apply(&mut dock_sprite);
 
         let dock_offset = -dock_sprite.origin();
 
-        let list_point = dock_animator.point("list").unwrap_or_default();
+        let list_point = dock_animator.point("LIST").unwrap_or_default();
         let list_position = dock_offset + list_point;
 
-        let context_menu_point = dock_animator.point("context_menu").unwrap_or_default();
+        let context_menu_point = dock_animator.point("CONTEXT_MENU").unwrap_or_default();
         let context_menu_position = dock_offset + context_menu_point;
 
-        let page_arrow_point = dock_animator.point("page_arrows").unwrap_or_default();
+        let page_arrow_point = dock_animator.point("PAGE_ARROWS").unwrap_or_default();
         let page_arrow_offset = dock_offset + page_arrow_point;
 
         // card sprite
-        let card_offset = dock_animator.point("card").unwrap_or_default();
+        let card_offset = dock_animator.point("CARD").unwrap_or_default();
         let card_preview = FullCard::new(game_io, dock_offset + card_offset);
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.set_total_items(card_slots.len());
 
-        let scroll_start_point = dock_animator.point("scroll_start").unwrap_or_default();
-        let scroll_end_point = dock_animator.point("scroll_end").unwrap_or_default();
+        let scroll_start_point = dock_animator.point("SCROLL_START").unwrap_or_default();
+        let scroll_end_point = dock_animator.point("SCROLL_END").unwrap_or_default();
 
         let scroll_start = dock_offset + scroll_start_point;
         let scroll_end = dock_offset + scroll_end_point;
