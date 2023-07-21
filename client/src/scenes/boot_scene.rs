@@ -68,7 +68,7 @@ impl BootScene {
 
         BootScene {
             camera: Camera::new_ui(game_io),
-            background: Background::new_sub_scene(game_io),
+            background: Background::new_boot(game_io),
             status_label,
             progress_frame_sprite,
             progress_bar_sprite,

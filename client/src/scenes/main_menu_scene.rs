@@ -83,20 +83,6 @@ pub struct MainMenuScene {
 
 impl MainMenuScene {
     pub fn new(game_io: &mut GameIO) -> MainMenuScene {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-        let background_sampler = &globals.background_sampler;
-
-        // setup camera
-        let mut camera = Camera::new(game_io);
-        camera.snap(RESOLUTION_F * 0.5);
-
-        // background
-        let background_texture = assets.texture(game_io, ResourcePaths::MAIN_MENU_BG);
-        let background_sprite =
-            Sprite::new_with_sampler(background_texture, background_sampler.clone());
-        let background = Background::new(Animator::new(), background_sprite);
-
         // scrolling text
         let mut scrolling_text_style = TextStyle::new(game_io, FontStyle::Context);
         scrolling_text_style.bounds.y = RESOLUTION_F.y * 0.5;
@@ -105,8 +91,8 @@ impl MainMenuScene {
         let character_data = CharacterData::load(game_io, &scrolling_text_style);
 
         MainMenuScene {
-            camera,
-            background,
+            camera: Camera::new_ui(game_io),
+            background: Background::new_main_menu(game_io),
             scrolling_text_style,
             scrolling_text_offset: 0.0,
             character_data,

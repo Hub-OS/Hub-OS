@@ -101,11 +101,13 @@ impl ResourcePaths {
 
     // BootScene
     pub const BOOT_BG: &str = "resources/scenes/boot/bg.png";
+    pub const BOOT_BG_ANIMATION: &str = "resources/scenes/boot/bg.animation";
     pub const BOOT_UI: &str = "resources/scenes/boot/ui.png";
     pub const BOOT_UI_ANIMATION: &str = "resources/scenes/boot/ui.animation";
 
     // MainMenuScene
     pub const MAIN_MENU_BG: &str = "resources/scenes/main_menu/bg.png";
+    pub const MAIN_MENU_BG_ANIMATION: &str = "resources/scenes/main_menu/bg.animation";
     pub const MAIN_MENU_LAYOUT_ANIMATION: &str = "resources/scenes/main_menu/layout.animation";
     pub const MAIN_MENU_PARTS: &str = "resources/scenes/main_menu/menu.png";
     pub const MAIN_MENU_PARTS_ANIMATION: &str = "resources/scenes/main_menu/menu.animation";
