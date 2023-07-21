@@ -131,7 +131,7 @@ impl PackageManager<ResourcePackage> {
         // apply the final order
         let saved_order = &mut global_save.resource_package_order;
 
-        for (id, enabled) in saved_order.iter().rev() {
+        for (id, enabled) in saved_order.iter() {
             if !enabled {
                 continue;
             }
