@@ -185,6 +185,10 @@ impl Character {
         let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
             let package_id = &card_props.package_id;
 
+            if package_id.is_blank() {
+                return None;
+            }
+
             let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
                 log::error!("Failed to find vm for {package_id}");
                 return None;
