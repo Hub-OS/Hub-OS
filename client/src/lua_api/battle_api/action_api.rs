@@ -10,6 +10,8 @@ use crate::battle::*;
 use crate::bindable::{CardProperties, EntityId, GenerationalIndex, SpriteColorMode};
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::{DerivedFrame, FrameTime, SpriteNode};
+use crate::resources::Globals;
+use packets::structures::PackageId;
 use rollback_mlua::LuaSerdeExt;
 
 pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
@@ -18,6 +20,62 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(CARD_PROPERTIES_TABLE, "new", move |_, lua, _| {
         lua.pack_multi(&CardProperties::default())
+    });
+
+    lua_api.add_dynamic_function(
+        CARD_PROPERTIES_TABLE,
+        "from_package",
+        |api_ctx, lua, params| {
+            let (package_id, code): (PackageId, Option<String>) = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+
+            let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let card_packages = &globals.card_packages;
+
+            if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
+                if let Some(code) = code {
+                    // clone to update code
+                    let mut card_properties = package.card_properties.clone();
+                    card_properties.code = code;
+                    lua.pack_multi(&card_properties)
+                } else {
+                    // avoid clone
+                    lua.pack_multi(&package.card_properties)
+                }
+            } else {
+                lua.pack_multi(&CardProperties {
+                    code: code.unwrap_or_default(),
+                    ..CardProperties::default()
+                })
+            }
+        },
+    );
+
+    lua_api.add_dynamic_function(ACTION_TABLE, "from_card", move |api_ctx, lua, params| {
+        let (entity_table, card_props): (rollback_mlua::Table, CardProperties) =
+            lua.unpack_multi(params)?;
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+
+        let action_index = Action::create_from_card_properties(
+            api_ctx.game_io,
+            api_ctx.simulation,
+            api_ctx.vms,
+            entity_id,
+            namespace,
+            &card_props,
+        );
+
+        let optional_table = action_index
+            .map(|action_index| create_action_table(lua, action_index.into()))
+            .transpose()?;
+
+        lua.pack_multi(optional_table)
     });
 
     lua_api.add_dynamic_function(ACTION_TABLE, "new", move |api_ctx, lua, params| {

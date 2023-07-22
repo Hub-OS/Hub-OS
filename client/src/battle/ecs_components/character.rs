@@ -1,13 +1,9 @@
-use crate::battle::{
-    BattleCallback, BattleScriptContext, BattleSimulation, Entity, RollbackVM, TileState,
-};
+use crate::battle::{Action, BattleCallback, BattleSimulation, Entity, RollbackVM, TileState};
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
-use crate::resources::Globals;
 use framework::prelude::{GameIO, Vec2};
 use packets::structures::PackageId;
-use std::cell::RefCell;
 
 use super::{Artifact, Living};
 
@@ -178,74 +174,20 @@ impl Character {
         let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
-        // call "card_init"
+        // create card action
         let namespace = character.namespace;
         let card_props = character.cards.pop().unwrap();
-
-        let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
-            let package_id = &card_props.package_id;
-
-            if package_id.is_blank() {
-                return None;
-            }
-
-            let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
-                log::error!("Failed to find vm for {package_id}");
-                return None;
-            };
-
-            let lua = &vms[vm_index].lua;
-            let Ok(card_init) = lua.globals().get::<_, rollback_mlua::Function>("card_init") else {
-                log::error!("{package_id} is missing card_init()");
-                return None;
-            };
-
-            let api_ctx = RefCell::new(BattleScriptContext {
-                vm_index,
-                vms,
-                game_io,
-                simulation,
-            });
-
-            let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
-            let mut id: Option<GenerationalIndex> = None;
-
-            lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-                use rollback_mlua::ToLua;
-
-                // init card action
-                let entity_table = create_entity_table(lua, entity_id)?;
-                let lua_card_props = card_props.to_lua(lua)?;
-
-                let optional_table = match card_init
-                    .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))
-                {
-                    Ok(optional_table) => optional_table,
-                    Err(err) => {
-                        log::error!("{package_id}: {err}");
-                        return Ok(());
-                    }
-                };
-
-                id = optional_table
-                    .map(|table| table.raw_get("#id"))
-                    .transpose()?;
-
-                Ok(())
-            });
-
-            // set card properties on the card action
-            if let Some(index) = id {
-                if let Some(action) = simulation.actions.get_mut(index.into()) {
-                    action.properties = card_props.clone();
-                }
-            }
-
-            id
-        });
+        let action_index = Action::create_from_card_properties(
+            game_io,
+            simulation,
+            vms,
+            entity_id,
+            namespace,
+            &card_props,
+        );
 
         // use the action or spawn a poof
-        if let Some(index) = callback.call(game_io, simulation, vms, ()) {
+        if let Some(index) = action_index {
             simulation.use_action(game_io, entity_id, index.into());
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);

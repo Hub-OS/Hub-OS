@@ -1,8 +1,15 @@
-use super::{BattleAnimator, BattleCallback, BattleSimulation, Entity, Field, RollbackVM};
+use super::{
+    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field,
+    RollbackVM,
+};
 use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
+use crate::lua_api::create_entity_table;
+use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
+use crate::resources::Globals;
 use framework::prelude::GameIO;
 use generational_arena::Arena;
+use std::cell::RefCell;
 
 #[derive(Clone)]
 pub struct Action {
@@ -54,6 +61,75 @@ impl Action {
             end_callback: None,
             animation_end_callback: None,
         }
+    }
+
+    pub fn create_from_card_properties(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+        namespace: PackageNamespace,
+        card_props: &CardProperties,
+    ) -> Option<GenerationalIndex> {
+        let package_id = &card_props.package_id;
+
+        if package_id.is_blank() {
+            return None;
+        }
+
+        let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
+            log::error!("Failed to find vm for {package_id}");
+            return None;
+        };
+
+        let lua = &vms[vm_index].lua;
+        let Ok(card_init) = lua.globals().get::<_, rollback_mlua::Function>("card_init") else {
+            log::error!("{package_id} is missing card_init()");
+            return None;
+        };
+
+        let api_ctx = RefCell::new(BattleScriptContext {
+            vm_index,
+            vms,
+            game_io,
+            simulation,
+        });
+
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let mut id: Option<GenerationalIndex> = None;
+
+        lua_api.inject_dynamic(lua, &api_ctx, |lua| {
+            use rollback_mlua::ToLua;
+
+            // init card action
+            let entity_table = create_entity_table(lua, entity_id)?;
+            let lua_card_props = card_props.to_lua(lua)?;
+
+            let optional_table = match card_init
+                .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))
+            {
+                Ok(optional_table) => optional_table,
+                Err(err) => {
+                    log::error!("{package_id}: {err}");
+                    return Ok(());
+                }
+            };
+
+            id = optional_table
+                .map(|table| table.raw_get("#id"))
+                .transpose()?;
+
+            Ok(())
+        });
+
+        // set card properties on the card action
+        if let Some(index) = id {
+            if let Some(action) = simulation.actions.get_mut(index.into()) {
+                action.properties = card_props.clone();
+            }
+        }
+
+        id
     }
 
     pub fn is_async(&self) -> bool {
