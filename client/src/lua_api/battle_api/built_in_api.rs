@@ -52,7 +52,7 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
 
         if let Some(lifetime) = lifetime {
             hitbox_entity.spawn_callback = BattleCallback::new(move |_, simulation, _, _| {
-                Component::new_delayed_deleter(
+                Component::create_delayed_deleter(
                     simulation,
                     hitbox_id,
                     ComponentLifetime::Local,

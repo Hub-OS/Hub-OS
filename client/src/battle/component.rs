@@ -24,7 +24,7 @@ impl Component {
     }
 
     /// deletes the entity after a specified amount of battle frames
-    pub fn new_delayed_deleter(
+    pub fn create_delayed_deleter(
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         lifetime: ComponentLifetime,
@@ -48,7 +48,7 @@ impl Component {
         });
     }
 
-    pub fn new_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityId) {
+    pub fn create_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityId) {
         const START_DELAY: FrameTime = 25;
         const TOTAL_DURATION: FrameTime = 50;
 
@@ -83,7 +83,7 @@ impl Component {
         simulation.components.insert(component);
     }
 
-    pub fn new_character_deletion(
+    pub fn create_character_deletion(
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         explosion_count: usize,

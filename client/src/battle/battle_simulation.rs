@@ -374,7 +374,7 @@ impl BattleSimulation {
         }
 
         for id in pending_deletion {
-            Component::new_delayed_deleter(self, id.into(), ComponentLifetime::BattleStep, 0);
+            Component::create_delayed_deleter(self, id.into(), ComponentLifetime::BattleStep, 0);
         }
     }
 

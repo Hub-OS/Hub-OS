@@ -27,7 +27,7 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
     player_animator.disable();
 
     // create transformation shine artifact
-    Component::new_player_deletion(simulation, id);
+    Component::create_player_deletion(simulation, id);
 
     let artifact_id = Artifact::create_transformation_shine(game_io, simulation);
     let artifact_entity = simulation
@@ -59,5 +59,5 @@ pub fn delete_character_animation(
 
     simulation.animators[entity.animator_index].disable();
 
-    Component::new_character_deletion(simulation, id, explosion_count);
+    Component::create_character_deletion(simulation, id, explosion_count);
 }
