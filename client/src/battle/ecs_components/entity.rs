@@ -196,4 +196,10 @@ impl Entity {
 
         entity_offset
     }
+
+    pub fn screen_position(&self, field: &Field, perspective_flipped: bool) -> Vec2 {
+        let offset = self.corrected_offset(perspective_flipped);
+        let tile_center = field.calc_tile_center((self.x, self.y), perspective_flipped);
+        tile_center + offset
+    }
 }

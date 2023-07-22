@@ -899,15 +899,13 @@ impl BattleSimulation {
                     continue;
                 }
 
-                let tile_position = (entity.x, entity.y);
-                let tile_center = (self.field).calc_tile_center(tile_position, perspective_flipped);
-
-                let entity_offset = entity.corrected_offset(perspective_flipped);
+                let entity_screen_position =
+                    entity.screen_position(&self.field, perspective_flipped);
 
                 hp_text.text = living.health.to_string();
                 let text_size = hp_text.measure().size;
 
-                (hp_text.style.bounds).set_position(tile_center + entity_offset);
+                (hp_text.style.bounds).set_position(entity_screen_position);
                 hp_text.style.bounds.x -= text_size.x * 0.5;
                 hp_text.style.bounds.y += tile_size.y * 0.5 - text_size.y;
                 hp_text.draw(game_io, &mut sprite_queue);
@@ -920,11 +918,8 @@ impl BattleSimulation {
         {
             sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-            let offset = entity.corrected_offset(perspective_flipped);
-            let tile_center =
-                (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
-
-            let base_position = tile_center + vec2(offset.x, -entity.height - 16.0);
+            let mut base_position = entity.screen_position(&self.field, perspective_flipped);
+            base_position.y -= entity.height + 16.0;
 
             let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
             border_sprite.set_color(Color::BLACK);
