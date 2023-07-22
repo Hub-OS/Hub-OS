@@ -295,16 +295,15 @@ impl StatusDirector {
     fn apply_new_statuses(&mut self) {
         let mut already_existing = Vec::new();
 
-        for status in &self.new_statuses {
+        for (i, status) in self.new_statuses.iter().enumerate() {
             let status_flag = status.status_flag;
 
             let status_search = self
                 .statuses
                 .iter_mut()
-                .enumerate()
-                .find(|(_, status)| status.status_flag == status_flag);
+                .find(|status| status.status_flag == status_flag);
 
-            if let Some((i, prev_status)) = status_search {
+            if let Some(prev_status) = status_search {
                 if prev_status.remaining_time > 0 {
                     already_existing.push(i);
                 }
