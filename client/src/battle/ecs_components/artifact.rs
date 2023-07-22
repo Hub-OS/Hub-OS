@@ -1,5 +1,5 @@
 use super::Entity;
-use crate::battle::{BattleCallback, BattleSimulation};
+use crate::battle::{BattleCallback, BattleSimulation, Component};
 use crate::bindable::EntityId;
 use crate::resources::{Globals, ResourcePaths};
 use framework::prelude::GameIO;
@@ -95,6 +95,35 @@ impl Artifact {
             ResourcePaths::BATTLE_POOF,
             ResourcePaths::BATTLE_POOF_ANIMATION,
         )
+    }
+
+    pub fn create_card_poof(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        parent_entity: EntityId,
+    ) -> EntityId {
+        let entities = &mut simulation.entities;
+
+        // get the spawn position
+        let entity = entities
+            .query_one_mut::<&mut Entity>(parent_entity.into())
+            .unwrap();
+        let mut full_position = entity.full_position();
+        full_position.offset.y -= entity.height + 8.0;
+
+        // summon poof
+        let poof_id = Artifact::create_poof(game_io, simulation);
+        let poof_entity = simulation
+            .entities
+            .query_one_mut::<&mut Entity>(poof_id.into())
+            .unwrap();
+
+        poof_entity.copy_full_position(full_position);
+        poof_entity.pending_spawn = true;
+
+        Component::create_float(simulation, poof_id);
+
+        poof_id
     }
 
     pub fn create_transformation_shine(

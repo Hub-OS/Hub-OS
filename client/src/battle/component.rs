@@ -23,7 +23,7 @@ impl Component {
         }
     }
 
-    /// deletes the entity after a specified amount of battle frames
+    /// Deletes the entity after a specified amount of battle frames
     pub fn create_delayed_deleter(
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
@@ -46,6 +46,22 @@ impl Component {
 
             component
         });
+    }
+
+    /// Causes the entity to rise, used for poof artifact
+    pub fn create_float(simulation: &mut BattleSimulation, entity_id: EntityId) {
+        let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
+
+        component.update_callback = BattleCallback::new(move |_, simulation, _, _| {
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(entity_id.into())
+                .unwrap();
+
+            entity.offset.y -= 1.0;
+        });
+
+        simulation.components.insert(component);
     }
 
     pub fn create_player_deletion(simulation: &mut BattleSimulation, entity_id: EntityId) {

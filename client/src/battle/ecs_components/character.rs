@@ -169,32 +169,31 @@ impl Character {
         vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let character = simulation
+        let (entity, character) = simulation
             .entities
-            .query_one_mut::<&mut Character>(entity_id.into())
+            .query_one_mut::<(&mut Entity, &mut Character)>(entity_id.into())
             .unwrap();
 
+        // allow attacks to counter
+        let original_context_flags = entity.hit_context.flags;
+        entity.hit_context.flags = HitFlag::NONE;
+
+        // call "card_init"
         let namespace = character.namespace;
         let card_props = character.cards.pop().unwrap();
 
         let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
             let package_id = &card_props.package_id;
 
-            let vm_index = match BattleSimulation::find_vm(vms, package_id, namespace) {
-                Ok(vm_index) => vm_index,
-                _ => {
-                    log::error!("Failed to find vm for {package_id}");
-                    return None;
-                }
+            let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
+                log::error!("Failed to find vm for {package_id}");
+                return None;
             };
 
             let lua = &vms[vm_index].lua;
-            let card_init: rollback_mlua::Function = match lua.globals().get("card_init") {
-                Ok(card_init) => card_init,
-                _ => {
-                    log::error!("{package_id} is missing card_init()");
-                    return None;
-                }
+            let Ok(card_init) = lua.globals().get::<_, rollback_mlua::Function>("card_init") else {
+                log::error!("{package_id} is missing card_init()");
+                return None;
             };
 
             let api_ctx = RefCell::new(BattleScriptContext {
@@ -210,44 +209,28 @@ impl Character {
             lua_api.inject_dynamic(lua, &api_ctx, |lua| {
                 use rollback_mlua::ToLua;
 
-                let original_context_flags = {
-                    // allow attacks to counter
-                    let mut api_ctx = api_ctx.borrow_mut();
-                    let entities = &mut api_ctx.simulation.entities;
-
-                    let entity = entities
-                        .query_one_mut::<&mut Entity>(entity_id.into())
-                        .unwrap();
-
-                    let original_flags = entity.hit_context.flags;
-                    entity.hit_context.flags = HitFlag::NONE;
-
-                    original_flags
-                };
-
                 // init card action
                 let entity_table = create_entity_table(lua, entity_id)?;
                 let lua_card_props = card_props.to_lua(lua)?;
 
-                let table: rollback_mlua::Table = card_init.call((entity_table, lua_card_props))?;
-
-                let index = table.raw_get("#id")?;
-                id = Some(index);
-
+                let optional_table = match card_init
+                    .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))
                 {
-                    // revert context flags
-                    let mut api_ctx = api_ctx.borrow_mut();
-                    let entities = &mut api_ctx.simulation.entities;
+                    Ok(optional_table) => optional_table,
+                    Err(err) => {
+                        log::error!("{package_id}: {err}");
+                        return Ok(());
+                    }
+                };
 
-                    let entity = entities
-                        .query_one_mut::<&mut Entity>(entity_id.into())
-                        .unwrap();
-                    entity.hit_context.flags = original_context_flags;
-                }
+                id = optional_table
+                    .map(|table| table.raw_get("#id"))
+                    .transpose()?;
 
                 Ok(())
             });
 
+            // set card properties on the card action
             if let Some(index) = id {
                 if let Some(action) = simulation.actions.get_mut(index.into()) {
                     action.properties = card_props.clone();
@@ -257,9 +240,20 @@ impl Character {
             id
         });
 
+        // use the action or spawn a poof
         if let Some(index) = callback.call(game_io, simulation, vms, ()) {
             simulation.use_action(game_io, entity_id, index.into());
+        } else {
+            Artifact::create_card_poof(game_io, simulation, entity_id);
         }
+
+        // revert context flags
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(entity_id.into())
+            .unwrap();
+        entity.hit_context.flags = original_context_flags;
     }
 
     pub fn invert_card_index(&self, index: usize) -> usize {
