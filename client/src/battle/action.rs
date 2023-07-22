@@ -92,12 +92,15 @@ impl Action {
         }
 
         let animator = &mut simulation.animators[animator_index];
-        let callbacks = animator.set_state(&action.state);
-        simulation.pending_callbacks.extend(callbacks);
 
-        // update entity sprite
-        let sprite_node = entity.sprite_tree.root_mut();
-        animator.apply(sprite_node);
+        if animator.has_state(&action.state) {
+            let callbacks = animator.set_state(&action.state);
+            simulation.pending_callbacks.extend(callbacks);
+
+            // update entity sprite
+            let sprite_node = entity.sprite_tree.root_mut();
+            animator.apply(sprite_node);
+        }
 
         // allow attacks to counter
         let original_context_flags = entity.hit_context.flags;

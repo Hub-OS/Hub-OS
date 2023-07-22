@@ -21,7 +21,8 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ACTION_TABLE, "new", move |api_ctx, lua, params| {
-        let (entity_table, state): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        let (entity_table, state): (rollback_mlua::Table, Option<String>) =
+            lua.unpack_multi(params)?;
 
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
@@ -36,7 +37,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
         let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
 
-        let action = Action::new(entity_id, state, sprite_index);
+        let action = Action::new(entity_id, state.unwrap_or_default(), sprite_index);
         let action_index = api_ctx.simulation.actions.insert(action);
 
         let table = create_action_table(lua, action_index)?;
