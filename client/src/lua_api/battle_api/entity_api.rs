@@ -842,17 +842,18 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "remove_card",
-        |character: &mut Character, _, index: isize| {
+        |character: &mut Character, _, reversed_index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index(index as usize);
+            let reversed_index = reversed_index as usize;
+            let usable_index = character.invert_card_index(reversed_index);
 
-            if character.cards.get(index).is_some() {
-                character.cards.remove(index);
+            if character.cards.get(usable_index).is_some() {
+                character.cards.remove(usable_index);
             }
 
             if let Some(next_index) = &mut character.next_card_mutation {
-                if *next_index == index + 1 {
-                    *next_index = index;
+                if *next_index == reversed_index + 1 {
+                    *next_index = reversed_index;
                 }
             }
 

@@ -15,8 +15,8 @@ use super::{Artifact, Living};
 pub struct Character {
     pub namespace: PackageNamespace,
     pub rank: CharacterRank,
-    pub cards: Vec<CardProperties>,
-    pub next_card_mutation: Option<usize>,
+    pub cards: Vec<CardProperties>,        // stores cards reversed
+    pub next_card_mutation: Option<usize>, // stores card index, invert to get a usable index
 }
 
 impl Character {

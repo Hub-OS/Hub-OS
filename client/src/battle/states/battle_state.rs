@@ -509,10 +509,12 @@ impl BattleState {
             };
 
             // get next card index
-            let card_index = character.next_card_mutation.unwrap();
+            let lua_card_index = character.next_card_mutation.unwrap();
 
             // update the card index
-            character.next_card_mutation = Some(card_index + 1);
+            character.next_card_mutation = Some(lua_card_index + 1);
+
+            let card_index = character.invert_card_index(lua_card_index);
 
             // get the card or mark the mutate state as complete
             let Some(card) = &character.cards.get(card_index) else {
@@ -536,11 +538,8 @@ impl BattleState {
                 continue;
             }
 
-            // invert card index for lua
-            let card_index = character.invert_card_index(card_index);
-
             let _ = simulation.call_global(game_io, vms, vm_index, "card_mutate", |lua| {
-                Ok((create_entity_table(lua, id.into())?, card_index))
+                Ok((create_entity_table(lua, id.into())?, lua_card_index))
             });
         }
     }
