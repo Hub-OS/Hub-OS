@@ -280,10 +280,24 @@ impl OverworldArea {
         let name = &name_label.0;
 
         let mut text_style = TextStyle::new(game_io, FontStyle::Tiny);
-        text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+        // update bounds
+        let text_size = text_style.measure(name).size;
         text_style.bounds.set_position(mouse_position);
-        text_style.bounds -= text_style.measure(name).size * Vec2::new(0.5, 1.0);
+        text_style.bounds -= text_size * Vec2::new(0.5, 1.0);
         text_style.bounds.y -= 2.0;
+
+        // draw bg
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let mut bg_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        bg_sprite.set_position(text_style.bounds.position() - 1.0);
+        bg_sprite.set_size(text_size + 2.0);
+        bg_sprite.set_color(Color::BLACK.multiply_alpha(0.5));
+        sprite_queue.draw_sprite(&bg_sprite);
+
+        // draw text
         text_style.draw(game_io, sprite_queue, name);
     }
 
