@@ -86,7 +86,7 @@ impl State for CardSelectState {
         game_io: &GameIO,
         shared_assets: &mut SharedBattleAssets,
         simulation: &mut BattleSimulation,
-        _vms: &[RollbackVM],
+        vms: &[RollbackVM],
     ) {
         if self.time == 0 {
             simulation.statistics.turns += 1;
@@ -148,7 +148,7 @@ impl State for CardSelectState {
         });
 
         if all_confirmed {
-            self.complete(game_io, simulation);
+            self.complete(game_io, simulation, vms);
         }
 
         self.time += 1;
@@ -786,7 +786,12 @@ impl CardSelectState {
         }
     }
 
-    fn complete(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+    fn complete(
+        &mut self,
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+    ) {
         let card_packages = &game_io.resource::<Globals>().unwrap().card_packages;
 
         for (_, (player, character)) in
@@ -832,6 +837,8 @@ impl CardSelectState {
 
             selection.selected_card_indices.clear();
         }
+
+        Character::mutate_cards(game_io, simulation, vms);
 
         self.completed = true;
     }

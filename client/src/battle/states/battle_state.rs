@@ -2,7 +2,6 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
-use crate::lua_api::create_entity_table;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::*;
 use crate::resources::*;
@@ -48,7 +47,7 @@ impl State for BattleState {
         self.prepare_updates(simulation);
 
         // allow cards to mutate
-        self.card_mutate(game_io, simulation, vms);
+        Character::mutate_cards(game_io, simulation, vms);
 
         // new: process player input
         self.process_input(game_io, simulation, vms);
@@ -489,58 +488,6 @@ impl BattleState {
             entity.tile_offset = Vec2::ZERO;
             sprite_node.set_color(Color::BLACK);
             sprite_node.set_color_mode(SpriteColorMode::Add);
-        }
-    }
-
-    fn card_mutate(
-        &mut self,
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
-    ) {
-        loop {
-            let entities = &mut simulation.entities;
-            let mut character_iter = entities.query_mut::<&mut Character>().into_iter();
-
-            let Some((id, character)) =
-                character_iter.find(|(_, character)| character.next_card_mutation.is_some())
-            else {
-                break;
-            };
-
-            // get next card index
-            let lua_card_index = character.next_card_mutation.unwrap();
-
-            // update the card index
-            character.next_card_mutation = Some(lua_card_index + 1);
-
-            let card_index = character.invert_card_index(lua_card_index);
-
-            // get the card or mark the mutate state as complete
-            let Some(card) = &character.cards.get(card_index) else {
-                character.next_card_mutation = None;
-                continue;
-            };
-
-            // make sure the vm + callback exists before calling
-            // avoids an error message from simulation.call_global()
-            // function card_mutate is optional to implement
-            let Ok(vm_index) =
-                BattleSimulation::find_vm(vms, &card.package_id, character.namespace)
-            else {
-                continue;
-            };
-
-            let lua = &vms[vm_index].lua;
-            let callback_exists = lua.globals().contains_key("card_mutate").unwrap_or(false);
-
-            if !callback_exists {
-                continue;
-            }
-
-            let _ = simulation.call_global(game_io, vms, vm_index, "card_mutate", |lua| {
-                Ok((create_entity_table(lua, id.into())?, lua_card_index))
-            });
         }
     }
 
