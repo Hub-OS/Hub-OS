@@ -791,15 +791,12 @@ impl BattleState {
             .map(|(e, _)| e)
             .collect();
 
-        for id in player_ids {
+        for &id in &player_ids {
             if simulation.time_freeze_tracker.time_is_frozen() {
                 // stop adding card actions if time freeze is starting
                 // this way time freeze cards aren't eaten
                 break;
             }
-
-            let max_charging_time =
-                Player::calculate_charge_time(game_io, simulation, vms, id.into(), None);
 
             let entities = &mut simulation.entities;
 
@@ -810,20 +807,8 @@ impl BattleState {
             let input = &simulation.inputs[player.index];
 
             // normal attack and charged attack
-            let charge_sprite_node = entity
-                .sprite_tree
-                .get_mut(player.charge_sprite_index)
-                .unwrap();
-
             if entity.deleted || living.status_director.input_locked_out() {
-                player.charging_time = 0;
-            }
-
-            if player.charging_time == 0 {
-                charge_sprite_node.set_visible(false);
-            }
-
-            if entity.deleted || living.status_director.input_locked_out() {
+                player.cancel_charge();
                 continue;
             }
 
@@ -832,84 +817,53 @@ impl BattleState {
                 .any(|(_, action)| action.used && action.entity == entity.id);
 
             if action_active {
-                player.charging_time = 0;
+                player.cancel_charge();
                 continue;
             }
 
             let animator = &simulation.animators[entity.animator_index];
             let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
 
+            if character.cards.is_empty() {
+                player.card_use_requested = false;
+            }
+
             if player.card_use_requested
                 && entity.movement.is_none()
-                && !character.cards.is_empty()
                 && is_idle
+                && self.time > GRACE_TIME
             {
                 // wait until movement ends before adding a card action
                 // this is to prevent time freeze cards from applying during movement
                 // process_action_queues only prevents non time freeze actions from starting until movements end
                 player.card_use_requested = false;
 
-                Character::use_card(game_io, simulation, vms, id.into());
+                Player::use_card(game_io, simulation, vms, id.into());
                 continue;
             }
 
-            if input.was_just_pressed(Input::UseCard)
-                && !character.cards.is_empty()
-                && self.time >= GRACE_TIME
-            {
-                // using a card
-                player.card_use_requested = true;
-            } else if input.was_just_pressed(Input::Special) {
+            // ignore other actions if we're waiting on a card
+            if player.card_use_requested {
+                continue;
+            }
+
+            if input.was_just_pressed(Input::Special) {
                 Player::use_special_attack(game_io, simulation, vms, id.into());
-                continue;
+            } else {
+                Player::handle_charging(game_io, simulation, vms, id.into());
             }
+        }
 
-            let previously_charging = player.charging_time > 0;
+        // update charge sprites
+        for &id in &player_ids {
+            let entities = &mut simulation.entities;
 
-            if input.is_down(Input::Shoot) || (!is_idle && previously_charging) {
-                // charging
-                player.charge_animator.update();
+            let (entity, player) = entities
+                .query_one_mut::<(&mut Entity, &mut Player)>(id)
+                .unwrap();
 
-                if player.charging_time == Player::CHARGE_DELAY {
-                    // charging
-                    player.charge_animator.set_state("CHARGING");
-                    player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    charge_sprite_node.set_color(Color::BLACK);
-                    charge_sprite_node.set_visible(true);
-
-                    if !simulation.is_resimulation {
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.attack_charging);
-                    }
-                }
-
-                if player.charging_time == max_charging_time + Player::CHARGE_DELAY {
-                    // charged
-                    player.charge_animator.set_state("CHARGED");
-                    player.charge_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    charge_sprite_node.set_color(player.charged_color);
-
-                    if !simulation.is_resimulation {
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.attack_charged);
-                    }
-                }
-
-                player.charging_time += 1;
-                charge_sprite_node.apply_animation(&player.charge_animator);
-            } else if previously_charging {
-                // shooting
-                let fully_charged =
-                    player.charging_time >= max_charging_time + Player::CHARGE_DELAY;
-
-                player.charging_time = 0;
-
-                if fully_charged {
-                    Player::use_charged_attack(game_io, simulation, vms, id.into());
-                } else {
-                    Player::use_normal_attack(game_io, simulation, vms, id.into())
-                }
-            }
+            player.card_charge.update_sprite(&mut entity.sprite_tree);
+            player.buster_charge.update_sprite(&mut entity.sprite_tree);
         }
     }
 

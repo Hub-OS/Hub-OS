@@ -1,5 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
+use crate::memoize::ResultCacheSingle;
 use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
@@ -19,24 +20,25 @@ pub struct Player {
     pub rapid_boost: u8,
     pub charge_boost: u8,
     pub card_view_size: u8,
-    pub charging_time: FrameTime,
-    pub charge_sprite_index: TreeIndex,
-    pub charge_animator: Animator,
-    pub charged_color: Color,
+    pub card_chargable_cache: ResultCacheSingle<Option<CardProperties>, bool>,
+    pub card_charged: bool,
+    pub card_charge: AttackCharge,
+    pub buster_charge: AttackCharge,
     pub slide_when_moving: bool,
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
     pub augments: Arena<Augment>,
     pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
-    pub normal_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
-    pub charged_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
-    pub special_attack_callback: BattleCallback<(), Option<GenerationalIndex>>,
+    pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
+    pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
+    pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
+    pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
+    pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
 }
 
 impl Player {
     pub const IDLE_STATE: &str = "PLAYER_IDLE";
-    pub const CHARGE_DELAY: FrameTime = 10;
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
         DerivedFrame::new(0, 1),
@@ -50,7 +52,12 @@ impl Player {
 
     pub const HIT_FRAMES: [DerivedFrame; 2] = [DerivedFrame::new(0, 15), DerivedFrame::new(1, 7)];
 
-    fn new(game_io: &GameIO, setup: PlayerSetup, charge_sprite_index: TreeIndex) -> Self {
+    fn new(
+        game_io: &GameIO,
+        setup: PlayerSetup,
+        card_charge_sprite_index: TreeIndex,
+        buster_charge_sprite_index: TreeIndex,
+    ) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
         Self {
@@ -64,10 +71,19 @@ impl Player {
             rapid_boost: 0,
             charge_boost: 0,
             card_view_size: 5,
-            charging_time: 0,
-            charge_sprite_index,
-            charge_animator: Animator::load_new(assets, ResourcePaths::BATTLE_CHARGE_ANIMATION),
-            charged_color: Color::MAGENTA,
+            card_chargable_cache: ResultCacheSingle::default(),
+            card_charged: false,
+            card_charge: AttackCharge::new(
+                assets,
+                card_charge_sprite_index,
+                ResourcePaths::BATTLE_CARD_CHARGE_ANIMATION,
+            ),
+            buster_charge: AttackCharge::new(
+                assets,
+                buster_charge_sprite_index,
+                ResourcePaths::BATTLE_CHARGE_ANIMATION,
+            )
+            .with_color(Color::MAGENTA),
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
@@ -80,9 +96,11 @@ impl Player {
             calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
                 Self::calculate_default_charge_time(level)
             }),
-            normal_attack_callback: BattleCallback::stub(None),
-            charged_attack_callback: BattleCallback::stub(None),
-            special_attack_callback: BattleCallback::stub(None),
+            normal_attack_callback: None,
+            charged_attack_callback: None,
+            special_attack_callback: None,
+            charged_card_callback: None,
+            can_charge_card_callback: None,
         }
     }
 
@@ -134,14 +152,6 @@ impl Player {
         entity.move_anim_state = Some(move_anim_state);
         living.flinch_anim_state = Some(flinch_anim_state);
 
-        let charge_index =
-            (entity.sprite_tree).insert_root_child(SpriteNode::new(game_io, SpriteColorMode::Add));
-        let charge_sprite = &mut entity.sprite_tree[charge_index];
-        charge_sprite.set_texture(game_io, ResourcePaths::BATTLE_CHARGE.to_string());
-        charge_sprite.set_visible(false);
-        charge_sprite.set_layer(-2);
-        charge_sprite.set_offset(Vec2::new(0.0, -20.0));
-
         // delete callback
         entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
             delete_player_animation(game_io, simulation, id);
@@ -171,7 +181,7 @@ impl Player {
                     entity.movement = None;
                 }
 
-                player.charging_time = 0;
+                player.cancel_charge();
 
                 // play flinch animation
                 let animator = &mut simulation.animators[entity.animator_index];
@@ -276,9 +286,30 @@ impl Player {
 
         // insert entity
         let script_enabled = setup.script_enabled;
+
+        let card_charge_sprite_index = AttackCharge::create_sprite(
+            game_io,
+            &mut entity.sprite_tree,
+            ResourcePaths::BATTLE_CARD_CHARGE,
+        );
+
+        let buster_charge_sprite_index = AttackCharge::create_sprite(
+            game_io,
+            &mut entity.sprite_tree,
+            ResourcePaths::BATTLE_CHARGE,
+        );
+
         simulation
             .entities
-            .insert_one(id.into(), Player::new(game_io, setup, charge_index))
+            .insert_one(
+                id.into(),
+                Player::new(
+                    game_io,
+                    setup,
+                    card_charge_sprite_index,
+                    buster_charge_sprite_index,
+                ),
+            )
             .unwrap();
 
         // init player
@@ -499,6 +530,99 @@ impl Player {
         callback.call(game_io, simulation, vms, level)
     }
 
+    pub fn cancel_charge(&mut self) {
+        self.buster_charge.cancel();
+        self.card_charge.cancel();
+    }
+
+    pub fn handle_charging(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+    ) {
+        let max_charge_time =
+            Player::calculate_charge_time(game_io, simulation, vms, entity_id, None);
+
+        // test the next card to see if can be charged
+        // cached to reduce lua calls + copying card props
+        let entities = &mut simulation.entities;
+        let (player, character) = entities
+            .query_one_mut::<(&mut Player, &Character)>(entity_id.into())
+            .unwrap();
+
+        let mut card_chargable_cache = std::mem::take(&mut player.card_chargable_cache);
+        let card_props = character.cards.last().cloned();
+        let can_charge_card = card_chargable_cache.calculate(card_props, |card_props| {
+            if let Some(card_props) = card_props {
+                Self::resolve_card_charger(game_io, simulation, vms, entity_id, card_props)
+                    .is_some()
+            } else {
+                false
+            }
+        });
+
+        // update AttackCharge structs
+        let entities = &mut simulation.entities;
+        let (entity, player) = entities
+            .query_one_mut::<(&Entity, &mut Player)>(entity_id.into())
+            .unwrap();
+
+        player.card_chargable_cache = card_chargable_cache;
+
+        let play_sfx = !simulation.is_resimulation;
+        let animator = &simulation.animators[entity.animator_index];
+        let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
+        let input = &simulation.inputs[player.index];
+
+        if can_charge_card && input.was_just_pressed(Input::UseCard) {
+            // cancel buster charging
+            player.buster_charge.cancel();
+            player.card_charge.set_charging(true);
+        } else if input.was_just_pressed(Input::Shoot) {
+            // cancel card charging
+            player.card_charge.cancel();
+            player.buster_charge.set_charging(true);
+        } else {
+            // continue charging
+            let charging_card = input.is_down(Input::UseCard)
+                && can_charge_card
+                && !player.buster_charge.charging();
+            player.card_charge.set_charging(charging_card);
+
+            let charging_buster = input.is_down(Input::Shoot) && !player.card_charge.charging();
+            player.buster_charge.set_charging(charging_buster);
+        }
+
+        player.card_charge.set_max_charge_time(max_charge_time);
+        player.buster_charge.set_max_charge_time(max_charge_time);
+
+        let card_used = if !can_charge_card && input.was_released(Input::UseCard) {
+            Some(false)
+        } else {
+            player.card_charge.update(game_io, is_idle, play_sfx)
+        };
+
+        let buster_fired = player.buster_charge.update(game_io, is_idle, play_sfx);
+
+        // update from results
+
+        if let Some(fully_charged) = card_used {
+            player.card_charged = fully_charged;
+            player.card_use_requested = true;
+        }
+
+        if !player.card_use_requested {
+            if let Some(fully_charged) = buster_fired {
+                if fully_charged {
+                    Player::use_charged_attack(game_io, simulation, vms, entity_id);
+                } else {
+                    Player::use_normal_attack(game_io, simulation, vms, entity_id)
+                }
+            }
+        }
+    }
+
     pub fn use_normal_attack(
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
@@ -515,7 +639,9 @@ impl Player {
             .flat_map(|(_, augment)| augment.normal_attack_callback.clone())
             .collect();
 
-        callbacks.push(player.normal_attack_callback.clone());
+        if let Some(callback) = player.normal_attack_callback.clone() {
+            callbacks.push(callback);
+        }
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
@@ -553,7 +679,9 @@ impl Player {
         }
 
         // base
-        callbacks.push(player.charged_attack_callback.clone());
+        if let Some(callback) = player.charged_attack_callback.clone() {
+            callbacks.push(callback);
+        }
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
@@ -591,7 +719,9 @@ impl Player {
         }
 
         // base
-        callbacks.push(player.special_attack_callback.clone());
+        if let Some(callback) = player.special_attack_callback.clone() {
+            callbacks.push(callback);
+        }
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, simulation, vms, ()) {
@@ -599,5 +729,122 @@ impl Player {
                 return;
             }
         }
+    }
+
+    fn resolve_card_charger(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+        card_props: CardProperties,
+    ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return None;
+        };
+
+        // augment
+        let augment_iter = player.augments.iter();
+        let mut callbacks: Vec<_> = augment_iter
+            .flat_map(|(_, augment)| {
+                Some((
+                    augment.can_charge_card_callback.clone()?,
+                    augment.charged_card_callback.clone()?,
+                ))
+            })
+            .collect();
+
+        // form
+        let form_callback = player.active_form.and_then(|index| {
+            let form = player.forms.get(index)?;
+
+            Some((
+                form.can_charge_card_callback.clone()?,
+                form.charged_card_callback.clone()?,
+            ))
+        });
+
+        if let Some(callback) = form_callback {
+            callbacks.push(callback);
+        }
+
+        // base
+        if let (Some(support_test), Some(callback)) = (
+            player.can_charge_card_callback.clone(),
+            player.charged_card_callback.clone(),
+        ) {
+            callbacks.push((support_test, callback));
+        }
+
+        callbacks
+            .into_iter()
+            .find(|(support_test, _)| {
+                support_test.call(game_io, simulation, vms, card_props.clone())
+            })
+            .map(|(_, callback)| callback)
+    }
+
+    // setup context before + after calling this
+    fn resolve_charged_card_action(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+        card_props: CardProperties,
+    ) -> Option<GenerationalIndex> {
+        let callback =
+            Self::resolve_card_charger(game_io, simulation, vms, entity_id, card_props.clone())?;
+
+        callback.call(game_io, simulation, vms, card_props)
+    }
+
+    pub fn use_card(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        vms: &[RollbackVM],
+        entity_id: EntityId,
+    ) {
+        let (entity, character, player) = simulation
+            .entities
+            .query_one_mut::<(&mut Entity, &mut Character, &mut Player)>(entity_id.into())
+            .unwrap();
+
+        // allow attacks to counter
+        let original_context_flags = entity.hit_context.flags;
+        entity.hit_context.flags = HitFlag::NONE;
+
+        // create card action
+        let card_props = character.cards.pop().unwrap();
+        let action_index = if player.card_charged {
+            player.card_charged = false;
+
+            Self::resolve_charged_card_action(game_io, simulation, vms, entity_id, card_props)
+        } else {
+            let namespace = character.namespace;
+
+            Action::create_from_card_properties(
+                game_io,
+                simulation,
+                vms,
+                entity_id,
+                namespace,
+                &card_props,
+            )
+        };
+
+        // use the action or spawn a poof
+        if let Some(index) = action_index {
+            simulation.use_action(game_io, entity_id, index.into());
+        } else {
+            Artifact::create_card_poof(game_io, simulation, entity_id);
+        }
+
+        // revert context flags
+        let entities = &mut simulation.entities;
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(entity_id.into())
+            .unwrap();
+        entity.hit_context.flags = original_context_flags;
     }
 }

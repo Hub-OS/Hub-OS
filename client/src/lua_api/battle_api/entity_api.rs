@@ -1180,7 +1180,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 .query_one_mut::<&mut Player>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            player.charged_color = color.into();
+            player.buster_charge.set_color(color.into());
 
             lua.pack_multi(())
         },
@@ -1202,7 +1202,11 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 .query_one_mut::<(&mut Entity, &Player)>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            entity.sprite_tree[player.charge_sprite_index].set_offset(Vec2::new(x, y));
+            let sprite_tree = &mut entity.sprite_tree;
+            let offset = Vec2::new(x, y);
+
+            player.card_charge.update_sprite_offset(sprite_tree, offset);
+            (player.buster_charge).update_sprite_offset(sprite_tree, offset);
 
             lua.pack_multi(())
         },
@@ -1318,9 +1322,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             if augment.level == 0 {
                 // delete
                 let augment = player.augments.remove(index).unwrap();
-                let callback = augment.delete_callback;
 
-                callback.call(api_ctx.game_io, simulation, api_ctx.vms, ());
+                if let Some(callback) = augment.delete_callback {
+                    callback.call(api_ctx.game_io, simulation, api_ctx.vms, ());
+                }
             }
         } else if level_boost > 0 {
             // create
@@ -1460,25 +1465,39 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |lua, table, _| lua.pack_multi(table),
     );
 
-    callback_setter(
+    optional_callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
         |player: &mut Player| &mut player.normal_attack_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
-    callback_setter(
+    optional_callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
         |player: &mut Player| &mut player.charged_attack_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
-    callback_setter(
+    optional_callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
         |player: &mut Player| &mut player.special_attack_callback,
         |lua, table, _| lua.pack_multi(table),
+    );
+
+    optional_callback_setter(
+        lua_api,
+        CAN_CHARGE_CARD_FN,
+        |player: &mut Player| &mut player.can_charge_card_callback,
+        |lua, _, card_props| lua.pack_multi(card_props),
+    );
+
+    optional_callback_setter(
+        lua_api,
+        CHARGED_CARD_FN,
+        |player: &mut Player| &mut player.charged_card_callback,
+        |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 }
 
@@ -1597,6 +1616,58 @@ fn callback_setter<C, G, P, F, R>(
         } else {
             *callback_getter(entity) = BattleCallback::default();
         }
+
+        lua.pack_multi(())
+    });
+}
+
+fn optional_callback_setter<C, G, P, F, R>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback_getter: G,
+    param_transformer: F,
+) where
+    C: hecs::Component,
+    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
+    G: for<'lua> Fn(&mut C) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
+    F: for<'lua> Fn(
+            &'lua rollback_mlua::Lua,
+            rollback_mlua::Table<'lua>,
+            P,
+        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
+        + Send
+        + Sync
+        + Copy
+        + 'static,
+{
+    lua_api.add_dynamic_setter(ENTITY_TABLE, name, move |api_ctx, lua, params| {
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut C>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let key = lua.create_registry_value(table)?;
+
+        *callback_getter(entity) = callback
+            .map(|callback| {
+                BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    api_ctx.vm_index,
+                    callback,
+                    move |_, lua, p| {
+                        let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                        param_transformer(lua, table, p)
+                    },
+                )
+            })
+            .transpose()?;
 
         lua.pack_multi(())
     });

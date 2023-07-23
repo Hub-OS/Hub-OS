@@ -97,6 +97,8 @@ const CHARGE_TIMING_FN: &str = "calculate_charge_time_func";
 const NORMAL_ATTACK_FN: &str = "normal_attack_func";
 const CHARGED_ATTACK_FN: &str = "charged_attack_func";
 const SPECIAL_ATTACK_FN: &str = "special_attack_func";
+const CHARGED_CARD_FN: &str = "charged_card_func";
+const CAN_CHARGE_CARD_FN: &str = "can_charge_card_func";
 const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 
 // components

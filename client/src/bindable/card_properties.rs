@@ -4,7 +4,7 @@ use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties {
     pub package_id: PackageId,
     pub code: String,
@@ -130,6 +130,15 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
             meta_classes: table.get("meta_classes").unwrap_or_default(),
         })
+    }
+}
+
+impl<'lua> rollback_mlua::ToLua<'lua> for CardProperties {
+    fn to_lua(
+        self,
+        lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
+        <&CardProperties>::to_lua(&self, lua)
     }
 }
 

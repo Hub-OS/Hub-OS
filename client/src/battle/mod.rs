@@ -1,5 +1,6 @@
 mod action;
 mod attack_box;
+mod attack_charge;
 mod augment;
 mod battle_animator;
 mod battle_callback;
@@ -27,6 +28,7 @@ mod turn_gauge;
 
 pub use action::*;
 pub use attack_box::*;
+pub use attack_charge::*;
 pub use augment::*;
 pub use battle_animator::*;
 pub use battle_callback::*;

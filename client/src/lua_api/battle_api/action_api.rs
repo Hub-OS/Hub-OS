@@ -19,7 +19,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
     inject_attachment_api(lua_api);
 
     lua_api.add_dynamic_function(CARD_PROPERTIES_TABLE, "new", move |_, lua, _| {
-        lua.pack_multi(&CardProperties::default())
+        lua.pack_multi(CardProperties::default())
     });
 
     lua_api.add_dynamic_function(
@@ -40,13 +40,13 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
                     // clone to update code
                     let mut card_properties = package.card_properties.clone();
                     card_properties.code = code;
-                    lua.pack_multi(&card_properties)
+                    lua.pack_multi(card_properties)
                 } else {
                     // avoid clone
                     lua.pack_multi(&package.card_properties)
                 }
             } else {
-                lua.pack_multi(&CardProperties {
+                lua.pack_multi(CardProperties {
                     code: code.unwrap_or_default(),
                     ..CardProperties::default()
                 })

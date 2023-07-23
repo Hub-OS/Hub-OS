@@ -1,7 +1,7 @@
 use super::errors::{augment_not_found, entity_not_found};
 use super::{
-    create_entity_table, BattleLuaApi, AUGMENT_TABLE, CHARGED_ATTACK_FN, CHARGE_TIMING_FN,
-    DELETE_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
+    create_entity_table, BattleLuaApi, AUGMENT_TABLE, CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN,
+    CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
 use crate::battle::{Augment, BattleCallback, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
@@ -25,41 +25,43 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
-        |augment| {
-            augment.calculate_charge_time_callback = Some(BattleCallback::default());
-            augment.calculate_charge_time_callback.as_mut().unwrap()
-        },
+        |augment| &mut augment.calculate_charge_time_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
-        |augment: &mut Augment| {
-            augment.normal_attack_callback = Some(BattleCallback::default());
-            augment.normal_attack_callback.as_mut().unwrap()
-        },
+        |augment: &mut Augment| &mut augment.normal_attack_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |augment: &mut Augment| {
-            augment.charged_attack_callback = Some(BattleCallback::default());
-            augment.charged_attack_callback.as_mut().unwrap()
-        },
+        |augment: &mut Augment| &mut augment.charged_attack_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |augment: &mut Augment| {
-            augment.special_attack_callback = Some(BattleCallback::default());
-            augment.special_attack_callback.as_mut().unwrap()
-        },
+        |augment: &mut Augment| &mut augment.special_attack_callback,
         |lua, table, _| lua.pack_multi(table),
+    );
+
+    callback_setter(
+        lua_api,
+        CAN_CHARGE_CARD_FN,
+        |augment: &mut Augment| &mut augment.can_charge_card_callback,
+        |lua, _, card_props| lua.pack_multi(card_props),
+    );
+
+    callback_setter(
+        lua_api,
+        CHARGED_CARD_FN,
+        |augment: &mut Augment| &mut augment.charged_card_callback,
+        |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 
     callback_setter(
@@ -149,7 +151,7 @@ fn callback_setter<G, P, F, R>(
 ) where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
-    G: for<'lua> Fn(&mut Augment) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
+    G: for<'lua> Fn(&mut Augment) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
     F: for<'lua> Fn(
             &'lua rollback_mlua::Lua,
             rollback_mlua::Table<'lua>,
@@ -180,19 +182,19 @@ fn callback_setter<G, P, F, R>(
 
         let key = lua.create_registry_value(table)?;
 
-        if let Some(callback) = callback {
-            *callback_getter(augment) = BattleCallback::new_transformed_lua_callback(
-                lua,
-                api_ctx.vm_index,
-                callback,
-                move |_, lua, p| {
-                    let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                    param_transformer(lua, table, p)
-                },
-            )?;
-        } else {
-            *callback_getter(augment) = BattleCallback::default();
-        }
+        *callback_getter(augment) = callback
+            .map(|callback| {
+                BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    api_ctx.vm_index,
+                    callback,
+                    move |_, lua, p| {
+                        let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                        param_transformer(lua, table, p)
+                    },
+                )
+            })
+            .transpose()?;
 
         lua.pack_multi(())
     });

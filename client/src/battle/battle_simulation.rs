@@ -704,7 +704,7 @@ impl BattleSimulation {
         if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
             let augment_iter = player.augments.iter();
             let augment_callbacks =
-                augment_iter.map(|(_, augment)| augment.delete_callback.clone());
+                augment_iter.flat_map(|(_, augment)| augment.delete_callback.clone());
 
             self.pending_callbacks.extend(augment_callbacks);
             self.call_pending_callbacks(game_io, vms);

@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{
-    BattleLuaApi, CHARGED_ATTACK_FN, CHARGE_TIMING_FN, PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN,
-    UPDATE_FN,
+    BattleLuaApi, CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN,
+    PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
 use crate::battle::{BattleCallback, Player, PlayerForm};
 use crate::bindable::EntityId;
@@ -115,6 +115,23 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        CAN_CHARGE_CARD_FN,
+        |form| &mut form.can_charge_card_callback,
+        |lua, _, card_props| lua.pack_multi(card_props),
+    );
+
+    callback_setter(
+        lua_api,
+        CHARGED_CARD_FN,
+        |form| &mut form.charged_card_callback,
+        |lua, form_table, card_props| {
+            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
+            lua.pack_multi((form_table, player_table, card_props))
         },
     );
 }

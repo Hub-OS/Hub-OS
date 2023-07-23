@@ -20,6 +20,7 @@ mod bindable;
 mod ease;
 mod http;
 mod lua_api;
+mod memoize;
 mod overworld;
 mod packages;
 mod parse_util;

@@ -1,5 +1,5 @@
 use super::BattleCallback;
-use crate::bindable::GenerationalIndex;
+use crate::bindable::{CardProperties, GenerationalIndex};
 use crate::render::FrameTime;
 use framework::prelude::Texture;
 use std::sync::Arc;
@@ -16,4 +16,6 @@ pub struct PlayerForm {
     pub calculate_charge_time_callback: Option<BattleCallback<u8, FrameTime>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
+    pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
+    pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
 }

@@ -1,7 +1,7 @@
 use packets::structures::PackageId;
 
 use super::BattleCallback;
-use crate::bindable::GenerationalIndex;
+use crate::bindable::{CardProperties, GenerationalIndex};
 use crate::packages::AugmentPackage;
 use crate::render::FrameTime;
 
@@ -16,7 +16,9 @@ pub struct Augment {
     pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub delete_callback: BattleCallback,
+    pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
+    pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
+    pub delete_callback: Option<BattleCallback>,
 }
 
 impl From<(&AugmentPackage, usize)> for Augment {
@@ -31,7 +33,9 @@ impl From<(&AugmentPackage, usize)> for Augment {
             normal_attack_callback: None,
             charged_attack_callback: None,
             special_attack_callback: None,
-            delete_callback: BattleCallback::default(),
+            can_charge_card_callback: None,
+            charged_card_callback: None,
+            delete_callback: None,
         }
     }
 }
