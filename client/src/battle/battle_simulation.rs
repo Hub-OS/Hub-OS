@@ -58,6 +58,9 @@ impl BattleSimulation {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
+        let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        fade_sprite.set_color(Color::TRANSPARENT);
+
         Self {
             config: BattleConfig::new(globals, player_count),
             statistics: BattleStatistics::new(),
@@ -67,7 +70,7 @@ impl BattleSimulation {
             inputs: vec![PlayerInput::new(); player_count],
             camera,
             background,
-            fade_sprite: assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
+            fade_sprite,
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
             tile_states: TileState::create_registry(),
