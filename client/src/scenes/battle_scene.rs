@@ -632,6 +632,7 @@ impl BattleScene {
         self.simulation
             .handle_local_signals(self.local_index, &mut self.shared_assets);
 
+        self.simulation.update_background();
         self.simulation.pre_update(game_io, &self.vms, &*self.state);
         self.state.update(
             game_io,
@@ -712,6 +713,7 @@ impl BattleScene {
 
     fn core_update(&mut self, game_io: &mut GameIO) {
         if game_io.is_in_transition() {
+            self.simulation.update_background();
             return;
         }
 
