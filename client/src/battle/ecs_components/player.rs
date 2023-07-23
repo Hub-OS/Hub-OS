@@ -585,9 +585,13 @@ impl Player {
             player.buster_charge.set_charging(true);
         } else {
             // continue charging
+
+            // block charging card if we weren't already
+            // prevents accidental charge tracking from a previous non charged card use
             let charging_card = input.is_down(Input::UseCard)
                 && can_charge_card
-                && !player.buster_charge.charging();
+                && !player.buster_charge.charging()
+                && player.card_charge.charging();
             player.card_charge.set_charging(charging_card);
 
             let charging_buster = input.is_down(Input::Shoot) && !player.card_charge.charging();
@@ -597,7 +601,7 @@ impl Player {
         player.card_charge.set_max_charge_time(max_charge_time);
         player.buster_charge.set_max_charge_time(max_charge_time);
 
-        let card_used = if !can_charge_card && input.was_released(Input::UseCard) {
+        let card_used = if !can_charge_card && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
             player.card_charge.update(game_io, is_idle, play_sfx)
