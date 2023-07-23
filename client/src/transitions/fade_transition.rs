@@ -14,8 +14,7 @@ impl FadeTransition {
         camera.set_position(Vec3::new(0.5, 0.5, 0.0));
         camera.invert_y(false);
 
-        let mesh = FlatModel::new_square_mesh(game_io);
-        let model = FlatModel::new(mesh);
+        let model = FlatModel::new_square_model(game_io);
 
         Self {
             start_instant: None,

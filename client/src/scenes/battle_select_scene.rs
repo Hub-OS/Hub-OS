@@ -5,6 +5,7 @@ use crate::render::ui::{SceneTitle, SubSceneFrame, Textbox, TextboxMessage};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleScene;
+use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 
 pub struct BattleSelectScene {
@@ -160,7 +161,14 @@ impl Scene for BattleSelectScene {
             let props = BattleProps::new_with_defaults(game_io, encounter_package);
 
             // set the next scene
-            let scene = BattleScene::new(game_io, props);
+            let battle_scene = BattleScene::new(game_io, props);
+            let hold_duration = crate::transitions::BATTLE_HOLD_DURATION;
+
+            let scene = HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
+                let transition = crate::transitions::new_battle(game_io);
+                NextScene::new_swap(battle_scene).with_transition(transition)
+            });
+
             let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
         }

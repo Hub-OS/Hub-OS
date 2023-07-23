@@ -5,6 +5,7 @@ use crate::packages::{PackageId, PackageNamespace};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Card, Deck};
+use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
@@ -77,6 +78,7 @@ pub struct NetplayInitScene {
     ui_camera: Camera,
     sprite: Sprite,
     communication_future: Option<Pin<Box<dyn Future<Output = ()>>>>,
+    start_instant: Instant,
     next_scene: NextScene,
 }
 
@@ -193,6 +195,7 @@ impl NetplayInitScene {
             ui_camera: Camera::new_ui(game_io),
             sprite: (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
             communication_future: Some(Box::pin(communication_future)),
+            start_instant: Instant::now(),
             next_scene: NextScene::None,
         }
     }
@@ -687,9 +690,17 @@ impl NetplayInitScene {
             }
 
             // create scene
-            let scene = BattleScene::new(game_io, props);
-            let transition = crate::transitions::new_battle(game_io);
+            let battle_scene = BattleScene::new(game_io, props);
+            let hold_duration = crate::transitions::BATTLE_HOLD_DURATION
+                .checked_sub(self.start_instant.elapsed())
+                .unwrap_or_default();
 
+            let scene = HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
+                let transition = crate::transitions::new_battle(game_io);
+                NextScene::new_swap(battle_scene).with_transition(transition)
+            });
+
+            let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }
     }

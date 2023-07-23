@@ -12,6 +12,7 @@ use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card};
 use crate::scenes::BattleScene;
+use crate::transitions::HoldColorScene;
 use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
@@ -1006,9 +1007,16 @@ impl OverworldOnlineScene {
                         .generate_background(game_io, &self.assets);
 
                     // create scene
-                    let scene = BattleScene::new(game_io, props);
-                    let transition = crate::transitions::new_battle(game_io);
+                    let battle_scene = BattleScene::new(game_io, props);
+                    let hold_duration = crate::transitions::BATTLE_HOLD_DURATION;
 
+                    let scene =
+                        HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
+                            let transition = crate::transitions::new_battle(game_io);
+                            NextScene::new_swap(battle_scene).with_transition(transition)
+                        });
+
+                    let transition = crate::transitions::new_battle(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
                     self.next_scene_queue.push_back(next_scene);
                 }

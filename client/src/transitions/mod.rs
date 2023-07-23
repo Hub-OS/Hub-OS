@@ -2,10 +2,12 @@
 
 mod color_fade_transition;
 mod fade_transition;
+mod hold_color_scene;
 mod push_transition;
 
 use color_fade_transition::*;
 use fade_transition::*;
+pub use hold_color_scene::*;
 use push_transition::*;
 
 use framework::prelude::{Color, Duration, GameIO};
@@ -13,7 +15,8 @@ use packets::structures::Direction;
 
 pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
 pub const DEFAULT_FADE_DURATION: Duration = Duration::from_millis(500);
-pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1000);
+pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1500);
+pub const BATTLE_HOLD_DURATION: Duration = Duration::from_millis(500);
 
 pub fn new_boot(game_io: &GameIO) -> FadeTransition {
     FadeTransition::new(game_io, Duration::from_secs_f32(0.5))
