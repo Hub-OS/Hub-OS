@@ -321,7 +321,9 @@ impl ConfigScene {
                         let audio = &mut globals.audio;
 
                         config.music = value;
-                        audio.set_music_volume(value as f32 * 0.01);
+                        if !config.mute_music {
+                            audio.set_music_volume(value as f32 * 0.01);
+                        }
                     },
                 )
                 .with_auditory_feedback(false),
@@ -335,7 +337,10 @@ impl ConfigScene {
                     let audio = &mut globals.audio;
 
                     config.sfx = value;
-                    audio.set_sfx_volume(value as f32 * 0.01);
+
+                    if !config.mute_sfx {
+                        audio.set_sfx_volume(value as f32 * 0.01);
+                    }
                 },
             )),
             Box::new(UiConfigToggle::new(
