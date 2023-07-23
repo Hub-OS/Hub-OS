@@ -51,7 +51,7 @@ impl ResourcePackage {
             description: String::from("Default resources for the OS."),
             creator: String::from("Hub OS"),
             hash: FileHash::ZERO,
-            preview_data: PackagePreviewData::Resources,
+            preview_data: PackagePreviewData::Resource,
             dependencies: Vec::new(),
         }
     }
@@ -73,7 +73,7 @@ impl Package for ResourcePackage {
             description: self.description.clone(),
             creator: String::new(),
             hash: self.package_info.hash,
-            preview_data: PackagePreviewData::Resources,
+            preview_data: PackagePreviewData::Resource,
             dependencies: self.package_info.requirements.clone(),
         }
     }

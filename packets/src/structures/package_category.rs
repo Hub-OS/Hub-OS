@@ -38,6 +38,7 @@ impl From<&str> for PackageCategory {
             "card" => Self::Card,
             "character" => Self::Character,
             "player" => Self::Player,
+            "resource" => Self::Resource,
             _ => Self::Library,
         }
     }

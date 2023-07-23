@@ -614,6 +614,7 @@ impl Globals {
             .chain(self.character_packages.package_ids(ns))
             .chain(self.library_packages.package_ids(ns))
             .chain(self.player_packages.package_ids(ns))
+            .chain(self.resource_packages.package_ids(ns))
             .map(|id| uri_encode(id.as_str()))
             .collect();
 
