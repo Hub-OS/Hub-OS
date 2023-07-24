@@ -30,8 +30,8 @@ impl Transition for PushTransition {
         &mut self,
         game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene>,
-        next_scene: &mut Box<dyn Scene>,
+        draw_previous_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
+        draw_next_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
     ) {
         let target_size = render_pass.target_size();
 
@@ -48,11 +48,11 @@ impl Transition for PushTransition {
         let (target_a, target_b) = self.targets.as_ref().unwrap();
 
         let mut subpass = render_pass.create_subpass(target_a);
-        previous_scene.draw(game_io, &mut subpass);
+        draw_previous_scene(game_io, &mut subpass);
         subpass.flush();
 
         let mut subpass = render_pass.create_subpass(target_b);
-        next_scene.draw(game_io, &mut subpass);
+        draw_next_scene(game_io, &mut subpass);
         subpass.flush();
 
         // calculate camera offset

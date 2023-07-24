@@ -31,11 +31,11 @@ impl Transition for FadeTransition {
         &mut self,
         game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene>,
-        next_scene: &mut Box<dyn Scene>,
+        draw_previous_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
+        draw_next_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
     ) {
         // render the next scene first to display under the effect
-        next_scene.draw(game_io, render_pass);
+        draw_next_scene(game_io, render_pass);
 
         // render previous scene to render target
         let target_size = render_pass.target_size();
@@ -48,7 +48,7 @@ impl Transition for FadeTransition {
         let prev_scene_target = self.prev_scene_target.as_ref().unwrap();
 
         let mut subpass = render_pass.create_subpass(prev_scene_target);
-        previous_scene.draw(game_io, &mut subpass);
+        draw_previous_scene(game_io, &mut subpass);
         subpass.flush();
 
         // calculate progress

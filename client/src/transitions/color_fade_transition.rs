@@ -31,8 +31,8 @@ impl Transition for ColorFadeTransition {
         &mut self,
         game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene>,
-        next_scene: &mut Box<dyn Scene>,
+        draw_previous_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
+        draw_next_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
     ) {
         let start_instant = self
             .start_instant
@@ -43,9 +43,9 @@ impl Transition for ColorFadeTransition {
 
         // render scene
         if progress < 0.5 {
-            previous_scene.draw(game_io, render_pass);
+            draw_previous_scene(game_io, render_pass);
         } else {
-            next_scene.draw(game_io, render_pass);
+            draw_next_scene(game_io, render_pass);
         }
 
         // render a flat shape to color the screen
