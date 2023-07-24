@@ -15,8 +15,10 @@ use packets::structures::Direction;
 
 pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
 pub const DEFAULT_FADE_DURATION: Duration = Duration::from_millis(500);
-pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1500);
-pub const BATTLE_HOLD_DURATION: Duration = Duration::from_millis(500);
+pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1200);
+// true hold duration is BATTLE_HOLD_DURATION - DRAMATIC_FADE_DURATION / 2
+// total transition duration is BATTLE_HOLD_DURATION + DRAMATIC_FADE_DURATION / 2
+pub const BATTLE_HOLD_DURATION: Duration = Duration::from_millis(750);
 
 pub fn new_boot(game_io: &GameIO) -> FadeTransition {
     FadeTransition::new(game_io, Duration::from_secs_f32(0.5))
