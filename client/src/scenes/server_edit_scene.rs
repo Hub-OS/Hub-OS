@@ -217,10 +217,30 @@ impl Scene for ServerEditScene {
             return;
         }
 
-        self.ui_input_tracker.update(game_io);
-        self.ui_layout.update(game_io, &self.ui_input_tracker);
+        // detect leaving
+        let input_util = InputUtil::new(game_io);
 
         let mut leaving = false;
+
+        if !self.ui_layout.is_focus_locked() {
+            if input_util.was_just_pressed(Input::End) {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_move);
+
+                self.ui_layout.set_focused_index(Some(self.save_handle));
+            }
+
+            if input_util.was_just_pressed(Input::Cancel) {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+                leaving = true;
+            }
+        }
+
+        // update ui
+        self.ui_input_tracker.update(game_io);
+        self.ui_layout.update(game_io, &self.ui_input_tracker);
 
         if let Ok(ui_message) = self.ui_receiver.try_recv() {
             match ui_message {
@@ -248,25 +268,6 @@ impl Scene for ServerEditScene {
 
                     leaving = true;
                 }
-            }
-        }
-
-        // detect leaving
-        let input_util = InputUtil::new(game_io);
-
-        if !self.ui_layout.is_focus_locked() {
-            if input_util.was_just_pressed(Input::End) {
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.cursor_move);
-
-                self.ui_layout.set_focused_index(Some(self.save_handle));
-            }
-
-            if input_util.was_just_pressed(Input::Cancel) {
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.cursor_cancel);
-
-                leaving = true;
             }
         }
 
