@@ -21,6 +21,7 @@ mod ease;
 mod http;
 mod lua_api;
 mod memoize;
+mod overlays;
 mod overworld;
 mod packages;
 mod parse_util;
@@ -32,12 +33,12 @@ mod transitions;
 mod zip;
 
 use crate::args::Args;
+use crate::overlays::*;
 use crate::render::PostProcessAdjust;
 use crate::render::PostProcessColorBlindness;
 use crate::render::PostProcessGhosting;
 use crate::resources::*;
 use crate::scenes::BootScene;
-use crate::scenes::Overlay;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
@@ -61,7 +62,7 @@ pub fn main() -> anyhow::Result<()> {
         .with_post_process(|game_io| PostProcessGhosting::new(game_io))
         .with_post_process(|game_io| PostProcessAdjust::new(game_io))
         .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))
-        .with_overlay(|game_io| Overlay::new(game_io));
+        .with_overlay(|game_io| DebugOverlay::new(game_io));
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 

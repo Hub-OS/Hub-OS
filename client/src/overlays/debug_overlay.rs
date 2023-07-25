@@ -5,7 +5,7 @@ use crate::resources::{Globals, RESOLUTION_F};
 use framework::prelude::*;
 use std::collections::VecDeque;
 
-pub struct Overlay {
+pub struct DebugOverlay {
     camera: Camera,
     rectangle: FlatModel,
     history: VecDeque<f32>,
@@ -16,7 +16,7 @@ const RECT_WIDTH: usize = 1;
 const RECT_HEIGHT: usize = 16;
 const ALPHA: f32 = 0.95;
 
-impl Overlay {
+impl DebugOverlay {
     pub fn new(game_io: &GameIO) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
@@ -33,7 +33,7 @@ impl Overlay {
     }
 }
 
-impl SceneOverlay for Overlay {
+impl SceneOverlay for DebugOverlay {
     fn update(&mut self, game_io: &mut GameIO) {
         // update performance history
         let frame_duration = game_io.frame_duration();
