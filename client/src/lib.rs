@@ -43,7 +43,10 @@ use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
 
-pub fn main() -> anyhow::Result<()> {
+pub fn main(app: PlatformApp) -> anyhow::Result<()> {
+    // init_game_folder in case we haven't already
+    ResourcePaths::init_game_folder(&app);
+
     let args = Args::parse();
 
     let (log_sender, log_receiver) = flume::unbounded();
@@ -54,6 +57,7 @@ pub fn main() -> anyhow::Result<()> {
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
     let game = Game::new("HubOS", TRUE_RESOLUTION.into())
+        .with_platform_app(app)
         .with_resizable(true)
         .with_setup(|game_io| {
             let globals = Globals::new(game_io, args);
@@ -70,17 +74,20 @@ pub fn main() -> anyhow::Result<()> {
 }
 
 #[cfg(target_os = "android")]
-#[ndk_glue::main()]
-pub fn android_main() {
+#[no_mangle]
+pub fn android_main(app: PlatformApp) {
+    // init_game_folder for set_current_dir
+    ResourcePaths::init_game_folder(&app);
+
     std::env::set_current_dir(ResourcePaths::game_folder()).unwrap();
 
-    update_resources();
+    update_resources(&app);
 
-    main().unwrap()
+    main(app).unwrap()
 }
 
 #[cfg(target_os = "android")]
-fn update_resources() {
+fn update_resources(app: &PlatformApp) {
     // instead of extracting a zip and running the exe,
     // users are only receiving an apk for android
     // so we're storing the resources as a zip in the apk and extracting when stored hashes differ
@@ -93,7 +100,7 @@ fn update_resources() {
     // find the zip
     let zip_c_name = CString::new(ZIP_FILE).unwrap();
 
-    let ndk_assets = ndk_glue::native_activity().asset_manager();
+    let ndk_assets = app.asset_manager();
     let mut zip_asset = ndk_assets.open(zip_c_name.as_c_str()).unwrap();
     let zip_bytes = zip_asset.get_buffer().unwrap();
 

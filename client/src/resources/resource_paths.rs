@@ -1,22 +1,9 @@
+use framework::prelude::PlatformApp;
+use std::sync::OnceLock;
+
+static GAME_PATH: OnceLock<String> = OnceLock::new();
+
 pub struct ResourcePaths;
-
-#[cfg(not(target_os = "android"))]
-lazy_static::lazy_static! {
-    static ref GAME_PATH: String = ResourcePaths::clean_folder(
-        &std::env::current_dir()
-            .unwrap_or_default()
-            .to_string_lossy()
-    );
-}
-
-#[cfg(target_os = "android")]
-lazy_static::lazy_static! {
-    static ref GAME_PATH: String = ResourcePaths::clean_folder(
-        &ndk_glue::native_activity()
-            .external_data_path()
-            .to_string_lossy()
-    );
-}
 
 impl ResourcePaths {
     pub const SERVER_CACHE_FOLDER: &str = "cache/servers/";
@@ -240,8 +227,23 @@ impl ResourcePaths {
     pub const RESOURCE_ORDER_LAYOUT_ANIMATION: &str =
         "resources/scenes/resource_order/layout.animation";
 
+    #[allow(unused_variables)]
+    pub fn init_game_folder(app: &PlatformApp) {
+        #[cfg(not(target_os = "android"))]
+        let _ = GAME_PATH.set(ResourcePaths::clean_folder(
+            &std::env::current_dir()
+                .unwrap_or_default()
+                .to_string_lossy(),
+        ));
+
+        #[cfg(target_os = "android")]
+        let _ = GAME_PATH.set(ResourcePaths::clean_folder(
+            &app.internal_data_path().unwrap().to_string_lossy(),
+        ));
+    }
+
     pub fn game_folder() -> &'static str {
-        &GAME_PATH
+        GAME_PATH.get().unwrap()
     }
 
     pub fn is_absolute(path_str: &str) -> bool {
@@ -251,7 +253,7 @@ impl ResourcePaths {
     }
 
     pub fn absolute(path_str: &str) -> String {
-        GAME_PATH.clone() + &Self::clean(path_str)
+        Self::game_folder().to_string() + &Self::clean(path_str)
     }
 
     pub fn clean(path_str: &str) -> String {
@@ -273,11 +275,12 @@ impl ResourcePaths {
     }
 
     pub fn shorten(path_str: &str) -> String {
-        if path_str.starts_with(&*GAME_PATH) {
-            path_str[GAME_PATH.len()..].to_string()
-        } else {
-            path_str.to_string()
-        }
+        let game_path = Self::game_folder();
+
+        path_str
+            .strip_prefix(game_path)
+            .unwrap_or(path_str)
+            .to_string()
     }
 }
 

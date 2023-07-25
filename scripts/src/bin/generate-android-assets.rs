@@ -1,6 +1,8 @@
 use std::process::{Command, ExitCode};
 
 fn main() -> ExitCode {
+    std::env::set_current_dir("client").unwrap();
+
     let android_assets_path = "cache/android_assets";
     let zip_path = String::from(android_assets_path) + "/resources.zip";
 
@@ -9,7 +11,6 @@ fn main() -> ExitCode {
     // linux only for now
     let zip_output = Command::new("zip")
         .args([&zip_path, "resources", "-r", "-D"])
-        .current_dir("client")
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .output()
