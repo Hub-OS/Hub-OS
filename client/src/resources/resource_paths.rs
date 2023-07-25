@@ -76,6 +76,8 @@ impl ResourcePaths {
     pub const HEALTH_FRAME_ANIMATION: &str = "resources/scenes/shared/health_frame.animation";
     pub const UNREAD: &str = "resources/scenes/shared/unread.png";
     pub const UNREAD_ANIMATION: &str = "resources/scenes/shared/unread.animation";
+    pub const INPUT_OVERLAY: &str = "resources/scenes/shared/input_overlay.png";
+    pub const INPUT_OVERLAY_ANIMATION: &str = "resources/scenes/shared/input_overlay.animation";
 
     // Textbox
     pub const TEXTBOX_CURSOR: &str = "resources/scenes/shared/textbox_cursor.png";

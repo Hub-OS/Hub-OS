@@ -66,7 +66,14 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
         .with_post_process(|game_io| PostProcessGhosting::new(game_io))
         .with_post_process(|game_io| PostProcessAdjust::new(game_io))
         .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))
-        .with_overlay(|game_io| DebugOverlay::new(game_io));
+        .with_overlay(GameOverlayTarget::Render, |game_io| {
+            DebugOverlay::new(game_io)
+        });
+
+    #[cfg(target_os = "android")]
+    let game = game.with_overlay(GameOverlayTarget::Window, |game_io| {
+        MobileOverlay::new(game_io)
+    });
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
 

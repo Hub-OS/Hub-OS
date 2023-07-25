@@ -46,7 +46,7 @@ field_count = "0.1"
 rustysynth = "1.1"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
-surf = "2.3"
+surf = { version = "2.3", default-features = false, features = ["curl-client"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 surf = { version = "2.3", default-features = false, features = [
@@ -58,6 +58,7 @@ surf = { version = "2.3", default-features = false, features = [
 crate-type = ["cdylib", "rlib"]
 
 [package.metadata.android]
+apk_name = "Hub OS"
 build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
 assets = "cache/android_assets"
 

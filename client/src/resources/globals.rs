@@ -49,6 +49,9 @@ pub struct Globals {
     pub background_sampler: Arc<TextureSampler>,
     pub map_pipeline: MapPipeline,
 
+    // input emulation
+    pub emulated_input: EmulatedInput,
+
     // networking
     pub network: Network,
     pub connected_to_server: bool,
@@ -142,6 +145,9 @@ impl Globals {
                 EdgeSampling::Repeat,
             ),
             map_pipeline: MapPipeline::new(game_io),
+
+            // input emulation
+            emulated_input: EmulatedInput::default(),
 
             // networking
             network: Network::new(&args),

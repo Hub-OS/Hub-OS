@@ -1,4 +1,4 @@
-use super::{Globals, Input};
+use super::{EmulatedInput, Globals, Input};
 use crate::saves::Config;
 use framework::prelude::*;
 use packets::structures::Direction;
@@ -6,20 +6,25 @@ use std::collections::HashMap;
 
 pub struct InputUtil<'a> {
     input_manager: &'a InputManager,
+    emulated: &'a EmulatedInput,
     config: &'a Config,
 }
 
 impl<'a> InputUtil<'a> {
     pub fn new(game_io: &'a GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
             input_manager: game_io.input(),
-            config: &game_io.resource::<Globals>().unwrap().config,
+            emulated: &globals.emulated_input,
+            config: &globals.config,
         }
     }
 
     pub fn latest_input(&self) -> Option<Input> {
         let latest_key = self.input_manager.latest_key();
         let latest_button = self.input_manager.latest_button();
+        let latest_button = latest_button.or(self.emulated.latest_button());
 
         latest_key
             .and_then(|key| Self::input_from_binding(&self.config.key_bindings, key))
@@ -75,26 +80,10 @@ impl<'a> InputUtil<'a> {
         }
 
         if let Some(buttons) = config.controller_bindings.get(&input) {
-            let is_down = buttons
-                .iter()
-                .any(|button| input_manager.is_button_down(config.controller_index, *button));
-
-            if is_down {
-                return true;
-            }
-        }
-
-        false
-    }
-
-    pub fn controller_pressing_cancel(&self) -> bool {
-        let config = &self.config;
-        let input_manager = self.input_manager;
-
-        if let Some(buttons) = config.controller_bindings.get(&Input::Cancel) {
-            let is_down = buttons
-                .iter()
-                .any(|button| input_manager.is_button_down(config.controller_index, *button));
+            let is_down = buttons.iter().any(|button| {
+                input_manager.is_button_down(config.controller_index, *button)
+                    || self.emulated.is_button_down(*button)
+            });
 
             if is_down {
                 return true;
@@ -111,8 +100,10 @@ impl<'a> InputUtil<'a> {
                 !self.input_manager.was_key_just_pressed(key) && self.input_manager.is_key_down(key)
             },
             |index, button| {
-                !self.input_manager.was_button_just_pressed(index, button)
-                    && self.input_manager.is_button_down(index, button)
+                (!self.input_manager.was_button_just_pressed(index, button)
+                    && self.input_manager.is_button_down(index, button))
+                    || (!self.emulated.was_button_just_pressed(button)
+                        && self.emulated.is_button_down(button))
             },
         );
 
@@ -125,7 +116,10 @@ impl<'a> InputUtil<'a> {
         self.any(
             input,
             |key| self.input_manager.was_key_just_pressed(key),
-            |index, button| self.input_manager.was_button_just_pressed(index, button),
+            |index, button| {
+                self.input_manager.was_button_just_pressed(index, button)
+                    || self.emulated.was_button_just_pressed(button)
+            },
         )
     }
 
@@ -138,8 +132,29 @@ impl<'a> InputUtil<'a> {
         self.any(
             input,
             |key| self.input_manager.was_key_released(key),
-            |index, button| self.input_manager.was_button_released(index, button),
+            |index, button| {
+                self.input_manager.was_button_released(index, button)
+                    || self.emulated.was_button_released(button)
+            },
         )
+    }
+
+    pub fn controller_pressing_cancel(&self) -> bool {
+        let config = &self.config;
+        let input_manager = self.input_manager;
+
+        if let Some(buttons) = config.controller_bindings.get(&Input::Cancel) {
+            let is_down = buttons.iter().any(|button| {
+                input_manager.is_button_down(config.controller_index, *button)
+                    || self.emulated.is_button_down(*button)
+            });
+
+            if is_down {
+                return true;
+            }
+        }
+
+        false
     }
 
     fn any(

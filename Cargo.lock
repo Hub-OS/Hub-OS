@@ -1543,7 +1543,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#2a5f676366c9a7d21b1d3fd462bb55d3e0b134a1"
+source = "git+https://github.com/Hub-OS/framework#dfb5dab1ccc31aea353b2ed3154f97e8b3c0313e"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -4081,7 +4081,6 @@ dependencies = [
  "async-std",
  "async-trait",
  "cfg-if",
- "encoding_rs",
  "futures-util",
  "getrandom 0.2.10",
  "http-client",
@@ -4093,7 +4092,6 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
- "web-sys",
 ]
 
 [[package]]

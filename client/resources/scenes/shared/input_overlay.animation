@@ -1,0 +1,28 @@
+animation state="LEFTTRIGGER"
+frame x="1" y="1" w="60" h="18"
+
+animation state="RIGHTTRIGGER"
+frame x="67" y="1" w="60" h="18" originx="60"
+
+animation state="A"
+frame x="14" y="20" w="24" h="24" originx="63" originy="35"
+
+animation state="B"
+frame x="39" y="20" w="24" h="24" originx="42" originy="56"
+
+animation state="X"
+frame x="64" y="20" w="24" h="24" originx="84" originy="56"
+
+animation state="Y"
+frame x="89" y="20" w="24" h="24" originx="63" originy="77"
+
+animation state="DPAD"
+frame x="1" y="46" w="58" h="58" originx="-18" originy="72"
+point label="DEAD_ZONE_START" x="22" y="22"
+point label="DEAD_ZONE_END" x="36" y="36"
+
+animation state="SELECT"
+frame x="75" y="59" w="49" h="15" originx="-18" originy="101"
+
+animation state="START"
+frame x="75" y="76" w="49" h="15" originx="70" originy="101"
