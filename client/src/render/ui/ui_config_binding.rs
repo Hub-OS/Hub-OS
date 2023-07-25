@@ -292,7 +292,11 @@ impl UiNode for UiConfigBinding {
                 self.binding = false;
             }
 
-            if let Some(button) = game_io.input().latest_button() {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let latest_button = game_io.input().latest_button();
+            let latest_button = latest_button.or(globals.emulated_input.latest_button());
+
+            if let Some(button) = latest_button {
                 let mut config = self.config.borrow_mut();
                 Self::bind(
                     &mut config.controller_bindings,
