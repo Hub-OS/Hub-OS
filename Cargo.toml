@@ -5,5 +5,9 @@ resolver = "2"
 [profile.dev]
 opt-level = 1
 
+[profile.dev-fast]
+inherits = "dev"
+opt-level = 0
+
 [profile.release]
 lto = true
