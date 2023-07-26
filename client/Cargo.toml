@@ -74,7 +74,7 @@ name = "android.permission.INTERNET"
 
 [package.metadata.android.application.activity]
 launch_mode = "singleInstance"
-orientation = "landscape"
+orientation = "sensorLandscape"
 
 [package.metadata.android.application]
 label = "Hub OS"
