@@ -58,9 +58,9 @@ surf = { version = "2.3", default-features = false, features = [
 crate-type = ["cdylib", "rlib"]
 
 [package.metadata.android]
-apk_name = "Hub OS"
 build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
 assets = "cache/android_assets"
+resources = "android_res"
 
 [package.metadata.android.sdk]
 target_sdk_version = 30
@@ -77,4 +77,5 @@ launch_mode = "singleInstance"
 orientation = "landscape"
 
 [package.metadata.android.application]
-theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+label = "Hub OS"
+theme = "@style/Theme"
