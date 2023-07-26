@@ -9,16 +9,13 @@ const RELEASED_COLOR: Color = Color::new(1.0, 1.0, 1.0, 0.3);
 
 const BASE: f32 = 64.0 * 3.0;
 
-const LEFT_TRIGGER_INDEX: usize = 0;
-const RIGHT_TRIGGER_INDEX: usize = 1;
-const SELECT_INDEX: usize = 2;
-const START_INDEX: usize = 3;
-const ABXY_RANGE: Range<usize> = 4..8;
+const LEFT_INPUT_RANGE: Range<usize> = 0..2;
+const RIGHT_INPUT_RANGE: Range<usize> = 2..8;
 
 const BUTTON_ORDER: [Button; 8] = [
     Button::LeftTrigger,
-    Button::RightTrigger,
     Button::Select,
+    Button::RightTrigger,
     Button::Start,
     Button::A,
     Button::B,
@@ -121,49 +118,22 @@ impl GameOverlay for MobileOverlay {
             sprite.set_bounds(bounds);
         }
 
-        // update ABXY
-        for i in ABXY_RANGE {
+        // update left inputs
+        for i in LEFT_INPUT_RANGE {
+            let (_, original_bounds, sprite) = &mut self.button_sprites[i];
+
+            let mut bounds = *original_bounds * button_scale;
+            bounds.y += window_size.y;
+            sprite.set_bounds(bounds);
+        }
+
+        // update right inputs
+        for i in RIGHT_INPUT_RANGE {
             let (_, original_bounds, sprite) = &mut self.button_sprites[i];
 
             let mut bounds = *original_bounds * button_scale;
             bounds.x += window_size.x;
             bounds.y += window_size.y;
-            sprite.set_bounds(bounds);
-        }
-
-        // update select
-        {
-            let (_, original_bounds, sprite) = &mut self.button_sprites[SELECT_INDEX];
-
-            let mut bounds = *original_bounds * button_scale;
-            bounds.y += window_size.y;
-            sprite.set_bounds(bounds);
-        }
-
-        // update start
-        {
-            let (_, original_bounds, sprite) = &mut self.button_sprites[START_INDEX];
-
-            let mut bounds = *original_bounds * button_scale;
-            bounds.x += window_size.x;
-            bounds.y += window_size.y;
-            sprite.set_bounds(bounds);
-        }
-
-        // update left trigger
-        {
-            let (_, original_bounds, sprite) = &mut self.button_sprites[LEFT_TRIGGER_INDEX];
-
-            let bounds = *original_bounds * button_scale;
-            sprite.set_bounds(bounds);
-        }
-
-        // update right trigger
-        {
-            let (_, original_bounds, sprite) = &mut self.button_sprites[RIGHT_TRIGGER_INDEX];
-
-            let mut bounds = *original_bounds * button_scale;
-            bounds.x += window_size.x;
             sprite.set_bounds(bounds);
         }
 
