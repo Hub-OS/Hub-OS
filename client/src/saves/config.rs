@@ -1,6 +1,7 @@
 use crate::render::PostProcessColorBlindness;
 use crate::resources::{AssetManager, Input, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
 use framework::input::{Button, Key};
+use framework::{cfg_android, cfg_desktop_and_web};
 use itertools::Itertools;
 use std::collections::HashMap;
 
@@ -198,7 +199,10 @@ impl Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
-            fullscreen: false,
+            fullscreen: {
+                cfg_android! {true}
+                cfg_desktop_and_web! {false}
+            },
             vsync: true,
             lock_aspect_ratio: true,
             brightness: 100,
