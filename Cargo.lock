@@ -1543,7 +1543,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#dfd278e343ee5cd4ac5bce62b0cdb03356203e66"
+source = "git+https://github.com/Hub-OS/framework#6b569af134590d0e79f77c25f9e19a03bcb9d669"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1787,7 +1787,7 @@ dependencies = [
  "vec_map",
  "wasm-bindgen",
  "web-sys",
- "windows 0.48.0",
+ "windows 0.46.0",
 ]
 
 [[package]]

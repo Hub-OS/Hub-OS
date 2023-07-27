@@ -100,7 +100,7 @@ impl MobileOverlay {
 }
 
 impl GameOverlay for MobileOverlay {
-    fn post_update(&mut self, game_io: &mut GameIO) {
+    fn pre_update(&mut self, game_io: &mut GameIO) {
         // update camera
         let window_size = game_io.window().size().as_vec2();
         self.camera.set_scale(RESOLUTION_F / window_size);

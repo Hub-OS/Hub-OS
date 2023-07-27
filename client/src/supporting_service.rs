@@ -15,7 +15,7 @@ impl SupportingService {
 
 impl GameService for SupportingService {
     fn pre_update(&mut self, game_io: &mut GameIO) {
-        let suspended = game_io.is_suspended();
+        let suspended = game_io.suspended();
         let globals = game_io.resource_mut::<Globals>().unwrap();
         globals.network.tick();
 
@@ -27,7 +27,7 @@ impl GameService for SupportingService {
     }
 
     fn post_update(&mut self, game_io: &mut GameIO) {
-        let suspended = game_io.is_suspended();
+        let suspended = game_io.suspended();
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
         if suspended {
