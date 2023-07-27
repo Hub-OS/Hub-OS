@@ -22,7 +22,7 @@ point label="DEAD_ZONE_START" x="22" y="22"
 point label="DEAD_ZONE_END" x="36" y="36"
 
 animation state="SELECT"
-frame x="75" y="61" w="49" h="15" originx="1" originy="16"
+frame x="75" y="61" w="49" h="15" originx="-2" originy="16"
 
 animation state="START"
-frame x="75" y="78" w="49" h="15" originx="53" originy="16"
+frame x="75" y="78" w="49" h="15" originx="51" originy="16"
