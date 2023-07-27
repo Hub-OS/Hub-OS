@@ -29,6 +29,7 @@ mod render;
 mod resources;
 mod saves;
 mod scenes;
+mod supporting_service;
 mod transitions;
 mod zip;
 
@@ -42,6 +43,7 @@ use crate::scenes::BootScene;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
+use supporting_service::*;
 
 pub fn main(app: PlatformApp) -> anyhow::Result<()> {
     // init_game_folder in case we haven't already
@@ -63,6 +65,7 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
             let globals = Globals::new(game_io, args);
             game_io.set_resource(globals);
         })
+        .with_service(|_| SupportingService::new())
         .with_post_process(|game_io| PostProcessGhosting::new(game_io))
         .with_post_process(|game_io| PostProcessAdjust::new(game_io))
         .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))

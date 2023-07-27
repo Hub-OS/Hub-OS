@@ -63,9 +63,6 @@ impl GameOverlay for DebugOverlay {
         if toggling_debug {
             globals.debug_visible = !globals.debug_visible;
         }
-
-        // tick globals since we run every tick anyway
-        globals.tick();
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

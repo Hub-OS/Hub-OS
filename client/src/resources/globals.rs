@@ -158,11 +158,6 @@ impl Globals {
         }
     }
 
-    // updated by the Overlay
-    pub fn tick(&mut self) {
-        self.network.tick();
-    }
-
     pub fn packages(&self, namespace: PackageNamespace) -> impl Iterator<Item = &PackageInfo> {
         (self
             .augment_packages
