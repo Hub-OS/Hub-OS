@@ -34,7 +34,7 @@ impl DebugOverlay {
 }
 
 impl GameOverlay for DebugOverlay {
-    fn update(&mut self, game_io: &mut GameIO) {
+    fn post_update(&mut self, game_io: &mut GameIO) {
         // update performance history
         let frame_duration = game_io.frame_duration();
         let target_duration = game_io.target_duration();

@@ -1543,7 +1543,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#dfb5dab1ccc31aea353b2ed3154f97e8b3c0313e"
+source = "git+https://github.com/Hub-OS/framework#dfd278e343ee5cd4ac5bce62b0cdb03356203e66"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -1558,6 +1558,7 @@ dependencies = [
  "glam",
  "image",
  "instant",
+ "jni 0.21.1",
  "js-sys",
  "log",
  "ndk-sys",
@@ -2370,6 +2371,22 @@ dependencies = [
  "log",
  "thiserror",
  "walkdir",
+]
+
+[[package]]
+name = "jni"
+version = "0.21.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97"
+dependencies = [
+ "cesu8",
+ "cfg-if",
+ "combine",
+ "jni-sys",
+ "log",
+ "thiserror",
+ "walkdir",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
