@@ -43,7 +43,14 @@ use crate::scenes::BootScene;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
+use rand::seq::SliceRandom;
 use supporting_service::*;
+
+const TITLE_LIST: [&str; 3] = [
+    "Hub OS: Combat Network",
+    "Hub OS: Combat Framework",
+    "Hub OS: Modular Battler",
+];
 
 pub fn main(app: PlatformApp) -> anyhow::Result<()> {
     // init_game_folder in case we haven't already
@@ -58,7 +65,8 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
 
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
-    let game = Game::new("HubOS", TRUE_RESOLUTION.into())
+    let random_title = TITLE_LIST.choose(&mut rand::thread_rng()).unwrap();
+    let game = Game::new(random_title, TRUE_RESOLUTION.into())
         .with_platform_app(app)
         .with_resizable(true)
         .with_setup(|game_io| {
