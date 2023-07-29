@@ -532,10 +532,11 @@ fn inter_dock_swap(
     let pack_card_count = pack_item.map(|item| item.count).unwrap_or_default();
 
     // store the index of the transferred card in case we need to move it back
-    let stored_index = transfer_to_pack(scene, game_io, deck_index);
+    let mut stored_index = transfer_to_pack(scene, game_io, deck_index);
 
     let Some(index) = transfer_to_deck(scene, game_io, pack_index) else {
         if transfer_to_pack_cleanup(scene, stored_index) {
+            // converted negative cards in pack to 0
             return Some(());
         }
 
@@ -548,16 +549,17 @@ fn inter_dock_swap(
         return None;
     };
 
-    if let Some(stored_index) = stored_index {
-        if pack_card_count == 1 {
-            let merged_item = scene.pack_dock.card_slots[stored_index - 1].as_ref();
+    if let Some(stored_index) = &mut stored_index {
+        if pack_card_count == 1 && *stored_index > pack_index {
+            let merged_item = scene.pack_dock.card_slots[*stored_index - 1].as_ref();
             let merged_card_count = merged_item.unwrap().count;
 
             if merged_card_count == 1 {
                 // move the card transferred to the pack into the pack slot
                 scene.pack_dock.card_slots.insert(pack_index, None);
-                scene.pack_dock.card_slots.swap(stored_index, pack_index);
+                scene.pack_dock.card_slots.swap(*stored_index, pack_index);
                 scene.pack_dock.card_slots.pop();
+                *stored_index = pack_index;
             }
         }
     }
@@ -715,7 +717,7 @@ fn transfer_to_pack_cleanup(scene: &mut DeckEditorScene, pack_index: Option<usiz
 
     let slot = &scene.pack_dock.card_slots[pack_index];
 
-    if slot.as_ref().unwrap().count != 0 {
+    if slot.as_ref().is_some_and(|item| item.count != 0) {
         return false;
     }
 
