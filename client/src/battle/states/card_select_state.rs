@@ -335,7 +335,7 @@ impl State for CardSelectState {
 
             match selected_item {
                 SelectedItem::Card(i) => {
-                    let card = &player.cards[i];
+                    let card = &player.deck[i];
                     card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
                     card.draw_preview_title(game_io, sprite_queue, preview_point);
                 }
@@ -778,7 +778,7 @@ impl CardSelectState {
 
         if input.was_just_pressed(Input::Info) {
             if let SelectedItem::Card(index) = selected_item {
-                let card = &player.cards[index];
+                let card = &player.deck[index];
 
                 let event = BattleEvent::DescribeCard(card.package_id.clone());
                 shared_assets.event_sender.send(event).unwrap();
@@ -816,7 +816,7 @@ impl CardSelectState {
             for i in selection.selected_card_indices.iter().rev() {
                 let namespace = player.namespace();
 
-                let card = &player.cards[*i];
+                let card = &player.deck[*i];
 
                 let mut card_properties = card_packages
                     .package_or_override(namespace, &card.package_id)
@@ -832,7 +832,7 @@ impl CardSelectState {
             selection.selected_card_indices.sort();
 
             for i in selection.selected_card_indices.iter().rev() {
-                player.cards.remove(*i);
+                player.deck.remove(*i);
             }
 
             selection.selected_card_indices.clear();
@@ -938,7 +938,7 @@ impl CardSelectState {
 
         // draw icons
         player
-            .cards
+            .deck
             .iter()
             .take(player.card_view_size.min(10) as usize)
             .enumerate()
@@ -975,7 +975,7 @@ impl CardSelectState {
             .iter()
             .enumerate()
             .map(move |(i, card_index)| {
-                let card = &player.cards[*card_index];
+                let card = &player.deck[*card_index];
 
                 let position = Vec2::new(start.x, start.y + VERTICAL_OFFSET * i as f32);
 
@@ -999,7 +999,7 @@ fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem
         return SelectedItem::Confirm;
     }
 
-    let card_view_size = player.cards.len().min(player.card_view_size as usize);
+    let card_view_size = player.deck.len().min(player.card_view_size as usize);
     let card_index = (selection.row * 5 + selection.col) as usize;
 
     if card_index < card_view_size {
@@ -1017,7 +1017,7 @@ fn can_player_select(player: &Player, selection: &Selection, index: usize) -> bo
     }
 
     let restriction = resolve_card_restriction(player, selection);
-    let card = &player.cards[index];
+    let card = &player.deck[index];
 
     does_restriction_allow_card(restriction, card)
 }
@@ -1045,7 +1045,7 @@ fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> Ca
     let mut same_code = true;
 
     for i in selection.selected_card_indices.iter().cloned() {
-        let card = &player.cards[i];
+        let card = &player.deck[i];
 
         if let Some(package_id) = first_package_id {
             same_package_id &= card.package_id == *package_id;

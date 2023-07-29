@@ -845,12 +845,20 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         |character: &mut Character, _, reversed_index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
             let reversed_index = reversed_index as usize;
+
             let usable_index = character.invert_card_index(reversed_index);
 
+            // drop the card
             if character.cards.get(usable_index).is_some() {
                 character.cards.remove(usable_index);
             }
 
+            // cancel card use if we dropped the card
+            if reversed_index == 0 {
+                character.card_use_requested = false;
+            }
+
+            // fix next_card_mutation as indices were shifted
             if let Some(next_index) = &mut character.next_card_mutation {
                 if *next_index == reversed_index + 1 {
                     *next_index = reversed_index;

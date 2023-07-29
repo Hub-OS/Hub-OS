@@ -12,8 +12,7 @@ use generational_arena::Arena;
 pub struct Player {
     pub index: usize,
     pub local: bool,
-    pub cards: Vec<Card>,
-    pub card_use_requested: bool,
+    pub deck: Vec<Card>,
     pub can_flip: bool,
     pub flip_requested: bool,
     pub attack_boost: u8,
@@ -63,8 +62,7 @@ impl Player {
         Self {
             index: setup.index,
             local: setup.local,
-            cards: setup.deck.cards,
-            card_use_requested: false,
+            deck: setup.deck.cards,
             can_flip: true,
             flip_requested: false,
             attack_boost: 0,
@@ -564,8 +562,8 @@ impl Player {
 
         // update AttackCharge structs
         let entities = &mut simulation.entities;
-        let (entity, player) = entities
-            .query_one_mut::<(&Entity, &mut Player)>(entity_id.into())
+        let (entity, player, character) = entities
+            .query_one_mut::<(&Entity, &mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
         player.card_chargable_cache = card_chargable_cache;
@@ -613,10 +611,10 @@ impl Player {
 
         if let Some(fully_charged) = card_used {
             player.card_charged = fully_charged;
-            player.card_use_requested = true;
+            character.card_use_requested = true;
         }
 
-        if !player.card_use_requested {
+        if !character.card_use_requested {
             if let Some(fully_charged) = buster_fired {
                 if fully_charged {
                     Player::use_charged_attack(game_io, simulation, vms, entity_id);
