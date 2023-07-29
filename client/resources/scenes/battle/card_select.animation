@@ -1,7 +1,5 @@
 # @frame_rate 60
 
-imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/battle/card_select.png"
-
 animation state="ROOT"
 frame duration="0f" x="236" y="192" w="120" h="64" originx="0" originy="-96" flipx="0" flipy="0"
 point label="CARD_START" x="9" y="9"
@@ -67,3 +65,7 @@ frame duration="50f" x="356" y="178" w="1" h="11" originx="0" originy="0" flipx=
 
 animation state="NAME_PLATE_EDGE"
 frame duration="50f" x="346" y="178" w="9" h="11" originx="9" originy="0" flipx="0" flipy="0"
+
+animation state="REGULAR_FRAME"
+frame duration="8f" x="214" y="214" w="21" h="18" originx="-4" originy="-103" flipx="0" flipy="0"
+frame duration="8f" x="214" y="237" w="21" h="18" originx="-4" originy="-103" flipx="0" flipy="0"

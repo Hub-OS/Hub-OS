@@ -70,6 +70,8 @@ impl ResourcePaths {
     pub const ELEMENTS: &str = "resources/scenes/shared/elements.png";
     pub const CARD_ICON_MISSING: &str = "resources/scenes/shared/card_icon_missing.png";
     pub const CARD_PREVIEW_MISSING: &str = "resources/scenes/shared/card_missing.png";
+    pub const REGULAR_CARD: &str = "resources/scenes/shared/regular_card.png";
+    pub const REGULAR_CARD_ANIMATION: &str = "resources/scenes/shared/regular_card.animation";
     pub const FULL_CARD: &str = "resources/scenes/shared/full_card.png";
     pub const FULL_CARD_ANIMATION: &str = "resources/scenes/shared/full_card.animation";
     pub const HEALTH_FRAME: &str = "resources/scenes/shared/health_frame.png";

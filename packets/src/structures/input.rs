@@ -32,6 +32,7 @@ pub enum Input {
     Confirm,
     Cancel,
     Option,
+    Option2, // could use a better name
     Info,
     End,
     Sprint,
@@ -58,7 +59,7 @@ impl Input {
         Input::ShoulderR,
     ];
 
-    pub const NON_OVERLAP: [Input; 9] = [
+    pub const NON_OVERLAP: [Input; 10] = [
         Input::Up,
         Input::Down,
         Input::Left,
@@ -66,6 +67,7 @@ impl Input {
         Input::Cancel,
         Input::Confirm,
         Input::Option,
+        Input::Option2,
         Input::ShoulderL,
         Input::ShoulderR,
     ];

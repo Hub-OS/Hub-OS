@@ -13,6 +13,7 @@ pub struct Player {
     pub index: usize,
     pub local: bool,
     pub deck: Vec<Card>,
+    pub has_regular_card: bool,
     pub can_flip: bool,
     pub flip_requested: bool,
     pub attack_boost: u8,
@@ -59,10 +60,18 @@ impl Player {
     ) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
+        let mut deck = setup.deck;
+
+        if let Some(index) = deck.regular_index {
+            // move the regular card to the front
+            deck.cards.swap(0, index);
+        }
+
         Self {
             index: setup.index,
             local: setup.local,
-            deck: setup.deck.cards,
+            deck: deck.cards,
+            has_regular_card: deck.regular_index.is_some(),
             can_flip: true,
             flip_requested: false,
             attack_boost: 0,

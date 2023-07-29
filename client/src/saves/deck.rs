@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub struct Deck {
     pub name: String,
     pub cards: Vec<Card>,
+    pub regular_index: Option<usize>,
 }
 
 impl Deck {
@@ -19,6 +20,7 @@ impl Deck {
         Deck {
             name,
             cards: Vec::new(),
+            regular_index: None,
         }
     }
 
@@ -29,6 +31,17 @@ impl Deck {
         deck_restrictions: &DeckRestrictions,
     ) {
         let deck_validity = deck_restrictions.validate_deck(game_io, namespace, self);
+
+        if let Some(index) = self.regular_index {
+            let card = &self.cards[index];
+
+            if deck_validity.is_card_valid(card) {
+                self.cards.swap(0, index);
+                self.regular_index = Some(0);
+            } else {
+                self.regular_index = None;
+            }
+        }
 
         // preserve only valid cards
         self.cards.retain(|card| deck_validity.is_card_valid(card));
@@ -50,13 +63,24 @@ impl Deck {
         namespace: PackageNamespace,
     ) {
         use rand::seq::SliceRandom;
-        let globals = game_io.resource::<Globals>().unwrap();
+
+        // take out the regular card
+        let regular_card = self.regular_index.map(|index| self.cards.remove(index));
+
+        // shuffle
         self.cards.shuffle(rng);
+
+        // put the regular card back in at the start
+        if let Some(card) = regular_card {
+            self.cards.insert(0, card);
+        }
 
         // If the deck is less than 10 cards, don't try to giga shuffle.
         if self.cards.len() < 10 {
             return;
         }
+
+        let globals = game_io.resource::<Globals>().unwrap();
 
         let mut non_giga_vec = Vec::new();
         // Cycle every card past the required 10 to count non-gigas

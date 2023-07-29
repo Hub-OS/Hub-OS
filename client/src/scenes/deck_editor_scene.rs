@@ -143,7 +143,9 @@ impl DeckEditorScene {
             global_save.selected_deck = self.deck_index;
         }
 
-        global_save.decks[self.deck_index].cards = self.clone_cards();
+        let deck = &mut global_save.decks[self.deck_index];
+        deck.cards = self.clone_cards();
+        deck.regular_index = self.resolve_regular_index();
 
         global_save.save();
     }
@@ -155,6 +157,16 @@ impl DeckEditorScene {
             .flatten()
             .map(|item| item.card.clone())
             .collect()
+    }
+
+    fn resolve_regular_index(&self) -> Option<usize> {
+        self.deck_dock
+            .card_slots
+            .iter()
+            .flatten()
+            .enumerate()
+            .find(|(_, item)| item.is_regular)
+            .map(|(i, _)| i)
     }
 }
 
@@ -370,6 +382,44 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
         scene.context_menu.open();
+    }
+
+    // handle selecting regular card
+    if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let card_packages = &globals.card_packages;
+
+        let deck_dock = &mut scene.deck_dock;
+        let slots = &mut deck_dock.card_slots;
+        let index = deck_dock.scroll_tracker.selected_index();
+
+        if let Some(item) = &mut slots[index] {
+            let package_id = &item.card.package_id;
+
+            let is_standard = card_packages
+                .package_or_override(NAMESPACE, package_id)
+                .is_some_and(|package| package.card_properties.card_class == CardClass::Standard);
+
+            if is_standard {
+                item.is_regular = !item.is_regular;
+                globals.audio.play_sound(&globals.sfx.cursor_error);
+
+                // unmark other slots
+                for (i, slot) in slots.iter_mut().enumerate() {
+                    let Some(item) = slot else {
+                        continue;
+                    };
+
+                    if index != i {
+                        item.is_regular = false;
+                    }
+                }
+            } else {
+                globals.audio.play_sound(&globals.sfx.cursor_select);
+            }
+        } else {
+            globals.audio.play_sound(&globals.sfx.cursor_error);
+        }
     }
 }
 
@@ -599,6 +649,7 @@ fn transfer_to_deck(
         valid: true, // we'll validate this later
         count: 1,
         show_count: false,
+        is_regular: false,
     });
 
     card_item.count -= 1;
@@ -639,6 +690,7 @@ fn transfer_to_pack(
             valid: true,
             count: 1,
             show_count: true,
+            is_regular: false,
         }));
 
         scene
@@ -683,6 +735,7 @@ struct Dock {
     scroll_tracker: ScrollTracker,
     dock_sprite: Sprite,
     dock_animator: Animator,
+    regular_sprite: Sprite,
     card_preview: FullCard,
     list_position: Vec2,
     context_menu_position: Vec2,
@@ -696,6 +749,9 @@ impl Dock {
         mut dock_sprite: Sprite,
         mut dock_animator: Animator,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
         // dock
         dock_animator.set_loop_mode(AnimatorLoopMode::Loop);
         dock_animator.apply(&mut dock_sprite);
@@ -711,6 +767,14 @@ impl Dock {
         let page_arrow_point = dock_animator.point("PAGE_ARROWS").unwrap_or_default();
         let page_arrow_offset = dock_offset + page_arrow_point;
 
+        // regular sprite
+        let mut regular_sprite = assets.new_sprite(game_io, ResourcePaths::REGULAR_CARD);
+        let mut regular_animator =
+            Animator::load_new(assets, ResourcePaths::REGULAR_CARD_ANIMATION);
+
+        regular_animator.set_state("DEFAULT");
+        regular_animator.apply(&mut regular_sprite);
+
         // card sprite
         let card_offset = dock_animator.point("CARD").unwrap_or_default();
         let card_preview = FullCard::new(game_io, dock_offset + card_offset);
@@ -719,15 +783,13 @@ impl Dock {
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.set_total_items(card_slots.len());
 
-        let scroll_start_point = dock_animator.point("SCROLL_START").unwrap_or_default();
-        let scroll_end_point = dock_animator.point("SCROLL_END").unwrap_or_default();
-
-        let scroll_start = dock_offset + scroll_start_point;
-        let scroll_end = dock_offset + scroll_end_point;
+        let scroll_start = dock_offset + dock_animator.point("SCROLL_START").unwrap_or_default();
+        let scroll_end = dock_offset + dock_animator.point("SCROLL_END").unwrap_or_default();
 
         scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
-        let cursor_start = list_position + Vec2::new(-7.0, 3.0);
+        // cursor
+        let cursor_start = dock_offset + dock_animator.point("CURSOR_START").unwrap_or_default();
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
         let mut dock = Self {
@@ -736,6 +798,7 @@ impl Dock {
             scroll_tracker,
             dock_sprite,
             dock_animator,
+            regular_sprite,
             card_preview,
             list_position,
             context_menu_position,
@@ -804,9 +867,8 @@ impl Dock {
 
         // draw list items
         for i in self.scroll_tracker.view_range() {
-            let card_item = match &self.card_slots[i] {
-                Some(card_item) => card_item,
-                None => continue,
+            let Some(card_item) = &self.card_slots[i] else {
+                continue;
             };
 
             let relative_index = i - self.scroll_tracker.top_index();
@@ -815,6 +877,11 @@ impl Dock {
             position.y += relative_index as f32 * self.scroll_tracker.cursor_multiplier();
 
             card_item.draw_list_item(game_io, sprite_queue, position);
+
+            if card_item.is_regular {
+                self.regular_sprite.set_position(position);
+                sprite_queue.draw_sprite(&self.regular_sprite);
+            }
         }
 
         // draw scrollbar
@@ -843,6 +910,7 @@ struct CardListItem {
     valid: bool,
     count: isize,
     show_count: bool,
+    is_regular: bool,
 }
 
 impl CardListItem {
@@ -853,12 +921,14 @@ impl CardListItem {
         let mut card_items: Vec<_> = deck
             .cards
             .iter()
-            .map(|card| {
+            .enumerate()
+            .map(|(i, card)| {
                 Some(CardListItem {
                     card: card.clone(),
                     valid: true,
                     count: 0,
                     show_count: false,
+                    is_regular: deck.regular_index == Some(i),
                 })
             })
             .collect();
@@ -898,6 +968,7 @@ impl CardListItem {
                 valid: valid_package && count > 0,
                 count,
                 show_count: true,
+                is_regular: false,
             }
         };
 

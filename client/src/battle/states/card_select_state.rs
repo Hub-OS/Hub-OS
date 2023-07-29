@@ -328,6 +328,16 @@ impl State for CardSelectState {
                     }
                     _ => {}
                 }
+
+                if player.has_regular_card {
+                    self.animator.set_state("REGULAR_FRAME");
+                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    self.animator.sync_time(self.time);
+                    self.animator.apply(&mut recycled_sprite);
+
+                    recycled_sprite.set_position(self.sprites.root().offset());
+                    sprite_queue.draw_sprite(&recycled_sprite);
+                }
             }
 
             // draw preview icon
@@ -833,6 +843,11 @@ impl CardSelectState {
 
             for i in selection.selected_card_indices.iter().rev() {
                 player.deck.remove(*i);
+            }
+
+            // unmark player as having regular card
+            if player.has_regular_card && selection.selected_card_indices.contains(&0) {
+                player.has_regular_card = false;
             }
 
             selection.selected_card_indices.clear();

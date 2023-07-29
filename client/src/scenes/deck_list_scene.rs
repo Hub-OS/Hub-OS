@@ -30,6 +30,7 @@ pub struct DeckListScene {
     scene_time: FrameTime,
     equipped_sprite: Sprite,
     equipped_animator: Animator,
+    regular_card_sprite: Sprite,
     deck_scroll_offset: f32,
     deck_sprite: Sprite,
     deck_frame_sprite: Sprite,
@@ -69,6 +70,14 @@ impl DeckListScene {
         let scroll_end = layout_animator.point("SCROLL_END").unwrap_or_default();
 
         card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
+
+        // regular card sprite
+        let mut regular_card_sprite = assets.new_sprite(game_io, ResourcePaths::REGULAR_CARD);
+        let mut regular_animator =
+            Animator::load_new(assets, ResourcePaths::REGULAR_CARD_ANIMATION);
+
+        regular_animator.set_state("DEFAULT");
+        regular_animator.apply(&mut regular_card_sprite);
 
         // deck sprites
         let deck_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_ENABLED);
@@ -121,6 +130,7 @@ impl DeckListScene {
             scene_time: 0,
             equipped_sprite,
             equipped_animator,
+            regular_card_sprite,
             deck_scroll_offset: 0.0,
             deck_sprite,
             deck_frame_sprite,
@@ -266,15 +276,21 @@ impl Scene for DeckListScene {
             // draw cards
             let deck_index = self.deck_scroll_tracker.selected_index();
             let deck_validity = &self.deck_validities[deck_index];
-            let cards = &global_save.decks[deck_index].cards;
+            let deck = &global_save.decks[deck_index];
             let range = self.card_scroll_tracker.view_range();
             let mut card_position = self.card_list_position;
 
             for i in range {
-                let card = &cards[i];
+                let card = &deck.cards[i];
                 let valid = deck_validity.is_card_valid(card);
 
                 card.draw_list_item(game_io, &mut sprite_queue, card_position, valid);
+
+                if deck.regular_index == Some(i) {
+                    self.regular_card_sprite.set_position(card_position);
+                    sprite_queue.draw_sprite(&self.regular_card_sprite);
+                }
+
                 card_position.y += 16.0;
             }
 
