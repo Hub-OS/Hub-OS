@@ -798,18 +798,22 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id))
     });
 
-    getter(lua_api, "cards", |character: &Character, lua, _: ()| {
-        let table = lua.create_table_from(character.cards.iter().rev().enumerate());
+    getter(
+        lua_api,
+        "field_cards",
+        |character: &Character, lua, _: ()| {
+            let table = lua.create_table_from(character.cards.iter().rev().enumerate());
 
-        lua.pack_multi(table)
-    });
+            lua.pack_multi(table)
+        },
+    );
 
     getter(
         lua_api,
-        "card",
+        "field_card",
         |character: &Character, lua, index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index(index as usize);
+            let index = character.invert_card_index((index - 1) as usize);
             let card = character.cards.get(index);
 
             lua.pack_multi(card)
@@ -818,10 +822,10 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "set_card",
+        "set_field_card",
         |character: &mut Character, _, (index, card): (isize, CardProperties)| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index(index as usize);
+            let index = character.invert_card_index((index - 1) as usize);
 
             let Some(card_ref) = character.cards.get_mut(index) else {
                 return Ok(());
@@ -841,10 +845,10 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "remove_card",
+        "remove_field_card",
         |character: &mut Character, _, reversed_index: isize| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let reversed_index = reversed_index as usize;
+            let reversed_index = (reversed_index - 1) as usize;
 
             let usable_index = character.invert_card_index(reversed_index);
 
@@ -871,10 +875,10 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
     setter(
         lua_api,
-        "insert_card",
+        "insert_field_card",
         |character: &mut Character, _, (index, card): (isize, CardProperties)| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index(index as usize);
+            let index = character.invert_card_index((index - 1) as usize);
 
             if index > character.cards.len() {
                 character.cards.push(card);

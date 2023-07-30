@@ -246,7 +246,7 @@ impl Character {
             }
 
             let _ = simulation.call_global(game_io, vms, vm_index, "card_mutate", |lua| {
-                Ok((create_entity_table(lua, id.into())?, lua_card_index))
+                Ok((create_entity_table(lua, id.into())?, lua_card_index + 1))
             });
         }
     }
