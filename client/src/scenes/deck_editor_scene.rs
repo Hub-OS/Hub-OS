@@ -402,7 +402,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
             if is_standard {
                 item.is_regular = !item.is_regular;
-                globals.audio.play_sound(&globals.sfx.cursor_error);
+                globals.audio.play_sound(&globals.sfx.cursor_select);
 
                 // unmark other slots
                 for (i, slot) in slots.iter_mut().enumerate() {
@@ -415,7 +415,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                     }
                 }
             } else {
-                globals.audio.play_sound(&globals.sfx.cursor_select);
+                globals.audio.play_sound(&globals.sfx.cursor_error);
             }
         } else {
             globals.audio.play_sound(&globals.sfx.cursor_error);
