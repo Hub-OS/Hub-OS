@@ -955,7 +955,7 @@ impl CardSelectState {
         player
             .deck
             .iter()
-            .take(player.card_view_size.min(10) as usize)
+            .take(player.hand_size())
             .enumerate()
             .map(move |(i, card)| {
                 let col = i % 5;
@@ -1014,7 +1014,11 @@ fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem
         return SelectedItem::Confirm;
     }
 
-    let card_view_size = player.deck.len().min(player.card_view_size as usize);
+    if selection.row == 1 && selection.col == 5 {
+        return SelectedItem::Confirm;
+    }
+
+    let card_view_size = player.deck.len().min(player.hand_size());
     let card_index = (selection.row * 5 + selection.col) as usize;
 
     if card_index < card_view_size {

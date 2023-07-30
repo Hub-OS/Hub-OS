@@ -1388,6 +1388,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter(lua_api, "hand_size", |player: &Player, lua, _: ()| {
+        lua.pack_multi(player.hand_size())
+    });
+    setter(
+        lua_api,
+        "boost_hand_size",
+        |player: &mut Player, _, level: i8| {
+            player.hand_size_boost = player.hand_size_boost.saturating_add(level);
+            Ok(())
+        },
+    );
+
     getter(lua_api, "attack_level", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.attack_level())
     });

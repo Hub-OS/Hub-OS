@@ -19,7 +19,7 @@ pub struct Player {
     pub attack_boost: u8,
     pub rapid_boost: u8,
     pub charge_boost: u8,
-    pub card_view_size: u8,
+    pub hand_size_boost: i8,
     pub card_chargable_cache: ResultCacheSingle<Option<CardProperties>, bool>,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
@@ -77,7 +77,7 @@ impl Player {
             attack_boost: 0,
             rapid_boost: 0,
             charge_boost: 0,
-            card_view_size: 5,
+            hand_size_boost: 0,
             card_chargable_cache: ResultCacheSingle::default(),
             card_charged: false,
             card_charge: AttackCharge::new(
@@ -463,6 +463,19 @@ impl Player {
 
     pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {
         self.forms[self.active_form?].update_callback.as_ref()
+    }
+
+    pub fn hand_size(&self) -> usize {
+        const BASE_HAND_SIZE: i8 = 5;
+
+        let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost);
+
+        let augment_iter = self.augments.iter();
+        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, (_, m)| {
+            acc.saturating_add(m.hand_size_boost * m.level as i8)
+        });
+
+        augmented_hand_size.clamp(1, 10) as usize
     }
 
     pub fn attack_level(&self) -> u8 {
