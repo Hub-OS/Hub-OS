@@ -166,6 +166,8 @@ impl OverworldMenuManager {
         self.event_sender.send(Event::SelectionAck).unwrap();
     }
 
+    // todo: fix argument count
+    #[allow(clippy::too_many_arguments)]
     pub fn open_bbs(
         &mut self,
         game_io: &GameIO,
@@ -173,6 +175,7 @@ impl OverworldMenuManager {
         color: Color,
         transition: bool,
         on_select: impl Fn(&str) + 'static,
+        request_more: impl Fn() + 'static,
         on_close: impl Fn() + 'static,
     ) {
         self.close_old_menu(transition);
@@ -197,7 +200,14 @@ impl OverworldMenuManager {
             }
         };
 
-        self.bbs = Some(Bbs::new(game_io, topic, color, on_select, on_close));
+        self.bbs = Some(Bbs::new(
+            game_io,
+            topic,
+            color,
+            on_select,
+            request_more,
+            on_close,
+        ));
     }
 
     pub fn open_shop(

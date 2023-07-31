@@ -758,25 +758,23 @@ impl OverworldOnlineScene {
                 // let the server know post selections from now on are for this board
                 send_packet(Reliability::ReliableOrdered, ClientPacket::BoardOpen);
 
-                let on_select = {
-                    let send_packet = self.send_packet.clone();
-
-                    move |id: &str| {
-                        send_packet(
-                            Reliability::ReliableOrdered,
-                            ClientPacket::PostSelection {
-                                post_id: id.to_string(),
-                            },
-                        );
-                    }
+                let on_select = move |id: &str| {
+                    send_packet(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::PostSelection {
+                            post_id: id.to_string(),
+                        },
+                    );
                 };
 
-                let on_close = {
-                    let send_packet = self.send_packet.clone();
+                let send_packet = self.send_packet.clone();
+                let request_more = move || {
+                    send_packet(Reliability::ReliableOrdered, ClientPacket::PostRequest);
+                };
 
-                    move || {
-                        send_packet(Reliability::ReliableOrdered, ClientPacket::BoardClose);
-                    }
+                let send_packet = self.send_packet.clone();
+                let on_close = move || {
+                    send_packet(Reliability::ReliableOrdered, ClientPacket::BoardClose);
                 };
 
                 self.menu_manager.open_bbs(
@@ -785,6 +783,7 @@ impl OverworldOnlineScene {
                     color.into(),
                     !open_instantly,
                     on_select,
+                    request_more,
                     on_close,
                 );
 

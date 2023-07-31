@@ -12,12 +12,14 @@ pub struct Bbs {
     color: Color,
     ui_input_tracker: UiInputTracker,
     scroll_tracker: ScrollTracker,
+    reached_end: bool,
     posts: Vec<BbsPost>,
     list_point: Vec2,
     unread_sprite: Sprite,
     unread_animator: Animator,
     static_sprites: [Sprite; 3],
     on_select: Box<dyn Fn(&str)>,
+    request_more: Box<dyn Fn()>,
     on_close: Box<dyn Fn()>,
 }
 
@@ -27,6 +29,7 @@ impl Bbs {
         topic: String,
         color: Color,
         on_select: impl Fn(&str) + 'static,
+        request_more: impl Fn() + 'static,
         on_close: impl Fn() + 'static,
     ) -> Self {
         let mut scroll_tracker = ScrollTracker::new(game_io, 8);
@@ -76,6 +79,7 @@ impl Bbs {
             color,
             ui_input_tracker: UiInputTracker::new(),
             scroll_tracker,
+            reached_end: false,
             posts: Vec::new(),
             list_point,
             unread_sprite: assets.new_sprite(game_io, ResourcePaths::UNREAD),
@@ -84,6 +88,7 @@ impl Bbs {
                 .with_loop_mode(AnimatorLoopMode::Loop),
             static_sprites: [bg_sprite, frame_sprite, posts_bg_sprite],
             on_select: Box::new(on_select),
+            request_more: Box::new(request_more),
             on_close: Box::new(on_close),
         }
     }
@@ -129,6 +134,12 @@ impl Bbs {
 
         if let Some(index) = reference_index {
             let after_index = index + 1;
+
+            if after_index == self.posts.len() {
+                // added new posts at the end
+                self.reached_end = false;
+            }
+
             self.posts.splice(after_index..after_index, posts);
 
             // update selection
@@ -141,7 +152,9 @@ impl Bbs {
                 self.scroll_tracker.set_selected_index(updated_index);
             }
         } else {
+            // add new posts at the end
             self.posts.extend(posts);
+            self.reached_end = false;
         }
 
         self.scroll_tracker.set_total_items(self.posts.len());
@@ -186,6 +199,15 @@ impl Menu for Bbs {
 
         if old_index != self.scroll_tracker.selected_index() {
             globals.audio.play_sound(&globals.sfx.cursor_move);
+        }
+
+        // if we're within two pages of the end, send signal for more data
+        if !self.reached_end
+            && self.scroll_tracker.top_index() + self.scroll_tracker.view_size() * 2
+                >= self.posts.len()
+        {
+            self.reached_end = true;
+            (self.request_more)();
         }
 
         // handle selection
