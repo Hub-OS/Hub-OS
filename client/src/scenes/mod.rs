@@ -1,3 +1,4 @@
+mod battle_init_scene;
 mod battle_scene;
 mod battle_select_scene;
 mod boot_scene;
@@ -20,6 +21,7 @@ mod resource_order_scene;
 mod server_edit_scene;
 mod server_list_scene;
 
+pub use battle_init_scene::*;
 pub use battle_scene::*;
 pub use battle_select_scene::*;
 pub use boot_scene::*;

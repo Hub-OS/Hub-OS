@@ -714,6 +714,9 @@ impl Scene for NetplayInitScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
+        globals.audio.stop_music();
+        globals.audio.play_sound(&globals.sfx.battle_transition);
+
         for namespace in globals.netplay_namespaces() {
             globals.remove_namespace(namespace);
         }

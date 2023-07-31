@@ -11,8 +11,7 @@ use crate::render::ui::{
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card};
-use crate::scenes::BattleScene;
-use crate::transitions::HoldColorScene;
+use crate::scenes::BattleInitScene;
 use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
@@ -29,6 +28,7 @@ pub struct OverworldOnlineScene {
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
     active_music_path: String,
+    visible: bool,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -86,6 +86,7 @@ impl OverworldOnlineScene {
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
             active_music_path: String::new(),
+            visible: false,
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -521,9 +522,11 @@ impl OverworldOnlineScene {
                 restrictions.enable_player_character(package_id, enabled);
             }
             ServerPacket::PlaySound { path } => {
-                let sound = self.assets.audio(game_io, &path);
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&sound);
+                if self.visible {
+                    let sound = self.assets.audio(game_io, &path);
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&sound);
+                }
             }
             ServerPacket::ExcludeObject { id } => {
                 if !self.excluded_objects.contains(&id) {
@@ -974,10 +977,6 @@ impl OverworldOnlineScene {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
-                    // play sfx
-                    globals.audio.stop_music();
-                    globals.audio.play_sound(&globals.sfx.battle_transition);
-
                     // get package
                     let encounter_package = globals
                         .encounter_packages
@@ -1006,14 +1005,7 @@ impl OverworldOnlineScene {
                         .generate_background(game_io, &self.assets);
 
                     // create scene
-                    let battle_scene = BattleScene::new(game_io, props);
-                    let hold_duration = crate::transitions::BATTLE_HOLD_DURATION;
-
-                    let scene =
-                        HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
-                            let transition = crate::transitions::new_battle(game_io);
-                            NextScene::new_swap(battle_scene).with_transition(transition)
-                        });
+                    let scene = BattleInitScene::new(game_io, props);
 
                     let transition = crate::transitions::new_battle(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
@@ -1026,11 +1018,6 @@ impl OverworldOnlineScene {
                 remote_players,
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
-
-                // play sfx
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.stop_music();
-                globals.audio.play_sound(&globals.sfx.battle_transition);
 
                 // copy background
                 let background = self
@@ -1706,6 +1693,8 @@ impl Scene for OverworldOnlineScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
+        self.visible = true;
+
         // handle events triggered from other scenes
         // should be called before handling packets, but it's not necessary to do this every frame
         self.handle_events(game_io);
@@ -1722,6 +1711,20 @@ impl Scene for OverworldOnlineScene {
         }
     }
 
+    fn exit(&mut self, _game_io: &mut GameIO) {
+        self.visible = false;
+    }
+
+    fn continuous_update(&mut self, game_io: &mut GameIO) {
+        self.handle_packets(game_io);
+
+        if !self.visible {
+            let area = &mut self.area;
+            system_actor_property_animation(game_io, &self.assets, area);
+            system_movement_interpolation(game_io, area);
+        }
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.update_ui(game_io);
         let ui_is_locking_input = self.menu_manager.is_open();
@@ -1732,8 +1735,6 @@ impl Scene for OverworldOnlineScene {
 
         let area = &mut self.area;
         system_update_animation(area);
-
-        self.handle_packets(game_io);
 
         let area = &mut self.area;
         system_player_movement(game_io, area, &self.assets);
