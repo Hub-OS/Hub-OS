@@ -3,6 +3,8 @@ use crate::deserialize;
 use crate::packet::{Ack, Packet, PacketBuilder};
 use crate::{DecodeError, Instant, Label};
 
+pub type ReceiveResult<T> = std::result::Result<T, DecodeError>;
+
 pub struct PacketReceiver<ChannelLabel> {
     channel_receivers: Vec<ChannelReceiver<ChannelLabel>>,
     packet_sender: flume::Sender<PacketBuilder<ChannelLabel>>,
@@ -33,12 +35,11 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
         self.last_receive_time
     }
 
-    #[allow(clippy::type_complexity)]
     pub fn receive_packet<'a>(
         &mut self,
         now: Instant,
         data: &'a [u8],
-    ) -> Result<Option<(ChannelLabel, Vec<Vec<u8>>)>, DecodeError> {
+    ) -> ReceiveResult<Option<(ChannelLabel, Vec<Vec<u8>>)>> {
         self.last_receive_time = now;
 
         let packet: Packet<'a, ChannelLabel> = deserialize(data)?;

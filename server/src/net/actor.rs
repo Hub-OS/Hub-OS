@@ -47,7 +47,6 @@ impl Actor {
 
     /// helper function that updates last_movement_time and current_animation if anything has changed
     pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
-        #[allow(clippy::float_cmp)]
         let position_changed = self.x != x || self.y != y || self.z != z;
 
         if !position_changed {

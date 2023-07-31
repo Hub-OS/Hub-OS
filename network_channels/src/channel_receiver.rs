@@ -93,7 +93,6 @@ impl<ChannelLabel: Copy> ChannelReceiver<ChannelLabel> {
         Some(data)
     }
 
-    #[allow(clippy::comparison_chain)]
     pub(crate) fn sort_packet(
         &mut self,
         header: PacketHeader<ChannelLabel>,

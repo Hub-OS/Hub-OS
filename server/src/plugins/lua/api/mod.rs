@@ -28,6 +28,8 @@ pub struct ApiContext<'lua_scope, 'a> {
     pub promise_manager_ref: &'lua_scope RefCell<&'a mut JobPromiseManager>,
 }
 
+type StaticLuaInjector = dyn Fn(&mlua::Lua) -> mlua::Result<()>;
+
 type RustLuaFunction = dyn for<'lua> FnMut(
     &ApiContext,
     &'lua mlua::Lua,
@@ -35,7 +37,7 @@ type RustLuaFunction = dyn for<'lua> FnMut(
 ) -> mlua::Result<mlua::MultiValue<'lua>>;
 
 pub struct LuaApi {
-    static_function_injectors: Vec<Box<dyn Fn(&mlua::Lua) -> mlua::Result<()>>>,
+    static_function_injectors: Vec<Box<StaticLuaInjector>>,
     dynamic_function_table_and_name_pairs: Vec<(String, String)>,
     dynamic_functions: HashMap<String, Box<RustLuaFunction>>,
     table_names: Vec<String>,

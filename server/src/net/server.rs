@@ -328,7 +328,6 @@ impl Server {
                 } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         if client.ready && creation_time > client.area_join_time {
-                            #[allow(clippy::float_cmp)]
                             let position_changed =
                                 client.actor.x != x || client.actor.y != y || client.actor.z != z;
 
