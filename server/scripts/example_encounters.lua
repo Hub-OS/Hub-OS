@@ -3,8 +3,16 @@ local Encounters = require("scripts/libs/encounters")
 -- Setup the default area's encounters
 local encounters_table = {}
 encounters_table["default"] = {
-  min_travel = 2, -- 2 tiles are free to walk after each encounter
-  chance = .05, -- 5% chance for each movement event after the minimum travel to cause an encounter
+  -- min_travel = 8, -- 8 tiles are free to walk after each encounter
+  -- chance = .05,   -- 5% chance tested at every tile's worth of movement
+  chance = function(distance)
+    -- curve 5: https://pastebin.com/vXbWiKAc
+    local index = math.floor(distance / Encounters.CHECK_DISTANCE)
+    local chance_curve = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 8, 10, 12 }
+
+    local chance = chance_curve[index] or chance_curve[#chance_curve]
+    return chance / 32
+  end,
   preload = true,
   encounters = {
     {

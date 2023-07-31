@@ -1,15 +1,20 @@
 local lib = {
     BIG_TILE_MOVEMENT = 1, -- users can't walk/run this far without help from the server
+    CHECK_DISTANCE = 2.0,  -- at what distance to test for encounters
 }
 
 local player_trackers = {}
-local table = {}
+local area_tables = {}
 
 function lib.track_player(player_id)
+    local area_id = Net.get_player_area(player_id)
+    local area_table = area_tables[area_id]
+
     player_trackers[player_id] = {
         last_pos = Net.get_player_position(player_id),
-        area = Net.get_player_area(player_id),
-        amt = 0
+        area = area_id,
+        total_dist = 0,
+        last_test = (area_table.min_travel or lib.CHECK_DISTANCE) - lib.CHECK_DISTANCE
     }
 end
 
@@ -17,8 +22,8 @@ function lib.drop_player(player_id)
     player_trackers[player_id] = nil
 end
 
-function lib.setup(encounter_table)
-    for area_id, area_table in pairs(encounter_table) do
+function lib.setup(area_tables)
+    for area_id, area_table in pairs(area_tables) do
         lib.setup_area(area_id, area_table)
     end
 end
@@ -41,7 +46,7 @@ function lib.setup_area(area_id, area_table)
         end
     end
 
-    table[area_id] = area_table
+    area_tables[area_id] = area_table
 end
 
 function lib.handle_player_move(player_id, x, y, z)
@@ -58,33 +63,43 @@ function lib.handle_player_move(player_id, x, y, z)
         return
     end
 
-    local area_table = table[area_id]
+    local area_table = area_tables[area_id]
 
     if not area_table or #area_table.encounters == 0 then
         -- no encounters for this area
         return
     end
 
-    local pos = {x = x, y = y}
-    local amtx = math.abs(player_tracker.last_pos.x - pos.x)
-    local amty = math.abs(player_tracker.last_pos.y - pos.y)
+    local deltax = x - player_tracker.last_pos.x
+    local deltay = y - player_tracker.last_pos.y
 
-    if amtx + amty > lib.BIG_TILE_MOVEMENT then
+    local screenx = deltax - deltay
+    local screeny = (deltax + deltay) * 0.5
+    local delta_dist = math.sqrt(screenx * screenx + screeny * screeny)
+
+    if delta_dist > lib.BIG_TILE_MOVEMENT then
         -- teleported
         return
     end
 
-    local total_amt = player_tracker.amt + amtx + amty
-    player_tracker.amt = total_amt
-    player_tracker.last_pos = pos
+    player_tracker.total_dist = player_tracker.total_dist + delta_dist
+    player_tracker.last_pos.x = x
+    player_tracker.last_pos.y = y
 
-    local required_travel_amt = area_table.min_travel
-
-    if total_amt < required_travel_amt then
+    if player_tracker.total_dist - player_tracker.last_test < lib.CHECK_DISTANCE then
         return
     end
 
-    if math.random() > area_table.chance then
+    player_tracker.last_test = player_tracker.last_test + lib.CHECK_DISTANCE
+
+    -- calculate chance
+    local chance = area_table.chance
+
+    if type(chance) == "function" then
+        chance = chance(player_tracker.total_dist)
+    end
+
+    if math.random() > chance then
         return
     end
 
@@ -94,8 +109,10 @@ function lib.handle_player_move(player_id, x, y, z)
         crawler = crawler - encounter.weight
 
         if crawler <= 0 or i == #area_table.encounters then
-            lib.track_player(player_id)
+            -- send encounter
             Net.initiate_encounter(player_id, encounter.asset_path)
+            -- reset tracking
+            lib.track_player(player_id)
             break
         end
     end
@@ -114,8 +131,8 @@ return lib
     local encounter_table = {}
 
     encounter_table["central_area_1"] = {
-        min_travel = 2, -- 2 tiles are free to walk after each encounter
-        chance = .05, -- chance for each movement event after the minimum travel to cause an encounter,
+        chance = .05, -- chance out of 1, tested at every tile's worth of movement
+        min_travel = 2, -- optional, 2 tiles are free to walk after each encounter
         preload = true, -- optional, preloads every encounter when the player joins the area
         encounters = {
             {
@@ -134,8 +151,14 @@ return lib
     }
 
     encounter_table["central_area_2"] = {
-        min_travel = 5, -- long breaks...
-        chance = .01, -- less enemies...
+        chance = function(distance)
+            -- https://pastebin.com/vXbWiKAc
+            local index = math.floor(distance / Encounters.CHECK_DISTANCE)
+            local chance_curve = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 8, 10, 12 }
+
+            local chance = chance_curve[index] or chance_curve[#chance_curve]
+            return chance / 32
+        end,
         encounters = { ... etc ... }
     }
 
