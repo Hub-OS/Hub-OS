@@ -127,7 +127,7 @@ fn offset_with_direction(map: &Map, direction: Direction, magnitude: f32) -> Vec
     offset = offset.round();
 
     if direction.is_diagonal() {
-        offset.y /= 2.0;
+        offset.y *= 0.5;
     }
 
     map.screen_to_world(offset)

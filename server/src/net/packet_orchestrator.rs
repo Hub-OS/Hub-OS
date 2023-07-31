@@ -640,7 +640,6 @@ mod tests {
 
         let config = ServerConfig {
             public_ip: socket.local_addr().unwrap().ip(),
-            max_idle_packet_duration: 0.0,
             max_silence_duration: 0.0,
             heartbeat_rate: 0.0,
             args: crate::args::Args {

@@ -1,94 +1,111 @@
-use crate::resources::{OVERWORLD_RUN_SPEED, OVERWORLD_WALK_SPEED};
+use crate::overworld::Map;
+use crate::resources::{OVERWORLD_RUN_SPEED, OVERWORLD_RUN_THRESHOLD};
 use framework::prelude::*;
 use packets::structures::Direction;
-use packets::SERVER_TICK_RATE;
+use packets::{MAX_IDLE_DURATION, SERVER_TICK_RATE_F};
 
 use super::MovementState;
 
-const SMOOTHING: f32 = 3.0;
-const WINDOW_LEN: usize = 40;
-const WINDOW_LEN_F: f32 = WINDOW_LEN as f32;
-const K: f32 = SMOOTHING / (1.0 + WINDOW_LEN as f32);
-
 const MAX_IDLE_MOVEMENT_SQR: f32 = 1.0;
-const MIN_TELEPORT_DIST_SQR: f32 = OVERWORLD_RUN_SPEED * OVERWORLD_RUN_SPEED * 60.0 * 60.0;
-
-// todo: move to packets/lib.rs? need to make sure the server uses it too
-const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);
+const MIN_TELEPORT_DIST: f32 = OVERWORLD_RUN_SPEED * 60.0 * 8.0; // 8x run speed
+const MIN_TELEPORT_DIST_SQR: f32 = MIN_TELEPORT_DIST * MIN_TELEPORT_DIST;
 
 pub struct MovementInterpolator {
-    last_push: Instant,
-    average: f32,
+    last_movement: Instant,
     current_position: Vec3,
     last_position: Vec3,
     target_position: Vec3,
+    last_target_position: Vec3,
     idle_direction: Direction,
+    resolved_direction: Direction,
+    resolved_movement_state: MovementState,
 }
 
 impl MovementInterpolator {
     pub fn new(game_io: &GameIO, position: Vec3, direction: Direction) -> Self {
         Self {
-            last_push: game_io.frame_start_instant(),
-            average: SERVER_TICK_RATE.as_secs_f32(),
+            last_movement: game_io.frame_start_instant(),
             current_position: position,
             last_position: position,
             target_position: position,
+            last_target_position: position,
             idle_direction: direction,
+            resolved_direction: direction,
+            resolved_movement_state: MovementState::Idle,
         }
     }
 
-    pub fn is_movement_impossible(&self, position: Vec3) -> bool {
-        position.distance_squared(self.current_position) >= MIN_TELEPORT_DIST_SQR * self.average
+    pub fn is_movement_impossible(&self, map: &Map, position: Vec3) -> bool {
+        let diff = position.xy() - self.current_position.xy();
+        let screen_diff = map.world_to_screen(diff);
+        let screen_dist = screen_diff.length_squared();
+
+        screen_dist >= MIN_TELEPORT_DIST_SQR * SERVER_TICK_RATE_F * SERVER_TICK_RATE_F
     }
 
-    pub fn push(&mut self, game_io: &GameIO, position: Vec3, direction: Direction) {
-        // uses EMA - exponential moving average
-        let delay_duration = game_io.frame_start_instant() - self.last_push;
-        let delay = delay_duration.as_secs_f32();
+    pub fn push(&mut self, game_io: &GameIO, map: &Map, position: Vec3, direction: Direction) {
+        // update idle direction
+        self.idle_direction = direction;
 
-        if delay_duration <= MAX_IDLE_DURATION && !delay_duration.is_zero() {
-            self.average = delay * K + self.average * (1.0 - K);
-        }
-
-        self.last_push = game_io.frame_start_instant();
+        // update positions for interpolation
+        self.last_target_position = self.target_position;
         self.last_position = self.current_position;
         self.target_position = position;
-        self.idle_direction = direction;
+
+        // resolve direction and movement state, before updating positions
+        let world_delta = position.xy() - self.last_target_position.xy();
+        let screen_delta = map.world_to_screen(world_delta);
+        let screen_dist_sqr = screen_delta.length_squared();
+
+        if world_delta == Vec2::ZERO {
+            return;
+        }
+
+        self.last_movement = game_io.frame_start_instant();
+
+        if screen_dist_sqr <= (OVERWORLD_RUN_THRESHOLD * 60.0 * SERVER_TICK_RATE_F).powi(2) {
+            self.resolved_direction = Direction::from_offset(world_delta.xy().into());
+            self.resolved_movement_state = MovementState::Walking;
+        } else {
+            self.resolved_direction = Direction::from_offset(world_delta.xy().into());
+            self.resolved_movement_state = MovementState::Running;
+        }
     }
 
     pub fn force_position(&mut self, position: Vec3) {
         self.last_position = position;
         self.current_position = position;
         self.target_position = position;
+        self.resolved_movement_state = MovementState::Idle;
+        self.resolved_direction = self.idle_direction;
     }
 
     pub fn update(&mut self, game_io: &GameIO) -> (Vec3, Direction, MovementState) {
-        let delta_instant = game_io.frame_start_instant() - self.last_push;
-        let delta = self.target_position - self.last_position;
+        if self.resolved_movement_state != MovementState::Idle {
+            let elapsed =
+                game_io.frame_start_instant() - self.last_movement + game_io.target_duration();
+            let elapsed_secs = elapsed.as_secs_f32();
+            let elapsed_ticks = elapsed_secs * 60.0;
 
-        // average * FPS * SERVER_TICK_RATE
-        let alpha = self.average * 60.0 / 20.0;
-        self.current_position += delta * alpha;
+            // (average or SERVER_TICK_RATE_F) * FPS * SERVER_TICK_RATE
+            let progress = SERVER_TICK_RATE_F * 60.0 * SERVER_TICK_RATE_F * elapsed_ticks;
 
-        let distance_sqr = delta.length_squared();
-        let likely_idle =
-            distance_sqr <= MAX_IDLE_MOVEMENT_SQR || delta_instant >= MAX_IDLE_DURATION;
-
-        let direction;
-        let movement_state;
-
-        if likely_idle {
-            self.force_position(self.target_position);
-            direction = self.idle_direction;
-            movement_state = MovementState::Idle;
-        } else if distance_sqr <= OVERWORLD_WALK_SPEED * self.average {
-            direction = Direction::from_offset(delta.xy().into());
-            movement_state = MovementState::Walking;
-        } else {
-            direction = Direction::from_offset(delta.xy().into());
-            movement_state = MovementState::Running;
+            if (progress >= 1.0 && self.last_target_position == self.target_position)
+                || game_io.frame_start_instant() - self.last_movement >= MAX_IDLE_DURATION
+            {
+                // idle
+                self.force_position(self.target_position);
+            } else {
+                // interpolate
+                let world_delta = self.target_position - self.last_position;
+                self.current_position = (self.last_position + world_delta * progress).round();
+            }
         }
 
-        (self.current_position, direction, movement_state)
+        (
+            self.current_position,
+            self.resolved_direction,
+            self.resolved_movement_state,
+        )
     }
 }

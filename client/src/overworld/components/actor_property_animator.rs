@@ -1,6 +1,6 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
 use crate::render::{Animator, AnimatorLoopMode, FrameTime};
-use crate::resources::{AssetManager, Globals, OVERWORLD_WALK_SPEED};
+use crate::resources::{AssetManager, Globals, OVERWORLD_RUN_THRESHOLD};
 use enum_map::EnumMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
 use packets::structures::{ActorKeyFrame, ActorProperty, ActorPropertyId, Direction, Ease};
@@ -366,7 +366,7 @@ impl ActorPropertyAnimator {
 
                 let movement_state = if distance == 0.0 {
                     MovementState::Idle
-                } else if distance <= OVERWORLD_WALK_SPEED * elapsed {
+                } else if distance > OVERWORLD_RUN_THRESHOLD * 60.0 * elapsed {
                     MovementState::Walking
                 } else {
                     MovementState::Running

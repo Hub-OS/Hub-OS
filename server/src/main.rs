@@ -28,7 +28,6 @@ async fn main() {
 
     let config = net::ServerConfig {
         public_ip: get_public_ip().unwrap_or_else(|_| IpAddr::from([127, 0, 0, 1])),
-        max_idle_packet_duration: 1.0,
         max_silence_duration: 5.0,
         heartbeat_rate: 0.5,
         args,

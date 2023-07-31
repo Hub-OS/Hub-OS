@@ -7,7 +7,7 @@ use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
 use generational_arena::Arena;
-use packets::{Reliability, ServerPacket};
+use packets::{Reliability, ServerPacket, MAX_IDLE_DURATION};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -670,10 +670,10 @@ impl Net {
             return;
         }
 
-        let idle_duration = client.actor.last_movement_time.elapsed().as_secs_f32();
+        let idle_duration = client.actor.last_movement_time.elapsed();
 
         // skip if we've been sending idle packets for too long
-        if idle_duration > self.config.max_idle_packet_duration {
+        if idle_duration > MAX_IDLE_DURATION {
             return;
         }
 
@@ -2562,7 +2562,7 @@ impl Net {
         for bot in self.bots.values() {
             let time_since_last_movement = now - bot.last_movement_time;
 
-            if time_since_last_movement.as_secs_f32() > self.config.max_idle_packet_duration {
+            if time_since_last_movement > MAX_IDLE_DURATION {
                 continue;
             }
 
