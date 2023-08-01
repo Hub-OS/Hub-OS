@@ -1,3 +1,5 @@
+local Emotes = require("scripts/libs/emotes");
+
 local requests = {}
 local questioned_requests = {}
 
@@ -82,7 +84,7 @@ Net:on("textbox_response", function(event)
   else
     -- we're making a request for the other player
     requests[other_id][player_id] = true
-    Net.exclusive_player_emote(other_id, player_id, 7) -- sword emote
+    Net.exclusive_player_emote(other_id, player_id, Emotes.PVP) -- sword emote
   end
 
   questioned_requests[player_id] = nil

@@ -1,0 +1,40 @@
+animation state="DEFAULT"
+blank
+point label="SEARCH_BOX_START" x="1" y="146"
+point label="SEARCH_BOX_END" x="120" y="158"
+point label="START" x="12" y="144"
+point label="NEXT" x="18" y="0"
+point label="VIEW_SIZE" x="13" y="0"
+
+animation state="SEARCH"
+frame x="0" y="0" w="13" h="13" originx="7" originy="13"
+
+animation state="HIGHLIGHT"
+frame x="14" y="1" w="17" h="16" originx="9" originy="15"
+
+animation state="SEARCH_BOX_TOP_LEFT"
+frame x="1" y="14" w="2" h="2" originx="2" originy="2"
+
+animation state="SEARCH_BOX_TOP"
+frame x="2" y="14" w="2" h="2" originx="0" originy="2"
+
+animation state="SEARCH_BOX_TOP_RIGHT"
+frame x="3" y="14" w="2" h="2" originx="0" originy="2"
+
+animation state="SEARCH_BOX_LEFT"
+frame x="1" y="15" w="2" h="2" originx="2" originy="0"
+
+animation state="SEARCH_BOX_BODY"
+frame x="2" y="15" w="1" h="1" originx="0" originy="0"
+
+animation state="SEARCH_BOX_RIGHT"
+frame x="3" y="15" w="2" h="2" originx="0" originy="0"
+
+animation state="SEARCH_BOX_BOTTOM_LEFT"
+frame x="1" y="16" w="2" h="2" originx="2" originy="0"
+
+animation state="SEARCH_BOX_BOTTOM"
+frame x="2" y="16" w="2" h="2" originx="0" originy="0"
+
+animation state="SEARCH_BOX_BOTTOM_RIGHT"
+frame x="3" y="16" w="2" h="2" originx="0" originy="0"

@@ -293,7 +293,7 @@ impl Menu for MapMenu {
         self.open
     }
 
-    fn open(&mut self) {
+    fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {
         self.open = true;
         self.scroll_offset = Vec2::ZERO;
     }

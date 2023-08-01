@@ -57,7 +57,8 @@ pub enum ServerPacket {
         data_type: AssetDataType,
     },
     CustomEmotesPath {
-        asset_path: String,
+        animation_path: String,
+        texture_path: String,
     },
     MapUpdate {
         map_path: String,
@@ -271,8 +272,7 @@ pub enum ServerPacket {
     },
     ActorEmote {
         actor_id: String,
-        emote_id: u8,
-        use_custom_emotes: bool,
+        emote_id: String,
     },
     ActorAnimate {
         actor_id: String,

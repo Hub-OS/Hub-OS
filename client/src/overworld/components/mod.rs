@@ -1,6 +1,7 @@
 mod actor_collider;
 mod actor_property_animator;
 mod attachments;
+mod emote;
 mod excluded;
 mod interactable_actor;
 mod movement_animator;
@@ -12,6 +13,7 @@ mod warp_effect;
 pub use actor_collider::*;
 pub use actor_property_animator::*;
 pub use attachments::*;
+pub use emote::*;
 pub use excluded::*;
 pub use interactable_actor::*;
 pub use movement_animator::*;

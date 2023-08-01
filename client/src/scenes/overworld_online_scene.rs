@@ -39,7 +39,6 @@ pub struct OverworldOnlineScene {
     previous_boost_packet: Option<ClientPacket>,
     last_position_send: Instant,
     assets: ServerAssetManager,
-    custom_emotes_path: String,
     actor_id_map: BiMap<String, hecs::Entity>,
     sprite_id_map: HashMap<String, hecs::Entity>,
     excluded_actors: Vec<String>,
@@ -75,6 +74,11 @@ impl OverworldOnlineScene {
         let map_menu_index = menu_manager.register_menu(Box::new(map_menu));
         menu_manager.bind_menu(Input::Map, map_menu_index);
 
+        // emote menu
+        let emote_menu = EmoteMenu::new(game_io);
+        let emote_menu_index = menu_manager.register_menu(Box::new(emote_menu));
+        menu_manager.bind_menu(Input::Option2, emote_menu_index);
+
         // hud
         let hud = OverworldHud::new(game_io, area.player_data.health);
 
@@ -96,7 +100,6 @@ impl OverworldOnlineScene {
             previous_boost_packet: None,
             last_position_send: game_io.frame_start_instant(),
             assets,
-            custom_emotes_path: ResourcePaths::BLANK.to_string(),
             actor_id_map: BiMap::new(),
             sprite_id_map: HashMap::new(),
             excluded_actors: Vec::new(),
@@ -441,8 +444,12 @@ impl OverworldOnlineScene {
                     }
                 }
             }
-            ServerPacket::CustomEmotesPath { asset_path } => {
-                self.custom_emotes_path = asset_path;
+            ServerPacket::CustomEmotesPath {
+                animation_path,
+                texture_path,
+            } => {
+                self.area.emote_animator = Animator::load_new(&self.assets, &animation_path);
+                self.area.emote_sprite = self.assets.new_sprite(game_io, &texture_path);
             }
             ServerPacket::MapUpdate { map_path } => {
                 use crate::overworld::load_map;
@@ -1233,11 +1240,11 @@ impl OverworldOnlineScene {
                     animator.load(&self.assets, &animation_path);
                 }
             }
-            ServerPacket::ActorEmote {
-                actor_id,
-                emote_id,
-                use_custom_emotes,
-            } => log::warn!("ActorEmote hasn't been implemented"),
+            ServerPacket::ActorEmote { actor_id, emote_id } => {
+                if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
+                    Emote::spawn_or_recycle(&mut self.area, entity, &emote_id);
+                }
+            }
             ServerPacket::ActorAnimate {
                 actor_id,
                 state,
@@ -1424,6 +1431,12 @@ impl OverworldOnlineScene {
                 OverworldEvent::SystemMessage { message } => {
                     let interface = TextboxMessage::new(message);
                     self.menu_manager.push_textbox_interface(interface);
+                }
+                OverworldEvent::EmoteSelected(emote_id) => {
+                    (self.send_packet)(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::Emote { emote_id },
+                    );
                 }
                 OverworldEvent::ItemUse(item_id) => {
                     (self.send_packet)(
@@ -1744,8 +1757,8 @@ impl Scene for OverworldOnlineScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        self.update_ui(game_io);
         let ui_is_locking_input = self.menu_manager.is_open();
+        self.update_ui(game_io);
 
         if ui_is_locking_input {
             self.area.add_input_lock();
@@ -1765,6 +1778,7 @@ impl Scene for OverworldOnlineScene {
         system_movement(area);
         system_apply_animation(area);
         system_position(area);
+        Emote::system(area);
         self.area.update(game_io);
         self.send_position(game_io);
 

@@ -24,7 +24,7 @@ pub trait Menu {
 
     fn is_fullscreen(&self) -> bool;
     fn is_open(&self) -> bool;
-    fn open(&mut self);
+    fn open(&mut self, game_io: &mut GameIO, area: &mut OverworldArea);
     fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea);
     fn handle_input(
         &mut self,
@@ -149,9 +149,14 @@ impl OverworldMenuManager {
     }
 
     /// Opens a registered menu, forces other menus to close
-    pub fn open_menu(&mut self, menu_index: generational_arena::Index) {
+    pub fn open_menu(
+        &mut self,
+        game_io: &mut GameIO,
+        area: &mut OverworldArea,
+        menu_index: generational_arena::Index,
+    ) {
         let menu = &mut self.menus[menu_index];
-        menu.open();
+        menu.open(game_io, area);
 
         let next_is_fullscreen = menu.is_fullscreen();
         let previous_is_fullscreen =
@@ -477,13 +482,15 @@ impl OverworldMenuManager {
 
             for (input, index) in self.menu_bindings.iter().cloned() {
                 if input_util.was_just_pressed(input) {
-                    self.open_menu(index);
+                    self.open_menu(game_io, area, index);
 
                     // skip other input checks while a menu is opening
                     handle_input = false;
                     break;
                 }
             }
+
+            let input_util = InputUtil::new(game_io);
 
             if handle_input && input_util.was_just_pressed(Input::Pause) {
                 let globals = game_io.resource::<Globals>().unwrap();
@@ -526,7 +533,7 @@ impl OverworldMenuManager {
             };
 
             let menu_index = self.register_menu(Box::new(ItemsMenu::new(game_io, area, on_select)));
-            self.open_menu(menu_index);
+            self.open_menu(game_io, area, menu_index);
         }
 
         next_scene

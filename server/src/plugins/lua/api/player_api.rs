@@ -179,38 +179,24 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "set_player_emote", |api_ctx, lua, params| {
-        let (player_id, emote_id, use_custom_emotes): (mlua::String, u8, Option<bool>) =
-            lua.unpack_multi(params)?;
+        let (player_id, emote_id): (mlua::String, String) = lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.set_player_emote(
-            player_id_str,
-            emote_id,
-            use_custom_emotes.unwrap_or_default(),
-        );
+        net.set_player_emote(player_id_str, emote_id);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "exclusive_player_emote", |api_ctx, lua, params| {
-        let (target_id, emoter_id, emote_id, use_custom_emotes): (
-            mlua::String,
-            mlua::String,
-            u8,
-            Option<bool>,
-        ) = lua.unpack_multi(params)?;
+        let (target_id, emoter_id, emote_id): (mlua::String, mlua::String, String) =
+            lua.unpack_multi(params)?;
         let (target_id_str, emoter_id_str) = (target_id.to_str()?, emoter_id.to_str()?);
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.exclusive_player_emote(
-            target_id_str,
-            emoter_id_str,
-            emote_id,
-            use_custom_emotes.unwrap_or_default(),
-        );
+        net.exclusive_player_emote(target_id_str, emoter_id_str, emote_id);
 
         lua.pack_multi(())
     });

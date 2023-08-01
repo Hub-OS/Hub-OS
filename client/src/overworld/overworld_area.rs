@@ -16,6 +16,8 @@ pub struct OverworldArea {
     pub entities: hecs::World,
     pub map: Map,
     pub last_map_update: FrameTime,
+    pub emote_sprite: Sprite,
+    pub emote_animator: Animator,
     pub event_sender: flume::Sender<OverworldEvent>,
     pub event_receiver: flume::Receiver<OverworldEvent>,
     pub world_time: FrameTime,
@@ -54,6 +56,10 @@ impl OverworldArea {
             player_package.package_info.id.clone(),
         );
 
+        // emote sprites
+        let emote_animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_EMOTES_ANIMATION);
+        let emote_sprite = assets.new_sprite(game_io, ResourcePaths::OVERWORLD_EMOTES);
+
         let (event_sender, event_receiver) = flume::unbounded();
 
         Self {
@@ -64,6 +70,8 @@ impl OverworldArea {
             entities,
             map: Map::new(0, 0, 0, 0),
             last_map_update: 0,
+            emote_sprite,
+            emote_animator,
             event_sender,
             event_receiver,
             world_time: 0,

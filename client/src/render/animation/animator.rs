@@ -3,7 +3,7 @@ use crate::parse_util::parse_or_default;
 use crate::resources::AssetManager;
 use framework::graphics::Sprite;
 use framework::prelude::{Rect, Vec2};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AnimatorLoopMode {
@@ -44,7 +44,7 @@ pub struct Animator {
     loop_count: usize,
     bounced: bool,
     reversed: bool,
-    states: HashMap<String, FrameList>,
+    states: IndexMap<String, FrameList>,
     derived_states: Vec<DerivedState>,
 }
 
@@ -59,7 +59,7 @@ impl Animator {
             loop_mode: AnimatorLoopMode::Once,
             bounced: false,
             reversed: false,
-            states: HashMap::new(),
+            states: IndexMap::new(),
             derived_states: Vec::new(),
         }
     }
@@ -202,7 +202,7 @@ impl Animator {
                             duration,
                             bounds,
                             origin,
-                            points: HashMap::new(),
+                            points: IndexMap::new(),
                             valid: true,
                         });
                     } else {
@@ -281,8 +281,8 @@ impl Animator {
         word: &str,
         line: &'a str,
         line_index: usize,
-    ) -> HashMap<&'a str, &'a str> {
-        let mut attributes = HashMap::new();
+    ) -> IndexMap<&'a str, &'a str> {
+        let mut attributes = IndexMap::new();
         let mut view = &line[word.len()..];
 
         loop {

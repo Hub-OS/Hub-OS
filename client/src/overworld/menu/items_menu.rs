@@ -191,7 +191,7 @@ impl Menu for ItemsMenu {
         self.is_open
     }
 
-    fn open(&mut self) {}
+    fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {}
 
     fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) {
         self.background.update();

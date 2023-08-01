@@ -118,6 +118,11 @@ impl ResourcePaths {
     pub const OVERWORLD_TEXTBOX_ANIMATION: &str = "resources/scenes/overworld/textbox.animation";
     pub const OVERWORLD_WARP: &str = "resources/scenes/overworld/warp.png";
     pub const OVERWORLD_WARP_ANIMATION: &str = "resources/scenes/overworld/warp.animation";
+    pub const OVERWORLD_EMOTES: &str = "resources/scenes/overworld/emotes/emotes.png";
+    pub const OVERWORLD_EMOTES_ANIMATION: &str =
+        "resources/scenes/overworld/emotes/emotes.animation";
+    pub const OVERWORLD_EMOTE_UI: &str = "resources/scenes/overworld/emotes/ui.png";
+    pub const OVERWORLD_EMOTE_UI_ANIMATION: &str = "resources/scenes/overworld/emotes/ui.animation";
     pub const OVERWORLD_MAP_BG: &str = "resources/scenes/overworld/map/bg.png";
     pub const OVERWORLD_MAP_BG_ANIMATION: &str = "resources/scenes/overworld/map/bg.animation";
     pub const OVERWORLD_MAP_OVERLAY: &str = "resources/scenes/overworld/map/overlay.png";

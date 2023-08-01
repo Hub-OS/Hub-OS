@@ -348,7 +348,7 @@ impl PluginInterface for LuaPluginInterface {
         prevent_default.get()
     }
 
-    fn handle_player_emote(&mut self, net: &mut Net, player_id: &str, emote_id: u8) -> bool {
+    fn handle_player_emote(&mut self, net: &mut Net, player_id: &str, emote_id: &str) -> bool {
         use std::cell::Cell;
         use std::rc::Rc;
 

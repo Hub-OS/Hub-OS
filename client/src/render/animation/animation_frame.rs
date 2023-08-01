@@ -1,13 +1,13 @@
 use super::FrameTime;
 use framework::prelude::*;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 #[derive(Default, Clone, Debug)]
 pub struct AnimationFrame {
     pub duration: FrameTime,
     pub bounds: Rect,
     pub origin: Vec2,
-    pub points: HashMap<String, Vec2>,
+    pub points: IndexMap<String, Vec2>,
     pub valid: bool,
 }
 

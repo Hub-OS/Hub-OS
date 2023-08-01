@@ -281,7 +281,7 @@ impl Net {
         );
     }
 
-    pub fn set_player_emote(&mut self, id: &str, emote_id: u8, use_custom_emotes: bool) {
+    pub fn set_player_emote(&mut self, id: &str, emote_id: String) {
         let client = match self.clients.get(id) {
             Some(client) => client,
             None => return,
@@ -295,7 +295,6 @@ impl Net {
         let packet = ServerPacket::ActorEmote {
             actor_id: id.to_string(),
             emote_id,
-            use_custom_emotes,
         };
 
         broadcast_to_area(
@@ -306,17 +305,10 @@ impl Net {
         );
     }
 
-    pub fn exclusive_player_emote(
-        &mut self,
-        target_id: &str,
-        emoter_id: &str,
-        emote_id: u8,
-        use_custom_emotes: bool,
-    ) {
+    pub fn exclusive_player_emote(&mut self, target_id: &str, emoter_id: &str, emote_id: String) {
         let packet = ServerPacket::ActorEmote {
             actor_id: emoter_id.to_string(),
             emote_id,
-            use_custom_emotes,
         };
 
         self.packet_orchestrator
@@ -1815,10 +1807,18 @@ impl Net {
             });
         }
 
-        if let Some(custom_emotes_path) = &self.config.args.custom_emotes_path {
-            asset_paths.push(custom_emotes_path.clone());
+        let args = &self.config.args;
+
+        if let (Some(animation_path), Some(texture_path)) = (
+            args.emotes_animation_path.clone(),
+            args.emotes_texture_path.clone(),
+        ) {
+            asset_paths.push(animation_path.clone());
+            asset_paths.push(texture_path.clone());
+
             packets.push(ServerPacket::CustomEmotesPath {
-                asset_path: custom_emotes_path.clone(),
+                animation_path,
+                texture_path,
             });
         }
 
@@ -2105,7 +2105,7 @@ impl Net {
         );
     }
 
-    pub fn set_bot_emote(&mut self, id: &str, emote_id: u8, use_custom_emotes: bool) {
+    pub fn set_bot_emote(&mut self, id: &str, emote_id: String) {
         let bot = match self.bots.get(id) {
             Some(bot) => bot,
             None => return,
@@ -2119,7 +2119,6 @@ impl Net {
         let packet = ServerPacket::ActorEmote {
             actor_id: id.to_string(),
             emote_id,
-            use_custom_emotes,
         };
 
         broadcast_to_area(

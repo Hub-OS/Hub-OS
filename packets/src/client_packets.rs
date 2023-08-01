@@ -58,7 +58,7 @@ pub enum ClientPacket {
         base_health: i32,
     },
     Emote {
-        emote_id: u8,
+        emote_id: String,
     },
     CustomWarp {
         tile_object_id: u32,

@@ -651,7 +651,8 @@ mod tests {
                 receiving_drop_rate: 0.0,
                 player_asset_limit: 0,
                 avatar_dimensions_limit: 0,
-                custom_emotes_path: None,
+                emotes_animation_path: None,
+                emotes_texture_path: None,
             },
         };
 

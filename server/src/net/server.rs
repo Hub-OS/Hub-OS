@@ -424,10 +424,10 @@ impl Server {
                 ClientPacket::Emote { emote_id } => {
                     let prevent_default = self
                         .plugin_wrapper
-                        .handle_player_emote(net, player_id, emote_id);
+                        .handle_player_emote(net, player_id, &emote_id);
 
                     if !prevent_default {
-                        net.set_player_emote(player_id, emote_id, false);
+                        net.set_player_emote(player_id, emote_id);
                     }
                 }
                 ClientPacket::ObjectInteraction {

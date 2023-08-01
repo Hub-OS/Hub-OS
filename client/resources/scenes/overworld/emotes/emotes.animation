@@ -1,0 +1,71 @@
+# todo: support changing emote scale
+# point label="SCALE" x="0.5" y="0.5"
+
+animation state="BIG SMILE"
+frame x="1" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="CRY LAUGHING"
+frame x="14" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="SMILE"
+frame x="27" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="SHOCKED"
+frame x="40" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="SUNGLASSES"
+frame x="53" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="PLEADING"
+frame x="66" y="2" w="11" h="11" originx="6" originy="12"
+
+animation state="EXPLODING HEAD MIND BLOWN"
+frame x="79" y="0" w="12" h="13" originx="6" originy="14"
+
+animation state="EXPRESSIONLESS"
+frame x="1" y="15" w="11" h="11" originx="6" originy="12"
+
+animation state="PENSIVE"
+frame x="14" y="15" w="11" h="11" originx="6" originy="12"
+
+animation state="CRYING SOBBING"
+frame x="27" y="15" w="11" h="11" originx="6" originy="12"
+
+animation state="CRYING SUNGLASSES"
+frame x="40" y="15" w="11" h="12" originx="6" originy="12"
+
+animation state="PUKING VOMITING"
+frame x="53" y="15" w="11" h="12" originx="6" originy="12"
+
+animation state="ANGRY"
+frame x="66" y="15" w="11" h="11" originx="6" originy="12"
+
+animation state="EVIL GRIN SMILING IMP"
+frame x="79" y="15" w="11" h="11" originx="6" originy="12"
+
+animation state="CLOWN"
+frame x="92" y="14" w="15" h="12" originx="8" originy="13"
+
+animation state="PVP SWORDS"
+frame x="34" y="28" w="19" h="17" originx="10" originy="17"
+
+animation state="COB"
+frame x="92" y="2" w="12" h="10" originx="6" originy="11"
+
+animation state="THUMBS UP"
+frame x="0" y="27" w="9" h="12" originx="5" originy="14"
+
+animation state="THUMBS DOWN"
+frame x="0" y="40" w="9" h="12" originx="5" originy="13"
+
+animation state="QUESTION MARK?"
+frame x="10" y="27" w="7" h="11" originx="4" originy="12"
+
+animation state="EXCLAMATION MARK!"
+frame x="12" y="40" w="3" h="11" originx="2" originy="12"
+
+animation state="LOVE HEART"
+frame x="18" y="28" w="11" h="10" originx="6" originy="11"
+
+animation state="SLEEPING ZZZ"
+frame x="16" y="39" w="17" h="11" originx="1" originy="7"

@@ -4,7 +4,6 @@ use crate::parse_util::parse_or_default;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::{GameIO, Rect, Vec2};
-use std::collections::HashMap;
 use std::rc::Rc;
 
 pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Option<Map> {
@@ -304,7 +303,7 @@ fn parse_tileset<A: AssetManager>(
                             tile_height as f32,
                         ),
                         origin,
-                        points: HashMap::new(),
+                        points: Default::default(),
                         valid: true,
                     }
                 })
@@ -320,7 +319,7 @@ fn parse_tileset<A: AssetManager>(
                 duration: 0,
                 bounds: Rect::new(x as f32, y as f32, tile_width as f32, tile_height as f32),
                 origin,
-                points: HashMap::new(),
+                points: Default::default(),
                 valid: true,
             }]
         };

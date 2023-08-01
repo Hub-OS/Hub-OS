@@ -180,7 +180,7 @@ impl Menu for Bbs {
         true
     }
 
-    fn open(&mut self) {}
+    fn open(&mut self, _game_io: &mut GameIO, _area: &mut OverworldArea) {}
 
     fn update(&mut self, _game_io: &mut GameIO, _area: &mut crate::overworld::OverworldArea) {
         self.unread_animator.update();

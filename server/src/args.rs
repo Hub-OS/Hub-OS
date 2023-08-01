@@ -56,7 +56,11 @@ pub struct Args {
 
     #[arg(long, value_name = "ASSET_PATH", 
     value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
-    pub custom_emotes_path: Option<String>,
+    pub emotes_animation_path: Option<String>,
+
+    #[arg(long, value_name = "ASSET_PATH", 
+    value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
+    pub emotes_texture_path: Option<String>,
 }
 
 fn percentage_parser(value: &str) -> Result<f32, String> {
