@@ -34,6 +34,7 @@ pub enum NetplayPacket {
         script_enabled: bool,
         // package_id, code
         cards: Vec<(PackageId, String)>,
+        regular_card: Option<usize>,
         blocks: Vec<InstalledBlock>,
     },
     PackageList {

@@ -304,11 +304,13 @@ impl NetplayInitScene {
                 player_package,
                 script_enabled,
                 cards,
+                regular_card,
                 blocks,
                 ..
             } => {
                 connection.player_package = player_package;
                 connection.script_enabled = script_enabled;
+                connection.deck.regular_index = regular_card;
                 connection.deck.cards = cards
                     .into_iter()
                     .map(|(package_id, code)| Card { package_id, code })
@@ -513,6 +515,7 @@ impl NetplayInitScene {
             player_package: player_package_info.id.clone(),
             script_enabled: player_setup.script_enabled,
             cards,
+            regular_card: player_setup.deck.regular_index,
             blocks,
         })
     }
