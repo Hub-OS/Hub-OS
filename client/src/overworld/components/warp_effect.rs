@@ -48,7 +48,7 @@ impl WarpEffect {
 
         let globals = game_io.resource::<Globals>().unwrap();
 
-        if area.ui_camera.bounds().contains(screen_position) {
+        if area.visible && area.ui_camera.bounds().contains(screen_position) {
             globals.audio.play_sound(&globals.sfx.appear);
         }
 

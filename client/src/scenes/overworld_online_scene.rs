@@ -28,7 +28,6 @@ pub struct OverworldOnlineScene {
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
     active_music_path: String,
-    visible: bool,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -86,7 +85,6 @@ impl OverworldOnlineScene {
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
             active_music_path: String::new(),
-            visible: false,
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -522,7 +520,7 @@ impl OverworldOnlineScene {
                 restrictions.enable_player_character(package_id, enabled);
             }
             ServerPacket::PlaySound { path } => {
-                if self.visible {
+                if self.area.visible {
                     let sound = self.assets.audio(game_io, &path);
                     let globals = game_io.resource::<Globals>().unwrap();
                     globals.audio.play_sound(&sound);
@@ -1268,7 +1266,7 @@ impl OverworldOnlineScene {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
                     let mut property_animator = ActorPropertyAnimator::new();
 
-                    if *entity != self.area.player_data.entity {
+                    if !self.area.visible || *entity != self.area.player_data.entity {
                         property_animator.set_audio_enabled(false);
                     }
 
@@ -1695,7 +1693,7 @@ impl Scene for OverworldOnlineScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        self.visible = true;
+        self.area.visible = true;
 
         // handle events triggered from other scenes
         // should be called before handling packets, but it's not necessary to do this every frame
@@ -1711,16 +1709,34 @@ impl Scene for OverworldOnlineScene {
             // send avatar data
             self.send_avatar_data(game_io);
         }
+
+        // enable audio on the player's ActorPropertyAnimator
+        let entity = self.area.player_data.entity;
+        let entities = &mut self.area.entities;
+
+        if let Ok(property_animator) = entities.query_one_mut::<&mut ActorPropertyAnimator>(entity)
+        {
+            property_animator.set_audio_enabled(true);
+        }
     }
 
     fn exit(&mut self, _game_io: &mut GameIO) {
-        self.visible = false;
+        self.area.visible = false;
+
+        // disable audio on the player's ActorPropertyAnimator
+        let entity = self.area.player_data.entity;
+        let entities = &mut self.area.entities;
+
+        if let Ok(property_animator) = entities.query_one_mut::<&mut ActorPropertyAnimator>(entity)
+        {
+            property_animator.set_audio_enabled(false);
+        }
     }
 
     fn continuous_update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
 
-        if !self.visible {
+        if !self.area.visible {
             let area = &mut self.area;
             system_actor_property_animation(game_io, &self.assets, area);
             system_movement_interpolation(game_io, area);
