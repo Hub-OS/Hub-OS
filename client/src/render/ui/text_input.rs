@@ -265,7 +265,7 @@ impl TextInput {
 
         let caret_offset = Vec2::new(
             before_caret_metrics.size.x,
-            line_index as f32 * self.text_style.line_height() + 1.0,
+            line_index as f32 * self.text_style.line_height(),
         );
 
         bounds.position() + caret_offset
