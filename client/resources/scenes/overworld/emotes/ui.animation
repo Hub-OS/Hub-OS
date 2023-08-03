@@ -12,6 +12,9 @@ frame x="0" y="0" w="13" h="13" originx="7" originy="13"
 animation state="HIGHLIGHT"
 frame x="14" y="1" w="17" h="16" originx="9" originy="15"
 
+animation state="ACTOR_ANIMATION"
+frame x="18" y="18" w="9" h="13" originx="5" originy="14"
+
 animation state="SEARCH_BOX_TOP_LEFT"
 frame x="1" y="14" w="2" h="2" originx="2" originy="2"
 

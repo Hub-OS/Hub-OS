@@ -59,7 +59,7 @@ pub fn find_state_from_movement(
     None
 }
 
-fn idle_str(direction: Direction) -> &'static str {
+pub fn idle_str(direction: Direction) -> &'static str {
     match direction {
         Direction::Up => "IDLE_U",
         Direction::UpRight => "IDLE_UR",
@@ -73,7 +73,7 @@ fn idle_str(direction: Direction) -> &'static str {
     }
 }
 
-fn walk_str(direction: Direction) -> &'static str {
+pub fn walk_str(direction: Direction) -> &'static str {
     match direction {
         Direction::Up => "WALK_U",
         Direction::UpRight => "WALK_UR",
@@ -87,7 +87,7 @@ fn walk_str(direction: Direction) -> &'static str {
     }
 }
 
-fn run_str(direction: Direction) -> &'static str {
+pub fn run_str(direction: Direction) -> &'static str {
     match direction {
         Direction::Up => "RUN_U",
         Direction::UpRight => "RUN_UR",

@@ -1243,6 +1243,7 @@ impl OverworldOnlineScene {
             ServerPacket::ActorEmote { actor_id, emote_id } => {
                 if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
                     Emote::spawn_or_recycle(&mut self.area, entity, &emote_id);
+                    Emote::animate_actor(&mut self.area.entities, entity, &emote_id, false);
                 }
             }
             ServerPacket::ActorAnimate {
@@ -1250,20 +1251,8 @@ impl OverworldOnlineScene {
                 state,
                 loop_animation,
             } => {
-                if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
-                    let entities = &mut self.area.entities;
-
-                    let (animator, movement_animator) = entities
-                        .query_one_mut::<(&mut Animator, &mut MovementAnimator)>(*entity)
-                        .unwrap();
-
-                    animator.set_state(&state);
-
-                    if loop_animation {
-                        animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    }
-
-                    movement_animator.set_animation_enabled(false);
+                if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
+                    Emote::animate_actor(&mut self.area.entities, entity, &state, loop_animation);
                 }
             }
             ServerPacket::ActorPropertyKeyFrames {
