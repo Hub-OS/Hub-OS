@@ -185,6 +185,8 @@ impl ResourcePaths {
     pub const KEY_ITEMS_MUG: &str = "resources/scenes/key_items/mug.png";
 
     // BattleSelectScene
+    pub const BATTLE_SELECT_UI: &str = "resources/scenes/battle_select/ui.png";
+    pub const BATTLE_SELECT_UI_ANIMATION: &str = "resources/scenes/battle_select/ui.animation";
 
     // BattleScene
     pub const BATTLE_BG: &str = "resources/scenes/battle/bg.png";

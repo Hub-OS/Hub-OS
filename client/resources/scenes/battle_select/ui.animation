@@ -1,0 +1,11 @@
+animation state="DEFAULT"
+blank
+point label="GRID_START" x="42" y="50"
+point label="GRID_STEP" x="78" y="62"
+
+animation state="FRAME"
+frame w="78" h="62" originx="39" originy="31"
+
+animation state="CURSOR"
+frame duration="8f" y="62" w="78" h="62" originx="39" originy="31"
+frame duration="8f" x="78" y="62" w="78" h="62" originx="39" originy="31"

@@ -185,6 +185,10 @@ impl ScrollTracker {
         self.total_items
     }
 
+    pub fn view_margin(&self) -> usize {
+        self.view_margin
+    }
+
     pub fn view_size(&self) -> usize {
         self.view_size
     }
