@@ -62,6 +62,7 @@ impl Tile {
         if self.team == Team::Unset {
             self.original_team = team;
             self.team = team;
+            return;
         }
 
         if !self.reservations.is_empty() || self.immutable_team {
@@ -70,7 +71,9 @@ impl Tile {
 
         self.team = team;
 
-        if self.team_revert_timer == 0 {
+        if team == self.original_team {
+            self.team_revert_timer = 0;
+        } else if self.team_revert_timer == 0 {
             self.team_revert_timer = TEMP_TEAM_DURATION;
         }
     }
