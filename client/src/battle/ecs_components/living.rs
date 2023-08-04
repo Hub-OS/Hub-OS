@@ -155,6 +155,12 @@ impl Living {
 
                 let callback = aggressor_entity.counter_callback.clone();
                 callback.call(game_io, simulation, vms, entity_id);
+
+                // play counter sfx if the attack was caused by the local player
+                if simulation.local_player_id == aggressor_id {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    simulation.play_sound(game_io, &globals.sfx.counter_hit);
+                }
             });
 
             simulation.pending_callbacks.push(notify_aggressor);
