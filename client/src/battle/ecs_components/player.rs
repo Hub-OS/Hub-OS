@@ -412,6 +412,7 @@ impl Player {
             // track the local player's health
             if player.local {
                 simulation.local_player_id = entity.id;
+                simulation.local_health_ui.set_max_health(living.max_health);
                 simulation.local_health_ui.snap_health(living.health);
             }
 

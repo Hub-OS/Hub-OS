@@ -50,6 +50,7 @@ impl ResourcePaths {
     pub const ATTACK_CHARGING_SFX: &str = "resources/sfx/attack_charging.ogg";
     pub const ATTACK_CHARGED_SFX: &str = "resources/sfx/attack_charged.ogg";
     pub const COUNTER_HIT_SFX: &str = "resources/sfx/counter_hit.ogg";
+    pub const LOW_HP_SFX: &str = "resources/sfx/low_hp.ogg";
     pub const PLAYER_DELETED_SFX: &str = "resources/sfx/player_deleted.ogg";
     pub const HURT_SFX: &str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &str = "resources/sfx/explode.ogg";

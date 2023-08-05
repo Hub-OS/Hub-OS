@@ -7,6 +7,7 @@ use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 pub struct PlayerHealthUi {
     current_health: i32,
     target_health: i32,
+    max_health: i32,
     style_change_cooldown: FrameTime,
     text: Text,
     text_offset: Vec2,
@@ -24,6 +25,7 @@ impl PlayerHealthUi {
         let text_offset = animator.point("TEXT_START").unwrap_or_default();
 
         let mut health_ui = Self {
+            max_health: 0,
             current_health: 0,
             target_health: 0,
             style_change_cooldown: 0,
@@ -42,8 +44,21 @@ impl PlayerHealthUi {
         self
     }
 
+    pub fn with_max_health(mut self, health: i32) -> Self {
+        self.max_health = health;
+        self
+    }
+
     pub fn set_health(&mut self, health: i32) {
         self.target_health = health;
+    }
+
+    pub fn set_max_health(&mut self, health: i32) {
+        self.max_health = health;
+    }
+
+    pub fn is_low_hp(&self) -> bool {
+        self.current_health <= self.max_health / 5
     }
 
     pub fn snap_health(&mut self, health: i32) {
@@ -70,7 +85,9 @@ impl PlayerHealthUi {
             self.style_change_cooldown -= 1;
         }
 
-        if self.style_change_cooldown == 0 {
+        if self.is_low_hp() {
+            self.text.style.font_style = FontStyle::GradientGold;
+        } else if self.style_change_cooldown == 0 {
             self.text.style.font_style = FontStyle::Gradient;
         }
 
