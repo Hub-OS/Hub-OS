@@ -1,4 +1,4 @@
-use crate::bindable::LuaVector;
+use crate::bindable::{AudioBehavior, LuaVector};
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -267,8 +267,10 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
         })?,
     )?;
 
-    // todo: AudioPriority, currently stubbed
-    globals.set("AudioPriority", lua.create_table()?)?;
+    let audio_behavior_table = lua.create_table()?;
+    audio_behavior_table.set("Default", AudioBehavior::Default)?;
+    audio_behavior_table.set("NoOverlap", AudioBehavior::NoOverlap)?;
+    globals.set("AudioBehavior", audio_behavior_table)?;
 
     let shadow_table = lua.create_table()?;
     shadow_table.set("None", ResourcePaths::BLANK)?;

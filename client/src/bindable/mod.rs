@@ -1,5 +1,6 @@
 mod action_lockout;
 mod animator_playback_mode;
+mod audio_behavior;
 mod card_class;
 mod card_properties;
 mod character_rank;
@@ -24,6 +25,7 @@ mod tile_highlight;
 
 pub use action_lockout::*;
 pub use animator_playback_mode::*;
+pub use audio_behavior::*;
 pub use card_class::*;
 pub use card_properties::*;
 pub use character_rank::*;

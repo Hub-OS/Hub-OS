@@ -1,11 +1,16 @@
 use super::SoundBuffer;
+use indexmap::IndexMap;
 use rodio::cpal::{traits::HostTrait, Device};
 use rodio::{DeviceTrait, OutputStream, Source};
 use std::cell::RefCell;
+use std::time::{Duration, Instant};
+
+pub use crate::bindable::AudioBehavior;
 
 pub struct AudioManager {
     stream: Option<rodio::OutputStream>,
     stream_handle: Option<rodio::OutputStreamHandle>,
+    sfx_sinks: RefCell<IndexMap<usize, (Instant, rodio::Sink)>>,
     music_sink: RefCell<Option<rodio::Sink>>,
     music_stack: RefCell<Vec<(SoundBuffer, bool)>>,
     music_volume: f32,
@@ -17,6 +22,7 @@ impl AudioManager {
         let mut audio_manager = Self {
             stream: None,
             stream_handle: None,
+            sfx_sinks: RefCell::new(Default::default()),
             music_sink: RefCell::new(None),
             music_stack: RefCell::new(vec![(SoundBuffer::new_empty(), false)]),
             music_volume: 1.0,
@@ -131,9 +137,8 @@ impl AudioManager {
     }
 
     pub fn play_music(&self, buffer: &SoundBuffer, loops: bool) {
-        let stream_handle = match self.stream_handle.as_ref() {
-            Some(stream_handle) => stream_handle,
-            None => return,
+        let Some(stream_handle) = self.stream_handle.as_ref() else {
+            return;
         };
 
         if let Some(music_sink) = self.music_sink.borrow().as_ref() {
@@ -172,11 +177,9 @@ impl AudioManager {
         }
     }
 
-    // todo: AudioPriority
     pub fn play_sound(&self, buffer: &SoundBuffer) {
-        let stream_handle = match self.stream_handle.as_ref() {
-            Some(stream_handle) => stream_handle,
-            None => return,
+        let Some(stream_handle) = self.stream_handle.as_ref() else {
+            return;
         };
 
         let source = buffer
@@ -189,5 +192,66 @@ impl AudioManager {
         if let Err(e) = res {
             log::error!("{e}");
         }
+    }
+
+    pub fn play_sound_with_behavior(&self, buffer: &SoundBuffer, behavior: AudioBehavior) {
+        match behavior {
+            AudioBehavior::Default => {
+                self.play_sound(buffer);
+                return;
+            }
+            AudioBehavior::NoOverlap => {}
+        }
+
+        let Some(stream_handle) = self.stream_handle.as_ref() else {
+            return;
+        };
+
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+        let (start_instant, sfx_sink);
+
+        if let Some((instant, sink)) = sfx_sinks.get_mut(&buffer.id()) {
+            // reuse sink
+            start_instant = instant;
+            sfx_sink = sink;
+        } else {
+            // create a new sink
+            let sink = match rodio::Sink::try_new(stream_handle) {
+                Ok(sfx_sink) => sfx_sink,
+                Err(e) => {
+                    log::error!("Failed to create sfx sink: {e}");
+                    return;
+                }
+            };
+
+            sfx_sinks.insert(buffer.id(), (Instant::now(), sink));
+
+            // get the newly created sink
+            let (instant, sink) = sfx_sinks.get_mut(&buffer.id()).unwrap();
+            start_instant = instant;
+            sfx_sink = sink;
+        }
+
+        // queue if there's no sfx queued, or the currently queued sfx is about to end
+        let can_queue = sfx_sink.empty()
+            || (sfx_sink.len() == 1
+                && buffer.duration().saturating_sub(start_instant.elapsed())
+                    < Duration::from_millis(17));
+
+        if can_queue {
+            let source = buffer
+                .create_sampler()
+                .convert_samples::<f32>()
+                .amplify(self.sfx_volume);
+
+            sfx_sink.append(source);
+            *start_instant = Instant::now();
+        }
+    }
+
+    pub fn drop_empty_sinks(&self) {
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+
+        sfx_sinks.retain(|_, (_, sink)| !sink.empty());
     }
 }

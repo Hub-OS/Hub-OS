@@ -28,7 +28,7 @@ impl GameService for SupportingService {
 
     fn post_update(&mut self, game_io: &mut GameIO) {
         let suspended = game_io.suspended();
-        let globals = game_io.resource_mut::<Globals>().unwrap();
+        let globals = game_io.resource::<Globals>().unwrap();
 
         if suspended {
             // stop music as another thread controls audio and would continue playing in the background
@@ -38,5 +38,7 @@ impl GameService for SupportingService {
                 globals.audio.stop_music();
             }
         }
+
+        globals.audio.drop_empty_sinks();
     }
 }

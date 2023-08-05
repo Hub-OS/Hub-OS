@@ -81,7 +81,7 @@ action.on_update_func = function()
 end
 
 action:add_anim_action(2, function()
-    Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg", AudioPriority.High);
+    Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg");
 
     local field = user:field()
 
