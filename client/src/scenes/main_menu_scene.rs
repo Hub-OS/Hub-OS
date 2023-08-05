@@ -83,9 +83,18 @@ pub struct MainMenuScene {
 
 impl MainMenuScene {
     pub fn new(game_io: &mut GameIO) -> MainMenuScene {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        // layout
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::MAIN_MENU_LAYOUT_ANIMATION);
+        layout_animator.set_state("DEFAULT");
+        let scrolling_text_point = layout_animator.point("SCROLLING_TEXT").unwrap_or_default();
+
         // scrolling text
         let mut scrolling_text_style = TextStyle::new(game_io, FontStyle::Context);
-        scrolling_text_style.bounds.y = RESOLUTION_F.y * 0.5;
+        scrolling_text_style.bounds.y = scrolling_text_point.y;
 
         // character data
         let character_data = CharacterData::load(game_io, &scrolling_text_style);
@@ -152,9 +161,7 @@ impl Scene for MainMenuScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw scrolling text
-
         self.scrolling_text_style.bounds.x = self.scrolling_text_offset;
-        self.scrolling_text_style.bounds.y = RESOLUTION_F.y * 0.5;
         self.scrolling_text_style.draw(
             game_io,
             &mut sprite_queue,

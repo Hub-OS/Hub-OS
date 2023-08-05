@@ -1,51 +1,72 @@
 # @frame_rate 60
 
-imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/main_menu/menu.png"
-
 animation state="SERVERS_LABEL"
-frame duration="6f" x="102" y="25" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="25" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="19" w="72" h="14"
+
+animation state="SERVERS_LABEL_BLINK"
+frame duration="8f" x="78" y="19" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="19" w="72" h="14" originx="6"
 
 animation state="DECKS_LABEL"
-frame duration="6f" x="102" y="42" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="42" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="34" w="72" h="14"
+
+animation state="DECKS_LABEL_BLINK"
+frame duration="8f" x="78" y="34" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="34" w="72" h="14" originx="6"
 
 animation state="ITEMS_LABEL"
-frame duration="6f" x="102" y="59" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="59" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="49" w="72" h="14"
+
+animation state="ITEMS_LABEL_BLINK"
+frame duration="8f" x="78" y="49" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="49" w="72" h="14" originx="6"
 
 animation state="LIBRARY_LABEL"
-frame duration="6f" x="102" y="76" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="76" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="64" w="72" h="14"
+
+animation state="LIBRARY_LABEL_BLINK"
+frame duration="8f" x="78" y="64" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="64" w="72" h="14" originx="6"
 
 animation state="CHARACTER_LABEL"
-frame duration="6f" x="102" y="93" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="93" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="79" w="72" h="14"
+
+animation state="CHARACTER_LABEL_BLINK"
+frame duration="8f" x="78" y="79" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="79" w="72" h="14" originx="6"
 
 animation state="MAIL_LABEL"
-frame duration="6f" x="102" y="110" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="110" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="94" w="72" h="14"
+
+animation state="MAIL_LABEL_BLINK"
+frame duration="8f" x="78" y="94" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="94" w="72" h="14" originx="6"
 
 animation state="BATTLE_SELECT_LABEL"
-frame duration="6f" x="102" y="127" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="127" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="109" w="72" h="14"
+
+animation state="BATTLE_SELECT_LABEL_BLINK"
+frame duration="8f" x="78" y="109" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="109" w="72" h="14" originx="6"
 
 animation state="CONFIG_LABEL"
-frame duration="6f" x="102" y="144" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="144" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="124" w="72" h="14"
 
-animation state="NET_PLAY_LABEL"
-frame duration="6f" x="102" y="161" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="161" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+animation state="CONFIG_LABEL_BLINK"
+frame duration="8f" x="78" y="124" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="124" w="72" h="14" originx="6"
 
 animation state="KEY_ITEMS_LABEL"
-frame duration="6f" x="102" y="178" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="6f" x="3" y="178" w="76" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="8f" x="3" y="139" w="72" h="14"
+
+animation state="KEY_ITEMS_LABEL_BLINK"
+frame duration="8f" x="78" y="139" w="72" h="14" originx="6"
+frame duration="8f" x="3" y="139" w="72" h="14" originx="6"
 
 animation state="INFO"
-frame duration="50f" x="1" y="195" w="88" h="54" originx="-8" originy="-98" flipx="0" flipy="0"
+frame duration="50f" x="155" y="99" w="88" h="54" originx="-8" originy="-98"
 point label="HP" x="7" y="12"
 point label="MONEY" x="7" y="36"
 
 animation state="TOP_BAR"
-frame duration="50f" x="0" y="0" w="240" h="17" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="0" y="0" w="240" h="17"

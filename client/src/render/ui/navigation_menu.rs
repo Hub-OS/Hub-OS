@@ -52,6 +52,19 @@ impl SceneOption {
         }
     }
 
+    fn blink_state(&self) -> &'static str {
+        match self {
+            SceneOption::Servers => "SERVERS_LABEL_BLINK",
+            SceneOption::Decks => "DECKS_LABEL_BLINK",
+            SceneOption::Items => "ITEMS_LABEL_BLINK",
+            SceneOption::Library => "LIBRARY_LABEL_BLINK",
+            SceneOption::Character => "CHARACTER_LABEL_BLINK",
+            SceneOption::KeyItems => "KEY_ITEMS_LABEL_BLINK",
+            SceneOption::BattleSelect => "BATTLE_SELECT_LABEL_BLINK",
+            SceneOption::Config => "CONFIG_LABEL_BLINK",
+        }
+    }
+
     fn uses_false_scene(&self) -> bool {
         matches!(self, SceneOption::Items)
     }
@@ -106,11 +119,12 @@ impl NavigationMenu {
             .enumerate()
             .map(|(i, target_scene)| {
                 let mut sprite = menu_sprite.clone();
-                animator.set_state(target_scene.state());
 
                 if i == 0 {
                     // use selected sprite
-                    animator.set_frame(1);
+                    animator.set_state(target_scene.blink_state());
+                } else {
+                    animator.set_state(target_scene.state());
                 }
 
                 animator.apply(&mut sprite);
@@ -180,10 +194,8 @@ impl NavigationMenu {
     pub fn open(&mut self) {
         self.open_state = OpenState::Opening;
         self.animation_time = 0;
-
-        let prev_index = self.scroll_tracker.selected_index();
         self.scroll_tracker.set_selected_index(0);
-        self.update_item_sprites(prev_index);
+        system_animate_items(self);
     }
 
     pub fn close(&mut self) {
@@ -210,8 +222,10 @@ impl NavigationMenu {
         }
 
         // systems
+        system_animate_items(self);
         system_scroll(self);
         system_transition(self);
+        self.animation_time += 1;
 
         // input based updates after this
         if self.open_state.is_animated() || game_io.is_in_transition() {
@@ -238,7 +252,6 @@ impl NavigationMenu {
         if prev_index != self.scroll_tracker.selected_index() {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_move);
-            self.update_item_sprites(prev_index);
         }
 
         if self.ui_input_tracker.is_active(Input::Confirm) {
@@ -246,18 +259,6 @@ impl NavigationMenu {
         }
 
         next_scene
-    }
-
-    fn update_item_sprites(&mut self, prev_index: usize) {
-        let prev_item = &mut self.items[prev_index];
-        self.animator.set_state(prev_item.target_scene.state());
-        self.animator.set_frame(0);
-        self.animator.apply(&mut prev_item.sprite);
-
-        let item = &mut self.items[self.scroll_tracker.selected_index()];
-        self.animator.set_state(item.target_scene.state());
-        self.animator.set_frame(1);
-        self.animator.apply(&mut item.sprite);
     }
 
     fn select_item(
@@ -343,6 +344,22 @@ impl NavigationMenu {
     }
 }
 
+fn system_animate_items(menu: &mut NavigationMenu) {
+    let animator = &mut menu.animator;
+
+    for (i, item) in menu.items.iter_mut().enumerate() {
+        if i == menu.scroll_tracker.selected_index() {
+            animator.set_state(item.target_scene.blink_state());
+        } else {
+            animator.set_state(item.target_scene.state());
+        }
+
+        animator.set_loop_mode(AnimatorLoopMode::Loop);
+        animator.sync_time(menu.animation_time);
+        animator.apply(&mut item.sprite);
+    }
+}
+
 fn system_scroll(menu: &mut NavigationMenu) {
     let target_scroll_top = menu.scroll_tracker.top_index() as f32;
 
@@ -364,21 +381,20 @@ fn system_transition(menu: &mut NavigationMenu) {
 
     const ANIMATION_TIME: FrameTime = 8;
 
-    let animation_progress = match menu.open_state {
-        OpenState::Opening => menu.animation_time as f32 / ANIMATION_TIME as f32,
-        OpenState::Closing => 1.0 - menu.animation_time as f32 / ANIMATION_TIME as f32,
-        _ => unreachable!(),
-    };
-
-    menu.animation_time += 1;
-
     if menu.animation_time > ANIMATION_TIME {
         menu.open_state = match menu.open_state {
             OpenState::Opening => OpenState::Open,
             OpenState::Closing => OpenState::Closed,
             _ => unreachable!(),
         };
+        return;
     }
+
+    let animation_progress = match menu.open_state {
+        OpenState::Opening => menu.animation_time as f32 / ANIMATION_TIME as f32,
+        OpenState::Closing => 1.0 - menu.animation_time as f32 / ANIMATION_TIME as f32,
+        _ => unreachable!(),
+    };
 
     // animate top bar
     let top_bar_height = menu.top_bar_sprite.bounds().height;
