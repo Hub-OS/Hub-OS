@@ -1,6 +1,6 @@
 use crate::overworld::components::{MovementAnimator, MovementState};
 use crate::render::{Animator, AnimatorLoopMode, FrameTime};
-use crate::resources::{AssetManager, Globals, OVERWORLD_RUN_THRESHOLD};
+use crate::resources::{AssetManager, AudioBehavior, Globals, OVERWORLD_RUN_THRESHOLD};
 use enum_map::EnumMap;
 use framework::prelude::{GameIO, Sprite, Vec3, Vec3Swizzles};
 use packets::structures::{ActorKeyFrame, ActorProperty, ActorPropertyId, Direction, Ease};
@@ -293,11 +293,14 @@ impl ActorPropertyAnimator {
                         }
                     }
                     ActorPropertyId::SoundEffectLoop => {
-                        // todo: requires AudioPriority::Low
-                        // if property_animator.audio_enabled && !active_string_value.is_empty() {
-                        //     let globals = game_io.resource::<Globals>().unwrap();
-                        //     globals.audio.play_sound(&sfx);
-                        // }
+                        if property_animator.audio_enabled && !active_string_value.is_empty() {
+                            let sfx = assets.audio(game_io, active_string_value);
+
+                            let globals = game_io.resource::<Globals>().unwrap();
+                            let audio = &globals.audio;
+
+                            audio.play_sound_with_behavior(&sfx, AudioBehavior::NoOverlap);
+                        }
                     }
                     ActorPropertyId::Direction => {
                         if let ActorProperty::Direction(new_direction) = key_frame.property {

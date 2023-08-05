@@ -164,16 +164,19 @@ fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &i
                 duration: 0.0,
             });
 
-            // bring us to the final position
+            // bring us to the final position + stop the sfx
             property_animator.add_key_frame(ActorKeyFrame {
-                property_steps: vec![(
-                    if x_axis {
-                        ActorProperty::X(end_position.x)
-                    } else {
-                        ActorProperty::Y(end_position.y)
-                    },
-                    Ease::Linear,
-                )],
+                property_steps: vec![
+                    (
+                        if x_axis {
+                            ActorProperty::X(end_position.x)
+                        } else {
+                            ActorProperty::Y(end_position.y)
+                        },
+                        Ease::Linear,
+                    ),
+                    (ActorProperty::SoundEffectLoop(String::new()), Ease::Floor),
+                ],
                 duration,
             });
 
@@ -232,7 +235,7 @@ fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &i
                 None
             };
 
-            // begin actor proeprty animation
+            // begin actor property animation
             let mut property_animator = ActorPropertyAnimator::new();
 
             // begin with sfx and pause the player's animation for the slipping animation
