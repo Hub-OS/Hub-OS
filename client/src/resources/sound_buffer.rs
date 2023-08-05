@@ -34,11 +34,16 @@ impl SoundBuffer {
             return Self::new_empty();
         };
 
+        let channels = decoder.channels();
+        let sample_rate = decoder.sample_rate();
+        let data = Arc::new(decoder.collect::<Vec<_>>());
+        let duration = data.len() as f32 / (channels as f32 * sample_rate as f32);
+
         Self {
-            channels: decoder.channels(),
-            sample_rate: decoder.sample_rate(),
-            duration: decoder.total_duration().unwrap_or_default(),
-            data: Arc::new(decoder.collect::<Vec<_>>()),
+            channels,
+            sample_rate,
+            duration: Duration::from_secs_f32(duration),
+            data,
         }
     }
 
@@ -119,6 +124,14 @@ impl SoundBuffer {
             index: 0,
             buffer: self.clone(),
         }
+    }
+
+    pub fn id(&self) -> usize {
+        self.data.as_ptr() as usize
+    }
+
+    pub fn duration(&self) -> Duration {
+        self.duration
     }
 }
 
