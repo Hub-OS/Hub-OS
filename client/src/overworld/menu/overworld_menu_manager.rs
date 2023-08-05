@@ -409,7 +409,7 @@ impl OverworldMenuManager {
         }
 
         let menus_block_view = self.is_blocking_view();
-        let in_transition = self.fade_time != self.max_fade_time;
+        let in_transition = game_io.is_in_transition() || self.fade_time != self.max_fade_time;
         let mut handle_input =
             (menus_block_view || !self.navigation_menu.is_open()) && !in_transition;
 
