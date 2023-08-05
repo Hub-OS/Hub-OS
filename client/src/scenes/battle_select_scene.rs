@@ -163,10 +163,6 @@ impl Scene for BattleSelectScene {
             // begin encounter
             let globals = game_io.resource::<Globals>().unwrap();
 
-            // play sfx
-            globals.audio.stop_music();
-            globals.audio.play_sound(&globals.sfx.battle_transition);
-
             // get the battle
             let package_id = &self.package_ids[index];
             let encounter_package = globals
