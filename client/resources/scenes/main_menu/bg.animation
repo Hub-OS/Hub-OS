@@ -1,26 +1,6 @@
 animation state="DEFAULT"
-frame duration="2f" x="0" y="0" w="240" h="160"
-frame duration="2f" x="240" y="0" w="240" h="160"
-frame duration="2f" x="480" y="0" w="240" h="160"
-frame duration="2f" x="720" y="0" w="240" h="160"
-frame duration="2f" x="960" y="0" w="240" h="160"
-frame duration="2f" x="0" y="160" w="240" h="160"
-frame duration="2f" x="240" y="160" w="240" h="160"
-frame duration="2f" x="480" y="160" w="240" h="160"
-frame duration="2f" x="720" y="160" w="240" h="160"
-frame duration="2f" x="960" y="160" w="240" h="160"
-frame duration="2f" x="0" y="320" w="240" h="160"
-frame duration="2f" x="240" y="320" w="240" h="160"
-frame duration="2f" x="480" y="320" w="240" h="160"
-frame duration="2f" x="720" y="320" w="240" h="160"
-frame duration="2f" x="960" y="320" w="240" h="160"
-frame duration="2f" x="0" y="480" w="240" h="160"
-frame duration="2f" x="240" y="480" w="240" h="160"
-frame duration="2f" x="480" y="480" w="240" h="160"
-frame duration="2f" x="720" y="480" w="240" h="160"
-frame duration="2f" x="960" y="480" w="240" h="160"
-frame duration="2f" x="0" y="640" w="240" h="160"
-frame duration="2f" x="240" y="640" w="240" h="160"
-frame duration="2f" x="480" y="640" w="240" h="160"
-frame duration="2f" x="720" y="640" w="240" h="160"
-
+blank
+point label="BACKGROUNDS/MORNING" x="0630" # start at 6:30 AM
+point label="BACKGROUNDS/DAY" x="0900"  # start at 9:00 AM
+point label="BACKGROUNDS/SUNSET" x="1915" # start at 7:15 PM
+point label="BACKGROUNDS/NIGHT" x="2045" # start at 8:45 PM

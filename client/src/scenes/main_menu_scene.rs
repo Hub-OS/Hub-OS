@@ -101,7 +101,7 @@ impl MainMenuScene {
 
         MainMenuScene {
             camera: Camera::new_ui(game_io),
-            background: Background::new_main_menu(game_io),
+            background: Background::new_blank(game_io),
             scrolling_text_style,
             scrolling_text_offset: 0.0,
             character_data,
@@ -133,6 +133,8 @@ impl Scene for MainMenuScene {
         // can't be on a server if the player is viewing the main menu
         let globals = game_io.resource_mut::<Globals>().unwrap();
         globals.connected_to_server = false;
+
+        self.background = Background::new_main_menu(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

@@ -99,6 +99,7 @@ impl ResourcePaths {
     pub const BOOT_UI_ANIMATION: &str = "resources/scenes/boot/ui.animation";
 
     // MainMenuScene
+    pub const MAIN_MENU_ROOT: &str = "resources/scenes/main_menu/";
     pub const MAIN_MENU_BG: &str = "resources/scenes/main_menu/bg.png";
     pub const MAIN_MENU_BG_ANIMATION: &str = "resources/scenes/main_menu/bg.animation";
     pub const MAIN_MENU_LAYOUT_ANIMATION: &str = "resources/scenes/main_menu/layout.animation";
