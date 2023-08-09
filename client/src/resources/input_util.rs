@@ -139,17 +139,17 @@ impl<'a> InputUtil<'a> {
         )
     }
 
-    pub fn controller_pressing_cancel(&self) -> bool {
+    pub fn controller_just_pressed(&self, input: Input) -> bool {
         let config = &self.config;
         let input_manager = self.input_manager;
 
-        if let Some(buttons) = config.controller_bindings.get(&Input::Cancel) {
-            let is_down = buttons.iter().any(|button| {
-                input_manager.is_button_down(config.controller_index, *button)
-                    || self.emulated.is_button_down(*button)
+        if let Some(buttons) = config.controller_bindings.get(&input) {
+            let just_pressed = buttons.iter().any(|button| {
+                input_manager.was_button_just_pressed(config.controller_index, *button)
+                    || self.emulated.was_button_just_pressed(*button)
             });
 
-            if is_down {
+            if just_pressed {
                 return true;
             }
         }
