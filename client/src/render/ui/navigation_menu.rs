@@ -213,12 +213,10 @@ impl NavigationMenu {
         game_io: &mut GameIO,
         override_callback: impl FnMut(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
     ) -> NextScene {
-        let mut next_scene = NextScene::None;
-
         self.ui_input_tracker.update(game_io);
 
         if self.open_state == OpenState::Closed {
-            return next_scene;
+            return NextScene::None;
         }
 
         // systems
@@ -229,9 +227,22 @@ impl NavigationMenu {
 
         // input based updates after this
         if self.open_state.is_animated() || game_io.is_in_transition() {
-            return next_scene;
+            return NextScene::None;
         }
 
+        // handle input
+        if self.open_state == OpenState::Open {
+            return self.handle_input(game_io, override_callback);
+        }
+
+        NextScene::None
+    }
+
+    fn handle_input(
+        &mut self,
+        game_io: &mut GameIO,
+        override_callback: impl FnMut(&mut GameIO, SceneOption) -> Option<Box<dyn Scene>>,
+    ) -> NextScene {
         // handle close
         let input_util = InputUtil::new(game_io);
         let requesting_close =
@@ -255,10 +266,10 @@ impl NavigationMenu {
         }
 
         if self.ui_input_tracker.is_active(Input::Confirm) {
-            next_scene = self.select_item(game_io, override_callback);
+            return self.select_item(game_io, override_callback);
         }
 
-        next_scene
+        NextScene::None
     }
 
     fn select_item(
