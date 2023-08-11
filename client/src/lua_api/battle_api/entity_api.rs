@@ -802,7 +802,9 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "field_cards",
         |character: &Character, lua, _: ()| {
-            let table = lua.create_table_from(character.cards.iter().rev().enumerate());
+            let card_iter = character.cards.iter().rev();
+            let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
+            let table = lua.create_table_from(indexed_iter);
 
             lua.pack_multi(table)
         },
