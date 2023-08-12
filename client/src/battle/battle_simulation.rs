@@ -590,7 +590,9 @@ impl BattleSimulation {
             return false;
         }
 
-        action.entity = entity_id;
+        if action.entity != entity_id {
+            return false;
+        }
 
         if time_is_frozen && !action.properties.time_freeze {
             return false;

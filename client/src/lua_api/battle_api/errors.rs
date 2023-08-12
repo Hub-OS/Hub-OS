@@ -44,8 +44,12 @@ pub fn action_aready_used() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("action already used"))
 }
 
+pub fn action_entity_mismatch() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action is tied to another entity"))
+}
+
 pub fn attachment_not_found() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("card action attachment deleted"))
+    rollback_mlua::Error::RuntimeError(String::from("action attachment deleted"))
 }
 
 pub fn animator_not_found() -> rollback_mlua::Error {

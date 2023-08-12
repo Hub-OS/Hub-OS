@@ -1,7 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    action_aready_used, action_not_found, entity_not_found, invalid_sync_node, mismatched_entity,
-    package_not_loaded, too_many_forms,
+    action_aready_used, action_entity_mismatch, action_not_found, entity_not_found,
+    invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
 };
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
@@ -534,6 +534,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         if action.used {
             return Err(action_aready_used());
+        }
+
+        if action.entity != id {
+            return Err(action_entity_mismatch());
         }
 
         let used = simulation.use_action(api_ctx.game_io, id, action_index.into());
