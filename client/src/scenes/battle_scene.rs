@@ -1,7 +1,7 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
-use crate::lua_api::{create_battle_vm, encounter_init};
-use crate::packages::{Package, PackageInfo, PackageNamespace};
+use crate::lua_api::{encounter_init, BattleVmManager};
+use crate::packages::{Package, PackageNamespace};
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
@@ -45,9 +45,9 @@ pub struct BattleScene {
     simulation: BattleSimulation,
     state: Box<dyn State>,
     backups: VecDeque<Backup>,
-    vms: Vec<RollbackVM>,
+    vm_manager: BattleVmManager,
     player_controllers: Vec<PlayerController>,
-    local_index: usize,
+    local_index: Option<usize>,
     senders: Vec<NetplayPacketSender>,
     receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
@@ -60,29 +60,84 @@ pub struct BattleScene {
 
 impl BattleScene {
     pub fn new(game_io: &GameIO, mut props: BattleProps) -> Self {
+        // sort player setups for consistent execution order on every client
         props.player_setups.sort_by_key(|setup| setup.index);
 
+        // resolve dependencies for loading vms
+        let globals = game_io.resource::<Globals>().unwrap();
+        let dependencies = globals.battle_dependencies(game_io, &props);
+
+        let mut simulation =
+            BattleSimulation::new(game_io, props.background.clone(), props.player_setups.len());
+        let vm_manager = BattleVmManager::new(game_io, &mut simulation, &dependencies);
+        let vms = vm_manager.vms();
+
+        // seed before running any vm
+        if let Some(seed) = props.seed {
+            simulation.seed_random(seed);
+        }
+
+        // load battle package
+        if let Some(encounter_package) = props.encounter_package {
+            let vm_index = vm_manager
+                .find_vm(encounter_package.package_info())
+                .unwrap();
+
+            let context = BattleScriptContext {
+                vm_index,
+                vms: vm_manager.vms(),
+                game_io,
+                simulation: &mut simulation,
+            };
+
+            encounter_init(context, props.data);
+        }
+
+        // load the players in the correct order
+        let player_setups = props.player_setups;
+        let mut player_controllers = vec![PlayerController::default(); player_setups.len()];
+        let local_index = player_setups
+            .iter()
+            .find(|setup| setup.local)
+            .map(|setup| setup.index);
+
+        for mut setup in player_setups {
+            if let Some(remote_controller) = player_controllers.get_mut(setup.index) {
+                remote_controller.buffer = std::mem::take(&mut setup.buffer);
+                remote_controller.connected = true;
+            }
+
+            // shuffle cards
+            let rng = &mut simulation.rng;
+            setup.deck.shuffle(game_io, rng, setup.namespace());
+
+            let result = Player::load(game_io, &mut simulation, vms, setup);
+
+            if let Err(e) = result {
+                log::error!("{e}");
+            }
+        }
+
+        simulation.initialize_uninitialized();
+
+        // events
         let (event_sender, event_receiver) = flume::unbounded();
 
-        let mut scene = Self {
+        Self {
             battle_duration: 0,
-            ui_camera: Camera::new(game_io),
+            ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io),
             textbox_is_blocking_input: false,
             event_receiver,
             pending_signals: Vec::new(),
             synced_time: 0,
             shared_assets: SharedBattleAssets::new(game_io, event_sender),
-            simulation: BattleSimulation::new(
-                game_io,
-                props.background.clone(),
-                props.player_setups.len(),
-            ),
+            simulation,
             state: Box::new(IntroState::new()),
             backups: VecDeque::new(),
-            vms: Vec::new(),
-            player_controllers: vec![PlayerController::default(); props.player_setups.len()],
-            local_index: 0,
+            vm_manager,
+            player_controllers,
+            local_index,
             senders: std::mem::take(&mut props.senders),
             receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
@@ -91,108 +146,7 @@ impl BattleScene {
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
-        };
-
-        if let Some(setup) = props.player_setups.iter().find(|setup| setup.local) {
-            // resolve local index early for namespace remapping in vm creation
-            scene.local_index = setup.index;
         }
-
-        scene.ui_camera.snap(RESOLUTION_F * 0.5);
-
-        // seed before running any vm
-        if let Some(seed) = props.seed {
-            scene.simulation.seed_random(seed);
-        }
-
-        // load every vm we need
-        scene.load_vms(game_io, &props);
-
-        // load battle package
-        if let Some(encounter_package) = props.encounter_package {
-            let vm_index = scene.find_vm(encounter_package.package_info()).unwrap();
-
-            let context = BattleScriptContext {
-                vm_index,
-                vms: &scene.vms,
-                game_io,
-                simulation: &mut scene.simulation,
-            };
-
-            encounter_init(context, props.data);
-        }
-
-        // load the players in the correct order
-        for mut setup in props.player_setups {
-            if let Some(remote_controller) = scene.player_controllers.get_mut(setup.index) {
-                remote_controller.buffer = std::mem::take(&mut setup.buffer);
-                remote_controller.connected = true;
-            }
-
-            // shuffle cards
-            let rng = &mut scene.simulation.rng;
-            setup.deck.shuffle(game_io, rng, setup.namespace());
-
-            let result = Player::load(game_io, &mut scene.simulation, &scene.vms, setup);
-
-            if let Err(e) = result {
-                log::error!("{e}");
-            }
-        }
-
-        scene.simulation.initialize_uninitialized();
-
-        scene
-    }
-
-    fn load_vms(&mut self, game_io: &GameIO, props: &BattleProps) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(game_io, props);
-
-        for (package_info, namespace) in dependencies {
-            if package_info.package_category.requires_vm() {
-                self.load_vm(game_io, package_info, namespace);
-            }
-        }
-    }
-
-    fn find_vm(&self, package_info: &PackageInfo) -> Option<usize> {
-        self.vms
-            .iter()
-            .position(|vm| vm.path == package_info.script_path)
-    }
-
-    fn load_vm(
-        &mut self,
-        game_io: &GameIO,
-        package_info: &PackageInfo,
-        namespace: PackageNamespace,
-    ) -> usize {
-        // expecting local namespace to be converted to a Netplay namespace
-        // before being passed to this function
-        assert_ne!(namespace, PackageNamespace::Local);
-
-        let existing_vm = self.find_vm(package_info);
-
-        if let Some(vm_index) = existing_vm {
-            // recycle a vm
-            let vm = &mut self.vms[vm_index];
-
-            if !vm.namespaces.contains(&namespace) {
-                vm.namespaces.push(namespace);
-            }
-
-            return vm_index;
-        }
-
-        // new vm
-        create_battle_vm(
-            game_io,
-            &mut self.simulation,
-            &mut self.vms,
-            package_info,
-            namespace,
-        )
     }
 
     fn is_solo(&self) -> bool {
@@ -310,7 +264,7 @@ impl BattleScene {
         self.player_controllers
             .iter()
             .enumerate()
-            .filter(|(i, controller)| controller.connected && *i != self.local_index)
+            .filter(|(i, controller)| controller.connected && Some(*i) != self.local_index)
             .count()
     }
 
@@ -396,8 +350,12 @@ impl BattleScene {
                     }
 
                     // figure out if we should slow down
-                    if let Some(remote_received_size) = buffer_sizes.get(self.local_index).cloned()
-                    {
+                    let remote_received_size = self
+                        .local_index
+                        .and_then(|index| buffer_sizes.get(index))
+                        .cloned();
+
+                    if let Some(remote_received_size) = remote_received_size {
                         let local_remote_size = controller.buffer.len();
 
                         let has_substantial_diff = controller.connected
@@ -447,9 +405,13 @@ impl BattleScene {
     }
 
     fn handle_local_input(&mut self, game_io: &GameIO) {
+        let Some(local_index) = self.local_index else {
+            return;
+        };
+
         let input_util = InputUtil::new(game_io);
 
-        let local_controller = match self.player_controllers.get_mut(self.local_index) {
+        let local_controller = match self.player_controllers.get_mut(local_index) {
             Some(local_controller) => local_controller,
             None => return,
         };
@@ -482,7 +444,7 @@ impl BattleScene {
             .collect();
 
         self.broadcast(NetplayPacket::Buffer {
-            index: self.local_index,
+            index: local_index,
             data,
             buffer_sizes,
         });
@@ -587,9 +549,7 @@ impl BattleScene {
     }
 
     fn rollback(&mut self, game_io: &GameIO, steps: usize) {
-        for vm in &mut self.vms {
-            vm.lua.rollback(steps);
-        }
+        self.vm_manager.rollback(steps);
 
         for _ in 0..steps - 1 {
             self.backups.pop_back();
@@ -603,9 +563,7 @@ impl BattleScene {
 
     fn simulate(&mut self, game_io: &GameIO) {
         if !self.already_snapped {
-            for vm in &mut self.vms {
-                vm.lua.snap();
-            }
+            self.vm_manager.snap();
 
             let mut simulation_clone = self.simulation.clone(game_io);
 
@@ -629,18 +587,18 @@ impl BattleScene {
             self.state = state;
         }
 
-        self.simulation
-            .handle_local_signals(self.local_index, &mut self.shared_assets);
+        let simulation = &mut self.simulation;
+        let state = &mut *self.state;
+        let vms = self.vm_manager.vms();
 
-        self.simulation.update_background();
-        self.simulation.pre_update(game_io, &self.vms, &*self.state);
-        self.state.update(
-            game_io,
-            &mut self.shared_assets,
-            &mut self.simulation,
-            &self.vms,
-        );
-        self.simulation.post_update(game_io, &self.vms);
+        if let Some(index) = self.local_index {
+            simulation.handle_local_signals(index, &mut self.shared_assets);
+        }
+
+        simulation.update_background();
+        simulation.pre_update(game_io, vms, state);
+        state.update(game_io, &mut self.shared_assets, simulation, vms);
+        simulation.post_update(game_io, vms);
 
         if self.backups.len() > INPUT_BUFFER_LIMIT {
             self.backups.pop_front();
@@ -654,44 +612,7 @@ impl BattleScene {
 
         // list vms by memory usage
         if game_io.input().was_key_just_pressed(Key::V) {
-            const NAMESPACE_WIDTH: usize = 10;
-            const MEMORY_WIDTH: usize = 11;
-
-            let mut vms_sorted: Vec<_> = self.vms.iter().collect();
-            vms_sorted.sort_by_key(|vm| vm.lua.unused_memory());
-
-            let package_id_width = vms_sorted
-                .iter()
-                .map(|vm| vm.package_id.as_str().len())
-                .max()
-                .unwrap_or_default()
-                .max(10);
-
-            // margin + header
-            println!(
-                "\n| Namespace  | Package ID{:1$} | Used Memory | Free Memory |",
-                " ",
-                package_id_width - 10
-            );
-
-            // border
-            println!("| {:-<NAMESPACE_WIDTH$} | {:-<package_id_width$} | {:-<MEMORY_WIDTH$} | {:-<MEMORY_WIDTH$} |", "", "", "", "");
-
-            // list
-            for vm in vms_sorted {
-                println!(
-                    "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
-                    // todo: maybe we should list every namespace in a compressed format
-                    // ex: [Server, Local, Netplay(0)] -> S L 0
-                    format!("{:?}", vm.preferred_namespace()),
-                    vm.package_id,
-                    vm.lua.used_memory(),
-                    vm.lua.unused_memory().unwrap()
-                );
-            }
-
-            // margin
-            println!();
+            self.vm_manager.print_memory_usage();
         }
     }
 
