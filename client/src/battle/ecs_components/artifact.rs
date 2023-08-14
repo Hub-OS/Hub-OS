@@ -52,9 +52,11 @@ impl Artifact {
         let _ = animator.set_state("DEFAULT");
 
         // delete when the animation completes
-        animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
-            simulation.mark_entity_for_erasure(game_io, vms, id);
-        }));
+        animator.on_complete(BattleCallback::new(
+            move |game_io, resources, simulation, _| {
+                simulation.mark_entity_for_erasure(game_io, resources, id);
+            },
+        ));
 
         id
     }
@@ -72,7 +74,7 @@ impl Artifact {
             .query_one_mut::<&mut Entity>(id.into())
             .unwrap();
 
-        entity.spawn_callback = BattleCallback::new(|game_io, simulation, _, _| {
+        entity.spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
             simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.explode);
         });
 

@@ -98,7 +98,7 @@ impl TileState {
         let mut cracked_state = TileState::new(String::from("cracked"));
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, simulation, _, (entity_id, movement): (EntityId, Movement)| {
+            |game_io, _, simulation, (entity_id, movement): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -137,7 +137,7 @@ impl TileState {
         let mut ice_state = TileState::new(String::from("ice"));
 
         ice_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, vms, (entity_id, movement): (EntityId, Movement)| {
+            |game_io, resources, simulation, (entity_id, movement): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -153,7 +153,7 @@ impl TileState {
 
                 let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
-                if !can_move_to_callback.call(game_io, simulation, vms, dest) {
+                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
                     return;
                 }
 
@@ -183,7 +183,7 @@ impl TileState {
         );
 
         grass_state.entity_update_callback =
-            BattleCallback::new(|_, simulation, _, entity_id: EntityId| {
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok((entity, living)) =
                     entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
@@ -224,7 +224,7 @@ impl TileState {
         );
 
         lava_state.entity_update_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|game_io, resources, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -244,7 +244,7 @@ impl TileState {
                     ..Default::default()
                 };
 
-                Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
+                Living::process_hit(game_io, resources, simulation, entity_id, hit_props);
 
                 if let Some(tile) = simulation.field.tile_at_mut(position) {
                     tile.set_state_index(TileState::NORMAL, None);
@@ -258,7 +258,7 @@ impl TileState {
         let mut poison_state = TileState::new(String::from("poison"));
 
         poison_state.entity_enter_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|game_io, resources, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -272,11 +272,11 @@ impl TileState {
                 let mut hit_props = HitProperties::blank();
                 hit_props.damage = 1;
 
-                Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
+                Living::process_hit(game_io, resources, simulation, entity_id, hit_props);
             });
 
         poison_state.entity_update_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|game_io, resources, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -290,7 +290,7 @@ impl TileState {
                     let mut hit_props = HitProperties::blank();
                     hit_props.damage = 1;
 
-                    Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
+                    Living::process_hit(game_io, resources, simulation, entity_id, hit_props);
                 }
             });
 
@@ -311,7 +311,7 @@ impl TileState {
         let generate_conveyor_update = |direction: Direction| {
             let offset = direction.i32_vector();
 
-            BattleCallback::new(move |game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(move |game_io, resources, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
                     return;
@@ -331,7 +331,7 @@ impl TileState {
 
                 let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
-                if !can_move_to_callback.call(game_io, simulation, vms, dest) {
+                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
                     return;
                 }
 
@@ -394,7 +394,7 @@ impl TileState {
         let mut sea_state = TileState::new(String::from("sea"));
 
         sea_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, _vms, (entity_id, _): (EntityId, Movement)| {
+            |game_io, _, simulation, (entity_id, _): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok((entity, living)) =
                     entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())

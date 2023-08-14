@@ -66,7 +66,7 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
         if let Ok(entity) = entities.query_one_mut::<&Entity>(component.entity.into()) {
             if entity.spawned {
                 let callback = component.init_callback.clone();
-                callback.call(api_ctx.game_io, api_ctx.simulation, api_ctx.vms, ());
+                callback.call(api_ctx.game_io, api_ctx.resources, api_ctx.simulation, ());
             }
         }
 

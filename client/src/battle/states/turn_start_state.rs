@@ -1,5 +1,5 @@
 use super::{BattleState, State};
-use crate::battle::{BattleSimulation, RollbackVM, SharedBattleAssets};
+use crate::battle::{BattleSimulation, SharedBattleResources};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -104,9 +104,8 @@ impl State for TurnStartState {
     fn update(
         &mut self,
         _game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        _vms: &[RollbackVM],
     ) {
         if simulation.inputs.iter().any(|input| input.fleeing()) {
             // wait for the flee attempt to complete

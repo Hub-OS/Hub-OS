@@ -104,9 +104,9 @@ impl Entity {
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
             counter_callback: BattleCallback::stub(()),
-            delete_callback: BattleCallback::new(move |game_io, simulation, vms, _| {
+            delete_callback: BattleCallback::new(move |game_io, resources, simulation, _| {
                 // default behavior, just erase
-                simulation.mark_entity_for_erasure(game_io, vms, id);
+                simulation.mark_entity_for_erasure(game_io, resources, id);
             }),
             delete_callbacks: Vec::new(),
         }

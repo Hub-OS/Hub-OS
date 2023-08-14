@@ -1,4 +1,4 @@
-use super::{Entity, PlayerInput, SharedBattleAssets};
+use super::{Entity, PlayerInput, SharedBattleResources};
 use crate::bindable::{HitFlag, HitFlags, SpriteColorMode};
 use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::{
@@ -153,18 +153,18 @@ impl StatusDirector {
     pub fn update_status_sprites(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         entity: &mut Entity,
     ) {
-        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::FREEZE);
-        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::BLIND);
-        self.update_status_sprite(game_io, shared_assets, entity, HitFlag::CONFUSE);
+        self.update_status_sprite(game_io, resources, entity, HitFlag::FREEZE);
+        self.update_status_sprite(game_io, resources, entity, HitFlag::BLIND);
+        self.update_status_sprite(game_io, resources, entity, HitFlag::CONFUSE);
     }
 
     fn update_status_sprite(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         entity: &mut Entity,
         status_flag: HitFlags,
     ) {
@@ -182,7 +182,7 @@ impl StatusDirector {
 
         let index = existing_index.unwrap_or_else(|| {
             let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
-            let texture = shared_assets.statuses_texture.clone();
+            let texture = resources.statuses_texture.clone();
             sprite_node.set_texture_direct(texture);
 
             let index = sprite_tree.insert_root_child(sprite_node);
@@ -193,7 +193,7 @@ impl StatusDirector {
         let alpha = sprite_tree.root().color().a;
 
         let sprite_node = &mut sprite_tree[index];
-        let animator = &mut shared_assets.statuses_animator;
+        let animator = &mut *resources.statuses_animator.borrow_mut();
         let state = HitFlag::status_animation_state(status_flag, entity.height);
 
         if animator.current_state() != Some(state) {

@@ -30,7 +30,8 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
 
-            let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+            let vms = api_ctx.resources.vm_manager.vms();
+            let namespace = vms[api_ctx.vm_index].preferred_namespace();
 
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
@@ -60,12 +61,13 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
 
         let action_index = Action::create_from_card_properties(
             api_ctx.game_io,
+            api_ctx.resources,
             api_ctx.simulation,
-            api_ctx.vms,
             entity_id,
             namespace,
             &card_props,
@@ -175,7 +177,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             return Err(action_not_found());
         }
 
-        simulation.delete_actions(api_ctx.game_io, api_ctx.vms, &[id.into()]);
+        simulation.delete_actions(api_ctx.game_io, api_ctx.resources, &[id.into()]);
 
         lua.pack_multi(())
     });

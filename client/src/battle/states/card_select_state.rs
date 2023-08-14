@@ -84,9 +84,8 @@ impl State for CardSelectState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         if self.time == 0 {
             simulation.statistics.turns += 1;
@@ -130,7 +129,7 @@ impl State for CardSelectState {
             let input = &simulation.inputs[player.index];
             self.handle_input(
                 game_io,
-                shared_assets,
+                resources,
                 player,
                 input,
                 simulation.is_resimulation,
@@ -148,7 +147,7 @@ impl State for CardSelectState {
         });
 
         if all_confirmed {
-            self.complete(game_io, simulation, vms);
+            self.complete(game_io, resources, simulation);
         }
 
         self.time += 1;
@@ -540,7 +539,7 @@ impl CardSelectState {
     fn handle_input(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -572,16 +571,16 @@ impl CardSelectState {
         }
 
         if selection.form_open_time.is_some() {
-            self.handle_form_input(game_io, shared_assets, player, input, is_resimulation);
+            self.handle_form_input(game_io, resources, player, input, is_resimulation);
         } else {
-            self.handle_card_input(game_io, shared_assets, player, input, is_resimulation);
+            self.handle_card_input(game_io, resources, player, input, is_resimulation);
         }
     }
 
     fn handle_form_input(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -652,7 +651,7 @@ impl CardSelectState {
         if input.was_just_pressed(Input::Info) {
             if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
                 let event = BattleEvent::Description((*form.description).clone());
-                shared_assets.event_sender.send(event).unwrap();
+                resources.event_sender.send(event).unwrap();
             }
         }
     }
@@ -660,7 +659,7 @@ impl CardSelectState {
     fn handle_card_input(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         player: &Player,
         input: &PlayerInput,
         is_resimulation: bool,
@@ -783,7 +782,7 @@ impl CardSelectState {
 
         if input.was_just_pressed(Input::Flee) {
             let event = BattleEvent::RequestFlee;
-            shared_assets.event_sender.send(event).unwrap();
+            resources.event_sender.send(event).unwrap();
         }
 
         if input.was_just_pressed(Input::Info) {
@@ -791,7 +790,7 @@ impl CardSelectState {
                 let card = &player.deck[index];
 
                 let event = BattleEvent::DescribeCard(card.package_id.clone());
-                shared_assets.event_sender.send(event).unwrap();
+                resources.event_sender.send(event).unwrap();
             }
         }
     }
@@ -799,8 +798,8 @@ impl CardSelectState {
     fn complete(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let card_packages = &game_io.resource::<Globals>().unwrap().card_packages;
 
@@ -853,7 +852,7 @@ impl CardSelectState {
             selection.selected_card_indices.clear();
         }
 
-        Character::mutate_cards(game_io, simulation, vms);
+        Character::mutate_cards(game_io, resources, simulation);
 
         self.completed = true;
     }

@@ -9,11 +9,12 @@ use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
-pub fn encounter_init(context: BattleScriptContext, data: Option<String>) {
-    let globals = context.game_io.resource::<Globals>().unwrap();
+pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<String>) {
+    let globals = api_ctx.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
-    let vm = &context.vms[context.vm_index];
+    let vms = api_ctx.resources.vm_manager.vms();
+    let vm = &vms[api_ctx.vm_index];
     let lua = &vm.lua;
 
     let encounter_init: rollback_mlua::Function = match lua.globals().get("encounter_init") {
@@ -34,7 +35,7 @@ pub fn encounter_init(context: BattleScriptContext, data: Option<String>) {
         chunk
     });
 
-    let context = RefCell::new(context);
+    let context = RefCell::new(api_ctx);
 
     battle_api.inject_dynamic(lua, &context, |lua| {
         lua.scope(|_| {
@@ -241,13 +242,14 @@ fn inject_spawner_api(lua_api: &mut BattleLuaApi) {
         let package_id: PackageId = table.get("#package_id")?;
         let rank = table.get("#rank")?;
 
-        let vm = &api_ctx.vms[api_ctx.vm_index];
+        let vms = api_ctx.resources.vm_manager.vms();
+        let vm = &vms[api_ctx.vm_index];
         let namespace = vm.preferred_namespace();
 
         let id = Character::load(
             api_ctx.game_io,
+            api_ctx.resources,
             api_ctx.simulation,
-            api_ctx.vms,
             &package_id,
             namespace,
             rank,

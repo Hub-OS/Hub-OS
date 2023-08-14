@@ -167,16 +167,17 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         let vm_index = api_ctx.vm_index;
 
         let callback_key = lua.create_registry_value(callback)?;
-        let callback = BattleCallback::new(move |game_io, simulation, vms, _: ()| {
+        let callback = BattleCallback::new(move |game_io, resources, simulation, _: ()| {
             let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
 
+            let vms = resources.vm_manager.vms();
             let lua = &vms[vm_index].lua;
 
             let api_ctx = RefCell::new(BattleScriptContext {
                 vm_index,
                 game_io,
+                resources,
                 simulation,
-                vms,
             });
 
             lua_api.inject_dynamic(lua, &api_ctx, |lua| {

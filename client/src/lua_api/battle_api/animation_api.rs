@@ -49,7 +49,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -254,7 +254,7 @@ where
         animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });

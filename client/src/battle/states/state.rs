@@ -1,4 +1,4 @@
-use crate::battle::{BattleSimulation, RollbackVM, SharedBattleAssets};
+use crate::battle::{BattleSimulation, SharedBattleResources};
 use crate::render::SpriteColorQueue;
 use framework::prelude::GameIO;
 
@@ -14,9 +14,8 @@ pub trait State {
     fn update(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     );
 
     fn draw_ui<'a>(

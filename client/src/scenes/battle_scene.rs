@@ -38,14 +38,12 @@ pub struct BattleScene {
     ui_camera: Camera,
     textbox: Textbox,
     textbox_is_blocking_input: bool,
-    event_receiver: flume::Receiver<BattleEvent>,
     pending_signals: Vec<NetplaySignal>,
     synced_time: FrameTime,
-    shared_assets: SharedBattleAssets,
+    resources: SharedBattleResources,
     simulation: BattleSimulation,
     state: Box<dyn State>,
     backups: VecDeque<Backup>,
-    vm_manager: BattleVmManager,
     player_controllers: Vec<PlayerController>,
     local_index: Option<usize>,
     senders: Vec<NetplayPacketSender>,
@@ -67,25 +65,31 @@ impl BattleScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let dependencies = globals.battle_dependencies(game_io, &props);
 
+        // create initial simulation
         let mut simulation =
             BattleSimulation::new(game_io, props.background.clone(), props.player_setups.len());
-        let vm_manager = BattleVmManager::new(game_io, &mut simulation, &dependencies);
-        let vms = vm_manager.vms();
 
         // seed before running any vm
         if let Some(seed) = props.seed {
             simulation.seed_random(seed);
         }
 
+        // create shared resources
+        let mut resources = SharedBattleResources::new(game_io);
+
+        // init vms
+        BattleVmManager::init(game_io, &mut resources, &mut simulation, &dependencies);
+
         // load battle package
         if let Some(encounter_package) = props.encounter_package {
+            let vm_manager = &mut resources.vm_manager;
             let vm_index = vm_manager
-                .find_vm(encounter_package.package_info())
+                .find_vm_from_info(encounter_package.package_info())
                 .unwrap();
 
             let context = BattleScriptContext {
                 vm_index,
-                vms: vm_manager.vms(),
+                resources: &mut resources,
                 game_io,
                 simulation: &mut simulation,
             };
@@ -111,7 +115,7 @@ impl BattleScene {
             let rng = &mut simulation.rng;
             setup.deck.shuffle(game_io, rng, setup.namespace());
 
-            let result = Player::load(game_io, &mut simulation, vms, setup);
+            let result = Player::load(game_io, &resources, &mut simulation, setup);
 
             if let Err(e) = result {
                 log::error!("{e}");
@@ -120,22 +124,17 @@ impl BattleScene {
 
         simulation.initialize_uninitialized();
 
-        // events
-        let (event_sender, event_receiver) = flume::unbounded();
-
         Self {
             battle_duration: 0,
             ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io),
             textbox_is_blocking_input: false,
-            event_receiver,
             pending_signals: Vec::new(),
             synced_time: 0,
-            shared_assets: SharedBattleAssets::new(game_io, event_sender),
+            resources,
             simulation,
             state: Box::new(IntroState::new()),
             backups: VecDeque::new(),
-            vm_manager,
             player_controllers,
             local_index,
             senders: std::mem::take(&mut props.senders),
@@ -154,7 +153,7 @@ impl BattleScene {
     }
 
     fn update_textbox(&mut self, game_io: &mut GameIO) {
-        while let Ok(event) = self.event_receiver.try_recv() {
+        while let Ok(event) = self.resources.event_receiver.try_recv() {
             match event {
                 BattleEvent::Description(description) => {
                     if !description.is_empty() {
@@ -191,7 +190,7 @@ impl BattleScene {
 
                     if can_run {
                         // confirm
-                        let event_sender = self.shared_assets.event_sender.clone();
+                        let event_sender = self.resources.event_sender.clone();
                         let text = String::from("Should we run?");
 
                         let interface = TextboxQuestion::new(text, move |yes| {
@@ -216,7 +215,7 @@ impl BattleScene {
                     self.pending_signals.push(NetplaySignal::AttemptingFlee);
                 }
                 BattleEvent::FleeResult(success) => {
-                    let event_sender = self.shared_assets.event_sender.clone();
+                    let event_sender = self.resources.event_sender.clone();
                     let text = if success {
                         String::from("\x01...\x01OK!\nWe got away!")
                     } else {
@@ -549,7 +548,7 @@ impl BattleScene {
     }
 
     fn rollback(&mut self, game_io: &GameIO, steps: usize) {
-        self.vm_manager.rollback(steps);
+        self.resources.vm_manager.rollback(steps);
 
         for _ in 0..steps - 1 {
             self.backups.pop_back();
@@ -563,7 +562,7 @@ impl BattleScene {
 
     fn simulate(&mut self, game_io: &GameIO) {
         if !self.already_snapped {
-            self.vm_manager.snap();
+            self.resources.vm_manager.snap();
 
             let mut simulation_clone = self.simulation.clone(game_io);
 
@@ -589,16 +588,16 @@ impl BattleScene {
 
         let simulation = &mut self.simulation;
         let state = &mut *self.state;
-        let vms = self.vm_manager.vms();
+        let resources = &mut self.resources;
 
         if let Some(index) = self.local_index {
-            simulation.handle_local_signals(index, &mut self.shared_assets);
+            simulation.handle_local_signals(index, resources);
         }
 
         simulation.update_background();
-        simulation.pre_update(game_io, vms, state);
-        state.update(game_io, &mut self.shared_assets, simulation, vms);
-        simulation.post_update(game_io, vms);
+        simulation.pre_update(game_io, resources, state);
+        state.update(game_io, resources, simulation);
+        simulation.post_update(game_io, resources);
 
         if self.backups.len() > INPUT_BUFFER_LIMIT {
             self.backups.pop_front();
@@ -612,7 +611,7 @@ impl BattleScene {
 
         // list vms by memory usage
         if game_io.input().was_key_just_pressed(Key::V) {
-            self.vm_manager.print_memory_usage();
+            self.resources.vm_manager.print_memory_usage();
         }
     }
 

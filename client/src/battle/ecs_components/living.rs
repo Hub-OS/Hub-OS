@@ -68,8 +68,8 @@ impl Living {
 
     pub fn process_hit(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         mut hit_props: HitProperties,
     ) {
@@ -86,7 +86,13 @@ impl Living {
         let defense_rules = living.defense_rules.clone();
 
         // filter statuses through defense rules
-        DefenseJudge::filter_statuses(game_io, simulation, vms, &mut hit_props, &defense_rules);
+        DefenseJudge::filter_statuses(
+            game_io,
+            resources,
+            simulation,
+            &mut hit_props,
+            &defense_rules,
+        );
 
         if time_is_frozen {
             hit_props.flags |= HitFlag::SHAKE;
@@ -110,8 +116,8 @@ impl Living {
 
         hit_props.damage += bonus_damage_callback.call(
             game_io,
+            resources,
             simulation,
-            vms,
             (hit_props.clone(), original_damage),
         );
 
@@ -146,22 +152,24 @@ impl Living {
             // notify aggressor
             let aggressor_id = hit_props.context.aggressor;
 
-            let notify_aggressor = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                let entities = &mut simulation.entities;
-                let Ok(aggressor_entity) = entities.query_one_mut::<&Entity>(aggressor_id.into())
-                else {
-                    return;
-                };
+            let notify_aggressor =
+                BattleCallback::new(move |game_io, resources, simulation, ()| {
+                    let entities = &mut simulation.entities;
+                    let Ok(aggressor_entity) =
+                        entities.query_one_mut::<&Entity>(aggressor_id.into())
+                    else {
+                        return;
+                    };
 
-                let callback = aggressor_entity.counter_callback.clone();
-                callback.call(game_io, simulation, vms, entity_id);
+                    let callback = aggressor_entity.counter_callback.clone();
+                    callback.call(game_io, resources, simulation, entity_id);
 
-                // play counter sfx if the attack was caused by the local player
-                if simulation.local_player_id == aggressor_id {
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    simulation.play_sound(game_io, &globals.sfx.counter_hit);
-                }
-            });
+                    // play counter sfx if the attack was caused by the local player
+                    if simulation.local_player_id == aggressor_id {
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        simulation.play_sound(game_io, &globals.sfx.counter_hit);
+                    }
+                });
 
             simulation.pending_callbacks.push(notify_aggressor);
         }
@@ -185,7 +193,8 @@ impl Living {
 
                 let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();
 
-                if !tile_exists || !can_move_to_callback.call(game_io, simulation, vms, dest.into())
+                if !tile_exists
+                    || !can_move_to_callback.call(game_io, resources, simulation, dest.into())
                 {
                     dest -= delta;
                     break;
@@ -204,9 +213,9 @@ impl Living {
         }
 
         for callback in hit_callbacks {
-            callback.call(game_io, simulation, vms, hit_props.clone());
+            callback.call(game_io, resources, simulation, hit_props.clone());
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
     }
 }

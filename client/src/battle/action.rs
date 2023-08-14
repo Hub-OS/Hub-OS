@@ -1,6 +1,6 @@
 use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field,
-    RollbackVM,
+    SharedBattleResources,
 };
 use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
 use crate::lua_api::create_entity_table;
@@ -65,8 +65,8 @@ impl Action {
 
     pub fn create_from_card_properties(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         namespace: PackageNamespace,
         card_props: &CardProperties,
@@ -77,11 +77,12 @@ impl Action {
             return None;
         }
 
-        let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
+        let Ok(vm_index) = resources.vm_manager.find_vm(package_id, namespace) else {
             log::error!("Failed to find vm for {package_id}");
             return None;
         };
 
+        let vms = resources.vm_manager.vms();
         let lua = &vms[vm_index].lua;
         let Ok(card_init) = lua.globals().get::<_, rollback_mlua::Function>("card_init") else {
             log::error!("{package_id} is missing card_init()");
@@ -90,7 +91,7 @@ impl Action {
 
         let api_ctx = RefCell::new(BattleScriptContext {
             vm_index,
-            vms,
+            resources,
             game_io,
             simulation,
         });
@@ -138,8 +139,8 @@ impl Action {
 
     pub fn execute(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         action_index: generational_arena::Index,
     ) {
         let action = &mut simulation.actions[action_index];
@@ -184,7 +185,7 @@ impl Action {
 
         // execute callback
         if let Some(callback) = action.execute_callback.take() {
-            callback.call(game_io, simulation, vms, ());
+            callback.call(game_io, resources, simulation, ());
         }
 
         let entity = simulation
@@ -207,28 +208,29 @@ impl Action {
         }
 
         // animation end callback
-        let animation_end_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-            let Some(action) = simulation.actions.get_mut(action_index) else {
-                return;
-            };
+        let animation_end_callback =
+            BattleCallback::new(move |game_io, resources, simulation, _| {
+                let Some(action) = simulation.actions.get_mut(action_index) else {
+                    return;
+                };
 
-            if let Some(callback) = action.animation_end_callback.clone() {
-                callback.call(game_io, simulation, vms, ());
-            }
+                if let Some(callback) = action.animation_end_callback.clone() {
+                    callback.call(game_io, resources, simulation, ());
+                }
 
-            let Some(action) = simulation.actions.get_mut(action_index) else {
-                return;
-            };
+                let Some(action) = simulation.actions.get_mut(action_index) else {
+                    return;
+                };
 
-            if matches!(action.lockout_type, ActionLockout::Animation) {
-                simulation.delete_actions(game_io, vms, &[action_index]);
-            }
-        });
+                if matches!(action.lockout_type, ActionLockout::Animation) {
+                    simulation.delete_actions(game_io, resources, &[action_index]);
+                }
+            });
 
         animator.on_complete(animation_end_callback.clone());
 
-        let interrupt_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-            animation_end_callback.call(game_io, simulation, vms, ());
+        let interrupt_callback = BattleCallback::new(move |game_io, resources, simulation, _| {
+            animation_end_callback.call(game_io, resources, simulation, ());
         });
 
         animator.on_interrupt(interrupt_callback);

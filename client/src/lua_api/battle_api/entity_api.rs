@@ -481,7 +481,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         animator.apply(root_node);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -570,7 +570,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
 
         let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
-        let can_move = can_move_to_callback.call(api_ctx.game_io, simulation, api_ctx.vms, dest);
+        let can_move =
+            can_move_to_callback.call(api_ctx.game_io, api_ctx.resources, simulation, dest);
 
         lua.pack_multi(can_move)
     });
@@ -633,7 +634,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.vms, id);
+        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.resources, id);
 
         lua.pack_multi(())
     });
@@ -645,7 +646,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+        simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
         lua.pack_multi(())
     });
@@ -660,7 +661,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
             let is_living = simulation
                 .entities
@@ -686,7 +687,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
             if simulation.entities.contains(id.into()) {
                 crate::battle::delete_character_animation(simulation, id, explosion_count);
@@ -785,11 +786,12 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
         let id = Character::load(
             api_ctx.game_io,
+            api_ctx.resources,
             api_ctx.simulation,
-            api_ctx.vms,
             &package_id,
             namespace,
             rank,
@@ -1342,7 +1344,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 let augment = player.augments.remove(index).unwrap();
 
                 if let Some(callback) = augment.delete_callback {
-                    callback.call(api_ctx.game_io, simulation, api_ctx.vms, ());
+                    callback.call(api_ctx.game_io, api_ctx.resources, simulation, ());
                 }
             }
         } else if level_boost > 0 {
@@ -1356,14 +1358,14 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let package_info = &package.package_info;
 
-            let vms = api_ctx.vms;
-            let vm_index =
-                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+            let vm_manager = &api_ctx.resources.vm_manager;
+            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
 
             let index = player
                 .augments
                 .insert(Augment::from((package, level_boost as usize)));
 
+            let vms = vm_manager.vms();
             let lua = &vms[vm_index].lua;
             let has_init = lua
                 .globals()
@@ -1373,7 +1375,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             if has_init {
                 let result = api_ctx.simulation.call_global(
                     api_ctx.game_io,
-                    vms,
+                    api_ctx.resources,
                     vm_index,
                     "augment_init",
                     move |lua| create_augment_table(lua, id, index),
@@ -1480,9 +1482,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let api_ctx = &mut *api_ctx.borrow_mut();
             let game_io = api_ctx.game_io;
             let simulation = &mut api_ctx.simulation;
-            let vms = api_ctx.vms;
+            let resources = &mut api_ctx.resources;
 
-            let time = Player::calculate_charge_time(game_io, simulation, vms, id, level);
+            let time = Player::calculate_charge_time(game_io, resources, simulation, id, level);
 
             lua.pack_multi(time)
         },
@@ -1773,8 +1775,8 @@ fn attempt_movement<'lua>(
 
     if !entity.can_move_to_callback.clone().call(
         api_ctx.game_io,
+        api_ctx.resources,
         simulation,
-        api_ctx.vms,
         movement.dest,
     ) {
         return lua.pack_multi(false);

@@ -1,5 +1,5 @@
-use super::BattleScriptContext;
-use crate::battle::{BattleSimulation, RollbackVM};
+use super::{BattleScriptContext, SharedBattleResources};
+use crate::battle::BattleSimulation;
 use crate::lua_api::VM_INDEX_REGISTRY_KEY;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
@@ -12,7 +12,8 @@ where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
 {
-    callback: Arc<dyn Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send>,
+    callback:
+        Arc<dyn Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R + Sync + Send>,
 }
 
 impl<P, R> BattleCallback<P, R>
@@ -21,7 +22,10 @@ where
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
 {
     pub fn new(
-        callback: impl Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send + 'static,
+        callback: impl Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R
+            + Sync
+            + Send
+            + 'static,
     ) -> Self {
         Self {
             callback: Arc::new(callback),
@@ -47,13 +51,13 @@ where
         let key = lua.create_registry_value(function)?;
 
         Ok(BattleCallback::new(
-            move |game_io, simulation, vms, params| {
-                let lua = &vms[vm_index].lua;
+            move |game_io, resources, simulation, params| {
+                let lua = &resources.vm_manager.vms()[vm_index].lua;
                 let lua_callback: rollback_mlua::Function = lua.registry_value(&key).unwrap();
 
                 let api_ctx = RefCell::new(BattleScriptContext {
                     vm_index,
-                    vms,
+                    resources,
                     game_io,
                     simulation,
                 });
@@ -85,11 +89,11 @@ where
     pub fn call(
         &self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         params: P,
     ) -> R {
-        (self.callback)(game_io, simulation, vms, params)
+        (self.callback)(game_io, resources, simulation, params)
     }
 }
 

@@ -1,8 +1,9 @@
 use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
-use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM};
+use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources};
 use crate::packages::{PackageInfo, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
 use framework::prelude::GameIO;
+use packets::structures::PackageId;
 use std::cell::RefCell;
 
 // 1 MiB
@@ -13,34 +14,26 @@ pub struct BattleVmManager {
 }
 
 impl BattleVmManager {
-    pub fn new(
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        dependencies: &[(&PackageInfo, PackageNamespace)],
-    ) -> Self {
-        let mut manager = Self { vms: Vec::new() };
-
-        manager.init(game_io, simulation, dependencies);
-
-        manager
+    pub fn new() -> Self {
+        Self { vms: Vec::new() }
     }
 
-    fn init(
-        &mut self,
+    pub fn init(
         game_io: &GameIO,
+        resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
         dependencies: &[(&PackageInfo, PackageNamespace)],
     ) {
         for (package_info, namespace) in dependencies {
             if package_info.package_category.requires_vm() {
-                self.ensure_vm(game_io, simulation, package_info, *namespace);
+                Self::ensure_vm(game_io, resources, simulation, package_info, *namespace);
             }
         }
     }
 
     fn ensure_vm(
-        &mut self,
         game_io: &GameIO,
+        resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
         package_info: &PackageInfo,
         namespace: PackageNamespace,
@@ -49,11 +42,11 @@ impl BattleVmManager {
         // before being passed to this function
         assert_ne!(namespace, PackageNamespace::Local);
 
-        let existing_vm = self.find_vm(package_info);
+        let existing_vm = resources.vm_manager.find_vm_from_info(package_info);
 
         if let Some(vm_index) = existing_vm {
             // recycle a vm
-            let vm = &mut self.vms[vm_index];
+            let vm = &mut resources.vm_manager.vms[vm_index];
 
             if !vm.namespaces.contains(&namespace) {
                 vm.namespaces.push(namespace);
@@ -61,12 +54,12 @@ impl BattleVmManager {
         }
 
         // new vm
-        self.create_vm(game_io, simulation, package_info, namespace)
+        Self::create_vm(game_io, resources, simulation, package_info, namespace)
     }
 
     fn create_vm(
-        &mut self,
         game_io: &GameIO,
+        resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
         package_info: &PackageInfo,
         namespace: PackageNamespace,
@@ -88,10 +81,12 @@ impl BattleVmManager {
             path: package_info.script_path.clone(),
         };
 
-        let vm_index = self.vms.len();
-        self.vms.push(vm);
+        let vms = &mut resources.vm_manager.vms;
+        let vm_index = vms.len();
+        vms.push(vm);
 
-        let lua = &self.vms.last().unwrap().lua;
+        let vms = &resources.vm_manager.vms;
+        let lua = &vms.last().unwrap().lua;
         lua.set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
             .unwrap();
 
@@ -99,7 +94,7 @@ impl BattleVmManager {
 
         let api_ctx = RefCell::new(BattleScriptContext {
             vm_index,
-            vms: &self.vms,
+            resources,
             game_io,
             simulation,
         });
@@ -113,10 +108,31 @@ impl BattleVmManager {
         &self.vms
     }
 
-    pub fn find_vm(&self, package_info: &PackageInfo) -> Option<usize> {
+    pub fn find_vm_from_info(&self, package_info: &PackageInfo) -> Option<usize> {
         self.vms
             .iter()
             .position(|vm| vm.path == package_info.script_path)
+    }
+
+    pub fn find_vm(
+        &self,
+        package_id: &PackageId,
+        namespace: PackageNamespace,
+    ) -> rollback_mlua::Result<usize> {
+        let vm_index = namespace
+            .find_with_overrides(|namespace| {
+                self.vms.iter().position(|vm| {
+                    vm.package_id == *package_id && vm.namespaces.contains(&namespace)
+                })
+            })
+            .ok_or_else(|| {
+                rollback_mlua::Error::RuntimeError(format!(
+                    "no package with id {:?} found",
+                    package_id
+                ))
+            })?;
+
+        Ok(vm_index)
     }
 
     pub fn snap(&mut self) {
