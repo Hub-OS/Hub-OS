@@ -182,6 +182,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(LuaVector::from(entity.tile_offset))
     });
 
+    setter(
+        lua_api,
+        "set_tile_offset",
+        |entity: &mut Entity, _, offset: (f32, f32)| {
+            entity.tile_offset = offset.into();
+            Ok(())
+        },
+    );
+
     getter(lua_api, "offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.offset))
     });
