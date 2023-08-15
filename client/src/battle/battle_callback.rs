@@ -10,7 +10,7 @@ use std::sync::Arc;
 pub struct BattleCallback<P = (), R = ()>
 where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
     callback:
         Arc<dyn Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R + Sync + Send>,
@@ -19,7 +19,7 @@ where
 impl<P, R> BattleCallback<P, R>
 where
     P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
     pub fn new(
         callback: impl Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R
@@ -32,6 +32,34 @@ where
         }
     }
 
+    pub fn call(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        params: P,
+    ) -> R {
+        (self.callback)(game_io, resources, simulation, params)
+    }
+}
+
+impl<P, R> BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::ToLuaMulti<'lua> + Send + Sync + Copy + 'static,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
+{
+    pub fn bind(self, params: P) -> BattleCallback<(), R> {
+        BattleCallback::new(move |game_io, resources, simulation, _| {
+            self.call(game_io, resources, simulation, params)
+        })
+    }
+}
+
+impl<P, R> BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+{
     pub fn new_transformed_lua_callback<'lua, F>(
         lua: &'lua rollback_mlua::Lua,
         vm_index: usize,
@@ -84,16 +112,6 @@ where
         function: rollback_mlua::Function<'lua>,
     ) -> rollback_mlua::Result<Self> {
         Self::new_transformed_lua_callback(lua, vm_index, function, |_, lua, p| lua.pack_multi(p))
-    }
-
-    pub fn call(
-        &self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-        params: P,
-    ) -> R {
-        (self.callback)(game_io, resources, simulation, params)
     }
 }
 

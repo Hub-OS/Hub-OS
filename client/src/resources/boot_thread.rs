@@ -19,6 +19,7 @@ pub enum BootEvent {
     CardManager(PackageManager<CardPackage>),
     EncounterManager(PackageManager<EncounterPackage>),
     AugmentManager(PackageManager<AugmentPackage>),
+    StatusManager(PackageManager<StatusPackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
     Done,
@@ -137,6 +138,15 @@ impl BootThread {
         );
 
         self.send(BootEvent::AugmentManager(augment_packages));
+
+        // load statuses
+        let status_packages = self.load_package_folder(
+            PackageCategory::Status,
+            "./mods/statuses",
+            "Loading Statuses",
+        );
+
+        self.send(BootEvent::StatusManager(status_packages));
 
         // load libraries
         let library_packages = self.load_package_folder(

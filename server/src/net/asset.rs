@@ -274,13 +274,25 @@ impl Asset {
             PackageCategory::Character,
         );
 
+        let aug_iter =
+            Self::resolve_dependency_category(dependencies, "augment", PackageCategory::Augment);
+
         let card_iter =
             Self::resolve_dependency_category(dependencies, "cards", PackageCategory::Card);
 
         let lib_iter =
             Self::resolve_dependency_category(dependencies, "libraries", PackageCategory::Library);
 
-        Some(char_iter.chain(card_iter).chain(lib_iter))
+        let status_iter =
+            Self::resolve_dependency_category(dependencies, "statuses", PackageCategory::Status);
+
+        Some(
+            char_iter
+                .chain(aug_iter)
+                .chain(card_iter)
+                .chain(lib_iter)
+                .chain(status_iter),
+        )
     }
 
     fn resolve_dependency_category<'a>(

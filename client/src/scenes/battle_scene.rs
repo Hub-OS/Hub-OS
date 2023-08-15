@@ -1,6 +1,6 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
-use crate::lua_api::{encounter_init, BattleVmManager};
+use crate::lua_api::encounter_init;
 use crate::packages::{Package, PackageNamespace};
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
@@ -75,10 +75,7 @@ impl BattleScene {
         }
 
         // create shared resources
-        let mut resources = SharedBattleResources::new(game_io);
-
-        // init vms
-        BattleVmManager::init(game_io, &mut resources, &mut simulation, &dependencies);
+        let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
         // load battle package
         if let Some(encounter_package) = props.encounter_package {

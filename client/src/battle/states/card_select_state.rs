@@ -829,7 +829,11 @@ impl CardSelectState {
 
                 let mut card_properties = card_packages
                     .package_or_override(namespace, &card.package_id)
-                    .map(|package| package.card_properties.clone())
+                    .map(|package| {
+                        let status_registry = &resources.status_registry;
+
+                        package.card_properties.to_bindable(status_registry)
+                    })
                     .unwrap_or_default();
 
                 card_properties.code = card.code.clone();

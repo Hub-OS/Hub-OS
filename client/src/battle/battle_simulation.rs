@@ -270,7 +270,7 @@ impl BattleSimulation {
 
         if state.allows_animation_updates() {
             // update animations
-            self.update_animations();
+            self.update_animations(resources);
         }
 
         // process disconnects
@@ -310,7 +310,8 @@ impl BattleSimulation {
         self.time += 1;
     }
 
-    pub fn update_animations(&mut self) {
+    pub fn update_animations(&mut self, resources: &SharedBattleResources) {
+        let status_registry = &resources.status_registry;
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
         for (id, entity) in self.entities.query::<&Entity>().into_iter() {
@@ -319,7 +320,7 @@ impl BattleSimulation {
             }
 
             if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_inactionable() {
+                if living.status_director.is_inactionable(status_registry) {
                     continue;
                 }
             }
@@ -344,7 +345,7 @@ impl BattleSimulation {
             }
 
             if let Ok(living) = self.entities.query_one_mut::<&Living>(action.entity.into()) {
-                if living.status_director.is_inactionable() {
+                if living.status_director.is_inactionable(status_registry) {
                     continue;
                 }
             }
@@ -539,7 +540,11 @@ impl BattleSimulation {
         self.local_health_ui.update();
     }
 
-    pub fn is_entity_actionable(&mut self, entity_id: EntityId) -> bool {
+    pub fn is_entity_actionable(
+        &mut self,
+        resources: &SharedBattleResources,
+        entity_id: EntityId,
+    ) -> bool {
         let entities = &mut self.entities;
 
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
@@ -555,7 +560,8 @@ impl BattleSimulation {
         }
 
         if let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) {
-            return !living.status_director.is_inactionable();
+            let status_registry = &resources.status_registry;
+            return !living.status_director.is_inactionable(status_registry);
         };
 
         true

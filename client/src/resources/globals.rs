@@ -29,6 +29,7 @@ pub struct Globals {
     pub encounter_packages: PackageManager<EncounterPackage>,
     pub character_packages: PackageManager<CharacterPackage>,
     pub augment_packages: PackageManager<AugmentPackage>,
+    pub status_packages: PackageManager<StatusPackage>,
     pub library_packages: PackageManager<LibraryPackage>,
     pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
@@ -122,6 +123,7 @@ impl Globals {
             encounter_packages: PackageManager::new(PackageCategory::Encounter),
             character_packages: PackageManager::new(PackageCategory::Character),
             augment_packages: PackageManager::new(PackageCategory::Augment),
+            status_packages: PackageManager::new(PackageCategory::Status),
             library_packages: PackageManager::new(PackageCategory::Library),
             resource_packages,
             battle_api: BattleLuaApi::new(),
@@ -225,6 +227,10 @@ impl Globals {
                 log::error!("Attempt to load virtual Resource package");
                 None
             }
+            PackageCategory::Status => {
+                self.status_packages
+                    .load_virtual_package(&self.assets, namespace, hash)
+            }
         }?;
 
         // load child packages
@@ -270,6 +276,10 @@ impl Globals {
             }
             PackageCategory::Resource => {
                 self.resource_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Status => {
+                self.status_packages
                     .load_package(&self.assets, namespace, path)
             }
         }?;
@@ -326,6 +336,10 @@ impl Globals {
             }
             PackageCategory::Resource => {
                 self.resource_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Status => {
+                self.status_packages
                     .unload_package(&self.assets, namespace, id);
             }
         }
@@ -473,6 +487,10 @@ impl Globals {
                 .resource_packages
                 .package(namespace, id)
                 .map(|package| package.package_info()),
+            PackageCategory::Status => self
+                .status_packages
+                .package(namespace, id)
+                .map(|package| package.package_info()),
         }
     }
 
@@ -509,6 +527,10 @@ impl Globals {
                 .map(|package| package.package_info()),
             PackageCategory::Resource => self
                 .resource_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Status => self
+                .status_packages
                 .package_or_override(namespace, id)
                 .map(|package| package.package_info()),
         }
@@ -548,6 +570,10 @@ impl Globals {
                 .map(|package| package.create_package_listing()),
             PackageCategory::Resource => self
                 .resource_packages
+                .package(namespace, id)
+                .map(|package| package.create_package_listing()),
+            PackageCategory::Status => self
+                .status_packages
                 .package(namespace, id)
                 .map(|package| package.create_package_listing()),
         }

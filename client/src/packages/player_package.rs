@@ -1,7 +1,6 @@
 use super::*;
 use crate::battle::{BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources};
 use crate::bindable::Element;
-use crate::lua_api::BattleVmManager;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::{Animator, Background};
 use crate::resources::{Globals, ResourcePaths};
@@ -60,8 +59,7 @@ impl PlayerPackage {
         ));
 
         let dependencies = globals.package_dependency_iter(inital_iter);
-        let mut resources = SharedBattleResources::new(game_io);
-        BattleVmManager::init(game_io, &mut resources, &mut simulation, &dependencies);
+        let resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
         // load player into the simulation
         let setup = PlayerSetup::new(self, 0, true);

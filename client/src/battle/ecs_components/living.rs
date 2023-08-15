@@ -136,9 +136,11 @@ impl Living {
             living.hit = true
         }
 
+        let status_registry = &resources.status_registry;
+
         // handle counter
         if living.counterable
-            && !living.status_director.is_inactionable()
+            && !living.status_director.is_inactionable(status_registry)
             && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
             && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0
         {
@@ -175,7 +177,8 @@ impl Living {
         }
 
         // apply statuses
-        living.status_director.apply_hit_flags(hit_props.flags);
+        let status_director = &mut living.status_director;
+        status_director.apply_hit_flags(status_registry, hit_props.flags);
 
         // store callbacks
         let hit_callbacks = living.hit_callbacks.clone();

@@ -37,15 +37,8 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let card_packages = &globals.card_packages;
 
             if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
-                if let Some(code) = code {
-                    // clone to update code
-                    let mut card_properties = package.card_properties.clone();
-                    card_properties.code = code;
-                    lua.pack_multi(card_properties)
-                } else {
-                    // avoid clone
-                    lua.pack_multi(&package.card_properties)
-                }
+                let status_registry = &api_ctx.resources.status_registry;
+                lua.pack_multi(package.card_properties.to_bindable(status_registry))
             } else {
                 lua.pack_multi(CardProperties {
                     code: code.unwrap_or_default(),

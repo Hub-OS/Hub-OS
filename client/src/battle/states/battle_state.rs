@@ -433,7 +433,7 @@ impl BattleState {
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
-            if let Some((entity_id, action_index, animator, mut status_director)) =
+            if let Some((entity_id, action_index, animator, status_director)) =
                 time_freeze_tracker.take_character_backup()
             {
                 if let Ok((entity, living)) = simulation
@@ -453,8 +453,6 @@ impl BattleState {
                     // restore animator
                     simulation.animators[entity.animator_index] = animator;
 
-                    // restore status director
-                    std::mem::swap(&mut living.status_director, &mut status_director);
                     // merge to retain statuses gained from time freeze
                     living.status_director.merge(status_director);
                 }
@@ -778,6 +776,7 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         let player_ids: Vec<_> = entities
@@ -802,7 +801,7 @@ impl BattleState {
             let input = &simulation.inputs[player.index];
 
             // normal attack and charged attack
-            if entity.deleted || living.status_director.input_locked_out() {
+            if entity.deleted || living.status_director.input_locked_out(status_registry) {
                 player.cancel_charge();
                 continue;
             }
@@ -875,13 +874,15 @@ impl BattleState {
 
         let mut movement_tests = Vec::new();
 
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         for (id, (entity, living, player)) in
             entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
         {
             // can't move if there's a blocking card action or immoble
-            if entity.action_index.is_some() || living.status_director.is_immobile() {
+            if entity.action_index.is_some() || living.status_director.is_immobile(status_registry)
+            {
                 continue;
             }
 
@@ -1013,6 +1014,7 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
@@ -1020,7 +1022,7 @@ impl BattleState {
                 continue;
             }
 
-            if !living.status_director.is_inactionable() {
+            if !living.status_director.is_inactionable(status_registry) {
                 callbacks.push(entity.update_callback.clone());
 
                 let mut player_query = entities.query_one::<&Player>(id).unwrap();
@@ -1047,10 +1049,14 @@ impl BattleState {
 
             // process statuses as long as the entity isn't being dragged
             if !living.status_director.is_dragged() {
-                living.status_director.update(&simulation.inputs);
+                let status_director = &mut living.status_director;
+                status_director.update(status_registry, &simulation.inputs);
 
-                // status callbacks
-                for hit_flag in living.status_director.take_new_statuses() {
+                // status destructors
+                callbacks.extend(status_director.take_ready_destructors());
+
+                // new status callbacks
+                for hit_flag in status_director.take_new_statuses() {
                     if hit_flag & HitFlag::FLASH != HitFlag::NONE {
                         // apply intangible
 
@@ -1061,7 +1067,7 @@ impl BattleState {
                                 .query_one_mut::<&mut Living>(id)
                                 .unwrap();
 
-                            living.status_director.remove_status(hit_flag)
+                            living.status_director.remove_status(HitFlag::FLASH)
                         });
 
                         living.intangibility.enable(IntangibleRule {
@@ -1069,6 +1075,10 @@ impl BattleState {
                             deactivate_callback: Some(callback),
                             ..Default::default()
                         });
+                    }
+
+                    if let Some(callback) = status_registry.status_constructor(hit_flag) {
+                        callbacks.push(callback.bind(id.into()));
                     }
 
                     // call registered status callbacks
@@ -1107,6 +1117,7 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        let status_registry = &resources.status_registry;
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
 
@@ -1115,7 +1126,7 @@ impl BattleState {
                 entity.spawned && !entity.deleted && entity.time_frozen_count == 0;
 
             if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_immobile() {
+                if living.status_director.is_immobile(status_registry) {
                     update_progress = false;
                 }
             }
@@ -1317,7 +1328,7 @@ impl BattleState {
                     continue;
                 }
 
-                if !simulation.is_entity_actionable(entity_id) {
+                if !simulation.is_entity_actionable(resources, entity_id) {
                     continue;
                 }
 

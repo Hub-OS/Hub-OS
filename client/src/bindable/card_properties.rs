@@ -1,11 +1,12 @@
-use super::{CardClass, Element, HitFlags};
+use super::{CardClass, Element, HitFlag, HitFlags};
+use crate::battle::StatusRegistry;
 use crate::packages::PackageId;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct CardProperties {
+pub struct CardProperties<H = HitFlags> {
     pub package_id: PackageId,
     pub code: String,
     pub short_name: String,
@@ -14,7 +15,7 @@ pub struct CardProperties {
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
-    pub hit_flags: HitFlags,
+    pub hit_flags: H,
     pub can_boost: bool,
     pub counterable: bool,
     pub time_freeze: bool,
@@ -22,7 +23,7 @@ pub struct CardProperties {
     pub meta_classes: Vec<String>,
 }
 
-impl Default for CardProperties {
+impl<H: Default> Default for CardProperties<H> {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
@@ -34,7 +35,7 @@ impl Default for CardProperties {
             secondary_element: Element::None,
             time_freeze: false,
             card_class: CardClass::Standard,
-            hit_flags: 0,
+            hit_flags: Default::default(),
             can_boost: true,
             counterable: true,
             skip_time_freeze_intro: false,
@@ -93,6 +94,31 @@ impl CardProperties {
         text_style.font_style = FontStyle::GradientOrange;
         text_style.bounds.x += name_width + text_style.letter_spacing;
         text_style.draw(game_io, sprite_queue, &damage_text);
+    }
+}
+
+impl CardProperties<Vec<String>> {
+    pub fn to_bindable(&self, registry: &StatusRegistry) -> CardProperties<HitFlags> {
+        CardProperties::<HitFlags> {
+            package_id: self.package_id.clone(),
+            code: self.code.clone(),
+            short_name: self.short_name.clone(),
+            damage: self.damage,
+            boosted_damage: self.boosted_damage,
+            element: self.element,
+            secondary_element: self.secondary_element,
+            card_class: self.card_class,
+            hit_flags: self
+                .hit_flags
+                .iter()
+                .map(|flag| HitFlag::from_str(registry, flag))
+                .fold(0, |acc, flag| acc | flag),
+            can_boost: self.can_boost,
+            counterable: self.counterable,
+            time_freeze: self.time_freeze,
+            skip_time_freeze_intro: self.skip_time_freeze_intro,
+            meta_classes: self.meta_classes.clone(),
+        }
     }
 }
 

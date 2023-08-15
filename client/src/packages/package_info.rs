@@ -66,6 +66,7 @@ impl PackageInfo {
             self.process_dependencies(dep_table, "cards", PackageCategory::Card);
             self.process_dependencies(dep_table, "characters", PackageCategory::Character);
             self.process_dependencies(dep_table, "libraries", PackageCategory::Library);
+            self.process_dependencies(dep_table, "statuses", PackageCategory::Status);
         }
 
         if let Some(defines_table) = meta_table.get("defines") {

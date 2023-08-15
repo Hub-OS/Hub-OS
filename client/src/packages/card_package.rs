@@ -1,5 +1,5 @@
 use super::*;
-use crate::bindable::{CardProperties, HitFlag};
+use crate::bindable::CardProperties;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 
@@ -32,7 +32,7 @@ pub struct CardPackage {
     pub package_info: PackageInfo,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
-    pub card_properties: CardProperties,
+    pub card_properties: CardProperties<Vec<String>>,
     pub description: String,
     pub long_description: String,
     pub limit: usize,
@@ -108,11 +108,7 @@ impl Package for CardPackage {
         package.card_properties.card_class = meta.card_class.into();
 
         if let Some(hit_flags) = meta.hit_flags {
-            package.card_properties.hit_flags = hit_flags
-                .into_iter()
-                .map(|flag| HitFlag::from_str(&flag))
-                .reduce(|acc, item| acc | item)
-                .unwrap_or_default();
+            package.card_properties.hit_flags = hit_flags;
         }
 
         if let Some(can_boost) = meta.can_boost {

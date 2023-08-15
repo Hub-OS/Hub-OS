@@ -28,6 +28,7 @@ pub enum PackagePreviewData {
     Encounter,
     Pack,
     Library,
+    Status,
     Resource,
     Unknown,
 }
@@ -47,6 +48,7 @@ impl PackagePreviewData {
                 Some(PackageCategory::Library)
             }
             PackagePreviewData::Resource => Some(PackageCategory::Resource),
+            PackagePreviewData::Status => Some(PackageCategory::Status),
             _ => None,
         }
     }
