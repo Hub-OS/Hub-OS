@@ -1123,7 +1123,25 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    // todo: has_status?
+    // todo: has_status? status_duration?
+
+    setter(
+        lua_api,
+        "apply_status",
+        |living: &mut Living, _, (hit_flag, duration): (HitFlags, FrameTime)| {
+            living.status_director.apply_status(hit_flag, duration);
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "remove_status",
+        |living: &mut Living, _, hit_flag: HitFlags| {
+            living.status_director.remove_status(hit_flag);
+            Ok(())
+        },
+    );
 
     setter(
         lua_api,
