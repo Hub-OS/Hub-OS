@@ -592,9 +592,15 @@ impl Animator {
             return;
         }
 
-        if self.loop_mode == AnimatorLoopMode::Once && time > frame_list.duration() {
-            if let Some(frame) = frame_list.frames().last() {
+        if self.loop_mode == AnimatorLoopMode::Once && time >= frame_list.duration() {
+            if self.reversed {
+                self.frame_index = 0;
+                self.frame_progress = 0;
+            } else if let Some(frame) = frame_list.frames().last() {
+                let last_index = frame_list.frames().len() - 1;
+
                 self.frame_progress = frame.duration - 1;
+                self.frame_index = last_index;
             }
 
             self.complete = true;
@@ -612,7 +618,7 @@ impl Animator {
 
         let forward = self.loop_mode != AnimatorLoopMode::Bounce || loops % 2 == 0;
 
-        if forward {
+        if forward ^ self.reversed {
             let mut frame_index = 0;
 
             for frame in frame_list.frames() {
