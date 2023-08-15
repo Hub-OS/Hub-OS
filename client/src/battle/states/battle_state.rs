@@ -627,11 +627,7 @@ impl BattleState {
 
         for (id, intangible, defense_rules, attack_boxes) in needs_processing {
             for attack_box in attack_boxes {
-                let AttackBox {
-                    attacker_id,
-                    props: hit_props,
-                    ..
-                } = attack_box;
+                let attacker_id = attack_box.attacker_id;
 
                 // collision callback
                 let entities = &mut simulation.entities;
@@ -650,7 +646,7 @@ impl BattleState {
                     resources,
                     simulation,
                     id.into(),
-                    attacker_id,
+                    &attack_box,
                     &defense_rules,
                     false,
                 );
@@ -664,7 +660,7 @@ impl BattleState {
                 // test tangibility
                 if intangible {
                     if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                        if !living.intangibility.try_pierce(&hit_props) {
+                        if !living.intangibility.try_pierce(&attack_box.props) {
                             continue;
                         }
                     }
@@ -678,7 +674,7 @@ impl BattleState {
                     resources,
                     simulation,
                     id.into(),
-                    attacker_id,
+                    &attack_box,
                     &defense_rules,
                     true,
                 );
@@ -691,7 +687,7 @@ impl BattleState {
                     tile.ignore_attacker(attacker_id);
                 }
 
-                Living::process_hit(game_io, resources, simulation, id.into(), hit_props);
+                Living::process_hit(game_io, resources, simulation, id.into(), attack_box.props);
 
                 // spell attack callback
                 attack_callback.call(game_io, resources, simulation, id.into());

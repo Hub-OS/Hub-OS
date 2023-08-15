@@ -1,4 +1,4 @@
-use super::BattleScriptContext;
+use super::{AttackBox, BattleScriptContext};
 use super::{BattleSimulation, Living, SharedBattleResources};
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties};
 use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
@@ -154,7 +154,7 @@ impl DefenseJudge {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         defender_id: EntityId,
-        attacker_id: EntityId,
+        attack_box: &AttackBox,
         defense_rules: &[DefenseRule],
         collision_only: bool,
     ) {
@@ -184,10 +184,15 @@ impl DefenseJudge {
 
                 let judge_table: LuaTable = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
 
-                let attacker_table = create_entity_table(lua, attacker_id)?;
+                let attacker_table = create_entity_table(lua, attack_box.attacker_id)?;
                 let defender_table = create_entity_table(lua, defender_id)?;
 
-                callback.call::<_, ()>((judge_table, attacker_table, defender_table))?;
+                callback.call::<_, ()>((
+                    judge_table,
+                    attacker_table,
+                    defender_table,
+                    &attack_box.props,
+                ))?;
 
                 Ok(())
             });
