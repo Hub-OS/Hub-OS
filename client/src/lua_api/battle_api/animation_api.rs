@@ -93,6 +93,10 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         Ok(animator.update())
     });
 
+    updater(lua_api, "sync_time", |animator, _, _, time: FrameTime| {
+        Ok(animator.sync_time(time))
+    });
+
     setter(lua_api, "pause", |animator, lua, _: ()| {
         animator.disable();
         lua.pack_multi(())
@@ -100,6 +104,10 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
     setter(lua_api, "resume", |animator, lua, _: ()| {
         animator.enable();
         lua.pack_multi(())
+    });
+
+    getter(lua_api, "completed", |animator, lua, _: ()| {
+        lua.pack_multi(animator.is_complete())
     });
 
     getter(lua_api, "has_state", |animator, lua, state: String| {

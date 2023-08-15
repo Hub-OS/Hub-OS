@@ -308,6 +308,18 @@ impl BattleAnimator {
         pending_callbacks
     }
 
+    #[must_use]
+    pub fn sync_time(&mut self, time: FrameTime) -> Vec<BattleCallback> {
+        let mut pending_callbacks = Vec::new();
+
+        self.internal_update(&mut pending_callbacks, |battle_animator| {
+            battle_animator.animator.sync_time(time);
+            battle_animator.time = time;
+        });
+
+        pending_callbacks
+    }
+
     fn sync(
         &mut self,
         pending_callbacks: &mut Vec<BattleCallback>,
