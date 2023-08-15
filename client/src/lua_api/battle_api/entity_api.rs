@@ -1134,6 +1134,25 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
     // todo: has_status? status_duration?
 
+    getter(
+        lua_api,
+        "remaining_status_time",
+        |living: &Living, lua, hit_flag: HitFlags| {
+            lua.pack_multi(living.status_director.remaining_status_time(hit_flag))
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_remaining_status_time",
+        |living: &mut Living, _, (hit_flag, duration): (HitFlags, FrameTime)| {
+            living
+                .status_director
+                .set_remaining_status_time(hit_flag, duration);
+            Ok(())
+        },
+    );
+
     setter(
         lua_api,
         "apply_status",

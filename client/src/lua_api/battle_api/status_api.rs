@@ -5,6 +5,7 @@ use super::{
 use crate::battle::{BattleCallback, Living};
 use crate::bindable::{EntityId, HitFlag, HitFlags};
 use crate::lua_api::helpers::inherit_metatable;
+use crate::render::FrameTime;
 
 pub fn inject_status_api(lua_api: &mut BattleLuaApi) {
     inject_hit_flag_api(lua_api);
@@ -14,6 +15,45 @@ pub fn inject_status_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(table.raw_get::<_, rollback_mlua::Table>("#entity")?)
     });
+
+    lua_api.add_dynamic_function(STATUS_TABLE, "remaining_time", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = table.raw_get("#entity_id")?;
+        let flag: HitFlags = table.raw_get("#flag")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let living = entities
+            .query_one_mut::<&mut Living>(entity_id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let remaining_time = living.status_director.remaining_status_time(flag);
+        lua.pack_multi(remaining_time)
+    });
+
+    lua_api.add_dynamic_function(
+        STATUS_TABLE,
+        "set_remaining_time",
+        |api_ctx, lua, params| {
+            let (table, duration): (rollback_mlua::Table, FrameTime) = lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = table.raw_get("#entity_id")?;
+            let flag: HitFlags = table.raw_get("#flag")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
+            let living = entities
+                .query_one_mut::<&mut Living>(entity_id.into())
+                .map_err(|_| entity_not_found())?;
+
+            living
+                .status_director
+                .set_remaining_status_time(flag, duration);
+
+            lua.pack_multi(())
+        },
+    );
 
     lua_api.add_dynamic_setter(STATUS_TABLE, DELETE_FN, |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =

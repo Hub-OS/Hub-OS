@@ -110,6 +110,24 @@ impl StatusDirector {
         }
     }
 
+    pub fn set_remaining_status_time(&mut self, status_flag: HitFlags, duration: FrameTime) {
+        if duration <= 0 {
+            self.remove_status(status_flag);
+            return;
+        }
+
+        // find existing status
+        let mut status_iter = self.statuses.iter_mut();
+        let status_search = status_iter.find(|status| status.status_flag == status_flag);
+
+        if let Some(status) = status_search {
+            status.remaining_time = duration;
+        } else {
+            // apply as a new status
+            self.apply_status(status_flag, duration);
+        }
+    }
+
     pub fn input_locked_out(&self, registry: &StatusRegistry) -> bool {
         self.dragged || self.remaining_drag_lockout > 0 || self.is_inactionable(registry)
     }
