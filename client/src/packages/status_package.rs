@@ -1,6 +1,7 @@
-use crate::render::ui::{PackageListing, PackagePreviewData};
-
 use super::*;
+use crate::render::ui::{PackageListing, PackagePreviewData};
+use crate::render::FrameTime;
+use crate::resources::DEFAULT_STATUS_DURATION;
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -14,6 +15,7 @@ struct StatusMeta {
     blocked_by: Vec<String>,
     blocks_actions: bool,
     blocks_mobility: bool,
+    durations: Vec<FrameTime>,
 }
 
 #[derive(Default, Clone)]
@@ -26,6 +28,7 @@ pub struct StatusPackage {
     pub blocked_by: Vec<String>,
     pub blocks_actions: bool,
     pub blocks_mobility: bool,
+    pub durations: Vec<FrameTime>,
 }
 
 impl Package for StatusPackage {
@@ -77,6 +80,11 @@ impl Package for StatusPackage {
         package.blocked_by = meta.blocked_by;
         package.blocks_actions = meta.blocks_actions;
         package.blocks_mobility = meta.blocks_mobility;
+        package.durations = meta.durations;
+
+        if package.durations.is_empty() {
+            package.durations.push(DEFAULT_STATUS_DURATION);
+        }
 
         package
     }

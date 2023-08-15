@@ -83,12 +83,12 @@ impl StatusDirector {
             self.apply_status(hit_flag, duration);
         }
 
-        for hit_flag in status_registry.flags() {
-            if hit_flags & hit_flag == HitFlag::NONE {
+        for registered_status in status_registry.registered_list() {
+            if hit_flags & registered_status.flag == HitFlag::NONE {
                 continue;
             }
 
-            self.apply_status(hit_flag, DEFAULT_STATUS_DURATION);
+            self.apply_status(registered_status.flag, registered_status.durations[0]);
         }
     }
 

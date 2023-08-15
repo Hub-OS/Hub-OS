@@ -2,18 +2,20 @@ use super::BattleCallback;
 use crate::bindable::{EntityId, HitFlag, HitFlags};
 use crate::lua_api::{create_status_table, BattleVmManager, HIT_FLAG_TABLE};
 use crate::packages::{Package, PackageInfo, PackageNamespace};
+use crate::render::FrameTime;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
 
 const STATUS_LIMIT: usize = 32;
 
-struct RegisteredStatus {
-    package_id: PackageId,
-    namespace: PackageNamespace,
-    name: String,
-    flag: HitFlags,
-    constructor: BattleCallback<EntityId>,
+pub struct RegisteredStatus {
+    pub package_id: PackageId,
+    pub namespace: PackageNamespace,
+    pub name: String,
+    pub flag: HitFlags,
+    pub durations: Vec<FrameTime>,
+    pub constructor: BattleCallback<EntityId>,
 }
 
 pub struct StatusBlocker {
@@ -111,6 +113,7 @@ impl StatusRegistry {
                 namespace: *namespace,
                 name: package.flag_name.clone(),
                 flag,
+                durations: package.durations.clone(),
                 constructor,
             });
 
@@ -158,8 +161,8 @@ impl StatusRegistry {
             .map(|item| item.flag)
     }
 
-    pub fn flags(&self) -> impl Iterator<Item = HitFlags> + '_ {
-        self.list.iter().map(|item| item.flag)
+    pub fn registered_list(&self) -> &[RegisteredStatus] {
+        &self.list
     }
 
     pub fn status_constructor(&self, flag: HitFlags) -> Option<BattleCallback<EntityId>> {
