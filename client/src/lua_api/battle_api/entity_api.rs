@@ -983,6 +983,20 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         })
     });
 
+    lua_api.add_dynamic_function(HIT_PROPS_TABLE, "from_card", |_, lua, params| {
+        let (card_properties, context, drag): (CardProperties, Option<HitContext>, Option<Drag>) =
+            lua.unpack_multi(params)?;
+
+        lua.pack_multi(HitProperties {
+            damage: card_properties.damage,
+            flags: card_properties.hit_flags,
+            element: card_properties.element,
+            secondary_element: card_properties.secondary_element,
+            drag: drag.unwrap_or_default(),
+            context: context.unwrap_or_default(),
+        })
+    });
+
     setter(
         lua_api,
         "set_tile_highlight",
