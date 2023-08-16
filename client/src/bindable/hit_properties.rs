@@ -6,7 +6,6 @@ pub struct HitProperties {
     pub flags: HitFlags,
     pub element: Element,
     pub secondary_element: Element,
-    pub aggressor: EntityId,
     pub drag: Drag, // only used if HitFlags::Drag is set
     pub context: HitContext,
 }
@@ -18,7 +17,6 @@ impl Default for HitProperties {
             flags: HitFlag::FLINCH | HitFlag::IMPACT,
             element: Element::None,
             secondary_element: Element::None,
-            aggressor: EntityId::DANGLING,
             drag: Drag::default(),
             context: HitContext::default(),
         }
@@ -32,7 +30,6 @@ impl HitProperties {
             flags: 0,
             element: Element::None,
             secondary_element: Element::None,
-            aggressor: EntityId::DANGLING,
             drag: Drag::default(),
             context: HitContext::default(),
         }
@@ -70,7 +67,6 @@ impl<'lua> rollback_mlua::FromLua<'lua> for HitProperties {
             flags: table.get("flags").unwrap_or_default(),
             element: table.get("element").unwrap_or_default(),
             secondary_element: table.get("secondary_element").unwrap_or_default(),
-            aggressor: table.get("aggressor").unwrap_or_default(),
             drag: table.get("drag").unwrap_or_default(),
             context: table.get("context").unwrap_or_default(),
         })
@@ -96,7 +92,6 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &HitProperties {
         table.set("flags", self.flags)?;
         table.set("element", self.element)?;
         table.set("secondary_element", self.secondary_element)?;
-        table.set("aggressor", self.aggressor)?;
         table.set("drag", self.drag)?;
         table.set("context", &self.context)?;
 

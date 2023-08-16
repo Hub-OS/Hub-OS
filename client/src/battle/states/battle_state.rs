@@ -604,14 +604,6 @@ impl BattleState {
                     continue;
                 }
 
-                if living.ignore_common_aggressor
-                    && Some(attack_box.props.aggressor) == living.aggressor
-                {
-                    // ignore common aggressor
-                    // some entities shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
-                    continue;
-                }
-
                 attack_boxes.push(attack_box.clone());
             }
 

@@ -976,7 +976,6 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
             flags,
             element,
             secondary_element,
-            aggressor: EntityId::default(),
             drag,
             context: context.unwrap_or_default(),
         })
@@ -1036,20 +1035,6 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_living_api(lua_api: &mut BattleLuaApi) {
-    // todo: living.aggressor is never set
-    // is this function necessary?
-    // the documented usage was for preventing bubbles from the same starfish from hitting each other
-    // but then why not just use the same team for bubbles as entities with the same team can't hit each other?
-    // currently leaving as undocumented
-    setter(
-        lua_api,
-        "ignore_common_aggressor",
-        |living: &mut Living, _, enable: Option<bool>| {
-            living.ignore_common_aggressor = enable.unwrap_or(true);
-            Ok(())
-        },
-    );
-
     getter(lua_api, "max_health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.max_health)
     });
