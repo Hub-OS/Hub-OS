@@ -956,20 +956,22 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 
         let secondary_element: Element;
         let context: Option<HitContext>;
-        let drag: Drag;
 
         match lua.unpack(middle_param.clone()) {
             Ok(element) => {
                 secondary_element = element;
-
-                (context, drag) = lua.unpack_multi(rest)?;
+                context = rest
+                    .pop_front()
+                    .map(|value| lua.unpack(value))
+                    .transpose()?;
             }
             Err(_) => {
                 secondary_element = Element::None;
                 context = lua.unpack(middle_param)?;
-                drag = lua.unpack_multi(rest)?;
             }
         };
+
+        let drag = lua.unpack_multi::<Option<Drag>>(rest)?.unwrap_or_default();
 
         lua.pack_multi(HitProperties {
             damage,
