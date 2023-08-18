@@ -29,7 +29,7 @@ pub struct OverworldArea {
 }
 
 impl OverworldArea {
-    pub fn new(game_io: &mut GameIO) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -213,12 +213,12 @@ impl OverworldArea {
         self.player_data.health = self.player_data.max_health();
     }
 
-    pub fn enter(&mut self, game_io: &mut GameIO) {
+    pub fn enter(&mut self, game_io: &GameIO) {
         self.player_data.process_boosts(game_io);
         self.handle_player_changes(game_io);
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO) {
+    pub fn update(&mut self, game_io: &GameIO) {
         self.world_time += 1;
 
         self.map.update(self.world_time);

@@ -799,7 +799,7 @@ impl BattleSimulation {
         Ok(())
     }
 
-    pub fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+    pub fn draw(&mut self, game_io: &GameIO, render_pass: &mut RenderPass) {
         let mut blind_filter = None;
 
         // resolve perspective

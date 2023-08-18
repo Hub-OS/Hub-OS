@@ -388,7 +388,7 @@ impl PackageScene {
         self.textbox.open();
     }
 
-    fn request_author(&mut self, game_io: &mut GameIO) {
+    fn request_author(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let repo = &globals.config.package_repo;

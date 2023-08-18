@@ -536,7 +536,7 @@ impl PacketOrchestrator {
 fn handle_synchronization(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
 ) -> Reliability {
     if !synchronize_updates || synchronize_locked_clients.contains(&connection.socket_address) {
@@ -557,7 +557,7 @@ fn handle_synchronization(
 fn internal_send_packet(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packet: ServerPacket,
 ) {
@@ -576,7 +576,7 @@ fn internal_send_packet(
 fn internal_send_bytes(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     bytes: &[u8],
 ) {
@@ -593,7 +593,7 @@ fn internal_send_bytes(
 fn internal_send_packets(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packets: Vec<ServerPacket>,
 ) {
@@ -614,7 +614,7 @@ fn internal_send_packets(
 fn internal_send_byte_packets(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packets: &[Vec<u8>],
 ) {

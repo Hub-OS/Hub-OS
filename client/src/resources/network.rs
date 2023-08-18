@@ -173,8 +173,7 @@ impl Network {
 }
 
 fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) {
-    let mut buffer = Vec::new();
-    buffer.resize(100000, 0);
+    let mut buffer = vec![0; 100000];
 
     while !packet_sender.is_disconnected() {
         let (addr, bytes) = match socket.recv_from(&mut buffer) {

@@ -25,7 +25,7 @@ pub struct BattleSelectScene {
 }
 
 impl BattleSelectScene {
-    pub fn new(game_io: &mut GameIO) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Box<Self> {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 

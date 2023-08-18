@@ -26,7 +26,7 @@ pub struct BootScene {
 }
 
 impl BootScene {
-    pub fn new(game_io: &mut GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
+    pub fn new(game_io: &GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 

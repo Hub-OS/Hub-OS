@@ -204,7 +204,7 @@ impl PackageUpdatesScene {
         }
     }
 
-    fn handle_events(&mut self, game_io: &mut GameIO) {
+    fn handle_events(&mut self, game_io: &GameIO) {
         if self.next_scene.is_some() || game_io.is_in_transition() {
             return;
         }

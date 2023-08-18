@@ -48,7 +48,7 @@ pub struct DeckEditorScene {
 }
 
 impl DeckEditorScene {
-    pub fn new(game_io: &mut GameIO, deck_index: usize) -> Self {
+    pub fn new(game_io: &GameIO, deck_index: usize) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
         // limits

@@ -20,7 +20,7 @@ pub struct LibraryScene {
 }
 
 impl LibraryScene {
-    pub fn new(game_io: &mut GameIO) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Box<Self> {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -84,7 +84,7 @@ impl LibraryScene {
         scene
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO) {
+    fn handle_input(&mut self, game_io: &GameIO) {
         self.ui_input_tracker.update(game_io);
 
         // dock scrolling

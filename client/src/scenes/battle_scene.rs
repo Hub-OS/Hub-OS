@@ -628,7 +628,7 @@ impl BattleScene {
         globals.audio.pop_music_stack();
     }
 
-    fn core_update(&mut self, game_io: &mut GameIO) {
+    fn core_update(&mut self, game_io: &GameIO) {
         if game_io.is_in_transition() {
             self.simulation.update_background();
             return;

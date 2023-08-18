@@ -287,7 +287,7 @@ impl ResourceOrderScene {
             .collect()
     }
 
-    fn exit(&mut self, game_io: &mut GameIO) {
+    fn exit(&mut self, game_io: &GameIO) {
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);
     }

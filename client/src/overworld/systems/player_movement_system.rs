@@ -9,7 +9,7 @@ const DEFAULT_ICE_SPEED: f32 = 6.0;
 const DEFAULT_TREADMILL_SPEED: f32 = 1.875;
 
 pub fn system_player_movement(
-    game_io: &mut GameIO,
+    game_io: &GameIO,
     area: &mut OverworldArea,
     assets: &impl AssetManager,
 ) {
@@ -17,7 +17,7 @@ pub fn system_player_movement(
     system_tile_effect(game_io, area, assets);
 }
 
-fn system_base(game_io: &mut GameIO, area: &mut OverworldArea) {
+fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
     let input_util = InputUtil::new(game_io);
 
     let input_direction = if area.is_input_locked(game_io) {
@@ -45,7 +45,7 @@ fn system_base(game_io: &mut GameIO, area: &mut OverworldArea) {
     movement_animator.queue_direction(input_direction);
 }
 
-fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &impl AssetManager) {
+fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl AssetManager) {
     let player_data = &area.player_data;
     let entities = &mut area.entities;
 

@@ -15,9 +15,8 @@ impl Identity {
         let file_path = folder.clone() + &address;
 
         let data = std::fs::read(&file_path).unwrap_or_else(|_| {
-            let mut data = Vec::new();
+            let mut data = vec![0; IDENTITY_LEN];
 
-            data.resize(IDENTITY_LEN, 0);
             OsRng.fill_bytes(&mut data);
 
             let _ = std::fs::create_dir_all(&folder);

@@ -32,11 +32,7 @@ pub struct ItemsMenu {
 }
 
 impl ItemsMenu {
-    pub fn new(
-        game_io: &mut GameIO,
-        area: &OverworldArea,
-        on_select: impl Fn(&str) + 'static,
-    ) -> Self {
+    pub fn new(game_io: &GameIO, area: &OverworldArea, on_select: impl Fn(&str) + 'static) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 

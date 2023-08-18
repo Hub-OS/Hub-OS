@@ -50,7 +50,7 @@ pub struct OverworldOnlineScene {
 
 impl OverworldOnlineScene {
     pub fn new(
-        game_io: &mut GameIO,
+        game_io: &GameIO,
         address: String,
         send_packet: ClientPacketSender,
         packet_receiver: flume::Receiver<ServerPacket>,
@@ -1543,7 +1543,7 @@ impl OverworldOnlineScene {
         }
     }
 
-    fn handle_input(&mut self, game_io: &mut GameIO) {
+    fn handle_input(&mut self, game_io: &GameIO) {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::ShoulderR) {

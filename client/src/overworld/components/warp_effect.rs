@@ -37,7 +37,7 @@ pub struct WarpEffect {
 
 impl WarpEffect {
     pub fn spawn(
-        game_io: &mut GameIO,
+        game_io: &GameIO,
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
@@ -99,7 +99,7 @@ impl WarpEffect {
     }
 
     pub fn warp_out(
-        game_io: &mut GameIO,
+        game_io: &GameIO,
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
@@ -118,7 +118,7 @@ impl WarpEffect {
     }
 
     pub fn warp_in(
-        game_io: &mut GameIO,
+        game_io: &GameIO,
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
@@ -139,7 +139,7 @@ impl WarpEffect {
     }
 
     pub fn warp_full(
-        game_io: &mut GameIO,
+        game_io: &GameIO,
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         position: Vec3,
