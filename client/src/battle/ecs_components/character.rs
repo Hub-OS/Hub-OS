@@ -54,24 +54,12 @@ impl Character {
         entity.share_tile = false;
         entity.auto_reserves_tiles = true;
 
-        // hit callback for alert symbol
-        living.register_hit_callback(BattleCallback::new(
-            move |game_io, _, simulation, hit_props: HitProperties| {
-                if hit_props.damage == 0 {
-                    return;
-                }
-
-                let entity = simulation
-                    .entities
-                    .query_one_mut::<&Entity>(id.into())
-                    .unwrap();
-
-                if !entity.element.is_weak_to(hit_props.element)
-                    && !entity.element.is_weak_to(hit_props.secondary_element)
-                {
-                    // not super effective
-                    return;
-                }
+        let elemental_weakness_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
+                let entities = &mut simulation.entities;
+                let entity = entities.query_one_mut::<&Entity>(id.into()).unwrap();
 
                 // spawn alert artifact
                 let mut alert_position = entity.full_position();
@@ -85,8 +73,9 @@ impl Character {
 
                 alert_entity.copy_full_position(alert_position);
                 alert_entity.pending_spawn = true;
-            },
-        ));
+            }));
+
+        living.add_aux_prop(elemental_weakness_aux_prop);
 
         entity.can_move_to_callback = BattleCallback::new(move |_, _, simulation, dest| {
             let tile = match simulation.field.tile_at_mut(dest) {

@@ -18,6 +18,7 @@ struct AppliedStatus {
 
 #[derive(Clone, Default)]
 pub struct StatusDirector {
+    immunity: HitFlags,
     statuses: Vec<AppliedStatus>,
     new_statuses: Vec<AppliedStatus>,
     ready_destructors: Vec<BattleCallback>,
@@ -42,6 +43,14 @@ impl StatusDirector {
         self.remaining_shake_time = 0;
     }
 
+    pub fn clear_immunity(&mut self) {
+        self.immunity = HitFlag::NONE;
+    }
+
+    pub fn add_immunity(&mut self, hit_flags: HitFlags) {
+        self.immunity |= hit_flags;
+    }
+
     pub fn set_input_index(&mut self, input_index: usize) {
         self.input_index = Some(input_index);
     }
@@ -58,7 +67,9 @@ impl StatusDirector {
         status.destructor = destructor;
     }
 
-    pub fn apply_hit_flags(&mut self, status_registry: &StatusRegistry, hit_flags: HitFlags) {
+    pub fn apply_hit_flags(&mut self, status_registry: &StatusRegistry, mut hit_flags: HitFlags) {
+        hit_flags &= !self.immunity;
+
         for hit_flag in HitFlag::BUILT_IN {
             if hit_flags & hit_flag == HitFlag::NONE {
                 continue;
@@ -93,6 +104,10 @@ impl StatusDirector {
     }
 
     pub fn apply_status(&mut self, status_flag: HitFlags, duration: FrameTime) {
+        if status_flag & self.immunity != 0 {
+            return;
+        }
+
         let status_search = self
             .new_statuses
             .iter_mut()

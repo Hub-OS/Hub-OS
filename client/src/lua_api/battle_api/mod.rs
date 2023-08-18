@@ -69,6 +69,8 @@ pub const HIT_PROPS_TABLE: &str = "HitProps";
 pub const HITBOX_TABLE: &str = "Hitbox";
 pub const SHARED_HITBOX_TABLE: &str = "SharedHitbox";
 pub const AUGMENT_TABLE: &str = "Augment";
+pub const AUX_PROP_TABLE: &str = "AuxProp";
+pub const AUX_MATH_TABLE: &str = "AuxMath";
 
 // callbacks
 

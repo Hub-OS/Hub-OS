@@ -579,8 +579,11 @@ impl BattleState {
 
         // interactions between attack boxes and entities
         let mut needs_processing = Vec::new();
+        let mut all_living_ids = Vec::new();
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &Living)>() {
+            all_living_ids.push(id);
+
             if !entity.on_field || entity.deleted || !living.hitbox_enabled || living.health <= 0 {
                 // entity can't be hit
                 continue;
@@ -677,24 +680,17 @@ impl BattleState {
                     tile.ignore_attacker(attacker_id);
                 }
 
-                Living::process_hit(game_io, resources, simulation, id.into(), attack_box.props);
+                if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
+                    living.pending_hits.push(attack_box.props);
+                }
 
                 // spell attack callback
                 attack_callback.call(game_io, resources, simulation, id.into());
             }
+        }
 
-            let living = simulation
-                .entities
-                .query_one_mut::<&mut Living>(id)
-                .unwrap();
-
-            if living.intangibility.is_retangible() {
-                living.intangibility.disable();
-
-                for callback in living.intangibility.take_deactivate_callbacks() {
-                    callback.call(game_io, resources, simulation, ());
-                }
-            }
+        for id in all_living_ids {
+            Living::process_hits(game_io, resources, simulation, id.into());
         }
 
         simulation.field.resolve_wash();

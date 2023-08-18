@@ -63,3 +63,7 @@ pub fn invalid_tile() -> rollback_mlua::Error {
 pub fn mismatched_entity() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("mismatched entity"))
 }
+
+pub fn aux_prop_already_bound() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("auxprop already bound"))
+}

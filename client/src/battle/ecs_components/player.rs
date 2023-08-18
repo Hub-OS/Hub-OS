@@ -219,17 +219,21 @@ impl Player {
             }),
         );
 
-        // hit callback for decross
-        living.register_hit_callback(BattleCallback::new(
-            move |game_io, _, simulation, hit_props: HitProperties| {
-                if hit_props.damage == 0 {
-                    return;
-                }
-
+        // AuxProp for hit statistics
+        let statistics_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_callback(BattleCallback::new(move |_, _, simulation, _| {
                 if local {
                     simulation.statistics.hits_taken += 1;
                 }
+            }));
+        living.add_aux_prop(statistics_aux_prop);
 
+        // AuxProp for decross
+        let decross_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
                 let (entity, living, player) = simulation
                     .entities
                     .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
@@ -237,13 +241,6 @@ impl Player {
 
                 if living.health <= 0 || entity.deleted {
                     // skip decross if we're already deleted
-                    return;
-                }
-
-                if !entity.element.is_weak_to(hit_props.element)
-                    && !entity.element.is_weak_to(hit_props.secondary_element)
-                {
-                    // not super effective
                     return;
                 }
 
@@ -279,8 +276,8 @@ impl Player {
                 // shine position, set to spawn
                 shine_entity.copy_full_position(shine_position);
                 shine_entity.pending_spawn = true;
-            },
-        ));
+            }));
+        living.add_aux_prop(decross_aux_prop);
 
         // resolve health boost
         // todo: move to Augment?

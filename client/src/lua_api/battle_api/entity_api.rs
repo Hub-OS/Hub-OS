@@ -1,7 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    action_aready_used, action_entity_mismatch, action_not_found, entity_not_found,
-    invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
+    action_aready_used, action_entity_mismatch, action_not_found, aux_prop_already_bound,
+    entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
 };
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
@@ -1180,6 +1180,57 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "add_aux_prop", |api_ctx, lua, params| {
+        let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        // find entity
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        // add aux prop
+        let aux_prop_table: rollback_mlua::Table = lua.unpack(value.clone())?;
+
+        if aux_prop_table.contains_key("#id")? {
+            return Err(aux_prop_already_bound());
+        }
+
+        let aux_prop = lua.unpack(value)?;
+        let id = living.add_aux_prop(aux_prop);
+        aux_prop_table.raw_set("#id", GenerationalIndex::from(id))?;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_aux_prop", |api_ctx, lua, params| {
+        let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        // find entity
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        // remove aux prop
+        let aux_prop_table: rollback_mlua::Table = lua.unpack(value)?;
+        let id: GenerationalIndex = aux_prop_table.raw_get("#id")?;
+        living.aux_props.remove(id.into());
+        aux_prop_table.raw_remove("#id")?;
+
+        lua.pack_multi(())
+    });
 
     callback_setter(
         lua_api,

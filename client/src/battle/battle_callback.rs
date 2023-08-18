@@ -137,7 +137,11 @@ where
     }
 }
 
-impl<'lua> rollback_mlua::FromLua<'lua> for BattleCallback {
+impl<'lua, P, R> rollback_mlua::FromLua<'lua> for BattleCallback<P, R>
+where
+    P: for<'a> rollback_mlua::ToLuaMulti<'a>,
+    R: for<'a> rollback_mlua::FromLuaMulti<'a> + Default + Send + Sync + Clone + 'static,
+{
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
         lua: &'lua rollback_mlua::Lua,

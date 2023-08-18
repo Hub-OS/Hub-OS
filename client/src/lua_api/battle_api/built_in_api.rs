@@ -1,38 +1,70 @@
-use crate::{
-    battle::{AttackBox, BattleCallback, Component, Entity, Spell},
-    bindable::{ComponentLifetime, EntityId},
-    lua_api::create_entity_table,
-    render::FrameTime,
-};
-
 use super::{BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, VIRUS_DEFENSE_TABLE};
+use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
+use crate::bindable::{ComponentLifetime, EntityId};
+use crate::lua_api::{create_entity_table, AUX_MATH_TABLE, AUX_PROP_TABLE};
+use crate::render::FrameTime;
 
-macro_rules! built_in {
-    ($lua_api:expr, $file_name:literal, $table_name:expr, $function_name:literal) => {{
-        $lua_api.add_dynamic_function($table_name, $function_name, |_, lua, params| {
-            let function = match lua.named_registry_value($file_name)? {
-                rollback_mlua::Value::Function(function) => function,
-                _ => {
-                    let function = lua
-                        .load(include_str!(concat!("built_in/", $file_name, ".lua")))
-                        .set_name(concat!("built_in/", $file_name, ".lua"))?
-                        .into_function()?;
+// lazy loader for built in tables
+macro_rules! built_in_table {
+    ($lua_api:expr, $file_name:literal, $table_name:expr) => {{
+        $lua_api.add_static_injector(|lua| {
+            let meta_table = lua.create_table()?;
 
-                    lua.set_named_registry_value($file_name, function.clone())?;
+            fn load_table(lua: &rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Table> {
+                let function = lua
+                    .load(include_str!(concat!("built_in/", $file_name, ".lua")))
+                    .set_name(concat!("built_in/", $file_name, ".lua"))?
+                    .into_function()?;
 
-                    function
-                }
-            };
+                // overwrite the table to speed up future calls
+                let table: rollback_mlua::Table = function.call(())?;
+                lua.globals().set($table_name, table.clone())?;
 
-            function.call(params)
+                Ok(table)
+            }
+
+            meta_table.set(
+                "__index",
+                lua.create_function(
+                    |lua, (_, key): (rollback_mlua::Table, rollback_mlua::String)| {
+                        let table = load_table(lua)?;
+                        let value: rollback_mlua::Value = table.get(key)?;
+                        Ok(value)
+                    },
+                )?,
+            )?;
+
+            meta_table.set(
+                "__newindex",
+                lua.create_function(
+                    |lua,
+                     (_, key, value): (
+                        rollback_mlua::Table,
+                        rollback_mlua::String,
+                        rollback_mlua::Value,
+                    )| {
+                        let table = load_table(lua)?;
+                        table.set(key, value)?;
+                        Ok(())
+                    },
+                )?,
+            )?;
+
+            let table = lua.create_table()?;
+            table.set_metatable(Some(meta_table));
+            lua.globals().set($table_name, table)?;
+
+            Ok(())
         });
     }};
 }
 
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
-    built_in!(lua_api, "buster", BUSTER_TABLE, "new");
-    built_in!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE, "new");
-    built_in!(lua_api, "hitbox", HITBOX_TABLE, "new");
+    built_in_table!(lua_api, "buster", BUSTER_TABLE);
+    built_in_table!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE);
+    built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
+    built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
+    built_in_table!(lua_api, "aux_math", AUX_MATH_TABLE);
 
     lua_api.add_dynamic_function(SHARED_HITBOX_TABLE, "new", |api_ctx, lua, params| {
         let (entity_table, lifetime): (rollback_mlua::Table, Option<FrameTime>) =

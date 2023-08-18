@@ -301,5 +301,16 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     globals.set("Input", input_table)?;
 
+    use crate::bindable::Comparison;
+
+    let comparison_table = lua.create_table()?;
+    comparison_table.set("LT", Comparison::LT)?;
+    comparison_table.set("LE", Comparison::LE)?;
+    comparison_table.set("EQ", Comparison::EQ)?;
+    comparison_table.set("NE", Comparison::NE)?;
+    comparison_table.set("GT", Comparison::GT)?;
+    comparison_table.set("GE", Comparison::GE)?;
+    globals.set("Compare", comparison_table)?;
+
     Ok(())
 }
