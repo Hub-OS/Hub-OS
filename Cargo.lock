@@ -1484,6 +1484,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "flume"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55ac459de2512911e4b674ce33cf20befaba382d05b62b008afc1c8b57cbf181"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+ "nanorand",
+ "spin 0.9.8",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1787,7 +1799,7 @@ dependencies = [
  "vec_map",
  "wasm-bindgen",
  "web-sys",
- "windows 0.46.0",
+ "windows 0.48.0",
 ]
 
 [[package]]
@@ -2090,7 +2102,7 @@ dependencies = [
  "enum-map",
  "field_count",
  "flate2",
- "flume 0.10.14",
+ "flume 0.11.0",
  "framework",
  "futures",
  "generational-arena",
@@ -2133,7 +2145,7 @@ dependencies = [
  "byteorder",
  "clap",
  "flate2",
- "flume 0.10.14",
+ "flume 0.11.0",
  "futures",
  "generational-arena",
  "isahc 1.7.2",
@@ -2783,7 +2795,7 @@ name = "network_channels"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "flume 0.10.14",
+ "flume 0.11.0",
  "instant",
  "serde",
 ]

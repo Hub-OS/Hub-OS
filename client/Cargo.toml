@@ -11,7 +11,7 @@ framework = { git = "https://github.com/Hub-OS/framework" }
 anyhow = "1.0"
 bytemuck = "1.12"
 chrono = "0.4"
-flume = "0.10"
+flume = "0.11"
 generational-arena = "0.2"
 hecs = "0.10"
 itertools = "0.11"
