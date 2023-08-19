@@ -140,7 +140,7 @@ impl Living {
 
         living.status_director.clear_immunity();
 
-        // appl pre hit aux props
+        // apply pre hit aux props
         for aux_prop in Living::pre_hit_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
 
