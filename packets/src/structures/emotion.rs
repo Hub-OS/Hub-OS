@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct Emotion(String);
+pub struct Emotion(Cow<'static, str>);
 
 impl Emotion {
     pub fn as_str(&self) -> &str {
@@ -11,20 +12,20 @@ impl Emotion {
 
 impl From<&str> for Emotion {
     fn from(value: &str) -> Self {
-        Self(value.to_uppercase())
+        Self(Cow::Owned(value.to_uppercase()))
     }
 }
 
 impl From<String> for Emotion {
     fn from(mut value: String) -> Self {
         value.make_ascii_uppercase();
-        Self(value)
+        Self(Cow::Owned(value))
     }
 }
 
 impl Default for Emotion {
     fn default() -> Self {
-        Self(String::from("DEFAULT"))
+        Self(Cow::Borrowed("DEFAULT"))
     }
 }
 
@@ -42,13 +43,13 @@ impl<'lua> mlua::FromLua<'lua> for Emotion {
             });
         };
 
-        Ok(Self(id.to_str()?.to_string()))
+        Ok(Self(Cow::Owned(id.to_str()?.to_string())))
     }
 }
 
 #[cfg(feature = "rollback_mlua")]
 impl<'lua> mlua::ToLua<'lua> for &Emotion {
     fn to_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
-        lua.create_string(&self.0).map(mlua::Value::String)
+        lua.create_string(self.as_str()).map(mlua::Value::String)
     }
 }
