@@ -1,5 +1,5 @@
-use super::{Comparison, Element, HitFlags, HitProperties, MathExpr};
-use crate::battle::{BattleCallback, Entity};
+use super::{CardClass, Comparison, Element, HitFlags, HitProperties, MathExpr};
+use crate::battle::{BattleCallback, Character, Entity, Player};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
 
@@ -54,6 +54,14 @@ pub enum AuxRequirement {
     TotalDamage(Comparison, i32),
     Element(Element),
     Emotion(Emotion),
+    CardElement(Element),
+    CardNotElement(Element),
+    CardDamage(Comparison, i32),
+    CardHitFlags(HitFlags),
+    CardCode(String),
+    CardClass(CardClass),
+    CardTimeFreeze(bool),
+    CardTag(String),
     ProjectedHPThreshold(MathExpr<f32, AuxVariable>, Comparison, f32),
     ProjectedHP(MathExpr<f32, AuxVariable>, Comparison, i32),
     HPThreshold(Comparison, f32),
@@ -85,7 +93,16 @@ impl AuxRequirement {
             | AuxRequirement::HitDamage(_, _)
             | AuxRequirement::ProjectedHitDamage(_, _, _)
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
-            AuxRequirement::Element(_) | AuxRequirement::Emotion(_) => Self::BODY_PRIORITY, // BODY
+            AuxRequirement::Element(_)
+            | AuxRequirement::Emotion(_)
+            | AuxRequirement::CardElement(_)
+            | AuxRequirement::CardNotElement(_)
+            | AuxRequirement::CardDamage(_, _)
+            | AuxRequirement::CardHitFlags(_)
+            | AuxRequirement::CardCode(_)
+            | AuxRequirement::CardClass(_)
+            | AuxRequirement::CardTimeFreeze(_)
+            | AuxRequirement::CardTag(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
             | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIOIRTY, // HP EXPR
             AuxRequirement::HPThreshold(cmp, _) | AuxRequirement::HP(cmp, _) => match cmp {
@@ -122,6 +139,14 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxRequirement {
             "require_total_damage" => AuxRequirement::TotalDamage(table.get(2)?, table.get(3)?),
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
+            "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
+            "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
+            "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
+            "require_card_hit_flags" => AuxRequirement::CardHitFlags(table.get(2)?),
+            "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
+            "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
+            "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
+            "require_card_tag" => AuxRequirement::CardTag(table.get(2)?),
             "require_projected_health_threshold" => {
                 AuxRequirement::ProjectedHPThreshold(table.get(2)?, table.get(3)?, table.get(4)?)
             }
@@ -339,11 +364,41 @@ impl AuxProp {
         now_passing
     }
 
-    pub fn process_body(&mut self, emotion: &Emotion, element: Element) {
+    pub fn process_body(
+        &mut self,
+        player: Option<&Player>,
+        character: Option<&Character>,
+        entity: &Entity,
+    ) {
+        let emotion = player.map(|player| player.emotion_window.emotion());
+        let card = character.and_then(|character| character.cards.last());
+
         for (requirement, state) in &mut self.requirements {
             let result = match requirement {
-                AuxRequirement::Element(elem) => *elem == element,
-                AuxRequirement::Emotion(emot) => emot == emotion,
+                AuxRequirement::Element(elem) => *elem == entity.element,
+                AuxRequirement::Emotion(emot) => {
+                    emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
+                }
+                AuxRequirement::CardElement(elem) => card
+                    .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
+                AuxRequirement::CardNotElement(elem) => card
+                    .is_some_and(|card| card.element != *elem && card.secondary_element != *elem),
+                AuxRequirement::CardDamage(cmp, damage) => {
+                    card.is_some_and(|card| cmp.compare(card.damage, *damage))
+                }
+                AuxRequirement::CardHitFlags(flags) => {
+                    card.is_some_and(|card| card.hit_flags & *flags == *flags)
+                }
+                AuxRequirement::CardCode(code) => card.is_some_and(|card| card.code == *code),
+                AuxRequirement::CardClass(class) => {
+                    card.is_some_and(|card| card.card_class == *class)
+                }
+                AuxRequirement::CardTimeFreeze(time_freeze) => {
+                    card.is_some_and(|card| card.time_freeze == *time_freeze)
+                }
+                AuxRequirement::CardTag(tag) => {
+                    card.is_some_and(|card| card.meta_classes.contains(tag))
+                }
                 _ => continue,
             };
 

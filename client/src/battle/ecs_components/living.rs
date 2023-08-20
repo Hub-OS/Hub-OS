@@ -113,14 +113,11 @@ impl Living {
         let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
-        let emotion = if let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) {
-            player.emotion_window.emotion().clone()
-        } else {
-            Emotion::default()
-        };
-
-        let Ok((entity, living)) =
-            entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+        // gather body properties for aux props
+        let Ok((entity, living, player, character)) =
+            entities.query_one_mut::<(&Entity, &mut Living, Option<&Player>, Option<&Character>)>(
+                entity_id.into(),
+            )
         else {
             return;
         };
@@ -135,7 +132,7 @@ impl Living {
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
             aux_prop.process_time(simulation.battle_time);
-            aux_prop.process_body(&emotion, entity.element);
+            aux_prop.process_body(player, character, entity);
 
             for hit_props in &mut hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
