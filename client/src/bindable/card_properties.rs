@@ -17,7 +17,6 @@ pub struct CardProperties<H = HitFlags> {
     pub card_class: CardClass,
     pub hit_flags: H,
     pub can_boost: bool,
-    pub counterable: bool,
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
     pub meta_classes: Vec<String>,
@@ -37,7 +36,6 @@ impl<H: Default> Default for CardProperties<H> {
             card_class: CardClass::Standard,
             hit_flags: Default::default(),
             can_boost: true,
-            counterable: true,
             skip_time_freeze_intro: false,
             meta_classes: Vec::new(),
         }
@@ -114,7 +112,6 @@ impl CardProperties<Vec<String>> {
                 .map(|flag| HitFlag::from_str(registry, flag))
                 .fold(0, |acc, flag| acc | flag),
             can_boost: self.can_boost,
-            counterable: self.counterable,
             time_freeze: self.time_freeze,
             skip_time_freeze_intro: self.skip_time_freeze_intro,
             meta_classes: self.meta_classes.clone(),
@@ -151,7 +148,6 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             card_class: table.get("card_class").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
             can_boost: table.get("can_boost").unwrap_or(true),
-            counterable: table.get("counterable").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
             meta_classes: table.get("meta_classes").unwrap_or_default(),
@@ -184,7 +180,6 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
         table.set("card_class", self.card_class)?;
         table.set("hit_flags", self.hit_flags)?;
         table.set("can_boost", self.can_boost)?;
-        table.set("counterable", self.counterable)?;
         table.set("time_freeze", self.time_freeze)?;
         table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
         table.set("meta_classes", self.meta_classes.clone())?;
