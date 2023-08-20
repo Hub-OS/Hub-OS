@@ -186,9 +186,11 @@ impl Living {
                 return;
             };
 
+            let mut hit_damage = hit_props.damage;
+
             // super effective bonus
             if hit_props.is_super_effective(entity.element) {
-                total_damage += hit_props.damage;
+                hit_damage += hit_props.damage;
             }
 
             // apply hit modifying aux props
@@ -215,7 +217,7 @@ impl Living {
                             log::warn!("An AuxProp is decreasing damage with an increasing effect");
                         }
 
-                        total_damage += result - hit_props.damage;
+                        hit_damage += result - hit_props.damage;
                     }
                     AuxEffect::DecreaseHitDamage(expr) => {
                         let result = expr.eval(AuxVariable::create_resolver(
@@ -228,7 +230,7 @@ impl Living {
                             log::warn!("An AuxProp is increasing damage with a decreasing effect");
                         }
 
-                        total_damage = result - hit_props.damage;
+                        hit_damage += result - hit_props.damage;
                     }
                     _ => log::error!("Engine error: Unexpected AuxEffect!"),
                 }
@@ -236,6 +238,14 @@ impl Living {
                 simulation
                     .pending_callbacks
                     .extend(aux_prop.callbacks().iter().cloned());
+            }
+
+            // update total damage
+            total_damage += hit_damage - hit_props.damage;
+
+            if hit_damage == 0 {
+                // no hit flags can apply if damage is 0
+                continue;
             }
 
             // time freeze effects
