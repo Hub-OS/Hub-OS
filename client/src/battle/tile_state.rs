@@ -119,7 +119,7 @@ impl TileState {
                         globals.audio.play_sound(&globals.sfx.tile_break);
                     }
 
-                    tile.set_state_index(TileState::BROKEN, None);
+                    tile.set_state_index(TileState::BROKEN, Some(BROKEN_LIFETIME));
                 }
             },
         );
