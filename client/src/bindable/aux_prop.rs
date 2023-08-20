@@ -61,36 +61,36 @@ pub enum AuxRequirement {
 }
 
 impl AuxRequirement {
-    // Unconditional:  always activates when applicable, granted that no additional conditions are required or provided.
+    // always activates when applicable, granted that no additional conditions are required or provided.
     const UNCONDITIONAL_PRIORITY: usize = 0;
-    // Timer: apply every X real-time frames, otherwise treated as unconditional.
+    // apply every X real-time frames, otherwise treated as unconditional.
     const TIMER_PRIORITY: usize = 1;
-    // Hitprop: activates when matching specific properties from incoming hitboxes.
+    // activates when matching specific properties from incoming hitboxes.
     const HIT_PRIORITY: usize = 2;
-    // Properties of self
+    // properties of self
     const BODY_PRIORITY: usize = 3;
-    // HP+/- : activates when current HP matches a specified formula that is allowed to be more open ended. Could allow for cases such as "HP is above 50% of max", "HP has a 4 in it", "HP is under 20% of max", "HP is less than 10". Cannot check the amount of incoming damage.
+    // activates when current HP matches a specified formula that is allowed to be more open ended. Could allow for cases such as "HP is above 50% of max", "HP has a 4 in it", "HP is under 20% of max", "HP is less than 10". Cannot check the amount of incoming damage.
     const HP_EXPR_PRIOIRTY: usize = 4;
-    // HP& : just like HP% but do not activate if the specified threshold is reached
-    const HP_ABOVE_PRIORITY: usize = 5;
-    // HP% : activates if HP would dip below a specified percentage threshold if the currently evaluated damage were to be applied. 0% HP is a valid threshold here, meaning HP would reach zero this turn. These checks will still be run even if no damage is being applied this frame. Can also compare with arbitrarily provided numbers, ie "would my HP reach 0% if I reduced it by 1"
-    const HP_BELOW_PRIORITY: usize = 6;
+    // just like HP EXPR but do not activate if the specified threshold is reached
+    const HP_GE_PRIORITY: usize = 5;
+    // activates if HP would dip below a specified percentage threshold if the currently evaluated damage were to be applied. 0% HP is a valid threshold here, meaning HP would reach zero this turn. These checks will still be run even if no damage is being applied this frame. Can also compare with arbitrarily provided numbers, ie "would my HP reach 0% if I reduced it by 1"
+    const HP_LE_PRIORITY: usize = 6;
 
     fn priority(&self) -> usize {
         match self {
-            AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // Timer
+            AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // TIMER
             AuxRequirement::HitElement(_)
             | AuxRequirement::HitElementIsWeakness
             | AuxRequirement::HitFlag(_)
             | AuxRequirement::HitDamage(_, _)
             | AuxRequirement::ProjectedHitDamage(_, _, _)
-            | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HitProp
-            AuxRequirement::Element(_) | AuxRequirement::Emotion(_) => Self::BODY_PRIORITY, // ElemBody
+            | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
+            AuxRequirement::Element(_) | AuxRequirement::Emotion(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
-            | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIOIRTY, // HP +/-
+            | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIOIRTY, // HP EXPR
             AuxRequirement::HPThreshold(cmp, _) | AuxRequirement::HP(cmp, _) => match cmp {
-                Comparison::GT | Comparison::GE => Self::HP_ABOVE_PRIORITY, // HP&
-                _ => Self::HP_BELOW_PRIORITY,                               // HP%
+                Comparison::GT | Comparison::GE => Self::HP_GE_PRIORITY, // HP GE
+                _ => Self::HP_LE_PRIORITY,                               // HP LE
             },
         }
     }
