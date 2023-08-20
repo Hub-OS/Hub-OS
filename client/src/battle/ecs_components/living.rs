@@ -100,6 +100,10 @@ impl Living {
         aux_props
     }
 
+    pub fn delete_completed_aux_props(&mut self) {
+        self.aux_props.retain(|_, prop| !prop.completed());
+    }
+
     pub fn process_hits(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -143,6 +147,7 @@ impl Living {
         // apply pre hit aux props
         for aux_prop in Living::pre_hit_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
+            aux_prop.mark_tested();
 
             if !aux_prop.passed_all_tests() {
                 continue;
@@ -200,6 +205,7 @@ impl Living {
                     living.max_health,
                     total_damage,
                 );
+                aux_prop.mark_tested();
 
                 if !aux_prop.hit_passes_tests(entity, living.health, living.max_health, hit_props) {
                     continue;
@@ -346,6 +352,7 @@ impl Living {
 
         for aux_prop in Living::post_hit_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
+            aux_prop.mark_tested();
 
             if !aux_prop.passed_all_tests() {
                 continue;
@@ -378,7 +385,7 @@ impl Living {
         }
 
         // delete completed aux props
-        living.aux_props.retain(|_, prop| !prop.completed());
+        living.delete_completed_aux_props();
 
         // apply damage and health modifier
         living.set_health(living.health - total_damage + health_modifier);

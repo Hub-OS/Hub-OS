@@ -221,13 +221,20 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxEffect {
     }
 }
 
+#[derive(Default, Clone)]
+struct RequirementState {
+    passed: bool,
+    tested: bool,
+}
+
 #[derive(Clone)]
 pub struct AuxProp {
-    requirements: Vec<(AuxRequirement, bool)>,
+    requirements: Vec<(AuxRequirement, RequirementState)>,
     effect: AuxEffect,
     callbacks: Vec<BattleCallback>,
     deletes_on_activation: bool,
-    deletes_next_frame: bool,
+    deletes_next_run: bool,
+    tested: bool,
 }
 
 impl AuxProp {
@@ -237,7 +244,8 @@ impl AuxProp {
             effect: AuxEffect::None,
             callbacks: Vec::new(),
             deletes_on_activation: false,
-            deletes_next_frame: false,
+            deletes_next_run: false,
+            tested: false,
         }
     }
 
@@ -261,17 +269,19 @@ impl AuxProp {
     }
 
     pub fn with_requirement(mut self, requirement: AuxRequirement) -> Self {
-        self.requirements.push((requirement, false));
+        self.requirements
+            .push((requirement, RequirementState::default()));
         self
     }
 
-    pub fn delete_next_frame(mut self) -> Self {
-        self.deletes_next_frame = true;
+    pub fn delete_next_run(mut self) -> Self {
+        self.deletes_next_run = true;
         self
     }
 
     pub fn completed(&self) -> bool {
-        self.deletes_next_frame || (self.deletes_on_activation && self.passed_all_tests())
+        (self.deletes_next_run && self.tested)
+            || (self.deletes_on_activation && self.passed_all_tests())
     }
 
     pub fn effect(&self) -> &AuxEffect {
@@ -294,14 +304,18 @@ impl AuxProp {
         (effect_priority, requirements_priority)
     }
 
+    pub fn mark_tested(&mut self) {
+        self.tested = self.requirements.iter().all(|(_, state)| state.tested);
+    }
+
     pub fn reset_tests(&mut self) {
-        for (_, passed) in &mut self.requirements {
-            *passed = false;
+        for (_, state) in &mut self.requirements {
+            *state = RequirementState::default();
         }
     }
 
     pub fn passed_all_tests(&self) -> bool {
-        self.requirements.iter().all(|(_, passed)| *passed)
+        self.requirements.iter().all(|(_, state)| state.passed)
     }
 
     pub fn hit_passes_tests(
@@ -317,8 +331,8 @@ impl AuxProp {
 
         // reset
         if previously_passing {
-            for (_, passed) in &mut self.requirements {
-                *passed = true;
+            for (_, state) in &mut self.requirements {
+                state.passed = true;
             }
         }
 
@@ -326,24 +340,26 @@ impl AuxProp {
     }
 
     pub fn process_body(&mut self, emotion: &Emotion, element: Element) {
-        for (requirement, passed) in &mut self.requirements {
+        for (requirement, state) in &mut self.requirements {
             let result = match requirement {
                 AuxRequirement::Element(elem) => *elem == element,
                 AuxRequirement::Emotion(emot) => emot == emotion,
                 _ => continue,
             };
 
-            *passed = result;
+            state.tested = true;
+            state.passed = result;
         }
     }
 
     pub fn process_time(&mut self, time: FrameTime) {
-        for (requirement, passed) in &mut self.requirements {
+        for (requirement, state) in &mut self.requirements {
             let AuxRequirement::Interval(n) = requirement else {
                 continue;
             };
 
-            *passed = time % *n == 0;
+            state.tested = true;
+            state.passed = time % *n == 0;
         }
     }
 
@@ -354,7 +370,7 @@ impl AuxProp {
         max_health: i32,
         hit_props: &HitProperties,
     ) {
-        for (requirement, passed) in &mut self.requirements {
+        for (requirement, state) in &mut self.requirements {
             let result = match requirement {
                 AuxRequirement::HitElement(element) => {
                     hit_props.element == *element || hit_props.secondary_element == *element
@@ -377,15 +393,16 @@ impl AuxProp {
                 _ => continue,
             };
 
-            *passed = result;
+            state.tested = true;
+            state.passed = result;
         }
     }
 
     pub fn process_health_calculations(&mut self, health: i32, max_health: i32, total_damage: i32) {
         let get_var = AuxVariable::create_resolver(health, max_health, total_damage);
 
-        for (requirement, passed) in &mut self.requirements {
-            if *passed {
+        for (requirement, state) in &mut self.requirements {
+            if state.passed {
                 // skip if we've already processed, occurs for hit and prehit aux props
                 continue;
             }
@@ -411,7 +428,8 @@ impl AuxProp {
                 _ => continue,
             };
 
-            *passed = result;
+            state.tested = true;
+            state.passed = result;
         }
     }
 }
@@ -426,14 +444,14 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxProp {
         let effect = table.raw_get("effect")?;
         let callbacks = table.raw_get("callbacks").unwrap_or_default();
         let deletes_on_activation = table.raw_get("delete_on_activate").unwrap_or_default();
-        let deletes_next_frame = table.raw_get("delete_next_frame").unwrap_or_default();
+        let deletes_next_run = table.raw_get("delete_next_run").unwrap_or_default();
 
         let requirements_table: rollback_mlua::Table = table.raw_get("requirements")?;
         let requirements_len = requirements_table.raw_len() as usize;
         let mut requirements = Vec::with_capacity(requirements_len);
 
         for requirement in requirements_table.raw_sequence_values::<AuxRequirement>() {
-            requirements.push((requirement?, false));
+            requirements.push((requirement?, RequirementState::default()));
         }
 
         Ok(AuxProp {
@@ -441,7 +459,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxProp {
             effect,
             callbacks,
             deletes_on_activation,
-            deletes_next_frame,
+            deletes_next_run,
+            tested: false,
         })
     }
 }

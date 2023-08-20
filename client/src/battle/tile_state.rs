@@ -183,7 +183,7 @@ impl TileState {
                 };
 
                 let double_damage_aux_prop =
-                    AuxProp::new_element_bonus(Element::Fire).delete_next_frame();
+                    AuxProp::new_element_bonus(Element::Fire).delete_next_run();
                 living.add_aux_prop(double_damage_aux_prop);
 
                 if entity.element != Element::Wood || living.health >= living.max_health {
@@ -195,7 +195,7 @@ impl TileState {
                     .with_requirement(AuxRequirement::Interval(GRASS_HEAL_INTERVAL))
                     .with_requirement(AuxRequirement::HP(Comparison::GE, 9))
                     .with_effect(AuxEffect::RecoverHP(1))
-                    .delete_next_frame();
+                    .delete_next_run();
                 living.add_aux_prop(heal_fast_aux_prop);
 
                 let heal_slow_aux_prop = AuxProp::new()
@@ -203,7 +203,7 @@ impl TileState {
                     .with_requirement(AuxRequirement::Interval(GRASS_SLOWED_HEAL_INTERVAL))
                     .with_requirement(AuxRequirement::HP(Comparison::LT, 9))
                     .with_effect(AuxEffect::RecoverHP(1))
-                    .delete_next_frame();
+                    .delete_next_run();
                 living.add_aux_prop(heal_slow_aux_prop);
             });
 
@@ -223,7 +223,7 @@ impl TileState {
                 };
 
                 // install aux prop
-                let aux_prop = AuxProp::new_element_bonus(Element::Aqua).delete_next_frame();
+                let aux_prop = AuxProp::new_element_bonus(Element::Aqua).delete_next_run();
                 living.add_aux_prop(aux_prop);
 
                 if entity.ignore_negative_tile_effects || entity.element == Element::Fire {
@@ -269,7 +269,7 @@ impl TileState {
                 // take 1hp immediately for stepping on poison
                 let aux_prop = AuxProp::new()
                     .with_effect(AuxEffect::DrainHP(1))
-                    .delete_next_frame();
+                    .delete_next_run();
                 living.add_aux_prop(aux_prop);
             });
 
@@ -289,7 +289,7 @@ impl TileState {
                 let aux_prop = AuxProp::new()
                     .with_effect(AuxEffect::DrainHP(1))
                     .with_requirement(AuxRequirement::Interval(POISON_INTERVAL))
-                    .delete_next_frame();
+                    .delete_next_run();
                 living.add_aux_prop(aux_prop);
             });
 
@@ -313,7 +313,7 @@ impl TileState {
                             .mul(0.5)
                             .add_variable(AuxVariable::Damage),
                     ))
-                    .delete_next_frame();
+                    .delete_next_run();
                 living.add_aux_prop(aux_prop);
             });
 
@@ -434,7 +434,7 @@ impl TileState {
                     return;
                 };
 
-                let aux_prop = AuxProp::new_element_bonus(Element::Elec).delete_next_frame();
+                let aux_prop = AuxProp::new_element_bonus(Element::Elec).delete_next_run();
                 living.add_aux_prop(aux_prop);
             });
 

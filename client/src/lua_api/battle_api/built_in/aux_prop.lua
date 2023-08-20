@@ -60,7 +60,7 @@ function AuxProp:once()
 end
 
 function AuxProp:immediate()
-  self.delete_next_frame = true
+  self.delete_next_run = true
   return self
 end
 
