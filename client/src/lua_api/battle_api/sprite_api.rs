@@ -238,9 +238,14 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    setter(
+    getter(
         lua_api,
         "never_flip",
+        |node, _, _: ()| Ok(node.never_flip()),
+    );
+    setter(
+        lua_api,
+        "set_never_flip",
         |node, _, never_flip: Option<bool>| {
             node.set_never_flip(never_flip.unwrap_or(true));
             Ok(())

@@ -224,10 +224,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    getter(lua_api, "never_flip", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.sprite_tree.root().never_flip())
+    });
     setter(
         lua_api,
-        "never_flip",
-        |entity: &mut Entity, _, never_flip| {
+        "set_never_flip",
+        |entity: &mut Entity, _, never_flip: Option<bool>| {
+            let never_flip = never_flip.unwrap_or(true);
             entity.sprite_tree.root_mut().set_never_flip(never_flip);
             Ok(())
         },

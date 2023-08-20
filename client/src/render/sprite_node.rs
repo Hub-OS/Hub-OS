@@ -107,6 +107,10 @@ impl SpriteNode {
         self.inherited_visible
     }
 
+    pub fn never_flip(&self) -> bool {
+        self.never_flip
+    }
+
     pub fn set_never_flip(&mut self, never_flip: bool) {
         self.never_flip = never_flip;
     }
