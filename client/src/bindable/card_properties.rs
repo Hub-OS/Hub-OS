@@ -19,7 +19,7 @@ pub struct CardProperties<H = HitFlags> {
     pub can_boost: bool,
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
-    pub meta_classes: Vec<String>,
+    pub tags: Vec<String>,
 }
 
 impl<H: Default> Default for CardProperties<H> {
@@ -37,7 +37,7 @@ impl<H: Default> Default for CardProperties<H> {
             hit_flags: Default::default(),
             can_boost: true,
             skip_time_freeze_intro: false,
-            meta_classes: Vec::new(),
+            tags: Vec::new(),
         }
     }
 }
@@ -114,7 +114,7 @@ impl CardProperties<Vec<String>> {
             can_boost: self.can_boost,
             time_freeze: self.time_freeze,
             skip_time_freeze_intro: self.skip_time_freeze_intro,
-            meta_classes: self.meta_classes.clone(),
+            tags: self.tags.clone(),
         }
     }
 }
@@ -150,7 +150,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             can_boost: table.get("can_boost").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
-            meta_classes: table.get("meta_classes").unwrap_or_default(),
+            tags: table.get("tags").unwrap_or_default(),
         })
     }
 }
@@ -182,7 +182,7 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
         table.set("can_boost", self.can_boost)?;
         table.set("time_freeze", self.time_freeze)?;
         table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
-        table.set("meta_classes", self.meta_classes.clone())?;
+        table.set("tags", self.tags.clone())?;
 
         Ok(rollback_mlua::Value::Table(table))
     }

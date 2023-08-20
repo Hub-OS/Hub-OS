@@ -396,9 +396,7 @@ impl AuxProp {
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
-                AuxRequirement::CardTag(tag) => {
-                    card.is_some_and(|card| card.meta_classes.contains(tag))
-                }
+                AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
                 _ => continue,
             };
 
