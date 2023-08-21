@@ -5,8 +5,8 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
 use crate::scenes::BattleEvent;
+use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
-use generational_arena::Arena;
 use packets::structures::{BattleStatistics, BattleSurvivor};
 use packets::NetplaySignal;
 use rand::SeedableRng;
@@ -30,10 +30,10 @@ pub struct BattleSimulation {
     pub generation_tracking: Vec<hecs::Entity>,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
-    pub animators: Arena<BattleAnimator>,
-    pub actions: Arena<Action>,
+    pub animators: SlotMap<BattleAnimator>,
+    pub actions: DenseSlotMap<Action>,
     pub time_freeze_tracker: TimeFreezeTracker,
-    pub components: Arena<Component>,
+    pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
@@ -76,10 +76,10 @@ impl BattleSimulation {
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
-            animators: Arena::new(),
-            actions: Arena::new(),
+            animators: Default::default(),
+            actions: Default::default(),
             time_freeze_tracker: TimeFreezeTracker::new(),
-            components: Arena::new(),
+            components: Default::default(),
             pending_callbacks: Vec::new(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
@@ -571,7 +571,7 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         entity_id: EntityId,
-        index: generational_arena::Index,
+        index: GenerationalIndex,
     ) -> bool {
         let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
             return false;
@@ -626,7 +626,7 @@ impl BattleSimulation {
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        delete_indices: &[generational_arena::Index],
+        delete_indices: &[GenerationalIndex],
     ) {
         for index in delete_indices {
             let Some(action) = self.actions.get_mut(*index) else {

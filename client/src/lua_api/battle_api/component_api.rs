@@ -21,7 +21,7 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        Component::eject(api_ctx.simulation, id.into());
+        Component::eject(api_ctx.simulation, id);
 
         lua.pack_multi(())
     });
@@ -42,7 +42,7 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let component = (api_ctx.simulation.components)
-            .get_mut(id.into())
+            .get_mut(id)
             .ok_or_else(component_not_found)?;
 
         let Some(callback) = callback else {
@@ -102,7 +102,7 @@ fn callback_setter<G, P, F, R>(
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let component = (api_ctx.simulation.components)
-            .get_mut(id.into())
+            .get_mut(id)
             .ok_or_else(component_not_found)?;
 
         let key = lua.create_registry_value(table)?;

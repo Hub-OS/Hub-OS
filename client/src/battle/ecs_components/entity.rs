@@ -1,8 +1,8 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
+use crate::structures::DenseSlotMap;
 use framework::prelude::*;
-use generational_arena::Arena;
 
 #[derive(Clone, Copy)]
 pub struct FullEntityPosition {
@@ -30,7 +30,7 @@ pub struct Entity {
     pub y: i32,
     pub height: f32,
     pub elevation: f32,
-    pub animator_index: generational_arena::Index,
+    pub animator_index: GenerationalIndex,
     pub sprite_tree: Tree<SpriteNode>,
     pub shadow_index: TreeIndex,
     pub offset: Vec2,      // does not flip with teams, only perspective
@@ -42,8 +42,8 @@ pub struct Entity {
     pub movement: Option<Movement>,
     pub move_anim_state: Option<String>,
     pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
-    pub action_index: Option<generational_arena::Index>,
-    pub local_components: Vec<generational_arena::Index>,
+    pub action_index: Option<GenerationalIndex>,
+    pub local_components: Vec<GenerationalIndex>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub spawn_callback: BattleCallback,
     pub update_callback: BattleCallback,
@@ -55,7 +55,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    fn new(game_io: &GameIO, id: EntityId, animator_index: generational_arena::Index) -> Self {
+    fn new(game_io: &GameIO, id: EntityId, animator_index: GenerationalIndex) -> Self {
         let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
 
         let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
@@ -167,7 +167,7 @@ impl Entity {
 
     pub fn current_can_move_to_callback(
         &self,
-        actions: &Arena<Action>,
+        actions: &DenseSlotMap<Action>,
     ) -> BattleCallback<(i32, i32), bool> {
         if let Some(index) = self.action_index {
             // does the card action have a special can_move_to_callback?

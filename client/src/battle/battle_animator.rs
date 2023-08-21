@@ -4,13 +4,14 @@ use crate::render::{
     Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameTime, SpriteNode,
 };
 use crate::resources::Globals;
+use crate::structures::SlotMap;
 use framework::prelude::{GameIO, Vec2};
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct BattleAnimator {
     target: Option<(hecs::Entity, GenerationalIndex)>,
-    synced_animators: Vec<generational_arena::Index>,
+    synced_animators: Vec<GenerationalIndex>,
     complete_callbacks: Vec<BattleCallback>,
     interrupt_callbacks: Vec<BattleCallback>,
     frame_callbacks: HashMap<usize, Vec<(BattleCallback, bool)>>,
@@ -70,21 +71,21 @@ impl BattleAnimator {
         !self.synced_animators.is_empty()
     }
 
-    pub fn add_synced_animator(&mut self, animator_index: generational_arena::Index) {
+    pub fn add_synced_animator(&mut self, animator_index: GenerationalIndex) {
         self.synced_animators.push(animator_index);
     }
 
-    pub fn remove_synced_animator(&mut self, animator_index: generational_arena::Index) {
+    pub fn remove_synced_animator(&mut self, animator_index: GenerationalIndex) {
         if let Some(index) = (self.synced_animators.iter()).position(|i| *i == animator_index) {
             self.synced_animators.remove(index);
         }
     }
 
     pub fn sync_animators(
-        battle_animators: &mut generational_arena::Arena<BattleAnimator>,
+        battle_animators: &mut SlotMap<BattleAnimator>,
         entities: &mut hecs::World,
         pending_callbacks: &mut Vec<BattleCallback>,
-        animator_index: generational_arena::Index,
+        animator_index: GenerationalIndex,
     ) {
         let Some(battle_animator) = battle_animators.get(animator_index) else {
             return;
@@ -123,10 +124,10 @@ impl BattleAnimator {
     }
 
     pub fn derive_state(
-        battle_animators: &mut generational_arena::Arena<BattleAnimator>,
+        battle_animators: &mut SlotMap<BattleAnimator>,
         original_state: &str,
         frame_derivation: Vec<DerivedFrame>,
-        animator_index: generational_arena::Index,
+        animator_index: GenerationalIndex,
     ) -> String {
         let new_state = Animator::generate_state_id(original_state);
 

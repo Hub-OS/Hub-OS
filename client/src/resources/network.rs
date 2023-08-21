@@ -1,8 +1,8 @@
 use crate::args::Args;
 use crate::render::FrameTime;
+use crate::structures::{DenseSlotMap, GenerationalIndex};
 use framework::prelude::async_sleep;
 use framework::util::Instant;
-use generational_arena::Arena;
 use packets::{
     deserialize, ClientPacket, NetplayPacket, PacketChannels, Reliability, ServerPacket,
     SERVER_TICK_RATE,
@@ -220,8 +220,8 @@ impl Connection {
 
 struct EventListener {
     socket: Arc<UdpSocket>,
-    connection_map: HashMap<SocketAddr, generational_arena::Index>,
-    connections: Arena<Connection>,
+    connection_map: HashMap<SocketAddr, GenerationalIndex>,
+    connections: DenseSlotMap<Connection>,
     receiver: flume::Receiver<Event>,
     resend_budget: usize,
 }
@@ -231,7 +231,7 @@ impl EventListener {
         Self {
             socket,
             connection_map: HashMap::new(),
-            connections: Arena::new(),
+            connections: Default::default(),
             receiver,
             resend_budget,
         }

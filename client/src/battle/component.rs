@@ -2,6 +2,7 @@ use super::{BattleCallback, BattleSimulation, Entity};
 use crate::battle::Artifact;
 use crate::bindable::{ComponentLifetime, EntityId};
 use crate::render::FrameTime;
+use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, Vec2};
 use rand::Rng;
 
@@ -32,7 +33,7 @@ impl Component {
     ) {
         let start_time = simulation.battle_time;
 
-        simulation.components.insert_with(|index| {
+        simulation.components.insert_with_key(|index| {
             let mut component = Self::new(entity_id, lifetime);
 
             component.update_callback =
@@ -169,7 +170,7 @@ impl Component {
         simulation.components.insert(component);
     }
 
-    pub fn eject(simulation: &mut BattleSimulation, index: generational_arena::Index) {
+    pub fn eject(simulation: &mut BattleSimulation, index: GenerationalIndex) {
         let Some(component) = simulation.components.remove(index) else {
             return;
         };

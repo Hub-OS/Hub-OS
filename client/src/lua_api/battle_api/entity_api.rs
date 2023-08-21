@@ -359,7 +359,6 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let id: EntityId = table.raw_get("#id")?;
         let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
-        let animator_index = animator_index.into();
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -520,7 +519,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
 
         let table = lua.create_table()?;
-        table.raw_set("#id", GenerationalIndex::from(id))?;
+        table.raw_set("#id", id)?;
         table.raw_set("#entity", entity_table)?;
         inherit_metatable(lua, COMPONENT_TABLE, &table)?;
 
@@ -542,7 +541,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
 
         let action = (simulation.actions)
-            .get_mut(action_index.into())
+            .get_mut(action_index)
             .ok_or_else(action_not_found)?;
 
         if action.used {
@@ -553,7 +552,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_entity_mismatch());
         }
 
-        let used = simulation.use_action(api_ctx.game_io, id, action_index.into());
+        let used = simulation.use_action(api_ctx.game_io, id, action_index);
 
         lua.pack_multi(used)
     });
@@ -1208,7 +1207,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 
         let aux_prop = lua.unpack(value)?;
         let id = living.add_aux_prop(aux_prop);
-        aux_prop_table.raw_set("#id", GenerationalIndex::from(id))?;
+        aux_prop_table.raw_set("#id", id)?;
 
         lua.pack_multi(())
     });
@@ -1230,7 +1229,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         // remove aux prop
         let aux_prop_table: rollback_mlua::Table = lua.unpack(value)?;
         let id: GenerationalIndex = aux_prop_table.raw_get("#id")?;
-        living.aux_props.remove(id.into());
+        living.aux_props.remove(id);
         aux_prop_table.raw_remove("#id")?;
 
         lua.pack_multi(())

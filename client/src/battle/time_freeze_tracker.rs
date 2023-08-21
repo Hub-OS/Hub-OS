@@ -4,6 +4,7 @@ use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, GameIO, Vec2};
 
 const FADE_DURATION: FrameTime = 10;
@@ -24,7 +25,7 @@ enum TimeFreezeState {
 
 #[derive(Default, Clone)]
 pub struct TimeFreezeTracker {
-    chain: Vec<(Team, generational_arena::Index)>,
+    chain: Vec<(Team, GenerationalIndex)>,
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
@@ -32,7 +33,7 @@ pub struct TimeFreezeTracker {
     should_defrost: bool,
     character_backup: Option<(
         EntityId,
-        Option<generational_arena::Index>,
+        Option<GenerationalIndex>,
         BattleAnimator,
         StatusDirector,
     )>,
@@ -63,7 +64,7 @@ impl TimeFreezeTracker {
         }
     }
 
-    pub fn set_team_action(&mut self, team: Team, action_index: generational_arena::Index) {
+    pub fn set_team_action(&mut self, team: Team, action_index: GenerationalIndex) {
         if let Some(index) = self.chain.iter().position(|(t, _)| *t == team) {
             self.chain.remove(index);
         }
@@ -153,7 +154,7 @@ impl TimeFreezeTracker {
         self.state == TimeFreezeState::Action && self.active_time == self.state_start_time
     }
 
-    pub fn active_action(&self) -> Option<generational_arena::Index> {
+    pub fn active_action(&self) -> Option<GenerationalIndex> {
         if self.state != TimeFreezeState::Action {
             return None;
         }
@@ -185,7 +186,7 @@ impl TimeFreezeTracker {
     pub fn back_up_character(
         &mut self,
         id: EntityId,
-        action_index: Option<generational_arena::Index>,
+        action_index: Option<GenerationalIndex>,
         animator: BattleAnimator,
         status_director: StatusDirector,
     ) {
@@ -196,7 +197,7 @@ impl TimeFreezeTracker {
         &mut self,
     ) -> Option<(
         EntityId,
-        Option<generational_arena::Index>,
+        Option<GenerationalIndex>,
         BattleAnimator,
         StatusDirector,
     )> {

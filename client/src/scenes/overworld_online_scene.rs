@@ -1414,7 +1414,7 @@ impl OverworldOnlineScene {
         self.menu_manager.push_textbox_interface(doorstop_interface);
     }
 
-    fn handle_events(&mut self, game_io: &mut GameIO) {
+    fn handle_events(&mut self, game_io: &GameIO) {
         while let Ok(event) = self.area.event_receiver.try_recv() {
             match event {
                 OverworldEvent::SystemMessage { message } => {

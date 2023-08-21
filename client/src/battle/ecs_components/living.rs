@@ -1,8 +1,8 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::resources::*;
+use crate::structures::DenseSlotMap;
 use framework::prelude::*;
-use generational_arena::Arena;
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -19,7 +19,7 @@ pub struct Living {
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub countered_callback: BattleCallback,
-    pub aux_props: Arena<AuxProp>,
+    pub aux_props: DenseSlotMap<AuxProp>,
     pub pending_hits: Vec<HitProperties>,
 }
 
@@ -38,7 +38,7 @@ impl Default for Living {
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
             countered_callback: BattleCallback::default(),
-            aux_props: Arena::new(),
+            aux_props: Default::default(),
             pending_hits: Vec::new(),
         }
     }
@@ -60,11 +60,11 @@ impl Living {
         callbacks.push(callback);
     }
 
-    pub fn add_aux_prop(&mut self, aux_prop: AuxProp) -> generational_arena::Index {
+    pub fn add_aux_prop(&mut self, aux_prop: AuxProp) -> GenerationalIndex {
         self.aux_props.insert(aux_prop)
     }
 
-    fn pre_hit_aux_props(aux_props: &mut Arena<AuxProp>) -> Vec<&mut AuxProp> {
+    fn pre_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .iter_mut()
             .map(|(_, aux_prop)| aux_prop)
@@ -76,7 +76,7 @@ impl Living {
         aux_props
     }
 
-    fn on_hit_aux_props(aux_props: &mut Arena<AuxProp>) -> Vec<&mut AuxProp> {
+    fn on_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .iter_mut()
             .map(|(_, aux_prop)| aux_prop)
@@ -88,7 +88,7 @@ impl Living {
         aux_props
     }
 
-    fn post_hit_aux_props(aux_props: &mut Arena<AuxProp>) -> Vec<&mut AuxProp> {
+    fn post_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .iter_mut()
             .map(|(_, aux_prop)| aux_prop)

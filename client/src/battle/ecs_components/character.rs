@@ -181,7 +181,7 @@ impl Character {
 
         // use the action or spawn a poof
         if let Some(index) = action_index {
-            simulation.use_action(game_io, entity_id, index.into());
+            simulation.use_action(game_io, entity_id, index);
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);
         }

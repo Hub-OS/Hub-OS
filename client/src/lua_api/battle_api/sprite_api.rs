@@ -97,7 +97,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         sprite_node.set_texture(api_ctx.game_io, path);
 
         if let Ok(animator_index) = table.raw_get::<_, GenerationalIndex>("#anim") {
-            if let Some(animator) = simulation.animators.get_mut(animator_index.into()) {
+            if let Some(animator) = simulation.animators.get_mut(animator_index) {
                 animator.apply(sprite_node);
             }
         }
@@ -266,14 +266,14 @@ pub fn create_sprite_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityId,
     index: GenerationalIndex,
-    animator_index: Option<generational_arena::Index>,
+    animator_index: Option<GenerationalIndex>,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     table.raw_set("#id", entity_id)?;
     table.raw_set("#index", index)?;
 
     if let Some(index) = animator_index {
-        table.raw_set("#anim", GenerationalIndex::from(index))?;
+        table.raw_set("#anim", index)?;
     }
 
     inherit_metatable(lua, SPRITE_TABLE, &table)?;

@@ -1,9 +1,11 @@
-use super::{Animator, SpriteColorQueue, SpriteShaderEffect, Tree, TreeIndex};
+use super::{Animator, SpriteColorQueue, SpriteShaderEffect};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
 use framework::prelude::*;
 use smallvec::SmallVec;
 use std::sync::Arc;
+
+pub use crate::structures::{Tree, TreeIndex, TreeNode};
 
 #[derive(Clone)]
 pub struct SpriteNode {

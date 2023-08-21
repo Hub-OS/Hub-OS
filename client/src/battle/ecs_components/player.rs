@@ -5,8 +5,8 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card};
+use crate::structures::DenseSlotMap;
 use framework::prelude::*;
-use generational_arena::Arena;
 
 #[derive(Clone)]
 pub struct Player {
@@ -28,7 +28,7 @@ pub struct Player {
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub augments: Arena<Augment>,
+    pub augments: DenseSlotMap<Augment>,
     pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
     pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -99,7 +99,7 @@ impl Player {
             ),
             forms: Vec::new(),
             active_form: None,
-            augments: Arena::new(),
+            augments: Default::default(),
             calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
                 Self::calculate_default_charge_time(level)
             }),
@@ -671,7 +671,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index);
                 return;
             }
         }
@@ -711,7 +711,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index);
                 return;
             }
         }
@@ -751,7 +751,7 @@ impl Player {
 
         for callback in callbacks {
             if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
+                simulation.use_action(game_io, entity_id, index);
                 return;
             }
         }
@@ -865,7 +865,7 @@ impl Player {
 
         // use the action or spawn a poof
         if let Some(index) = action_index {
-            simulation.use_action(game_io, entity_id, index.into());
+            simulation.use_action(game_io, entity_id, index);
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);
         }

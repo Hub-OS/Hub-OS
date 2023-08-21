@@ -1,15 +1,15 @@
 use crate::packages::{AugmentPackage, PackageNamespace};
 use crate::resources::Globals;
 use crate::saves::InstalledBlock;
+use crate::structures::{GenerationalIndex, SlotMap};
 use framework::prelude::GameIO;
-use generational_arena::Arena;
 use packets::structures::PackageId;
 use std::ops::Range;
 
 pub struct BlockGrid {
     namespace: PackageNamespace,
-    blocks: Arena<InstalledBlock>,
-    grid: [Option<generational_arena::Index>; Self::SIDE_LEN * Self::SIDE_LEN],
+    blocks: SlotMap<InstalledBlock>,
+    grid: [Option<GenerationalIndex>; Self::SIDE_LEN * Self::SIDE_LEN],
 }
 
 impl BlockGrid {
@@ -28,7 +28,7 @@ impl BlockGrid {
     pub fn new(namespace: PackageNamespace) -> Self {
         Self {
             namespace,
-            blocks: Arena::new(),
+            blocks: Default::default(),
             grid: [None; Self::SIDE_LEN * Self::SIDE_LEN],
         }
     }
@@ -142,7 +142,7 @@ impl BlockGrid {
         }
 
         // actual placement
-        self.blocks.insert_with(|block_index| {
+        self.blocks.insert_with_key(|block_index| {
             for (x, y) in Self::iterate_block_positions(&block, package) {
                 self.grid[y * Self::SIDE_LEN + x] = Some(block_index);
             }
@@ -292,7 +292,7 @@ impl BlockGrid {
     fn neighbor_indices(
         &self,
         position: (usize, usize),
-    ) -> impl Iterator<Item = generational_arena::Index> + '_ {
+    ) -> impl Iterator<Item = GenerationalIndex> + '_ {
         let (x, y) = position;
         let mut neighbors = [None; 4];
 

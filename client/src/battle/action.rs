@@ -7,8 +7,8 @@ use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
 use crate::resources::Globals;
+use crate::structures::SlotMap;
 use framework::prelude::GameIO;
-use generational_arena::Arena;
 use std::cell::RefCell;
 
 #[derive(Clone)]
@@ -125,7 +125,7 @@ impl Action {
 
         // set card properties on the card action
         if let Some(index) = id {
-            if let Some(action) = simulation.actions.get_mut(index.into()) {
+            if let Some(action) = simulation.actions.get_mut(index) {
                 action.properties = card_props.clone();
             }
         }
@@ -141,7 +141,7 @@ impl Action {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        action_index: generational_arena::Index,
+        action_index: GenerationalIndex,
     ) {
         let action = &mut simulation.actions[action_index];
         let entity_id = action.entity;
@@ -251,7 +251,7 @@ impl Action {
     pub fn complete_sync(
         &mut self,
         entities: &mut hecs::World,
-        animators: &mut Arena<BattleAnimator>,
+        animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         field: &mut Field,
     ) {
@@ -289,16 +289,16 @@ impl Action {
 pub struct ActionAttachment {
     pub point_name: String,
     pub sprite_index: GenerationalIndex,
-    pub animator_index: generational_arena::Index,
-    pub parent_animator_index: generational_arena::Index,
+    pub animator_index: GenerationalIndex,
+    pub parent_animator_index: GenerationalIndex,
 }
 
 impl ActionAttachment {
     pub fn new(
         point_name: String,
         sprite_index: GenerationalIndex,
-        animator_index: generational_arena::Index,
-        parent_animator_index: generational_arena::Index,
+        animator_index: GenerationalIndex,
+        parent_animator_index: GenerationalIndex,
     ) -> Self {
         Self {
             point_name,
@@ -311,7 +311,7 @@ impl ActionAttachment {
     pub fn apply_animation(
         &self,
         sprite_tree: &mut Tree<SpriteNode>,
-        animators: &mut Arena<BattleAnimator>,
+        animators: &mut SlotMap<BattleAnimator>,
     ) {
         let sprite_node = match sprite_tree.get_mut(self.sprite_index) {
             Some(sprite_node) => sprite_node,

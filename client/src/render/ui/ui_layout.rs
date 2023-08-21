@@ -580,7 +580,7 @@ impl UiLayout {
     // increments based on flex direction and change direction
     fn increment_child_index(
         &self,
-        parent_node: &Node<InternalUiElement>,
+        parent_node: &TreeNode<InternalUiElement>,
         change: f32,
         index: usize,
     ) -> usize {
