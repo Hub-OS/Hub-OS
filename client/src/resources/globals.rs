@@ -584,12 +584,13 @@ impl Globals {
 
         self.library_packages
             .namespaces()
-            .chain(self.encounter_packages.namespaces())
             .chain(self.augment_packages.namespaces())
+            .chain(self.encounter_packages.namespaces())
             .chain(self.card_packages.namespaces())
-            .chain(self.player_packages.namespaces())
             .chain(self.character_packages.namespaces())
+            .chain(self.player_packages.namespaces())
             .chain(self.library_packages.namespaces())
+            .chain(self.status_packages.namespaces())
             .filter(|ns| ns.is_netplay())
             .for_each(|namespace| {
                 namespace_set.insert(namespace);
@@ -599,10 +600,10 @@ impl Globals {
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
-        self.encounter_packages
+        self.augment_packages
             .remove_namespace(&self.assets, namespace);
 
-        self.augment_packages
+        self.encounter_packages
             .remove_namespace(&self.assets, namespace);
 
         self.card_packages.remove_namespace(&self.assets, namespace);
@@ -614,6 +615,12 @@ impl Globals {
             .remove_namespace(&self.assets, namespace);
 
         self.player_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.resource_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.status_packages
             .remove_namespace(&self.assets, namespace);
     }
 
@@ -635,13 +642,14 @@ impl Globals {
         &self,
     ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
         let ns = PackageNamespace::Local;
-        let package_ids: Vec<_> = (self.encounter_packages.package_ids(ns))
-            .chain(self.augment_packages.package_ids(ns))
+        let package_ids: Vec<_> = (self.augment_packages.package_ids(ns))
+            .chain(self.encounter_packages.package_ids(ns))
             .chain(self.card_packages.package_ids(ns))
             .chain(self.character_packages.package_ids(ns))
             .chain(self.library_packages.package_ids(ns))
             .chain(self.player_packages.package_ids(ns))
             .chain(self.resource_packages.package_ids(ns))
+            .chain(self.status_packages.package_ids(ns))
             .map(|id| uri_encode(id.as_str()))
             .collect();
 
