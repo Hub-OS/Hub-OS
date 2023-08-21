@@ -66,8 +66,7 @@ impl Living {
 
     fn pre_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
-            .iter_mut()
-            .map(|(_, aux_prop)| aux_prop)
+            .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_before_hit())
             .collect();
 
@@ -78,8 +77,7 @@ impl Living {
 
     fn on_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
-            .iter_mut()
-            .map(|(_, aux_prop)| aux_prop)
+            .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_on_hit())
             .collect();
 
@@ -90,8 +88,7 @@ impl Living {
 
     fn post_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
-            .iter_mut()
-            .map(|(_, aux_prop)| aux_prop)
+            .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_after_hit())
             .collect();
 
@@ -127,7 +124,7 @@ impl Living {
         // aux props
         let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();
 
-        for (_, aux_prop) in &mut living.aux_props {
+        for aux_prop in living.aux_props.values_mut() {
             aux_prop.reset_tests();
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers

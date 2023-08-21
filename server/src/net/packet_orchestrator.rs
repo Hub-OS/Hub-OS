@@ -508,7 +508,7 @@ impl PacketOrchestrator {
         let now = packets::Instant::now();
         let mut kick_list = Vec::new();
 
-        for (_, connection) in &mut self.connections {
+        for connection in self.connections.values_mut() {
             connection.packet_sender.tick(now, |bytes| {
                 let _ = self.socket.send_to(bytes, connection.socket_address);
             });

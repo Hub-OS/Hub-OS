@@ -472,8 +472,8 @@ impl Player {
 
         let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost);
 
-        let augment_iter = self.augments.iter();
-        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, (_, m)| {
+        let augment_iter = self.augments.values();
+        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, m| {
             acc.saturating_add(m.hand_size_boost * m.level as i8)
         });
 
@@ -481,31 +481,27 @@ impl Player {
     }
 
     pub fn attack_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_attack = augment_iter
-            .fold(1, |acc, (_, m)| {
-                acc + m.attack_boost as i32 * m.level as i32
-            })
+            .fold(1, |acc, m| acc + m.attack_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_attack + self.attack_boost
     }
 
     pub fn rapid_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_speed = augment_iter
-            .fold(1, |acc, (_, m)| acc + m.rapid_boost as i32 * m.level as i32)
+            .fold(1, |acc, m| acc + m.rapid_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_speed + self.rapid_boost
     }
 
     pub fn charge_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_charge = augment_iter
-            .fold(1, |acc, (_, m)| {
-                acc + m.charge_boost as i32 * m.level as i32
-            })
+            .fold(1, |acc, m| acc + m.charge_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_charge + self.charge_boost
@@ -535,9 +531,9 @@ impl Player {
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let augment_callback = augment_iter
-            .flat_map(|(_, augment)| augment.calculate_charge_time_callback.clone())
+            .flat_map(|augment| augment.calculate_charge_time_callback.clone())
             .next();
 
         let callback = augment_callback
@@ -660,9 +656,9 @@ impl Player {
             return;
         };
 
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.normal_attack_callback.clone())
+            .flat_map(|augment| augment.normal_attack_callback.clone())
             .collect();
 
         if let Some(callback) = player.normal_attack_callback.clone() {
@@ -689,9 +685,9 @@ impl Player {
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.charged_attack_callback.clone())
+            .flat_map(|augment| augment.charged_attack_callback.clone())
             .collect();
 
         // form
@@ -729,9 +725,9 @@ impl Player {
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.special_attack_callback.clone())
+            .flat_map(|augment| augment.special_attack_callback.clone())
             .collect();
 
         // form
@@ -770,9 +766,9 @@ impl Player {
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| {
+            .flat_map(|augment| {
                 Some((
                     augment.can_charge_card_callback.clone()?,
                     augment.charged_card_callback.clone()?,

@@ -406,7 +406,7 @@ impl BattleSimulation {
             self.animators[entity.animator_index].enable();
             self.pending_callbacks.push(entity.spawn_callback.clone());
 
-            for (_, component) in &self.components {
+            for component in self.components.values() {
                 if component.entity == entity.id {
                     self.pending_callbacks.push(component.init_callback.clone());
                 }
@@ -429,7 +429,7 @@ impl BattleSimulation {
 
         // update attachment sprites
         // separate loop from entities to account for async actions
-        for (_, action) in &mut self.actions {
+        for action in self.actions.values_mut() {
             if !action.executed {
                 continue;
             }
@@ -733,9 +733,9 @@ impl BattleSimulation {
 
         // delete player augments
         if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
-            let augment_iter = player.augments.iter();
+            let augment_iter = player.augments.values();
             let augment_callbacks =
-                augment_iter.flat_map(|(_, augment)| augment.delete_callback.clone());
+                augment_iter.flat_map(|augment| augment.delete_callback.clone());
 
             self.pending_callbacks.extend(augment_callbacks);
             self.call_pending_callbacks(game_io, resources);
@@ -984,8 +984,8 @@ impl BattleSimulation {
 
         let executed_action_count = self
             .actions
-            .iter()
-            .filter(|(_, action)| action.executed && !action.is_async())
+            .values()
+            .filter(|action| action.executed && !action.is_async())
             .count();
 
         // if there's more executed actions than held actions, we forgot to delete one

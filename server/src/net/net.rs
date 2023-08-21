@@ -1786,7 +1786,7 @@ impl Net {
         }
 
         // send public sprites
-        for (_, sprite_id) in &self.public_sprites {
+        for sprite_id in self.public_sprites.values() {
             let sprite = &self.sprites[sprite_id];
 
             let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)

@@ -81,7 +81,7 @@ impl State for BattleState {
 
         // update battle step components
         if !simulation.time_freeze_tracker.time_is_frozen() {
-            for (_, component) in &simulation.components {
+            for component in simulation.components.values() {
                 if component.lifetime == ComponentLifetime::BattleStep {
                     let callback = component.update_callback.clone();
                     simulation.pending_callbacks.push(callback);
@@ -795,8 +795,8 @@ impl BattleState {
             }
 
             let action_active = (simulation.actions)
-                .iter()
-                .any(|(_, action)| action.used && action.entity == entity.id);
+                .values()
+                .any(|action| action.used && action.entity == entity.id);
 
             if action_active {
                 player.cancel_charge();
