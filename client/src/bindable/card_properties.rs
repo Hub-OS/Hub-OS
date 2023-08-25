@@ -155,17 +155,17 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for CardProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for CardProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        <&CardProperties>::to_lua(&self, lua)
+        <&CardProperties>::into_lua(&self, lua)
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

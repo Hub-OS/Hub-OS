@@ -144,8 +144,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for Movement {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for Movement {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

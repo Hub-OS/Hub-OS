@@ -84,8 +84,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Element {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for Element {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for Element {
+    fn into_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

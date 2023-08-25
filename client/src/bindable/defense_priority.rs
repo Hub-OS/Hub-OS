@@ -38,8 +38,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for DefensePriority {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for DefensePriority {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for DefensePriority {
+    fn into_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

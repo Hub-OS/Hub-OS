@@ -7,7 +7,7 @@ pub fn inject_static(lua_api: &mut LuaApi) {
 
     lua_api.add_static_injector(|lua| {
         lua.load(include_str!("async_api.lua"))
-            .set_name("internal: async_api.lua")?
+            .set_name("internal: async_api.lua")
             .exec()?;
 
         Ok(())

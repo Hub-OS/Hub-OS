@@ -17,7 +17,7 @@ futures = { version = "0.3", default-features = false, features = [
 isahc = "1.7"
 byteorder = "1.4"
 uuid = { version = "1.1", features = ["v4"] }
-mlua = { version = "0.8", features = ["vendored", "lua54"] }
+mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { version = "4.3", features = ["derive"] }
 roxmltree = "0.18"
 itertools = "0.11"

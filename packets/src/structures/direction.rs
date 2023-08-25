@@ -295,8 +295,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Direction {
 }
 
 #[cfg(feature = "rollback_mlua")]
-impl<'lua> rollback_mlua::ToLua<'lua> for Direction {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for Direction {
+    fn into_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

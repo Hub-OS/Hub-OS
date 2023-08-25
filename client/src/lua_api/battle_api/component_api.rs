@@ -80,7 +80,7 @@ fn callback_setter<G, P, F, R>(
     callback_getter: G,
     param_transformer: F,
 ) where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut Component) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
     F: for<'lua> Fn(

@@ -88,7 +88,7 @@ pub fn create_augment_table(
 
 fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLua<'lua>,
+    R: for<'lua> rollback_mlua::IntoLua<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
 {
@@ -113,7 +113,7 @@ where
 
 fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&mut Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
         + 'static,
@@ -146,7 +146,7 @@ fn callback_setter<G, P, F, R>(
     callback_getter: G,
     param_transformer: F,
 ) where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut Augment) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
     F: for<'lua> Fn(

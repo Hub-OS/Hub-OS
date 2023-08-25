@@ -73,17 +73,17 @@ impl<'lua> rollback_mlua::FromLua<'lua> for HitProperties {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for HitProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for HitProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        (&self).to_lua(lua)
+        (&self).into_lua(lua)
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for &HitProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for &HitProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

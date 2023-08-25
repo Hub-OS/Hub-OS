@@ -500,10 +500,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxProp {
         let deletes_next_run = table.raw_get("delete_next_run").unwrap_or_default();
 
         let requirements_table: rollback_mlua::Table = table.raw_get("requirements")?;
-        let requirements_len = requirements_table.raw_len() as usize;
+        let requirements_len = requirements_table.raw_len();
         let mut requirements = Vec::with_capacity(requirements_len);
 
-        for requirement in requirements_table.raw_sequence_values::<AuxRequirement>() {
+        for requirement in requirements_table.sequence_values::<AuxRequirement>() {
             requirements.push((requirement?, RequirementState::default()));
         }
 

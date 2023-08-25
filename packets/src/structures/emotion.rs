@@ -48,8 +48,8 @@ impl<'lua> mlua::FromLua<'lua> for Emotion {
 }
 
 #[cfg(feature = "rollback_mlua")]
-impl<'lua> mlua::ToLua<'lua> for &Emotion {
-    fn to_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+impl<'lua> mlua::IntoLua<'lua> for &Emotion {
+    fn into_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
         lua.create_string(self.as_str()).map(mlua::Value::String)
     }
 }

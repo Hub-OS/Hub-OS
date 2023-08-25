@@ -56,8 +56,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for LuaColor {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for LuaColor {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for LuaColor {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

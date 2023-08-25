@@ -54,7 +54,7 @@ impl LuaApi {
 
         lua_api.add_static_injector(|lua| {
             lua.load(include_str!("event_emitter.lua"))
-                .set_name("internal: event_emitter.lua")?
+                .set_name("internal: event_emitter.lua")
                 .exec()
         });
 

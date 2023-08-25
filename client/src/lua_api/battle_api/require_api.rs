@@ -37,8 +37,8 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         env.set("_folder_path", ResourcePaths::parent(&source_path))?;
 
         lua.load(&source)
-            .set_name(ResourcePaths::shorten(&source_path))?
-            .set_environment(env)?
+            .set_name(ResourcePaths::shorten(&source_path))
+            .set_environment(env)
             .call(())
     });
 }

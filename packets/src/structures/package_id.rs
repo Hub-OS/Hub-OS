@@ -66,8 +66,8 @@ impl<'lua> mlua::FromLua<'lua> for PackageId {
 }
 
 #[cfg(feature = "rollback_mlua")]
-impl<'lua> mlua::ToLua<'lua> for PackageId {
-    fn to_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
+impl<'lua> mlua::IntoLua<'lua> for PackageId {
+    fn into_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
         lua.create_string(&self.0).map(mlua::Value::String)
     }
 }

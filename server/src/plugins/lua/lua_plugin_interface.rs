@@ -101,7 +101,7 @@ impl LuaPluginInterface {
         })?;
 
         lua.load(include_str!("api/deprecated_callbacks.lua"))
-            .set_name("internal: deprecated_callbacks.lua")?
+            .set_name("internal: deprecated_callbacks.lua")
             .exec()?;
 
         Ok(())

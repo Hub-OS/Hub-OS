@@ -283,7 +283,7 @@ pub fn create_sprite_table(
 
 fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLua<'lua>,
+    R: for<'lua> rollback_mlua::IntoLua<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
 {
@@ -308,7 +308,7 @@ where
 
 fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&mut SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
         + 'static,

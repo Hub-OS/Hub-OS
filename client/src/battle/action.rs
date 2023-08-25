@@ -100,11 +100,11 @@ impl Action {
         let mut id: Option<GenerationalIndex> = None;
 
         lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-            use rollback_mlua::ToLua;
+            use rollback_mlua::IntoLua;
 
             // init card action
             let entity_table = create_entity_table(lua, entity_id)?;
-            let lua_card_props = card_props.to_lua(lua)?;
+            let lua_card_props = card_props.into_lua(lua)?;
 
             let optional_table = match card_init
                 .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))

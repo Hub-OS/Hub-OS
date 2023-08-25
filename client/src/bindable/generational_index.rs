@@ -75,8 +75,11 @@ impl<'lua> rollback_mlua::FromLua<'lua> for GenerationalIndex {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for GenerationalIndex {
-    fn to_lua(self, _lua: &'lua rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Value> {
+impl<'lua> rollback_mlua::IntoLua<'lua> for GenerationalIndex {
+    fn into_lua(
+        self,
+        _lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value> {
         let n = self.into();
         Ok(rollback_mlua::Value::Integer(n))
     }

@@ -204,7 +204,7 @@ fn load_root_script(
 
     let chunk = lua
         .load(&script_source)
-        .set_name(ResourcePaths::shorten(&package_info.script_path))?;
+        .set_name(ResourcePaths::shorten(&package_info.script_path));
 
     chunk.exec()?;
 

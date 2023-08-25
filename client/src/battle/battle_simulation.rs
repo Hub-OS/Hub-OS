@@ -772,7 +772,7 @@ impl BattleSimulation {
     ) -> rollback_mlua::Result<()>
     where
         F: FnOnce(&'lua rollback_mlua::Lua) -> rollback_mlua::Result<M>,
-        M: rollback_mlua::ToLuaMulti<'lua>,
+        M: rollback_mlua::IntoLuaMulti<'lua>,
     {
         let vms = resources.vm_manager.vms();
         let lua = &vms[vm_index].lua;

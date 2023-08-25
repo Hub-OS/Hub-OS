@@ -13,7 +13,7 @@ macro_rules! built_in_table {
             fn load_table(lua: &rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Table> {
                 let function = lua
                     .load(include_str!(concat!("built_in/", $file_name, ".lua")))
-                    .set_name(concat!("built_in/", $file_name, ".lua"))?
+                    .set_name(concat!("built_in/", $file_name, ".lua"))
                     .into_function()?;
 
                 // overwrite the table to speed up future calls

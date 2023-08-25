@@ -9,7 +9,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct BattleCallback<P = (), R = ()>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
     callback:
@@ -18,7 +18,7 @@ where
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
     pub fn new(
@@ -45,7 +45,7 @@ where
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua> + Send + Sync + Copy + 'static,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + Send + Sync + Copy + 'static,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     pub fn bind(self, params: P) -> BattleCallback<(), R> {
@@ -57,7 +57,7 @@ where
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
 {
     pub fn new_transformed_lua_callback<'lua, F>(
@@ -117,7 +117,7 @@ where
 
 impl<P, R> Default for BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
 {
     fn default() -> Self {
@@ -127,7 +127,7 @@ where
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
 {
     pub fn stub(value: R) -> Self {
@@ -139,7 +139,7 @@ where
 
 impl<'lua, P, R> rollback_mlua::FromLua<'lua> for BattleCallback<P, R>
 where
-    P: for<'a> rollback_mlua::ToLuaMulti<'a>,
+    P: for<'a> rollback_mlua::IntoLuaMulti<'a>,
     R: for<'a> rollback_mlua::FromLuaMulti<'a> + Default + Send + Sync + Clone + 'static,
 {
     fn from_lua(
