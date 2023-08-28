@@ -3,7 +3,7 @@ use crate::battle::{BattleCallback, Character, Entity, Player};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum AuxVariable {
     MaxHealth,
     Health,

@@ -1,4 +1,5 @@
 use num_traits::Signed;
+use std::borrow::Cow;
 use std::ops::{Add, Div, Mul, Rem, Sub};
 
 #[derive(Clone)]
@@ -18,6 +19,31 @@ enum MathExprNode<N, V> {
     Abs(usize),
     Sign(usize),
     Clamp(usize, usize, usize),
+}
+
+impl<N, V> MathExprNode<N, V> {
+    fn rebase(&mut self, base: usize) {
+        match self {
+            MathExprNode::Number(_) | MathExprNode::Variable(_) => {}
+            // unary
+            MathExprNode::Abs(a_index) | MathExprNode::Sign(a_index) => *a_index += base,
+            // binary
+            MathExprNode::Add(a_index, b_index)
+            | MathExprNode::Sub(a_index, b_index)
+            | MathExprNode::Mul(a_index, b_index)
+            | MathExprNode::Div(a_index, b_index)
+            | MathExprNode::Mod(a_index, b_index) => {
+                *a_index += base;
+                *b_index += base;
+            }
+            // ternary
+            MathExprNode::Clamp(a_index, b_index, c_index) => {
+                *a_index += base;
+                *b_index += base;
+                *c_index += base;
+            }
+        }
+    }
 }
 
 impl<N, V> MathExpr<N, V> {
@@ -96,6 +122,27 @@ impl<N, V> MathExpr<N, V> {
         self.nodes.push(MathExprNode::Div(a_index, b_index));
         self
     }
+
+    fn adopt_nodes(&mut self, mut expr: Self) {
+        let base_index = self.nodes.len();
+        for node in &mut expr.nodes {
+            node.rebase(base_index);
+        }
+
+        self.nodes.extend(expr.nodes);
+    }
+
+    pub fn clamp(mut self, b_expr: Self, c_expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(b_expr);
+        let b_index = self.nodes.len() - 1;
+        self.adopt_nodes(c_expr);
+        let c_index = self.nodes.len() - 1;
+
+        self.nodes
+            .push(MathExprNode::Clamp(a_index, b_index, c_index));
+        self
+    }
 }
 
 impl<N, V> MathExpr<N, V>
@@ -141,6 +188,141 @@ where
                 }
             }
         }
+    }
+}
+
+impl<N, V> std::fmt::Debug for MathExpr<N, V>
+where
+    N: std::fmt::Debug,
+    V: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut strings = Vec::new();
+        let mut work = vec![(self.nodes.len() - 1, 0)];
+
+        fn write_args<'a>(
+            work: &mut Vec<(usize, usize)>,
+            strings: &mut Vec<Cow<'a, str>>,
+            separator: &'a str,
+            arg_node_indices: &[usize],
+            arg_index: usize,
+        ) -> bool {
+            let Some(&index) = arg_node_indices.get(arg_index) else {
+                return true;
+            };
+
+            if arg_index > 0 {
+                strings.push(Cow::Borrowed(separator));
+            }
+
+            work.push((index, 0));
+            false
+        }
+
+        fn wrap_parens<'a>(
+            strings: &mut Vec<Cow<'a, str>>,
+            arg_index: usize,
+            mut inner: impl FnMut(&mut Vec<Cow<'a, str>>) -> bool,
+        ) -> bool {
+            if arg_index == 0 {
+                strings.push(Cow::Borrowed("("));
+            }
+
+            let complete = inner(strings);
+
+            if complete {
+                strings.push(Cow::Borrowed(")"));
+            }
+
+            complete
+        }
+
+        fn write_function<'a>(
+            work: &mut Vec<(usize, usize)>,
+            strings: &mut Vec<Cow<'a, str>>,
+            name: &'a str,
+            arg_node_indices: &[usize],
+            arg_index: usize,
+        ) -> bool {
+            if arg_index == 0 {
+                strings.push(Cow::Borrowed(name));
+            }
+
+            wrap_parens(strings, arg_index, |strings| {
+                write_args(work, strings, ", ", arg_node_indices, arg_index)
+            })
+        }
+
+        loop {
+            let Some((node_index, arg_index)) = work.last_mut().cloned() else {
+                break;
+            };
+
+            let complete = match &self.nodes[node_index] {
+                MathExprNode::Number(n) => {
+                    strings.push(Cow::Owned(format!("{n:?}")));
+                    true
+                }
+                MathExprNode::Variable(v) => {
+                    strings.push(Cow::Owned(format!("{v:?}")));
+                    true
+                }
+                MathExprNode::Add(a_index, b_index) => {
+                    wrap_parens(&mut strings, arg_index, |strings| {
+                        write_args(&mut work, strings, " + ", &[*a_index, *b_index], arg_index)
+                    })
+                }
+                MathExprNode::Sub(a_index, b_index) => {
+                    wrap_parens(&mut strings, arg_index, |strings| {
+                        write_args(&mut work, strings, " - ", &[*a_index, *b_index], arg_index)
+                    })
+                }
+                MathExprNode::Mul(a_index, b_index) => write_args(
+                    &mut work,
+                    &mut strings,
+                    " * ",
+                    &[*a_index, *b_index],
+                    arg_index,
+                ),
+                MathExprNode::Div(a_index, b_index) => write_args(
+                    &mut work,
+                    &mut strings,
+                    " / ",
+                    &[*a_index, *b_index],
+                    arg_index,
+                ),
+                MathExprNode::Mod(a_index, b_index) => write_args(
+                    &mut work,
+                    &mut strings,
+                    " % ",
+                    &[*a_index, *b_index],
+                    arg_index,
+                ),
+                MathExprNode::Abs(a_index) => {
+                    write_function(&mut work, &mut strings, "abs", &[*a_index], arg_index)
+                }
+                MathExprNode::Sign(a_index) => {
+                    write_function(&mut work, &mut strings, "sign", &[*a_index], arg_index)
+                }
+                MathExprNode::Clamp(a_index, b_index, c_index) => write_function(
+                    &mut work,
+                    &mut strings,
+                    "clamp",
+                    &[*a_index, *b_index, *c_index],
+                    arg_index,
+                ),
+            };
+
+            if complete {
+                work.pop();
+
+                if let Some((_, arg_index)) = work.last_mut() {
+                    *arg_index += 1;
+                }
+            }
+        }
+
+        f.write_fmt(format_args!("{}", strings.join("")))
     }
 }
 
@@ -236,4 +418,50 @@ where
     expression.nodes.push(node);
 
     Ok(expression.nodes.len() - 1)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::bindable::AuxVariable;
+
+    fn undershirt_expr() -> MathExpr<f64, AuxVariable> {
+        // clamp(DAMAGE, 1.0, HEALTH - 1.0)
+        MathExpr::from_variable(AuxVariable::Damage).clamp(
+            MathExpr::from_number(1.0),
+            MathExpr::from_variable(AuxVariable::Health).sub(1.0),
+        )
+    }
+
+    fn example_expr() -> MathExpr<i32, AuxVariable> {
+        // 3 + 2 - 1
+        MathExpr::from_number(3).add(2).sub(1)
+    }
+
+    #[test]
+    fn format() {
+        let undershirt_expr = undershirt_expr();
+
+        assert_eq!(
+            format!("{undershirt_expr:?}"),
+            "clamp(Damage, 1.0, (Health - 1.0))"
+        );
+
+        let example_expr = example_expr();
+
+        assert_eq!(format!("{example_expr:?}"), "((3 + 2) - 1)");
+    }
+
+    #[test]
+    fn eval() {
+        let undershirt_result = undershirt_expr().eval(|v| match v {
+            AuxVariable::MaxHealth => 100.0,
+            AuxVariable::Health => 100.0,
+            AuxVariable::Damage => 120.0,
+        });
+        assert_eq!(undershirt_result, 99.0);
+
+        let example_result = example_expr().eval(|_| unreachable!());
+        assert_eq!(example_result, 4);
+    }
 }
