@@ -1191,8 +1191,9 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         // find entity
         let id: EntityId = table.raw_get("#id")?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
+        let resources = api_ctx.resources;
 
         let living = entities
             .query_one_mut::<&mut Living>(id.into())
@@ -1205,7 +1206,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             return Err(aux_prop_already_bound());
         }
 
-        let aux_prop = lua.unpack(value)?;
+        let aux_prop = AuxProp::from_lua(resources, lua, lua.unpack(value)?)?;
         let id = living.add_aux_prop(aux_prop);
         aux_prop_table.raw_set("#id", id)?;
 

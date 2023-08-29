@@ -1,7 +1,7 @@
 use super::{BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, VIRUS_DEFENSE_TABLE};
 use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
 use crate::bindable::{ComponentLifetime, EntityId};
-use crate::lua_api::{create_entity_table, AUX_MATH_TABLE, AUX_PROP_TABLE};
+use crate::lua_api::{create_entity_table, AUX_PROP_TABLE};
 use crate::render::FrameTime;
 
 // lazy loader for built in tables
@@ -64,7 +64,6 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
     built_in_table!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE);
     built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
     built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
-    built_in_table!(lua_api, "aux_math", AUX_MATH_TABLE);
 
     lua_api.add_dynamic_function(SHARED_HITBOX_TABLE, "new", |api_ctx, lua, params| {
         let (entity_table, lifetime): (rollback_mlua::Table, Option<FrameTime>) =

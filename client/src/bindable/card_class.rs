@@ -1,7 +1,7 @@
 use num_derive::FromPrimitive;
 
 #[repr(u8)]
-#[derive(Default, Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, FromPrimitive)]
 pub enum CardClass {
     #[default]
     Standard,

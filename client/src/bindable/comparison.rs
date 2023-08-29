@@ -1,7 +1,7 @@
 use num_derive::FromPrimitive;
 
 #[repr(u8)]
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive)]
 pub enum Comparison {
     LT,
     LE,

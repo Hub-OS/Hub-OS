@@ -1,5 +1,5 @@
 use super::{CardClass, Comparison, Element, HitFlags, HitProperties, MathExpr};
-use crate::battle::{BattleCallback, Character, Entity, Player};
+use crate::battle::{BattleCallback, Character, Entity, Player, SharedBattleResources};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
 
@@ -24,6 +24,22 @@ impl AuxVariable {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseAuxVariableError;
+
+impl std::str::FromStr for AuxVariable {
+    type Err = ParseAuxVariableError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "MAX_HEALTH" => Ok(AuxVariable::MaxHealth),
+            "HEALTH" => Ok(AuxVariable::Health),
+            "DAMAGE" => Ok(AuxVariable::Damage),
+            _ => Err(ParseAuxVariableError),
+        }
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for AuxVariable {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
@@ -43,7 +59,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxVariable {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum AuxRequirement {
     Interval(FrameTime),
     HitElement(Element),
@@ -115,12 +131,11 @@ impl AuxRequirement {
     fn is_hit_requirement(&self) -> bool {
         self.priority() == Self::HIT_PRIORITY
     }
-}
 
-impl<'lua> rollback_mlua::FromLua<'lua> for AuxRequirement {
-    fn from_lua(
-        lua_value: rollback_mlua::Value<'lua>,
+    fn from_lua<'lua>(
+        resources: &SharedBattleResources,
         lua: &'lua rollback_mlua::Lua,
+        lua_value: rollback_mlua::Value<'lua>,
     ) -> rollback_mlua::Result<Self> {
         let table: rollback_mlua::Table = lua.unpack(lua_value.clone())?;
 
@@ -134,7 +149,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxRequirement {
             "require_hit_flag" => AuxRequirement::HitFlag(table.get(2)?),
             "require_hit_damage" => AuxRequirement::HitDamage(table.get(2)?, table.get(3)?),
             "require_projected_hit_damage" => {
-                AuxRequirement::ProjectedHitDamage(table.get(2)?, table.get(3)?, table.get(4)?)
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxRequirement::ProjectedHitDamage(expr, table.get(3)?, table.get(4)?)
             }
             "require_total_damage" => AuxRequirement::TotalDamage(table.get(2)?, table.get(3)?),
             "require_element" => AuxRequirement::Element(table.get(2)?),
@@ -148,10 +164,12 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxRequirement {
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
             "require_card_tag" => AuxRequirement::CardTag(table.get(2)?),
             "require_projected_health_threshold" => {
-                AuxRequirement::ProjectedHPThreshold(table.get(2)?, table.get(3)?, table.get(4)?)
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxRequirement::ProjectedHPThreshold(expr, table.get(3)?, table.get(4)?)
             }
             "require_projected_health" => {
-                AuxRequirement::ProjectedHP(table.get(2)?, table.get(3)?, table.get(4)?)
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxRequirement::ProjectedHP(expr, table.get(3)?, table.get(4)?)
             }
             "require_health_threshold" => AuxRequirement::HPThreshold(table.get(2)?, table.get(3)?),
             "require_health" => AuxRequirement::HP(table.get(2)?, table.get(3)?),
@@ -168,7 +186,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxRequirement {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum AuxEffect {
     StatusImmunity(HitFlags),
     ApplyStatus(HitFlags, FrameTime),
@@ -208,12 +226,11 @@ impl AuxEffect {
     pub fn execute_after_hit(&self) -> bool {
         self.priority() > 4
     }
-}
 
-impl<'lua> rollback_mlua::FromLua<'lua> for AuxEffect {
-    fn from_lua(
-        lua_value: rollback_mlua::Value<'lua>,
+    fn from_lua<'lua>(
+        resources: &SharedBattleResources,
         lua: &'lua rollback_mlua::Lua,
+        lua_value: rollback_mlua::Value<'lua>,
     ) -> rollback_mlua::Result<Self> {
         if matches!(lua_value, rollback_mlua::Nil) {
             return Ok(AuxEffect::None);
@@ -228,9 +245,18 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxEffect {
             "declare_immunity" => AuxEffect::StatusImmunity(table.get(2)?),
             "apply_status" => AuxEffect::ApplyStatus(table.get(2)?, table.get(3)?),
             "remove_status" => AuxEffect::RemoveStatus(table.get(2)?),
-            "increase_hit_damage" => AuxEffect::IncreaseHitDamage(table.get(2)?),
-            "decrease_hit_damage" => AuxEffect::DecreaseHitDamage(table.get(2)?),
-            "decrease_total_damage" => AuxEffect::DecreaseDamageSum(table.get(2)?),
+            "increase_hit_damage" => {
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxEffect::IncreaseHitDamage(expr)
+            }
+            "decrease_hit_damage" => {
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxEffect::DecreaseHitDamage(expr)
+            }
+            "decrease_total_damage" => {
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxEffect::DecreaseDamageSum(expr)
+            }
             "drain_hp" => AuxEffect::DrainHP(table.get(2)?),
             "recover_hp" => AuxEffect::RecoverHP(table.get(2)?),
             _ => {
@@ -246,13 +272,13 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxEffect {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 struct RequirementState {
     passed: bool,
     tested: bool,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AuxProp {
     requirements: Vec<(AuxRequirement, RequirementState)>,
     effect: AuxEffect,
@@ -485,16 +511,15 @@ impl AuxProp {
             state.passed = result;
         }
     }
-}
 
-impl<'lua> rollback_mlua::FromLua<'lua> for AuxProp {
-    fn from_lua(
-        lua_value: rollback_mlua::Value<'lua>,
+    pub fn from_lua<'lua>(
+        resources: &SharedBattleResources,
         lua: &'lua rollback_mlua::Lua,
+        lua_value: rollback_mlua::Value<'lua>,
     ) -> rollback_mlua::Result<Self> {
         let table: rollback_mlua::Table = lua.unpack(lua_value)?;
 
-        let effect = table.raw_get("effect")?;
+        let effect = AuxEffect::from_lua(resources, lua, table.raw_get("effect")?)?;
         let callbacks = table.raw_get("callbacks").unwrap_or_default();
         let deletes_on_activation = table.raw_get("delete_on_activate").unwrap_or_default();
         let deletes_next_run = table.raw_get("delete_next_run").unwrap_or_default();
@@ -503,8 +528,9 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxProp {
         let requirements_len = requirements_table.raw_len();
         let mut requirements = Vec::with_capacity(requirements_len);
 
-        for requirement in requirements_table.sequence_values::<AuxRequirement>() {
-            requirements.push((requirement?, RequirementState::default()));
+        for lua_value in requirements_table.sequence_values() {
+            let requirement = AuxRequirement::from_lua(resources, lua, lua_value?)?;
+            requirements.push((requirement, RequirementState::default()));
         }
 
         Ok(AuxProp {

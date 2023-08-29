@@ -1,6 +1,7 @@
 use num_traits::Signed;
 use std::borrow::Cow;
 use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct MathExpr<N, V> {
@@ -11,13 +12,14 @@ pub struct MathExpr<N, V> {
 enum MathExprNode<N, V> {
     Number(N),
     Variable(V),
+    Abs(usize),
+    Negate(usize),
+    Sign(usize),
     Add(usize, usize),
     Sub(usize, usize),
     Mul(usize, usize),
     Div(usize, usize),
     Mod(usize, usize),
-    Abs(usize),
-    Sign(usize),
     Clamp(usize, usize, usize),
 }
 
@@ -26,7 +28,9 @@ impl<N, V> MathExprNode<N, V> {
         match self {
             MathExprNode::Number(_) | MathExprNode::Variable(_) => {}
             // unary
-            MathExprNode::Abs(a_index) | MathExprNode::Sign(a_index) => *a_index += base,
+            MathExprNode::Abs(a_index)
+            | MathExprNode::Negate(a_index)
+            | MathExprNode::Sign(a_index) => *a_index += base,
             // binary
             MathExprNode::Add(a_index, b_index)
             | MathExprNode::Sub(a_index, b_index)
@@ -57,6 +61,24 @@ impl<N, V> MathExpr<N, V> {
         Self {
             nodes: vec![MathExprNode::Variable(v)],
         }
+    }
+
+    pub fn abs(mut self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Abs(a_index));
+        self
+    }
+
+    pub fn negate(mut self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Negate(a_index));
+        self
+    }
+
+    pub fn sign(mut self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Sign(a_index));
+        self
     }
 
     pub fn add(mut self, n: N) -> Self {
@@ -132,6 +154,38 @@ impl<N, V> MathExpr<N, V> {
         self.nodes.extend(expr.nodes);
     }
 
+    pub fn add_expr(mut self, expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(expr);
+        let b_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Add(a_index, b_index));
+        self
+    }
+
+    pub fn sub_expr(mut self, expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(expr);
+        let b_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Sub(a_index, b_index));
+        self
+    }
+
+    pub fn mul_expr(mut self, expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(expr);
+        let b_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Mul(a_index, b_index));
+        self
+    }
+
+    pub fn div_expr(mut self, expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(expr);
+        let b_index = self.nodes.len() - 1;
+        self.nodes.push(MathExprNode::Div(a_index, b_index));
+        self
+    }
+
     pub fn clamp(mut self, b_expr: Self, c_expr: Self) -> Self {
         let a_index = self.nodes.len() - 1;
         self.adopt_nodes(b_expr);
@@ -157,6 +211,9 @@ where
         match &self.nodes[index] {
             MathExprNode::Number(n) => *n,
             MathExprNode::Variable(v) => var(v),
+            MathExprNode::Abs(a_index) => self.eval_branch(*a_index, var).abs(),
+            MathExprNode::Negate(a_index) => -self.eval_branch(*a_index, var),
+            MathExprNode::Sign(a_index) => self.eval_branch(*a_index, var).signum(),
             MathExprNode::Add(a_index, b_index) => {
                 self.eval_branch(*a_index, var) + self.eval_branch(*b_index, var)
             }
@@ -172,8 +229,6 @@ where
             MathExprNode::Mod(a_index, b_index) => {
                 self.eval_branch(*a_index, var) % self.eval_branch(*b_index, var)
             }
-            MathExprNode::Abs(a_index) => self.eval_branch(*a_index, var).abs(),
-            MathExprNode::Sign(a_index) => self.eval_branch(*a_index, var).signum(),
             MathExprNode::Clamp(a_index, b_index, c_index) => {
                 let value = self.eval_branch(*a_index, var);
                 let min = self.eval_branch(*b_index, var);
@@ -187,6 +242,197 @@ where
                     value
                 }
             }
+        }
+    }
+}
+
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::{alphanumeric1, char, space0 as space};
+use nom::combinator::{all_consuming, map_parser};
+use nom::error::VerboseError as NomError;
+use nom::multi::fold;
+use nom::number::complete::recognize_float;
+use nom::sequence::{delimited, pair};
+use nom::{Finish, IResult, Parser};
+
+fn parse_failure<T>() -> nom::Err<NomError<T>, NomError<T>> {
+    nom::Err::Failure(NomError { errors: Vec::new() })
+}
+
+impl<N, V> MathExpr<N, V>
+where
+    N: FromStr,
+    V: FromStr,
+{
+    fn parse_number(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        nom::error::context(
+            "number",
+            map_parser(
+                delimited(space, recognize_float, space),
+                |s| -> IResult<&str, Self, NomError<&str>> {
+                    let number = FromStr::from_str(s).map_err(|_| parse_failure())?;
+
+                    Ok((&s[s.len()..], Self::from_number(number)))
+                },
+            ),
+        )
+        .parse(i)
+    }
+
+    fn parse_variable(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        nom::error::context(
+            "variable",
+            map_parser(
+                delimited(space, alphanumeric1, space),
+                |s| -> IResult<&str, Self, NomError<&str>> {
+                    let variable = FromStr::from_str(s).map_err(|_| parse_failure())?;
+
+                    Ok((&s[s.len()..], Self::from_variable(variable)))
+                },
+            ),
+        )
+        .parse(i)
+    }
+
+    fn parse_args(i: &str) -> IResult<&str, Vec<Self>, NomError<&str>> {
+        let (i, first_arg) = Self::parse_sub_expr(i)?;
+        let mut args = vec![first_arg];
+
+        fold(
+            0..,
+            pair(delimited(space, char(','), space), Self::parse_sub_expr),
+            move || std::mem::take(&mut args),
+            |mut acc, (_, expr)| {
+                acc.push(expr);
+                acc
+            },
+        )
+        .parse(i)
+    }
+
+    fn parse_function_inner(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        let (i, (name, args)) = pair(
+            delimited(space, alphanumeric1, space),
+            delimited(
+                delimited(space, tag("("), space),
+                Self::parse_args,
+                delimited(space, tag(")"), space),
+            ),
+        )
+        .parse(i)?;
+
+        match name {
+            "clamp" => {
+                let Ok([a, b, c]) = <[Self; 3]>::try_from(args) else {
+                    return Err(parse_failure());
+                };
+
+                Ok((i, a.clamp(b, c)))
+            }
+            "abs" => {
+                let Ok([a]) = <[Self; 1]>::try_from(args) else {
+                    return Err(parse_failure());
+                };
+
+                Ok((i, a.abs()))
+            }
+            "sign" => {
+                let Ok([a]) = <[Self; 1]>::try_from(args) else {
+                    return Err(parse_failure());
+                };
+
+                Ok((i, a.sign()))
+            }
+            _ => Err(parse_failure()),
+        }
+    }
+
+    fn parse_function(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        nom::error::context("function call", Self::parse_function_inner).parse(i)
+    }
+
+    fn parse_parens(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        delimited(
+            space,
+            delimited(tag("("), Self::parse_sub_expr, tag(")")),
+            space,
+        )
+        .parse(i)
+    }
+
+    fn parse_factor(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        alt((
+            Self::parse_number,
+            Self::parse_function,
+            Self::parse_variable,
+            Self::parse_parens,
+        ))
+        .parse(i)
+    }
+
+    fn parse_negate(i: &str) -> (&str, bool) {
+        let parse = || -> IResult<&str, char> { delimited(space, char('-'), space).parse(i) };
+
+        match parse() {
+            Ok((i, _)) => (i, true),
+            Err(_) => (i, false),
+        }
+    }
+
+    fn parse_term(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        let (i, negate) = Self::parse_negate(i);
+        let (i, mut init) = Self::parse_factor(i)?;
+
+        let (i, expr) = fold(
+            0..,
+            pair(alt((char('*'), char('/'))), Self::parse_factor),
+            move || Self {
+                nodes: std::mem::take(&mut init.nodes),
+            },
+            |acc, (op, expr)| {
+                if op == '*' {
+                    acc.mul_expr(expr)
+                } else {
+                    acc.div_expr(expr)
+                }
+            },
+        )
+        .parse(i)?;
+
+        let expr = if negate { expr.negate() } else { expr };
+
+        Ok((i, expr))
+    }
+
+    pub fn parse_sub_expr(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        let (i, mut init) = Self::parse_term(i)?;
+
+        fold(
+            0..,
+            pair(alt((char('+'), char('-'))), Self::parse_term),
+            move || Self {
+                nodes: std::mem::take(&mut init.nodes),
+            },
+            |acc, (op, expr)| {
+                if op == '+' {
+                    acc.add_expr(expr)
+                } else {
+                    acc.sub_expr(expr)
+                }
+            },
+        )
+        .parse(i)
+    }
+
+    pub fn parse_full(i: &str) -> IResult<&str, Self, NomError<&str>> {
+        all_consuming(Self::parse_sub_expr).parse(i)
+    }
+
+    pub fn parse(source: &str) -> Result<MathExpr<N, V>, String> {
+        match Self::parse_full(source).finish() {
+            Ok((_, expr)) => Ok(expr),
+            Err(err) => Err(nom::error::convert_error(source, err)),
         }
     }
 }
@@ -301,6 +547,16 @@ where
                 MathExprNode::Abs(a_index) => {
                     write_function(&mut work, &mut strings, "abs", &[*a_index], arg_index)
                 }
+                MathExprNode::Negate(a_index) => {
+                    let completed = arg_index > 0;
+
+                    if !completed {
+                        strings.push(Cow::Borrowed("-"));
+                        work.push((*a_index, 0));
+                    }
+
+                    completed
+                }
                 MathExprNode::Sign(a_index) => {
                     write_function(&mut work, &mut strings, "sign", &[*a_index], arg_index)
                 }
@@ -324,100 +580,6 @@ where
 
         f.write_fmt(format_args!("{}", strings.join("")))
     }
-}
-
-impl<'lua, N, V> rollback_mlua::FromLua<'lua> for MathExpr<N, V>
-where
-    N: rollback_mlua::FromLua<'lua>,
-    V: rollback_mlua::FromLua<'lua>,
-{
-    fn from_lua(
-        lua_value: rollback_mlua::Value<'lua>,
-        lua: &'lua rollback_mlua::Lua,
-    ) -> rollback_mlua::Result<Self> {
-        let mut expression = MathExpr { nodes: Vec::new() };
-        push_from_lua(&mut expression, lua, lua_value)?;
-
-        Ok(expression)
-    }
-}
-
-fn push_from_lua<'lua, N, V>(
-    expression: &mut MathExpr<N, V>,
-    lua: &'lua rollback_mlua::Lua,
-    lua_value: rollback_mlua::Value<'lua>,
-) -> rollback_mlua::Result<usize>
-where
-    N: rollback_mlua::FromLua<'lua>,
-    V: rollback_mlua::FromLua<'lua>,
-{
-    let table = if let Ok(table) = lua.unpack::<rollback_mlua::Table>(lua_value.clone()) {
-        table
-    } else if let Ok(n) = lua.unpack::<N>(lua_value.clone()) {
-        expression.nodes.push(MathExprNode::Number(n));
-        return Ok(expression.nodes.len() - 1);
-    } else {
-        let v = lua.unpack::<V>(lua_value.clone())?;
-        expression.nodes.push(MathExprNode::Variable(v));
-        return Ok(expression.nodes.len() - 1);
-    };
-
-    let op_string: rollback_mlua::String = table.raw_get(1)?;
-    let op_str = op_string.to_str()?;
-
-    let node = match op_str {
-        "add" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            MathExprNode::Add(a_index, b_index)
-        }
-        "sub" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            MathExprNode::Sub(a_index, b_index)
-        }
-        "mul" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            MathExprNode::Mul(a_index, b_index)
-        }
-        "div" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            MathExprNode::Div(a_index, b_index)
-        }
-        "mod" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            MathExprNode::Mod(a_index, b_index)
-        }
-        "abs" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            MathExprNode::Abs(a_index)
-        }
-        "sign" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            MathExprNode::Sign(a_index)
-        }
-        "clamp" => {
-            let a_index = push_from_lua(expression, lua, table.raw_get(2)?)?;
-            let b_index = push_from_lua(expression, lua, table.raw_get(3)?)?;
-            let c_index = push_from_lua(expression, lua, table.raw_get(4)?)?;
-
-            MathExprNode::Clamp(a_index, b_index, c_index)
-        }
-        _ => {
-            return Err(rollback_mlua::Error::FromLuaConversionError {
-                from: lua_value.type_name(),
-                to: "MathExpr",
-                message: None,
-            });
-        }
-    };
-
-    expression.nodes.push(node);
-
-    Ok(expression.nodes.len() - 1)
 }
 
 #[cfg(test)]
@@ -463,5 +625,38 @@ mod test {
 
         let example_result = example_expr().eval(|_| unreachable!());
         assert_eq!(example_result, 4);
+    }
+
+    #[test]
+    fn parse() -> Result<(), String> {
+        let undershirt_expr =
+            MathExpr::<f32, AuxVariable>::parse("clamp(DAMAGE, 1.0, HEALTH - 1.0)")?;
+        assert_eq!(
+            format!("{undershirt_expr:?}"),
+            "clamp(Damage, 1.0, (Health - 1.0))"
+        );
+
+        type SimpleExpr = MathExpr<i32, i32>;
+
+        let example_expr = SimpleExpr::parse("3 + 2 - 1")?;
+        assert_eq!(format!("{example_expr:?}"), "((3 + 2) - 1)");
+
+        // incomplete expression
+        assert!(SimpleExpr::parse("3+").is_err());
+
+        // signed
+        assert_eq!(SimpleExpr::parse("-1")?.eval(|_| unreachable!()), -1);
+        assert_eq!(SimpleExpr::parse("+1")?.eval(|_| unreachable!()), 1);
+
+        // order of operations
+        assert_eq!(SimpleExpr::parse("3-1*4")?.eval(|_| unreachable!()), -1);
+        assert_eq!(SimpleExpr::parse("(3-1)*4")?.eval(|_| unreachable!()), 8);
+
+        assert_eq!(
+            SimpleExpr::parse("-clamp(4, 1, 2) - 1 * 3")?.eval(|_| unreachable!()),
+            -5
+        );
+
+        Ok(())
     }
 }

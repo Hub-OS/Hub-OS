@@ -2101,6 +2101,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "log",
+ "nom 7.1.2",
  "num-derive 0.4.0",
  "num-traits",
  "packets",
@@ -2854,6 +2855,15 @@ dependencies = [
  "lexical-core",
  "memchr",
  "version_check",
+]
+
+[[package]]
+name = "nom"
+version = "7.1.2"
+source = "git+https://github.com/rust-bakery/nom.git#8c68e22d9f2d0aadaa1770d980d59ea562dfb6a7"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
 ]
 
 [[package]]
