@@ -51,11 +51,14 @@ impl State for BattleState {
         // new: process player input
         self.process_input(game_io, resources, simulation);
 
+        self.process_action_queues(game_io, simulation);
+
         // update time freeze first as it affects the rest of the updates
         self.update_time_freeze(game_io, resources, simulation);
 
-        // new: process action queues
-        self.process_action_queues(game_io, resources, simulation);
+        // new: process movement and actions
+        self.process_movement(game_io, resources, simulation);
+        self.process_actions(game_io, resources, simulation);
 
         // update tiles
         self.update_field(game_io, resources, simulation);
@@ -292,6 +295,56 @@ impl BattleState {
         simulation.call_pending_callbacks(game_io, resources);
     }
 
+    fn process_action_queues(&self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+        let entities = &mut simulation.entities;
+
+        for (_, entity) in entities.query_mut::<&mut Entity>() {
+            let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+            if !time_is_frozen && entity.action_index.is_some() {
+                // already set
+                continue;
+            }
+
+            let Some(index) = entity.action_queue.pop_front() else {
+                continue;
+            };
+
+            // validate index as it may be coming from lua
+            let Some(action) = simulation.actions.get_mut(index) else {
+                continue;
+            };
+
+            if action.used {
+                log::error!("Action already used, ignoring");
+                continue;
+            }
+
+            if action.entity != entity.id {
+                continue;
+            }
+
+            if time_is_frozen && !action.properties.time_freeze {
+                continue;
+            }
+
+            action.used = true;
+
+            if action.properties.time_freeze {
+                if time_is_frozen && !simulation.is_resimulation {
+                    // must be countering, play sfx
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&globals.sfx.trap);
+                }
+
+                let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+                time_freeze_tracker.set_team_action(entity.team, index);
+            } else {
+                entity.action_index = Some(index);
+            }
+        }
+    }
+
     pub fn update_time_freeze(
         &mut self,
         game_io: &GameIO,
@@ -471,7 +524,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, resources, &actions_pending_removal);
+        simulation.delete_actions(game_io, resources, actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {
@@ -868,8 +921,10 @@ impl BattleState {
         for (id, (entity, living, player)) in
             entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
         {
-            // can't move if there's a blocking card action or immoble
-            if entity.action_index.is_some() || living.status_director.is_immobile(status_registry)
+            // can't move if there's a blocking action or immoble
+            if entity.action_index.is_some()
+                || !entity.action_queue.is_empty()
+                || living.status_director.is_immobile(status_registry)
             {
                 continue;
             }
@@ -1087,16 +1142,6 @@ impl BattleState {
         for callback in callbacks {
             callback.call(game_io, resources, simulation, ());
         }
-    }
-
-    fn process_action_queues(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        self.process_movement(game_io, resources, simulation);
-        self.process_actions(game_io, resources, simulation);
     }
 
     fn process_movement(
@@ -1388,7 +1433,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, resources, &actions_pending_deletion);
+        simulation.delete_actions(game_io, resources, actions_pending_deletion);
     }
 
     fn apply_status_vfx(

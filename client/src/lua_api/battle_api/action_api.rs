@@ -170,7 +170,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             return Err(action_not_found());
         }
 
-        simulation.delete_actions(api_ctx.game_io, api_ctx.resources, &[id]);
+        simulation.delete_actions(api_ctx.game_io, api_ctx.resources, [id]);
 
         lua.pack_multi(())
     });

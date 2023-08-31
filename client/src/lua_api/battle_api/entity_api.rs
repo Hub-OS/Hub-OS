@@ -552,9 +552,28 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_entity_mismatch());
         }
 
-        let used = simulation.use_action(api_ctx.game_io, id, action_index);
+        let entities = &mut simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
 
-        lua.pack_multi(used)
+        entity.action_queue.push_back(action_index);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "cancel_actions", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+
+        let id: EntityId = table.raw_get("#id")?;
+        Action::cancel_all(game_io, resources, simulation, id);
+
+        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "can_move_to", move |api_ctx, lua, params| {

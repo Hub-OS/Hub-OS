@@ -168,15 +168,8 @@ impl Player {
         living.register_status_callback(
             HitFlag::FLINCH,
             BattleCallback::new(move |game_io, resources, simulation, _| {
-                // cancel previous action
-                let entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(id.into())
-                    .unwrap();
-
-                if let Some(index) = entity.action_index {
-                    simulation.delete_actions(game_io, resources, &[index]);
-                }
+                // cancel actions
+                Action::cancel_all(game_io, resources, simulation, id);
 
                 let (entity, living, player) = simulation
                     .entities
@@ -651,26 +644,24 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
+        // resolve action for normal attack
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
+        // augment
         let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
             .flat_map(|augment| augment.normal_attack_callback.clone())
             .collect();
 
+        // base
         if let Some(callback) = player.normal_attack_callback.clone() {
             callbacks.push(callback);
         }
 
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index);
-                return;
-            }
-        }
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
 
     pub fn use_charged_attack(
@@ -679,6 +670,7 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
+        // resolve action for charged attack
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
@@ -705,12 +697,7 @@ impl Player {
             callbacks.push(callback);
         }
 
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index);
-                return;
-            }
-        }
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
 
     pub fn use_special_attack(
@@ -719,6 +706,7 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
+        // resolve action for special attack
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
@@ -745,12 +733,7 @@ impl Player {
             callbacks.push(callback);
         }
 
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, resources, simulation, ()) {
-                simulation.use_action(game_io, entity_id, index);
-                return;
-            }
-        }
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
 
     fn resolve_card_charger(
@@ -861,7 +844,12 @@ impl Player {
 
         // use the action or spawn a poof
         if let Some(index) = action_index {
-            simulation.use_action(game_io, entity_id, index);
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(entity_id.into())
+                .unwrap();
+
+            entity.action_queue.push_back(index);
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);
         }

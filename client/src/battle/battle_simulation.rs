@@ -567,69 +567,14 @@ impl BattleSimulation {
         true
     }
 
-    pub fn use_action(
-        &mut self,
-        game_io: &GameIO,
-        entity_id: EntityId,
-        index: GenerationalIndex,
-    ) -> bool {
-        let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
-            return false;
-        };
-
-        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
-
-        if !time_is_frozen && entity.action_index.is_some() {
-            // already set
-            return false;
-        }
-
-        // validate index as it may be coming from lua
-        let Some(action) = self.actions.get_mut(index) else {
-            log::error!("Received invalid Action index {index:?}");
-            return false;
-        };
-
-        if action.used {
-            log::error!("Action already used, ignoring");
-            return false;
-        }
-
-        if action.entity != entity_id {
-            return false;
-        }
-
-        if time_is_frozen && !action.properties.time_freeze {
-            return false;
-        }
-
-        action.used = true;
-
-        if action.properties.time_freeze {
-            let time_freeze_tracker = &mut self.time_freeze_tracker;
-
-            if time_is_frozen && !self.is_resimulation {
-                // must be countering, play sfx
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.trap);
-            }
-
-            time_freeze_tracker.set_team_action(entity.team, index);
-        } else {
-            entity.action_index = Some(index);
-        }
-
-        true
-    }
-
     pub fn delete_actions(
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        delete_indices: &[GenerationalIndex],
+        delete_indices: impl IntoIterator<Item = GenerationalIndex>,
     ) {
         for index in delete_indices {
-            let Some(action) = self.actions.get_mut(*index) else {
+            let Some(action) = self.actions.get_mut(index) else {
                 continue;
             };
 
@@ -646,7 +591,7 @@ impl BattleSimulation {
                 .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            if entity.action_index == Some(*index) {
+            if entity.action_index == Some(index) {
                 action.complete_sync(
                     &mut self.entities,
                     &mut self.animators,
@@ -660,7 +605,7 @@ impl BattleSimulation {
                 callback.call(game_io, resources, self, ());
             }
 
-            let action = self.actions.get(*index).unwrap();
+            let action = self.actions.get(index).unwrap();
 
             // remove attachments from the entity
             let entity = self
@@ -675,7 +620,7 @@ impl BattleSimulation {
             }
 
             // finally remove the card action
-            self.actions.remove(*index);
+            self.actions.remove(index);
         }
 
         self.call_pending_callbacks(game_io, resources);
@@ -742,7 +687,7 @@ impl BattleSimulation {
         }
 
         // delete card actions
-        self.delete_actions(game_io, resources, &card_indices);
+        self.delete_actions(game_io, resources, card_indices);
 
         // call delete callbacks after
         self.pending_callbacks.extend(listener_callbacks);

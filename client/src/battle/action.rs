@@ -223,7 +223,7 @@ impl Action {
                 };
 
                 if matches!(action.lockout_type, ActionLockout::Animation) {
-                    simulation.delete_actions(game_io, resources, &[action_index]);
+                    simulation.delete_actions(game_io, resources, [action_index]);
                 }
             });
 
@@ -282,6 +282,53 @@ impl Action {
             let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
             current_tile.reserve_for(entity.id);
         }
+    }
+
+    pub fn queue_first_from_factories(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        callbacks: Vec<BattleCallback<(), Option<GenerationalIndex>>>,
+    ) {
+        // resolve action from callbacks
+        let action_index = callbacks
+            .into_iter()
+            .flat_map(|callback| callback.call(game_io, resources, simulation, ()))
+            .next();
+
+        let Some(action_index) = action_index else {
+            // no action resolved
+            return;
+        };
+
+        // queue action
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return;
+        };
+
+        entity.action_queue.push_back(action_index);
+    }
+
+    pub fn cancel_all(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return;
+        };
+
+        let mut indices = std::mem::take(&mut entity.action_queue);
+
+        if let Some(index) = entity.action_index {
+            indices.push_back(index);
+        }
+
+        simulation.delete_actions(game_io, resources, indices);
     }
 }
 

@@ -3,6 +3,7 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
+use std::collections::VecDeque;
 
 #[derive(Clone, Copy)]
 pub struct FullEntityPosition {
@@ -42,6 +43,7 @@ pub struct Entity {
     pub movement: Option<Movement>,
     pub move_anim_state: Option<String>,
     pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
+    pub action_queue: VecDeque<GenerationalIndex>,
     pub action_index: Option<GenerationalIndex>,
     pub local_components: Vec<GenerationalIndex>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
@@ -96,6 +98,7 @@ impl Entity {
             movement: None,
             move_anim_state: None,
             last_movement_time: 0,
+            action_queue: VecDeque::new(),
             action_index: None,
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
