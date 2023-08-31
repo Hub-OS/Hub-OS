@@ -1,5 +1,6 @@
 use super::*;
 use crate::bindable::BlockColor;
+use crate::bindable::SwitchDriveSlot;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 
@@ -18,6 +19,7 @@ struct AugmentMeta {
     hand_size_boost: i8,
     colors: Vec<String>,
     flat: bool,
+    slot: Option<SwitchDriveSlot>,
     shape: Option<Vec<Vec<u8>>>,
     byproducts: Vec<PackageId>,
 }
@@ -36,6 +38,7 @@ pub struct AugmentPackage {
     pub hand_size_boost: i8,
     pub has_shape: bool,
     pub is_flat: bool,
+    pub slot: Option<SwitchDriveSlot>,
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
     pub byproducts: Vec<PackageId>,
@@ -115,6 +118,7 @@ impl Package for AugmentPackage {
         package.hand_size_boost = meta.hand_size_boost;
         package.has_shape = meta.shape.is_some();
         package.is_flat = meta.flat;
+        package.slot = meta.slot;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
 

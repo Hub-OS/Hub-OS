@@ -48,3 +48,4 @@ pub use tile_highlight::*;
 
 pub use packets::structures::BlockColor;
 pub use packets::structures::Direction;
+pub use packets::structures::SwitchDriveSlot;

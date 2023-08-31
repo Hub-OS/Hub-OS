@@ -13,3 +13,4 @@ pub use global_save::*;
 pub use server_info::*;
 
 pub use packets::structures::InstalledBlock;
+pub use packets::structures::InstalledSwitchDrive;

@@ -20,6 +20,7 @@ mod packages_scene;
 mod resource_order_scene;
 mod server_edit_scene;
 mod server_list_scene;
+mod manage_switch_drive_scene;
 
 pub use battle_init_scene::*;
 pub use battle_scene::*;
@@ -43,3 +44,4 @@ pub use packages_scene::*;
 pub use resource_order_scene::*;
 pub use server_edit_scene::*;
 pub use server_list_scene::*;
+pub use manage_switch_drive_scene::*;

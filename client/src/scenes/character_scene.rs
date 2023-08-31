@@ -1,4 +1,4 @@
-use super::{CharacterSelectScene, CustomizeScene};
+use super::{CharacterSelectScene, CustomizeScene, ManageSwitchDriveScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
@@ -134,7 +134,7 @@ impl Scene for CharacterScene {
             match event {
                 Event::BlockCustomization => {
                     let transition = crate::transitions::new_sub_scene(game_io);
-                    self.next_scene = NextScene::new_push(CustomizeScene::new(game_io))
+                    self.next_scene = NextScene::new_push(ManageSwitchDriveScene::new(game_io))
                         .with_transition(transition)
                 }
                 Event::CharacterSelect => {
