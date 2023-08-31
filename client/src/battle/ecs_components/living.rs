@@ -125,7 +125,10 @@ impl Living {
         let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();
 
         for aux_prop in living.aux_props.values_mut() {
-            aux_prop.reset_tests();
+            if aux_prop.effect().hit_related() {
+                aux_prop.reset_tests();
+            }
+
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
             aux_prop.process_time(simulation.battle_time);
@@ -146,6 +149,8 @@ impl Living {
             if !aux_prop.passed_all_tests() {
                 continue;
             }
+
+            aux_prop.mark_activated();
 
             match aux_prop.effect() {
                 AuxEffect::StatusImmunity(hit_flags) => {
@@ -204,6 +209,8 @@ impl Living {
                 if !aux_prop.hit_passes_tests(entity, living.health, living.max_health, hit_props) {
                     continue;
                 }
+
+                aux_prop.mark_activated();
 
                 match aux_prop.effect() {
                     AuxEffect::IncreaseHitDamage(expr) => {
@@ -351,6 +358,8 @@ impl Living {
             if !aux_prop.passed_all_tests() {
                 continue;
             }
+
+            aux_prop.mark_activated();
 
             match aux_prop.effect() {
                 AuxEffect::DecreaseDamageSum(expr) => {

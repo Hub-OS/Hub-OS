@@ -16,7 +16,11 @@ where
         Arc<dyn Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R + Sync + Send>,
 }
 
-impl std::fmt::Debug for BattleCallback {
+impl<P, R> std::fmt::Debug for BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("BattleCallback").finish()
     }

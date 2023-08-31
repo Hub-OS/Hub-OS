@@ -21,6 +21,7 @@ mod sync_node_api;
 mod tile_api;
 mod turn_gauge_api;
 
+pub use action_api::create_action_table;
 pub use augment_api::create_augment_table;
 pub use battle_lua_api::*;
 pub use encounter_init::encounter_init;

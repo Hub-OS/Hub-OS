@@ -31,7 +31,7 @@ local req_list = {
   "require_projected_health_threshold",
   "require_projected_health",
   "require_health_threshold",
-  "require_health"
+  "require_health",
 }
 
 for _, name in ipairs(req_list) do
@@ -49,7 +49,8 @@ local eff_list = {
   "decrease_hit_damage",
   "decrease_total_damage",
   "drain_health",
-  "recover_health"
+  "recover_health",
+  "intercept_action",
 }
 
 for _, name in ipairs(eff_list) do

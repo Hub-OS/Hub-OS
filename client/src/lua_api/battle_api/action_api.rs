@@ -573,7 +573,7 @@ fn callback_setter<G, P, F, R>(
     });
 }
 
-fn create_action_table(
+pub fn create_action_table(
     lua: &rollback_mlua::Lua,
     index: GenerationalIndex,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {

@@ -1,5 +1,6 @@
-use super::{CardClass, Comparison, Element, HitFlags, HitProperties, MathExpr};
-use crate::battle::{BattleCallback, Character, Entity, Player, SharedBattleResources};
+use super::{CardClass, Comparison, Element, GenerationalIndex, HitFlags, HitProperties, MathExpr};
+use crate::battle::{Action, BattleCallback, Character, Entity, Player, SharedBattleResources};
+use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
 
@@ -196,6 +197,7 @@ pub enum AuxEffect {
     DecreaseDamageSum(MathExpr<f32, AuxVariable>),
     DrainHP(i32),
     RecoverHP(i32),
+    InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     #[default]
     None,
 }
@@ -211,7 +213,8 @@ impl AuxEffect {
             AuxEffect::DecreaseDamageSum(_) => 5,
             AuxEffect::DrainHP(_) => 6,
             AuxEffect::RecoverHP(_) => 7,
-            AuxEffect::None => 8,
+            AuxEffect::InterceptAction(_) => 8,
+            AuxEffect::None => 9,
         }
     }
 
@@ -225,6 +228,14 @@ impl AuxEffect {
 
     pub fn execute_after_hit(&self) -> bool {
         self.priority() > 4
+    }
+
+    pub fn hit_related(&self) -> bool {
+        self.priority() <= 7 || matches!(self, AuxEffect::None)
+    }
+
+    pub fn action_related(&self) -> bool {
+        self.priority() == 8
     }
 
     fn from_lua<'lua>(
@@ -259,6 +270,15 @@ impl AuxEffect {
             }
             "drain_hp" => AuxEffect::DrainHP(table.get(2)?),
             "recover_hp" => AuxEffect::RecoverHP(table.get(2)?),
+            "intercept_action" => {
+                let callback = BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?,
+                    table.get(2)?,
+                    |_, lua, index| lua.pack_multi(create_action_table(lua, index)?),
+                )?;
+                AuxEffect::InterceptAction(callback)
+            }
             _ => {
                 return Err(rollback_mlua::Error::FromLuaConversionError {
                     from: lua_value.type_name(),
@@ -286,6 +306,7 @@ pub struct AuxProp {
     deletes_on_activation: bool,
     deletes_next_run: bool,
     tested: bool,
+    activated: bool,
 }
 
 impl AuxProp {
@@ -297,6 +318,7 @@ impl AuxProp {
             deletes_on_activation: false,
             deletes_next_run: false,
             tested: false,
+            activated: false,
         }
     }
 
@@ -331,8 +353,7 @@ impl AuxProp {
     }
 
     pub fn completed(&self) -> bool {
-        (self.deletes_next_run && self.tested)
-            || (self.deletes_on_activation && self.passed_all_tests())
+        (self.deletes_next_run && self.tested) || (self.deletes_on_activation && self.activated)
     }
 
     pub fn effect(&self) -> &AuxEffect {
@@ -357,6 +378,10 @@ impl AuxProp {
 
     pub fn mark_tested(&mut self) {
         self.tested = self.requirements.iter().all(|(_, state)| state.tested);
+    }
+
+    pub fn mark_activated(&mut self) {
+        self.activated = true;
     }
 
     pub fn reset_tests(&mut self) {
@@ -405,6 +430,37 @@ impl AuxProp {
                 AuxRequirement::Emotion(emot) => {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
                 }
+                AuxRequirement::CardElement(elem) => card
+                    .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
+                AuxRequirement::CardNotElement(elem) => card
+                    .is_some_and(|card| card.element != *elem && card.secondary_element != *elem),
+                AuxRequirement::CardDamage(cmp, damage) => {
+                    card.is_some_and(|card| cmp.compare(card.damage, *damage))
+                }
+                AuxRequirement::CardHitFlags(flags) => {
+                    card.is_some_and(|card| card.hit_flags & *flags == *flags)
+                }
+                AuxRequirement::CardCode(code) => card.is_some_and(|card| card.code == *code),
+                AuxRequirement::CardClass(class) => {
+                    card.is_some_and(|card| card.card_class == *class)
+                }
+                AuxRequirement::CardTimeFreeze(time_freeze) => {
+                    card.is_some_and(|card| card.time_freeze == *time_freeze)
+                }
+                AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                _ => continue,
+            };
+
+            state.tested = true;
+            state.passed = result;
+        }
+    }
+
+    pub fn process_action(&mut self, action: Option<&Action>) {
+        let card = action.map(|action| &action.properties);
+
+        for (requirement, state) in &mut self.requirements {
+            let result = match requirement {
                 AuxRequirement::CardElement(elem) => card
                     .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
                 AuxRequirement::CardNotElement(elem) => card
@@ -540,6 +596,7 @@ impl AuxProp {
             deletes_on_activation,
             deletes_next_run,
             tested: false,
+            activated: false,
         })
     }
 }
