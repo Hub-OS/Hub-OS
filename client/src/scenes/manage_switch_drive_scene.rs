@@ -1,25 +1,19 @@
-use crate::battle::Augment;
 use crate::bindable::SpriteColorMode;
-use crate::ease::inverse_lerp;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    BlockPreview, ContextMenu, FontStyle, SceneTitle, ScrollTracker, SubSceneFrame, Text,
-    TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
+    FontStyle, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxQuestion,
+    UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::InstalledSwitchDrive;
 use framework::prelude::*;
-use itertools::Itertools;
-use packets::structures::{PackageCategory, SwitchDriveSlot};
+use packets::structures::SwitchDriveSlot;
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
-
-const DIM_SLOT: Color = Color::new(0.75, 0.75, 0.75, 1.0);
+use std::collections::HashSet;
 
 enum Event {
     Leave,
-    Applied,
 }
 
 #[derive(Clone, Copy)]
@@ -38,7 +32,6 @@ struct CompactDrivePackageInfo {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum State {
     ListSelection,
-    Applying,
 }
 
 pub struct ManageSwitchDriveScene {
@@ -52,7 +45,6 @@ pub struct ManageSwitchDriveScene {
     scroll_tracker: ScrollTracker,
     slot: Option<SwitchDriveSlot>,
     tracked_invalid: HashSet<(Cow<'static, PackageId>, Option<SwitchDriveSlot>)>,
-    block_context_menu: ContextMenu<SwitchDriveOption>,
     state: State,
     textbox: Textbox,
     time: FrameTime,
@@ -67,30 +59,20 @@ impl ManageSwitchDriveScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        // installed blocks
-        let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
-        let blocks = global_save
-            .active_drive_parts()
-            .cloned()
-            .unwrap_or_default();
 
-        // load block packages
+        // load drive part packages
         let mut packages: Vec<_> = globals
             .augment_packages
             .packages_with_override(PackageNamespace::Local)
-            .filter(|package| package.slot != None)
+            .filter(|package| package.slot.is_some())
             .filter(|package| {
                 restrictions.validate_package_tree(game_io, package.package_info.triplet())
             })
-            .map(|package| {
-                let id = &package.package_info.id;
-
-                CompactDrivePackageInfo {
-                    id: package.package_info.id.clone(),
-                    name: package.name.clone(),
-                    slot: package.slot,
-                }
+            .map(|package| CompactDrivePackageInfo {
+                id: package.package_info.id.clone(),
+                name: package.name.clone(),
+                slot: package.slot,
             })
             .collect();
 
@@ -99,6 +81,8 @@ impl ManageSwitchDriveScene {
         let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
 
         let mut information_box_sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+        animator.set_state("TEXTBOX");
+        animator.apply(&mut information_box_sprite);
 
         let information_bounds = Rect::from_corners(
             animator.point("TEXT_START").unwrap_or_default(),
@@ -110,9 +94,9 @@ impl ManageSwitchDriveScene {
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
         // scroll tracker
-        let mut scroll_tracker = ScrollTracker::new(game_io, 4)
+        let scroll_tracker = ScrollTracker::new(game_io, 4)
             .with_view_margin(1)
-            .with_total_items(packages.len() + 1)
+            .with_total_items(packages.len())
             .with_custom_cursor(
                 game_io,
                 ResourcePaths::TEXTBOX_CURSOR_ANIMATION,
@@ -132,13 +116,6 @@ impl ManageSwitchDriveScene {
             scroll_tracker,
             slot: Option::Some(SwitchDriveSlot::Head),
             tracked_invalid: HashSet::new(),
-            block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
-                game_io,
-                &[
-                    ("Add", SwitchDriveOption::Add),
-                    ("Remove", SwitchDriveOption::Remove),
-                ],
-            ),
             state: State::ListSelection,
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
@@ -155,7 +132,6 @@ impl ManageSwitchDriveScene {
         game_io: &mut GameIO,
         info: CompactDrivePackageInfo,
     ) -> Option<Vec<(usize, usize)>> {
-
         // TODO: validate the drive slot
         // let mut conflicts = Vec::new();
 
@@ -164,16 +140,18 @@ impl ManageSwitchDriveScene {
         // }
 
         // actual placement
-        // save blocks
+        // save drive parts
         let globals = game_io.resource_mut::<Globals>().unwrap();
         let global_save = &mut globals.global_save;
 
-        let installed_drive = InstalledSwitchDrive{package_id: info.id, slot: info.slot.unwrap().clone()};
+        let installed_drive = InstalledSwitchDrive {
+            package_id: info.id,
+            slot: info.slot.unwrap(),
+        };
 
-        global_save.installed_drive_parts.insert(
-            global_save.selected_character.clone(),
-            installed_drive,
-        );
+        global_save
+            .installed_drive_parts
+            .insert(global_save.selected_character.clone(), installed_drive);
 
         global_save.save();
 
@@ -185,12 +163,12 @@ impl ManageSwitchDriveScene {
 
         let index = self.scroll_tracker.selected_index();
 
-        if let Some(block) = self.packages.get(index) {
+        if let Some(part) = self.packages.get(index) {
             if self.input_tracker.is_active(Input::Confirm) {
-                let clone = block.clone();
-                
+                let clone = part.clone();
+
                 let success = self.add_drive_part(game_io, clone).is_none();
-                
+
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if success {
@@ -199,8 +177,7 @@ impl ManageSwitchDriveScene {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
             } else if self.input_tracker.is_active(Input::Cancel) {
-
-                // self.uninstall(game_io, block);
+                // self.uninstall(game_io, part);
 
                 self.state = State::ListSelection;
 
@@ -251,53 +228,27 @@ impl ManageSwitchDriveScene {
                     }
 
                     // handle confirm
-                    if self.input_tracker.is_active(Input::Confirm) {
-                        if self.packages.get(selected_index).is_some() {
-                            // selected a block
-                            let package = self.packages.remove(selected_index);
-                            self.scroll_tracker.set_total_items(self.packages.len() + 1);
-                            let globals = game_io.resource::<Globals>().unwrap();
+                    if self.input_tracker.is_active(Input::Confirm)
+                        && self.packages.get(selected_index).is_some()
+                    {
+                        // selected a part
+                        let package = self.packages.remove(selected_index);
+                        self.scroll_tracker.set_total_items(self.packages.len());
+                        let globals = game_io.resource::<Globals>().unwrap();
 
-                            globals.audio.play_sound(&globals.sfx.cursor_select);
-                        } else {
-                            // selected APPLY
-                            self.state = State::Applying;
-
-                            // save blocks
-                            let globals = game_io.resource_mut::<Globals>().unwrap();
-                            let global_save = &mut globals.global_save;
-
-                            // global_save.installed_blocks.insert(
-                            //     global_save.selected_character.clone(),
-                            //     self.installed_blocks().cloned().collect(),
-                            // );
-
-                            global_save.save();
-                        }
+                        globals.audio.play_sound(&globals.sfx.cursor_select);
                     }
                 }
             }
-            State::Applying => {
-            }
         }
     }
-    
+
     fn handle_events(&mut self, game_io: &GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Leave => {
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    globals.audio.pop_music_stack();
-                    globals.audio.restart_music();
-
                     let transition = crate::transitions::new_sub_scene_pop(game_io);
                     self.next_scene = NextScene::new_pop().with_transition(transition);
-                }
-                Event::Applied => {
-                    // self.arrow.reset();
-                    self.state = State::ListSelection;
-                    // self.update_cursor_sprite();
-                    // self.update_text(game_io);
                 }
             }
         }
@@ -328,17 +279,15 @@ impl Scene for ManageSwitchDriveScene {
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        // let globals = game_io.resource::<Globals>().unwrap();
-
         self.background.draw(game_io, render_pass);
-
-        self.animator.set_state("GRID");
 
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
+
         // draw package list
         let mut recycled_sprite =
             Sprite::new(game_io, self.information_box_sprite.texture().clone());
+
         let selected_index = if self.state == State::ListSelection {
             Some(self.scroll_tracker.selected_index())
         } else {
@@ -368,21 +317,6 @@ impl Scene for ManageSwitchDriveScene {
             text_style.bounds += offset_jump;
             offset += offset_jump;
 
-            if i == self.packages.len() {
-                // draw APPLY button
-                if Some(i) == selected_index {
-                    self.animator.set_state("APPLY_BLINK");
-                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    self.animator.sync_time(self.time);
-                } else {
-                    self.animator.set_state("APPLY");
-                }
-
-                self.animator.apply(&mut recycled_sprite);
-                sprite_queue.draw_sprite(&recycled_sprite);
-                continue;
-            }
-
             // draw package option
             if Some(i) == selected_index {
                 self.animator.set_state("OPTION_BLINK");
@@ -403,17 +337,9 @@ impl Scene for ManageSwitchDriveScene {
         sprite_queue.draw_sprite(&self.information_box_sprite);
         self.information_text.draw(game_io, &mut sprite_queue);
 
-        // draw context menu
-        self.block_context_menu.draw(game_io, &mut sprite_queue);
-
         // draw frame
         self.frame.draw(&mut sprite_queue);
         SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
-
-        // draw block preview
-        // if let Some(preview) = &mut self.block_preview {
-        //     preview.draw(&mut sprite_queue);
-        // }
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
