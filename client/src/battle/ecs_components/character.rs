@@ -179,18 +179,6 @@ impl Character {
             &card_props,
         );
 
-        // use the action or spawn a poof
-        if let Some(index) = action_index {
-            let entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(entity_id.into())
-                .unwrap();
-
-            entity.action_queue.push_back(index);
-        } else {
-            Artifact::create_card_poof(game_io, simulation, entity_id);
-        }
-
         // revert context flags
         let entities = &mut simulation.entities;
 
@@ -198,6 +186,14 @@ impl Character {
             .query_one_mut::<&mut Entity>(entity_id.into())
             .unwrap();
         entity.hit_context.flags = original_context_flags;
+
+        // spawn a poof if there's no action
+        let Some(index) = action_index else {
+            Artifact::create_card_poof(game_io, simulation, entity_id);
+            return;
+        };
+
+        Action::queue_action(game_io, resources, simulation, entity_id, index);
     }
 
     pub fn mutate_cards(

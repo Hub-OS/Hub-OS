@@ -1,8 +1,10 @@
 use super::{
-    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field,
+    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field, Living,
     SharedBattleResources,
 };
-use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
+use crate::bindable::{
+    ActionLockout, AuxEffect, CardProperties, EntityId, GenerationalIndex, HitFlag,
+};
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
@@ -123,14 +125,18 @@ impl Action {
             Ok(())
         });
 
-        // set card properties on the card action
-        if let Some(index) = id {
-            if let Some(action) = simulation.actions.get_mut(index) {
-                action.properties = card_props.clone();
-            }
-        }
+        let Some(index) = id else {
+            return None;
+        };
 
-        id
+        if let Some(action) = simulation.actions.get_mut(index) {
+            // set card properties on the card action
+            action.properties = card_props.clone();
+        } else {
+            return None;
+        };
+
+        Some(index)
     }
 
     pub fn is_async(&self) -> bool {
@@ -284,6 +290,32 @@ impl Action {
         }
     }
 
+    pub fn queue_action(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        index: GenerationalIndex,
+    ) {
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return;
+        };
+
+        let Some(action) = simulation.actions.get(index) else {
+            return;
+        };
+
+        if time_is_frozen && action.properties.time_freeze {
+            entity.action_queue.push_front(index);
+            Action::process_queues(game_io, resources, simulation);
+        } else {
+            entity.action_queue.push_back(index);
+        }
+    }
+
     pub fn queue_first_from_factories(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -329,6 +361,161 @@ impl Action {
         }
 
         simulation.delete_actions(game_io, resources, indices);
+    }
+
+    pub fn process_queues(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        let entities = &mut simulation.entities;
+
+        // ensure initial test values for all action related aux props
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.process_action(None);
+                }
+            }
+        }
+
+        // get a list of entity ids for entities that need processing
+        let ids: Vec<_> = entities
+            .query_mut::<&Entity>()
+            .into_iter()
+            .filter(|(_, entity)| {
+                let already_has_action = !time_is_frozen && entity.action_index.is_some();
+                let time_freeze_counter = time_is_frozen
+                    && entity
+                        .action_queue
+                        .front()
+                        .and_then(|index| simulation.actions.get(*index))
+                        .map(|action| action.properties.time_freeze)
+                        .unwrap_or_default();
+
+                let has_pending_actions = !entity.action_queue.is_empty();
+
+                (!already_has_action || time_freeze_counter) && has_pending_actions
+            })
+            .map(|(id, _)| id)
+            .collect();
+
+        'outer: for id in ids {
+            let entities = &mut simulation.entities;
+            let Ok((entity, living)) =
+                entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
+            else {
+                continue;
+            };
+
+            let Some(mut index) = entity.action_queue.pop_front() else {
+                continue;
+            };
+
+            // handle aux props which intercept actions
+            if let Some(living) = living {
+                let mut intercept_callbacks = Vec::new();
+
+                for aux_prop in living.aux_props.values_mut() {
+                    if !aux_prop.effect().action_related() {
+                        continue;
+                    }
+
+                    // validate index as it may be coming from lua
+                    let Some(action) = simulation.actions.get_mut(index) else {
+                        continue 'outer;
+                    };
+
+                    aux_prop.process_action(Some(action));
+
+                    if !aux_prop.passed_all_tests() {
+                        continue;
+                    }
+
+                    aux_prop.mark_activated();
+
+                    match aux_prop.effect() {
+                        AuxEffect::InterceptAction(callback) => {
+                            intercept_callbacks.push(callback.clone());
+                        }
+                        _ => log::error!("Engine error: Unexpected AuxEffect!"),
+                    }
+                }
+
+                let mut new_index = Some(index);
+
+                for callback in intercept_callbacks {
+                    // activate every interrupt with the old action, use the last result
+                    new_index = callback.call(game_io, resources, simulation, index);
+                }
+
+                if new_index != Some(index) {
+                    // delete the old action if we're not using it
+                    simulation.delete_actions(game_io, resources, [index]);
+                }
+
+                if let Some(new_index) = new_index {
+                    // swap action
+                    index = new_index;
+                } else {
+                    // resolved to no action, move on to next entity
+                    continue;
+                }
+            }
+
+            // validate index as it may be coming from lua
+            let Some(action) = simulation.actions.get_mut(index) else {
+                continue;
+            };
+
+            if action.used {
+                log::error!("Action already used, ignoring");
+                continue;
+            }
+
+            let entities = &mut simulation.entities;
+            let entity = entities.query_one_mut::<&mut Entity>(id).unwrap();
+
+            if action.entity != entity.id {
+                continue;
+            }
+
+            action.used = true;
+
+            if action.properties.time_freeze {
+                if time_is_frozen && !simulation.is_resimulation {
+                    // must be countering, play sfx
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&globals.sfx.trap);
+                }
+
+                let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+                time_freeze_tracker.set_team_action(entity.team, index);
+            } else {
+                entity.action_index = Some(index);
+            }
+        }
+
+        // clean up action related aux props
+        let entities = &mut simulation.entities;
+
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.mark_tested();
+                }
+            }
+
+            living.delete_completed_aux_props();
+
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.reset_tests();
+                }
+            }
+        }
     }
 }
 
