@@ -136,6 +136,16 @@ impl TimeFreezeTracker {
     }
 
     pub fn can_counter(&self) -> bool {
+        let state_elapsed_time = self.active_time - self.state_start_time;
+
+        if let TimeFreezeState::Counterable = self.state {
+            COUNTER_DURATION - state_elapsed_time > 2
+        } else {
+            false
+        }
+    }
+
+    pub fn can_queued_counter(&self) -> bool {
         self.state == TimeFreezeState::Counterable
     }
 

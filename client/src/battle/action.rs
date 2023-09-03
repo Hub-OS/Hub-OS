@@ -1,6 +1,6 @@
 use super::{
-    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field, Living,
-    SharedBattleResources,
+    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
+    Field, Living, SharedBattleResources,
 };
 use crate::bindable::{
     ActionLockout, AuxEffect, CardProperties, EntityId, GenerationalIndex, HitFlag,
@@ -291,13 +291,11 @@ impl Action {
     }
 
     pub fn queue_action(
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         index: GenerationalIndex,
     ) {
-        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+        let can_counter = simulation.time_freeze_tracker.can_counter();
 
         let entities = &mut simulation.entities;
         let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
@@ -308,9 +306,8 @@ impl Action {
             return;
         };
 
-        if time_is_frozen && action.properties.time_freeze {
+        if can_counter && action.properties.time_freeze {
             entity.action_queue.push_front(index);
-            Action::process_queues(game_io, resources, simulation);
         } else {
             entity.action_queue.push_back(index);
         }
@@ -369,6 +366,7 @@ impl Action {
         simulation: &mut BattleSimulation,
     ) {
         let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+        let can_counter = simulation.time_freeze_tracker.can_queued_counter();
 
         let entities = &mut simulation.entities;
 
@@ -387,7 +385,7 @@ impl Action {
             .into_iter()
             .filter(|(_, entity)| {
                 let already_has_action = !time_is_frozen && entity.action_index.is_some();
-                let time_freeze_counter = time_is_frozen
+                let time_freeze_counter = can_counter
                     && entity
                         .action_queue
                         .front()
@@ -485,7 +483,7 @@ impl Action {
             action.used = true;
 
             if action.properties.time_freeze {
-                if time_is_frozen && !simulation.is_resimulation {
+                if can_counter && !simulation.is_resimulation {
                     // must be countering, play sfx
                     let globals = game_io.resource::<Globals>().unwrap();
                     globals.audio.play_sound(&globals.sfx.trap);
@@ -514,6 +512,13 @@ impl Action {
                 if aux_prop.effect().action_related() {
                     aux_prop.reset_tests();
                 }
+            }
+        }
+
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // cancel card_use_requested to fix cards used
+            for (_, player) in entities.query_mut::<&mut Character>() {
+                player.card_use_requested = false;
             }
         }
     }

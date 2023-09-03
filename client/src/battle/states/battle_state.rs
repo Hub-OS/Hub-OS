@@ -51,7 +51,6 @@ impl State for BattleState {
         // new: process player input
         self.process_input(game_io, resources, simulation);
 
-        // will also be called when any time freeze card is used during time freeze
         Action::process_queues(game_io, resources, simulation);
 
         // update time freeze first as it affects the rest of the updates
