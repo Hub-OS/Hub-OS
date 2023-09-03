@@ -578,6 +578,8 @@ impl BattleState {
             if attack_box.highlight {
                 tile.set_highlight(TileHighlight::Solid);
             }
+
+            tile.acknowledge_attacker(attack_box.attacker_id);
         }
 
         // interactions between attack boxes and entities
@@ -696,7 +698,7 @@ impl BattleState {
             Living::process_hits(game_io, resources, simulation, id.into());
         }
 
-        simulation.field.resolve_wash();
+        simulation.field.resolve_wash_and_ignored_attackers();
     }
 
     fn mark_deleted(
@@ -1182,7 +1184,6 @@ impl BattleState {
                 movement.success = true;
 
                 let start_tile = simulation.field.tile_at_mut(movement.source).unwrap();
-                start_tile.unignore_attacker(entity.id);
                 start_tile.handle_auto_reservation_removal(&simulation.actions, entity);
 
                 if !entity.ignore_negative_tile_effects {

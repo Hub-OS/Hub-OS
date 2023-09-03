@@ -329,7 +329,6 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let field = &mut api_ctx.simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-        current_tile.unignore_attacker(entity.id);
         current_tile.handle_auto_reservation_removal(actions, entity);
 
         entity.on_field = true;
