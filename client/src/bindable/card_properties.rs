@@ -1,11 +1,12 @@
-use super::{CardClass, Element, HitFlags};
+use super::{CardClass, Element, HitFlag, HitFlags};
+use crate::battle::StatusRegistry;
 use crate::packages::PackageId;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct CardProperties {
+pub struct CardProperties<H = HitFlags> {
     pub package_id: PackageId,
     pub code: String,
     pub short_name: String,
@@ -14,15 +15,14 @@ pub struct CardProperties {
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
-    pub hit_flags: HitFlags,
+    pub hit_flags: H,
     pub can_boost: bool,
-    pub counterable: bool,
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
-    pub meta_classes: Vec<String>,
+    pub tags: Vec<String>,
 }
 
-impl Default for CardProperties {
+impl<H: Default> Default for CardProperties<H> {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
@@ -34,11 +34,10 @@ impl Default for CardProperties {
             secondary_element: Element::None,
             time_freeze: false,
             card_class: CardClass::Standard,
-            hit_flags: 0,
+            hit_flags: Default::default(),
             can_boost: true,
-            counterable: true,
             skip_time_freeze_intro: false,
-            meta_classes: Vec::new(),
+            tags: Vec::new(),
         }
     }
 }
@@ -96,6 +95,30 @@ impl CardProperties {
     }
 }
 
+impl CardProperties<Vec<String>> {
+    pub fn to_bindable(&self, registry: &StatusRegistry) -> CardProperties<HitFlags> {
+        CardProperties::<HitFlags> {
+            package_id: self.package_id.clone(),
+            code: self.code.clone(),
+            short_name: self.short_name.clone(),
+            damage: self.damage,
+            boosted_damage: self.boosted_damage,
+            element: self.element,
+            secondary_element: self.secondary_element,
+            card_class: self.card_class,
+            hit_flags: self
+                .hit_flags
+                .iter()
+                .map(|flag| HitFlag::from_str(registry, flag))
+                .fold(0, |acc, flag| acc | flag),
+            can_boost: self.can_boost,
+            time_freeze: self.time_freeze,
+            skip_time_freeze_intro: self.skip_time_freeze_intro,
+            tags: self.tags.clone(),
+        }
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
@@ -125,25 +148,24 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             card_class: table.get("card_class").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
             can_boost: table.get("can_boost").unwrap_or(true),
-            counterable: table.get("counterable").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
-            meta_classes: table.get("meta_classes").unwrap_or_default(),
+            tags: table.get("tags").unwrap_or_default(),
         })
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for CardProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for CardProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        <&CardProperties>::to_lua(&self, lua)
+        <&CardProperties>::into_lua(&self, lua)
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
@@ -158,10 +180,9 @@ impl<'lua> rollback_mlua::ToLua<'lua> for &CardProperties {
         table.set("card_class", self.card_class)?;
         table.set("hit_flags", self.hit_flags)?;
         table.set("can_boost", self.can_boost)?;
-        table.set("counterable", self.counterable)?;
         table.set("time_freeze", self.time_freeze)?;
         table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
-        table.set("meta_classes", self.meta_classes.clone())?;
+        table.set("tags", self.tags.clone())?;
 
         Ok(rollback_mlua::Value::Table(table))
     }

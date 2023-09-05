@@ -1,14 +1,12 @@
-use super::rollback_vm::RollbackVM;
 use super::*;
 use crate::bindable::*;
-use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
 use crate::scenes::BattleEvent;
+use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
-use generational_arena::Arena;
 use packets::structures::{BattleStatistics, BattleSurvivor};
 use packets::NetplaySignal;
 use rand::SeedableRng;
@@ -32,10 +30,10 @@ pub struct BattleSimulation {
     pub generation_tracking: Vec<hecs::Entity>,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
-    pub animators: Arena<BattleAnimator>,
-    pub actions: Arena<Action>,
+    pub animators: SlotMap<BattleAnimator>,
+    pub actions: DenseSlotMap<Action>,
     pub time_freeze_tracker: TimeFreezeTracker,
-    pub components: Arena<Component>,
+    pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
@@ -78,10 +76,10 @@ impl BattleSimulation {
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
-            animators: Arena::new(),
-            actions: Arena::new(),
+            animators: Default::default(),
+            actions: Default::default(),
             time_freeze_tracker: TimeFreezeTracker::new(),
-            components: Arena::new(),
+            components: Default::default(),
             pending_callbacks: Vec::new(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
@@ -241,17 +239,13 @@ impl BattleSimulation {
         self.statistics.calculate_score();
     }
 
-    pub fn handle_local_signals(
-        &mut self,
-        local_index: usize,
-        shared_assets: &mut SharedBattleAssets,
-    ) {
+    pub fn handle_local_signals(&mut self, local_index: usize, resources: &SharedBattleResources) {
         let input = &self.inputs[local_index];
 
         // handle flee
         if !self.is_resimulation && input.has_signal(NetplaySignal::AttemptingFlee) {
             // todo: check for success using some method in battle_init
-            shared_assets
+            resources
                 .event_sender
                 .send(BattleEvent::FleeResult(true))
                 .unwrap();
@@ -262,7 +256,12 @@ impl BattleSimulation {
         self.background.update();
     }
 
-    pub fn pre_update(&mut self, game_io: &GameIO, vms: &[RollbackVM], state: &dyn State) {
+    pub fn pre_update(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        state: &dyn State,
+    ) {
         #[cfg(debug_assertions)]
         self.assertions();
 
@@ -271,7 +270,7 @@ impl BattleSimulation {
 
         if state.allows_animation_updates() {
             // update animations
-            self.update_animations();
+            self.update_animations(resources);
         }
 
         // process disconnects
@@ -284,10 +283,10 @@ impl BattleSimulation {
         self.apply_animations();
 
         // animation + spawn callbacks
-        self.call_pending_callbacks(game_io, vms);
+        self.call_pending_callbacks(game_io, resources);
     }
 
-    pub fn post_update(&mut self, game_io: &GameIO, vms: &[RollbackVM]) {
+    pub fn post_update(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
         // update scene components
         for (_, component) in &self.components {
             if component.lifetime == ComponentLifetime::Scene {
@@ -299,19 +298,20 @@ impl BattleSimulation {
         self.update_sync_nodes();
 
         // should this be called every time we invoke lua?
-        self.call_pending_callbacks(game_io, vms);
+        self.call_pending_callbacks(game_io, resources);
 
         // remove dead entities
         self.cleanup_erased_entities();
 
-        self.update_ui();
+        self.update_ui(game_io);
 
         self.field.update_animations();
 
         self.time += 1;
     }
 
-    pub fn update_animations(&mut self) {
+    pub fn update_animations(&mut self, resources: &SharedBattleResources) {
+        let status_registry = &resources.status_registry;
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
         for (id, entity) in self.entities.query::<&Entity>().into_iter() {
@@ -320,7 +320,7 @@ impl BattleSimulation {
             }
 
             if let Some(living) = self.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_inactionable() {
+                if living.status_director.is_inactionable(status_registry) {
                     continue;
                 }
             }
@@ -345,7 +345,7 @@ impl BattleSimulation {
             }
 
             if let Ok(living) = self.entities.query_one_mut::<&Living>(action.entity.into()) {
-                if living.status_director.is_inactionable() {
+                if living.status_director.is_inactionable(status_registry) {
                     continue;
                 }
             }
@@ -406,7 +406,7 @@ impl BattleSimulation {
             self.animators[entity.animator_index].enable();
             self.pending_callbacks.push(entity.spawn_callback.clone());
 
-            for (_, component) in &self.components {
+            for component in self.components.values() {
                 if component.entity == entity.id {
                     self.pending_callbacks.push(component.init_callback.clone());
                 }
@@ -429,7 +429,7 @@ impl BattleSimulation {
 
         // update attachment sprites
         // separate loop from entities to account for async actions
-        for (_, action) in &mut self.actions {
+        for action in self.actions.values_mut() {
             if !action.executed {
                 continue;
             }
@@ -462,11 +462,11 @@ impl BattleSimulation {
         }
     }
 
-    pub fn call_pending_callbacks(&mut self, game_io: &GameIO, vms: &[RollbackVM]) {
+    pub fn call_pending_callbacks(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
         let callbacks = std::mem::take(&mut self.pending_callbacks);
 
         for callback in callbacks {
-            callback.call(game_io, self, vms, ());
+            callback.call(game_io, resources, self, ());
         }
     }
 
@@ -515,14 +515,24 @@ impl BattleSimulation {
         }
     }
 
-    fn update_ui(&mut self) {
+    fn update_ui(&mut self, game_io: &GameIO) {
         let entities = &mut self.entities;
 
         if let Ok((player, living)) =
             entities.query_one_mut::<(&mut Player, &Living)>(self.local_player_id.into())
         {
             self.local_health_ui.set_health(living.health);
+            self.local_health_ui.set_max_health(living.max_health);
             player.emotion_window.update();
+
+            // play sfx
+            if self.local_health_ui.is_low_hp() {
+                let globals = game_io.resource::<Globals>().unwrap();
+                let audio = &globals.audio;
+                let sfx = &globals.sfx.low_hp;
+
+                audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
+            }
         } else {
             self.local_health_ui.set_health(0);
         }
@@ -530,7 +540,11 @@ impl BattleSimulation {
         self.local_health_ui.update();
     }
 
-    pub fn is_entity_actionable(&mut self, entity_id: EntityId) -> bool {
+    pub fn is_entity_actionable(
+        &mut self,
+        resources: &SharedBattleResources,
+        entity_id: EntityId,
+    ) -> bool {
         let entities = &mut self.entities;
 
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
@@ -546,61 +560,9 @@ impl BattleSimulation {
         }
 
         if let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) {
-            return !living.status_director.is_inactionable();
+            let status_registry = &resources.status_registry;
+            return !living.status_director.is_inactionable(status_registry);
         };
-
-        true
-    }
-
-    pub fn use_action(
-        &mut self,
-        game_io: &GameIO,
-        entity_id: EntityId,
-        index: generational_arena::Index,
-    ) -> bool {
-        let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
-            return false;
-        };
-
-        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
-
-        if !time_is_frozen && entity.action_index.is_some() {
-            // already set
-            return false;
-        }
-
-        // validate index as it may be coming from lua
-        let Some(action) = self.actions.get_mut(index) else {
-            log::error!("Received invalid Action index {index:?}");
-            return false;
-        };
-
-        if action.used {
-            log::error!("Action already used, ignoring");
-            return false;
-        }
-
-        action.entity = entity_id;
-
-        if time_is_frozen && !action.properties.time_freeze {
-            return false;
-        }
-
-        action.used = true;
-
-        if action.properties.time_freeze {
-            let time_freeze_tracker = &mut self.time_freeze_tracker;
-
-            if time_is_frozen && !self.is_resimulation {
-                // must be countering, play sfx
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.trap);
-            }
-
-            time_freeze_tracker.set_team_action(entity.team, index);
-        } else {
-            entity.action_index = Some(index);
-        }
 
         true
     }
@@ -608,11 +570,11 @@ impl BattleSimulation {
     pub fn delete_actions(
         &mut self,
         game_io: &GameIO,
-        vms: &[RollbackVM],
-        delete_indices: &[generational_arena::Index],
+        resources: &SharedBattleResources,
+        delete_indices: impl IntoIterator<Item = GenerationalIndex>,
     ) {
         for index in delete_indices {
-            let Some(action) = self.actions.get_mut(*index) else {
+            let Some(action) = self.actions.get_mut(index) else {
                 continue;
             };
 
@@ -629,7 +591,7 @@ impl BattleSimulation {
                 .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            if entity.action_index == Some(*index) {
+            if entity.action_index == Some(index) {
                 action.complete_sync(
                     &mut self.entities,
                     &mut self.animators,
@@ -640,10 +602,10 @@ impl BattleSimulation {
 
             // end callback
             if let Some(callback) = action.end_callback.clone() {
-                callback.call(game_io, self, vms, ());
+                callback.call(game_io, resources, self, ());
             }
 
-            let action = self.actions.get(*index).unwrap();
+            let action = self.actions.get(index).unwrap();
 
             // remove attachments from the entity
             let entity = self
@@ -658,13 +620,18 @@ impl BattleSimulation {
             }
 
             // finally remove the card action
-            self.actions.remove(*index);
+            self.actions.remove(index);
         }
 
-        self.call_pending_callbacks(game_io, vms);
+        self.call_pending_callbacks(game_io, resources);
     }
 
-    pub fn mark_entity_for_erasure(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityId) {
+    pub fn mark_entity_for_erasure(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        id: EntityId,
+    ) {
         let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(id.into()) else {
             return;
         };
@@ -680,10 +647,15 @@ impl BattleSimulation {
         entity.erased = true;
 
         // delete
-        self.delete_entity(game_io, vms, id);
+        self.delete_entity(game_io, resources, id);
     }
 
-    pub fn delete_entity(&mut self, game_io: &GameIO, vms: &[RollbackVM], id: EntityId) {
+    pub fn delete_entity(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        id: EntityId,
+    ) {
         let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
             Ok(entity) => entity,
             _ => return,
@@ -706,22 +678,22 @@ impl BattleSimulation {
 
         // delete player augments
         if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
-            let augment_iter = player.augments.iter();
+            let augment_iter = player.augments.values();
             let augment_callbacks =
-                augment_iter.flat_map(|(_, augment)| augment.delete_callback.clone());
+                augment_iter.flat_map(|augment| augment.delete_callback.clone());
 
             self.pending_callbacks.extend(augment_callbacks);
-            self.call_pending_callbacks(game_io, vms);
+            self.call_pending_callbacks(game_io, resources);
         }
 
         // delete card actions
-        self.delete_actions(game_io, vms, &card_indices);
+        self.delete_actions(game_io, resources, card_indices);
 
         // call delete callbacks after
         self.pending_callbacks.extend(listener_callbacks);
         self.pending_callbacks.push(delete_callback);
 
-        self.call_pending_callbacks(game_io, vms);
+        self.call_pending_callbacks(game_io, resources);
     }
 
     pub fn request_entity_spawn(&mut self, id: EntityId, (x, y): (i32, i32)) {
@@ -735,39 +707,19 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
-    pub fn find_vm(
-        vms: &[RollbackVM],
-        package_id: &PackageId,
-        namespace: PackageNamespace,
-    ) -> rollback_mlua::Result<usize> {
-        let vm_index = namespace
-            .find_with_overrides(|namespace| {
-                vms.iter().position(|vm| {
-                    vm.package_id == *package_id && vm.namespaces.contains(&namespace)
-                })
-            })
-            .ok_or_else(|| {
-                rollback_mlua::Error::RuntimeError(format!(
-                    "no package with id {:?} found",
-                    package_id
-                ))
-            })?;
-
-        Ok(vm_index)
-    }
-
     pub fn call_global<'lua, F, M>(
         &mut self,
         game_io: &GameIO,
-        vms: &'lua [RollbackVM],
+        resources: &'lua SharedBattleResources,
         vm_index: usize,
         fn_name: &str,
         param_generator: F,
     ) -> rollback_mlua::Result<()>
     where
         F: FnOnce(&'lua rollback_mlua::Lua) -> rollback_mlua::Result<M>,
-        M: rollback_mlua::ToLuaMulti<'lua>,
+        M: rollback_mlua::IntoLuaMulti<'lua>,
     {
+        let vms = resources.vm_manager.vms();
         let lua = &vms[vm_index].lua;
 
         let global_fn: rollback_mlua::Function = lua
@@ -777,7 +729,7 @@ impl BattleSimulation {
 
         let api_ctx = RefCell::new(BattleScriptContext {
             vm_index,
-            vms,
+            resources,
             game_io,
             simulation: self,
         });
@@ -792,7 +744,7 @@ impl BattleSimulation {
         Ok(())
     }
 
-    pub fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+    pub fn draw(&mut self, game_io: &GameIO, render_pass: &mut RenderPass) {
         let mut blind_filter = None;
 
         // resolve perspective
@@ -977,8 +929,8 @@ impl BattleSimulation {
 
         let executed_action_count = self
             .actions
-            .iter()
-            .filter(|(_, action)| action.executed && !action.is_async())
+            .values()
+            .filter(|action| action.executed && !action.is_async())
             .count();
 
         // if there's more executed actions than held actions, we forgot to delete one

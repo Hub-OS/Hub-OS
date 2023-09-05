@@ -13,7 +13,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let connected_bots_iter = area.connected_bots().iter();
 
             let result: mlua::Result<Vec<mlua::String>> = connected_bots_iter
-                .map(|bot_id| lua.create_string(&bot_id))
+                .map(|bot_id| lua.create_string(bot_id))
                 .collect();
 
             lua.pack_multi(result?)

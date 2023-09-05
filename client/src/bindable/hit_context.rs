@@ -38,8 +38,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for HitContext {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for &HitContext {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for &HitContext {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

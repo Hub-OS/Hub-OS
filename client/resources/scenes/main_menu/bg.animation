@@ -1,2 +1,6 @@
 animation state="DEFAULT"
-frame w="1" y="1"
+blank
+point label="BACKGROUNDS/MORNING" x="0630" # start at 6:30 AM
+point label="BACKGROUNDS/DAY" x="0900"  # start at 9:00 AM
+point label="BACKGROUNDS/SUNSET" x="1915" # start at 7:15 PM
+point label="BACKGROUNDS/NIGHT" x="2045" # start at 8:45 PM

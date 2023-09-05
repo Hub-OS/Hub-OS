@@ -1,7 +1,5 @@
 use super::{State, TurnStartState};
-use crate::battle::{
-    Artifact, BattleSimulation, Entity, Living, Player, RollbackVM, SharedBattleAssets,
-};
+use crate::battle::{Artifact, BattleSimulation, Entity, Living, Player, SharedBattleResources};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::render::{AnimatorLoopMode, FrameTime};
@@ -34,9 +32,8 @@ impl State for FormActivateState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         if self.time == 0 && !has_pending_activations(simulation) {
             self.completed = true;
@@ -64,14 +61,14 @@ impl State for FormActivateState {
                 // flash white and activate forms
                 15 => {
                     set_relevant_color(&mut simulation.entities, Color::WHITE);
-                    self.activate_forms(game_io, simulation, vms);
+                    self.activate_forms(game_io, resources, simulation);
                 }
                 // flash white for 9 more frames
                 16..=25 => set_relevant_color(&mut simulation.entities, Color::WHITE),
                 // reset color
                 26 => set_relevant_color(&mut simulation.entities, Color::BLACK),
                 // wait for the shine artifacts to complete animation
-                27.. => self.detect_animation_end(game_io, simulation, vms),
+                27.. => self.detect_animation_end(game_io, resources, simulation),
                 _ => {}
             }
         }
@@ -93,8 +90,8 @@ impl FormActivateState {
     fn activate_forms(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut updated_animators = Vec::new();
 
@@ -144,7 +141,7 @@ impl FormActivateState {
             }
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
 
         self.spawn_shine(game_io, simulation);
     }
@@ -193,8 +190,8 @@ impl FormActivateState {
     fn detect_animation_end(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         for id in self.artifact_entities.iter().cloned() {
             let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(id.into()) else {
@@ -207,7 +204,7 @@ impl FormActivateState {
             simulation.pending_callbacks.extend(callbacks);
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
 
         let all_erased = self
             .artifact_entities

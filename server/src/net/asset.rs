@@ -157,15 +157,18 @@ impl Asset {
             .attribute("class")
             .or_else(|| tile_element.attribute("type"));
 
-        let tile_class = if let Some(tile_class) = tile_class_option {
-            tile_class
-        } else {
+        let Some(tile_class) = tile_class_option else {
             return;
         };
 
-        let properties_element = tile_element.children();
+        let Some(properties_element) = tile_element
+            .children()
+            .find(|child| child.tag_name().name() == "properties")
+        else {
+            return;
+        };
 
-        for property_element in properties_element {
+        for property_element in properties_element.children() {
             #[allow(clippy::single_match)]
             match (tile_class, property_element.attribute("name")) {
                 ("Conveyor" | "Ice", Some("Sound Effect")) => {
@@ -271,13 +274,25 @@ impl Asset {
             PackageCategory::Character,
         );
 
+        let aug_iter =
+            Self::resolve_dependency_category(dependencies, "augment", PackageCategory::Augment);
+
         let card_iter =
             Self::resolve_dependency_category(dependencies, "cards", PackageCategory::Card);
 
         let lib_iter =
             Self::resolve_dependency_category(dependencies, "libraries", PackageCategory::Library);
 
-        Some(char_iter.chain(card_iter).chain(lib_iter))
+        let status_iter =
+            Self::resolve_dependency_category(dependencies, "statuses", PackageCategory::Status);
+
+        Some(
+            char_iter
+                .chain(aug_iter)
+                .chain(card_iter)
+                .chain(lib_iter)
+                .chain(status_iter),
+        )
     }
 
     fn resolve_dependency_category<'a>(

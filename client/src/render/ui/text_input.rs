@@ -128,7 +128,12 @@ impl UiNode for TextInput {
             return;
         }
 
-        let controller_pressing_cancel = input_util.controller_pressing_cancel();
+        let controller_pressing_cancel = input_util.controller_just_pressed(Input::Cancel);
+
+        if input_util.controller_just_pressed(Input::Confirm) {
+            // open text input again, allows use to reopen input after accidental close
+            game_io.input_mut().start_text_input();
+        }
 
         let input = game_io.input_mut();
         let holding_shift = input.is_key_down(Key::LShift) || input.is_key_down(Key::RShift);

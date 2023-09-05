@@ -40,9 +40,8 @@ impl State for IntroState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        _shared_assets: &mut SharedBattleAssets,
+        _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        _vms: &[RollbackVM],
     ) {
         // first frame setup
         if simulation.time == 0 {

@@ -1,4 +1,5 @@
 use super::{BattleLuaApi, GAME_FOLDER_KEY, RESOURCES_TABLE};
+use crate::bindable::AudioBehavior;
 use crate::lua_api::helpers::absolute_path;
 use crate::resources::{AssetManager, Globals};
 
@@ -29,16 +30,21 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(RESOURCES_TABLE, "play_audio", |api_ctx, lua, params| {
-        let path: String = lua.unpack_multi(params)?; // todo: (path, AudioPriority)?
+        let (path, behavior): (String, Option<AudioBehavior>) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
+        let behavior = behavior.unwrap_or_default();
 
         let api_ctx = api_ctx.borrow();
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
-        let globals = game_io.resource::<Globals>().unwrap();
 
-        let sound_buffer = globals.assets.audio(game_io, &path);
-        simulation.play_sound(game_io, &sound_buffer);
+        if !simulation.is_resimulation {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let sound_buffer = globals.assets.audio(game_io, &path);
+            let audio = &globals.audio;
+
+            audio.play_sound_with_behavior(&sound_buffer, behavior);
+        }
 
         lua.pack_multi(())
     });

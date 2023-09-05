@@ -58,12 +58,57 @@ impl Background {
     }
 
     pub fn new_main_menu(game_io: &GameIO) -> Self {
+        use chrono::Timelike;
+
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_BG_ANIMATION);
-        let sprite = assets.new_sprite(game_io, ResourcePaths::MAIN_MENU_BG);
+        let mut animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_BG_ANIMATION);
+        animator.set_state("DEFAULT");
 
+        // resolve background using time of day
+        let frame_0 = animator.frame(0).cloned().unwrap_or_default();
+        let mut backgrounds: Vec<_> = frame_0
+            .points
+            .iter()
+            .filter(|(label, _)| *label != "VELOCITY")
+            .map(|(path, point)| (point.x as u32, path))
+            .collect();
+
+        if backgrounds.is_empty() {
+            let sprite = assets.new_sprite(game_io, ResourcePaths::MAIN_MENU_BG);
+            return Self::new(animator, sprite);
+        }
+
+        // sort for search
+        backgrounds.sort_by_key(|(key, _)| *key);
+
+        let time = chrono::Local::now().time();
+        let time_u32 = time.hour() * 100 + time.minute();
+
+        let index = match backgrounds.binary_search_by_key(&time_u32, |(key, _)| *key) {
+            Ok(i) => i,
+            Err(i) => {
+                // Err path gives us an insertion index
+                // we want to use the background before that index
+                if i == 0 {
+                    backgrounds.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+        };
+
+        // resolve path
+        let relative_path = backgrounds[index].1;
+        let path = ResourcePaths::MAIN_MENU_ROOT.to_string() + relative_path;
+        let cleaned_path = ResourcePaths::clean(&path);
+
+        let animation_path = cleaned_path.clone() + ".animation";
+        let sprite_path = cleaned_path + ".png";
+
+        let animator = Animator::load_new(assets, &animation_path);
+        let sprite = assets.new_sprite(game_io, &sprite_path);
         Self::new(animator, sprite)
     }
 

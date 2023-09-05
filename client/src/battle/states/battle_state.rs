@@ -37,52 +37,54 @@ impl State for BattleState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
-        self.detect_battle_start(game_io, simulation, vms);
+        self.detect_battle_start(game_io, resources, simulation);
 
         // reset frame temporary variables
         self.prepare_updates(simulation);
 
         // allow cards to mutate
-        Character::mutate_cards(game_io, simulation, vms);
+        Character::mutate_cards(game_io, resources, simulation);
 
         // new: process player input
-        self.process_input(game_io, simulation, vms);
+        self.process_input(game_io, resources, simulation);
+
+        self.process_action_queues(game_io, resources, simulation);
 
         // update time freeze first as it affects the rest of the updates
-        self.update_time_freeze(game_io, simulation, vms);
+        self.update_time_freeze(game_io, resources, simulation);
 
-        // new: process action queues
-        self.process_action_queues(game_io, simulation, vms);
+        // new: process movement and actions
+        self.process_movement(game_io, resources, simulation);
+        self.process_actions(game_io, resources, simulation);
 
         // update tiles
-        self.update_field(game_io, simulation, vms);
+        self.update_field(game_io, resources, simulation);
 
         // update spells
-        self.update_spells(game_io, simulation, vms);
+        self.update_spells(game_io, resources, simulation);
 
         // todo: handle spells attacking on tiles they're not on?
         // this can unintentionally occur by queueing an attack outside of update_spells,
         // such as in a BattleStep component or callback
 
         // execute attacks
-        self.execute_attacks(game_io, simulation, vms);
+        self.execute_attacks(game_io, resources, simulation);
 
         // process 0 HP
-        self.mark_deleted(game_io, simulation, vms);
+        self.mark_deleted(game_io, resources, simulation);
 
         // new: update living, processes statuses
-        self.update_living(game_io, simulation, vms);
+        self.update_living(game_io, resources, simulation);
 
         // update artifacts
-        self.update_artifacts(game_io, simulation, vms);
+        self.update_artifacts(game_io, resources, simulation);
 
         // update battle step components
         if !simulation.time_freeze_tracker.time_is_frozen() {
-            for (_, component) in &simulation.components {
+            for component in simulation.components.values() {
                 if component.lifetime == ComponentLifetime::BattleStep {
                     let callback = component.update_callback.clone();
                     simulation.pending_callbacks.push(callback);
@@ -90,9 +92,9 @@ impl State for BattleState {
             }
         }
 
-        self.apply_status_vfx(game_io, shared_assets, simulation);
+        self.apply_status_vfx(game_io, resources, simulation);
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
 
         if self.message.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
             // only update the time statistic if the battle is still going for the local player
@@ -275,8 +277,8 @@ impl BattleState {
     fn detect_battle_start(
         &self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         if simulation.battle_started {
             return;
@@ -290,14 +292,170 @@ impl BattleState {
                 .push(entity.battle_start_callback.clone())
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    fn process_action_queues(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        let entities = &mut simulation.entities;
+
+        // ensure initial test values for all action related aux props
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.process_action(None);
+                }
+            }
+        }
+
+        // get a list of entity ids for entities that need processing
+        let ids: Vec<_> = entities
+            .query_mut::<&Entity>()
+            .into_iter()
+            .filter(|(_, entity)| {
+                let already_has_action = !time_is_frozen && entity.action_index.is_some();
+                let time_freeze_counter = time_is_frozen
+                    && entity
+                        .action_queue
+                        .front()
+                        .and_then(|index| simulation.actions.get(*index))
+                        .map(|action| action.properties.time_freeze)
+                        .unwrap_or_default();
+
+                let has_pending_actions = !entity.action_queue.is_empty();
+
+                (!already_has_action || time_freeze_counter) && has_pending_actions
+            })
+            .map(|(id, _)| id)
+            .collect();
+
+        'outer: for id in ids {
+            let entities = &mut simulation.entities;
+            let Ok((entity, living)) =
+                entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
+            else {
+                continue;
+            };
+
+            let Some(mut index) = entity.action_queue.pop_front() else {
+                continue;
+            };
+
+            // handle aux props which intercept actions
+            if let Some(living) = living {
+                let mut intercept_callbacks = Vec::new();
+
+                for aux_prop in living.aux_props.values_mut() {
+                    if !aux_prop.effect().action_related() {
+                        continue;
+                    }
+
+                    // validate index as it may be coming from lua
+                    let Some(action) = simulation.actions.get_mut(index) else {
+                        continue 'outer;
+                    };
+
+                    aux_prop.process_action(Some(action));
+
+                    if !aux_prop.passed_all_tests() {
+                        continue;
+                    }
+
+                    aux_prop.mark_activated();
+
+                    match aux_prop.effect() {
+                        AuxEffect::InterceptAction(callback) => {
+                            intercept_callbacks.push(callback.clone());
+                        }
+                        _ => log::error!("Engine error: Unexpected AuxEffect!"),
+                    }
+                }
+
+                let mut new_index = Some(index);
+
+                for callback in intercept_callbacks {
+                    // activate every interrupt with the old action, use the last result
+                    new_index = callback.call(game_io, resources, simulation, index);
+                }
+
+                if new_index != Some(index) {
+                    // delete the old action if we're not using it
+                    simulation.delete_actions(game_io, resources, [index]);
+                }
+
+                if let Some(new_index) = new_index {
+                    // swap action
+                    index = new_index;
+                } else {
+                    // resolved to no action, move on to next entity
+                    continue;
+                }
+            }
+
+            // validate index as it may be coming from lua
+            let Some(action) = simulation.actions.get_mut(index) else {
+                continue;
+            };
+
+            if action.used {
+                log::error!("Action already used, ignoring");
+                continue;
+            }
+
+            let entities = &mut simulation.entities;
+            let entity = entities.query_one_mut::<&mut Entity>(id).unwrap();
+
+            if action.entity != entity.id {
+                continue;
+            }
+
+            action.used = true;
+
+            if action.properties.time_freeze {
+                if time_is_frozen && !simulation.is_resimulation {
+                    // must be countering, play sfx
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&globals.sfx.trap);
+                }
+
+                let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+                time_freeze_tracker.set_team_action(entity.team, index);
+            } else {
+                entity.action_index = Some(index);
+            }
+        }
+
+        // clean up action related aux props
+        let entities = &mut simulation.entities;
+
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.mark_tested();
+                }
+            }
+
+            living.delete_completed_aux_props();
+
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().action_related() {
+                    aux_prop.reset_tests();
+                }
+            }
+        }
     }
 
     pub fn update_time_freeze(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
@@ -370,7 +528,7 @@ impl BattleState {
                     continue;
                 }
 
-                Character::use_card(game_io, simulation, vms, id.into());
+                Character::use_card(game_io, resources, simulation, id.into());
                 break;
             }
         }
@@ -434,7 +592,7 @@ impl BattleState {
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
-            if let Some((entity_id, action_index, animator, mut status_director)) =
+            if let Some((entity_id, action_index, animator, status_director)) =
                 time_freeze_tracker.take_character_backup()
             {
                 if let Ok((entity, living)) = simulation
@@ -454,8 +612,6 @@ impl BattleState {
                     // restore animator
                     simulation.animators[entity.animator_index] = animator;
 
-                    // restore status director
-                    std::mem::swap(&mut living.status_director, &mut status_director);
                     // merge to retain statuses gained from time freeze
                     living.status_director.merge(status_director);
                 }
@@ -474,7 +630,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, vms, &actions_pending_removal);
+        simulation.delete_actions(game_io, resources, actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {
@@ -494,8 +650,8 @@ impl BattleState {
     pub fn update_field(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         simulation.field.reset_highlight();
 
@@ -505,14 +661,14 @@ impl BattleState {
         }
 
         simulation.field.update_tiles(&mut simulation.entities);
-        Field::apply_side_effects(game_io, simulation, vms);
+        Field::apply_side_effects(game_io, resources, simulation);
     }
 
     fn update_spells(
         &self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut callbacks = Vec::new();
 
@@ -538,15 +694,15 @@ impl BattleState {
 
         // execute update functions
         for callback in callbacks {
-            callback.call(game_io, simulation, vms, ());
+            callback.call(game_io, resources, simulation, ());
         }
     }
 
     fn execute_attacks(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         for (_, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
             if entity.time_frozen_count == 0 {
@@ -582,8 +738,11 @@ impl BattleState {
 
         // interactions between attack boxes and entities
         let mut needs_processing = Vec::new();
+        let mut all_living_ids = Vec::new();
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &Living)>() {
+            all_living_ids.push(id);
+
             if !entity.on_field || entity.deleted || !living.hitbox_enabled || living.health <= 0 {
                 // entity can't be hit
                 continue;
@@ -607,14 +766,6 @@ impl BattleState {
                     continue;
                 }
 
-                if living.ignore_common_aggressor
-                    && Some(attack_box.props.aggressor) == living.aggressor
-                {
-                    // ignore common aggressor
-                    // some entities shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
-                    continue;
-                }
-
                 attack_boxes.push(attack_box.clone());
             }
 
@@ -628,11 +779,7 @@ impl BattleState {
 
         for (id, intangible, defense_rules, attack_boxes) in needs_processing {
             for attack_box in attack_boxes {
-                let AttackBox {
-                    attacker_id,
-                    props: hit_props,
-                    ..
-                } = attack_box;
+                let attacker_id = attack_box.attacker_id;
 
                 // collision callback
                 let entities = &mut simulation.entities;
@@ -648,10 +795,10 @@ impl BattleState {
 
                 DefenseJudge::judge(
                     game_io,
+                    resources,
                     simulation,
-                    vms,
                     id.into(),
-                    attacker_id,
+                    &attack_box,
                     &defense_rules,
                     false,
                 );
@@ -665,21 +812,21 @@ impl BattleState {
                 // test tangibility
                 if intangible {
                     if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                        if !living.intangibility.try_pierce(&hit_props) {
+                        if !living.intangibility.try_pierce(&attack_box.props) {
                             continue;
                         }
                     }
                 }
 
-                collision_callback.call(game_io, simulation, vms, id.into());
+                collision_callback.call(game_io, resources, simulation, id.into());
 
                 // defense check against DefenseOrder::CollisionOnly
                 DefenseJudge::judge(
                     game_io,
+                    resources,
                     simulation,
-                    vms,
                     id.into(),
-                    attacker_id,
+                    &attack_box,
                     &defense_rules,
                     true,
                 );
@@ -692,24 +839,17 @@ impl BattleState {
                     tile.ignore_attacker(attacker_id);
                 }
 
-                Living::process_hit(game_io, simulation, vms, id.into(), hit_props);
+                if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
+                    living.pending_hits.push(attack_box.props);
+                }
 
                 // spell attack callback
-                attack_callback.call(game_io, simulation, vms, id.into());
+                attack_callback.call(game_io, resources, simulation, id.into());
             }
+        }
 
-            let living = simulation
-                .entities
-                .query_one_mut::<&mut Living>(id)
-                .unwrap();
-
-            if living.intangibility.is_retangible() {
-                living.intangibility.disable();
-
-                for callback in living.intangibility.take_deactivate_callbacks() {
-                    callback.call(game_io, simulation, vms, ());
-                }
-            }
+        for id in all_living_ids {
+            Living::process_hits(game_io, resources, simulation, id.into());
         }
 
         simulation.field.resolve_wash();
@@ -718,8 +858,8 @@ impl BattleState {
     fn mark_deleted(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut pending_deletion = Vec::new();
 
@@ -732,15 +872,15 @@ impl BattleState {
         }
 
         for id in pending_deletion {
-            simulation.delete_entity(game_io, vms, id);
+            simulation.delete_entity(game_io, resources, id);
         }
     }
 
     fn update_artifacts(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut callbacks = Vec::new();
 
@@ -763,26 +903,27 @@ impl BattleState {
 
         // execute update functions
         for callback in callbacks {
-            callback.call(game_io, simulation, vms, ());
+            callback.call(game_io, resources, simulation, ());
         }
     }
 
     fn process_input(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
-        self.process_action_input(game_io, simulation, vms);
-        self.process_movement_input(game_io, simulation, vms);
+        self.process_action_input(game_io, resources, simulation);
+        self.process_movement_input(game_io, resources, simulation);
     }
 
     fn process_action_input(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         let player_ids: Vec<_> = entities
@@ -807,14 +948,14 @@ impl BattleState {
             let input = &simulation.inputs[player.index];
 
             // normal attack and charged attack
-            if entity.deleted || living.status_director.input_locked_out() {
+            if entity.deleted || living.status_director.input_locked_out(status_registry) {
                 player.cancel_charge();
                 continue;
             }
 
             let action_active = (simulation.actions)
-                .iter()
-                .any(|(_, action)| action.used && action.entity == entity.id);
+                .values()
+                .any(|action| action.used && action.entity == entity.id);
 
             if action_active {
                 player.cancel_charge();
@@ -838,7 +979,7 @@ impl BattleState {
                 // process_action_queues only prevents non time freeze actions from starting until movements end
                 character.card_use_requested = false;
 
-                Player::use_card(game_io, simulation, vms, id.into());
+                Player::use_card(game_io, resources, simulation, id.into());
                 continue;
             }
 
@@ -848,9 +989,9 @@ impl BattleState {
             }
 
             if input.was_just_pressed(Input::Special) {
-                Player::use_special_attack(game_io, simulation, vms, id.into());
+                Player::use_special_attack(game_io, resources, simulation, id.into());
             } else {
-                Player::handle_charging(game_io, simulation, vms, id.into());
+                Player::handle_charging(game_io, resources, simulation, id.into());
             }
         }
 
@@ -870,8 +1011,8 @@ impl BattleState {
     fn process_movement_input(
         &self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         if simulation.time_freeze_tracker.time_is_frozen() {
             // shouldn't move during time freeze
@@ -880,13 +1021,17 @@ impl BattleState {
 
         let mut movement_tests = Vec::new();
 
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         for (id, (entity, living, player)) in
             entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
         {
-            // can't move if there's a blocking card action or immoble
-            if entity.action_index.is_some() || living.status_director.is_immobile() {
+            // can't move if there's a blocking action or immoble
+            if entity.action_index.is_some()
+                || !entity.action_queue.is_empty()
+                || living.status_director.is_immobile(status_registry)
+            {
                 continue;
             }
 
@@ -964,7 +1109,7 @@ impl BattleState {
         // try movement
         for (id, can_move_to_callback, dest, slide) in movement_tests {
             // movement test
-            if can_move_to_callback.call(game_io, simulation, vms, dest) {
+            if can_move_to_callback.call(game_io, resources, simulation, dest) {
                 // statistics
                 if simulation.local_player_id == EntityId::from(id) {
                     simulation.statistics.movements += 1;
@@ -986,7 +1131,7 @@ impl BattleState {
                     let anim_index = entity.animator_index;
                     let move_state = entity.move_anim_state.clone();
 
-                    move_event.on_begin = Some(BattleCallback::new(move |_, simulation, _, _| {
+                    move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
                         let anim = &mut simulation.animators[anim_index];
 
                         if let Some(move_state) = move_state.as_ref() {
@@ -995,7 +1140,7 @@ impl BattleState {
                         }
 
                         // reset to PLAYER_IDLE when movement finishes
-                        anim.on_complete(BattleCallback::new(move |_, simulation, _, _| {
+                        anim.on_complete(BattleCallback::new(move |_, _, simulation, _| {
                             let anim = &mut simulation.animators[anim_index];
                             let callbacks = anim.set_state(Player::IDLE_STATE);
                             anim.set_loop_mode(AnimatorLoopMode::Loop);
@@ -1013,11 +1158,12 @@ impl BattleState {
     fn update_living(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut callbacks = Vec::new();
 
+        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
         for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
@@ -1025,7 +1171,7 @@ impl BattleState {
                 continue;
             }
 
-            if !living.status_director.is_inactionable() {
+            if !living.status_director.is_inactionable(status_registry) {
                 callbacks.push(entity.update_callback.clone());
 
                 let mut player_query = entities.query_one::<&Player>(id).unwrap();
@@ -1052,21 +1198,25 @@ impl BattleState {
 
             // process statuses as long as the entity isn't being dragged
             if !living.status_director.is_dragged() {
-                living.status_director.update(&simulation.inputs);
+                let status_director = &mut living.status_director;
+                status_director.update(status_registry, &simulation.inputs);
 
-                // status callbacks
-                for hit_flag in living.status_director.take_new_statuses() {
+                // status destructors
+                callbacks.extend(status_director.take_ready_destructors());
+
+                // new status callbacks
+                for hit_flag in status_director.take_new_statuses() {
                     if hit_flag & HitFlag::FLASH != HitFlag::NONE {
                         // apply intangible
 
                         // callback will keep the status director in sync when intangibility is pierced
-                        let callback = BattleCallback::new(move |_, simulation, _, _| {
+                        let callback = BattleCallback::new(move |_, _, simulation, _| {
                             let living = simulation
                                 .entities
                                 .query_one_mut::<&mut Living>(id)
                                 .unwrap();
 
-                            living.status_director.remove_status(hit_flag)
+                            living.status_director.remove_status(HitFlag::FLASH)
                         });
 
                         living.intangibility.enable(IntangibleRule {
@@ -1074,6 +1224,10 @@ impl BattleState {
                             deactivate_callback: Some(callback),
                             ..Default::default()
                         });
+                    }
+
+                    if let Some(callback) = status_registry.status_constructor(hit_flag) {
+                        callbacks.push(callback.bind(id.into()));
                     }
 
                     // call registered status callbacks
@@ -1092,26 +1246,17 @@ impl BattleState {
 
         // execute update functions
         for callback in callbacks {
-            callback.call(game_io, simulation, vms, ());
+            callback.call(game_io, resources, simulation, ());
         }
-    }
-
-    fn process_action_queues(
-        &mut self,
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
-    ) {
-        self.process_movement(game_io, simulation, vms);
-        self.process_actions(game_io, simulation, vms);
     }
 
     fn process_movement(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
+        let status_registry = &resources.status_registry;
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
 
@@ -1120,7 +1265,7 @@ impl BattleState {
                 entity.spawned && !entity.deleted && entity.time_frozen_count == 0;
 
             if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
-                if living.status_director.is_immobile() {
+                if living.status_director.is_immobile(status_registry) {
                     update_progress = false;
                 }
             }
@@ -1168,7 +1313,7 @@ impl BattleState {
                 let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if simulation.field.tile_at_mut(dest).is_none()
-                    || !can_move_to_callback.call(game_io, simulation, vms, dest)
+                    || !can_move_to_callback.call(game_io, resources, simulation, dest)
                 {
                     let entity = simulation
                         .entities
@@ -1204,9 +1349,10 @@ impl BattleState {
                     let tile_callback = tile_state.entity_leave_callback.clone();
                     let params = (entity.id, movement);
 
-                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                        tile_callback.call(game_io, simulation, vms, params.clone());
-                    });
+                    let callback =
+                        BattleCallback::new(move |game_io, resources, simulation, ()| {
+                            tile_callback.call(game_io, resources, simulation, params.clone());
+                        });
 
                     simulation.pending_callbacks.push(callback);
 
@@ -1215,9 +1361,10 @@ impl BattleState {
                     let tile_callback = tile_state.entity_enter_callback.clone();
                     let params = entity.id;
 
-                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                        tile_callback.call(game_io, simulation, vms, params);
-                    });
+                    let callback =
+                        BattleCallback::new(move |game_io, resources, simulation, ()| {
+                            tile_callback.call(game_io, resources, simulation, params);
+                        });
 
                     simulation.pending_callbacks.push(callback);
                 }
@@ -1240,9 +1387,15 @@ impl BattleState {
                     let tile_callback = tile_state.entity_stop_callback.clone();
                     let entity_id = entity.id;
 
-                    let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                        tile_callback.call(game_io, simulation, vms, (entity_id, movement.clone()));
-                    });
+                    let callback =
+                        BattleCallback::new(move |game_io, resources, simulation, ()| {
+                            tile_callback.call(
+                                game_io,
+                                resources,
+                                simulation,
+                                (entity_id, movement.clone()),
+                            );
+                        });
 
                     simulation.pending_callbacks.push(callback);
                 }
@@ -1266,14 +1419,14 @@ impl BattleState {
             }
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     fn process_actions(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         let mut actions_pending_deletion = Vec::new();
         let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
@@ -1314,11 +1467,11 @@ impl BattleState {
                     continue;
                 }
 
-                if !simulation.is_entity_actionable(entity_id) {
+                if !simulation.is_entity_actionable(resources, entity_id) {
                     continue;
                 }
 
-                Action::execute(game_io, simulation, vms, action_index);
+                Action::execute(game_io, resources, simulation, action_index);
             }
 
             // update callback
@@ -1327,7 +1480,7 @@ impl BattleState {
             };
 
             if let Some(callback) = action.update_callback.clone() {
-                callback.call(game_io, simulation, vms, ());
+                callback.call(game_io, resources, simulation, ());
             }
 
             // steps
@@ -1341,7 +1494,7 @@ impl BattleState {
                 if !step.completed {
                     let callback = step.callback.clone();
 
-                    callback.call(game_io, simulation, vms, ());
+                    callback.call(game_io, resources, simulation, ());
                     break;
                 }
 
@@ -1386,13 +1539,13 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, vms, &actions_pending_deletion);
+        simulation.delete_actions(game_io, resources, actions_pending_deletion);
     }
 
     fn apply_status_vfx(
         &self,
         game_io: &GameIO,
-        shared_assets: &mut SharedBattleAssets,
+        shared_assets: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
         for (_, (entity, living)) in simulation

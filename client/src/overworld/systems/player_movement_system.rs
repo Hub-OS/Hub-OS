@@ -9,7 +9,7 @@ const DEFAULT_ICE_SPEED: f32 = 6.0;
 const DEFAULT_TREADMILL_SPEED: f32 = 1.875;
 
 pub fn system_player_movement(
-    game_io: &mut GameIO,
+    game_io: &GameIO,
     area: &mut OverworldArea,
     assets: &impl AssetManager,
 ) {
@@ -17,7 +17,7 @@ pub fn system_player_movement(
     system_tile_effect(game_io, area, assets);
 }
 
-fn system_base(game_io: &mut GameIO, area: &mut OverworldArea) {
+fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
     let input_util = InputUtil::new(game_io);
 
     let input_direction = if area.is_input_locked(game_io) {
@@ -45,7 +45,7 @@ fn system_base(game_io: &mut GameIO, area: &mut OverworldArea) {
     movement_animator.queue_direction(input_direction);
 }
 
-fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &impl AssetManager) {
+fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl AssetManager) {
     let player_data = &area.player_data;
     let entities = &mut area.entities;
 
@@ -164,16 +164,19 @@ fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &i
                 duration: 0.0,
             });
 
-            // bring us to the final position
+            // bring us to the final position + stop the sfx
             property_animator.add_key_frame(ActorKeyFrame {
-                property_steps: vec![(
-                    if x_axis {
-                        ActorProperty::X(end_position.x)
-                    } else {
-                        ActorProperty::Y(end_position.y)
-                    },
-                    Ease::Linear,
-                )],
+                property_steps: vec![
+                    (
+                        if x_axis {
+                            ActorProperty::X(end_position.x)
+                        } else {
+                            ActorProperty::Y(end_position.y)
+                        },
+                        Ease::Linear,
+                    ),
+                    (ActorProperty::SoundEffectLoop(String::new()), Ease::Floor),
+                ],
                 duration,
             });
 
@@ -232,7 +235,7 @@ fn system_tile_effect(game_io: &mut GameIO, area: &mut OverworldArea, assets: &i
                 None
             };
 
-            // begin actor proeprty animation
+            // begin actor property animation
             let mut property_animator = ActorPropertyAnimator::new();
 
             // begin with sfx and pause the player's animation for the slipping animation

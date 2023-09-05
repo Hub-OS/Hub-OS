@@ -6,9 +6,9 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::KeyItemsScene;
+use crate::structures::{GenerationalIndex, SlotMap};
 use crate::transitions::DEFAULT_FADE_DURATION;
 use framework::prelude::*;
-use generational_arena::Arena;
 
 enum Event {
     SelectionMade,
@@ -51,10 +51,10 @@ pub struct OverworldMenuManager {
     max_fade_time: FrameTime,
     fade_sprite: Sprite,
     navigation_menu: NavigationMenu,
-    menus: Arena<Box<dyn Menu>>,
-    menu_bindings: Vec<(Input, generational_arena::Index)>,
-    active_menu: Option<generational_arena::Index>,
-    fading_menu: Option<generational_arena::Index>,
+    menus: SlotMap<Box<dyn Menu>>,
+    menu_bindings: Vec<(Input, GenerationalIndex)>,
+    active_menu: Option<GenerationalIndex>,
+    fading_menu: Option<GenerationalIndex>,
     event_receiver: flume::Receiver<Event>,
     event_sender: flume::Sender<Event>,
 }
@@ -96,7 +96,7 @@ impl OverworldMenuManager {
             max_fade_time,
             fade_sprite,
             navigation_menu,
-            menus: Arena::new(),
+            menus: Default::default(),
             menu_bindings: Vec::new(),
             active_menu: None,
             fading_menu: None,
@@ -139,12 +139,12 @@ impl OverworldMenuManager {
         self.shop.as_mut()
     }
 
-    pub fn register_menu(&mut self, menu: Box<dyn Menu>) -> generational_arena::Index {
+    pub fn register_menu(&mut self, menu: Box<dyn Menu>) -> GenerationalIndex {
         self.menus.insert(menu)
     }
 
     /// Binds an input event to open a menu, avoids opening menus while other menus are open
-    pub fn bind_menu(&mut self, input: Input, menu_index: generational_arena::Index) {
+    pub fn bind_menu(&mut self, input: Input, menu_index: GenerationalIndex) {
         self.menu_bindings.push((input, menu_index));
     }
 
@@ -153,7 +153,7 @@ impl OverworldMenuManager {
         &mut self,
         game_io: &mut GameIO,
         area: &mut OverworldArea,
-        menu_index: generational_arena::Index,
+        menu_index: GenerationalIndex,
     ) {
         let menu = &mut self.menus[menu_index];
         menu.open(game_io, area);
@@ -409,7 +409,7 @@ impl OverworldMenuManager {
         }
 
         let menus_block_view = self.is_blocking_view();
-        let in_transition = self.fade_time != self.max_fade_time;
+        let in_transition = game_io.is_in_transition() || self.fade_time != self.max_fade_time;
         let mut handle_input =
             (menus_block_view || !self.navigation_menu.is_open()) && !in_transition;
 

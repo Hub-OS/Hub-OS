@@ -87,6 +87,7 @@ impl BattleLuaApi {
         super::sprite_api::inject_sprite_api(&mut lua_api);
         super::sync_node_api::inject_sync_node_api(&mut lua_api);
         super::animation_api::inject_animation_api(&mut lua_api);
+        super::status_api::inject_status_api(&mut lua_api);
         super::defense_rule_api::inject_defense_rule_api(&mut lua_api);
         super::encounter_init::inject_encounter_init_api(&mut lua_api);
         super::built_in_api::inject_built_in_api(&mut lua_api);

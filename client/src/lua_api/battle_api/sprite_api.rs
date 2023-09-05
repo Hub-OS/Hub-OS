@@ -97,7 +97,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         sprite_node.set_texture(api_ctx.game_io, path);
 
         if let Ok(animator_index) = table.raw_get::<_, GenerationalIndex>("#anim") {
-            if let Some(animator) = simulation.animators.get_mut(animator_index.into()) {
+            if let Some(animator) = simulation.animators.get_mut(animator_index) {
                 animator.apply(sprite_node);
             }
         }
@@ -238,9 +238,14 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    setter(
+    getter(
         lua_api,
         "never_flip",
+        |node, _, _: ()| Ok(node.never_flip()),
+    );
+    setter(
+        lua_api,
+        "set_never_flip",
         |node, _, never_flip: Option<bool>| {
             node.set_never_flip(never_flip.unwrap_or(true));
             Ok(())
@@ -261,14 +266,14 @@ pub fn create_sprite_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityId,
     index: GenerationalIndex,
-    animator_index: Option<generational_arena::Index>,
+    animator_index: Option<GenerationalIndex>,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     table.raw_set("#id", entity_id)?;
     table.raw_set("#index", index)?;
 
     if let Some(index) = animator_index {
-        table.raw_set("#anim", GenerationalIndex::from(index))?;
+        table.raw_set("#anim", index)?;
     }
 
     inherit_metatable(lua, SPRITE_TABLE, &table)?;
@@ -278,7 +283,7 @@ pub fn create_sprite_table(
 
 fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLua<'lua>,
+    R: for<'lua> rollback_mlua::IntoLua<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
 {
@@ -303,7 +308,7 @@ where
 
 fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&mut SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
         + 'static,

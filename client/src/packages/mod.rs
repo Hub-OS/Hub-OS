@@ -10,6 +10,7 @@ mod package_namespace;
 mod player_package;
 mod repo_package_updater;
 mod resource_package;
+mod status_package;
 mod util;
 
 pub use augment_package::*;
@@ -24,5 +25,6 @@ pub use package_namespace::*;
 pub use player_package::*;
 pub use repo_package_updater::*;
 pub use resource_package::*;
+pub use status_package::*;
 
 pub use packets::structures::PackageId;

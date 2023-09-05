@@ -1,4 +1,4 @@
-use crate::bindable::LuaVector;
+use crate::bindable::{AudioBehavior, LuaVector};
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -9,28 +9,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     globals.set("load", rollback_mlua::Nil)?;
     globals.set("loadfile", rollback_mlua::Nil)?;
     globals.set("dofile", rollback_mlua::Nil)?;
-
-    use crate::bindable::HitFlag;
-
-    let hit_flags_table = lua.create_table()?;
-    hit_flags_table.set("None", HitFlag::NONE)?;
-    hit_flags_table.set("RetainIntangible", HitFlag::RETAIN_INTANGIBLE)?;
-    hit_flags_table.set("Freeze", HitFlag::FREEZE)?;
-    hit_flags_table.set("PierceInvis", HitFlag::PIERCE_INVIS)?;
-    hit_flags_table.set("Flinch", HitFlag::FLINCH)?;
-    hit_flags_table.set("Shake", HitFlag::SHAKE)?;
-    hit_flags_table.set("Paralyze", HitFlag::PARALYZE)?;
-    hit_flags_table.set("Flash", HitFlag::FLASH)?;
-    hit_flags_table.set("PierceGuard", HitFlag::PIERCE_GUARD)?;
-    hit_flags_table.set("Impact", HitFlag::IMPACT)?;
-    hit_flags_table.set("Drag", HitFlag::DRAG)?;
-    hit_flags_table.set("Bubble", HitFlag::BUBBLE)?;
-    hit_flags_table.set("NoCounter", HitFlag::NO_COUNTER)?;
-    hit_flags_table.set("Root", HitFlag::ROOT)?;
-    hit_flags_table.set("Blind", HitFlag::BLIND)?;
-    hit_flags_table.set("Confuse", HitFlag::CONFUSE)?;
-    hit_flags_table.set("PierceGround", HitFlag::PIERCE_GROUND)?;
-    globals.set("Hit", hit_flags_table)?;
 
     let element_table = lua.create_table()?;
     element_table.set("None", Element::None)?;
@@ -267,8 +245,10 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
         })?,
     )?;
 
-    // todo: AudioPriority, currently stubbed
-    globals.set("AudioPriority", lua.create_table()?)?;
+    let audio_behavior_table = lua.create_table()?;
+    audio_behavior_table.set("Default", AudioBehavior::Default)?;
+    audio_behavior_table.set("NoOverlap", AudioBehavior::NoOverlap)?;
+    globals.set("AudioBehavior", audio_behavior_table)?;
 
     let shadow_table = lua.create_table()?;
     shadow_table.set("None", ResourcePaths::BLANK)?;
@@ -320,6 +300,17 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     input_table.set("Pressed", pressed_table)?;
 
     globals.set("Input", input_table)?;
+
+    use crate::bindable::Comparison;
+
+    let comparison_table = lua.create_table()?;
+    comparison_table.set("LT", Comparison::LT)?;
+    comparison_table.set("LE", Comparison::LE)?;
+    comparison_table.set("EQ", Comparison::EQ)?;
+    comparison_table.set("NE", Comparison::NE)?;
+    comparison_table.set("GT", Comparison::GT)?;
+    comparison_table.set("GE", Comparison::GE)?;
+    globals.set("Compare", comparison_table)?;
 
     Ok(())
 }

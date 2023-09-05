@@ -7,7 +7,7 @@ use framework::prelude::*;
 const RANGE_EXTENSION: f32 = 4.0;
 const RADIUS_MULTIPLIER: f32 = 2.5;
 
-pub fn system_player_interaction(game_io: &mut GameIO, area: &mut OverworldArea) {
+pub fn system_player_interaction(game_io: &GameIO, area: &mut OverworldArea) {
     let player_data = &mut area.player_data;
 
     player_data.actor_interaction = None;

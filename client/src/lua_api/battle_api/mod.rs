@@ -16,14 +16,17 @@ mod player_form_api;
 mod require_api;
 mod resources_api;
 mod sprite_api;
+mod status_api;
 mod sync_node_api;
 mod tile_api;
 mod turn_gauge_api;
 
+pub use action_api::create_action_table;
 pub use augment_api::create_augment_table;
 pub use battle_lua_api::*;
 pub use encounter_init::encounter_init;
 pub use entity_api::create_entity_table;
+pub use status_api::create_status_table;
 
 // tables, most are stored as named registry values
 // naming conflicts with simple registry values are avoided by using PascalCase
@@ -37,6 +40,9 @@ pub const BATTLE_TABLE: &str = "Battle";
 pub const ENCOUNTER_TABLE: &str = "Encounter";
 pub const SPAWNER_TABLE: &str = "MobSpawner";
 pub const MUTATOR_TABLE: &str = "Mutator";
+pub const HIT_FLAG_TABLE: &str = "Hit";
+pub const HIT_HELPER_TABLE: &str = "HitHelper";
+pub const STATUS_TABLE: &str = "Status";
 pub const DEFENSE_RULE_TABLE: &str = "DefenseRule";
 pub const DEFENSE_JUDGE_TABLE: &str = "DefenseJudge";
 pub const INTANGIBLE_RULE_TABLE: &str = "IntangibleRule";
@@ -64,6 +70,7 @@ pub const HIT_PROPS_TABLE: &str = "HitProps";
 pub const HITBOX_TABLE: &str = "Hitbox";
 pub const SHARED_HITBOX_TABLE: &str = "SharedHitbox";
 pub const AUGMENT_TABLE: &str = "Augment";
+pub const AUX_PROP_TABLE: &str = "AuxProp";
 
 // callbacks
 

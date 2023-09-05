@@ -29,6 +29,7 @@ pub struct Globals {
     pub encounter_packages: PackageManager<EncounterPackage>,
     pub character_packages: PackageManager<CharacterPackage>,
     pub augment_packages: PackageManager<AugmentPackage>,
+    pub status_packages: PackageManager<StatusPackage>,
     pub library_packages: PackageManager<LibraryPackage>,
     pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
@@ -122,6 +123,7 @@ impl Globals {
             encounter_packages: PackageManager::new(PackageCategory::Encounter),
             character_packages: PackageManager::new(PackageCategory::Character),
             augment_packages: PackageManager::new(PackageCategory::Augment),
+            status_packages: PackageManager::new(PackageCategory::Status),
             library_packages: PackageManager::new(PackageCategory::Library),
             resource_packages,
             battle_api: BattleLuaApi::new(),
@@ -225,6 +227,10 @@ impl Globals {
                 log::error!("Attempt to load virtual Resource package");
                 None
             }
+            PackageCategory::Status => {
+                self.status_packages
+                    .load_virtual_package(&self.assets, namespace, hash)
+            }
         }?;
 
         // load child packages
@@ -270,6 +276,10 @@ impl Globals {
             }
             PackageCategory::Resource => {
                 self.resource_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::Status => {
+                self.status_packages
                     .load_package(&self.assets, namespace, path)
             }
         }?;
@@ -326,6 +336,10 @@ impl Globals {
             }
             PackageCategory::Resource => {
                 self.resource_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
+            PackageCategory::Status => {
+                self.status_packages
                     .unload_package(&self.assets, namespace, id);
             }
         }
@@ -489,6 +503,10 @@ impl Globals {
                 .resource_packages
                 .package(namespace, id)
                 .map(|package| package.package_info()),
+            PackageCategory::Status => self
+                .status_packages
+                .package(namespace, id)
+                .map(|package| package.package_info()),
         }
     }
 
@@ -525,6 +543,10 @@ impl Globals {
                 .map(|package| package.package_info()),
             PackageCategory::Resource => self
                 .resource_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::Status => self
+                .status_packages
                 .package_or_override(namespace, id)
                 .map(|package| package.package_info()),
         }
@@ -566,6 +588,10 @@ impl Globals {
                 .resource_packages
                 .package(namespace, id)
                 .map(|package| package.create_package_listing()),
+            PackageCategory::Status => self
+                .status_packages
+                .package(namespace, id)
+                .map(|package| package.create_package_listing()),
         }
     }
 
@@ -574,12 +600,13 @@ impl Globals {
 
         self.library_packages
             .namespaces()
-            .chain(self.encounter_packages.namespaces())
             .chain(self.augment_packages.namespaces())
+            .chain(self.encounter_packages.namespaces())
             .chain(self.card_packages.namespaces())
-            .chain(self.player_packages.namespaces())
             .chain(self.character_packages.namespaces())
+            .chain(self.player_packages.namespaces())
             .chain(self.library_packages.namespaces())
+            .chain(self.status_packages.namespaces())
             .filter(|ns| ns.is_netplay())
             .for_each(|namespace| {
                 namespace_set.insert(namespace);
@@ -589,10 +616,10 @@ impl Globals {
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
-        self.encounter_packages
+        self.augment_packages
             .remove_namespace(&self.assets, namespace);
 
-        self.augment_packages
+        self.encounter_packages
             .remove_namespace(&self.assets, namespace);
 
         self.card_packages.remove_namespace(&self.assets, namespace);
@@ -604,6 +631,12 @@ impl Globals {
             .remove_namespace(&self.assets, namespace);
 
         self.player_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.resource_packages
+            .remove_namespace(&self.assets, namespace);
+
+        self.status_packages
             .remove_namespace(&self.assets, namespace);
     }
 
@@ -625,13 +658,14 @@ impl Globals {
         &self,
     ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
         let ns = PackageNamespace::Local;
-        let package_ids: Vec<_> = (self.encounter_packages.package_ids(ns))
-            .chain(self.augment_packages.package_ids(ns))
+        let package_ids: Vec<_> = (self.augment_packages.package_ids(ns))
+            .chain(self.encounter_packages.package_ids(ns))
             .chain(self.card_packages.package_ids(ns))
             .chain(self.character_packages.package_ids(ns))
             .chain(self.library_packages.package_ids(ns))
             .chain(self.player_packages.package_ids(ns))
             .chain(self.resource_packages.package_ids(ns))
+            .chain(self.status_packages.package_ids(ns))
             .map(|id| uri_encode(id.as_str()))
             .collect();
 

@@ -36,8 +36,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for TileHighlight {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for TileHighlight {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for TileHighlight {
+    fn into_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

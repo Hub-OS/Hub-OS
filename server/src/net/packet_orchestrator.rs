@@ -1,8 +1,8 @@
-use generational_arena::{Arena, Index};
 use packets::{
     serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
     PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
+use slotmap::DenseSlotMap;
 use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
 use std::rc::Rc;
@@ -54,11 +54,11 @@ pub struct PacketOrchestrator {
     socket: Rc<UdpSocket>,
     server_config: Rc<ServerConfig>,
     connection_config: packets::Config,
-    connections: Arena<Connection>,
-    connection_map: HashMap<SocketAddr, Index>,
-    client_id_map: HashMap<String, Index>,
+    connections: DenseSlotMap<slotmap::DefaultKey, Connection>,
+    connection_map: HashMap<SocketAddr, slotmap::DefaultKey>,
+    client_id_map: HashMap<String, slotmap::DefaultKey>,
     client_room_map: HashMap<SocketAddr, Vec<String>>,
-    rooms: HashMap<String, Vec<Index>>,
+    rooms: HashMap<String, Vec<slotmap::DefaultKey>>,
     netplay_route_map: HashMap<SocketAddr, Vec<SocketAddr>>,
     synchronize_updates: bool,
     synchronize_requests: usize,
@@ -80,7 +80,7 @@ impl PacketOrchestrator {
             server_config,
             connection_config,
             connection_map: HashMap::new(),
-            connections: Arena::new(),
+            connections: Default::default(),
             client_id_map: HashMap::new(),
             client_room_map: HashMap::new(),
             rooms: HashMap::new(),
@@ -508,7 +508,7 @@ impl PacketOrchestrator {
         let now = packets::Instant::now();
         let mut kick_list = Vec::new();
 
-        for (_, connection) in &mut self.connections {
+        for connection in self.connections.values_mut() {
             connection.packet_sender.tick(now, |bytes| {
                 let _ = self.socket.send_to(bytes, connection.socket_address);
             });
@@ -536,7 +536,7 @@ impl PacketOrchestrator {
 fn handle_synchronization(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
 ) -> Reliability {
     if !synchronize_updates || synchronize_locked_clients.contains(&connection.socket_address) {
@@ -557,7 +557,7 @@ fn handle_synchronization(
 fn internal_send_packet(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packet: ServerPacket,
 ) {
@@ -576,7 +576,7 @@ fn internal_send_packet(
 fn internal_send_bytes(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     bytes: &[u8],
 ) {
@@ -593,7 +593,7 @@ fn internal_send_bytes(
 fn internal_send_packets(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packets: Vec<ServerPacket>,
 ) {
@@ -614,7 +614,7 @@ fn internal_send_packets(
 fn internal_send_byte_packets(
     synchronize_updates: bool,
     synchronize_locked_clients: &mut HashSet<SocketAddr>,
-    connection: &mut Connection,
+    connection: &Connection,
     reliability: Reliability,
     packets: &[Vec<u8>],
 ) {

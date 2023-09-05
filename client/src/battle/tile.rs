@@ -2,6 +2,7 @@ use super::{Action, Entity, TileState};
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
+use crate::structures::DenseSlotMap;
 
 #[derive(Default, Clone)]
 pub struct Tile {
@@ -62,6 +63,7 @@ impl Tile {
         if self.team == Team::Unset {
             self.original_team = team;
             self.team = team;
+            return;
         }
 
         if !self.reservations.is_empty() || self.immutable_team {
@@ -70,7 +72,9 @@ impl Tile {
 
         self.team = team;
 
-        if self.team_revert_timer == 0 {
+        if team == self.original_team {
+            self.team_revert_timer = 0;
+        } else if self.team_revert_timer == 0 {
             self.team_revert_timer = TEMP_TEAM_DURATION;
         }
     }
@@ -169,7 +173,7 @@ impl Tile {
 
     pub fn handle_auto_reservation_addition(
         &mut self,
-        actions: &generational_arena::Arena<Action>,
+        actions: &DenseSlotMap<Action>,
         entity: &Entity,
     ) {
         if !Self::can_auto_reserve(actions, entity) {
@@ -181,7 +185,7 @@ impl Tile {
 
     pub fn handle_auto_reservation_removal(
         &mut self,
-        actions: &generational_arena::Arena<Action>,
+        actions: &DenseSlotMap<Action>,
         entity: &Entity,
     ) {
         if !Self::can_auto_reserve(actions, entity) {
@@ -191,7 +195,7 @@ impl Tile {
         self.remove_reservation_for(entity.id);
     }
 
-    fn can_auto_reserve(actions: &generational_arena::Arena<Action>, entity: &Entity) -> bool {
+    fn can_auto_reserve(actions: &DenseSlotMap<Action>, entity: &Entity) -> bool {
         if !entity.auto_reserves_tiles {
             return false;
         }
@@ -236,7 +240,7 @@ impl Tile {
 
         if let Some(max_lifetime) = self.max_state_lifetime {
             if self.state_lifetime > max_lifetime {
-                self.state_index = TileState::NORMAL;
+                self.set_state_index(TileState::NORMAL, None);
             }
         }
     }

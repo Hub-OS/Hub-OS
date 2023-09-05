@@ -4,14 +4,14 @@ use crate::bindable::GenerationalIndex;
 
 pub type TreeIndex = GenerationalIndex;
 
-pub struct Node<T> {
+pub struct TreeNode<T> {
     index: TreeIndex,
     parent: Option<TreeIndex>,
     children: Vec<TreeIndex>,
     value: T,
 }
 
-impl<T> Node<T> {
+impl<T> TreeNode<T> {
     pub fn index(&self) -> TreeIndex {
         self.index
     }
@@ -33,7 +33,7 @@ impl<T> Node<T> {
     }
 }
 
-impl<T: Clone> Clone for Node<T> {
+impl<T: Clone> Clone for TreeNode<T> {
     fn clone(&self) -> Self {
         Self {
             index: self.index,
@@ -46,7 +46,7 @@ impl<T: Clone> Clone for Node<T> {
 
 pub struct Tree<T> {
     len: usize,
-    nodes: Vec<(usize, Option<Node<T>>)>,
+    nodes: Vec<(u32, Option<TreeNode<T>>)>,
 }
 
 impl<T> Tree<T> {
@@ -55,7 +55,7 @@ impl<T> Tree<T> {
             len: 1,
             nodes: vec![(
                 0,
-                Some(Node {
+                Some(TreeNode {
                     index: TreeIndex::new(0, 0),
                     parent: None,
                     children: Vec::new(),
@@ -108,7 +108,7 @@ impl<T> Tree<T> {
         };
 
         self.len += 1;
-        self.nodes[child_index].1 = Some(Node {
+        self.nodes[child_index].1 = Some(TreeNode {
             index: tree_index,
             parent: Some(parent),
             children: Vec::new(),
@@ -126,11 +126,11 @@ impl<T> Tree<T> {
         &mut self.root_node_mut().value
     }
 
-    pub fn root_node(&self) -> &Node<T> {
+    pub fn root_node(&self) -> &TreeNode<T> {
         self.nodes[0].1.as_ref().unwrap()
     }
 
-    pub fn root_node_mut(&mut self) -> &mut Node<T> {
+    pub fn root_node_mut(&mut self) -> &mut TreeNode<T> {
         self.nodes[0].1.as_mut().unwrap()
     }
 
@@ -154,7 +154,7 @@ impl<T> Tree<T> {
         Some(&mut node.value)
     }
 
-    pub fn get_node(&self, index: TreeIndex) -> Option<&Node<T>> {
+    pub fn get_node(&self, index: TreeIndex) -> Option<&TreeNode<T>> {
         self.nodes
             .get(index.index)?
             .1
@@ -162,7 +162,7 @@ impl<T> Tree<T> {
             .filter(|node| node.index == index)
     }
 
-    pub fn get_node_mut(&mut self, index: TreeIndex) -> Option<&mut Node<T>> {
+    pub fn get_node_mut(&mut self, index: TreeIndex) -> Option<&mut TreeNode<T>> {
         self.nodes
             .get_mut(index.index)?
             .1
@@ -251,7 +251,7 @@ impl<T> Tree<T> {
         initial_value: V,
         mut callback: F,
     ) where
-        F: FnMut(&mut Node<T>, &V) -> V,
+        F: FnMut(&mut TreeNode<T>, &V) -> V,
     {
         let start_node = match self.get_node_mut(start_index) {
             Some(node) => node,
@@ -280,12 +280,12 @@ impl<T> Tree<T> {
     }
 
     // Visits all nodes in arbitrary order
-    pub fn nodes(&self) -> impl Iterator<Item = &Node<T>> {
+    pub fn nodes(&self) -> impl Iterator<Item = &TreeNode<T>> {
         self.nodes.iter().filter_map(|(_, node)| node.as_ref())
     }
 
     // Visits all nodes in arbitrary order
-    pub fn nodes_mut(&mut self) -> impl Iterator<Item = &mut Node<T>> {
+    pub fn nodes_mut(&mut self) -> impl Iterator<Item = &mut TreeNode<T>> {
         self.nodes.iter_mut().filter_map(|(_, node)| node.as_mut())
     }
 

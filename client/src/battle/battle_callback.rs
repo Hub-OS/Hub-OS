@@ -1,5 +1,5 @@
-use super::BattleScriptContext;
-use crate::battle::{BattleSimulation, RollbackVM};
+use super::{BattleScriptContext, SharedBattleResources};
+use crate::battle::BattleSimulation;
 use crate::lua_api::VM_INDEX_REGISTRY_KEY;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
@@ -9,25 +9,67 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct BattleCallback<P = (), R = ()>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
-    callback: Arc<dyn Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send>,
+    callback:
+        Arc<dyn Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R + Sync + Send>,
+}
+
+impl<P, R> std::fmt::Debug for BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BattleCallback").finish()
+    }
 }
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
 {
     pub fn new(
-        callback: impl Fn(&GameIO, &mut BattleSimulation, &[RollbackVM], P) -> R + Sync + Send + 'static,
+        callback: impl Fn(&GameIO, &SharedBattleResources, &mut BattleSimulation, P) -> R
+            + Sync
+            + Send
+            + 'static,
     ) -> Self {
         Self {
             callback: Arc::new(callback),
         }
     }
 
+    pub fn call(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        params: P,
+    ) -> R {
+        (self.callback)(game_io, resources, simulation, params)
+    }
+}
+
+impl<P, R> BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + Send + Sync + Copy + 'static,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
+{
+    pub fn bind(self, params: P) -> BattleCallback<(), R> {
+        BattleCallback::new(move |game_io, resources, simulation, _| {
+            self.call(game_io, resources, simulation, params)
+        })
+    }
+}
+
+impl<P, R> BattleCallback<P, R>
+where
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
+{
     pub fn new_transformed_lua_callback<'lua, F>(
         lua: &'lua rollback_mlua::Lua,
         vm_index: usize,
@@ -47,13 +89,13 @@ where
         let key = lua.create_registry_value(function)?;
 
         Ok(BattleCallback::new(
-            move |game_io, simulation, vms, params| {
-                let lua = &vms[vm_index].lua;
+            move |game_io, resources, simulation, params| {
+                let lua = &resources.vm_manager.vms()[vm_index].lua;
                 let lua_callback: rollback_mlua::Function = lua.registry_value(&key).unwrap();
 
                 let api_ctx = RefCell::new(BattleScriptContext {
                     vm_index,
-                    vms,
+                    resources,
                     game_io,
                     simulation,
                 });
@@ -81,21 +123,11 @@ where
     ) -> rollback_mlua::Result<Self> {
         Self::new_transformed_lua_callback(lua, vm_index, function, |_, lua, p| lua.pack_multi(p))
     }
-
-    pub fn call(
-        &self,
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
-        params: P,
-    ) -> R {
-        (self.callback)(game_io, simulation, vms, params)
-    }
 }
 
 impl<P, R> Default for BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
 {
     fn default() -> Self {
@@ -105,7 +137,7 @@ where
 
 impl<P, R> BattleCallback<P, R>
 where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
 {
     pub fn stub(value: R) -> Self {
@@ -115,7 +147,11 @@ where
     }
 }
 
-impl<'lua> rollback_mlua::FromLua<'lua> for BattleCallback {
+impl<'lua, P, R> rollback_mlua::FromLua<'lua> for BattleCallback<P, R>
+where
+    P: for<'a> rollback_mlua::IntoLuaMulti<'a>,
+    R: for<'a> rollback_mlua::FromLuaMulti<'a> + Default + Send + Sync + Clone + 'static,
+{
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,
         lua: &'lua rollback_mlua::Lua,

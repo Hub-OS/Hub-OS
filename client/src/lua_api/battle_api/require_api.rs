@@ -11,7 +11,8 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         let globals = api_ctx.game_io.resource::<Globals>().unwrap();
 
         // try to resolve from library packages
-        let ns = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+        let vms = api_ctx.resources.vm_manager.vms();
+        let ns = vms[api_ctx.vm_index].preferred_namespace();
 
         let package_id = path.into();
 
@@ -36,8 +37,8 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
         env.set("_folder_path", ResourcePaths::parent(&source_path))?;
 
         lua.load(&source)
-            .set_name(ResourcePaths::shorten(&source_path))?
-            .set_environment(env)?
+            .set_name(ResourcePaths::shorten(&source_path))
+            .set_environment(env)
             .call(())
     });
 }

@@ -1,7 +1,9 @@
 use crate::battle::BattleProps;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
-use crate::render::ui::{SceneTitle, SubSceneFrame, Textbox, TextboxMessage};
+use crate::render::ui::{
+    GridScrollTracker, SceneTitle, SubSceneFrame, Textbox, TextboxMessage, UiInputTracker,
+};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleInitScene;
@@ -11,25 +13,39 @@ pub struct BattleSelectScene {
     camera: Camera,
     background: Background,
     frame: SubSceneFrame,
-    selection: usize,
+    ui_input_tracker: UiInputTracker,
+    preview_frame_sprite: Sprite,
+    cursor_sprite: Sprite,
+    cursor_animator: Animator,
+    scroll_tracker: GridScrollTracker,
     package_ids: Vec<PackageId>,
-    preview_sprite: Sprite,
     textbox: Textbox,
     next_scene: NextScene,
     title_text: String,
 }
 
 impl BattleSelectScene {
-    pub fn new(game_io: &mut GameIO) -> Box<Self> {
+    pub fn new(game_io: &GameIO) -> Box<Self> {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut camera = Camera::new(game_io);
-        camera.snap(RESOLUTION_F * 0.5);
+        // layout
+        let mut layout_animator =
+            Animator::load_new(assets, ResourcePaths::BATTLE_SELECT_UI_ANIMATION);
+        layout_animator.set_state("DEFAULT");
+        let grid_start = layout_animator.point("GRID_START").unwrap_or_default();
+        let grid_step = layout_animator.point("GRID_STEP").unwrap_or_default();
 
-        // preview
-        let mut preview_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
-        preview_sprite.set_position(Vec2::new(12.0 + 44.0, 36.0 + 28.0));
+        // preview frame
+        let mut preview_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_UI);
+        layout_animator.set_state("FRAME");
+        layout_animator.apply(&mut preview_frame_sprite);
+
+        // cursor sprite
+        let mut cursor_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_UI);
+        layout_animator.set_state("CURSOR");
+        layout_animator.set_loop_mode(AnimatorLoopMode::Loop);
+        layout_animator.apply(&mut cursor_sprite);
 
         // package list
         let encounter_manager = &globals.encounter_packages;
@@ -41,35 +57,40 @@ impl BattleSelectScene {
         package_ids.sort();
 
         let mut scene = Box::new(Self {
-            camera,
+            camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
-            selection: 0,
+            preview_frame_sprite,
+            cursor_sprite,
+            cursor_animator: layout_animator,
+            ui_input_tracker: UiInputTracker::new(),
+            scroll_tracker: GridScrollTracker::new(game_io, 3, 2)
+                .with_total_items(package_ids.len())
+                .with_position(grid_start)
+                .with_step(grid_step)
+                .with_view_margin(1),
             package_ids,
-            preview_sprite,
-            textbox: Textbox::new_navigation(game_io)
-                .with_accept_input(false)
-                .begin_open(),
+            textbox: Textbox::new_navigation(game_io),
             next_scene: NextScene::None,
             title_text: String::from("BATTLE SELECT: "),
         });
 
-        scene.update_preview(game_io);
+        scene.update_title(game_io);
 
         scene
     }
 }
 
 impl BattleSelectScene {
-    fn update_preview(&mut self, game_io: &GameIO) {
+    fn update_title(&mut self, game_io: &GameIO) {
         if self.package_ids.is_empty() {
             return;
         }
 
-        let package_id = &self.package_ids[self.selection];
+        let selected_index = self.scroll_tracker.selected_index();
+        let package_id = &self.package_ids[selected_index];
 
         let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
         let encounter_manager = &globals.encounter_packages;
 
         let package = encounter_manager
@@ -77,20 +98,12 @@ impl BattleSelectScene {
             .unwrap();
 
         let package_name = package.name.to_uppercase();
+
         if !package.name.is_empty() {
             self.title_text = format!("BATTLE SELECT: {package_name}");
         } else {
             self.title_text = String::from("BATTLE SELECT: ???");
         }
-
-        let preview_texture = assets.texture(game_io, &package.preview_texture_path);
-        self.preview_sprite.set_texture(preview_texture);
-
-        let textbox_interface =
-            TextboxMessage::new_auto(package.description.clone()).with_completable(false);
-
-        self.textbox.advance_interface(game_io);
-        self.textbox.push_interface(textbox_interface);
     }
 
     fn handle_music(&self, game_io: &GameIO) {
@@ -110,8 +123,15 @@ impl Scene for BattleSelectScene {
     fn update(&mut self, game_io: &mut GameIO) {
         self.background.update();
         self.camera.update(game_io);
+        self.ui_input_tracker.update(game_io);
+        self.cursor_animator.update();
+        self.cursor_animator.apply(&mut self.cursor_sprite);
 
         self.textbox.update(game_io);
+
+        if self.textbox.is_complete() {
+            self.textbox.close()
+        }
 
         if game_io.is_in_transition() {
             return;
@@ -119,43 +139,35 @@ impl Scene for BattleSelectScene {
 
         self.handle_music(game_io);
 
-        let input_util = InputUtil::new(game_io);
-        let old_selection = self.selection;
-
-        if input_util.was_just_pressed(Input::Left) {
-            if self.selection == 0 {
-                self.selection = self.package_ids.len().max(1) - 1;
-            } else {
-                self.selection -= 1;
-            }
+        if self.textbox.is_open() {
+            return;
         }
 
-        if input_util.was_just_pressed(Input::Right) {
-            self.selection += 1;
-            self.selection = (self.selection)
-                .checked_rem(self.package_ids.len())
-                .unwrap_or_default();
-        }
+        let input_tracker = &self.ui_input_tracker;
+        let prev_index = self.scroll_tracker.selected_index();
 
-        if old_selection != self.selection {
-            self.update_preview(game_io);
+        self.scroll_tracker.handle_input(input_tracker);
 
+        let index = self.scroll_tracker.selected_index();
+
+        if prev_index != index {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_move);
+
+            self.update_title(game_io);
         }
 
-        if input_util.was_just_pressed(Input::Confirm) && !self.package_ids.is_empty() {
+        let input_tracker = &self.ui_input_tracker;
+
+        if input_tracker.is_active(Input::Confirm) && !self.package_ids.is_empty() {
+            // begin encounter
             let globals = game_io.resource::<Globals>().unwrap();
 
-            // play sfx
-            globals.audio.stop_music();
-            globals.audio.play_sound(&globals.sfx.battle_transition);
-
             // get the battle
-            let package_id = &self.package_ids[self.selection];
+            let package_id = &self.package_ids[index];
             let encounter_package = globals
                 .encounter_packages
-                .package_or_override(PackageNamespace::Local, package_id);
+                .package(PackageNamespace::Local, package_id);
 
             // set the next scene
             let props = BattleProps::new_with_defaults(game_io, encounter_package);
@@ -163,9 +175,29 @@ impl Scene for BattleSelectScene {
 
             let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
+            return;
         }
 
-        if input_util.was_just_pressed(Input::Cancel) {
+        if input_tracker.is_active(Input::Option2) && !self.package_ids.is_empty() {
+            // description
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            let i = self.scroll_tracker.selected_index();
+            let package_id = &self.package_ids[i];
+            let package = globals
+                .encounter_packages
+                .package(PackageNamespace::Local, package_id)
+                .unwrap();
+
+            let interface = TextboxMessage::new(package.description.clone());
+
+            self.textbox.push_interface(interface);
+            self.textbox.open();
+            return;
+        }
+
+        if self.ui_input_tracker.is_active(Input::Cancel) {
+            // leave
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
@@ -181,14 +213,39 @@ impl Scene for BattleSelectScene {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
-        // draw title
+        // draw previews
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        for (i, position) in self.scroll_tracker.iter_visible() {
+            // draw frame
+            self.preview_frame_sprite.set_position(position);
+            sprite_queue.draw_sprite(&self.preview_frame_sprite);
+
+            // draw package
+            let package_id = &self.package_ids[i];
+            let package = globals
+                .encounter_packages
+                .package(PackageNamespace::Local, package_id)
+                .unwrap();
+
+            let mut preview_sprite = assets.new_sprite(game_io, &package.preview_texture_path);
+            preview_sprite.set_origin(preview_sprite.size() * 0.5);
+            preview_sprite.set_position(position);
+            sprite_queue.draw_sprite(&preview_sprite);
+        }
+
+        // draw cursor
+        if !self.package_ids.is_empty() {
+            let selected_index = self.scroll_tracker.selected_index();
+            let cursor_position = self.scroll_tracker.index_position(selected_index);
+            self.cursor_sprite.set_position(cursor_position);
+            sprite_queue.draw_sprite(&self.cursor_sprite);
+        }
+
+        // draw frame and title
         self.frame.draw(&mut sprite_queue);
         SceneTitle::new(self.title_text.as_str()).draw(game_io, &mut sprite_queue);
-
-        // draw preview sprite
-        let preview_size = self.preview_sprite.size();
-        self.preview_sprite.set_origin(preview_size * 0.5);
-        sprite_queue.draw_sprite(&self.preview_sprite);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

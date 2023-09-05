@@ -29,6 +29,7 @@ mod render;
 mod resources;
 mod saves;
 mod scenes;
+mod structures;
 mod supporting_service;
 mod transitions;
 mod zip;

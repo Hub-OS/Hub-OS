@@ -80,7 +80,7 @@ pub struct PackagesScene {
 }
 
 impl PackagesScene {
-    pub fn new(game_io: &mut GameIO, initial_category: CategoryFilter) -> Self {
+    pub fn new(game_io: &GameIO, initial_category: CategoryFilter) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -257,7 +257,7 @@ impl PackagesScene {
         self.sidebar.update(game_io, &self.ui_input_tracker);
     }
 
-    fn leave(&mut self, game_io: &mut GameIO) {
+    fn leave(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let has_players = globals

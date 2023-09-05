@@ -36,8 +36,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Team {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for Team {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for Team {
+    fn into_lua(
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

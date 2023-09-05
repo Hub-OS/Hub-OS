@@ -38,8 +38,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for PackageNamespace {
     }
 }
 
-impl<'lua> rollback_mlua::ToLua<'lua> for PackageNamespace {
-    fn to_lua(
+impl<'lua> rollback_mlua::IntoLua<'lua> for PackageNamespace {
+    fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {

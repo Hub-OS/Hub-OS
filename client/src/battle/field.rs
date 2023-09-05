@@ -1,4 +1,4 @@
-use super::{BattleCallback, BattleSimulation, Living, RollbackVM, TileState};
+use super::{BattleCallback, BattleSimulation, Living, SharedBattleResources, TileState};
 use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
@@ -257,8 +257,8 @@ impl Field {
 
     pub fn apply_side_effects(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
     ) {
         // per entity update
         for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
@@ -273,14 +273,14 @@ impl Field {
             let tile_callback = tile_state.entity_update_callback.clone();
             let entity_id = entity.id;
 
-            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                tile_callback.call(game_io, simulation, vms, entity_id);
+            let callback = BattleCallback::new(move |game_io, resources, simulation, ()| {
+                tile_callback.call(game_io, resources, simulation, entity_id);
             });
 
             simulation.pending_callbacks.push(callback);
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
 
         // per tile update
         for tile in &mut simulation.field.tiles {
@@ -288,14 +288,14 @@ impl Field {
             let tile_callback = tile_state.update_callback.clone();
             let tile_position = tile.position();
 
-            let callback = BattleCallback::new(move |game_io, simulation, vms, ()| {
-                tile_callback.call(game_io, simulation, vms, tile_position);
+            let callback = BattleCallback::new(move |game_io, resources, simulation, ()| {
+                tile_callback.call(game_io, resources, simulation, tile_position);
             });
 
             simulation.pending_callbacks.push(callback);
         }
 
-        simulation.call_pending_callbacks(game_io, vms);
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     pub fn update_animations(&mut self) {

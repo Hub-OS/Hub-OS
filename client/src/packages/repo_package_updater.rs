@@ -54,7 +54,7 @@ impl RepoPackageUpdater {
         self.queue_position
     }
 
-    pub fn begin<I>(&mut self, game_io: &mut GameIO, into_iter: I)
+    pub fn begin<I>(&mut self, game_io: &GameIO, into_iter: I)
     where
         I: IntoIterator<Item = PackageId>,
     {
@@ -117,7 +117,7 @@ impl RepoPackageUpdater {
         }
     }
 
-    fn request_latest_listing(&mut self, game_io: &mut GameIO) {
+    fn request_latest_listing(&mut self, game_io: &GameIO) {
         let Some(id) = self.queue.get(self.queue_position) else {
             self.download_package(game_io);
             return;
@@ -144,7 +144,7 @@ impl RepoPackageUpdater {
         self.status = UpdateStatus::CheckingForUpdate;
     }
 
-    fn download_package(&mut self, game_io: &mut GameIO) {
+    fn download_package(&mut self, game_io: &GameIO) {
         let Some(&(category, ref id)) = self.install_required.get(self.install_position) else {
             self.status = UpdateStatus::Success;
             return;

@@ -24,7 +24,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         let index = animators.insert(animator);
 
         let table = lua.create_table()?;
-        table.raw_set("#id", GenerationalIndex::from(index))?;
+        table.raw_set("#id", index)?;
         inherit_metatable(lua, ANIMATION_TABLE, &table)?;
 
         lua.pack_multi(table)
@@ -40,16 +40,15 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
         let animators = &mut simulation.animators;
-        let (animator, other_animator) = animators.get2_mut(id.into(), other_id.into());
-
-        let animator = animator.ok_or_else(animator_not_found)?;
-        let other_animator = other_animator.ok_or_else(animator_not_found)?;
+        let [animator, other_animator] = animators
+            .get_disjoint_mut([id, other_id])
+            .ok_or_else(animator_not_found)?;
 
         let callbacks = animator.copy_from(other_animator);
         animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -62,9 +61,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let animators = &mut api_ctx.simulation.animators;
-        let animator = animators
-            .get_mut(id.into())
-            .ok_or_else(animator_not_found)?;
+        let animator = animators.get_mut(id).ok_or_else(animator_not_found)?;
 
         let sprite_entity_id: EntityId = sprite_table.raw_get("#id")?;
         let sprite_index: GenerationalIndex = sprite_table.raw_get("#index")?;
@@ -93,6 +90,10 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         Ok(animator.update())
     });
 
+    updater(lua_api, "sync_time", |animator, _, _, time: FrameTime| {
+        Ok(animator.sync_time(time))
+    });
+
     setter(lua_api, "pause", |animator, lua, _: ()| {
         animator.disable();
         lua.pack_multi(())
@@ -100,6 +101,10 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
     setter(lua_api, "resume", |animator, lua, _: ()| {
         animator.enable();
         lua.pack_multi(())
+    });
+
+    getter(lua_api, "completed", |animator, lua, _: ()| {
+        lua.pack_multi(animator.is_complete())
     });
 
     getter(lua_api, "has_state", |animator, lua, state: String| {
@@ -127,13 +132,12 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
             })
             .collect();
 
-        let id: GenerationalIndex = table.raw_get("#id")?;
-        let animator_index = id.into();
+        let animator_index: GenerationalIndex = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let animators = &mut api_ctx.simulation.animators;
 
-        if !animators.contains(animator_index) {
+        if !animators.contains_key(animator_index) {
             return Err(animator_not_found());
         }
 
@@ -193,7 +197,7 @@ where
 
         let api_ctx = api_ctx.borrow();
         let animators = &api_ctx.simulation.animators;
-        let animator = animators.get(id.into()).ok_or_else(animator_not_found)?;
+        let animator = animators.get(id).ok_or_else(animator_not_found)?;
 
         lua.pack_multi(callback(animator, lua, param)?)
     });
@@ -216,9 +220,7 @@ where
 
         let mut api_ctx = api_ctx.borrow_mut();
         let animators = &mut api_ctx.simulation.animators;
-        let animator = animators
-            .get_mut(id.into())
-            .ok_or_else(animator_not_found)?;
+        let animator = animators.get_mut(id).ok_or_else(animator_not_found)?;
 
         lua.pack_multi(callback(animator, lua, param)?)
     });
@@ -245,16 +247,14 @@ where
         let game_io = api_ctx.game_io;
 
         let animators = &mut simulation.animators;
-        let animator = animators
-            .get_mut(id.into())
-            .ok_or_else(animator_not_found)?;
+        let animator = animators.get_mut(id).ok_or_else(animator_not_found)?;
 
         let callbacks = callback(animator, game_io, lua, param)?;
 
         animator.find_and_apply_to_target(&mut simulation.entities);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -262,10 +262,10 @@ where
 
 pub fn create_animation_table(
     lua: &rollback_mlua::Lua,
-    index: generational_arena::Index,
+    index: GenerationalIndex,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
-    table.raw_set("#id", GenerationalIndex::from(index))?;
+    table.raw_set("#id", index)?;
     inherit_metatable(lua, ANIMATION_TABLE, &table)?;
 
     Ok(table)

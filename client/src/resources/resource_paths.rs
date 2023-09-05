@@ -49,6 +49,8 @@ impl ResourcePaths {
     pub const TRANSFORM_REVERT_SFX: &str = "resources/sfx/transform_revert.ogg";
     pub const ATTACK_CHARGING_SFX: &str = "resources/sfx/attack_charging.ogg";
     pub const ATTACK_CHARGED_SFX: &str = "resources/sfx/attack_charged.ogg";
+    pub const COUNTER_HIT_SFX: &str = "resources/sfx/counter_hit.ogg";
+    pub const LOW_HP_SFX: &str = "resources/sfx/low_hp.ogg";
     pub const PLAYER_DELETED_SFX: &str = "resources/sfx/player_deleted.ogg";
     pub const HURT_SFX: &str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &str = "resources/sfx/explode.ogg";
@@ -97,6 +99,7 @@ impl ResourcePaths {
     pub const BOOT_UI_ANIMATION: &str = "resources/scenes/boot/ui.animation";
 
     // MainMenuScene
+    pub const MAIN_MENU_ROOT: &str = "resources/scenes/main_menu/";
     pub const MAIN_MENU_BG: &str = "resources/scenes/main_menu/bg.png";
     pub const MAIN_MENU_BG_ANIMATION: &str = "resources/scenes/main_menu/bg.animation";
     pub const MAIN_MENU_LAYOUT_ANIMATION: &str = "resources/scenes/main_menu/layout.animation";
@@ -185,6 +188,8 @@ impl ResourcePaths {
     pub const KEY_ITEMS_MUG: &str = "resources/scenes/key_items/mug.png";
 
     // BattleSelectScene
+    pub const BATTLE_SELECT_UI: &str = "resources/scenes/battle_select/ui.png";
+    pub const BATTLE_SELECT_UI_ANIMATION: &str = "resources/scenes/battle_select/ui.animation";
 
     // BattleScene
     pub const BATTLE_BG: &str = "resources/scenes/battle/bg.png";

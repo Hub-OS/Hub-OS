@@ -1,7 +1,7 @@
 mod battle_api;
+mod battle_vm_manager;
 mod errors;
 mod helpers;
-mod vms;
 
 pub use battle_api::*;
-pub use vms::*;
+pub use battle_vm_manager::*;

@@ -1,4 +1,6 @@
-use crate::battle::{Action, BattleCallback, BattleSimulation, Entity, RollbackVM, TileState};
+use crate::battle::{
+    Action, BattleCallback, BattleSimulation, Entity, SharedBattleResources, TileState,
+};
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
@@ -52,24 +54,12 @@ impl Character {
         entity.share_tile = false;
         entity.auto_reserves_tiles = true;
 
-        // hit callback for alert symbol
-        living.register_hit_callback(BattleCallback::new(
-            move |game_io, simulation, _, hit_props: HitProperties| {
-                if hit_props.damage == 0 {
-                    return;
-                }
-
-                let entity = simulation
-                    .entities
-                    .query_one_mut::<&Entity>(id.into())
-                    .unwrap();
-
-                if !entity.element.is_weak_to(hit_props.element)
-                    && !entity.element.is_weak_to(hit_props.secondary_element)
-                {
-                    // not super effective
-                    return;
-                }
+        let elemental_weakness_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
+                let entities = &mut simulation.entities;
+                let entity = entities.query_one_mut::<&Entity>(id.into()).unwrap();
 
                 // spawn alert artifact
                 let mut alert_position = entity.full_position();
@@ -83,10 +73,11 @@ impl Character {
 
                 alert_entity.copy_full_position(alert_position);
                 alert_entity.pending_spawn = true;
-            },
-        ));
+            }));
 
-        entity.can_move_to_callback = BattleCallback::new(move |_, simulation, _, dest| {
+        living.add_aux_prop(elemental_weakness_aux_prop);
+
+        entity.can_move_to_callback = BattleCallback::new(move |_, _, simulation, dest| {
             let tile = match simulation.field.tile_at_mut(dest) {
                 Some(tile) => tile,
                 None => return false,
@@ -136,7 +127,7 @@ impl Character {
             true
         });
 
-        entity.delete_callback = BattleCallback::new(move |_, simulation, _, _| {
+        entity.delete_callback = BattleCallback::new(move |_, _, simulation, _| {
             crate::battle::delete_character_animation(simulation, id, None);
         });
 
@@ -145,16 +136,16 @@ impl Character {
 
     pub fn load(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         package_id: &PackageId,
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityId> {
         let id = Self::create(game_io, simulation, rank, namespace)?;
 
-        let vm_index = BattleSimulation::find_vm(vms, package_id, namespace)?;
-        simulation.call_global(game_io, vms, vm_index, "character_init", move |lua| {
+        let vm_index = resources.vm_manager.find_vm(package_id, namespace)?;
+        simulation.call_global(game_io, resources, vm_index, "character_init", move |lua| {
             create_entity_table(lua, id)
         })?;
 
@@ -163,8 +154,8 @@ impl Character {
 
     pub fn use_card(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
         let (entity, character) = simulation
@@ -181,8 +172,8 @@ impl Character {
         let card_props = character.cards.pop().unwrap();
         let action_index = Action::create_from_card_properties(
             game_io,
+            resources,
             simulation,
-            vms,
             entity_id,
             namespace,
             &card_props,
@@ -190,7 +181,12 @@ impl Character {
 
         // use the action or spawn a poof
         if let Some(index) = action_index {
-            simulation.use_action(game_io, entity_id, index.into());
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(entity_id.into())
+                .unwrap();
+
+            entity.action_queue.push_back(index);
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);
         }
@@ -204,7 +200,11 @@ impl Character {
         entity.hit_context.flags = original_context_flags;
     }
 
-    pub fn mutate_cards(game_io: &GameIO, simulation: &mut BattleSimulation, vms: &[RollbackVM]) {
+    pub fn mutate_cards(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         loop {
             let entities = &mut simulation.entities;
             let mut character_iter = entities.query_mut::<&mut Character>().into_iter();
@@ -232,20 +232,19 @@ impl Character {
             // make sure the vm + callback exists before calling
             // avoids an error message from simulation.call_global()
             // function card_mutate is optional to implement
-            let Ok(vm_index) =
-                BattleSimulation::find_vm(vms, &card.package_id, character.namespace)
-            else {
+            let vm_manager = &resources.vm_manager;
+            let Ok(vm_index) = vm_manager.find_vm(&card.package_id, character.namespace) else {
                 continue;
             };
 
-            let lua = &vms[vm_index].lua;
+            let lua = &vm_manager.vms()[vm_index].lua;
             let callback_exists = lua.globals().contains_key("card_mutate").unwrap_or(false);
 
             if !callback_exists {
                 continue;
             }
 
-            let _ = simulation.call_global(game_io, vms, vm_index, "card_mutate", |lua| {
+            let _ = simulation.call_global(game_io, resources, vm_index, "card_mutate", |lua| {
                 Ok((create_entity_table(lua, id.into())?, lua_card_index + 1))
             });
         }

@@ -75,11 +75,11 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
 pub fn create_augment_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityId,
-    index: generational_arena::Index,
+    index: GenerationalIndex,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     table.raw_set("#id", entity_id)?;
-    table.raw_set("#index", GenerationalIndex::from(index))?;
+    table.raw_set("#index", index)?;
 
     inherit_metatable(lua, AUGMENT_TABLE, &table)?;
 
@@ -88,7 +88,7 @@ pub fn create_augment_table(
 
 fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLua<'lua>,
+    R: for<'lua> rollback_mlua::IntoLua<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
 {
@@ -105,10 +105,7 @@ where
             .query_one_mut::<&Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let augment = player
-            .augments
-            .get(index.into())
-            .ok_or_else(augment_not_found)?;
+        let augment = player.augments.get(index).ok_or_else(augment_not_found)?;
 
         lua.pack_multi(callback(augment, lua, param)?)
     });
@@ -116,7 +113,7 @@ where
 
 fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    R: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
     F: for<'lua> Fn(&mut Augment, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
         + 'static,
@@ -136,7 +133,7 @@ where
 
         let augment = player
             .augments
-            .get_mut(index.into())
+            .get_mut(index)
             .ok_or_else(augment_not_found)?;
 
         lua.pack_multi(callback(augment, lua, param)?)
@@ -149,7 +146,7 @@ fn callback_setter<G, P, F, R>(
     callback_getter: G,
     param_transformer: F,
 ) where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut Augment) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
     F: for<'lua> Fn(
@@ -177,7 +174,7 @@ fn callback_setter<G, P, F, R>(
 
         let augment = player
             .augments
-            .get_mut(index.into())
+            .get_mut(index)
             .ok_or_else(augment_not_found)?;
 
         let key = lua.create_registry_value(table)?;

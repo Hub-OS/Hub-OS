@@ -11,6 +11,7 @@ pub enum PackageCategory {
     Library,
     Player,
     Resource,
+    Status,
 }
 
 impl PackageCategory {
@@ -22,6 +23,7 @@ impl PackageCategory {
             PackageCategory::Library => "mods/libraries/",
             PackageCategory::Player => "mods/players/",
             PackageCategory::Resource => "mods/resources/",
+            PackageCategory::Status => "mods/statuses/",
         }
     }
 

@@ -5,8 +5,8 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card};
+use crate::structures::DenseSlotMap;
 use framework::prelude::*;
-use generational_arena::Arena;
 
 #[derive(Clone)]
 pub struct Player {
@@ -28,7 +28,7 @@ pub struct Player {
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub augments: Arena<Augment>,
+    pub augments: DenseSlotMap<Augment>,
     pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
     pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -99,7 +99,7 @@ impl Player {
             ),
             forms: Vec::new(),
             active_form: None,
-            augments: Arena::new(),
+            augments: Default::default(),
             calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
                 Self::calculate_default_charge_time(level)
             }),
@@ -113,8 +113,8 @@ impl Player {
 
     pub fn load(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         mut setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
@@ -160,23 +160,16 @@ impl Player {
         living.flinch_anim_state = Some(flinch_anim_state);
 
         // delete callback
-        entity.delete_callback = BattleCallback::new(move |game_io, simulation, _, _| {
+        entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
             delete_player_animation(game_io, simulation, id);
         });
 
         // flinch callback
         living.register_status_callback(
             HitFlag::FLINCH,
-            BattleCallback::new(move |game_io, simulation, vms, _| {
-                // cancel previous action
-                let entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(id.into())
-                    .unwrap();
-
-                if let Some(index) = entity.action_index {
-                    simulation.delete_actions(game_io, vms, &[index]);
-                }
+            BattleCallback::new(move |game_io, resources, simulation, _| {
+                // cancel actions
+                Action::cancel_all(game_io, resources, simulation, id);
 
                 let (entity, living, player) = simulation
                     .entities
@@ -197,37 +190,43 @@ impl Player {
                 simulation.pending_callbacks.extend(callbacks);
 
                 // on complete will return to idle
-                animator.on_complete(BattleCallback::new(move |game_io, simulation, vms, _| {
-                    let entity = simulation
-                        .entities
-                        .query_one_mut::<&Entity>(id.into())
-                        .unwrap();
+                animator.on_complete(BattleCallback::new(
+                    move |game_io, resources, simulation, _| {
+                        let entity = simulation
+                            .entities
+                            .query_one_mut::<&Entity>(id.into())
+                            .unwrap();
 
-                    let animator = &mut simulation.animators[entity.animator_index];
+                        let animator = &mut simulation.animators[entity.animator_index];
 
-                    let callbacks = animator.set_state(Player::IDLE_STATE);
-                    animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    simulation.pending_callbacks.extend(callbacks);
+                        let callbacks = animator.set_state(Player::IDLE_STATE);
+                        animator.set_loop_mode(AnimatorLoopMode::Loop);
+                        simulation.pending_callbacks.extend(callbacks);
 
-                    simulation.call_pending_callbacks(game_io, vms);
-                }));
+                        simulation.call_pending_callbacks(game_io, resources);
+                    },
+                ));
 
                 simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
-                simulation.call_pending_callbacks(game_io, vms);
+                simulation.call_pending_callbacks(game_io, resources);
             }),
         );
 
-        // hit callback for decross
-        living.register_hit_callback(BattleCallback::new(
-            move |game_io, simulation, _, hit_props: HitProperties| {
-                if hit_props.damage == 0 {
-                    return;
-                }
-
+        // AuxProp for hit statistics
+        let statistics_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_callback(BattleCallback::new(move |_, _, simulation, _| {
                 if local {
                     simulation.statistics.hits_taken += 1;
                 }
+            }));
+        living.add_aux_prop(statistics_aux_prop);
 
+        // AuxProp for decross
+        let decross_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
                 let (entity, living, player) = simulation
                     .entities
                     .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
@@ -235,13 +234,6 @@ impl Player {
 
                 if living.health <= 0 || entity.deleted {
                     // skip decross if we're already deleted
-                    return;
-                }
-
-                if !entity.element.is_weak_to(hit_props.element)
-                    && !entity.element.is_weak_to(hit_props.secondary_element)
-                {
-                    // not super effective
                     return;
                 }
 
@@ -277,8 +269,8 @@ impl Player {
                 // shine position, set to spawn
                 shine_entity.copy_full_position(shine_position);
                 shine_entity.pending_spawn = true;
-            },
-        ));
+            }));
+        living.add_aux_prop(decross_aux_prop);
 
         // resolve health boost
         // todo: move to Augment?
@@ -326,10 +318,11 @@ impl Player {
         if script_enabled {
             // call init function
             let package_info = &player_package.package_info;
-            let vm_index =
-                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
 
-            simulation.call_global(game_io, vms, vm_index, "player_init", move |lua| {
+            let vm_manager = &resources.vm_manager;
+            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+
+            simulation.call_global(game_io, resources, vm_index, "player_init", move |lua| {
                 crate::lua_api::create_entity_table(lua, id)
             })?;
         } else {
@@ -353,7 +346,7 @@ impl Player {
 
             // callbacks
             simulation.pending_callbacks.extend(callbacks);
-            simulation.call_pending_callbacks(game_io, vms);
+            simulation.call_pending_callbacks(game_io, resources);
         }
 
         // Iterator<Item = (&AugmentPackage, usize)>
@@ -369,8 +362,8 @@ impl Player {
         // init blocks
         for (package, level) in augment_iter {
             let package_info = &package.package_info;
-            let vm_index =
-                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+            let vm_manager = &resources.vm_manager;
+            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
 
             let player = simulation
                 .entities
@@ -378,6 +371,7 @@ impl Player {
                 .unwrap();
             let index = player.augments.insert(Augment::from((package, level)));
 
+            let vms = resources.vm_manager.vms();
             let lua = &vms[vm_index].lua;
             let lua_globals = lua.globals();
             let has_init = lua_globals.contains_key("augment_init").unwrap_or_default();
@@ -387,7 +381,7 @@ impl Player {
             }
 
             let result =
-                simulation.call_global(game_io, vms, vm_index, "augment_init", move |lua| {
+                simulation.call_global(game_io, resources, vm_index, "augment_init", move |lua| {
                     crate::lua_api::create_augment_table(lua, id, index)
                 });
 
@@ -425,6 +419,7 @@ impl Player {
             // track the local player's health
             if player.local {
                 simulation.local_player_id = entity.id;
+                simulation.local_health_ui.set_max_health(living.max_health);
                 simulation.local_health_ui.snap_health(living.health);
             }
 
@@ -483,8 +478,8 @@ impl Player {
 
         let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost);
 
-        let augment_iter = self.augments.iter();
-        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, (_, m)| {
+        let augment_iter = self.augments.values();
+        let augmented_hand_size = augment_iter.fold(boosted_hand_size, |acc, m| {
             acc.saturating_add(m.hand_size_boost * m.level as i8)
         });
 
@@ -492,31 +487,27 @@ impl Player {
     }
 
     pub fn attack_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_attack = augment_iter
-            .fold(1, |acc, (_, m)| {
-                acc + m.attack_boost as i32 * m.level as i32
-            })
+            .fold(1, |acc, m| acc + m.attack_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_attack + self.attack_boost
     }
 
     pub fn rapid_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_speed = augment_iter
-            .fold(1, |acc, (_, m)| acc + m.rapid_boost as i32 * m.level as i32)
+            .fold(1, |acc, m| acc + m.rapid_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_speed + self.rapid_boost
     }
 
     pub fn charge_level(&self) -> u8 {
-        let augment_iter = self.augments.iter();
+        let augment_iter = self.augments.values();
         let base_charge = augment_iter
-            .fold(1, |acc, (_, m)| {
-                acc + m.charge_boost as i32 * m.level as i32
-            })
+            .fold(1, |acc, m| acc + m.charge_boost as i32 * m.level as i32)
             .clamp(1, 5) as u8;
 
         base_charge + self.charge_boost
@@ -534,8 +525,8 @@ impl Player {
 
     pub fn calculate_charge_time(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         level: Option<u8>,
     ) -> FrameTime {
@@ -546,9 +537,9 @@ impl Player {
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let augment_callback = augment_iter
-            .flat_map(|(_, augment)| augment.calculate_charge_time_callback.clone())
+            .flat_map(|augment| augment.calculate_charge_time_callback.clone())
             .next();
 
         let callback = augment_callback
@@ -560,7 +551,7 @@ impl Player {
             })
             .unwrap_or_else(|| player.calculate_charge_time_callback.clone());
 
-        callback.call(game_io, simulation, vms, level)
+        callback.call(game_io, resources, simulation, level)
     }
 
     pub fn cancel_charge(&mut self) {
@@ -570,12 +561,12 @@ impl Player {
 
     pub fn handle_charging(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
         let max_charge_time =
-            Player::calculate_charge_time(game_io, simulation, vms, entity_id, None);
+            Player::calculate_charge_time(game_io, resources, simulation, entity_id, None);
 
         // test the next card to see if can be charged
         // cached to reduce lua calls + copying card props
@@ -588,7 +579,7 @@ impl Player {
         let card_props = character.cards.last().cloned();
         let can_charge_card = card_chargable_cache.calculate(card_props, |card_props| {
             if let Some(card_props) = card_props {
-                Self::resolve_card_charger(game_io, simulation, vms, entity_id, card_props)
+                Self::resolve_card_charger(game_io, resources, simulation, entity_id, card_props)
                     .is_some()
             } else {
                 false
@@ -652,9 +643,9 @@ impl Player {
         if !character.card_use_requested {
             if let Some(fully_charged) = buster_fired {
                 if fully_charged {
-                    Player::use_charged_attack(game_io, simulation, vms, entity_id);
+                    Player::use_charged_attack(game_io, resources, simulation, entity_id);
                 } else {
-                    Player::use_normal_attack(game_io, simulation, vms, entity_id)
+                    Player::use_normal_attack(game_io, resources, simulation, entity_id)
                 }
             }
         }
@@ -662,47 +653,46 @@ impl Player {
 
     pub fn use_normal_attack(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return;
-        };
-
-        let augment_iter = player.augments.iter();
-        let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.normal_attack_callback.clone())
-            .collect();
-
-        if let Some(callback) = player.normal_attack_callback.clone() {
-            callbacks.push(callback);
-        }
-
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
-                return;
-            }
-        }
-    }
-
-    pub fn use_charged_attack(
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
-        entity_id: EntityId,
-    ) {
+        // resolve action for normal attack
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.charged_attack_callback.clone())
+            .flat_map(|augment| augment.normal_attack_callback.clone())
+            .collect();
+
+        // base
+        if let Some(callback) = player.normal_attack_callback.clone() {
+            callbacks.push(callback);
+        }
+
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
+    }
+
+    pub fn use_charged_attack(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) {
+        // resolve action for charged attack
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        // augment
+        let augment_iter = player.augments.values();
+        let mut callbacks: Vec<_> = augment_iter
+            .flat_map(|augment| augment.charged_attack_callback.clone())
             .collect();
 
         // form
@@ -720,29 +710,25 @@ impl Player {
             callbacks.push(callback);
         }
 
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
-                return;
-            }
-        }
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
 
     pub fn use_special_attack(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
+        // resolve action for special attack
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| augment.special_attack_callback.clone())
+            .flat_map(|augment| augment.special_attack_callback.clone())
             .collect();
 
         // form
@@ -760,18 +746,13 @@ impl Player {
             callbacks.push(callback);
         }
 
-        for callback in callbacks {
-            if let Some(index) = callback.call(game_io, simulation, vms, ()) {
-                simulation.use_action(game_io, entity_id, index.into());
-                return;
-            }
-        }
+        Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
 
     fn resolve_card_charger(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
@@ -781,9 +762,9 @@ impl Player {
         };
 
         // augment
-        let augment_iter = player.augments.iter();
+        let augment_iter = player.augments.values();
         let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|(_, augment)| {
+            .flat_map(|augment| {
                 Some((
                     augment.can_charge_card_callback.clone()?,
                     augment.charged_card_callback.clone()?,
@@ -816,7 +797,7 @@ impl Player {
         callbacks
             .into_iter()
             .find(|(support_test, _)| {
-                support_test.call(game_io, simulation, vms, card_props.clone())
+                support_test.call(game_io, resources, simulation, card_props.clone())
             })
             .map(|(_, callback)| callback)
     }
@@ -824,21 +805,26 @@ impl Player {
     // setup context before + after calling this
     fn resolve_charged_card_action(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<GenerationalIndex> {
-        let callback =
-            Self::resolve_card_charger(game_io, simulation, vms, entity_id, card_props.clone())?;
+        let callback = Self::resolve_card_charger(
+            game_io,
+            resources,
+            simulation,
+            entity_id,
+            card_props.clone(),
+        )?;
 
-        callback.call(game_io, simulation, vms, card_props)
+        callback.call(game_io, resources, simulation, card_props)
     }
 
     pub fn use_card(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
     ) {
         let (entity, character, player) = simulation
@@ -855,14 +841,14 @@ impl Player {
         let action_index = if player.card_charged {
             player.card_charged = false;
 
-            Self::resolve_charged_card_action(game_io, simulation, vms, entity_id, card_props)
+            Self::resolve_charged_card_action(game_io, resources, simulation, entity_id, card_props)
         } else {
             let namespace = character.namespace;
 
             Action::create_from_card_properties(
                 game_io,
+                resources,
                 simulation,
-                vms,
                 entity_id,
                 namespace,
                 &card_props,
@@ -871,7 +857,12 @@ impl Player {
 
         // use the action or spawn a poof
         if let Some(index) = action_index {
-            simulation.use_action(game_io, entity_id, index.into());
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(entity_id.into())
+                .unwrap();
+
+            entity.action_queue.push_back(index);
         } else {
             Artifact::create_card_poof(game_io, simulation, entity_id);
         }

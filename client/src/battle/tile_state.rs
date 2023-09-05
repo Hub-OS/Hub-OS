@@ -1,6 +1,9 @@
 use super::{BattleCallback, Entity, Living};
 use crate::battle::Artifact;
-use crate::bindable::{Element, EntityId, HitFlag, HitProperties, Movement};
+use crate::bindable::{
+    AuxEffect, AuxProp, AuxRequirement, AuxVariable, Comparison, Element, EntityId, HitFlag,
+    HitProperties, MathExpr, Movement,
+};
 use crate::render::FrameTime;
 use crate::resources::{
     Globals, BROKEN_LIFETIME, CONVEYOR_LIFETIME, CONVEYOR_SLIDE_DURATION, CONVEYOR_WAIT_DELAY,
@@ -23,7 +26,6 @@ pub struct TileState {
     pub entity_stop_callback: BattleCallback<(EntityId, Movement)>,
     pub entity_update_callback: BattleCallback<EntityId>,
     // pub card_use_callback: BattleCallback,
-    pub calculate_bonus_damage_callback: BattleCallback<(HitProperties, i32), i32>,
 }
 
 impl TileState {
@@ -65,7 +67,6 @@ impl TileState {
             entity_leave_callback: BattleCallback::default(),
             entity_stop_callback: BattleCallback::default(),
             entity_update_callback: BattleCallback::default(),
-            calculate_bonus_damage_callback: BattleCallback::default(),
         }
     }
 
@@ -98,7 +99,7 @@ impl TileState {
         let mut cracked_state = TileState::new(String::from("cracked"));
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, simulation, _, (entity_id, movement): (EntityId, Movement)| {
+            |game_io, _, simulation, (entity_id, movement): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -118,7 +119,7 @@ impl TileState {
                         globals.audio.play_sound(&globals.sfx.tile_break);
                     }
 
-                    tile.set_state_index(TileState::BROKEN, None);
+                    tile.set_state_index(TileState::BROKEN, Some(BROKEN_LIFETIME));
                 }
             },
         );
@@ -137,7 +138,7 @@ impl TileState {
         let mut ice_state = TileState::new(String::from("ice"));
 
         ice_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, vms, (entity_id, movement): (EntityId, Movement)| {
+            |game_io, resources, simulation, (entity_id, movement): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -153,7 +154,7 @@ impl TileState {
 
                 let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
-                if !can_move_to_callback.call(game_io, simulation, vms, dest) {
+                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
                     return;
                 }
 
@@ -172,18 +173,8 @@ impl TileState {
         let mut grass_state = TileState::new(String::from("grass"));
         grass_state.cleanser_element = Some(Element::Fire);
 
-        grass_state.calculate_bonus_damage_callback = BattleCallback::new(
-            |_, _, _, (hit_props, original_damage): (HitProperties, i32)| {
-                if hit_props.is_super_effective(Element::Wood) {
-                    original_damage
-                } else {
-                    0
-                }
-            },
-        );
-
         grass_state.entity_update_callback =
-            BattleCallback::new(|_, simulation, _, entity_id: EntityId| {
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok((entity, living)) =
                     entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
@@ -191,20 +182,29 @@ impl TileState {
                     return;
                 };
 
+                let double_damage_aux_prop =
+                    AuxProp::new_element_bonus(Element::Fire).delete_next_run();
+                living.add_aux_prop(double_damage_aux_prop);
+
                 if entity.element != Element::Wood || living.health >= living.max_health {
                     return;
                 }
 
-                // todo: should entities have individual timers?
-                let heal_interval = if living.health >= 9 {
-                    GRASS_HEAL_INTERVAL
-                } else {
-                    GRASS_SLOWED_HEAL_INTERVAL
-                };
+                let heal_fast_aux_prop = AuxProp::new()
+                    .with_requirement(AuxRequirement::Element(Element::Wood))
+                    .with_requirement(AuxRequirement::Interval(GRASS_HEAL_INTERVAL))
+                    .with_requirement(AuxRequirement::HP(Comparison::GE, 9))
+                    .with_effect(AuxEffect::RecoverHP(1))
+                    .delete_next_run();
+                living.add_aux_prop(heal_fast_aux_prop);
 
-                if simulation.battle_time > 0 && simulation.battle_time % heal_interval == 0 {
-                    living.health += 1;
-                }
+                let heal_slow_aux_prop = AuxProp::new()
+                    .with_requirement(AuxRequirement::Element(Element::Wood))
+                    .with_requirement(AuxRequirement::Interval(GRASS_SLOWED_HEAL_INTERVAL))
+                    .with_requirement(AuxRequirement::HP(Comparison::LT, 9))
+                    .with_effect(AuxEffect::RecoverHP(1))
+                    .delete_next_run();
+                living.add_aux_prop(heal_slow_aux_prop);
             });
 
         registry.push(grass_state);
@@ -213,22 +213,18 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::LAVA);
         let mut lava_state = TileState::new(String::from("lava"));
 
-        lava_state.calculate_bonus_damage_callback = BattleCallback::new(
-            |_, _, _, (hit_props, original_damage): (HitProperties, i32)| {
-                if hit_props.is_super_effective(Element::Fire) {
-                    original_damage
-                } else {
-                    0
-                }
-            },
-        );
-
         lava_state.entity_update_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                let Ok((entity, living)) =
+                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+                else {
                     return;
                 };
+
+                // install aux prop
+                let aux_prop = AuxProp::new_element_bonus(Element::Aqua).delete_next_run();
+                living.add_aux_prop(aux_prop);
 
                 if entity.ignore_negative_tile_effects || entity.element == Element::Fire {
                     return;
@@ -244,7 +240,7 @@ impl TileState {
                     ..Default::default()
                 };
 
-                Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
+                living.pending_hits.push(hit_props);
 
                 if let Some(tile) = simulation.field.tile_at_mut(position) {
                     tile.set_state_index(TileState::NORMAL, None);
@@ -258,9 +254,11 @@ impl TileState {
         let mut poison_state = TileState::new(String::from("poison"));
 
         poison_state.entity_enter_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                let Ok((entity, living)) =
+                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+                else {
                     return;
                 };
 
@@ -269,16 +267,18 @@ impl TileState {
                 }
 
                 // take 1hp immediately for stepping on poison
-                let mut hit_props = HitProperties::blank();
-                hit_props.damage = 1;
-
-                Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
+                let aux_prop = AuxProp::new()
+                    .with_effect(AuxEffect::DrainHP(1))
+                    .delete_next_run();
+                living.add_aux_prop(aux_prop);
             });
 
         poison_state.entity_update_callback =
-            BattleCallback::new(|game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                let Ok((entity, living)) =
+                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+                else {
                     return;
                 };
 
@@ -286,12 +286,11 @@ impl TileState {
                     return;
                 }
 
-                if simulation.battle_time > 0 && simulation.battle_time % POISON_INTERVAL == 0 {
-                    let mut hit_props = HitProperties::blank();
-                    hit_props.damage = 1;
-
-                    Living::process_hit(game_io, simulation, vms, entity_id, hit_props);
-                }
+                let aux_prop = AuxProp::new()
+                    .with_effect(AuxEffect::DrainHP(1))
+                    .with_requirement(AuxRequirement::Interval(POISON_INTERVAL))
+                    .delete_next_run();
+                living.add_aux_prop(aux_prop);
             });
 
         registry.push(poison_state);
@@ -300,9 +299,22 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::HOLY);
         let mut holy_state = TileState::new(String::from("holy"));
 
-        holy_state.calculate_bonus_damage_callback =
-            BattleCallback::new(|_, _, _, (hit_props, _): (HitProperties, i32)| {
-                -hit_props.damage / 2
+        holy_state.entity_update_callback =
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
+                let entities = &mut simulation.entities;
+                let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+                    return;
+                };
+
+                let aux_prop = AuxProp::new()
+                    .with_effect(AuxEffect::DecreaseDamageSum(
+                        MathExpr::from_number(0.0)
+                            .sub_variable(AuxVariable::Damage)
+                            .mul(0.5)
+                            .add_variable(AuxVariable::Damage),
+                    ))
+                    .delete_next_run();
+                living.add_aux_prop(aux_prop);
             });
 
         registry.push(holy_state);
@@ -311,7 +323,7 @@ impl TileState {
         let generate_conveyor_update = |direction: Direction| {
             let offset = direction.i32_vector();
 
-            BattleCallback::new(move |game_io, simulation, vms, entity_id: EntityId| {
+            BattleCallback::new(move |game_io, resources, simulation, entity_id: EntityId| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
                     return;
@@ -331,7 +343,7 @@ impl TileState {
 
                 let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
-                if !can_move_to_callback.call(game_io, simulation, vms, dest) {
+                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
                     return;
                 }
 
@@ -394,7 +406,7 @@ impl TileState {
         let mut sea_state = TileState::new(String::from("sea"));
 
         sea_state.entity_stop_callback = BattleCallback::new(
-            |game_io, simulation, _vms, (entity_id, _): (EntityId, Movement)| {
+            |game_io, _, simulation, (entity_id, _): (EntityId, Movement)| {
                 let entities = &mut simulation.entities;
                 let Ok((entity, living)) =
                     entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
@@ -415,15 +427,16 @@ impl TileState {
             },
         );
 
-        sea_state.calculate_bonus_damage_callback = BattleCallback::new(
-            |_, _, _, (hit_props, original_damage): (HitProperties, i32)| {
-                if hit_props.is_super_effective(Element::Aqua) {
-                    original_damage
-                } else {
-                    0
-                }
-            },
-        );
+        sea_state.entity_update_callback =
+            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
+                let entities = &mut simulation.entities;
+                let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+                    return;
+                };
+
+                let aux_prop = AuxProp::new_element_bonus(Element::Elec).delete_next_run();
+                living.add_aux_prop(aux_prop);
+            });
 
         registry.push(sea_state);
 

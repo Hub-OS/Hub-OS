@@ -44,8 +44,12 @@ pub fn action_aready_used() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("action already used"))
 }
 
+pub fn action_entity_mismatch() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action is tied to another entity"))
+}
+
 pub fn attachment_not_found() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("card action attachment deleted"))
+    rollback_mlua::Error::RuntimeError(String::from("action attachment deleted"))
 }
 
 pub fn animator_not_found() -> rollback_mlua::Error {
@@ -58,4 +62,8 @@ pub fn invalid_tile() -> rollback_mlua::Error {
 
 pub fn mismatched_entity() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("mismatched entity"))
+}
+
+pub fn aux_prop_already_bound() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("auxprop already bound"))
 }

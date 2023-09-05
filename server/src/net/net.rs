@@ -6,8 +6,8 @@ use super::*;
 use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
-use generational_arena::Arena;
 use packets::{Reliability, ServerPacket, MAX_IDLE_DURATION};
+use slotmap::HopSlotMap;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -21,7 +21,7 @@ pub struct Net {
     clients: HashMap<String, Client>,
     bots: HashMap<String, Actor>,
     sprites: HashMap<String, Sprite>,
-    public_sprites: Arena<String>,
+    public_sprites: HopSlotMap<slotmap::DefaultKey, String>,
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
@@ -81,7 +81,7 @@ impl Net {
             clients: HashMap::new(),
             bots: HashMap::new(),
             sprites: HashMap::new(),
-            public_sprites: Arena::new(),
+            public_sprites: Default::default(),
             asset_manager,
             active_plugin: 0,
             kick_list: Vec::new(),
@@ -1786,7 +1786,7 @@ impl Net {
         }
 
         // send public sprites
-        for (_, sprite_id) in &self.public_sprites {
+        for sprite_id in self.public_sprites.values() {
             let sprite = &self.sprites[sprite_id];
 
             let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)

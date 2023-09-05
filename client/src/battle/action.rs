@@ -1,14 +1,14 @@
 use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Entity, Field,
-    RollbackVM,
+    SharedBattleResources,
 };
 use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
 use crate::resources::Globals;
+use crate::structures::SlotMap;
 use framework::prelude::GameIO;
-use generational_arena::Arena;
 use std::cell::RefCell;
 
 #[derive(Clone)]
@@ -65,8 +65,8 @@ impl Action {
 
     pub fn create_from_card_properties(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
         entity_id: EntityId,
         namespace: PackageNamespace,
         card_props: &CardProperties,
@@ -77,11 +77,12 @@ impl Action {
             return None;
         }
 
-        let Ok(vm_index) = BattleSimulation::find_vm(vms, package_id, namespace) else {
+        let Ok(vm_index) = resources.vm_manager.find_vm(package_id, namespace) else {
             log::error!("Failed to find vm for {package_id}");
             return None;
         };
 
+        let vms = resources.vm_manager.vms();
         let lua = &vms[vm_index].lua;
         let Ok(card_init) = lua.globals().get::<_, rollback_mlua::Function>("card_init") else {
             log::error!("{package_id} is missing card_init()");
@@ -90,7 +91,7 @@ impl Action {
 
         let api_ctx = RefCell::new(BattleScriptContext {
             vm_index,
-            vms,
+            resources,
             game_io,
             simulation,
         });
@@ -99,11 +100,11 @@ impl Action {
         let mut id: Option<GenerationalIndex> = None;
 
         lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-            use rollback_mlua::ToLua;
+            use rollback_mlua::IntoLua;
 
             // init card action
             let entity_table = create_entity_table(lua, entity_id)?;
-            let lua_card_props = card_props.to_lua(lua)?;
+            let lua_card_props = card_props.into_lua(lua)?;
 
             let optional_table = match card_init
                 .call::<_, Option<rollback_mlua::Table>>((entity_table, lua_card_props))
@@ -124,7 +125,7 @@ impl Action {
 
         // set card properties on the card action
         if let Some(index) = id {
-            if let Some(action) = simulation.actions.get_mut(index.into()) {
+            if let Some(action) = simulation.actions.get_mut(index) {
                 action.properties = card_props.clone();
             }
         }
@@ -138,9 +139,9 @@ impl Action {
 
     pub fn execute(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        vms: &[RollbackVM],
-        action_index: generational_arena::Index,
+        action_index: GenerationalIndex,
     ) {
         let action = &mut simulation.actions[action_index];
         let entity_id = action.entity;
@@ -184,7 +185,7 @@ impl Action {
 
         // execute callback
         if let Some(callback) = action.execute_callback.take() {
-            callback.call(game_io, simulation, vms, ());
+            callback.call(game_io, resources, simulation, ());
         }
 
         let entity = simulation
@@ -207,28 +208,29 @@ impl Action {
         }
 
         // animation end callback
-        let animation_end_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-            let Some(action) = simulation.actions.get_mut(action_index) else {
-                return;
-            };
+        let animation_end_callback =
+            BattleCallback::new(move |game_io, resources, simulation, _| {
+                let Some(action) = simulation.actions.get_mut(action_index) else {
+                    return;
+                };
 
-            if let Some(callback) = action.animation_end_callback.clone() {
-                callback.call(game_io, simulation, vms, ());
-            }
+                if let Some(callback) = action.animation_end_callback.clone() {
+                    callback.call(game_io, resources, simulation, ());
+                }
 
-            let Some(action) = simulation.actions.get_mut(action_index) else {
-                return;
-            };
+                let Some(action) = simulation.actions.get_mut(action_index) else {
+                    return;
+                };
 
-            if matches!(action.lockout_type, ActionLockout::Animation) {
-                simulation.delete_actions(game_io, vms, &[action_index]);
-            }
-        });
+                if matches!(action.lockout_type, ActionLockout::Animation) {
+                    simulation.delete_actions(game_io, resources, [action_index]);
+                }
+            });
 
         animator.on_complete(animation_end_callback.clone());
 
-        let interrupt_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-            animation_end_callback.call(game_io, simulation, vms, ());
+        let interrupt_callback = BattleCallback::new(move |game_io, resources, simulation, _| {
+            animation_end_callback.call(game_io, resources, simulation, ());
         });
 
         animator.on_interrupt(interrupt_callback);
@@ -249,7 +251,7 @@ impl Action {
     pub fn complete_sync(
         &mut self,
         entities: &mut hecs::World,
-        animators: &mut Arena<BattleAnimator>,
+        animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         field: &mut Field,
     ) {
@@ -281,22 +283,69 @@ impl Action {
             current_tile.reserve_for(entity.id);
         }
     }
+
+    pub fn queue_first_from_factories(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        callbacks: Vec<BattleCallback<(), Option<GenerationalIndex>>>,
+    ) {
+        // resolve action from callbacks
+        let action_index = callbacks
+            .into_iter()
+            .flat_map(|callback| callback.call(game_io, resources, simulation, ()))
+            .next();
+
+        let Some(action_index) = action_index else {
+            // no action resolved
+            return;
+        };
+
+        // queue action
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return;
+        };
+
+        entity.action_queue.push_back(action_index);
+    }
+
+    pub fn cancel_all(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return;
+        };
+
+        let mut indices = std::mem::take(&mut entity.action_queue);
+
+        if let Some(index) = entity.action_index {
+            indices.push_back(index);
+        }
+
+        simulation.delete_actions(game_io, resources, indices);
+    }
 }
 
 #[derive(Clone)]
 pub struct ActionAttachment {
     pub point_name: String,
     pub sprite_index: GenerationalIndex,
-    pub animator_index: generational_arena::Index,
-    pub parent_animator_index: generational_arena::Index,
+    pub animator_index: GenerationalIndex,
+    pub parent_animator_index: GenerationalIndex,
 }
 
 impl ActionAttachment {
     pub fn new(
         point_name: String,
         sprite_index: GenerationalIndex,
-        animator_index: generational_arena::Index,
-        parent_animator_index: generational_arena::Index,
+        animator_index: GenerationalIndex,
+        parent_animator_index: GenerationalIndex,
     ) -> Self {
         Self {
             point_name,
@@ -309,7 +358,7 @@ impl ActionAttachment {
     pub fn apply_animation(
         &self,
         sprite_tree: &mut Tree<SpriteNode>,
-        animators: &mut Arena<BattleAnimator>,
+        animators: &mut SlotMap<BattleAnimator>,
     ) {
         let sprite_node = match sprite_tree.get_mut(self.sprite_index) {
             Some(sprite_node) => sprite_node,

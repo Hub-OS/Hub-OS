@@ -597,7 +597,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_transition(&mut self, game_io: &mut GameIO) {
+    fn handle_transition(&mut self, game_io: &GameIO) {
         if self.failed {
             // let other player's know we're giving up on them
             self.broadcast(NetplayPacket::Buffer {

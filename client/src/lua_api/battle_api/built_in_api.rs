@@ -1,38 +1,69 @@
-use crate::{
-    battle::{AttackBox, BattleCallback, Component, Entity, Spell},
-    bindable::{ComponentLifetime, EntityId},
-    lua_api::create_entity_table,
-    render::FrameTime,
-};
-
 use super::{BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, VIRUS_DEFENSE_TABLE};
+use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
+use crate::bindable::{ComponentLifetime, EntityId};
+use crate::lua_api::{create_entity_table, AUX_PROP_TABLE};
+use crate::render::FrameTime;
 
-macro_rules! built_in {
-    ($lua_api:expr, $file_name:literal, $table_name:expr, $function_name:literal) => {{
-        $lua_api.add_dynamic_function($table_name, $function_name, |_, lua, params| {
-            let function = match lua.named_registry_value($file_name)? {
-                rollback_mlua::Value::Function(function) => function,
-                _ => {
-                    let function = lua
-                        .load(include_str!(concat!("built_in/", $file_name, ".lua")))
-                        .set_name(concat!("built_in/", $file_name, ".lua"))?
-                        .into_function()?;
+// lazy loader for built in tables
+macro_rules! built_in_table {
+    ($lua_api:expr, $file_name:literal, $table_name:expr) => {{
+        $lua_api.add_static_injector(|lua| {
+            let meta_table = lua.create_table()?;
 
-                    lua.set_named_registry_value($file_name, function.clone())?;
+            fn load_table(lua: &rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Table> {
+                let function = lua
+                    .load(include_str!(concat!("built_in/", $file_name, ".lua")))
+                    .set_name(concat!("built_in/", $file_name, ".lua"))
+                    .into_function()?;
 
-                    function
-                }
-            };
+                // overwrite the table to speed up future calls
+                let table: rollback_mlua::Table = function.call(())?;
+                lua.globals().set($table_name, table.clone())?;
 
-            function.call(params)
+                Ok(table)
+            }
+
+            meta_table.set(
+                "__index",
+                lua.create_function(
+                    |lua, (_, key): (rollback_mlua::Table, rollback_mlua::String)| {
+                        let table = load_table(lua)?;
+                        let value: rollback_mlua::Value = table.get(key)?;
+                        Ok(value)
+                    },
+                )?,
+            )?;
+
+            meta_table.set(
+                "__newindex",
+                lua.create_function(
+                    |lua,
+                     (_, key, value): (
+                        rollback_mlua::Table,
+                        rollback_mlua::String,
+                        rollback_mlua::Value,
+                    )| {
+                        let table = load_table(lua)?;
+                        table.set(key, value)?;
+                        Ok(())
+                    },
+                )?,
+            )?;
+
+            let table = lua.create_table()?;
+            table.set_metatable(Some(meta_table));
+            lua.globals().set($table_name, table)?;
+
+            Ok(())
         });
     }};
 }
 
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
-    built_in!(lua_api, "buster", BUSTER_TABLE, "new");
-    built_in!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE, "new");
-    built_in!(lua_api, "hitbox", HITBOX_TABLE, "new");
+    built_in_table!(lua_api, "buster", BUSTER_TABLE);
+    built_in_table!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE);
+    built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
+    built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
 
     lua_api.add_dynamic_function(SHARED_HITBOX_TABLE, "new", |api_ctx, lua, params| {
         let (entity_table, lifetime): (rollback_mlua::Table, Option<FrameTime>) =
@@ -51,7 +82,7 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
             .unwrap();
 
         if let Some(lifetime) = lifetime {
-            hitbox_entity.spawn_callback = BattleCallback::new(move |_, simulation, _, _| {
+            hitbox_entity.spawn_callback = BattleCallback::new(move |_, _, simulation, _| {
                 Component::create_delayed_deleter(
                     simulation,
                     hitbox_id,
@@ -61,71 +92,73 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
             });
         }
 
-        hitbox_entity.update_callback = BattleCallback::new(move |game_io, simulation, vms, _| {
-            // get properties from the parent
-            let entities = &mut simulation.entities;
-            let Ok((entity, spell)) = entities.query_one_mut::<(&Entity, &Spell)>(parent_id.into())
-            else {
-                // delete if the parent is deleted
-                simulation.delete_entity(game_io, vms, hitbox_id);
-                return;
-            };
+        hitbox_entity.update_callback =
+            BattleCallback::new(move |game_io, resources, simulation, _| {
+                // get properties from the parent
+                let entities = &mut simulation.entities;
+                let Ok((entity, spell)) =
+                    entities.query_one_mut::<(&Entity, &Spell)>(parent_id.into())
+                else {
+                    // delete if the parent is deleted
+                    simulation.delete_entity(game_io, resources, hitbox_id);
+                    return;
+                };
 
-            if entity.deleted {
-                // delete if the parent is deleted
-                simulation.delete_entity(game_io, vms, hitbox_id);
-                return;
-            }
+                if entity.deleted {
+                    // delete if the parent is deleted
+                    simulation.delete_entity(game_io, resources, hitbox_id);
+                    return;
+                }
 
-            let team = entity.team;
-            let hit_props = spell.hit_props.clone();
+                let team = entity.team;
+                let hit_props = spell.hit_props.clone();
 
-            // apply to the shared hitbox
-            let entities = &mut simulation.entities;
-            let Ok((entity, spell)) =
-                entities.query_one_mut::<(&mut Entity, &mut Spell)>(hitbox_id.into())
-            else {
-                return;
-            };
+                // apply to the shared hitbox
+                let entities = &mut simulation.entities;
+                let Ok((entity, spell)) =
+                    entities.query_one_mut::<(&mut Entity, &mut Spell)>(hitbox_id.into())
+                else {
+                    return;
+                };
 
-            entity.team = team;
-            spell.hit_props = hit_props;
+                entity.team = team;
+                spell.hit_props = hit_props;
 
-            // attack the current tile
-            let (x, y) = (entity.x, entity.y);
+                // attack the current tile
+                let (x, y) = (entity.x, entity.y);
 
-            let Some(tile) = simulation.field.tile_at_mut((x, y)) else {
-                return;
-            };
+                let Some(tile) = simulation.field.tile_at_mut((x, y)) else {
+                    return;
+                };
 
-            if !tile.ignoring_attacker(hitbox_id) {
-                let attack_box = AttackBox::new_from((x, y), entity, spell);
-                simulation.queued_attacks.push(attack_box);
-            }
-        });
+                if !tile.ignoring_attacker(hitbox_id) {
+                    let attack_box = AttackBox::new_from((x, y), entity, spell);
+                    simulation.queued_attacks.push(attack_box);
+                }
+            });
 
         // forward attack callback
         hitbox_spell.attack_callback =
-            BattleCallback::new(move |game_io, simulation, vms, params| {
+            BattleCallback::new(move |game_io, resources, simulation, params| {
                 let entities = &mut simulation.entities;
                 let Ok(spell) = entities.query_one_mut::<&Spell>(parent_id.into()) else {
                     return;
                 };
 
                 let callback = spell.attack_callback.clone();
-                callback.call(game_io, simulation, vms, params);
+                callback.call(game_io, resources, simulation, params);
             });
 
         // forward collision callback
         hitbox_spell.collision_callback =
-            BattleCallback::new(move |game_io, simulation, vms, params| {
+            BattleCallback::new(move |game_io, resources, simulation, params| {
                 let entities = &mut simulation.entities;
                 let Ok(spell) = entities.query_one_mut::<&Spell>(parent_id.into()) else {
                     return;
                 };
 
                 let callback = spell.collision_callback.clone();
-                callback.call(game_io, simulation, vms, params);
+                callback.call(game_io, resources, simulation, params);
             });
 
         let hitbox_table = create_entity_table(lua, hitbox_id);

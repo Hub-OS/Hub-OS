@@ -1,4 +1,4 @@
-use super::{ActorAttachment, Animator, AttachmentLayer};
+use super::{ActorAttachment, Animator, AttachmentLayer, MovementAnimator};
 use crate::overworld::OverworldArea;
 use crate::render::{AnimatorLoopMode, FrameTime};
 use framework::prelude::*;
@@ -10,7 +10,34 @@ pub struct Emote {
 }
 
 impl Emote {
+    pub fn animate_actor(
+        entities: &mut hecs::World,
+        entity: hecs::Entity,
+        state: &str,
+        loop_animation: bool,
+    ) {
+        let (animator, movement_animator) = entities
+            .query_one_mut::<(&mut Animator, &mut MovementAnimator)>(entity)
+            .unwrap();
+
+        if !animator.has_state(state) {
+            return;
+        }
+
+        animator.set_state(state);
+
+        if loop_animation {
+            animator.set_loop_mode(AnimatorLoopMode::Loop);
+        }
+
+        movement_animator.set_animation_enabled(false);
+    }
+
     pub fn spawn_or_recycle(area: &mut OverworldArea, parent_entity: hecs::Entity, emote_id: &str) {
+        if !area.emote_animator.has_state(emote_id) {
+            return;
+        }
+
         let entities = &mut area.entities;
 
         for (_, (emote, attachment, animator)) in

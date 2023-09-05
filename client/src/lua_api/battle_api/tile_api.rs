@@ -64,7 +64,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let game_io = api_ctx.game_io;
         let simulation = &mut api_ctx.simulation;
-        let vms = api_ctx.vms;
+        let resources = &mut api_ctx.resources;
 
         let Some(tile_state) = simulation.tile_states.get(state_index) else {
             return lua.pack_multi(());
@@ -83,7 +83,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
         let change_request_callback = current_tile_state.change_request_callback.clone();
-        let change_passed = change_request_callback.call(game_io, simulation, vms, state_index);
+        let change_passed =
+            change_request_callback.call(game_io, resources, simulation, state_index);
 
         if !change_passed {
             return lua.pack_multi(());

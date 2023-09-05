@@ -26,7 +26,7 @@ pub struct BootScene {
 }
 
 impl BootScene {
-    pub fn new(game_io: &mut GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
+    pub fn new(game_io: &GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -129,6 +129,9 @@ impl BootScene {
                 }
                 BootEvent::AugmentManager(augment_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
+                }
+                BootEvent::StatusManager(status_packages) => {
+                    game_io.resource_mut::<Globals>().unwrap().status_packages = status_packages;
                 }
                 BootEvent::LibraryManager(library_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;

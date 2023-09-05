@@ -1,7 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    action_aready_used, action_not_found, entity_not_found, invalid_sync_node, mismatched_entity,
-    package_not_loaded, too_many_forms,
+    action_aready_used, action_entity_mismatch, action_not_found, aux_prop_already_bound,
+    entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
 };
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
@@ -182,6 +182,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(LuaVector::from(entity.tile_offset))
     });
 
+    setter(
+        lua_api,
+        "set_tile_offset",
+        |entity: &mut Entity, _, offset: (f32, f32)| {
+            entity.tile_offset = offset.into();
+            Ok(())
+        },
+    );
+
     getter(lua_api, "offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.offset))
     });
@@ -215,10 +224,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
+    getter(lua_api, "never_flip", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.sprite_tree.root().never_flip())
+    });
     setter(
         lua_api,
-        "never_flip",
-        |entity: &mut Entity, _, never_flip| {
+        "set_never_flip",
+        |entity: &mut Entity, _, never_flip: Option<bool>| {
+            let never_flip = never_flip.unwrap_or(true);
             entity.sprite_tree.root_mut().set_never_flip(never_flip);
             Ok(())
         },
@@ -346,7 +359,6 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let id: EntityId = table.raw_get("#id")?;
         let animator_index: GenerationalIndex = sync_node_table.raw_get("#anim")?;
-        let animator_index = animator_index.into();
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -481,7 +493,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         animator.apply(root_node);
 
         simulation.pending_callbacks.extend(callbacks);
-        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.vms);
+        simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -507,7 +519,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
 
         let table = lua.create_table()?;
-        table.raw_set("#id", GenerationalIndex::from(id))?;
+        table.raw_set("#id", id)?;
         table.raw_set("#entity", entity_table)?;
         inherit_metatable(lua, COMPONENT_TABLE, &table)?;
 
@@ -529,16 +541,39 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
 
         let action = (simulation.actions)
-            .get_mut(action_index.into())
+            .get_mut(action_index)
             .ok_or_else(action_not_found)?;
 
         if action.used {
             return Err(action_aready_used());
         }
 
-        let used = simulation.use_action(api_ctx.game_io, id, action_index.into());
+        if action.entity != id {
+            return Err(action_entity_mismatch());
+        }
 
-        lua.pack_multi(used)
+        let entities = &mut simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        entity.action_queue.push_back(action_index);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "cancel_actions", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+
+        let id: EntityId = table.raw_get("#id")?;
+        Action::cancel_all(game_io, resources, simulation, id);
+
+        lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "can_move_to", move |api_ctx, lua, params| {
@@ -566,7 +601,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
 
         let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
-        let can_move = can_move_to_callback.call(api_ctx.game_io, simulation, api_ctx.vms, dest);
+        let can_move =
+            can_move_to_callback.call(api_ctx.game_io, api_ctx.resources, simulation, dest);
 
         lua.pack_multi(can_move)
     });
@@ -629,7 +665,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.vms, id);
+        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.resources, id);
 
         lua.pack_multi(())
     });
@@ -641,7 +677,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+        simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
         lua.pack_multi(())
     });
@@ -656,7 +692,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
             let is_living = simulation
                 .entities
@@ -682,7 +718,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.vms, id);
+            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
 
             if simulation.entities.contains(id.into()) {
                 crate::battle::delete_character_animation(simulation, id, explosion_count);
@@ -781,11 +817,12 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
         let id = Character::load(
             api_ctx.game_io,
+            api_ctx.resources,
             api_ctx.simulation,
-            api_ctx.vms,
             &package_id,
             namespace,
             rank,
@@ -802,7 +839,9 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "field_cards",
         |character: &Character, lua, _: ()| {
-            let table = lua.create_table_from(character.cards.iter().rev().enumerate());
+            let card_iter = character.cards.iter().rev();
+            let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
+            let table = lua.create_table_from(indexed_iter);
 
             lua.pack_multi(table)
         },
@@ -939,28 +978,43 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 
         let secondary_element: Element;
         let context: Option<HitContext>;
-        let drag: Drag;
 
         match lua.unpack(middle_param.clone()) {
             Ok(element) => {
                 secondary_element = element;
-
-                (context, drag) = lua.unpack_multi(rest)?;
+                context = rest
+                    .pop_front()
+                    .map(|value| lua.unpack(value))
+                    .transpose()?;
             }
             Err(_) => {
                 secondary_element = Element::None;
                 context = lua.unpack(middle_param)?;
-                drag = lua.unpack_multi(rest)?;
             }
         };
+
+        let drag = lua.unpack_multi::<Option<Drag>>(rest)?.unwrap_or_default();
 
         lua.pack_multi(HitProperties {
             damage,
             flags,
             element,
             secondary_element,
-            aggressor: EntityId::default(),
             drag,
+            context: context.unwrap_or_default(),
+        })
+    });
+
+    lua_api.add_dynamic_function(HIT_PROPS_TABLE, "from_card", |_, lua, params| {
+        let (card_properties, context, drag): (CardProperties, Option<HitContext>, Option<Drag>) =
+            lua.unpack_multi(params)?;
+
+        lua.pack_multi(HitProperties {
+            damage: card_properties.damage,
+            flags: card_properties.hit_flags,
+            element: card_properties.element,
+            secondary_element: card_properties.secondary_element,
+            drag: drag.unwrap_or_default(),
             context: context.unwrap_or_default(),
         })
     });
@@ -1019,20 +1073,6 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_living_api(lua_api: &mut BattleLuaApi) {
-    // todo: living.aggressor is never set
-    // is this function necessary?
-    // the documented usage was for preventing bubbles from the same starfish from hitting each other
-    // but then why not just use the same team for bubbles as entities with the same team can't hit each other?
-    // currently leaving as undocumented
-    setter(
-        lua_api,
-        "ignore_common_aggressor",
-        |living: &mut Living, _, enable: Option<bool>| {
-            living.ignore_common_aggressor = enable.unwrap_or(true);
-            Ok(())
-        },
-    );
-
     getter(lua_api, "max_health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.max_health)
     });
@@ -1115,7 +1155,44 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    // todo: has_status?
+    // todo: has_status? status_duration?
+
+    getter(
+        lua_api,
+        "remaining_status_time",
+        |living: &Living, lua, hit_flag: HitFlags| {
+            lua.pack_multi(living.status_director.remaining_status_time(hit_flag))
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_remaining_status_time",
+        |living: &mut Living, _, (hit_flag, duration): (HitFlags, FrameTime)| {
+            living
+                .status_director
+                .set_remaining_status_time(hit_flag, duration);
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "apply_status",
+        |living: &mut Living, _, (hit_flag, duration): (HitFlags, FrameTime)| {
+            living.status_director.apply_status(hit_flag, duration);
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "remove_status",
+        |living: &mut Living, _, hit_flag: HitFlags| {
+            living.status_director.remove_status(hit_flag);
+            Ok(())
+        },
+    );
 
     setter(
         lua_api,
@@ -1125,6 +1202,58 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "add_aux_prop", |api_ctx, lua, params| {
+        let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        // find entity
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let resources = api_ctx.resources;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        // add aux prop
+        let aux_prop_table: rollback_mlua::Table = lua.unpack(value.clone())?;
+
+        if aux_prop_table.contains_key("#id")? {
+            return Err(aux_prop_already_bound());
+        }
+
+        let aux_prop = AuxProp::from_lua(resources, lua, lua.unpack(value)?)?;
+        let id = living.add_aux_prop(aux_prop);
+        aux_prop_table.raw_set("#id", id)?;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_aux_prop", |api_ctx, lua, params| {
+        let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        // find entity
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        // remove aux prop
+        let aux_prop_table: rollback_mlua::Table = lua.unpack(value)?;
+        let id: GenerationalIndex = aux_prop_table.raw_get("#id")?;
+        living.aux_props.remove(id);
+        aux_prop_table.raw_remove("#id")?;
+
+        lua.pack_multi(())
+    });
 
     callback_setter(
         lua_api,
@@ -1336,7 +1465,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 let augment = player.augments.remove(index).unwrap();
 
                 if let Some(callback) = augment.delete_callback {
-                    callback.call(api_ctx.game_io, simulation, api_ctx.vms, ());
+                    callback.call(api_ctx.game_io, api_ctx.resources, simulation, ());
                 }
             }
         } else if level_boost > 0 {
@@ -1350,14 +1479,14 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let package_info = &package.package_info;
 
-            let vms = api_ctx.vms;
-            let vm_index =
-                BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;
+            let vm_manager = &api_ctx.resources.vm_manager;
+            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
 
             let index = player
                 .augments
                 .insert(Augment::from((package, level_boost as usize)));
 
+            let vms = vm_manager.vms();
             let lua = &vms[vm_index].lua;
             let has_init = lua
                 .globals()
@@ -1367,7 +1496,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             if has_init {
                 let result = api_ctx.simulation.call_global(
                     api_ctx.game_io,
-                    vms,
+                    api_ctx.resources,
                     vm_index,
                     "augment_init",
                     move |lua| create_augment_table(lua, id, index),
@@ -1474,9 +1603,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let api_ctx = &mut *api_ctx.borrow_mut();
             let game_io = api_ctx.game_io;
             let simulation = &mut api_ctx.simulation;
-            let vms = api_ctx.vms;
+            let resources = &mut api_ctx.resources;
 
-            let time = Player::calculate_charge_time(game_io, simulation, vms, id, level);
+            let time = Player::calculate_charge_time(game_io, resources, simulation, id, level);
 
             lua.pack_multi(time)
         },
@@ -1600,7 +1729,7 @@ fn callback_setter<C, G, P, F, R>(
     param_transformer: F,
 ) where
     C: hecs::Component,
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut C) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
     F: for<'lua> Fn(
@@ -1652,7 +1781,7 @@ fn optional_callback_setter<C, G, P, F, R>(
     param_transformer: F,
 ) where
     C: hecs::Component,
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
     G: for<'lua> Fn(&mut C) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
     F: for<'lua> Fn(
@@ -1767,8 +1896,8 @@ fn attempt_movement<'lua>(
 
     if !entity.can_move_to_callback.clone().call(
         api_ctx.game_io,
+        api_ctx.resources,
         simulation,
-        api_ctx.vms,
         movement.dest,
     ) {
         return lua.pack_multi(false);

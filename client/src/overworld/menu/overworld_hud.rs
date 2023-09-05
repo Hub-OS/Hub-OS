@@ -13,7 +13,9 @@ impl OverworldHud {
     pub fn new(game_io: &GameIO, health: i32) -> Self {
         Self {
             visible: true,
-            health_ui: PlayerHealthUi::new(game_io).with_health(health),
+            health_ui: PlayerHealthUi::new(game_io)
+                .with_max_health(health)
+                .with_health(health),
         }
     }
 
@@ -23,6 +25,7 @@ impl OverworldHud {
 
     pub fn update(&mut self, area: &OverworldArea) {
         self.health_ui.set_health(area.player_data.health);
+        self.health_ui.set_max_health(area.player_data.max_health());
         self.health_ui.update();
     }
 

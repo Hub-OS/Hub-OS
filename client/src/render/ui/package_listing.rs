@@ -100,6 +100,9 @@ impl From<&json::Value> for PackageListing {
             dependencies.extend(map_array_values(dependencies_table, "libraries", |id| {
                 (PackageCategory::Library, into_id(id))
             }));
+            dependencies.extend(map_array_values(dependencies_table, "statuses", |id| {
+                (PackageCategory::Status, into_id(id))
+            }));
         }
 
         Self {

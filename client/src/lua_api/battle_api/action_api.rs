@@ -30,21 +30,15 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
 
-            let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+            let vms = api_ctx.resources.vm_manager.vms();
+            let namespace = vms[api_ctx.vm_index].preferred_namespace();
 
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
 
             if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
-                if let Some(code) = code {
-                    // clone to update code
-                    let mut card_properties = package.card_properties.clone();
-                    card_properties.code = code;
-                    lua.pack_multi(card_properties)
-                } else {
-                    // avoid clone
-                    lua.pack_multi(&package.card_properties)
-                }
+                let status_registry = &api_ctx.resources.status_registry;
+                lua.pack_multi(package.card_properties.to_bindable(status_registry))
             } else {
                 lua.pack_multi(CardProperties {
                     code: code.unwrap_or_default(),
@@ -60,19 +54,20 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let namespace = api_ctx.vms[api_ctx.vm_index].preferred_namespace();
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
 
         let action_index = Action::create_from_card_properties(
             api_ctx.game_io,
+            api_ctx.resources,
             api_ctx.simulation,
-            api_ctx.vms,
             entity_id,
             namespace,
             &card_props,
         );
 
         let optional_table = action_index
-            .map(|action_index| create_action_table(lua, action_index.into()))
+            .map(|action_index| create_action_table(lua, action_index))
             .transpose()?;
 
         lua.pack_multi(optional_table)
@@ -115,7 +110,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         action.lockout_type = lua.from_value(lockout)?;
 
@@ -152,7 +147,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let actions = &mut api_ctx.simulation.actions;
-            let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+            let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
             let callback = BattleCallback::new_lua_callback(lua, api_ctx.vm_index, callback)?;
 
@@ -171,11 +166,11 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
         let actions = &mut simulation.actions;
 
-        if actions.get_mut(id.into()).is_none() {
+        if actions.get_mut(id).is_none() {
             return Err(action_not_found());
         }
 
-        simulation.delete_actions(api_ctx.game_io, api_ctx.vms, &[id.into()]);
+        simulation.delete_actions(api_ctx.game_io, api_ctx.resources, [id]);
 
         lua.pack_multi(())
     });
@@ -264,7 +259,7 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
 
         let mut api_ctx = api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         let step = ActionStep::default();
         let index = action.steps.len();
@@ -287,7 +282,7 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         let step = (action.steps)
             .get_mut(index)
@@ -315,7 +310,7 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         let step = (action.steps)
             .get_mut(index)
@@ -372,9 +367,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions
-            .get_mut(action_id.into())
-            .ok_or_else(action_not_found)?;
+        let action = actions.get_mut(action_id).ok_or_else(action_not_found)?;
 
         let attachment = action
             .attachments
@@ -400,9 +393,7 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions
-            .get_mut(action_id.into())
-            .ok_or_else(action_not_found)?;
+        let action = actions.get_mut(action_id).ok_or_else(action_not_found)?;
 
         let attachment = action
             .attachments
@@ -423,9 +414,7 @@ fn shared_attachment_constructor<'lua>(
     let simulation = &mut api_ctx.simulation;
 
     let actions = &mut simulation.actions;
-    let action = actions
-        .get_mut(action_id.into())
-        .ok_or_else(action_not_found)?;
+    let action = actions.get_mut(action_id).ok_or_else(action_not_found)?;
 
     // create sprite node
     let entities = &mut simulation.entities;
@@ -505,7 +494,7 @@ where
 
         let api_ctx = api_ctx.borrow();
         let actions = &api_ctx.simulation.actions;
-        let action = actions.get(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get(id).ok_or_else(action_not_found)?;
 
         lua.pack_multi(callback(action, lua, param)?)
     });
@@ -524,7 +513,7 @@ where
 
         let mut api_ctx = api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         lua.pack_multi(callback(action, lua, param)?)
     });
@@ -536,7 +525,7 @@ fn callback_setter<G, P, F, R>(
     callback_getter: G,
     param_transformer: F,
 ) where
-    P: for<'lua> rollback_mlua::ToLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
     G: for<'lua> Fn(&mut Action) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
     F: for<'lua> Fn(
@@ -558,7 +547,7 @@ fn callback_setter<G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
         let key = lua.create_registry_value(table)?;
 
@@ -571,7 +560,7 @@ fn callback_setter<G, P, F, R>(
                     move |api_ctx, lua, p| {
                         let api_ctx = &mut *api_ctx.borrow_mut();
                         let actions = &mut api_ctx.simulation.actions;
-                        let action = actions.get_mut(id.into()).ok_or_else(action_not_found)?;
+                        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
                         let table: rollback_mlua::Table = lua.registry_value(&key)?;
                         param_transformer(action, lua, table, p)
@@ -584,12 +573,12 @@ fn callback_setter<G, P, F, R>(
     });
 }
 
-fn create_action_table(
+pub fn create_action_table(
     lua: &rollback_mlua::Lua,
-    index: generational_arena::Index,
+    index: GenerationalIndex,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
-    table.raw_set("#id", GenerationalIndex::from(index))?;
+    table.raw_set("#id", index)?;
     inherit_metatable(lua, ACTION_TABLE, &table)?;
 
     Ok(table)
