@@ -552,12 +552,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_entity_mismatch());
         }
 
-        let entities = &mut simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        entity.action_queue.push_back(action_index);
+        Action::queue_action(simulation, id, action_index);
 
         lua.pack_multi(())
     });
