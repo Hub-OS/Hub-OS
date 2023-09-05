@@ -142,6 +142,27 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field_table)
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "hittable", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living_hittable = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .ok()
+            .map(|living| living.hitbox_enabled || living.health > 0)
+            .unwrap_or_default();
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(!entity.deleted && entity.on_field && living_hittable)
+    });
+
     getter(lua_api, "sharing_tile", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.share_tile)
     });
