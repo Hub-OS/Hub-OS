@@ -379,7 +379,7 @@ impl Living {
                 AuxEffect::DrainHP(drain) => health_modifier -= drain,
                 AuxEffect::RecoverHP(recover) => health_modifier += recover,
                 AuxEffect::None => {}
-                _ => {}
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
 
             simulation

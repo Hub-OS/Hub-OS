@@ -227,7 +227,7 @@ impl AuxEffect {
     }
 
     pub fn execute_after_hit(&self) -> bool {
-        self.priority() > 4
+        self.priority() > 4 && self.hit_related()
     }
 
     pub fn hit_related(&self) -> bool {
