@@ -1,6 +1,6 @@
 // Increment VERSION_ITERATION lib.rs if packets are added or modified
 
-use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory, PackageId};
+use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory, PackageId, InstalledSwitchDrive};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -36,6 +36,7 @@ pub enum NetplayPacket {
         cards: Vec<(PackageId, String)>,
         regular_card: Option<usize>,
         blocks: Vec<InstalledBlock>,
+        drives: Vec<InstalledSwitchDrive>,
     },
     PackageList {
         index: usize,

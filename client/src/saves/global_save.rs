@@ -15,7 +15,7 @@ pub struct GlobalSave {
     pub selected_deck: usize,
     pub server_list: Vec<ServerInfo>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
-    pub installed_drive_parts: HashMap<PackageId, InstalledSwitchDrive>,
+    pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
     pub resource_package_order: Vec<(PackageId, bool)>,
 }
 
@@ -81,7 +81,7 @@ impl GlobalSave {
         self.installed_blocks.get(&self.selected_character)
     }
 
-    pub fn active_drive_parts(&self) -> Option<&InstalledSwitchDrive> {
+    pub fn active_drive_parts(&self) -> Option<&Vec<InstalledSwitchDrive>> {
         self.installed_drive_parts.get(&self.selected_character)
     }
 

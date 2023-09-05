@@ -284,6 +284,9 @@ impl Player {
         // todo: move to Augment?
         let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);
 
+        // Iterator<Item = &AugmentPackage>
+        let drive_packages = setup.drives_augment_iter(game_io).collect::<Vec<_>>();
+
         let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
             acc + package.health_boost * level as i32
         });
@@ -353,8 +356,18 @@ impl Player {
             simulation.call_pending_callbacks(game_io, vms);
         }
 
+        // Iterator<Item = (&AugmentPackage, usize)>
+        let drive_package_iter = drive_packages.into_iter().map(|package| (package, 1));
+
+        // Iterator<Item = (&AugmentPackage, usize)>
+        let grid_iter = grid.augments(game_io);
+
+        // Iterator<Item = (&AugmentPackage, usize)>
+        // ^ i think it's usize at least
+        let augment_iter = grid_iter.chain(drive_package_iter);
+
         // init blocks
-        for (package, level) in grid.augments(game_io) {
+        for (package, level) in augment_iter {
             let package_info = &package.package_info;
             let vm_index =
                 BattleSimulation::find_vm(vms, &package_info.id, package_info.namespace)?;

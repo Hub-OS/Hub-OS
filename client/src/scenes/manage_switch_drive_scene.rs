@@ -149,9 +149,12 @@ impl ManageSwitchDriveScene {
             slot: info.slot.unwrap(),
         };
 
-        global_save
-            .installed_drive_parts
-            .insert(global_save.selected_character.clone(), installed_drive);
+        let installed_drives_vector = vec![installed_drive];
+
+        global_save.installed_drive_parts.insert(
+            global_save.selected_character.clone(),
+            installed_drives_vector,
+        );
 
         global_save.save();
 
