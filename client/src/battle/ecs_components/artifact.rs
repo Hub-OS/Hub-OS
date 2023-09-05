@@ -90,6 +90,26 @@ impl Artifact {
         )
     }
 
+    pub fn create_trap_alert(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
+        let id = Self::create_animated_artifact(
+            game_io,
+            simulation,
+            ResourcePaths::BATTLE_TRAP_ALERT,
+            ResourcePaths::BATTLE_TRAP_ALERT_ANIMATION,
+        );
+
+        let entity = simulation
+            .entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .unwrap();
+
+        entity.spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
+            simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.trap);
+        });
+
+        id
+    }
+
     pub fn create_poof(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
         Self::create_animated_artifact(
             game_io,

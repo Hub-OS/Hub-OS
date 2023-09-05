@@ -45,6 +45,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_constructor_fn(lua_api, ALERT_TABLE, |api_ctx| {
         Ok(Artifact::create_alert(api_ctx.game_io, api_ctx.simulation))
     });
+    generate_constructor_fn(lua_api, TRAP_ALERT_TABLE, |api_ctx| {
+        Ok(Artifact::create_trap_alert(
+            api_ctx.game_io,
+            api_ctx.simulation,
+        ))
+    });
 
     generate_cast_fn::<&Artifact>(lua_api, ARTIFACT_TABLE);
     generate_cast_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, SPELL_TABLE);

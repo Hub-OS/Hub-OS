@@ -221,6 +221,8 @@ impl ResourcePaths {
     pub const BATTLE_POOF_ANIMATION: &str = "resources/scenes/battle/poof.animation";
     pub const BATTLE_ALERT: &str = "resources/scenes/battle/alert.png";
     pub const BATTLE_ALERT_ANIMATION: &str = "resources/scenes/battle/alert.animation";
+    pub const BATTLE_TRAP_ALERT: &str = "resources/scenes/battle/trap_alert.png";
+    pub const BATTLE_TRAP_ALERT_ANIMATION: &str = "resources/scenes/battle/trap_alert.animation";
 
     // ConfigScene
     pub const CONFIG_LAYOUT_ANIMATION: &str = "resources/scenes/config/layout.animation";
