@@ -311,6 +311,10 @@ impl Action {
         } else {
             entity.action_queue.push_back(index);
         }
+
+        if let Ok(character) = entities.query_one_mut::<&mut Character>(entity_id.into()) {
+            character.card_use_requested = false;
+        }
     }
 
     pub fn queue_first_from_factories(
