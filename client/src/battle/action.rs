@@ -2,9 +2,7 @@ use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
     Field, Living, SharedBattleResources,
 };
-use crate::bindable::{
-    ActionLockout, AuxEffect, CardProperties, EntityId, GenerationalIndex, HitFlag,
-};
+use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
@@ -404,68 +402,22 @@ impl Action {
             .map(|(id, _)| id)
             .collect();
 
-        'outer: for id in ids {
+        for id in ids {
             let entities = &mut simulation.entities;
-            let Ok((entity, living)) =
-                entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(id) else {
+                continue;
+            };
+
+            let Some(index) = entity.action_queue.pop_front() else {
+                continue;
+            };
+
+            // aux props
+            let Some(index) =
+                Living::intercept_action(game_io, resources, simulation, id.into(), index)
             else {
                 continue;
             };
-
-            let Some(mut index) = entity.action_queue.pop_front() else {
-                continue;
-            };
-
-            // handle aux props which intercept actions
-            if let Some(living) = living {
-                let mut intercept_callbacks = Vec::new();
-
-                for aux_prop in living.aux_props.values_mut() {
-                    if !aux_prop.effect().action_related() {
-                        continue;
-                    }
-
-                    // validate index as it may be coming from lua
-                    let Some(action) = simulation.actions.get_mut(index) else {
-                        continue 'outer;
-                    };
-
-                    aux_prop.process_action(Some(action));
-
-                    if !aux_prop.passed_all_tests() {
-                        continue;
-                    }
-
-                    aux_prop.mark_activated();
-
-                    match aux_prop.effect() {
-                        AuxEffect::InterceptAction(callback) => {
-                            intercept_callbacks.push(callback.clone());
-                        }
-                        _ => log::error!("Engine error: Unexpected AuxEffect!"),
-                    }
-                }
-
-                let mut new_index = Some(index);
-
-                for callback in intercept_callbacks {
-                    // activate every interrupt with the old action, use the last result
-                    new_index = callback.call(game_io, resources, simulation, index);
-                }
-
-                if new_index != Some(index) {
-                    // delete the old action if we're not using it
-                    simulation.delete_actions(game_io, resources, [index]);
-                }
-
-                if let Some(new_index) = new_index {
-                    // swap action
-                    index = new_index;
-                } else {
-                    // resolved to no action, move on to next entity
-                    continue;
-                }
-            }
 
             // validate index as it may be coming from lua
             let Some(action) = simulation.actions.get_mut(index) else {

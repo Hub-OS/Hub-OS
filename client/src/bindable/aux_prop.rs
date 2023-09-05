@@ -380,6 +380,10 @@ impl AuxProp {
         self.tested = self.requirements.iter().all(|(_, state)| state.tested);
     }
 
+    pub fn activated(&self) -> bool {
+        self.activated
+    }
+
     pub fn mark_activated(&mut self) {
         self.activated = true;
     }
@@ -388,6 +392,8 @@ impl AuxProp {
         for (_, state) in &mut self.requirements {
             *state = RequirementState::default();
         }
+        self.activated = false;
+        self.tested = false;
     }
 
     pub fn passed_all_tests(&self) -> bool {
