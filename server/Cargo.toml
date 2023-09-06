@@ -15,13 +15,11 @@ futures = { version = "0.3", default-features = false, features = [
   "async-await"
 ] }
 isahc = "1.7"
-byteorder = "1.4"
 uuid = { version = "1.1", features = ["v4"] }
 mlua = { version = "0.9", features = ["vendored", "lua54"] }
 clap = { version = "4.3", features = ["derive"] }
 roxmltree = "0.18"
 itertools = "0.11"
-multi_mut = "0.1"
 base64 = "0.21"
 rand = "0.8"
 zip = "0.6"
