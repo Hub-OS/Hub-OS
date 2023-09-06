@@ -560,6 +560,8 @@ fn inter_dock_swap(
                 scene.pack_dock.card_slots.swap(*stored_index, pack_index);
                 scene.pack_dock.card_slots.pop();
                 *stored_index = pack_index;
+            } else {
+                *stored_index -= 1;
             }
         }
     }
