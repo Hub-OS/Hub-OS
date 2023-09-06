@@ -4,12 +4,13 @@ use crate::packages::PackageId;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
+use std::borrow::Cow;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties<H = HitFlags> {
     pub package_id: PackageId,
     pub code: String,
-    pub short_name: String,
+    pub short_name: Cow<'static, str>,
     pub damage: i32,
     pub boosted_damage: i32,
     pub element: Element,
@@ -27,7 +28,7 @@ impl<H: Default> Default for CardProperties<H> {
         Self {
             package_id: PackageId::new_blank(),
             code: String::new(),
-            short_name: String::from("?????"),
+            short_name: Cow::Borrowed("?????"),
             damage: 0,
             boosted_damage: 0,
             element: Element::None,
@@ -139,8 +140,9 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
             code: table.get("code").unwrap_or_default(),
             short_name: table
-                .get("short_name")
-                .unwrap_or_else(|_| String::from("?????")),
+                .get::<_, String>("short_name")
+                .map(Cow::Owned)
+                .unwrap_or_else(|_| Cow::Borrowed("?????")),
             damage: table.get("damage").unwrap_or_default(),
             boosted_damage: table.get("boosted_damage").unwrap_or_default(),
             element: table.get("element").unwrap_or_default(),
@@ -172,7 +174,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         let table = lua.create_table()?;
         table.set("package_id", self.package_id.as_str())?;
         table.set("code", self.code.as_str())?;
-        table.set("short_name", self.short_name.as_str())?;
+        table.set("short_name", self.short_name.as_ref())?;
         table.set("damage", self.damage)?;
         table.set("boosted_damage", self.boosted_damage)?;
         table.set("element", self.element)?;
@@ -182,7 +184,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("can_boost", self.can_boost)?;
         table.set("time_freeze", self.time_freeze)?;
         table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
-        table.set("tags", self.tags.clone())?;
+        table.set(
+            "tags",
+            lua.create_sequence_from(self.tags.iter().map(String::as_str))?,
+        )?;
 
         Ok(rollback_mlua::Value::Table(table))
     }
