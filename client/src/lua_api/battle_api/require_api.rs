@@ -25,7 +25,7 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
             // resolve from file
             let env = lua.environment()?;
             let folder_path: String = env.get("_folder_path")?;
-            source_path = folder_path + package_id.as_str();
+            source_path = ResourcePaths::clean(&(folder_path + package_id.as_str()));
         }
 
         let source = globals.assets.text(&source_path);
