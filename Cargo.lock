@@ -1568,7 +1568,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#600f9454e9ed40e6df5530dd2e069901a11aad34"
+source = "git+https://github.com/Hub-OS/framework#cac3e2dddfc587794362a50e5fbaebc761a7d9b8"
 dependencies = [
  "anyhow",
  "async-executor",
