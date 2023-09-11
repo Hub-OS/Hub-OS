@@ -363,7 +363,7 @@ impl Globals {
             (
                 PackageCategory::Player,
                 setup.namespace(),
-                setup.player_package.package_info.id.clone(),
+                setup.package_pair.1.clone(),
             )
         });
 
@@ -390,12 +390,12 @@ impl Globals {
                 .collect::<Vec<_>>()
         });
 
-        let encounter_triplet_iter = std::iter::once(props.encounter_package)
+        let encounter_triplet_iter = std::iter::once(props.encounter_package(game_io))
             .flatten()
             .map(|package| package.package_info().triplet())
             // remapping namespace to avoid using Local namespace, breaking an assert
-            // in this case, Local is serving the battle anyway. so this isn't innacurate
-            .map(|(category, _, id)| (category, PackageNamespace::Server, id));
+            // in this case, Local is serving the battle anyway. so this isn't inaccurate
+            .map(|(category, ns, id)| (category, ns.into_server(), id));
 
         let triplet_iter = player_triplet_iter
             .chain(card_triplet_iter)
@@ -579,7 +579,7 @@ impl Globals {
         }
     }
 
-    pub fn netplay_namespaces(&self) -> Vec<PackageNamespace> {
+    pub fn namespaces(&self) -> impl Iterator<Item = PackageNamespace> + '_ {
         let mut namespace_set = HashSet::new();
 
         self.library_packages
@@ -591,12 +591,7 @@ impl Globals {
             .chain(self.player_packages.namespaces())
             .chain(self.library_packages.namespaces())
             .chain(self.status_packages.namespaces())
-            .filter(|ns| ns.is_netplay())
-            .for_each(|namespace| {
-                namespace_set.insert(namespace);
-            });
-
-        Vec::from_iter(namespace_set)
+            .filter(move |ns| namespace_set.insert(*ns))
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {

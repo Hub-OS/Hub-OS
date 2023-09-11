@@ -9,6 +9,7 @@ struct EncounterMeta {
     name: String,
     description: String,
     preview_texture_path: String,
+    recording_path: Option<String>,
 }
 
 #[derive(Default, Clone)]
@@ -17,6 +18,7 @@ pub struct EncounterPackage {
     pub name: String,
     pub description: String,
     pub preview_texture_path: String,
+    pub recording_path: Option<String>,
 }
 
 impl Package for EncounterPackage {
@@ -66,6 +68,7 @@ impl Package for EncounterPackage {
         package.name = meta.name;
         package.description = meta.description;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
+        package.recording_path = meta.recording_path.map(|path| base_path.clone() + &path);
 
         package
     }

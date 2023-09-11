@@ -1,8 +1,10 @@
 use super::*;
-use crate::battle::{BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources};
+use crate::battle::{
+    BattleProps, BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources,
+};
 use crate::bindable::Element;
 use crate::render::ui::{PackageListing, PackagePreviewData};
-use crate::render::{Animator, Background};
+use crate::render::Animator;
 use crate::resources::{Globals, ResourcePaths};
 use framework::prelude::GameIO;
 use serde::Deserialize;
@@ -48,8 +50,12 @@ impl PlayerPackage {
         let package_info = &self.package_info;
 
         // create simulation
-        let background = Background::new_blank(game_io);
-        let mut simulation = BattleSimulation::new(game_io, background, 1);
+        let setup = PlayerSetup::new(self, 0, true);
+        let mut props = BattleProps {
+            player_setups: vec![setup],
+            ..BattleProps::new_with_defaults(game_io, None)
+        };
+        let mut simulation = BattleSimulation::new(game_io, &props);
 
         // load vms
         let inital_iter = std::iter::once((
@@ -62,8 +68,8 @@ impl PlayerPackage {
         let resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
         // load player into the simulation
-        let setup = PlayerSetup::new(self, 0, true);
 
+        let setup = props.player_setups.pop().unwrap();
         let Ok(entity_id) = Player::load(game_io, &resources, &mut simulation, setup) else {
             return (ResourcePaths::BLANK.to_string(), Animator::new());
         };

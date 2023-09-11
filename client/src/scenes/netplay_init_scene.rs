@@ -4,7 +4,7 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{Card, Deck};
+use crate::saves::{Card, Deck, PlayerInputBuffer};
 use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
@@ -12,7 +12,7 @@ use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, Re
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 
 const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
@@ -55,7 +55,7 @@ struct RemotePlayerConnection {
     ready: bool,
     send: Option<NetplayPacketSender>,
     receiver: Option<NetplayPacketReceiver>,
-    buffer: VecDeque<NetplayBufferItem>,
+    buffer: PlayerInputBuffer,
 }
 
 pub struct NetplayInitScene {
@@ -171,7 +171,7 @@ impl NetplayInitScene {
                 ready: false,
                 send: None,
                 receiver: None,
-                buffer: VecDeque::new(),
+                buffer: PlayerInputBuffer::default(),
             })
             .collect();
 
@@ -418,7 +418,7 @@ impl NetplayInitScene {
                     self.failed = true;
                 }
 
-                connection.buffer.push_back(data);
+                connection.buffer.push_last(data);
             }
         }
     }
@@ -504,7 +504,6 @@ impl NetplayInitScene {
         });
 
         let player_setup = &props.player_setups[0];
-        let player_package_info = &player_setup.player_package.package_info;
         let cards = (player_setup.deck.cards.iter())
             .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
@@ -512,7 +511,7 @@ impl NetplayInitScene {
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
-            player_package: player_package_info.id.clone(),
+            player_package: player_setup.package_pair.1.clone(),
             script_enabled: player_setup.script_enabled,
             cards,
             regular_card: player_setup.deck.regular_index,
@@ -591,7 +590,7 @@ impl NetplayInitScene {
         }
     }
 
-    fn handle_transition(&mut self, game_io: &GameIO) {
+    fn handle_transition(&mut self, game_io: &mut GameIO) {
         if self.failed {
             // let other player's know we're giving up on them
             self.broadcast(NetplayPacket::Buffer {
@@ -622,17 +621,11 @@ impl NetplayInitScene {
 
             // get package
             let encounter_package = self.encounter_package.take();
-            let encounter_package = encounter_package.and_then(|(namespace, package_id)| {
-                globals
-                    .encounter_packages
-                    .package_or_override(namespace, &package_id)
-            });
-
             let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
 
             props.statistics_callback = self.statistics_callback.take();
             props.data = self.data.take();
-            props.seed = Some(self.seed);
+            props.seed = self.seed;
 
             // copy background
             if let Some(background) = self.background.take() {
@@ -666,7 +659,10 @@ impl NetplayInitScene {
                 };
 
                 props.player_setups.push(PlayerSetup {
-                    player_package,
+                    package_pair: (
+                        player_package.package_info.namespace,
+                        player_package.package_info.id.clone(),
+                    ),
                     script_enabled: connection.script_enabled,
                     health: connection.health,
                     base_health: connection.base_health,
@@ -720,7 +716,12 @@ impl Scene for NetplayInitScene {
         globals.audio.stop_music();
         globals.audio.play_sound(&globals.sfx.battle_transition);
 
-        for namespace in globals.netplay_namespaces() {
+        let loaded_namespaces = globals
+            .namespaces()
+            .filter(|ns| ns.is_netplay())
+            .collect::<Vec<_>>();
+
+        for namespace in loaded_namespaces {
             globals.remove_namespace(namespace);
         }
 

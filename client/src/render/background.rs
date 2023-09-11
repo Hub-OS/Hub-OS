@@ -143,6 +143,15 @@ impl Background {
         Self::new(animator, sprite)
     }
 
+    pub fn new_battle(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let background_animator = Animator::load_new(assets, ResourcePaths::BATTLE_BG_ANIMATION);
+        let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BG);
+        Self::new(background_animator, background_sprite)
+    }
+
     pub fn animator(&self) -> &Animator {
         &self.animator
     }

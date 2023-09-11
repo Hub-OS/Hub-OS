@@ -15,7 +15,7 @@ pub struct BattleInitScene {
 }
 
 impl BattleInitScene {
-    pub fn new(game_io: &GameIO, props: BattleProps) -> Self {
+    pub fn new(game_io: &mut GameIO, props: BattleProps) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
         camera.invert_y(false);
 

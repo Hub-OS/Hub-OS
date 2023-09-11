@@ -59,6 +59,7 @@ impl Player {
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let player_package = setup.player_package(game_io);
 
         let mut deck = setup.deck;
 
@@ -94,8 +95,8 @@ impl Player {
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
-                assets.new_sprite(game_io, &setup.player_package.emotions_texture_path),
-                Animator::load_new(assets, &setup.player_package.emotions_animation_path),
+                assets.new_sprite(game_io, &player_package.emotions_texture_path),
+                Animator::load_new(assets, &player_package.emotions_animation_path),
             ),
             forms: Vec::new(),
             active_form: None,
@@ -118,7 +119,7 @@ impl Player {
         mut setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
-        let player_package = setup.player_package;
+        let player_package = setup.player_package(game_io);
         let blocks = std::mem::take(&mut setup.blocks);
 
         // namespace for using cards / attacks
@@ -317,7 +318,7 @@ impl Player {
             let package_info = &player_package.package_info;
 
             let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             simulation.call_global(game_io, resources, vm_index, "player_init", move |lua| {
                 crate::lua_api::create_entity_table(lua, id)
@@ -350,7 +351,7 @@ impl Player {
         for (package, level) in grid.augments(game_io) {
             let package_info = &package.package_info;
             let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             let player = simulation
                 .entities

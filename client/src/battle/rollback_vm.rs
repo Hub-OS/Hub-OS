@@ -13,6 +13,10 @@ impl RollbackVM {
             return PackageNamespace::Server;
         }
 
+        if self.namespaces.contains(&PackageNamespace::RecordingServer) {
+            return PackageNamespace::RecordingServer;
+        }
+
         let index = self
             .namespaces
             .iter()

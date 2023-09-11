@@ -1494,15 +1494,16 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             // create
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let package_id = PackageId::from(augment_id);
+            let namespace = player.namespace();
             let package = globals
                 .augment_packages
-                .package_or_override(player.namespace(), &package_id)
+                .package_or_override(namespace, &package_id)
                 .ok_or_else(|| package_not_loaded(&package_id))?;
 
             let package_info = &package.package_info;
 
             let vm_manager = &api_ctx.resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             let index = player
                 .augments

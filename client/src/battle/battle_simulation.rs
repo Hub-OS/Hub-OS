@@ -46,12 +46,9 @@ pub struct BattleSimulation {
 }
 
 impl BattleSimulation {
-    pub fn new(game_io: &GameIO, background: Background, player_count: usize) -> Self {
+    pub fn new(game_io: &GameIO, props: &BattleProps) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(Vec2::new(0.0, 10.0));
-
-        let game_run_duration = game_io.frame_start_instant() - game_io.game_start_instant();
-        let default_seed = game_run_duration.as_secs();
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -60,14 +57,14 @@ impl BattleSimulation {
         fade_sprite.set_color(Color::TRANSPARENT);
 
         Self {
-            config: BattleConfig::new(globals, player_count),
+            config: BattleConfig::new(globals, props.player_setups.len()),
             statistics: BattleStatistics::new(),
-            rng: Xoshiro256PlusPlus::seed_from_u64(default_seed),
+            rng: Xoshiro256PlusPlus::seed_from_u64(props.seed),
             time: 0,
             battle_time: 0,
-            inputs: vec![PlayerInput::new(); player_count],
+            inputs: vec![PlayerInput::new(); props.player_setups.len()],
             camera,
-            background,
+            background: props.background.clone(),
             fade_sprite,
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
@@ -758,8 +755,8 @@ impl BattleSimulation {
             }
         }
 
-        // Bool assignment. If entity is team blue set the fact that they're perspective flipped to true. -Dawn
-        let perspective_flipped = self.local_team == Team::Blue;
+        // store whether the player's team flips the perspective into a shorter variable
+        let perspective_flipped = self.local_team.flips_perspective();
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
@@ -903,11 +900,18 @@ impl BattleSimulation {
     }
 
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
+        let local_id: hecs::Entity = self.local_player_id.into();
+
+        if local_id == hecs::Entity::DANGLING {
+            return;
+        }
+
         self.local_health_ui.draw(game_io, sprite_queue);
 
         let entities = &mut self.entities;
 
-        if let Ok(player) = entities.query_one_mut::<&mut Player>(self.local_player_id.into()) {
+        if let Ok(player) = entities.query_one_mut::<&mut Player>(local_id) {
+            // draw emotion window relative to health ui
             let local_health_bounds = self.local_health_ui.bounds();
             let mut emotion_window_position = local_health_bounds.position();
             emotion_window_position.y += local_health_bounds.height + 1.0;

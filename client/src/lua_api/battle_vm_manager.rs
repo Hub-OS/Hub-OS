@@ -173,11 +173,17 @@ impl BattleVmManager {
 
         // list
         for vm in vms_sorted {
+            // todo: maybe we should list every namespace in a compressed format
+            // ex: [RecordingServer, Server, Local, Netplay(0)] -> R S L 0
+            let ns = vm.preferred_namespace();
+            let ns_string = match ns {
+                PackageNamespace::RecordingServer => String::from("RecServer"),
+                _ => format!("{ns:?}"),
+            };
+
             println!(
                 "| {:NAMESPACE_WIDTH$} | {:package_id_width$} | {:MEMORY_WIDTH$} | {:MEMORY_WIDTH$} |",
-                // todo: maybe we should list every namespace in a compressed format
-                // ex: [Server, Local, Netplay(0)] -> S L 0
-                format!("{:?}", vm.preferred_namespace()),
+                ns_string,
                 vm.package_id,
                 vm.lua.used_memory(),
                 vm.lua.unused_memory().unwrap()
