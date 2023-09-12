@@ -1435,7 +1435,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(augment_table)
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augments", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "augments", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
