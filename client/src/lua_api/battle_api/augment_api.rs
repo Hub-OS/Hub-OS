@@ -22,6 +22,10 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id)?)
     });
 
+    getter(lua_api, "has_tag", |augment, _, tag: String| {
+        Ok(augment.tags.contains(&tag))
+    });
+
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,

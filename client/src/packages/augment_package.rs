@@ -16,6 +16,9 @@ struct AugmentMeta {
     mega_boost: i8,
     giga_boost: i8,
     hand_size_boost: i8,
+    tags: Vec<String>,
+
+    // block specific
     colors: Vec<String>,
     flat: bool,
     shape: Option<Vec<Vec<u8>>>,
@@ -34,6 +37,9 @@ pub struct AugmentPackage {
     pub mega_boost: isize,
     pub giga_boost: isize,
     pub hand_size_boost: i8,
+    pub tags: Vec<String>,
+
+    // block specific
     pub has_shape: bool,
     pub is_flat: bool,
     pub block_colors: Vec<BlockColor>,
@@ -113,6 +119,9 @@ impl Package for AugmentPackage {
         package.mega_boost = meta.mega_boost as isize;
         package.giga_boost = meta.giga_boost as isize;
         package.hand_size_boost = meta.hand_size_boost;
+        package.tags = meta.tags;
+
+        // block specific
         package.has_shape = meta.shape.is_some();
         package.is_flat = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
