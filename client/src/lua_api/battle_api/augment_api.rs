@@ -23,7 +23,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     });
 
     getter(lua_api, "has_tag", |augment, _, tag: String| {
-        Ok(augment.tags.contains(&tag))
+        Ok(augment.tags.iter().any(|t| *t == tag))
     });
 
     callback_setter(

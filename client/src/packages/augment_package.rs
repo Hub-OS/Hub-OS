@@ -2,6 +2,7 @@ use super::*;
 use crate::bindable::BlockColor;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
+use std::borrow::Cow;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -16,7 +17,7 @@ struct AugmentMeta {
     mega_boost: i8,
     giga_boost: i8,
     hand_size_boost: i8,
-    tags: Vec<String>,
+    tags: Vec<Cow<'static, str>>,
 
     // block specific
     colors: Vec<String>,
@@ -37,7 +38,7 @@ pub struct AugmentPackage {
     pub mega_boost: isize,
     pub giga_boost: isize,
     pub hand_size_boost: i8,
-    pub tags: Vec<String>,
+    pub tags: Vec<Cow<'static, str>>,
 
     // block specific
     pub has_shape: bool,
@@ -126,6 +127,15 @@ impl Package for AugmentPackage {
         package.is_flat = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
+
+        // block tags
+        if package.has_shape {
+            package.tags.push(Cow::Borrowed("BLOCK"));
+
+            if package.is_flat {
+                package.tags.push(Cow::Borrowed("FLAT_BLOCK"));
+            }
+        }
 
         if let Some(shape) = meta.shape {
             let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();
