@@ -16,6 +16,7 @@ struct CardMeta {
     description: String,
     long_description: String,
     damage: i32,
+    recover: i32,
     element: String,
     secondary_element: String,
     card_class: String,
@@ -103,6 +104,7 @@ impl Package for CardPackage {
         package.card_properties.package_id = package.package_info.id.clone();
         package.card_properties.short_name = meta.name.into();
         package.card_properties.damage = meta.damage;
+        package.card_properties.recover = meta.recover;
         package.card_properties.element = meta.element.into();
         package.card_properties.secondary_element = meta.secondary_element.into();
         package.card_properties.card_class = meta.card_class.into();

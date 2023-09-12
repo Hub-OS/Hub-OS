@@ -74,6 +74,7 @@ pub enum AuxRequirement {
     CardElement(Element),
     CardNotElement(Element),
     CardDamage(Comparison, i32),
+    CardRecover(Comparison, i32),
     CardHitFlags(HitFlags),
     CardCode(String),
     CardClass(CardClass),
@@ -115,6 +116,7 @@ impl AuxRequirement {
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
             | AuxRequirement::CardDamage(_, _)
+            | AuxRequirement::CardRecover(_, _)
             | AuxRequirement::CardHitFlags(_)
             | AuxRequirement::CardCode(_)
             | AuxRequirement::CardClass(_)
@@ -159,6 +161,7 @@ impl AuxRequirement {
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
+            "require_card_recover" => AuxRequirement::CardRecover(table.get(2)?, table.get(3)?),
             "require_card_hit_flags" => AuxRequirement::CardHitFlags(table.get(2)?),
             "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
             "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
@@ -443,6 +446,9 @@ impl AuxProp {
                 AuxRequirement::CardDamage(cmp, damage) => {
                     card.is_some_and(|card| cmp.compare(card.damage, *damage))
                 }
+                AuxRequirement::CardRecover(cmp, recover) => {
+                    card.is_some_and(|card| cmp.compare(card.recover, *recover))
+                }
                 AuxRequirement::CardHitFlags(flags) => {
                     card.is_some_and(|card| card.hit_flags & *flags == *flags)
                 }
@@ -473,6 +479,9 @@ impl AuxProp {
                     .is_some_and(|card| card.element != *elem && card.secondary_element != *elem),
                 AuxRequirement::CardDamage(cmp, damage) => {
                     card.is_some_and(|card| cmp.compare(card.damage, *damage))
+                }
+                AuxRequirement::CardRecover(cmp, recover) => {
+                    card.is_some_and(|card| cmp.compare(card.recover, *recover))
                 }
                 AuxRequirement::CardHitFlags(flags) => {
                     card.is_some_and(|card| card.hit_flags & *flags == *flags)
