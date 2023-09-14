@@ -185,9 +185,19 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;
         table.set("hit_flags", self.hit_flags)?;
-        table.set("can_boost", self.can_boost)?;
-        table.set("time_freeze", self.time_freeze)?;
-        table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
+
+        if self.can_boost {
+            table.set("can_boost", self.can_boost)?;
+        }
+
+        if self.time_freeze {
+            table.set("time_freeze", self.time_freeze)?;
+        }
+
+        if self.skip_time_freeze_intro {
+            table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
+        }
+
         table.set(
             "tags",
             lua.create_sequence_from(self.tags.iter().map(String::as_str))?,
