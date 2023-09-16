@@ -150,7 +150,8 @@ impl BattleScene {
             battle_duration: 0,
             recording,
             ui_camera: Camera::new_ui(game_io),
-            textbox: Textbox::new_overworld(game_io),
+            textbox: Textbox::new_overworld(game_io)
+                .with_transition_animation_enabled(!is_playing_back_recording),
             textbox_is_blocking_input: false,
             pending_signals: Vec::new(),
             synced_time: 0,
@@ -263,6 +264,19 @@ impl BattleScene {
 
                     self.pending_signals.push(NetplaySignal::CompletedFlee);
                 }
+            }
+        }
+
+        if self.is_playing_back_recording {
+            // prevent the textbox from opening and signals from being created
+            // the textbox currently can't make use of recorded inputs
+            // and we should be using signals from the recording
+
+            self.pending_signals.clear();
+
+            // note: will trigger TextboxInterface::handle_completed()
+            while !self.textbox.is_complete() {
+                self.textbox.advance_interface(game_io);
             }
         }
 
