@@ -39,8 +39,10 @@ pub struct ManageSwitchDriveScene {
     background: Background,
     frame: SubSceneFrame,
     animator: Animator,
+    equipment_sprite: Sprite,
     information_box_sprite: Sprite,
     information_text: Text,
+    drive_names: Vec<Text>,
     input_tracker: UiInputTracker,
     scroll_tracker: ScrollTracker,
     slot: Option<SwitchDriveSlot>,
@@ -78,9 +80,61 @@ impl ManageSwitchDriveScene {
 
         packages.sort_by(|a, b| a.id.cmp(&b.id));
 
-        let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::SWITCH_DRIVE_UI_ANIMATION);
+        let mut equipment_sprite = assets.new_sprite(game_io, ResourcePaths::SWITCH_DRIVE_UI);
 
-        let mut information_box_sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+        animator.set_state("MAIN");
+        animator.apply(&mut equipment_sprite);
+
+        let head_text_bounds = Rect::from_corners(
+            animator.point("HEAD_DRIVE").unwrap_or_default(),
+            animator.point("HEAD_DRIVE_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let mut head_text = Text::new_monospace(game_io, FontStyle::Small)
+            .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+            .with_bounds(head_text_bounds);
+
+        let body_text_bounds = Rect::from_corners(
+            animator.point("BODY_DRIVE").unwrap_or_default(),
+            animator.point("BODY_DRIVE_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let mut body_text = Text::new_monospace(game_io, FontStyle::Small)
+            .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+            .with_bounds(body_text_bounds);
+
+        let arm_text_bounds = Rect::from_corners(
+            animator.point("ARM_DRIVE").unwrap_or_default(),
+            animator.point("ARM_DRIVE_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let mut arm_text = Text::new_monospace(game_io, FontStyle::Small)
+            .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+            .with_bounds(arm_text_bounds);
+
+        let leg_text_bounds = Rect::from_corners(
+            animator.point("LEG_DRIVE").unwrap_or_default(),
+            animator.point("LEG_DRIVE_END").unwrap_or_default(),
+        ) - animator.origin();
+
+        let mut leg_text = Text::new_monospace(game_io, FontStyle::Small)
+            .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+            .with_bounds(leg_text_bounds);
+
+        head_text.text = String::from("");
+        body_text.text = String::from("");
+        arm_text.text = String::from("");
+        leg_text.text = String::from("");
+
+        let mut drive_names = Vec::<Text>::new();
+
+        drive_names.push(head_text);
+        drive_names.push(body_text);
+        drive_names.push(arm_text);
+        drive_names.push(leg_text);
+
+        let mut information_box_sprite = equipment_sprite.clone();
         animator.set_state("TEXTBOX");
         animator.apply(&mut information_box_sprite);
 
@@ -110,8 +164,10 @@ impl ManageSwitchDriveScene {
             background: Background::new_character_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             animator,
+            equipment_sprite,
             information_box_sprite,
             information_text,
+            drive_names,
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
             slot: Option::Some(SwitchDriveSlot::Head),
@@ -169,6 +225,7 @@ impl ManageSwitchDriveScene {
         if let Some(part) = self.packages.get(index) {
             if self.input_tracker.is_active(Input::Confirm) {
                 let clone = part.clone();
+                let name_clone = part.clone();
 
                 let success = self.add_drive_part(game_io, clone).is_none();
 
@@ -176,6 +233,9 @@ impl ManageSwitchDriveScene {
 
                 if success {
                     globals.audio.play_sound(&globals.sfx.cursor_select);
+                    if let Some(slot) = name_clone.slot {
+                        self.drive_names[slot as usize].text = name_clone.name.clone();
+                    }
                 } else {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
@@ -305,6 +365,7 @@ impl Scene for ManageSwitchDriveScene {
             self.animator.point("TEXT_START").unwrap_or_default(),
             self.animator.point("TEXT_END").unwrap_or_default(),
         );
+
         let mut text_style = TextStyle::new(game_io, FontStyle::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(text_bounds);
@@ -339,6 +400,13 @@ impl Scene for ManageSwitchDriveScene {
         // draw information text
         sprite_queue.draw_sprite(&self.information_box_sprite);
         self.information_text.draw(game_io, &mut sprite_queue);
+
+        // main UI sprite
+        sprite_queue.draw_sprite(&self.equipment_sprite);
+
+        for drive_index in 0..self.drive_names.len() {
+            self.drive_names[drive_index].draw(game_io, &mut sprite_queue);
+        }
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
