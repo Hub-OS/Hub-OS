@@ -9,6 +9,6 @@ pub struct InstalledSwitchDrive {
 
 impl InstalledSwitchDrive {
     pub fn get_slot(&mut self) -> SwitchDriveSlot {
-        return self.slot;
+        self.slot
     }
 }
