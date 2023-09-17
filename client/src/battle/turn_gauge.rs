@@ -1,6 +1,6 @@
 use crate::render::*;
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
-use framework::prelude::{GameIO, Sprite, Vec2};
+use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 
 #[derive(Clone)]
 pub struct TurnGauge {
@@ -8,7 +8,7 @@ pub struct TurnGauge {
     max_time: FrameTime,
     animator: Animator,
     container_sprite: Sprite,
-    sprite: Sprite,
+    bar_sprite: Sprite,
 }
 
 impl TurnGauge {
@@ -29,7 +29,7 @@ impl TurnGauge {
             time: 0,
             max_time: Self::DEFAULT_MAX_TIME,
             animator,
-            sprite,
+            bar_sprite: sprite,
             container_sprite,
         }
     }
@@ -67,6 +67,10 @@ impl TurnGauge {
         self.max_time = time
     }
 
+    pub fn bounds(&self) -> Rect {
+        self.container_sprite.bounds()
+    }
+
     fn resolve_state(&self) -> &'static str {
         if self.is_complete() {
             "READY"
@@ -86,19 +90,19 @@ impl TurnGauge {
             self.animator.set_loop_mode(AnimatorLoopMode::Loop);
         }
 
-        self.animator.apply(&mut self.sprite);
+        self.animator.apply(&mut self.bar_sprite);
 
         // multiple calculations below uses this
-        let mut frame = self.sprite.frame();
+        let mut frame = self.bar_sprite.frame();
 
         // position sprite
         let position = self.container_sprite.position() - Vec2::new(frame.width * 0.5, 0.0);
-        self.sprite.set_position(position);
+        self.bar_sprite.set_position(position);
 
         // adjust the frame
         frame.width *= self.progress();
-        self.sprite.set_frame(frame);
+        self.bar_sprite.set_frame(frame);
 
-        sprite_queue.draw_sprite(&self.sprite);
+        sprite_queue.draw_sprite(&self.bar_sprite);
     }
 }

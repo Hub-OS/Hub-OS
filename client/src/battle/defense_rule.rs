@@ -1,9 +1,11 @@
 use super::{AttackBox, BattleScriptContext};
-use super::{BattleSimulation, Living, SharedBattleResources};
-use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties};
+use super::{BattleSimulation, Entity, Living, Player, SharedBattleResources};
+use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
 use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
-use crate::resources::Globals;
-use framework::prelude::GameIO;
+use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::SpriteColorQueue;
+use crate::resources::{Globals, RESOLUTION_F};
+use framework::prelude::{Color, GameIO};
 use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
 use std::cell::RefCell;
 use std::sync::Arc;
@@ -132,6 +134,69 @@ impl DefenseRule {
 
             Ok(())
         });
+    }
+
+    fn team_has_trap(
+        simulation: &mut BattleSimulation,
+        team_filter: impl Fn(Team) -> bool,
+    ) -> bool {
+        type Query<'a> = (&'a Entity, &'a Living);
+        let entities = &mut simulation.entities;
+
+        entities
+            .query_mut::<Query>()
+            .into_iter()
+            .any(|(_, (entity, living))| {
+                let mut defense_rule_iter = living.defense_rules.iter();
+
+                team_filter(entity.team)
+                    && defense_rule_iter.any(|rule| rule.priority == DefensePriority::Trap)
+            })
+    }
+
+    pub fn draw_trap_ui(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        // draw ???? to indicate a trap exists for each side with a trap
+        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        text_style.shadow_color = Color::BLACK;
+
+        let health_bounds = simulation.local_health_ui.bounds();
+        text_style.bounds.y = health_bounds.bottom() + 3.0;
+
+        const TEXT: &str = "????";
+        let text_width = text_style.measure(TEXT).size.x;
+
+        let local_team = simulation.local_team;
+        let left_trap = Self::team_has_trap(simulation, |team| team == local_team);
+        let right_trap = Self::team_has_trap(simulation, |team| team != local_team);
+
+        if left_trap {
+            // default position to the start of the health ui
+            text_style.bounds.x = health_bounds.left();
+
+            // move to the start of the turn gauge if there's an emotion displayed
+            let player_id = simulation.local_player_id.into();
+            let entities = &mut simulation.entities;
+
+            if let Ok(player) = entities.query_one_mut::<&Player>(player_id) {
+                let emotion = player.emotion_window.emotion();
+
+                if player.emotion_window.has_emotion(emotion) {
+                    let gauge_bounds = simulation.turn_gauge.bounds();
+                    text_style.bounds.x = gauge_bounds.left();
+                }
+            }
+
+            text_style.draw(game_io, sprite_queue, TEXT);
+        }
+
+        if right_trap {
+            text_style.bounds.x = RESOLUTION_F.x - text_width - health_bounds.left();
+            text_style.draw(game_io, sprite_queue, TEXT);
+        }
     }
 }
 

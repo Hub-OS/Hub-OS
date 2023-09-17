@@ -37,6 +37,10 @@ impl EmotionUi {
         &self.emotion
     }
 
+    pub fn has_emotion(&self, emotion: &Emotion) -> bool {
+        self.animator.has_state(emotion.as_str())
+    }
+
     pub fn set_emotion(&mut self, emotion: Emotion) {
         if self.animator.has_state(emotion.as_str()) {
             // only apply the emotion if it's supported
