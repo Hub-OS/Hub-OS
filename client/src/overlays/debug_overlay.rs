@@ -31,6 +31,28 @@ impl DebugOverlay {
             last_key_pressed: None,
         }
     }
+
+    fn detect_debug_hotkeys(&self, game_io: &GameIO) {
+        let input = game_io.input();
+
+        if !input.is_key_down(Key::F3) {
+            return;
+        }
+
+        if input.was_key_just_pressed(Key::N) {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let mut namespaces = globals.namespaces().collect::<Vec<_>>();
+            namespaces.sort();
+
+            let namespace_list_string = namespaces
+                .into_iter()
+                .map(|ns| format!("  {ns:?}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            println!("Loaded Namespaces:\n{}", namespace_list_string);
+        }
+    }
 }
 
 impl GameOverlay for DebugOverlay {
@@ -63,6 +85,8 @@ impl GameOverlay for DebugOverlay {
         if toggling_debug {
             globals.debug_visible = !globals.debug_visible;
         }
+
+        self.detect_debug_hotkeys(game_io);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

@@ -45,6 +45,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_constructor_fn(lua_api, ALERT_TABLE, |api_ctx| {
         Ok(Artifact::create_alert(api_ctx.game_io, api_ctx.simulation))
     });
+    generate_constructor_fn(lua_api, TRAP_ALERT_TABLE, |api_ctx| {
+        Ok(Artifact::create_trap_alert(
+            api_ctx.game_io,
+            api_ctx.simulation,
+        ))
+    });
 
     generate_cast_fn::<&Artifact>(lua_api, ARTIFACT_TABLE);
     generate_cast_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, SPELL_TABLE);
@@ -134,6 +140,27 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let field_table = get_field_table(lua)?;
 
         lua.pack_multi(field_table)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "hittable", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living_hittable = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .ok()
+            .map(|living| living.hitbox_enabled || living.health > 0)
+            .unwrap_or_default();
+
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(!entity.deleted && entity.on_field && living_hittable)
     });
 
     getter(lua_api, "sharing_tile", |entity: &Entity, lua, _: ()| {
@@ -552,12 +579,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_entity_mismatch());
         }
 
-        let entities = &mut simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        entity.action_queue.push_back(action_index);
+        Action::queue_action(simulation, id, action_index);
 
         lua.pack_multi(())
     });
@@ -1413,7 +1435,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(augment_table)
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "get_augments", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "augments", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -1472,15 +1494,16 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             // create
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let package_id = PackageId::from(augment_id);
+            let namespace = player.namespace();
             let package = globals
                 .augment_packages
-                .package_or_override(player.namespace(), &package_id)
+                .package_or_override(namespace, &package_id)
                 .ok_or_else(|| package_not_loaded(&package_id))?;
 
             let package_info = &package.package_info;
 
             let vm_manager = &api_ctx.resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             let index = player
                 .augments

@@ -163,11 +163,11 @@ impl State for CardSelectState {
             return;
         }
 
-        let (entity, player) = match (simulation.entities)
-            .query_one_mut::<(&Entity, &Player)>(simulation.local_player_id.into())
-        {
-            Ok(player) => player,
-            _ => return,
+        let entities = &mut simulation.entities;
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&Entity, &Player)>(simulation.local_player_id.into())
+        else {
+            return;
         };
 
         let player_team = entity.team;

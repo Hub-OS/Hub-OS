@@ -15,6 +15,7 @@ pub struct BattleSelectScene {
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     preview_frame_sprite: Sprite,
+    recording_icon_sprite: Sprite,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     scroll_tracker: GridScrollTracker,
@@ -41,35 +42,31 @@ impl BattleSelectScene {
         layout_animator.set_state("FRAME");
         layout_animator.apply(&mut preview_frame_sprite);
 
+        // recording icon
+        let mut recording_icon_sprite = preview_frame_sprite.clone();
+        layout_animator.set_state("RECORDING_ICON");
+        layout_animator.apply(&mut recording_icon_sprite);
+
         // cursor sprite
-        let mut cursor_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_UI);
+        let mut cursor_sprite = preview_frame_sprite.clone();
         layout_animator.set_state("CURSOR");
         layout_animator.set_loop_mode(AnimatorLoopMode::Loop);
         layout_animator.apply(&mut cursor_sprite);
-
-        // package list
-        let encounter_manager = &globals.encounter_packages;
-        let mut package_ids: Vec<_> = encounter_manager
-            .package_ids(PackageNamespace::Local)
-            .cloned()
-            .collect();
-
-        package_ids.sort();
 
         let mut scene = Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             preview_frame_sprite,
+            recording_icon_sprite,
             cursor_sprite,
             cursor_animator: layout_animator,
             ui_input_tracker: UiInputTracker::new(),
             scroll_tracker: GridScrollTracker::new(game_io, 3, 2)
-                .with_total_items(package_ids.len())
                 .with_position(grid_start)
                 .with_step(grid_step)
                 .with_view_margin(1),
-            package_ids,
+            package_ids: Vec::new(),
             textbox: Textbox::new_navigation(game_io),
             next_scene: NextScene::None,
             title_text: String::from("BATTLE SELECT: "),
@@ -120,6 +117,24 @@ impl Scene for BattleSelectScene {
         &mut self.next_scene
     }
 
+    fn enter(&mut self, game_io: &mut GameIO) {
+        // reload package list
+        let globals = game_io.resource::<Globals>().unwrap();
+        let encounter_manager = &globals.encounter_packages;
+        let mut package_ids: Vec<_> = encounter_manager
+            .package_ids(PackageNamespace::Local)
+            .cloned()
+            .collect();
+
+        package_ids.sort();
+
+        self.scroll_tracker.set_total_items(package_ids.len());
+        self.package_ids = package_ids;
+
+        // update title to match the possibly changed selection
+        self.update_title(game_io);
+    }
+
     fn update(&mut self, game_io: &mut GameIO) {
         self.background.update();
         self.camera.update(game_io);
@@ -160,14 +175,8 @@ impl Scene for BattleSelectScene {
         let input_tracker = &self.ui_input_tracker;
 
         if input_tracker.is_active(Input::Confirm) && !self.package_ids.is_empty() {
-            // begin encounter
-            let globals = game_io.resource::<Globals>().unwrap();
-
-            // get the battle
-            let package_id = &self.package_ids[index];
-            let encounter_package = globals
-                .encounter_packages
-                .package(PackageNamespace::Local, package_id);
+            let package_id = self.package_ids[index].clone();
+            let encounter_package = Some((PackageNamespace::Local, package_id));
 
             // set the next scene
             let props = BattleProps::new_with_defaults(game_io, encounter_package);
@@ -233,6 +242,11 @@ impl Scene for BattleSelectScene {
             preview_sprite.set_origin(preview_sprite.size() * 0.5);
             preview_sprite.set_position(position);
             sprite_queue.draw_sprite(&preview_sprite);
+
+            if package.recording_path.is_some() {
+                self.recording_icon_sprite.set_position(position);
+                sprite_queue.draw_sprite(&self.recording_icon_sprite);
+            }
         }
 
         // draw cursor

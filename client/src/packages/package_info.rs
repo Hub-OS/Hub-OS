@@ -28,6 +28,10 @@ impl PackageInfo {
         (self.package_category, self.namespace, self.id.clone())
     }
 
+    pub fn is_virtual(&self) -> bool {
+        self.base_path.starts_with(ResourcePaths::VIRTUAL_PREFIX)
+    }
+
     pub fn child_packages(&self) -> impl Iterator<Item = ChildPackageInfo> + '_ {
         self.child_id_path_pairs
             .iter()

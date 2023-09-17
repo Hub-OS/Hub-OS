@@ -1,9 +1,9 @@
-use packets::structures::PackageId;
-
 use super::BattleCallback;
 use crate::bindable::{CardProperties, GenerationalIndex};
 use crate::packages::AugmentPackage;
 use crate::render::FrameTime;
+use packets::structures::PackageId;
+use std::borrow::Cow;
 
 #[derive(Clone)]
 pub struct Augment {
@@ -13,6 +13,7 @@ pub struct Augment {
     pub rapid_boost: i8,
     pub charge_boost: i8,
     pub hand_size_boost: i8,
+    pub tags: Vec<Cow<'static, str>>,
     pub calculate_charge_time_callback: Option<BattleCallback<u8, FrameTime>>,
     pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -31,6 +32,7 @@ impl From<(&AugmentPackage, usize)> for Augment {
             rapid_boost: package.rapid_boost,
             charge_boost: package.charge_boost,
             hand_size_boost: package.hand_size_boost,
+            tags: package.tags.clone(),
             calculate_charge_time_callback: None,
             normal_attack_callback: None,
             charged_attack_callback: None,
