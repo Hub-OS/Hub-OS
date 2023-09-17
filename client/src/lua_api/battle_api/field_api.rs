@@ -4,7 +4,7 @@ use super::errors::entity_not_found;
 use super::tile_api::create_tile_table;
 use super::{create_entity_table, BattleLuaApi, FIELD_TABLE};
 use crate::battle::{
-    BattleCallback, BattleScriptContext, Character, Entity, Living, Obstacle, Player, Spell,
+    BattleCallback, BattleScriptContext, Character, Entity, Obstacle, Player, Spell,
 };
 use crate::bindable::EntityId;
 use crate::render::FrameTime;
@@ -90,14 +90,14 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id)?)
     });
 
-    generate_find_hittable_fn::<()>(lua_api, "find_entities");
-    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
-    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
-    generate_find_hittable_fn::<&Player>(lua_api, "find_players");
+    generate_find_entity_fn::<()>(lua_api, "find_entities");
+    generate_find_entity_fn::<&Character>(lua_api, "find_characters");
+    generate_find_entity_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_entity_fn::<&Player>(lua_api, "find_players");
     generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
 
-    generate_find_nearest_hittable_fn::<&Character>(lua_api, "find_nearest_characters");
-    generate_find_nearest_hittable_fn::<&Player>(lua_api, "find_nearest_players");
+    generate_find_nearest_fn::<&Character>(lua_api, "find_nearest_characters");
+    generate_find_nearest_fn::<&Player>(lua_api, "find_nearest_players");
 
     lua_api.add_dynamic_function(FIELD_TABLE, "find_tiles", |api_ctx, lua, params| {
         let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
@@ -249,7 +249,7 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
             let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
 
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
-                if !entity.deleted && entity.on_field {
+                if entity.spawned {
                     tables.push(create_entity_table(lua, id.into())?);
                 }
             }
@@ -271,43 +271,7 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
     });
 }
 
-fn generate_find_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
-    lua_api.add_dynamic_function(FIELD_TABLE, name, |api_ctx, lua, params| {
-        let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
-
-        let tables = {
-            // scope to prevent RefCell borrow escaping when control is passed back to lua
-            let mut api_ctx = api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-
-            let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
-
-            for (id, (entity, living)) in entities.query_mut::<hecs::With<(&Entity, &Living), Q>>()
-            {
-                if !entity.deleted && entity.on_field && living.hitbox_enabled {
-                    tables.push(create_entity_table(lua, id.into())?);
-                }
-            }
-
-            tables
-        };
-
-        let filtered_tables: Vec<rollback_mlua::Table> = tables
-            .into_iter()
-            .filter(|table| {
-                callback.call::<_, bool>(table.clone()).unwrap_or_else(|e| {
-                    log::error!("{e}");
-                    false
-                })
-            })
-            .collect();
-
-        lua.pack_multi(filtered_tables)
-    });
-}
-
-fn generate_find_nearest_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
+fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
     lua_api.add_dynamic_function(FIELD_TABLE, name, |api_ctx, lua, params| {
         let (_, ref_table, callback): (
             rollback_mlua::Table,
@@ -330,11 +294,10 @@ fn generate_find_nearest_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi,
             let mut tables: Vec<(rollback_mlua::Table, IVec2)> =
                 Vec::with_capacity(entities.len() as usize);
 
-            for (id, (entity, living)) in entities.query_mut::<hecs::With<(&Entity, &Living), Q>>()
-            {
+            for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
                 let pos = IVec2::new(entity.x, entity.y);
 
-                if !entity.deleted && entity.on_field && living.hitbox_enabled {
+                if entity.spawned {
                     tables.push((create_entity_table(lua, id.into())?, pos));
                 }
             }

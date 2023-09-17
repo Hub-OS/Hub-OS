@@ -48,6 +48,10 @@ impl LocalAssetManager {
         }
     }
 
+    pub fn contains_virtual_zip(&self, hash: &FileHash) -> bool {
+        self.loaded_zips.borrow().contains_key(hash)
+    }
+
     pub fn virtual_zip_meta(&self, hash: &FileHash) -> Option<VirtualZipMeta> {
         self.loaded_zips
             .borrow()

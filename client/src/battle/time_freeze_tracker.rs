@@ -1,4 +1,4 @@
-use super::{BattleAnimator, BattleSimulation, Entity, StatusDirector};
+use super::{BattleAnimator, BattleSimulation, StatusDirector};
 use crate::bindable::{EntityId, Team};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
@@ -136,6 +136,16 @@ impl TimeFreezeTracker {
     }
 
     pub fn can_counter(&self) -> bool {
+        let state_elapsed_time = self.active_time - self.state_start_time;
+
+        if let TimeFreezeState::Counterable = self.state {
+            COUNTER_DURATION - state_elapsed_time > 2
+        } else {
+            false
+        }
+    }
+
+    pub fn can_queued_counter(&self) -> bool {
         self.state == TimeFreezeState::Counterable
     }
 
@@ -223,24 +233,18 @@ impl TimeFreezeTracker {
             return;
         };
 
-        let same_team = {
-            let id = simulation.local_player_id.into();
-            let entities = &simulation.entities;
-
-            entities
-                .query_one::<&Entity>(id)
-                .ok()
-                .and_then(|mut query| query.get().map(|entity| team == entity.team))
-                .unwrap_or_default()
-        };
-
+        // resolve where we should draw
         let mut position = Vec2::new(0.0, MARGIN_TOP);
 
-        if same_team {
-            position.x = RESOLUTION_F.x * 0.25
-        } else {
-            position.x = RESOLUTION_F.x * 0.75
+        position.x = match team {
+            Team::Red => RESOLUTION_F.x * 0.25,
+            Team::Blue => RESOLUTION_F.x * 0.75,
+            _ => RESOLUTION_F.x * 0.5,
         };
+
+        if simulation.local_team.flips_perspective() {
+            position.x = RESOLUTION_F.x - position.x;
+        }
 
         let card_props = &action.properties;
         card_props.draw_summary(game_io, sprite_queue, position, true);

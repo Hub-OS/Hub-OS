@@ -140,14 +140,14 @@ impl Field {
 
     pub fn drop_entity(&mut self, id: EntityId) {
         for tile in &mut self.tiles {
-            tile.unignore_attacker(id);
             tile.clear_reservations_for(id);
         }
     }
 
-    pub fn resolve_wash(&mut self) {
+    pub fn resolve_wash_and_ignored_attackers(&mut self) {
         for tile in &mut self.tiles {
             tile.apply_wash();
+            tile.unignore_inactive_attackers();
         }
     }
 

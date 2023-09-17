@@ -1,7 +1,6 @@
 use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::FrameTime;
-use crate::resources::DEFAULT_STATUS_DURATION;
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -83,7 +82,7 @@ impl Package for StatusPackage {
         package.durations = meta.durations;
 
         if package.durations.is_empty() {
-            package.durations.push(DEFAULT_STATUS_DURATION);
+            package.durations.push(1);
         }
 
         package

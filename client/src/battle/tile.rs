@@ -20,6 +20,7 @@ pub struct Tile {
     flash_time: FrameTime,
     washed: bool, // an attack washed the state out
     ignored_attackers: Vec<EntityId>,
+    active_attackers: Vec<EntityId>,
     reservations: Vec<EntityId>,
 }
 
@@ -143,14 +144,16 @@ impl Tile {
         }
     }
 
-    pub fn unignore_attacker(&mut self, id: EntityId) {
-        if let Some(i) = self
-            .ignored_attackers
-            .iter()
-            .position(|ignored| *ignored == id)
-        {
-            self.ignored_attackers.remove(i);
+    pub fn acknowledge_attacker(&mut self, id: EntityId) {
+        if !self.active_attackers.contains(&id) {
+            self.active_attackers.push(id)
         }
+    }
+
+    pub fn unignore_inactive_attackers(&mut self) {
+        self.ignored_attackers
+            .retain(|id| self.active_attackers.contains(id));
+        self.active_attackers.clear();
     }
 
     pub fn reserve_for(&mut self, id: EntityId) {

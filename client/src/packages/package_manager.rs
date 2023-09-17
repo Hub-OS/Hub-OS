@@ -51,11 +51,17 @@ impl<T: Package> PackageManager<T> {
 
         let flow = match ns {
             PackageNamespace::Netplay(_) => {
-                vec![PackageNamespace::Server, ns, PackageNamespace::Local]
+                vec![
+                    PackageNamespace::RecordingServer,
+                    PackageNamespace::Server,
+                    ns,
+                    PackageNamespace::Local,
+                ]
             }
             PackageNamespace::Local | PackageNamespace::Server => {
                 vec![PackageNamespace::Server, PackageNamespace::Local]
             }
+            PackageNamespace::RecordingServer => vec![PackageNamespace::RecordingServer],
         };
 
         for ns in flow {
@@ -350,11 +356,7 @@ impl<T: Package> PackageManager<T> {
 
         let package_info = package.package_info();
 
-        let is_virtual = package_info
-            .base_path
-            .starts_with(ResourcePaths::VIRTUAL_PREFIX);
-
-        if is_virtual && package_info.hash != FileHash::ZERO {
+        if package_info.is_virtual() && package_info.hash != FileHash::ZERO {
             assets.remove_virtual_zip_use(&package_info.hash);
         }
     }
@@ -368,11 +370,7 @@ impl<T: Package> PackageManager<T> {
         for (_, package) in packages {
             let package_info = package.package_info();
 
-            let is_virtual = package_info
-                .base_path
-                .starts_with(ResourcePaths::VIRTUAL_PREFIX);
-
-            if is_virtual && package_info.hash != FileHash::ZERO {
+            if package_info.is_virtual() && package_info.hash != FileHash::ZERO {
                 assets.remove_virtual_zip_use(&package_info.hash);
             }
         }

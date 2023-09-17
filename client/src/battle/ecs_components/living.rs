@@ -379,7 +379,7 @@ impl Living {
                 AuxEffect::DrainHP(drain) => health_modifier -= drain,
                 AuxEffect::RecoverHP(recover) => health_modifier += recover,
                 AuxEffect::None => {}
-                _ => {}
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
 
             simulation
@@ -403,5 +403,88 @@ impl Living {
         }
 
         simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    pub fn intercept_action(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        mut index: GenerationalIndex,
+    ) -> Option<GenerationalIndex> {
+        // handle aux props which intercept actions
+        // loops until the action stops being replaced
+        loop {
+            let entities = &mut simulation.entities;
+            let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+                // not Living, without any auxprops we can just skip this loop
+                return None;
+            };
+
+            let mut intercept_callback = None;
+
+            // validate index as it may be coming from lua
+            let Some(action) = simulation.actions.get_mut(index) else {
+                // invalid action
+                return None;
+            };
+
+            for aux_prop in living.aux_props.values_mut() {
+                if !aux_prop.effect().action_related() || aux_prop.activated() {
+                    // skip unrelated aux_props
+                    // also skip already activated aux_props to prevent infinite loops
+                    continue;
+                }
+
+                aux_prop.process_action(Some(action));
+
+                if !aux_prop.passed_all_tests() {
+                    continue;
+                }
+
+                if matches!(aux_prop.effect(), AuxEffect::InterceptAction(_))
+                    && intercept_callback.is_some()
+                {
+                    // action is already pending replacement
+                    // we can try activation again in the next loop
+                    continue;
+                }
+
+                aux_prop.mark_activated();
+
+                match aux_prop.effect() {
+                    AuxEffect::InterceptAction(callback) => {
+                        intercept_callback = Some(callback.clone());
+                    }
+                    _ => log::error!("Engine error: Unexpected AuxEffect!"),
+                }
+
+                simulation
+                    .pending_callbacks
+                    .extend(aux_prop.callbacks().iter().cloned());
+            }
+
+            simulation.call_pending_callbacks(game_io, resources);
+
+            let Some(intercept_callback) = intercept_callback else {
+                // action remains the same, no need to loop
+                return Some(index);
+            };
+
+            let new_index = intercept_callback.call(game_io, resources, simulation, index);
+
+            if new_index != Some(index) {
+                // delete the old action if we're not using it
+                simulation.delete_actions(game_io, resources, [index]);
+            }
+
+            if let Some(new_index) = new_index {
+                // swap action
+                index = new_index;
+            } else {
+                // resolved to no action
+                return None;
+            }
+        }
     }
 }

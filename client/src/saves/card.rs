@@ -50,7 +50,7 @@ impl Card {
         let package_manager = &globals.card_packages;
         let name = package_manager
             .package_or_override(PackageNamespace::Local, &self.package_id)
-            .map(|package| package.card_properties.short_name.as_str())
+            .map(|package| package.card_properties.short_name.as_ref())
             .unwrap_or("?????");
 
         let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
@@ -167,7 +167,7 @@ impl Card {
             package_manager.package_or_override(PackageNamespace::Local, &self.package_id)
         {
             icon_texture_path = package.icon_texture_path.as_str();
-            short_name = package.card_properties.short_name.as_str();
+            short_name = package.card_properties.short_name.as_ref();
             element = package.card_properties.element;
             limit = package.limit;
         } else {

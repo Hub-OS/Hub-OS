@@ -59,6 +59,7 @@ impl Player {
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let player_package = setup.player_package(game_io);
 
         let mut deck = setup.deck;
 
@@ -94,8 +95,8 @@ impl Player {
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
-                assets.new_sprite(game_io, &setup.player_package.emotions_texture_path),
-                Animator::load_new(assets, &setup.player_package.emotions_animation_path),
+                assets.new_sprite(game_io, &player_package.emotions_texture_path),
+                Animator::load_new(assets, &player_package.emotions_animation_path),
             ),
             forms: Vec::new(),
             active_form: None,
@@ -118,7 +119,7 @@ impl Player {
         mut setup: PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
-        let player_package = setup.player_package;
+        let player_package = setup.player_package(game_io);
         let blocks = std::mem::take(&mut setup.blocks);
 
         // namespace for using cards / attacks
@@ -320,7 +321,7 @@ impl Player {
             let package_info = &player_package.package_info;
 
             let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             simulation.call_global(game_io, resources, vm_index, "player_init", move |lua| {
                 crate::lua_api::create_entity_table(lua, id)
@@ -363,7 +364,7 @@ impl Player {
         for (package, level) in augment_iter {
             let package_info = &package.package_info;
             let vm_manager = &resources.vm_manager;
-            let vm_index = vm_manager.find_vm(&package_info.id, package_info.namespace)?;
+            let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             let player = simulation
                 .entities
@@ -818,7 +819,9 @@ impl Player {
             card_props.clone(),
         )?;
 
-        callback.call(game_io, resources, simulation, card_props)
+        callback
+            .call(game_io, resources, simulation, card_props)
+            .filter(|index| simulation.actions.get(*index).is_some())
     }
 
     pub fn use_card(
@@ -855,18 +858,6 @@ impl Player {
             )
         };
 
-        // use the action or spawn a poof
-        if let Some(index) = action_index {
-            let entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(entity_id.into())
-                .unwrap();
-
-            entity.action_queue.push_back(index);
-        } else {
-            Artifact::create_card_poof(game_io, simulation, entity_id);
-        }
-
         // revert context flags
         let entities = &mut simulation.entities;
 
@@ -874,5 +865,13 @@ impl Player {
             .query_one_mut::<&mut Entity>(entity_id.into())
             .unwrap();
         entity.hit_context.flags = original_context_flags;
+
+        // spawn a poof if there's no action
+        let Some(index) = action_index else {
+            Artifact::create_card_poof(game_io, simulation, entity_id);
+            return;
+        };
+
+        Action::queue_action(simulation, entity_id, index);
     }
 }

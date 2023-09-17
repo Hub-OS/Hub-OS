@@ -3,6 +3,7 @@ use crate::bindable::BlockColor;
 use crate::bindable::SwitchDriveSlot;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
+use std::borrow::Cow;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -17,6 +18,9 @@ struct AugmentMeta {
     mega_boost: i8,
     giga_boost: i8,
     hand_size_boost: i8,
+    tags: Vec<Cow<'static, str>>,
+
+    // block specific
     colors: Vec<String>,
     flat: bool,
     slot: Option<SwitchDriveSlot>,
@@ -36,6 +40,9 @@ pub struct AugmentPackage {
     pub mega_boost: isize,
     pub giga_boost: isize,
     pub hand_size_boost: i8,
+    pub tags: Vec<Cow<'static, str>>,
+
+    // block specific
     pub has_shape: bool,
     pub is_flat: bool,
     pub slot: Option<SwitchDriveSlot>,
@@ -116,11 +123,23 @@ impl Package for AugmentPackage {
         package.mega_boost = meta.mega_boost as isize;
         package.giga_boost = meta.giga_boost as isize;
         package.hand_size_boost = meta.hand_size_boost;
+        package.tags = meta.tags;
+
+        // block specific
         package.has_shape = meta.shape.is_some();
         package.is_flat = meta.flat;
         package.slot = meta.slot;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
+
+        // block tags
+        if package.has_shape {
+            package.tags.push(Cow::Borrowed("BLOCK"));
+
+            if package.is_flat {
+                package.tags.push(Cow::Borrowed("FLAT_BLOCK"));
+            }
+        }
 
         if let Some(shape) = meta.shape {
             let flattened_shape: Vec<_> = shape.into_iter().flatten().collect();

@@ -64,6 +64,7 @@ pub const ARTIFACT_TABLE: &str = "Artifact";
 pub const EXPLOSION_TABLE: &str = "Explosion";
 pub const POOF_TABLE: &str = "Poof";
 pub const ALERT_TABLE: &str = "Alert";
+pub const TRAP_ALERT_TABLE: &str = "TrapAlert";
 pub const BUSTER_TABLE: &str = "Buster";
 pub const VIRUS_DEFENSE_TABLE: &str = "DefenseVirusBody";
 pub const HIT_PROPS_TABLE: &str = "HitProps";

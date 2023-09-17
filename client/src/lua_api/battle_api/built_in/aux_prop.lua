@@ -23,6 +23,7 @@ local req_list = {
   "require_card_element",
   "require_card_not_element",
   "require_card_damage",
+  "require_card_recover",
   "require_card_hit_flags",
   "require_card_code",
   "require_card_class",

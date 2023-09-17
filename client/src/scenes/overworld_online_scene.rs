@@ -982,11 +982,7 @@ impl OverworldOnlineScene {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
-                    // get package
-                    let encounter_package = globals
-                        .encounter_packages
-                        .package_or_override(PackageNamespace::Server, package_id);
-
+                    let encounter_package = Some((PackageNamespace::Server, package_id.clone()));
                     let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
                     props.data = data;
 

@@ -10,6 +10,12 @@ pub enum Team {
     Blue,
 }
 
+impl Team {
+    pub fn flips_perspective(&self) -> bool {
+        matches!(self, Team::Blue)
+    }
+}
+
 impl<'lua> rollback_mlua::FromLua<'lua> for Team {
     fn from_lua(
         lua_value: rollback_mlua::Value<'lua>,

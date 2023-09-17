@@ -5,6 +5,7 @@ use crate::packages::{Package, PackageNamespace};
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::{BattleRecording, PlayerInputBuffer};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
@@ -25,7 +26,7 @@ pub enum BattleEvent {
 #[derive(Default, Clone)]
 struct PlayerController {
     connected: bool,
-    buffer: VecDeque<NetplayBufferItem>,
+    buffer: PlayerInputBuffer,
 }
 
 struct Backup {
@@ -35,6 +36,7 @@ struct Backup {
 
 pub struct BattleScene {
     battle_duration: FrameTime,
+    recording: Option<BattleRecording>,
     ui_camera: Camera,
     textbox: Textbox,
     textbox_is_blocking_input: bool,
@@ -51,34 +53,53 @@ pub struct BattleScene {
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     already_snapped: bool,
+    is_playing_back_recording: bool,
     exiting: bool,
     statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
 }
 
 impl BattleScene {
-    pub fn new(game_io: &GameIO, mut props: BattleProps) -> Self {
+    pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
+        let mut is_playing_back_recording = false;
+
+        if let Some(recording) = props.recording_data(game_io) {
+            recording.load_packages(game_io);
+            props = BattleProps::from_recording(game_io, &recording);
+            is_playing_back_recording = true;
+        } else {
+            // remove recording namespaces to prevent interference with other namespaces
+            // recording namespaces have precedence over other namespaces
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+            globals.remove_namespace(PackageNamespace::RecordingServer);
+            globals.assets.remove_unused_virtual_zips();
+        }
+
         // sort player setups for consistent execution order on every client
         props.player_setups.sort_by_key(|setup| setup.index);
+
+        // init recording struct
+        let recording = if props.recording_enabled {
+            Some(BattleRecording::new(game_io, &props))
+        } else {
+            None
+        };
 
         // resolve dependencies for loading vms
         let globals = game_io.resource::<Globals>().unwrap();
         let dependencies = globals.battle_dependencies(game_io, &props);
 
         // create initial simulation
-        let mut simulation =
-            BattleSimulation::new(game_io, props.background.clone(), props.player_setups.len());
+        let mut simulation = BattleSimulation::new(game_io, &props);
 
         // seed before running any vm
-        if let Some(seed) = props.seed {
-            simulation.seed_random(seed);
-        }
+        simulation.seed_random(props.seed);
 
         // create shared resources
         let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
         // load battle package
-        if let Some(encounter_package) = props.encounter_package {
+        if let Some(encounter_package) = props.encounter_package(game_io) {
             let vm_manager = &mut resources.vm_manager;
             let vm_index = vm_manager
                 .find_vm_from_info(encounter_package.package_info())
@@ -97,10 +118,14 @@ impl BattleScene {
         // load the players in the correct order
         let player_setups = props.player_setups;
         let mut player_controllers = vec![PlayerController::default(); player_setups.len()];
-        let local_index = player_setups
-            .iter()
-            .find(|setup| setup.local)
-            .map(|setup| setup.index);
+        let local_index = if is_playing_back_recording {
+            None
+        } else {
+            player_setups
+                .iter()
+                .find(|setup| setup.local)
+                .map(|setup| setup.index)
+        };
 
         for mut setup in player_setups {
             if let Some(remote_controller) = player_controllers.get_mut(setup.index) {
@@ -123,8 +148,10 @@ impl BattleScene {
 
         Self {
             battle_duration: 0,
+            recording,
             ui_camera: Camera::new_ui(game_io),
-            textbox: Textbox::new_overworld(game_io),
+            textbox: Textbox::new_overworld(game_io)
+                .with_transition_animation_enabled(!is_playing_back_recording),
             textbox_is_blocking_input: false,
             pending_signals: Vec::new(),
             synced_time: 0,
@@ -139,6 +166,7 @@ impl BattleScene {
             slow_cooldown: 0,
             frame_by_frame_debug: false,
             already_snapped: false,
+            is_playing_back_recording,
             exiting: false,
             statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
@@ -236,6 +264,19 @@ impl BattleScene {
 
                     self.pending_signals.push(NetplaySignal::CompletedFlee);
                 }
+            }
+        }
+
+        if self.is_playing_back_recording {
+            // prevent the textbox from opening and signals from being created
+            // the textbox currently can't make use of recorded inputs
+            // and we should be using signals from the recording
+
+            self.pending_signals.clear();
+
+            // note: will trigger TextboxInterface::handle_completed()
+            while !self.textbox.is_complete() {
+                self.textbox.advance_interface(game_io);
             }
         }
 
@@ -374,7 +415,7 @@ impl BattleScene {
                         log::debug!("Received {:?} from {index}", data.signals);
                     }
 
-                    controller.buffer.push_back(data);
+                    controller.buffer.push_last(data);
                     self.resimulate(game_io, resimulation_time);
                 }
             }
@@ -415,7 +456,7 @@ impl BattleScene {
         // gather input
         let mut pressed = Vec::new();
 
-        if self.exiting || !self.textbox_is_blocking_input {
+        if !self.textbox_is_blocking_input && !game_io.input().is_key_down(Key::F3) {
             for input in Input::BATTLE {
                 if input_util.is_down(input) {
                     pressed.push(input);
@@ -430,7 +471,7 @@ impl BattleScene {
         };
 
         // update local buffer
-        local_controller.buffer.push_back(data.clone());
+        local_controller.buffer.push_last(data.clone());
 
         // gather buffer sizes for remotes to know if they should slow down
         let buffer_sizes = self
@@ -459,7 +500,7 @@ impl BattleScene {
             }
         }
 
-        if self.input_synced() {
+        if self.input_synced() && !self.is_playing_back_recording {
             // log inputs if we're in multiplayer to help track desyncs
             if self.player_controllers.len() > 1 {
                 if let Err(e) = self.log_input_to_file() {
@@ -468,8 +509,13 @@ impl BattleScene {
             }
 
             // prevent buffers from infinitely growing
-            for controller in self.player_controllers.iter_mut() {
-                controller.buffer.pop_front();
+            for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+                let buffer_item = controller.buffer.pop_next().unwrap();
+
+                // record input
+                if let Some(recording) = &mut self.recording {
+                    recording.player_setups[i].buffer.push_last(buffer_item);
+                }
             }
 
             self.synced_time += 1;
@@ -487,7 +533,7 @@ impl BattleScene {
         writeln!(&mut file, "F: {}", self.synced_time)?;
 
         for controller in &self.player_controllers {
-            writeln!(&mut file, "  {:?}", controller.buffer.front())?;
+            writeln!(&mut file, "  {:?}", controller.buffer.peek_next())?;
         }
 
         writeln!(&mut file, "Archetypes: [")?;
@@ -541,7 +587,23 @@ impl BattleScene {
 
         self.rollback(game_io, steps);
         self.simulate(game_io);
-        self.synced_time = self.simulation.time;
+
+        if !self.is_playing_back_recording {
+            // only updating synced time for actual battles
+            // synced_time is used for input buffer offsets, which playback doesn't delete
+            self.synced_time = self.simulation.time;
+        }
+
+        // undo input committed to the recording
+        if let Some(recording) = &mut self.recording {
+            for setup in &mut recording.player_setups {
+                for _ in 0..steps - 1 {
+                    setup.buffer.delete_last();
+                }
+
+                debug_assert_eq!(self.synced_time as usize, setup.buffer.len());
+            }
+        }
     }
 
     fn rollback(&mut self, game_io: &GameIO, steps: usize) {
@@ -601,7 +663,7 @@ impl BattleScene {
         }
     }
 
-    fn detect_debug_hotkeys(&self, game_io: &GameIO) {
+    fn detect_debug_hotkeys(&self, game_io: &mut GameIO) {
         if !game_io.input().is_key_down(Key::F3) {
             return;
         }
@@ -610,11 +672,23 @@ impl BattleScene {
         if game_io.input().was_key_just_pressed(Key::V) {
             self.resources.vm_manager.print_memory_usage();
         }
+
+        // save recording
+        if game_io.input().was_key_just_pressed(Key::S) {
+            if let Some(recording) = &self.recording {
+                recording.save(game_io);
+            } else {
+                log::error!("Recording is disabled");
+            }
+        }
     }
 
     fn exit(&mut self, game_io: &GameIO, fleeing: bool) {
         self.exiting = true;
-        self.pending_signals.push(NetplaySignal::Disconnect);
+
+        if !self.is_playing_back_recording {
+            self.pending_signals.push(NetplaySignal::Disconnect);
+        }
 
         if let Some(statistics_callback) = self.statistics_callback.take() {
             self.simulation.wrap_up_statistics();
@@ -654,11 +728,17 @@ impl BattleScene {
             self.frame_by_frame_debug = !input_util.was_just_pressed(Input::Pause);
         } else {
             // normal update
-            let can_buffer =
-                self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime;
+            let can_simulate = if self.is_playing_back_recording {
+                // simulate as long as we have input
+                self.simulation.time < self.player_controllers[0].buffer.len() as FrameTime
+            } else {
+                // simulate as long as we can roll back to the synced time
+                self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
+                    || self.input_synced()
+            };
             let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
-            if !should_slow_down && (can_buffer || self.input_synced()) {
+            if !should_slow_down && can_simulate {
                 self.handle_local_input(game_io);
                 self.simulate(game_io);
             }
@@ -667,18 +747,30 @@ impl BattleScene {
                 self.slow_cooldown -= 1;
             }
 
-            self.frame_by_frame_debug = self.is_solo()
+            self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_solo())
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
     }
 
     fn handle_exit_requests(&mut self, game_io: &GameIO) {
-        let oldest_backup = self.backups.front();
+        let requested_exit = if self.is_playing_back_recording {
+            // pressing confirm or cancel, without pressing pause
+            // as pause is used to exit frame_by_frame_debug
+            // and the same input may also be binded to Confirm or Cancel
+            let input_util = InputUtil::new(game_io);
 
-        let requested_exit = oldest_backup
-            .map(|backup| backup.simulation.exit)
-            .unwrap_or(self.simulation.exit);
+            !input_util.was_just_pressed(Input::Pause)
+                && (input_util.was_just_pressed(Input::Cancel)
+                    || input_util.was_just_pressed(Input::Confirm))
+        } else {
+            // use the oldest backup, as we can still rewind and end up not exitting otherwise
+            let oldest_backup = self.backups.front();
+
+            oldest_backup
+                .map(|backup| backup.simulation.exit)
+                .unwrap_or(self.simulation.exit)
+        };
 
         if !self.exiting && requested_exit {
             self.exit(game_io, false);
