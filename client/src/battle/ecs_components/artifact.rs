@@ -54,7 +54,7 @@ impl Artifact {
         // delete when the animation completes
         animator.on_complete(BattleCallback::new(
             move |game_io, resources, simulation, _| {
-                simulation.mark_entity_for_erasure(game_io, resources, id);
+                Entity::mark_erased(game_io, resources, simulation, id);
             },
         ));
 

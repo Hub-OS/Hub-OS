@@ -718,7 +718,7 @@ impl BattleState {
         }
 
         for id in pending_deletion {
-            simulation.delete_entity(game_io, resources, id);
+            Entity::delete(game_io, resources, simulation, id);
         }
     }
 

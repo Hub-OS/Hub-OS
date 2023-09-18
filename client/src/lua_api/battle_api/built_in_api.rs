@@ -100,13 +100,13 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
                     entities.query_one_mut::<(&Entity, &Spell)>(parent_id.into())
                 else {
                     // delete if the parent is deleted
-                    simulation.delete_entity(game_io, resources, hitbox_id);
+                    Entity::delete(game_io, resources, simulation, hitbox_id);
                     return;
                 };
 
                 if entity.deleted {
                     // delete if the parent is deleted
-                    simulation.delete_entity(game_io, resources, hitbox_id);
+                    Entity::delete(game_io, resources, simulation, hitbox_id);
                     return;
                 }
 

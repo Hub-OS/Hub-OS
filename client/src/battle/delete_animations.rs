@@ -46,7 +46,7 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
     animator.on_complete(BattleCallback::new(
         move |game_io, resources, simulation, _| {
-            simulation.mark_entity_for_erasure(game_io, resources, artifact_id);
+            Entity::mark_erased(game_io, resources, simulation, artifact_id);
         },
     ));
 }

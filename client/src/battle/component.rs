@@ -42,7 +42,7 @@ impl Component {
                         return;
                     }
 
-                    simulation.delete_entity(game_io, resources, entity_id);
+                    Entity::delete(game_io, resources, simulation, entity_id);
                     Component::eject(simulation, index);
                 });
 
@@ -95,7 +95,7 @@ impl Component {
                 root_node.set_pixelate_with_alpha(true);
 
                 if elapsed_time >= TOTAL_DURATION {
-                    simulation.mark_entity_for_erasure(game_io, resources, entity_id);
+                    Entity::mark_erased(game_io, resources, simulation, entity_id);
                 }
             });
 
@@ -163,7 +163,7 @@ impl Component {
                 }
 
                 if elapsed_time >= total_duration {
-                    simulation.mark_entity_for_erasure(game_io, resources, entity_id);
+                    Entity::mark_erased(game_io, resources, simulation, entity_id);
                 }
             });
 

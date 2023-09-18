@@ -687,7 +687,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.resources, id);
+        Entity::mark_erased(api_ctx.game_io, api_ctx.resources, simulation, id);
 
         lua.pack_multi(())
     });
@@ -699,7 +699,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+        Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
         lua.pack_multi(())
     });
@@ -714,12 +714,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
-            let is_living = simulation
-                .entities
-                .query_one_mut::<&Living>(id.into())
-                .is_ok();
+            let entities = &mut simulation.entities;
+            let is_living = entities.satisfies::<&Living>(id.into()).is_ok();
 
             if is_living {
                 crate::battle::delete_player_animation(api_ctx.game_io, simulation, id);
@@ -740,7 +738,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
             if simulation.entities.contains(id.into()) {
                 crate::battle::delete_character_animation(simulation, id, explosion_count);
