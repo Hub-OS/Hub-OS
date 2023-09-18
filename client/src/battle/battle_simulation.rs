@@ -808,10 +808,12 @@ impl BattleSimulation {
             .filter(|action| action.executed && !action.is_async())
             .count();
 
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
+
         // if there's more executed actions than held actions, we forgot to delete one
         // we can have more actions than held actions still since
         // scripters don't need to attach card actions to entities
-        // we also can ignore async actions
-        assert!(held_action_count >= executed_action_count);
+        // we also can ignore async actions and time freeze
+        assert!(held_action_count >= executed_action_count || time_is_frozen);
     }
 }
