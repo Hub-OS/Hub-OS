@@ -26,6 +26,7 @@ pub use augment_api::create_augment_table;
 pub use battle_lua_api::*;
 pub use encounter_init::encounter_init;
 pub use entity_api::create_entity_table;
+pub use movement_api::create_movement_table;
 pub use status_api::create_status_table;
 
 // tables, most are stored as named registry values

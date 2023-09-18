@@ -54,7 +54,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.state_index())
     });
 
@@ -113,7 +113,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
         lua.pack_multi(!tile_state.is_hole)
     });
@@ -123,7 +123,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
 
         let excluded_count = tile
             .reservations()
@@ -138,7 +138,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.reserve_for(id);
 
         lua.pack_multi(())
@@ -151,7 +151,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.reserve_for(entity_id);
 
         lua.pack_multi(())
@@ -164,7 +164,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
             tile.remove_reservation_for(id);
 
             lua.pack_multi(())
@@ -181,7 +181,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             let entity_id: EntityId = entity_table.raw_get("#id")?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
             tile.remove_reservation_for(entity_id);
 
             lua.pack_multi(())
@@ -192,7 +192,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.team())
     });
 
@@ -202,7 +202,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        let tile = tile_from(&mut simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut simulation.field, table)?;
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
 
         if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
@@ -216,7 +216,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.direction())
     });
 
@@ -224,7 +224,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let (table, direction): (rollback_mlua::Table, Direction) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.set_direction(direction);
 
         lua.pack_multi(())
@@ -234,7 +234,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let (table, highlight): (rollback_mlua::Table, TileHighlight) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.set_highlight(highlight);
 
         lua.pack_multi(())
@@ -503,7 +503,7 @@ pub fn create_tile_table(
     Ok(table)
 }
 
-fn tile_from<'a>(
+pub fn tile_mut_from_table<'a>(
     field: &'a mut Field,
     table: rollback_mlua::Table,
 ) -> rollback_mlua::Result<&'a mut Tile> {

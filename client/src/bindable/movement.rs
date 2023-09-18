@@ -1,6 +1,6 @@
 use super::Direction;
 use crate::battle::BattleCallback;
-use crate::lua_api::VM_INDEX_REGISTRY_KEY;
+use crate::lua_api::{create_movement_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 
 #[derive(Default, Clone)]
@@ -121,10 +121,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
             }
         };
 
-        let dest_table: rollback_mlua::Table = table.get("dest_tile")?;
+        let dest_table: rollback_mlua::Table = table.raw_get("dest_tile")?;
         let dest = (dest_table.raw_get("#x")?, dest_table.raw_get("#y")?);
 
-        let on_begin: Option<rollback_mlua::Function> = table.get("on_begin_func")?;
+        let on_begin: Option<rollback_mlua::Function> = table.raw_get("on_begin_func")?;
         let vm_index = lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?;
         let on_begin = on_begin
             .map(|func| BattleCallback::new_lua_callback(lua, vm_index, func))
@@ -133,10 +133,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
         Ok(Self {
             success: false,
             elapsed: 0,
-            delta: table.get("delta").unwrap_or_default(),
-            delay: table.get("delay").unwrap_or_default(),
-            endlag: table.get("endlag").unwrap_or_default(),
-            height: table.get("height").unwrap_or_default(),
+            delta: table.raw_get("delta").unwrap_or_default(),
+            delay: table.raw_get("delay").unwrap_or_default(),
+            endlag: table.raw_get("endlag").unwrap_or_default(),
+            height: table.raw_get("height").unwrap_or_default(),
             dest,
             source: (0, 0),
             on_begin,
@@ -149,13 +149,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for Movement {
         self,
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        let table = lua.create_table()?;
-
-        table.set("elapsed", self.elapsed)?;
-        table.set("delta", self.delta)?;
-        table.set("delay", self.delay)?;
-        table.set("endlag", self.endlag)?;
-        table.set("height", self.height)?;
+        let table = create_movement_table(lua, &self)?;
 
         Ok(rollback_mlua::Value::Table(table))
     }
