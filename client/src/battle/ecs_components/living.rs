@@ -473,7 +473,7 @@ impl Living {
 
             if new_index != Some(index) {
                 // delete the old action if we're not using it
-                simulation.delete_actions(game_io, resources, [index]);
+                Action::delete_multi(game_io, resources, simulation, [index]);
             }
 
             if let Some(new_index) = new_index {

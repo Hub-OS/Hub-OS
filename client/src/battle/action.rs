@@ -227,7 +227,7 @@ impl Action {
                 };
 
                 if matches!(action.lockout_type, ActionLockout::Animation) {
-                    simulation.delete_actions(game_io, resources, [action_index]);
+                    Action::delete_multi(game_io, resources, simulation, [action_index]);
                 }
             });
 
@@ -250,42 +250,6 @@ impl Action {
 
         action.executed = true;
         action.old_position = (entity.x, entity.y);
-    }
-
-    pub fn complete_sync(
-        &mut self,
-        entities: &mut hecs::World,
-        animators: &mut SlotMap<BattleAnimator>,
-        pending_callbacks: &mut Vec<BattleCallback>,
-        field: &mut Field,
-    ) {
-        let entity_id = self.entity.into();
-        let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
-
-        // unset action_index to allow other card actions to be used
-        entity.action_index = None;
-
-        // revert animation
-        if let Some((state, loop_mode, reversed)) = self.prev_state.take() {
-            let animator = &mut animators[entity.animator_index];
-            let callbacks = animator.set_state(&state);
-            animator.set_loop_mode(loop_mode);
-            animator.set_reversed(reversed);
-
-            pending_callbacks.extend(callbacks);
-
-            let sprite_node = entity.sprite_tree.root_mut();
-            animator.apply(sprite_node);
-        }
-
-        // update reservations as they're ignored while in a sync card action
-        if entity.auto_reserves_tiles {
-            let old_tile = field.tile_at_mut(self.old_position).unwrap();
-            old_tile.remove_reservation_for(entity.id);
-
-            let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-            current_tile.reserve_for(entity.id);
-        }
     }
 
     pub fn queue_action(
@@ -359,7 +323,7 @@ impl Action {
             indices.push_back(index);
         }
 
-        simulation.delete_actions(game_io, resources, indices);
+        Action::delete_multi(game_io, resources, simulation, indices);
     }
 
     pub fn process_queues(
@@ -476,6 +440,101 @@ impl Action {
             for (_, player) in entities.query_mut::<&mut Character>() {
                 player.card_use_requested = false;
             }
+        }
+    }
+
+    pub fn delete_multi(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        delete_indices: impl IntoIterator<Item = GenerationalIndex>,
+    ) {
+        for index in delete_indices {
+            let Some(action) = simulation.actions.get_mut(index) else {
+                continue;
+            };
+
+            if action.deleted {
+                // avoid callbacks calling delete_actions on this card action
+                continue;
+            }
+
+            action.deleted = true;
+
+            // remove the index from the entity
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(action.entity.into())
+                .unwrap();
+
+            if entity.action_index == Some(index) {
+                action.complete_sync(
+                    &mut simulation.entities,
+                    &mut simulation.animators,
+                    &mut simulation.pending_callbacks,
+                    &mut simulation.field,
+                );
+            }
+
+            // end callback
+            if let Some(callback) = action.end_callback.clone() {
+                callback.call(game_io, resources, simulation, ());
+            }
+
+            let action = simulation.actions.get(index).unwrap();
+
+            // remove attachments from the entity
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(action.entity.into())
+                .unwrap();
+
+            entity.sprite_tree.remove(action.sprite_index);
+
+            for attachment in &action.attachments {
+                simulation.animators.remove(attachment.animator_index);
+            }
+
+            // finally remove the card action
+            simulation.actions.remove(index);
+        }
+
+        simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    pub fn complete_sync(
+        &mut self,
+        entities: &mut hecs::World,
+        animators: &mut SlotMap<BattleAnimator>,
+        pending_callbacks: &mut Vec<BattleCallback>,
+        field: &mut Field,
+    ) {
+        let entity_id = self.entity.into();
+        let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
+
+        // unset action_index to allow other card actions to be used
+        entity.action_index = None;
+
+        // revert animation
+        if let Some((state, loop_mode, reversed)) = self.prev_state.take() {
+            let animator = &mut animators[entity.animator_index];
+            let callbacks = animator.set_state(&state);
+            animator.set_loop_mode(loop_mode);
+            animator.set_reversed(reversed);
+
+            pending_callbacks.extend(callbacks);
+
+            let sprite_node = entity.sprite_tree.root_mut();
+            animator.apply(sprite_node);
+        }
+
+        // update reservations as they're ignored while in a sync card action
+        if entity.auto_reserves_tiles {
+            let old_tile = field.tile_at_mut(self.old_position).unwrap();
+            old_tile.remove_reservation_for(entity.id);
+
+            let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
+            current_tile.reserve_for(entity.id);
         }
     }
 }

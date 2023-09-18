@@ -474,7 +474,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, resources, actions_pending_removal);
+        Action::delete_multi(game_io, resources, simulation, actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {
@@ -1382,7 +1382,7 @@ impl BattleState {
             }
         }
 
-        simulation.delete_actions(game_io, resources, actions_pending_deletion);
+        Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
     }
 
     fn apply_status_vfx(

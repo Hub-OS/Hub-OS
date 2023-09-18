@@ -564,65 +564,6 @@ impl BattleSimulation {
         true
     }
 
-    pub fn delete_actions(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        delete_indices: impl IntoIterator<Item = GenerationalIndex>,
-    ) {
-        for index in delete_indices {
-            let Some(action) = self.actions.get_mut(index) else {
-                continue;
-            };
-
-            if action.deleted {
-                // avoid callbacks calling delete_actions on this card action
-                continue;
-            }
-
-            action.deleted = true;
-
-            // remove the index from the entity
-            let entity = self
-                .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
-                .unwrap();
-
-            if entity.action_index == Some(index) {
-                action.complete_sync(
-                    &mut self.entities,
-                    &mut self.animators,
-                    &mut self.pending_callbacks,
-                    &mut self.field,
-                );
-            }
-
-            // end callback
-            if let Some(callback) = action.end_callback.clone() {
-                callback.call(game_io, resources, self, ());
-            }
-
-            let action = self.actions.get(index).unwrap();
-
-            // remove attachments from the entity
-            let entity = self
-                .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
-                .unwrap();
-
-            entity.sprite_tree.remove(action.sprite_index);
-
-            for attachment in &action.attachments {
-                self.animators.remove(attachment.animator_index);
-            }
-
-            // finally remove the card action
-            self.actions.remove(index);
-        }
-
-        self.call_pending_callbacks(game_io, resources);
-    }
-
     pub fn request_entity_spawn(&mut self, id: EntityId, (x, y): (i32, i32)) {
         let entity = self
             .entities
