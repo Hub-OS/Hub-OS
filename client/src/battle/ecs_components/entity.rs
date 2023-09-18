@@ -41,7 +41,6 @@ pub struct Entity {
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
     pub movement: Option<Movement>,
-    pub move_anim_state: Option<String>,
     pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
     pub action_queue: VecDeque<GenerationalIndex>,
     pub action_index: Option<GenerationalIndex>,
@@ -96,7 +95,6 @@ impl Entity {
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
             movement: None,
-            move_anim_state: None,
             last_movement_time: 0,
             action_queue: VecDeque::new(),
             action_index: None,

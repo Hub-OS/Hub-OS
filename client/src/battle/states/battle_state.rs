@@ -962,9 +962,9 @@ impl BattleState {
                 }
 
                 // actual movement
-                let entity = simulation
+                let (entity, player) = simulation
                     .entities
-                    .query_one_mut::<&mut Entity>(id)
+                    .query_one_mut::<(&mut Entity, &Player)>(id)
                     .unwrap();
 
                 if slide {
@@ -974,20 +974,18 @@ impl BattleState {
                     move_event.delay = 5;
                     move_event.endlag = 7;
 
-                    let anim_index = entity.animator_index;
-                    let move_state = entity.move_anim_state.clone();
+                    let animator_index = entity.animator_index;
+                    let movement_state = player.movement_animation_state.clone();
 
                     move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
-                        let anim = &mut simulation.animators[anim_index];
+                        let anim = &mut simulation.animators[animator_index];
 
-                        if let Some(move_state) = move_state.as_ref() {
-                            let callbacks = anim.set_state(move_state);
-                            simulation.pending_callbacks.extend(callbacks);
-                        }
+                        let callbacks = anim.set_state(&movement_state);
+                        simulation.pending_callbacks.extend(callbacks);
 
                         // reset to PLAYER_IDLE when movement finishes
                         anim.on_complete(BattleCallback::new(move |_, _, simulation, _| {
-                            let anim = &mut simulation.animators[anim_index];
+                            let anim = &mut simulation.animators[animator_index];
                             let callbacks = anim.set_state(Player::IDLE_STATE);
                             anim.set_loop_mode(AnimatorLoopMode::Loop);
 

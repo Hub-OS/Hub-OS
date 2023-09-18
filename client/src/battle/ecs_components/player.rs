@@ -24,6 +24,8 @@ pub struct Player {
     pub card_charged: bool,
     pub card_charge: AttackCharge,
     pub buster_charge: AttackCharge,
+    pub flinch_animation_state: String,
+    pub movement_animation_state: String,
     pub slide_when_moving: bool,
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
@@ -92,6 +94,8 @@ impl Player {
                 ResourcePaths::BATTLE_CHARGE_ANIMATION,
             )
             .with_color(Color::MAGENTA),
+            flinch_animation_state: String::new(),
+            movement_animation_state: String::new(),
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
@@ -142,24 +146,6 @@ impl Player {
         entity.name = player_package.name.clone();
         living.status_director.set_input_index(setup.index);
 
-        // derive states
-        let move_anim_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_MOVE",
-            Player::MOVE_FRAMES.to_vec(),
-            entity.animator_index,
-        );
-
-        let flinch_anim_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_HIT",
-            Player::HIT_FRAMES.to_vec(),
-            entity.animator_index,
-        );
-
-        entity.move_anim_state = Some(move_anim_state);
-        living.flinch_anim_state = Some(flinch_anim_state);
-
         // delete callback
         entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
             delete_player_animation(game_io, simulation, id);
@@ -187,7 +173,7 @@ impl Player {
                 // play flinch animation
                 let animator = &mut simulation.animators[entity.animator_index];
 
-                let callbacks = animator.set_state(living.flinch_anim_state.as_ref().unwrap());
+                let callbacks = animator.set_state(&player.flinch_animation_state);
                 simulation.pending_callbacks.extend(callbacks);
 
                 // on complete will return to idle
@@ -299,18 +285,28 @@ impl Player {
             ResourcePaths::BATTLE_CHARGE,
         );
 
-        simulation
-            .entities
-            .insert_one(
-                id.into(),
-                Player::new(
-                    game_io,
-                    setup,
-                    card_charge_sprite_index,
-                    buster_charge_sprite_index,
-                ),
-            )
-            .unwrap();
+        let mut player = Player::new(
+            game_io,
+            setup,
+            card_charge_sprite_index,
+            buster_charge_sprite_index,
+        );
+
+        player.movement_animation_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_MOVE",
+            Player::MOVE_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        player.flinch_animation_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_HIT",
+            Player::HIT_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        simulation.entities.insert_one(id.into(), player).unwrap();
 
         // init player
         if script_enabled {
