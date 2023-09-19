@@ -837,6 +837,7 @@ impl CardSelectState {
                     .unwrap_or_default();
 
                 card_properties.code = card.code.clone();
+                card_properties.namespace = Some(namespace);
                 character.cards.push(card_properties);
             }
 

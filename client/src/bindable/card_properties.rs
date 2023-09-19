@@ -1,6 +1,6 @@
 use super::{CardClass, Element, HitFlag, HitFlags};
 use crate::battle::StatusRegistry;
-use crate::packages::PackageId;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
@@ -9,6 +9,7 @@ use std::borrow::Cow;
 #[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties<H = HitFlags> {
     pub package_id: PackageId,
+    pub namespace: Option<PackageNamespace>,
     pub code: String,
     pub short_name: Cow<'static, str>,
     pub damage: i32,
@@ -28,6 +29,7 @@ impl<H: Default> Default for CardProperties<H> {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
+            namespace: None,
             code: String::new(),
             short_name: Cow::Borrowed("?????"),
             damage: 0,
@@ -102,6 +104,7 @@ impl CardProperties<Vec<String>> {
     pub fn to_bindable(&self, registry: &StatusRegistry) -> CardProperties<HitFlags> {
         CardProperties::<HitFlags> {
             package_id: self.package_id.clone(),
+            namespace: self.namespace,
             code: self.code.clone(),
             short_name: self.short_name.clone(),
             damage: self.damage,
@@ -141,6 +144,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
 
         Ok(CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
+            namespace: table.get("namespace").unwrap_or_default(),
             code: table.get("code").unwrap_or_default(),
             short_name: table
                 .get::<_, String>("short_name")
@@ -177,6 +181,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
         table.set("package_id", self.package_id.as_str())?;
+        table.set("namespace", self.namespace)?;
         table.set("code", self.code.as_str())?;
         table.set("short_name", self.short_name.as_ref())?;
         table.set("damage", self.damage)?;

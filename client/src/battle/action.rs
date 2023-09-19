@@ -77,8 +77,10 @@ impl Action {
             return None;
         }
 
+        let namespace = card_props.namespace.unwrap_or(namespace);
+
         let Ok(vm_index) = resources.vm_manager.find_vm(package_id, namespace) else {
-            log::error!("Failed to find vm for {package_id}");
+            log::error!("Failed to find vm for {package_id} with namespace: {namespace:?}");
             return None;
         };
 
