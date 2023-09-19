@@ -1,7 +1,7 @@
 use super::{
     Action, BattleAnimator, BattleSimulation, Entity, Living, SharedBattleResources, StatusDirector,
 };
-use crate::bindable::EntityId;
+use crate::bindable::{EntityId, Movement};
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
 
@@ -9,6 +9,7 @@ use framework::prelude::GameIO;
 pub struct TimeFreezeEntityBackup {
     entity_id: EntityId,
     action_index: Option<GenerationalIndex>,
+    movement: Option<Movement>,
     animator: BattleAnimator,
     status_director: Option<StatusDirector>,
 }
@@ -32,6 +33,9 @@ impl TimeFreezeEntityBackup {
         let old_action_index = entity.action_index;
         entity.action_index = Some(action_index);
 
+        // back up movement
+        let movement = std::mem::take(&mut entity.movement);
+
         // back up animator
         let animator = &mut simulation.animators[entity.animator_index];
         let animator_backup = animator.clone();
@@ -52,6 +56,7 @@ impl TimeFreezeEntityBackup {
         Some(Self {
             entity_id,
             action_index: old_action_index,
+            movement,
             animator: animator_backup,
             status_director,
         })
@@ -86,6 +91,9 @@ impl TimeFreezeEntityBackup {
 
         // restore the action
         entity.action_index = self.action_index;
+
+        // restore the movement
+        entity.movement = self.movement;
 
         // restore animator
         simulation.animators[entity.animator_index] = self.animator;
