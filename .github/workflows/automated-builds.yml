@@ -78,7 +78,7 @@ jobs:
           cp target/x86_64-pc-windows-gnu/release/hub_os_server.exe target/release/hub_os_server.exe
 
       - name: Install Linux Dependencies
-        run: apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
 
       - name: Build Linux Executables and Create Dist
         uses: actions-rs/cargo@v1
