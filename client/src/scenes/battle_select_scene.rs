@@ -15,7 +15,7 @@ pub struct BattleSelectScene {
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     preview_frame_sprite: Sprite,
-    recording_icon_sprite: Sprite,
+    recording_frame_sprite: Sprite,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     scroll_tracker: GridScrollTracker,
@@ -42,10 +42,10 @@ impl BattleSelectScene {
         layout_animator.set_state("FRAME");
         layout_animator.apply(&mut preview_frame_sprite);
 
-        // recording icon
-        let mut recording_icon_sprite = preview_frame_sprite.clone();
-        layout_animator.set_state("RECORDING_ICON");
-        layout_animator.apply(&mut recording_icon_sprite);
+        // recorded frame
+        let mut recording_frame_sprite = preview_frame_sprite.clone();
+        layout_animator.set_state("RECORDING_FRAME");
+        layout_animator.apply(&mut recording_frame_sprite);
 
         // cursor sprite
         let mut cursor_sprite = preview_frame_sprite.clone();
@@ -58,7 +58,7 @@ impl BattleSelectScene {
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             preview_frame_sprite,
-            recording_icon_sprite,
+            recording_frame_sprite,
             cursor_sprite,
             cursor_animator: layout_animator,
             ui_input_tracker: UiInputTracker::new(),
@@ -227,26 +227,29 @@ impl Scene for BattleSelectScene {
         let assets = &globals.assets;
 
         for (i, position) in self.scroll_tracker.iter_visible() {
-            // draw frame
-            self.preview_frame_sprite.set_position(position);
-            sprite_queue.draw_sprite(&self.preview_frame_sprite);
-
-            // draw package
+            // get package
             let package_id = &self.package_ids[i];
             let package = globals
                 .encounter_packages
                 .package(PackageNamespace::Local, package_id)
                 .unwrap();
 
+            // draw frame
+            if package.recording_path.is_some() {
+                //  recording frame
+                self.recording_frame_sprite.set_position(position);
+                sprite_queue.draw_sprite(&self.recording_frame_sprite);
+            } else {
+                // normal frame
+                self.preview_frame_sprite.set_position(position);
+                sprite_queue.draw_sprite(&self.preview_frame_sprite);
+            }
+
+            // draw package icon
             let mut preview_sprite = assets.new_sprite(game_io, &package.preview_texture_path);
             preview_sprite.set_origin(preview_sprite.size() * 0.5);
             preview_sprite.set_position(position);
             sprite_queue.draw_sprite(&preview_sprite);
-
-            if package.recording_path.is_some() {
-                self.recording_icon_sprite.set_position(position);
-                sprite_queue.draw_sprite(&self.recording_icon_sprite);
-            }
         }
 
         // draw cursor
