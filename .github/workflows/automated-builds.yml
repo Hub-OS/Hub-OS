@@ -39,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
 
       - name: Install Cargo About
-        run: cargo install cargo-about --version=0.5
+        run: cargo install cargo-about --version=^0.5
 
       - name: Make Release Folder
         run: mkdir -p target/release
