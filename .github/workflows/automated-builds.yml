@@ -45,9 +45,6 @@ jobs:
       - name: Install Cross
         run: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Install and Start Docker
-        run: sudo apt-get update && sudo apt-get install -y docker.io && sudo systemctl start docker
-
       - name: Make Release Folder
         run: mkdir -p target/release
 
@@ -63,7 +60,7 @@ jobs:
           cp target/x86_64-pc-windows-gnu/release/hub_os_server.exe target/release/hub_os_server.exe
 
       - name: Install Linux Dependencies
-        run: sudo apt-get install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
 
       - name: Build Linux Executables and Create Dist
         run: cargo run --bin dist
