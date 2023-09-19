@@ -52,6 +52,7 @@ pub struct BattleScene {
     receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
+    draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
     exiting: bool,
@@ -165,6 +166,7 @@ impl BattleScene {
             receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
+            draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
             exiting: false,
@@ -663,7 +665,7 @@ impl BattleScene {
         }
     }
 
-    fn detect_debug_hotkeys(&self, game_io: &mut GameIO) {
+    fn detect_debug_hotkeys(&mut self, game_io: &mut GameIO) {
         if !game_io.input().is_key_down(Key::F3) {
             return;
         }
@@ -680,6 +682,10 @@ impl BattleScene {
             } else {
                 log::error!("Recording is disabled");
             }
+        }
+
+        if game_io.input().was_key_just_pressed(Key::N) {
+            self.draw_player_indices = !self.draw_player_indices;
         }
     }
 
@@ -806,7 +812,8 @@ impl Scene for BattleScene {
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw simulation
-        self.simulation.draw(game_io, render_pass);
+        self.simulation
+            .draw(game_io, render_pass, self.draw_player_indices);
 
         // draw ui
         let mut sprite_queue =

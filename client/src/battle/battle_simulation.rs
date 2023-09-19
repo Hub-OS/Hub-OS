@@ -612,7 +612,12 @@ impl BattleSimulation {
         Ok(())
     }
 
-    pub fn draw(&mut self, game_io: &GameIO, render_pass: &mut RenderPass) {
+    pub fn draw(
+        &mut self,
+        game_io: &GameIO,
+        render_pass: &mut RenderPass,
+        draw_player_indices: bool,
+    ) {
         let mut blind_filter = None;
 
         // resolve perspective
@@ -733,6 +738,35 @@ impl BattleSimulation {
                 hp_text.style.bounds.x -= text_size.x * 0.5;
                 hp_text.style.bounds.y += tile_size.y * 0.5 - text_size.y;
                 hp_text.draw(game_io, &mut sprite_queue);
+            }
+        }
+
+        // draw player indices
+        if draw_player_indices {
+            let mut index_text = Text::new(game_io, FontStyle::Wide);
+            index_text.style.color = Color::GREEN;
+            index_text.style.shadow_color = Color::BLACK;
+
+            for (_, (entity, player)) in self.entities.query_mut::<(&Entity, &Player)>() {
+                if !entity.on_field || !entity.sprite_tree.root().visible() {
+                    continue;
+                }
+
+                if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                    // blindness filter
+                    continue;
+                }
+
+                let entity_screen_position =
+                    entity.screen_position(&self.field, perspective_flipped);
+
+                index_text.text = player.index.to_string();
+                let text_size = index_text.measure().size;
+
+                (index_text.style.bounds).set_position(entity_screen_position);
+                index_text.style.bounds.x -= text_size.x * 0.5;
+                index_text.style.bounds.y -= text_size.y;
+                index_text.draw(game_io, &mut sprite_queue);
             }
         }
 
