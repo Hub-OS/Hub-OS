@@ -64,8 +64,7 @@ impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
         let mut is_playing_back_recording = false;
 
-        if let Some(recording) = props.recording_data(game_io) {
-            recording.load_packages(game_io);
+        if let Some(recording) = props.try_load_recording(game_io) {
             props = BattleProps::from_recording(game_io, &recording);
             is_playing_back_recording = true;
         } else {

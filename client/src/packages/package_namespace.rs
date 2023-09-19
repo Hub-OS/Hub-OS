@@ -39,6 +39,11 @@ impl PackageNamespace {
         }
     }
 
+    pub fn has_override(self, ns: Self) -> bool {
+        self.find_with_overrides(|test_ns| if test_ns == ns { Some(()) } else { None })
+            .is_some()
+    }
+
     pub fn into_server(self) -> Self {
         match self {
             PackageNamespace::RecordingServer => self,

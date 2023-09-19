@@ -10,6 +10,7 @@ struct EncounterMeta {
     description: String,
     preview_texture_path: String,
     recording_path: Option<String>,
+    recording_overrides: Vec<PackageId>,
 }
 
 #[derive(Default, Clone)]
@@ -19,6 +20,7 @@ pub struct EncounterPackage {
     pub description: String,
     pub preview_texture_path: String,
     pub recording_path: Option<String>,
+    pub recording_overrides: Vec<PackageId>,
 }
 
 impl Package for EncounterPackage {
@@ -69,6 +71,7 @@ impl Package for EncounterPackage {
         package.description = meta.description;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.recording_path = meta.recording_path.map(|path| base_path.clone() + &path);
+        package.recording_overrides = meta.recording_overrides;
 
         package
     }

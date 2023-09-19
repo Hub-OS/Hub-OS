@@ -161,7 +161,7 @@ impl BattleRecording {
         rmp_serde::from_slice(&bytes).ok()
     }
 
-    pub fn load_packages(&self, game_io: &mut GameIO) {
+    pub fn load_packages(&self, game_io: &mut GameIO, ignored_package_ids: Vec<PackageId>) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
         // unload old packages
@@ -188,7 +188,43 @@ impl BattleRecording {
 
             // load package through virtual zip
             let globals = game_io.resource_mut::<Globals>().unwrap();
-            globals.load_virtual_package(*category, *namespace, hash);
+            let package_info = globals.load_virtual_package(*category, *namespace, hash);
+
+            // unloading ignored packages
+            let Some(package_info) = package_info else {
+                // nothing to unload
+                continue;
+            };
+
+            if !ignored_package_ids.contains(&package_info.id) {
+                // not ignored, we can keep this package
+                continue;
+            }
+
+            // unload the package
+            let id = package_info.id.clone();
+            globals.unload_package(*category, *namespace, &id);
+
+            if namespace.has_override(PackageNamespace::Local) {
+                // package can be overridden by local packages
+                // no need to load a package with the same namespace
+                continue;
+            }
+
+            // find the local package to reload in the new namespace
+            if let Some(package_info) =
+                globals.package_info(*category, PackageNamespace::Local, &id)
+            {
+                let hash = package_info.hash;
+                let zip_path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+
+                let globals = game_io.resource::<Globals>().unwrap();
+                let bytes = globals.assets.binary(&zip_path);
+                globals.assets.load_virtual_zip(game_io, hash, bytes);
+
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                globals.load_virtual_package(*category, *namespace, hash);
+            }
         }
 
         let globals = game_io.resource::<Globals>().unwrap();
