@@ -37,6 +37,7 @@ jobs:
             ~/.cargo/.crates2.json
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo
 
       - name: Install Cargo About
         run: cargo install cargo-about --version=^0.5
