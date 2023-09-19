@@ -27,7 +27,10 @@ jobs:
           targets: x86_64-pc-windows-gnu
 
       - name: Install Linux Dependencies
-        run: sudo apt-get update && sudo apt-get install -y mingw-w64 libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: mingw-w64 libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+          version: 1.0
 
       - uses: actions/cache@v3
         with:
