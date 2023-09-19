@@ -387,34 +387,14 @@ impl BattleState {
                 let entity_id = action.entity;
 
                 // unfreeze our entity
-                if let Ok((entity, living)) = simulation
-                    .entities
-                    .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
+                if let Some(entity_backup) =
+                    TimeFreezeEntityBackup::backup_and_prepare(simulation, entity_id, action_index)
                 {
-                    entity.time_frozen_count = 0;
-
-                    // back up their data
-                    let animator = &mut simulation.animators[entity.animator_index];
-
-                    // delete old status sprites
-                    for (_, index) in living.status_director.take_status_sprites() {
-                        entity.sprite_tree.remove(index);
-                    }
-
-                    time_freeze_tracker.back_up_character(
-                        entity_id,
-                        entity.action_index,
-                        animator.clone(),
-                        std::mem::take(&mut living.status_director),
-                    );
-
-                    entity.action_index = Some(action_index);
-
-                    // reset callbacks as they'll run when the animator is reverted
-                    animator.clear_callbacks();
+                    let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+                    time_freeze_tracker.set_entity_backup(entity_backup);
                 } else {
                     // entity erased?
-                    time_freeze_tracker.end_action();
+                    simulation.time_freeze_tracker.end_action();
                     log::error!("Time freeze entity erased, yet action still exists?");
                 }
             } else {
@@ -424,6 +404,8 @@ impl BattleState {
         }
 
         // detect action end
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+
         if let Some(index) = time_freeze_tracker.active_action() {
             if simulation.actions.get(index).is_none() {
                 // action completed, update tracking
@@ -432,39 +414,20 @@ impl BattleState {
         }
 
         // detect expiration
-        let mut actions_pending_removal = Vec::new();
         time_freeze_tracker.increment_time();
 
         if time_freeze_tracker.action_out_of_time() {
-            if let Some((entity_id, action_index, animator, status_director)) =
-                time_freeze_tracker.take_character_backup()
-            {
-                if let Ok((entity, living)) = simulation
-                    .entities
-                    .query_one_mut::<(&mut Entity, &mut Living)>(entity_id.into())
-                {
-                    // freeze the entity again
-                    entity.time_frozen_count = 1;
-
-                    // delete action if it still exists
-                    if let Some(index) = entity.action_index.take() {
-                        actions_pending_removal.push(index);
-                    }
-
-                    entity.action_index = action_index;
-
-                    // restore animator
-                    simulation.animators[entity.animator_index] = animator;
-
-                    // merge to retain statuses gained from time freeze
-                    living.status_director.merge(status_director);
-                }
+            if let Some(entity_backup) = time_freeze_tracker.take_entity_backup() {
+                entity_backup.restore(game_io, resources, simulation);
             }
 
+            let time_freeze_tracker = &mut simulation.time_freeze_tracker;
             time_freeze_tracker.advance_action();
         }
 
         // detect completion
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+
         if time_freeze_tracker.should_defrost() {
             // unfreeze all entities
             for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
@@ -473,8 +436,6 @@ impl BattleState {
                 }
             }
         }
-
-        Action::delete_multi(game_io, resources, simulation, actions_pending_removal);
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {

@@ -1,5 +1,5 @@
-use super::{BattleAnimator, BattleSimulation, StatusDirector};
-use crate::bindable::{EntityId, Team};
+use super::{BattleSimulation, TimeFreezeEntityBackup};
+use crate::bindable::Team;
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -31,12 +31,7 @@ pub struct TimeFreezeTracker {
     state: TimeFreezeState,
     revert_state: (TimeFreezeState, FrameTime),
     should_defrost: bool,
-    character_backup: Option<(
-        EntityId,
-        Option<GenerationalIndex>,
-        BattleAnimator,
-        StatusDirector,
-    )>,
+    character_backup: Option<TimeFreezeEntityBackup>,
 }
 
 impl TimeFreezeTracker {
@@ -193,24 +188,11 @@ impl TimeFreezeTracker {
             && self.active_time - self.state_start_time >= MAX_ACTION_DURATION
     }
 
-    pub fn back_up_character(
-        &mut self,
-        id: EntityId,
-        action_index: Option<GenerationalIndex>,
-        animator: BattleAnimator,
-        status_director: StatusDirector,
-    ) {
-        self.character_backup = Some((id, action_index, animator, status_director));
+    pub fn set_entity_backup(&mut self, backup: TimeFreezeEntityBackup) {
+        self.character_backup = Some(backup);
     }
 
-    pub fn take_character_backup(
-        &mut self,
-    ) -> Option<(
-        EntityId,
-        Option<GenerationalIndex>,
-        BattleAnimator,
-        StatusDirector,
-    )> {
+    pub fn take_entity_backup(&mut self) -> Option<TimeFreezeEntityBackup> {
         self.character_backup.take()
     }
 

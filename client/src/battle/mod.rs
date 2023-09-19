@@ -25,6 +25,7 @@ mod status_director;
 mod status_registry;
 mod tile;
 mod tile_state;
+mod time_freeze_entity_backup;
 mod time_freeze_tracker;
 mod turn_gauge;
 
@@ -55,5 +56,6 @@ pub use status_director::*;
 pub use status_registry::*;
 pub use tile::*;
 pub use tile_state::*;
+pub use time_freeze_entity_backup::*;
 pub use time_freeze_tracker::*;
 pub use turn_gauge::*;
