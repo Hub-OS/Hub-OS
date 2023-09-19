@@ -27,7 +27,7 @@ jobs:
           targets: x86_64-pc-windows-gnu
 
       - name: Install Linux Dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64 libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
 
       - uses: actions/cache@v3
         with:
@@ -45,17 +45,14 @@ jobs:
       - name: Install Cargo About
         run: cargo install cargo-about --version=^0.5
 
-      - name: Install Cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
-
       - name: Make Release Folder
         run: mkdir -p target/release
 
       - name: Build Windows Client
-        run: cross build -p hub_os --release --target x86_64-pc-windows-gnu
+        run: cargo build -p hub_os --release --target x86_64-pc-windows-gnu
 
       - name: Build Windows Server
-        run: cross build -p hub_os_server --release --target x86_64-pc-windows-gnu
+        run: cargo build -p hub_os_server --release --target x86_64-pc-windows-gnu
 
       - name: Copy Windows Executables
         run: |
