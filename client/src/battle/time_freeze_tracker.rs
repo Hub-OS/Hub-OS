@@ -16,10 +16,13 @@ const MAX_ACTION_DURATION: FrameTime = 60 * 15;
 enum TimeFreezeState {
     #[default]
     Thawed,
+    // freezing actions flow
+    Freeze,
     FadeIn,
     Counterable,
     Action,
     FadeOut,
+    // decross
     Decross,
 }
 
@@ -52,6 +55,7 @@ impl TimeFreezeTracker {
 
         match self.state {
             TimeFreezeState::Thawed => 0.0,
+            TimeFreezeState::Freeze => 0.0,
             TimeFreezeState::FadeIn => inverse_lerp!(0, FADE_DURATION, state_elapsed_time),
             TimeFreezeState::Counterable | TimeFreezeState::Action => 1.0,
             TimeFreezeState::FadeOut => inverse_lerp!(FADE_DURATION, 0, state_elapsed_time),
@@ -66,7 +70,7 @@ impl TimeFreezeTracker {
 
         if !self.time_is_frozen() {
             self.active_time = 0;
-            self.state = TimeFreezeState::FadeIn;
+            self.state = TimeFreezeState::Freeze;
         }
 
         // set the state start time to allow other players to counter, as well as initialize
@@ -97,6 +101,10 @@ impl TimeFreezeTracker {
 
         match self.state {
             TimeFreezeState::Thawed | TimeFreezeState::Action => {}
+            TimeFreezeState::Freeze => {
+                self.state = TimeFreezeState::FadeIn;
+                self.state_start_time = self.active_time;
+            }
             TimeFreezeState::FadeIn => {
                 if state_elapsed_time >= FADE_DURATION {
                     self.state = TimeFreezeState::Counterable;
@@ -147,7 +155,7 @@ impl TimeFreezeTracker {
     pub fn should_freeze(&self) -> bool {
         matches!(
             self.state,
-            TimeFreezeState::FadeIn | TimeFreezeState::Decross
+            TimeFreezeState::Freeze | TimeFreezeState::Decross
         ) && self.active_time - self.state_start_time == 0
     }
 
