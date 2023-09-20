@@ -51,15 +51,24 @@ impl TimeFreezeTracker {
     }
 
     pub fn fade_alpha(&self) -> f32 {
-        let state_elapsed_time = self.active_time - self.state_start_time;
+        let mut state = self.state;
+        let mut state_elapsed_time = self.active_time - self.state_start_time;
 
-        match self.state {
+        if state == TimeFreezeState::Decross {
+            // use the previous state to prevent sudden brightness jumps
+            state = self.revert_state.0;
+
+            let modified_start = self.revert_state.1 + state_elapsed_time;
+            state_elapsed_time = self.active_time - modified_start;
+        }
+
+        match state {
             TimeFreezeState::Thawed => 0.0,
             TimeFreezeState::Freeze => 0.0,
             TimeFreezeState::FadeIn => inverse_lerp!(0, FADE_DURATION, state_elapsed_time),
             TimeFreezeState::Counterable | TimeFreezeState::Action => 1.0,
             TimeFreezeState::FadeOut => inverse_lerp!(FADE_DURATION, 0, state_elapsed_time),
-            TimeFreezeState::Decross => 0.0,
+            TimeFreezeState::Decross => unreachable!(),
         }
     }
 
