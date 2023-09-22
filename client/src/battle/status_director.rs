@@ -267,7 +267,9 @@ impl StatusDirector {
         }
 
         for status in source.statuses {
-            self.apply_status(status.status_flag, status.remaining_time);
+            if status.remaining_time > 0 {
+                self.apply_status(status.status_flag, status.remaining_time);
+            }
         }
     }
 
