@@ -27,7 +27,7 @@ impl TimeFreezeEntityBackup {
             return None;
         };
 
-        entity.time_frozen_count = 0;
+        entity.time_frozen = false;
 
         // swap action index
         let old_action_index = entity.action_index;
@@ -87,7 +87,7 @@ impl TimeFreezeEntityBackup {
         };
 
         // freeze the entity again
-        entity.time_frozen_count = 1;
+        entity.time_frozen = true;
 
         // restore the action
         entity.action_index = self.action_index;

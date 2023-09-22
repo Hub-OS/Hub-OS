@@ -312,7 +312,7 @@ impl BattleSimulation {
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
         for (id, entity) in self.entities.query::<&Entity>().into_iter() {
-            if entity.time_frozen_count > 0 {
+            if entity.time_frozen {
                 continue;
             }
 
@@ -337,7 +337,7 @@ impl BattleSimulation {
                 continue;
             };
 
-            if entity.time_frozen_count > 0 || (time_is_frozen && !action.properties.time_freeze) {
+            if entity.time_frozen || (time_is_frozen && !action.properties.time_freeze) {
                 continue;
             }
 
@@ -551,7 +551,7 @@ impl BattleSimulation {
                 return false;
             };
 
-            if entity.time_frozen_count > 0 {
+            if entity.time_frozen {
                 return false;
             }
         }

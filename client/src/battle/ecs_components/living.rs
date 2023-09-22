@@ -254,9 +254,7 @@ impl Living {
             }
 
             // time freeze effects
-            let time_is_frozen = entity.time_frozen_count > 0;
-
-            if time_is_frozen {
+            if entity.time_frozen {
                 hit_props.flags |= HitFlag::SHAKE;
                 hit_props.context.flags |= HitFlag::NO_COUNTER;
             }

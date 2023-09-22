@@ -1,4 +1,6 @@
-use super::{BattleSimulation, TimeFreezeEntityBackup};
+use std::collections::VecDeque;
+
+use super::{BattleCallback, BattleSimulation, SharedBattleResources, TimeFreezeEntityBackup};
 use crate::bindable::Team;
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
@@ -8,7 +10,6 @@ use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, GameIO, Vec2};
 
 const FADE_DURATION: FrameTime = 10;
-const DECROSS_DURATION: FrameTime = 30;
 const COUNTER_DURATION: FrameTime = 60;
 const MAX_ACTION_DURATION: FrameTime = 60 * 15;
 
@@ -22,8 +23,8 @@ enum TimeFreezeState {
     Counterable,
     Action,
     FadeOut,
-    // decross
-    Decross,
+    // animation
+    Animation(FrameTime),
 }
 
 #[derive(Default, Clone)]
@@ -32,9 +33,9 @@ pub struct TimeFreezeTracker {
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
-    revert_state: (TimeFreezeState, FrameTime),
     should_defrost: bool,
     character_backup: Option<TimeFreezeEntityBackup>,
+    animation_queue: VecDeque<(BattleCallback, FrameTime)>,
 }
 
 impl TimeFreezeTracker {
@@ -47,28 +48,19 @@ impl TimeFreezeTracker {
     }
 
     pub fn is_action_freeze(&self) -> bool {
-        self.time_is_frozen() && self.state != TimeFreezeState::Decross
+        self.time_is_frozen() && !matches!(self.state, TimeFreezeState::Animation(_))
     }
 
     pub fn fade_alpha(&self) -> f32 {
-        let mut state = self.state;
-        let mut state_elapsed_time = self.active_time - self.state_start_time;
+        let state_elapsed_time = self.active_time - self.state_start_time;
 
-        if state == TimeFreezeState::Decross {
-            // use the previous state to prevent sudden brightness jumps
-            state = self.revert_state.0;
-
-            let modified_start = self.revert_state.1 + state_elapsed_time;
-            state_elapsed_time = self.active_time - modified_start;
-        }
-
-        match state {
+        match self.state {
             TimeFreezeState::Thawed => 0.0,
             TimeFreezeState::Freeze => 0.0,
             TimeFreezeState::FadeIn => inverse_lerp!(0, FADE_DURATION, state_elapsed_time),
             TimeFreezeState::Counterable | TimeFreezeState::Action => 1.0,
             TimeFreezeState::FadeOut => inverse_lerp!(FADE_DURATION, 0, state_elapsed_time),
-            TimeFreezeState::Decross => unreachable!(),
+            TimeFreezeState::Animation(_) => 0.0,
         }
     }
 
@@ -88,21 +80,41 @@ impl TimeFreezeTracker {
         self.chain.push((team, action_index));
     }
 
-    pub fn start_decross(&mut self) {
-        if self.state == TimeFreezeState::Decross {
-            return;
-        }
-
+    pub fn queue_animation(&mut self, duration: FrameTime, begin_callback: BattleCallback) {
         if !self.time_is_frozen() {
-            self.active_time = 0;
+            // set the state to an immediately completed animation
+            // it will trigger the queue to pop
+            self.state = TimeFreezeState::Animation(0);
         }
 
-        self.revert_state = (self.state, self.state_start_time);
-        self.state = TimeFreezeState::Decross;
-        self.state_start_time = self.active_time;
+        self.animation_queue.push_back((begin_callback, duration));
     }
 
-    pub fn increment_time(&mut self) {
+    pub fn tick(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        simulation.time_freeze_tracker.increment_time();
+
+        if simulation.time_freeze_tracker.action_out_of_time() {
+            if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
+                entity_backup.restore(game_io, resources, simulation);
+            }
+
+            simulation.time_freeze_tracker.advance_action();
+        }
+
+        if !simulation.time_freeze_tracker.time_is_frozen() {
+            // handle any pending animations such as decross
+            if let Some(callback) = simulation.time_freeze_tracker.advance_animation() {
+                simulation.pending_callbacks.push(callback);
+                simulation.call_pending_callbacks(game_io, resources);
+            }
+        }
+    }
+
+    fn increment_time(&mut self) {
         self.active_time += 1;
         self.should_defrost = false;
 
@@ -133,10 +145,10 @@ impl TimeFreezeTracker {
                     self.should_defrost = true;
                 }
             }
-            TimeFreezeState::Decross => {
-                if state_elapsed_time >= DECROSS_DURATION {
-                    self.state = self.revert_state.0;
-                    self.state_start_time = self.revert_state.1 + state_elapsed_time;
+            TimeFreezeState::Animation(duration) => {
+                if state_elapsed_time >= duration {
+                    self.state = TimeFreezeState::Thawed;
+                    self.state_start_time = self.active_time;
                     self.should_defrost = true;
                 }
             }
@@ -164,7 +176,7 @@ impl TimeFreezeTracker {
     pub fn should_freeze(&self) -> bool {
         matches!(
             self.state,
-            TimeFreezeState::Freeze | TimeFreezeState::Decross
+            TimeFreezeState::Freeze | TimeFreezeState::Animation(_)
         ) && self.active_time - self.state_start_time == 0
     }
 
@@ -188,7 +200,7 @@ impl TimeFreezeTracker {
         self.active_time = self.state_start_time + MAX_ACTION_DURATION;
     }
 
-    pub fn advance_action(&mut self) {
+    fn advance_action(&mut self) {
         self.chain.pop();
 
         if self.chain.is_empty() {
@@ -200,9 +212,24 @@ impl TimeFreezeTracker {
         self.state_start_time = self.active_time;
     }
 
-    pub fn action_out_of_time(&self) -> bool {
+    fn action_out_of_time(&self) -> bool {
         self.state == TimeFreezeState::Action
             && self.active_time - self.state_start_time >= MAX_ACTION_DURATION
+    }
+
+    #[must_use]
+    fn advance_animation(&mut self) -> Option<BattleCallback> {
+        self.state_start_time = self.active_time;
+
+        if let Some((callback, duration)) = self.animation_queue.pop_front() {
+            self.state = TimeFreezeState::Animation(duration);
+            self.should_defrost = false;
+            Some(callback)
+        } else {
+            self.state = TimeFreezeState::Thawed;
+            self.should_defrost = true;
+            None
+        }
     }
 
     pub fn set_entity_backup(&mut self, backup: TimeFreezeEntityBackup) {

@@ -37,7 +37,7 @@ pub struct Entity {
     pub offset: Vec2,      // does not flip with teams, only perspective
     pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
-    pub time_frozen_count: usize,
+    pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
     pub movement: Option<Movement>,
@@ -91,7 +91,7 @@ impl Entity {
                 aggressor: id,
                 flags: HitFlag::NONE,
             },
-            time_frozen_count: 0,
+            time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
             movement: None,

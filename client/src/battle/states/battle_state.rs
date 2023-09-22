@@ -320,7 +320,7 @@ impl BattleState {
             let entities = &mut simulation.entities;
 
             for (_, entity) in entities.query_mut::<hecs::Without<&mut Entity, &Artifact>>() {
-                entity.time_frozen_count += 1;
+                entity.time_frozen = true;
             }
 
             if time_freeze_tracker.is_action_freeze() {
@@ -414,16 +414,7 @@ impl BattleState {
         }
 
         // detect expiration
-        time_freeze_tracker.increment_time();
-
-        if time_freeze_tracker.action_out_of_time() {
-            if let Some(entity_backup) = time_freeze_tracker.take_entity_backup() {
-                entity_backup.restore(game_io, resources, simulation);
-            }
-
-            let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-            time_freeze_tracker.advance_action();
-        }
+        TimeFreezeTracker::tick(game_io, resources, simulation);
 
         // detect completion
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
@@ -431,8 +422,8 @@ impl BattleState {
         if time_freeze_tracker.should_defrost() {
             // unfreeze all entities
             for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-                if entity.time_frozen_count > 0 {
-                    entity.time_frozen_count -= 1;
+                if entity.time_frozen {
+                    entity.time_frozen = false;
                 }
             }
         }
@@ -482,7 +473,7 @@ impl BattleState {
                 tile.set_highlight(spell.requested_highlight);
             }
 
-            if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
+            if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
@@ -510,7 +501,7 @@ impl BattleState {
         simulation: &mut BattleSimulation,
     ) {
         for (_, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if entity.time_frozen_count == 0 {
+            if !entity.time_frozen {
                 living.hit = false;
             }
         }
@@ -972,7 +963,7 @@ impl BattleState {
         let entities = &mut simulation.entities;
 
         for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
-            if entity.time_frozen_count > 0 || entity.updated || !entity.spawned || entity.deleted {
+            if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
@@ -1066,8 +1057,7 @@ impl BattleState {
         let mut moving_entities = Vec::new();
 
         for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
-            let mut update_progress =
-                entity.spawned && !entity.deleted && entity.time_frozen_count == 0;
+            let mut update_progress = entity.spawned && !entity.deleted && !entity.time_frozen;
 
             if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
                 if living.status_director.is_immobile(status_registry) {
@@ -1259,7 +1249,7 @@ impl BattleState {
                 continue;
             };
 
-            if !entity.spawned || entity.deleted || entity.time_frozen_count > 0 {
+            if !entity.spawned || entity.deleted || entity.time_frozen {
                 continue;
             }
 
