@@ -54,7 +54,7 @@ impl State for BattleState {
         Action::process_queues(game_io, resources, simulation);
 
         // update time freeze first as it affects the rest of the updates
-        self.update_time_freeze(game_io, resources, simulation);
+        TimeFreezeTracker::update(game_io, resources, simulation);
 
         // new: process movement and actions
         self.process_movement(game_io, resources, simulation);
@@ -293,140 +293,6 @@ impl BattleState {
         }
 
         simulation.call_pending_callbacks(game_io, resources);
-    }
-
-    pub fn update_time_freeze(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-
-        if !time_freeze_tracker.time_is_frozen() {
-            return;
-        }
-
-        // update fade color
-        const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
-
-        let fade_alpha = time_freeze_tracker.fade_alpha();
-        let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
-        simulation.fade_sprite.set_color(fade_color);
-
-        // detect freeze start
-        if time_freeze_tracker.should_freeze() {
-            // freeze non artifacts
-            let entities = &mut simulation.entities;
-
-            for (_, entity) in entities.query_mut::<hecs::Without<&mut Entity, &Artifact>>() {
-                entity.time_frozen = true;
-            }
-
-            if time_freeze_tracker.is_action_freeze() {
-                // play sfx
-                simulation.play_sound(
-                    game_io,
-                    &game_io.resource::<Globals>().unwrap().sfx.time_freeze,
-                );
-            }
-        }
-
-        // detect time freeze counter
-        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-
-        if time_freeze_tracker.can_counter() {
-            let entities = &mut simulation.entities;
-
-            let player_ids: Vec<_> = entities
-                .query_mut::<&Player>()
-                .into_iter()
-                .map(|(e, _)| e)
-                .collect();
-
-            let last_team = time_freeze_tracker.last_team().unwrap();
-
-            for id in player_ids {
-                let (entity, player, character) = entities
-                    .query_one_mut::<(&Entity, &Player, &Character)>(id)
-                    .unwrap();
-
-                if entity.deleted || entity.team == last_team {
-                    // can't counter
-                    // can't counter a card from the same team
-                    continue;
-                }
-
-                if !simulation.inputs[player.index].was_just_pressed(Input::UseCard) {
-                    // didn't try to counter
-                    continue;
-                }
-
-                if let Some(card_props) = character.cards.last() {
-                    if !card_props.time_freeze {
-                        // must counter with a time freeze card
-                        continue;
-                    }
-                } else {
-                    // no cards to counter with
-                    continue;
-                }
-
-                Character::use_card(game_io, resources, simulation, id.into());
-                break;
-            }
-        }
-
-        // detect action start
-        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-
-        if time_freeze_tracker.action_should_start() {
-            let action_index = time_freeze_tracker.active_action().unwrap();
-
-            if let Some(action) = simulation.actions.get(action_index) {
-                let entity_id = action.entity;
-
-                // unfreeze our entity
-                if let Some(entity_backup) =
-                    TimeFreezeEntityBackup::backup_and_prepare(simulation, entity_id, action_index)
-                {
-                    let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-                    time_freeze_tracker.set_entity_backup(entity_backup);
-                } else {
-                    // entity erased?
-                    simulation.time_freeze_tracker.end_action();
-                    log::error!("Time freeze entity erased, yet action still exists?");
-                }
-            } else {
-                // action deleted?
-                time_freeze_tracker.end_action();
-            }
-        }
-
-        // detect action end
-        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-
-        if let Some(index) = time_freeze_tracker.active_action() {
-            if simulation.actions.get(index).is_none() {
-                // action completed, update tracking
-                time_freeze_tracker.end_action();
-            }
-        }
-
-        // detect expiration
-        TimeFreezeTracker::tick(game_io, resources, simulation);
-
-        // detect completion
-        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-
-        if time_freeze_tracker.should_defrost() {
-            // unfreeze all entities
-            for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-                if entity.time_frozen {
-                    entity.time_frozen = false;
-                }
-            }
-        }
     }
 
     fn prepare_updates(&self, simulation: &mut BattleSimulation) {

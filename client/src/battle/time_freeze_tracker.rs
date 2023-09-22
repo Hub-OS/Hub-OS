@@ -1,6 +1,7 @@
-use std::collections::VecDeque;
-
-use super::{BattleCallback, BattleSimulation, SharedBattleResources, TimeFreezeEntityBackup};
+use super::{
+    Artifact, BattleCallback, BattleSimulation, Character, Entity, Player, SharedBattleResources,
+    TimeFreezeEntityBackup,
+};
 use crate::bindable::Team;
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
@@ -8,6 +9,8 @@ use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
 use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, GameIO, Vec2};
+use packets::structures::Input;
+use std::collections::VecDeque;
 
 const FADE_DURATION: FrameTime = 10;
 const COUNTER_DURATION: FrameTime = 60;
@@ -47,11 +50,11 @@ impl TimeFreezeTracker {
         self.state != TimeFreezeState::Thawed
     }
 
-    pub fn is_action_freeze(&self) -> bool {
+    fn is_action_freeze(&self) -> bool {
         self.time_is_frozen() && !matches!(self.state, TimeFreezeState::Animation(_))
     }
 
-    pub fn fade_alpha(&self) -> f32 {
+    fn fade_alpha(&self) -> f32 {
         let state_elapsed_time = self.active_time - self.state_start_time;
 
         match self.state {
@@ -90,28 +93,85 @@ impl TimeFreezeTracker {
         self.animation_queue.push_back((begin_callback, duration));
     }
 
-    pub fn tick(
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        simulation.time_freeze_tracker.increment_time();
+    pub fn last_team(&self) -> Option<Team> {
+        self.chain.last().map(|(team, _)| team).cloned()
+    }
 
-        if simulation.time_freeze_tracker.action_out_of_time() {
-            if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
-                entity_backup.restore(game_io, resources, simulation);
-            }
+    pub fn can_counter(&self) -> bool {
+        let state_elapsed_time = self.active_time - self.state_start_time;
 
-            simulation.time_freeze_tracker.advance_action();
+        if let TimeFreezeState::Counterable = self.state {
+            COUNTER_DURATION - state_elapsed_time > 2
+        } else {
+            false
+        }
+    }
+
+    pub fn can_queued_counter(&self) -> bool {
+        self.state == TimeFreezeState::Counterable
+    }
+
+    fn should_freeze(&self) -> bool {
+        matches!(
+            self.state,
+            TimeFreezeState::Freeze | TimeFreezeState::Animation(_)
+        ) && self.active_time - self.state_start_time == 0
+    }
+
+    fn action_should_start(&self) -> bool {
+        self.state == TimeFreezeState::Action && self.active_time == self.state_start_time
+    }
+
+    fn active_action(&self) -> Option<GenerationalIndex> {
+        if self.state != TimeFreezeState::Action {
+            return None;
         }
 
-        if !simulation.time_freeze_tracker.time_is_frozen() {
-            // handle any pending animations such as decross
-            if let Some(callback) = simulation.time_freeze_tracker.advance_animation() {
-                simulation.pending_callbacks.push(callback);
-                simulation.call_pending_callbacks(game_io, resources);
-            }
+        self.chain.last().map(|(_, index)| index).cloned()
+    }
+
+    fn end_action(&mut self) {
+        self.active_time = self.state_start_time + MAX_ACTION_DURATION;
+    }
+
+    fn advance_action(&mut self) {
+        self.chain.pop();
+
+        if self.chain.is_empty() {
+            self.state = TimeFreezeState::FadeOut;
+        } else {
+            self.state = TimeFreezeState::Action;
         }
+
+        self.state_start_time = self.active_time;
+    }
+
+    fn action_out_of_time(&self) -> bool {
+        self.state == TimeFreezeState::Action
+            && self.active_time - self.state_start_time >= MAX_ACTION_DURATION
+    }
+
+    #[must_use]
+    fn advance_animation(&mut self) -> Option<BattleCallback> {
+        self.state_start_time = self.active_time;
+
+        if let Some((callback, duration)) = self.animation_queue.pop_front() {
+            self.state = TimeFreezeState::Animation(duration);
+            self.should_defrost = false;
+            Some(callback)
+        } else {
+            self.state = TimeFreezeState::Thawed;
+            self.should_defrost = true;
+            None
+        }
+    }
+
+    fn set_entity_backup(&mut self, backup: TimeFreezeEntityBackup) {
+        self.character_backup = Some(backup);
+    }
+
+    fn take_entity_backup(&mut self) -> Option<TimeFreezeEntityBackup> {
+        self.character_backup.take()
     }
 
     fn increment_time(&mut self) {
@@ -155,89 +215,169 @@ impl TimeFreezeTracker {
         };
     }
 
-    pub fn last_team(&self) -> Option<Team> {
-        self.chain.last().map(|(team, _)| team).cloned()
-    }
+    pub fn update(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        if !simulation.time_freeze_tracker.time_is_frozen() {
+            return;
+        }
 
-    pub fn can_counter(&self) -> bool {
-        let state_elapsed_time = self.active_time - self.state_start_time;
+        // update fade color
+        const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
 
-        if let TimeFreezeState::Counterable = self.state {
-            COUNTER_DURATION - state_elapsed_time > 2
+        let fade_alpha = simulation.time_freeze_tracker.fade_alpha();
+        let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
+        simulation.fade_sprite.set_color(fade_color);
+
+        // detect freeze start
+        if simulation.time_freeze_tracker.should_freeze() {
+            Self::freeze(simulation);
+
+            if simulation.time_freeze_tracker.is_action_freeze() {
+                // play sfx
+                let globals = game_io.resource::<Globals>().unwrap();
+                simulation.play_sound(game_io, &globals.sfx.time_freeze);
+            }
+        }
+
+        // state based updates
+        if simulation.time_freeze_tracker.is_action_freeze() {
+            Self::action_update(game_io, resources, simulation);
         } else {
-            false
+            // just increment the time
+            simulation.time_freeze_tracker.increment_time();
+        }
+
+        // handle any pending animations such as decross
+        if !simulation.time_freeze_tracker.time_is_frozen() {
+            if let Some(callback) = simulation.time_freeze_tracker.advance_animation() {
+                simulation.pending_callbacks.push(callback);
+                simulation.call_pending_callbacks(game_io, resources);
+            }
+        }
+
+        if simulation.time_freeze_tracker.should_defrost {
+            Self::defrost(simulation);
         }
     }
 
-    pub fn can_queued_counter(&self) -> bool {
-        self.state == TimeFreezeState::Counterable
+    fn freeze(simulation: &mut BattleSimulation) {
+        // freeze non artifacts
+        type Query<'a> = hecs::Without<&'a mut Entity, &'a Artifact>;
+
+        for (_, entity) in simulation.entities.query_mut::<Query>() {
+            entity.time_frozen = true;
+        }
     }
 
-    pub fn should_freeze(&self) -> bool {
-        matches!(
-            self.state,
-            TimeFreezeState::Freeze | TimeFreezeState::Animation(_)
-        ) && self.active_time - self.state_start_time == 0
+    fn defrost(simulation: &mut BattleSimulation) {
+        // unfreeze all entities
+        for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
+            if entity.time_frozen {
+                entity.time_frozen = false;
+            }
+        }
     }
 
-    pub fn should_defrost(&self) -> bool {
-        self.should_defrost
-    }
+    fn action_update(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        // detect time freeze counter
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
-    pub fn action_should_start(&self) -> bool {
-        self.state == TimeFreezeState::Action && self.active_time == self.state_start_time
-    }
-
-    pub fn active_action(&self) -> Option<GenerationalIndex> {
-        if self.state != TimeFreezeState::Action {
-            return None;
+        if time_freeze_tracker.can_counter() {
+            Self::detect_counter_attempt(game_io, resources, simulation);
         }
 
-        self.chain.last().map(|(_, index)| index).cloned()
+        // detect action start
+        if simulation.time_freeze_tracker.action_should_start() {
+            Self::begin_action(simulation);
+        }
+
+        // detect action end
+        if let Some(index) = simulation.time_freeze_tracker.active_action() {
+            if !simulation.actions.contains_key(index) {
+                // action completed, update tracking
+                simulation.time_freeze_tracker.end_action();
+            }
+        }
+
+        // increment the time
+        simulation.time_freeze_tracker.increment_time();
+
+        // handle the action running out of time
+        if simulation.time_freeze_tracker.action_out_of_time() {
+            if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
+                entity_backup.restore(game_io, resources, simulation);
+            }
+
+            simulation.time_freeze_tracker.advance_action();
+        }
     }
 
-    pub fn end_action(&mut self) {
-        self.active_time = self.state_start_time + MAX_ACTION_DURATION;
+    fn detect_counter_attempt(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let last_team = simulation.time_freeze_tracker.last_team().unwrap();
+
+        type Query<'a> = (&'a Entity, &'a Player, &'a Character);
+        let entities = &mut simulation.entities;
+
+        for (id, (entity, player, character)) in entities.query_mut::<Query>() {
+            if entity.deleted || entity.team == last_team {
+                // can't counter
+                // can't counter a card from the same team
+                continue;
+            }
+
+            if !simulation.inputs[player.index].was_just_pressed(Input::UseCard) {
+                // didn't try to counter
+                continue;
+            }
+
+            if let Some(card_props) = character.cards.last() {
+                if !card_props.time_freeze {
+                    // must counter with a time freeze card
+                    continue;
+                }
+            } else {
+                // no cards to counter with
+                continue;
+            }
+
+            Character::use_card(game_io, resources, simulation, id.into());
+            break;
+        }
     }
 
-    fn advance_action(&mut self) {
-        self.chain.pop();
+    fn begin_action(simulation: &mut BattleSimulation) {
+        let action_index = simulation.time_freeze_tracker.active_action().unwrap();
 
-        if self.chain.is_empty() {
-            self.state = TimeFreezeState::FadeOut;
+        if let Some(action) = simulation.actions.get(action_index) {
+            let entity_id = action.entity;
+
+            // unfreeze our entity
+            if let Some(entity_backup) =
+                TimeFreezeEntityBackup::backup_and_prepare(simulation, entity_id, action_index)
+            {
+                simulation
+                    .time_freeze_tracker
+                    .set_entity_backup(entity_backup);
+            } else {
+                // entity erased?
+                simulation.time_freeze_tracker.end_action();
+                log::error!("Time freeze entity erased, yet action still exists?");
+            }
         } else {
-            self.state = TimeFreezeState::Action;
+            // action deleted?
+            simulation.time_freeze_tracker.end_action();
         }
-
-        self.state_start_time = self.active_time;
-    }
-
-    fn action_out_of_time(&self) -> bool {
-        self.state == TimeFreezeState::Action
-            && self.active_time - self.state_start_time >= MAX_ACTION_DURATION
-    }
-
-    #[must_use]
-    fn advance_animation(&mut self) -> Option<BattleCallback> {
-        self.state_start_time = self.active_time;
-
-        if let Some((callback, duration)) = self.animation_queue.pop_front() {
-            self.state = TimeFreezeState::Animation(duration);
-            self.should_defrost = false;
-            Some(callback)
-        } else {
-            self.state = TimeFreezeState::Thawed;
-            self.should_defrost = true;
-            None
-        }
-    }
-
-    pub fn set_entity_backup(&mut self, backup: TimeFreezeEntityBackup) {
-        self.character_backup = Some(backup);
-    }
-
-    pub fn take_entity_backup(&mut self) -> Option<TimeFreezeEntityBackup> {
-        self.character_backup.take()
     }
 
     pub fn draw_ui(
