@@ -97,6 +97,7 @@ impl TimeFreezeTracker {
         self.chain.last().map(|(team, _)| team).cloned()
     }
 
+    /// Returns true if an Action has enough time to counter if it enters the queue this frame
     pub fn can_counter(&self) -> bool {
         let state_elapsed_time = self.active_time - self.state_start_time;
 
@@ -107,6 +108,7 @@ impl TimeFreezeTracker {
         }
     }
 
+    /// Returns true if queued Actions can counter
     pub fn can_queued_counter(&self) -> bool {
         self.state == TimeFreezeState::Counterable
     }
@@ -152,15 +154,19 @@ impl TimeFreezeTracker {
     }
 
     #[must_use]
-    fn advance_animation(&mut self) -> Option<BattleCallback> {
-        self.state_start_time = self.active_time;
+    fn advance_queue(&mut self) -> Option<BattleCallback> {
+        self.active_time = 0;
+        self.state_start_time = 0;
 
         if let Some((callback, duration)) = self.animation_queue.pop_front() {
+            // process the next animation
             self.state = TimeFreezeState::Animation(duration);
-            self.should_defrost = false;
             Some(callback)
+        } else if !self.chain.is_empty() {
+            // start processing actions
+            self.state = TimeFreezeState::FadeIn;
+            None
         } else {
-            self.state = TimeFreezeState::Thawed;
             self.should_defrost = true;
             None
         }
@@ -202,14 +208,12 @@ impl TimeFreezeTracker {
                 if state_elapsed_time >= FADE_DURATION {
                     self.state = TimeFreezeState::Thawed;
                     self.state_start_time = self.active_time;
-                    self.should_defrost = true;
                 }
             }
             TimeFreezeState::Animation(duration) => {
                 if state_elapsed_time >= duration {
                     self.state = TimeFreezeState::Thawed;
                     self.state_start_time = self.active_time;
-                    self.should_defrost = true;
                 }
             }
         };
@@ -250,9 +254,9 @@ impl TimeFreezeTracker {
             simulation.time_freeze_tracker.increment_time();
         }
 
-        // handle any pending animations such as decross
+        // handle any pending freezes, such as decross animation, or time freeze actions after an animation
         if !simulation.time_freeze_tracker.time_is_frozen() {
-            if let Some(callback) = simulation.time_freeze_tracker.advance_animation() {
+            if let Some(callback) = simulation.time_freeze_tracker.advance_queue() {
                 simulation.pending_callbacks.push(callback);
                 simulation.call_pending_callbacks(game_io, resources);
             }
