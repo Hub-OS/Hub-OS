@@ -333,9 +333,6 @@ impl Action {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
-        let can_counter = simulation.time_freeze_tracker.can_queued_counter();
-
         let entities = &mut simulation.entities;
 
         // ensure initial test values for all action related aux props
@@ -348,22 +345,39 @@ impl Action {
         }
 
         // get a list of entity ids for entities that need processing
+        let mut time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+        let mut can_counter_time_freeze = simulation.time_freeze_tracker.can_queued_counter();
+
         let ids: Vec<_> = entities
             .query_mut::<&Entity>()
             .into_iter()
             .filter(|(_, entity)| {
-                let already_has_action = !time_is_frozen && entity.action_index.is_some();
-                let time_freeze_counter = can_counter
-                    && entity
-                        .action_queue
-                        .front()
-                        .and_then(|index| simulation.actions.get(*index))
-                        .map(|action| action.properties.time_freeze)
-                        .unwrap_or_default();
+                let Some(action_index) = entity.action_queue.front() else {
+                    // no actions queued
+                    return false;
+                };
 
-                let has_pending_actions = !entity.action_queue.is_empty();
+                let is_time_freeze_action = simulation
+                    .actions
+                    .get(*action_index)
+                    .map(|action| action.properties.time_freeze)
+                    .unwrap_or_default();
 
-                (!already_has_action || time_freeze_counter) && has_pending_actions
+                let already_has_action = entity.action_index.is_some();
+                let time_freeze_counter = can_counter_time_freeze && is_time_freeze_action;
+
+                // we can't process an action if the entity is already in an action
+                // unless we're countering a time freeze action
+                let can_process = !already_has_action || time_freeze_counter;
+
+                if can_process && is_time_freeze_action {
+                    // causes other actions to wait in queue until time freeze is over
+                    // or until countering is possible
+                    time_is_frozen = true;
+                    can_counter_time_freeze = false;
+                }
+
+                can_process
             })
             .map(|(id, _)| id)
             .collect();
@@ -405,7 +419,7 @@ impl Action {
             action.used = true;
 
             if action.properties.time_freeze {
-                if can_counter && !simulation.is_resimulation {
+                if can_counter_time_freeze && !simulation.is_resimulation {
                     // must be countering, play sfx
                     let globals = game_io.resource::<Globals>().unwrap();
                     globals.audio.play_sound(&globals.sfx.trap);
