@@ -345,8 +345,9 @@ impl Action {
         }
 
         // get a list of entity ids for entities that need processing
-        let mut time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
-        let mut can_counter_time_freeze = simulation.time_freeze_tracker.can_queued_counter();
+        let time_freeze_tracker = &simulation.time_freeze_tracker;
+        let mut time_is_frozen = time_freeze_tracker.time_is_frozen();
+        let mut can_counter_time_freeze = time_freeze_tracker.can_processing_action_counter();
 
         let ids: Vec<_> = entities
             .query_mut::<&Entity>()

@@ -12,27 +12,73 @@ use framework::prelude::{Color, GameIO, Vec2};
 use packets::structures::Input;
 use std::collections::VecDeque;
 
-const FADE_DURATION: FrameTime = 10;
-const COUNTER_DURATION: FrameTime = 60;
-const MAX_ACTION_DURATION: FrameTime = 60 * 15;
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ActionFreezeState {
+    Freeze,
+    FadeIn,
+    Counterable,
+    Action,
+    ActionCleanup,
+    FadeOut,
+}
+
+impl ActionFreezeState {
+    const FADE_DURATION: FrameTime = 10;
+    const COUNTER_DURATION: FrameTime = 60;
+    const MAX_ACTION_DURATION: FrameTime = 60 * 15;
+
+    fn fade_alpha(self, state_elapsed_time: FrameTime) -> f32 {
+        match self {
+            Self::Freeze => 0.0,
+            Self::FadeIn => inverse_lerp!(0, Self::FADE_DURATION, state_elapsed_time),
+            Self::Counterable | Self::Action | Self::ActionCleanup => 1.0,
+            Self::FadeOut => inverse_lerp!(Self::FADE_DURATION, 0, state_elapsed_time),
+        }
+    }
+
+    fn duration(self) -> FrameTime {
+        match self {
+            Self::Freeze => 0,
+            Self::FadeIn => Self::FADE_DURATION,
+            Self::Counterable => Self::COUNTER_DURATION,
+            Self::Action => Self::MAX_ACTION_DURATION,
+            Self::ActionCleanup => {
+                // let the cleanup logic handle the timing
+                FrameTime::MAX
+            }
+            Self::FadeOut => Self::FADE_DURATION,
+        }
+    }
+
+    fn next_state(self) -> TimeFreezeState {
+        match self {
+            Self::Freeze => Self::FadeIn.into(),
+            Self::FadeIn => Self::Counterable.into(),
+            Self::Counterable => Self::Action.into(),
+            Self::Action => Self::ActionCleanup.into(),
+            Self::ActionCleanup => Self::FadeOut.into(),
+            Self::FadeOut => TimeFreezeState::Thawed,
+        }
+    }
+}
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 enum TimeFreezeState {
     #[default]
     Thawed,
-    // freezing actions flow
-    Freeze,
-    FadeIn,
-    Counterable,
-    Action,
-    FadeOut,
-    // animation
+    Action(ActionFreezeState),
     Animation(FrameTime),
+}
+
+impl From<ActionFreezeState> for TimeFreezeState {
+    fn from(action_freeze_state: ActionFreezeState) -> Self {
+        Self::Action(action_freeze_state)
+    }
 }
 
 #[derive(Default, Clone)]
 pub struct TimeFreezeTracker {
-    chain: Vec<(Team, GenerationalIndex)>,
+    action_chain: Vec<(Team, GenerationalIndex)>,
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
@@ -51,7 +97,7 @@ impl TimeFreezeTracker {
     }
 
     fn is_action_freeze(&self) -> bool {
-        self.time_is_frozen() && !matches!(self.state, TimeFreezeState::Animation(_))
+        matches!(self.state, TimeFreezeState::Action(_))
     }
 
     fn fade_alpha(&self) -> f32 {
@@ -59,28 +105,27 @@ impl TimeFreezeTracker {
 
         match self.state {
             TimeFreezeState::Thawed => 0.0,
-            TimeFreezeState::Freeze => 0.0,
-            TimeFreezeState::FadeIn => inverse_lerp!(0, FADE_DURATION, state_elapsed_time),
-            TimeFreezeState::Counterable | TimeFreezeState::Action => 1.0,
-            TimeFreezeState::FadeOut => inverse_lerp!(FADE_DURATION, 0, state_elapsed_time),
+            TimeFreezeState::Action(action_freeze_state) => {
+                action_freeze_state.fade_alpha(state_elapsed_time)
+            }
             TimeFreezeState::Animation(_) => 0.0,
         }
     }
 
     pub fn set_team_action(&mut self, team: Team, action_index: GenerationalIndex) {
-        if let Some(index) = self.chain.iter().position(|(t, _)| *t == team) {
-            self.chain.remove(index);
+        if let Some(index) = self.action_chain.iter().position(|(t, _)| *t == team) {
+            self.action_chain.remove(index);
         }
 
         if !self.time_is_frozen() {
             self.active_time = 0;
-            self.state = TimeFreezeState::Freeze;
+            self.state = ActionFreezeState::Freeze.into();
         }
 
         // set the state start time to allow other players to counter, as well as initialize
         self.state_start_time = self.active_time;
 
-        self.chain.push((team, action_index));
+        self.action_chain.push((team, action_index));
     }
 
     pub fn queue_animation(&mut self, duration: FrameTime, begin_callback: BattleCallback) {
@@ -94,63 +139,62 @@ impl TimeFreezeTracker {
     }
 
     pub fn last_team(&self) -> Option<Team> {
-        self.chain.last().map(|(team, _)| team).cloned()
+        self.action_chain.last().map(|(team, _)| team).cloned()
     }
 
     /// Returns true if an Action has enough time to counter if it enters the queue this frame
     pub fn can_counter(&self) -> bool {
         let state_elapsed_time = self.active_time - self.state_start_time;
 
-        if let TimeFreezeState::Counterable = self.state {
-            COUNTER_DURATION - state_elapsed_time > 2
+        if self.can_processing_action_counter() {
+            ActionFreezeState::COUNTER_DURATION - state_elapsed_time > 2
         } else {
             false
         }
     }
 
-    /// Returns true if queued Actions can counter
-    pub fn can_queued_counter(&self) -> bool {
-        self.state == TimeFreezeState::Counterable
+    /// Returns true if processing Actions can counter
+    pub fn can_processing_action_counter(&self) -> bool {
+        self.state == ActionFreezeState::Counterable.into()
     }
 
     fn should_freeze(&self) -> bool {
         matches!(
             self.state,
-            TimeFreezeState::Freeze | TimeFreezeState::Animation(_)
+            TimeFreezeState::Action(ActionFreezeState::Freeze) | TimeFreezeState::Animation(_)
         ) && self.active_time - self.state_start_time == 0
     }
 
     fn action_should_start(&self) -> bool {
-        self.state == TimeFreezeState::Action && self.active_time == self.state_start_time
+        self.state == ActionFreezeState::Action.into() && self.active_time == self.state_start_time
     }
 
     fn active_action(&self) -> Option<GenerationalIndex> {
-        if self.state != TimeFreezeState::Action {
+        if self.state != ActionFreezeState::Action.into() {
             return None;
         }
 
-        self.chain.last().map(|(_, index)| index).cloned()
+        self.action_chain.last().map(|(_, index)| index).cloned()
     }
 
     fn end_action(&mut self) {
-        self.active_time = self.state_start_time + MAX_ACTION_DURATION;
+        self.state = ActionFreezeState::ActionCleanup.into();
     }
 
     fn advance_action(&mut self) {
-        self.chain.pop();
+        self.action_chain.pop();
 
-        if self.chain.is_empty() {
-            self.state = TimeFreezeState::FadeOut;
+        if self.action_chain.is_empty() {
+            self.state = ActionFreezeState::FadeOut.into();
         } else {
-            self.state = TimeFreezeState::Action;
+            self.state = ActionFreezeState::Action.into();
         }
 
         self.state_start_time = self.active_time;
     }
 
-    fn action_out_of_time(&self) -> bool {
-        self.state == TimeFreezeState::Action
-            && self.active_time - self.state_start_time >= MAX_ACTION_DURATION
+    fn should_cleanup_action(&self) -> bool {
+        self.state == ActionFreezeState::ActionCleanup.into()
     }
 
     #[must_use]
@@ -162,9 +206,9 @@ impl TimeFreezeTracker {
             // process the next animation
             self.state = TimeFreezeState::Animation(duration);
             Some(callback)
-        } else if !self.chain.is_empty() {
+        } else if !self.action_chain.is_empty() {
             // start processing actions
-            self.state = TimeFreezeState::FadeIn;
+            self.state = ActionFreezeState::FadeIn.into();
             None
         } else {
             self.should_defrost = true;
@@ -187,26 +231,10 @@ impl TimeFreezeTracker {
         let state_elapsed_time = self.active_time - self.state_start_time;
 
         match self.state {
-            TimeFreezeState::Thawed | TimeFreezeState::Action => {}
-            TimeFreezeState::Freeze => {
-                self.state = TimeFreezeState::FadeIn;
-                self.state_start_time = self.active_time;
-            }
-            TimeFreezeState::FadeIn => {
-                if state_elapsed_time >= FADE_DURATION {
-                    self.state = TimeFreezeState::Counterable;
-                    self.state_start_time = self.active_time;
-                }
-            }
-            TimeFreezeState::Counterable => {
-                if state_elapsed_time >= COUNTER_DURATION {
-                    self.state = TimeFreezeState::Action;
-                    self.state_start_time = self.active_time;
-                }
-            }
-            TimeFreezeState::FadeOut => {
-                if state_elapsed_time >= FADE_DURATION {
-                    self.state = TimeFreezeState::Thawed;
+            TimeFreezeState::Thawed => {}
+            TimeFreezeState::Action(action_freeze_state) => {
+                if state_elapsed_time >= action_freeze_state.duration() {
+                    self.state = action_freeze_state.next_state();
                     self.state_start_time = self.active_time;
                 }
             }
@@ -313,8 +341,8 @@ impl TimeFreezeTracker {
         // increment the time
         simulation.time_freeze_tracker.increment_time();
 
-        // handle the action running out of time
-        if simulation.time_freeze_tracker.action_out_of_time() {
+        // handle the action cleanup
+        if simulation.time_freeze_tracker.should_cleanup_action() {
             if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
                 entity_backup.restore(game_io, resources, simulation);
             }
@@ -397,7 +425,7 @@ impl TimeFreezeTracker {
             return;
         }
 
-        let (team, index) = self.chain.last().cloned().unwrap();
+        let (team, index) = self.action_chain.last().cloned().unwrap();
 
         let Some(action) = simulation.actions.get(index) else {
             return;
@@ -425,7 +453,7 @@ impl TimeFreezeTracker {
         position.y += text_style.line_height() + text_style.line_spacing;
 
         let elapsed_time = self.active_time - self.state_start_time;
-        let width_multiplier = inverse_lerp!(COUNTER_DURATION, 0, elapsed_time);
+        let width_multiplier = inverse_lerp!(ActionFreezeState::COUNTER_DURATION, 0, elapsed_time);
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
