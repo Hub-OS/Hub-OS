@@ -420,12 +420,6 @@ impl Action {
             action.used = true;
 
             if action.properties.time_freeze {
-                if can_counter_time_freeze && !simulation.is_resimulation {
-                    // must be countering, play sfx
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    globals.audio.play_sound(&globals.sfx.trap);
-                }
-
                 let time_freeze_tracker = &mut simulation.time_freeze_tracker;
                 time_freeze_tracker.set_team_action(entity.team, index);
             } else {

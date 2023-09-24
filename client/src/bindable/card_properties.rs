@@ -53,11 +53,19 @@ impl CardProperties {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
+        scale: Vec2,
         center: bool,
     ) {
         let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
         text_style.monospace = true;
         text_style.bounds.set_position(position);
+
+        // if we're scaling vertically, we want to do so from the center
+        let original_line_height = text_style.line_height();
+        text_style.bounds.y += (original_line_height - original_line_height * scale.y) * 0.5;
+
+        // set the scale after we've adjusted the offset for vertical scaling
+        text_style.scale = scale;
 
         let name_text = &self.short_name;
         let damage_text = if self.damage == 0 {

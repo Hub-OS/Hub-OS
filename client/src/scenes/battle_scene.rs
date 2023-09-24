@@ -819,8 +819,12 @@ impl Scene for BattleScene {
             SpriteColorQueue::new(game_io, &self.ui_camera, SpriteColorMode::Multiply);
 
         self.simulation.draw_ui(game_io, &mut sprite_queue);
-        self.state
-            .draw_ui(game_io, &mut self.simulation, &mut sprite_queue);
+        self.state.draw_ui(
+            game_io,
+            &self.resources,
+            &mut self.simulation,
+            &mut sprite_queue,
+        );
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);

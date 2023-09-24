@@ -113,6 +113,7 @@ impl State for BattleState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -136,7 +137,7 @@ impl State for BattleState {
 
         // time freeze
         let time_freeze_tracker = &simulation.time_freeze_tracker;
-        time_freeze_tracker.draw_ui(game_io, simulation, sprite_queue);
+        time_freeze_tracker.draw_ui(game_io, resources, simulation, sprite_queue);
 
         // trap indicators
         DefenseRule::draw_trap_ui(game_io, simulation, sprite_queue);
@@ -159,7 +160,7 @@ impl State for BattleState {
                     let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
                     let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
 
-                    card_props.draw_summary(game_io, sprite_queue, position, false);
+                    card_props.draw_summary(game_io, sprite_queue, position, Vec2::ONE, false);
                 }
             }
         }

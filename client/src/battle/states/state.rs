@@ -21,6 +21,7 @@ pub trait State {
     fn draw_ui<'a>(
         &mut self,
         _game_io: &'a GameIO,
+        _resources: &SharedBattleResources,
         _simulation: &mut BattleSimulation,
         _sprite_queue: &mut SpriteColorQueue<'a>,
     ) {

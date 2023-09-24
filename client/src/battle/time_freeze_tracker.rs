@@ -16,7 +16,10 @@ use std::collections::VecDeque;
 enum ActionFreezeState {
     Freeze,
     FadeIn,
+    Countered,
+    DisplaySummary,
     Counterable,
+    HideSummary,
     Action,
     ActionCleanup,
     FadeOut,
@@ -25,36 +28,54 @@ enum ActionFreezeState {
 impl ActionFreezeState {
     const FADE_DURATION: FrameTime = 10;
     const COUNTER_DURATION: FrameTime = 60;
+    const SUMMARY_TRANSITION_DURATION: FrameTime = 10;
+    const COUNTERED_DURATION: FrameTime = Self::SUMMARY_TRANSITION_DURATION + 10;
     const MAX_ACTION_DURATION: FrameTime = 60 * 15;
+
+    fn summary_scale(self, state_elapsed_time: FrameTime) -> f32 {
+        match self {
+            Self::DisplaySummary => {
+                inverse_lerp!(0, Self::SUMMARY_TRANSITION_DURATION, state_elapsed_time)
+            }
+            Self::Counterable => 1.0,
+            Self::HideSummary | Self::Countered => {
+                inverse_lerp!(Self::SUMMARY_TRANSITION_DURATION, 0, state_elapsed_time)
+            }
+            _ => 0.0,
+        }
+    }
 
     fn fade_alpha(self, state_elapsed_time: FrameTime) -> f32 {
         match self {
             Self::Freeze => 0.0,
             Self::FadeIn => inverse_lerp!(0, Self::FADE_DURATION, state_elapsed_time),
-            Self::Counterable | Self::Action | Self::ActionCleanup => 1.0,
             Self::FadeOut => inverse_lerp!(Self::FADE_DURATION, 0, state_elapsed_time),
+            _ => 1.0,
         }
     }
 
     fn duration(self) -> FrameTime {
         match self {
             Self::Freeze => 0,
-            Self::FadeIn => Self::FADE_DURATION,
+            Self::FadeIn | Self::FadeOut => Self::FADE_DURATION,
+            Self::Countered => Self::COUNTERED_DURATION,
+            Self::DisplaySummary | Self::HideSummary => Self::SUMMARY_TRANSITION_DURATION,
             Self::Counterable => Self::COUNTER_DURATION,
             Self::Action => Self::MAX_ACTION_DURATION,
             Self::ActionCleanup => {
                 // let the cleanup logic handle the timing
                 FrameTime::MAX
             }
-            Self::FadeOut => Self::FADE_DURATION,
         }
     }
 
     fn next_state(self) -> TimeFreezeState {
         match self {
             Self::Freeze => Self::FadeIn.into(),
-            Self::FadeIn => Self::Counterable.into(),
-            Self::Counterable => Self::Action.into(),
+            Self::FadeIn | Self::Countered => Self::DisplaySummary.into(),
+            Self::DisplaySummary => Self::Counterable.into(),
+            Self::Counterable => Self::HideSummary.into(),
+            Self::HideSummary => Self::Action.into(),
             Self::Action => Self::ActionCleanup.into(),
             Self::ActionCleanup => Self::FadeOut.into(),
             Self::FadeOut => TimeFreezeState::Thawed,
@@ -120,6 +141,8 @@ impl TimeFreezeTracker {
         if !self.time_is_frozen() {
             self.active_time = 0;
             self.state = ActionFreezeState::Freeze.into();
+        } else if self.can_processing_action_counter() {
+            self.state = ActionFreezeState::Countered.into();
         }
 
         // set the state start time to allow other players to counter, as well as initialize
@@ -162,11 +185,7 @@ impl TimeFreezeTracker {
         matches!(
             self.state,
             TimeFreezeState::Action(ActionFreezeState::Freeze) | TimeFreezeState::Animation(_)
-        ) && self.active_time - self.state_start_time == 0
-    }
-
-    fn action_should_start(&self) -> bool {
-        self.state == ActionFreezeState::Action.into() && self.active_time == self.state_start_time
+        ) && self.active_time == self.state_start_time
     }
 
     fn active_action(&self) -> Option<GenerationalIndex> {
@@ -266,12 +285,6 @@ impl TimeFreezeTracker {
         // detect freeze start
         if simulation.time_freeze_tracker.should_freeze() {
             Self::freeze(simulation);
-
-            if simulation.time_freeze_tracker.is_action_freeze() {
-                // play sfx
-                let globals = game_io.resource::<Globals>().unwrap();
-                simulation.play_sound(game_io, &globals.sfx.time_freeze);
-            }
         }
 
         // state based updates
@@ -318,16 +331,40 @@ impl TimeFreezeTracker {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        // detect time freeze counter
         let time_freeze_tracker = &mut simulation.time_freeze_tracker;
 
-        if time_freeze_tracker.can_counter() {
-            Self::detect_counter_attempt(game_io, resources, simulation);
-        }
+        let TimeFreezeState::Action(action_freeze_state) = time_freeze_tracker.state else {
+            log::error!("Expecting TimeFreezeState::Action");
+            return;
+        };
 
-        // detect action start
-        if simulation.time_freeze_tracker.action_should_start() {
-            Self::begin_action(simulation);
+        let state_just_started =
+            time_freeze_tracker.state_start_time == time_freeze_tracker.active_time;
+
+        match action_freeze_state {
+            ActionFreezeState::FadeIn => {
+                if state_just_started {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    simulation.play_sound(game_io, &globals.sfx.time_freeze);
+                }
+            }
+            ActionFreezeState::Countered => {
+                if state_just_started {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    globals.audio.play_sound(&globals.sfx.trap);
+                }
+            }
+            ActionFreezeState::Counterable => {
+                if time_freeze_tracker.can_counter() {
+                    Self::detect_counter_attempt(game_io, resources, simulation);
+                }
+            }
+            ActionFreezeState::Action => {
+                if state_just_started {
+                    Self::begin_action(simulation);
+                }
+            }
+            _ => {}
         }
 
         // detect action end
@@ -412,18 +449,54 @@ impl TimeFreezeTracker {
         }
     }
 
+    fn team_ui_position(simulation: &BattleSimulation, team: Team) -> Vec2 {
+        const MARGIN_TOP: f32 = 38.0;
+
+        let mut x = match team {
+            Team::Red => RESOLUTION_F.x * 0.25,
+            Team::Blue => RESOLUTION_F.x * 0.75,
+            _ => RESOLUTION_F.x * 0.5,
+        };
+
+        if simulation.local_team.flips_perspective() {
+            x = RESOLUTION_F.x - x;
+        }
+
+        Vec2::new(x, MARGIN_TOP)
+    }
+
     pub fn draw_ui(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &BattleSimulation,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        let TimeFreezeState::Action(action_state) = self.state else {
+            return;
+        };
+
+        match action_state {
+            ActionFreezeState::DisplaySummary
+            | ActionFreezeState::Counterable
+            | ActionFreezeState::HideSummary => {
+                self.draw_counterable_action_text(game_io, simulation, sprite_queue, action_state);
+            }
+            ActionFreezeState::Countered => {
+                self.draw_countered_action_text(game_io, resources, simulation, sprite_queue);
+            }
+            _ => {}
+        }
+    }
+
+    fn draw_counterable_action_text(
         &self,
         game_io: &GameIO,
         simulation: &BattleSimulation,
         sprite_queue: &mut SpriteColorQueue,
+        action_state: ActionFreezeState,
     ) {
-        const MARGIN_TOP: f32 = 38.0;
         const BAR_WIDTH: f32 = 80.0;
-
-        if !self.can_counter() {
-            return;
-        }
 
         let (team, index) = self.action_chain.last().cloned().unwrap();
 
@@ -431,43 +504,78 @@ impl TimeFreezeTracker {
             return;
         };
 
+        let state_elapsed_time = self.active_time - self.state_start_time;
+        let summary_scale_y = action_state.summary_scale(state_elapsed_time);
+
         // resolve where we should draw
-        let mut position = Vec2::new(0.0, MARGIN_TOP);
+        let mut position = Self::team_ui_position(simulation, team);
 
-        position.x = match team {
-            Team::Red => RESOLUTION_F.x * 0.25,
-            Team::Blue => RESOLUTION_F.x * 0.75,
-            _ => RESOLUTION_F.x * 0.5,
-        };
-
-        if simulation.local_team.flips_perspective() {
-            position.x = RESOLUTION_F.x - position.x;
-        }
-
+        // draw action name and damage
         let card_props = &action.properties;
-        card_props.draw_summary(game_io, sprite_queue, position, true);
+        let action_summary_scale = Vec2::new(1.0, summary_scale_y);
+        card_props.draw_summary(game_io, sprite_queue, position, action_summary_scale, true);
 
         // drawing bar
-        let text_style = TextStyle::new(game_io, FontStyle::Thick);
-        position.x -= BAR_WIDTH * 0.5;
-        position.y += text_style.line_height() + text_style.line_spacing;
+        if action_state == ActionFreezeState::Counterable {
+            let text_style = TextStyle::new(game_io, FontStyle::Thick);
+            position.x -= BAR_WIDTH * 0.5;
+            position.y += text_style.line_height() + text_style.line_spacing;
 
-        let elapsed_time = self.active_time - self.state_start_time;
-        let width_multiplier = inverse_lerp!(ActionFreezeState::COUNTER_DURATION, 0, elapsed_time);
+            let width_multiplier =
+                inverse_lerp!(ActionFreezeState::COUNTER_DURATION, 0, state_elapsed_time);
 
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
-        let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-        sprite.set_width(BAR_WIDTH * width_multiplier);
-        sprite.set_height(2.0);
+            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let mut sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            sprite.set_width(BAR_WIDTH * width_multiplier);
+            sprite.set_height(2.0);
 
-        // draw bar shadow
-        sprite.set_position(position + 1.0);
-        sprite.set_color(Color::BLACK);
-        sprite_queue.draw_sprite(&sprite);
+            // draw bar shadow
+            sprite.set_position(position + 1.0);
+            sprite.set_color(Color::BLACK);
+            sprite_queue.draw_sprite(&sprite);
 
-        // draw bar
-        sprite.set_position(position);
-        sprite.set_color(Color::WHITE);
-        sprite_queue.draw_sprite(&sprite);
+            // draw bar
+            sprite.set_position(position);
+            sprite.set_color(Color::WHITE);
+            sprite_queue.draw_sprite(&sprite);
+        }
+    }
+
+    fn draw_countered_action_text(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &BattleSimulation,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        let Some((team, index)) = self.action_chain.iter().rev().nth(1).cloned() else {
+            return;
+        };
+
+        let state_elapsed_time = self.active_time - self.state_start_time;
+        let summary_scale_y = ActionFreezeState::Countered.summary_scale(state_elapsed_time);
+        let position = Self::team_ui_position(simulation, team);
+
+        // draw alert for the TFC
+        let mut alert_animator = resources.alert_animator.borrow_mut();
+        alert_animator.sync_time(state_elapsed_time - 1);
+
+        if !alert_animator.is_complete() {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let assets = &globals.assets;
+
+            let mut alert_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_ALERT);
+            alert_sprite.set_position(position);
+            alert_animator.apply(&mut alert_sprite);
+
+            sprite_queue.draw_sprite(&alert_sprite);
+        }
+
+        // draw summary text
+        if let Some(action) = simulation.actions.get(index) {
+            let card_props = &action.properties;
+            let scale = Vec2::new(1.0, summary_scale_y);
+            card_props.draw_summary(game_io, sprite_queue, position, scale, true);
+        }
     }
 }
