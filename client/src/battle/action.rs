@@ -347,7 +347,7 @@ impl Action {
         // get a list of entity ids for entities that need processing
         let time_freeze_tracker = &simulation.time_freeze_tracker;
         let mut time_is_frozen = time_freeze_tracker.time_is_frozen();
-        let mut can_counter_time_freeze = time_freeze_tracker.can_processing_action_counter();
+        let mut any_can_counter_time_freeze = time_freeze_tracker.can_processing_action_counter();
 
         let ids: Vec<_> = entities
             .query_mut::<&Entity>()
@@ -358,24 +358,27 @@ impl Action {
                     return false;
                 };
 
-                let is_time_freeze_action = simulation
+                let action_counters_time_freeze = simulation
                     .actions
                     .get(*action_index)
-                    .map(|action| action.properties.time_freeze)
+                    .map(|action| {
+                        action.properties.time_freeze && !action.properties.skip_time_freeze_intro
+                    })
                     .unwrap_or_default();
 
                 let already_has_action = entity.action_index.is_some();
-                let time_freeze_counter = can_counter_time_freeze && is_time_freeze_action;
+                let time_freeze_counter =
+                    any_can_counter_time_freeze && action_counters_time_freeze;
 
                 // we can't process an action if the entity is already in an action
                 // unless we're countering a time freeze action
                 let can_process = !already_has_action || time_freeze_counter;
 
-                if can_process && is_time_freeze_action {
+                if can_process && action_counters_time_freeze {
                     // causes other actions to wait in queue until time freeze is over
                     // or until countering is possible
                     time_is_frozen = true;
-                    can_counter_time_freeze = false;
+                    any_can_counter_time_freeze = false;
                 }
 
                 can_process
@@ -421,7 +424,7 @@ impl Action {
 
             if action.properties.time_freeze {
                 let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-                time_freeze_tracker.set_team_action(entity.team, index);
+                time_freeze_tracker.set_team_action(entity.team, index, &action.properties);
             } else {
                 entity.action_index = Some(index);
             }

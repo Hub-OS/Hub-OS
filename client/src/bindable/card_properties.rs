@@ -22,6 +22,7 @@ pub struct CardProperties<H = HitFlags> {
     pub can_boost: bool,
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
+    pub prevent_time_freeze_counter: bool,
     pub tags: Vec<String>,
 }
 
@@ -42,6 +43,7 @@ impl<H: Default> Default for CardProperties<H> {
             hit_flags: Default::default(),
             can_boost: true,
             skip_time_freeze_intro: false,
+            prevent_time_freeze_counter: false,
             tags: Vec::new(),
         }
     }
@@ -129,6 +131,7 @@ impl CardProperties<Vec<String>> {
             can_boost: self.can_boost,
             time_freeze: self.time_freeze,
             skip_time_freeze_intro: self.skip_time_freeze_intro,
+            prevent_time_freeze_counter: self.prevent_time_freeze_counter,
             tags: self.tags.clone(),
         }
     }
@@ -168,6 +171,9 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             can_boost: table.get("can_boost").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
+            prevent_time_freeze_counter: table
+                .get("prevent_time_freeze_counter")
+                .unwrap_or_default(),
             tags: table.get("tags").unwrap_or_default(),
         })
     }
@@ -200,15 +206,19 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("hit_flags", self.hit_flags)?;
 
         if self.can_boost {
-            table.set("can_boost", self.can_boost)?;
+            table.set("can_boost", true)?;
         }
 
         if self.time_freeze {
-            table.set("time_freeze", self.time_freeze)?;
+            table.set("time_freeze", true)?;
         }
 
         if self.skip_time_freeze_intro {
-            table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
+            table.set("skip_time_freeze_intro", true)?;
+        }
+
+        if self.prevent_time_freeze_counter {
+            table.set("prevent_time_freeze_counter", true)?;
         }
 
         table.set(

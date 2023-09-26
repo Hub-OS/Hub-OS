@@ -2,7 +2,7 @@ use super::{
     Artifact, BattleCallback, BattleSimulation, Character, Entity, Player, SharedBattleResources,
     TimeFreezeEntityBackup,
 };
-use crate::bindable::Team;
+use crate::bindable::{CardProperties, Team};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -98,12 +98,20 @@ impl From<ActionFreezeState> for TimeFreezeState {
 }
 
 #[derive(Default, Clone)]
+struct TrackedAction {
+    team: Team,
+    action_index: GenerationalIndex,
+    prevent_counter: bool,
+}
+
+#[derive(Default, Clone)]
 pub struct TimeFreezeTracker {
-    action_chain: Vec<(Team, GenerationalIndex)>,
+    action_chain: Vec<TrackedAction>,
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
     should_defrost: bool,
+    skipping_intros: bool,
     character_backup: Option<TimeFreezeEntityBackup>,
     animation_queue: VecDeque<(BattleCallback, FrameTime)>,
 }
@@ -133,8 +141,13 @@ impl TimeFreezeTracker {
         }
     }
 
-    pub fn set_team_action(&mut self, team: Team, action_index: GenerationalIndex) {
-        if let Some(index) = self.action_chain.iter().position(|(t, _)| *t == team) {
+    pub fn set_team_action(
+        &mut self,
+        team: Team,
+        action_index: GenerationalIndex,
+        properties: &CardProperties,
+    ) {
+        if let Some(index) = self.action_chain.iter().position(|t| t.team == team) {
             self.action_chain.remove(index);
         }
 
@@ -147,8 +160,13 @@ impl TimeFreezeTracker {
 
         // set the state start time to allow other players to counter, as well as initialize
         self.state_start_time = self.active_time;
+        self.skipping_intros = properties.skip_time_freeze_intro;
 
-        self.action_chain.push((team, action_index));
+        self.action_chain.push(TrackedAction {
+            team,
+            action_index,
+            prevent_counter: properties.prevent_time_freeze_counter,
+        });
     }
 
     pub fn queue_animation(&mut self, duration: FrameTime, begin_callback: BattleCallback) {
@@ -162,7 +180,7 @@ impl TimeFreezeTracker {
     }
 
     pub fn last_team(&self) -> Option<Team> {
-        self.action_chain.last().map(|(team, _)| team).cloned()
+        self.action_chain.last().map(|t| t.team)
     }
 
     /// Returns true if an Action has enough time to counter if it enters the queue this frame
@@ -179,6 +197,7 @@ impl TimeFreezeTracker {
     /// Returns true if processing Actions can counter
     pub fn can_processing_action_counter(&self) -> bool {
         self.state == ActionFreezeState::Counterable.into()
+            && self.action_chain.last().is_some_and(|t| !t.prevent_counter)
     }
 
     fn should_freeze(&self) -> bool {
@@ -188,12 +207,12 @@ impl TimeFreezeTracker {
         ) && self.active_time == self.state_start_time
     }
 
-    fn active_action(&self) -> Option<GenerationalIndex> {
+    fn active_action_index(&self) -> Option<GenerationalIndex> {
         if self.state != ActionFreezeState::Action.into() {
             return None;
         }
 
-        self.action_chain.last().map(|(_, index)| index).cloned()
+        self.action_chain.last().map(|t| t.action_index)
     }
 
     fn end_action(&mut self) {
@@ -255,6 +274,11 @@ impl TimeFreezeTracker {
                 if state_elapsed_time >= action_freeze_state.duration() {
                     self.state = action_freeze_state.next_state();
                     self.state_start_time = self.active_time;
+
+                    if self.skipping_intros && self.state == ActionFreezeState::FadeIn.into() {
+                        // skip straight to the action
+                        self.state = ActionFreezeState::Action.into();
+                    }
                 }
             }
             TimeFreezeState::Animation(duration) => {
@@ -276,11 +300,13 @@ impl TimeFreezeTracker {
         }
 
         // update fade color
-        const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
+        if !simulation.time_freeze_tracker.skipping_intros {
+            const FADE_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.3);
 
-        let fade_alpha = simulation.time_freeze_tracker.fade_alpha();
-        let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
-        simulation.fade_sprite.set_color(fade_color);
+            let fade_alpha = simulation.time_freeze_tracker.fade_alpha();
+            let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
+            simulation.fade_sprite.set_color(fade_color);
+        }
 
         // detect freeze start
         if simulation.time_freeze_tracker.should_freeze() {
@@ -368,7 +394,7 @@ impl TimeFreezeTracker {
         }
 
         // detect action end
-        if let Some(index) = simulation.time_freeze_tracker.active_action() {
+        if let Some(index) = simulation.time_freeze_tracker.active_action_index() {
             if !simulation.actions.contains_key(index) {
                 // action completed, update tracking
                 simulation.time_freeze_tracker.end_action();
@@ -426,7 +452,10 @@ impl TimeFreezeTracker {
     }
 
     fn begin_action(simulation: &mut BattleSimulation) {
-        let action_index = simulation.time_freeze_tracker.active_action().unwrap();
+        let action_index = simulation
+            .time_freeze_tracker
+            .active_action_index()
+            .unwrap();
 
         if let Some(action) = simulation.actions.get(action_index) {
             let entity_id = action.entity;
@@ -498,9 +527,9 @@ impl TimeFreezeTracker {
     ) {
         const BAR_WIDTH: f32 = 80.0;
 
-        let (team, index) = self.action_chain.last().cloned().unwrap();
+        let tracked_action = self.action_chain.last().cloned().unwrap();
 
-        let Some(action) = simulation.actions.get(index) else {
+        let Some(action) = simulation.actions.get(tracked_action.action_index) else {
             return;
         };
 
@@ -508,7 +537,7 @@ impl TimeFreezeTracker {
         let summary_scale_y = action_state.summary_scale(state_elapsed_time);
 
         // resolve where we should draw
-        let mut position = Self::team_ui_position(simulation, team);
+        let mut position = Self::team_ui_position(simulation, tracked_action.team);
 
         // draw action name and damage
         let card_props = &action.properties;
@@ -516,7 +545,7 @@ impl TimeFreezeTracker {
         card_props.draw_summary(game_io, sprite_queue, position, action_summary_scale, true);
 
         // drawing bar
-        if action_state == ActionFreezeState::Counterable {
+        if self.can_processing_action_counter() {
             let text_style = TextStyle::new(game_io, FontStyle::Thick);
             position.x -= BAR_WIDTH * 0.5;
             position.y += text_style.line_height() + text_style.line_spacing;
@@ -548,13 +577,13 @@ impl TimeFreezeTracker {
         simulation: &BattleSimulation,
         sprite_queue: &mut SpriteColorQueue,
     ) {
-        let Some((team, index)) = self.action_chain.iter().rev().nth(1).cloned() else {
+        let Some(tracked_action) = self.action_chain.iter().rev().nth(1).cloned() else {
             return;
         };
 
         let state_elapsed_time = self.active_time - self.state_start_time;
         let summary_scale_y = ActionFreezeState::Countered.summary_scale(state_elapsed_time);
-        let position = Self::team_ui_position(simulation, team);
+        let position = Self::team_ui_position(simulation, tracked_action.team);
 
         // draw alert for the TFC
         let mut alert_animator = resources.alert_animator.borrow_mut();
@@ -572,7 +601,7 @@ impl TimeFreezeTracker {
         }
 
         // draw summary text
-        if let Some(action) = simulation.actions.get(index) {
+        if let Some(action) = simulation.actions.get(tracked_action.action_index) {
             let card_props = &action.properties;
             let scale = Vec2::new(1.0, summary_scale_y);
             card_props.draw_summary(game_io, sprite_queue, position, scale, true);
