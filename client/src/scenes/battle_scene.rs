@@ -683,7 +683,7 @@ impl BattleScene {
             }
         }
 
-        if game_io.input().was_key_just_pressed(Key::N) {
+        if game_io.input().was_key_just_pressed(Key::I) {
             self.draw_player_indices = !self.draw_player_indices;
         }
     }
