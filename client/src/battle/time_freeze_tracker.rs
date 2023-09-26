@@ -540,7 +540,14 @@ impl TimeFreezeTracker {
         let mut position = Self::team_ui_position(simulation, tracked_action.team);
 
         // draw action name and damage
-        let card_props = &action.properties;
+        let default_card_props = CardProperties::default();
+        let card_props =
+            if action.properties.conceal && simulation.local_team != tracked_action.team {
+                &default_card_props
+            } else {
+                &action.properties
+            };
+
         let action_summary_scale = Vec2::new(1.0, summary_scale_y);
         card_props.draw_summary(game_io, sprite_queue, position, action_summary_scale, true);
 
@@ -602,7 +609,14 @@ impl TimeFreezeTracker {
 
         // draw summary text
         if let Some(action) = simulation.actions.get(tracked_action.action_index) {
-            let card_props = &action.properties;
+            let default_card_props = CardProperties::default();
+            let card_props =
+                if action.properties.conceal && simulation.local_team != tracked_action.team {
+                    &default_card_props
+                } else {
+                    &action.properties
+                };
+
             let scale = Vec2::new(1.0, summary_scale_y);
             card_props.draw_summary(game_io, sprite_queue, position, scale, true);
         }

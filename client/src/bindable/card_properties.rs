@@ -23,6 +23,7 @@ pub struct CardProperties<H = HitFlags> {
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
     pub prevent_time_freeze_counter: bool,
+    pub conceal: bool,
     pub tags: Vec<String>,
 }
 
@@ -44,6 +45,7 @@ impl<H: Default> Default for CardProperties<H> {
             can_boost: true,
             skip_time_freeze_intro: false,
             prevent_time_freeze_counter: false,
+            conceal: false,
             tags: Vec::new(),
         }
     }
@@ -132,6 +134,7 @@ impl CardProperties<Vec<String>> {
             time_freeze: self.time_freeze,
             skip_time_freeze_intro: self.skip_time_freeze_intro,
             prevent_time_freeze_counter: self.prevent_time_freeze_counter,
+            conceal: self.conceal,
             tags: self.tags.clone(),
         }
     }
@@ -174,6 +177,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             prevent_time_freeze_counter: table
                 .get("prevent_time_freeze_counter")
                 .unwrap_or_default(),
+            conceal: table.get("conceal").unwrap_or_default(),
             tags: table.get("tags").unwrap_or_default(),
         })
     }
@@ -219,6 +223,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
 
         if self.prevent_time_freeze_counter {
             table.set("prevent_time_freeze_counter", true)?;
+        }
+
+        if self.conceal {
+            table.set("conceal", true)?;
         }
 
         table.set(
