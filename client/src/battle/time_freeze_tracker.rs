@@ -33,6 +33,15 @@ impl ActionFreezeState {
     const COUNTERED_DURATION: FrameTime = Self::SUMMARY_TRANSITION_DURATION + 10;
     const MAX_ACTION_DURATION: FrameTime = 60 * 15;
 
+    fn displaying_top_summary(self) -> bool {
+        matches!(
+            self,
+            ActionFreezeState::DisplaySummary
+                | ActionFreezeState::Counterable
+                | ActionFreezeState::HideSummary
+        )
+    }
+
     fn summary_scale(self, state_elapsed_time: FrameTime) -> f32 {
         match self {
             Self::DisplaySummary => {
@@ -432,13 +441,24 @@ impl TimeFreezeTracker {
                 }
             }
             ActionFreezeState::PollEntityAction => {
-                simulation.time_freeze_tracker.advance_team_action();
+                time_freeze_tracker.advance_team_action();
             }
             _ => {}
         }
 
         // increment the time
-        simulation.time_freeze_tracker.increment_time();
+        let time_freeze_tracker = &mut simulation.time_freeze_tracker;
+        time_freeze_tracker.increment_time();
+
+        // skip text animation if the action was deleted
+        if let TimeFreezeState::Action(action_freeze_state) = time_freeze_tracker.state {
+            let action_index = time_freeze_tracker.active_action_index();
+            let action_deleted = action_index.is_some_and(|i| simulation.actions.contains_key(i));
+
+            if action_deleted && action_freeze_state.displaying_top_summary() {
+                time_freeze_tracker.end_action();
+            }
+        }
     }
 
     fn detect_counter_attempt(
