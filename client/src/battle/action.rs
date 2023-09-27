@@ -358,23 +358,25 @@ impl Action {
                     return false;
                 };
 
-                let action_counters_time_freeze = simulation
-                    .actions
-                    .get(*action_index)
-                    .map(|action| {
-                        action.properties.time_freeze && !action.properties.skip_time_freeze_intro
-                    })
-                    .unwrap_or_default();
+                let Some(action) = simulation.actions.get(*action_index) else {
+                    // remove this deleted action from the queue
+                    log::error!("Queued Action deleted?");
+                    return true;
+                };
 
-                let already_has_action = entity.action_index.is_some();
+                // time freeze counter
+                let freezes_time = action.properties.time_freeze;
+                let action_counters_time_freeze =
+                    freezes_time && !action.properties.skip_time_freeze_intro;
                 let time_freeze_counter =
                     any_can_counter_time_freeze && action_counters_time_freeze;
 
                 // we can't process an action if the entity is already in an action
-                // unless we're countering a time freeze action
-                let can_process = !already_has_action || time_freeze_counter;
+                // unless we have a time freeze exception
+                let already_has_action = entity.action_index.is_some();
+                let can_process = (!time_is_frozen && !already_has_action) || time_freeze_counter;
 
-                if can_process && action_counters_time_freeze {
+                if can_process && freezes_time {
                     // causes other actions to wait in queue until time freeze is over
                     // or until countering is possible
                     time_is_frozen = true;
