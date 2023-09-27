@@ -14,9 +14,9 @@ use std::cell::RefCell;
 #[derive(Clone)]
 pub struct Action {
     pub active_frames: FrameTime,
-    pub deleted: bool,
+    pub queued: bool,
     pub executed: bool,
-    pub used: bool,
+    pub deleted: bool,
     pub entity: EntityId,
     pub state: String,
     pub prev_state: Option<(String, AnimatorLoopMode, bool)>,
@@ -40,9 +40,9 @@ impl Action {
     pub fn new(entity_id: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
         Self {
             active_frames: 0,
-            deleted: false,
+            queued: false,
             executed: false,
-            used: false,
+            deleted: false,
             entity: entity_id,
             state,
             prev_state: None,
@@ -418,7 +418,7 @@ impl Action {
                 continue;
             };
 
-            if action.used {
+            if action.queued {
                 log::error!("Action already used, ignoring");
                 continue;
             }
@@ -430,7 +430,7 @@ impl Action {
                 continue;
             }
 
-            action.used = true;
+            action.queued = true;
 
             if action.properties.time_freeze {
                 let time_freeze_tracker = &mut simulation.time_freeze_tracker;

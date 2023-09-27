@@ -40,8 +40,8 @@ pub fn action_step_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("action step deleted"))
 }
 
-pub fn action_aready_used() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("action already used"))
+pub fn action_aready_queued() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action already queued"))
 }
 
 pub fn action_entity_mismatch() -> rollback_mlua::Error {
