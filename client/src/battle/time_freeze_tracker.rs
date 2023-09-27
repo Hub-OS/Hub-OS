@@ -141,15 +141,20 @@ impl TimeFreezeTracker {
         }
     }
 
+    #[must_use]
     pub fn set_team_action(
         &mut self,
         team: Team,
         action_index: GenerationalIndex,
         properties: &CardProperties,
-    ) {
-        if let Some(index) = self.action_chain.iter().position(|t| t.team == team) {
-            self.action_chain.remove(index);
-        }
+    ) -> Option<GenerationalIndex> {
+        let mut tracked_action_iter = self.action_chain.iter();
+        let dropped_action_index = tracked_action_iter
+            .position(|t| t.team == team)
+            .map(|index| {
+                let tracked_action = self.action_chain.remove(index);
+                tracked_action.action_index
+            });
 
         if !self.time_is_frozen() {
             self.active_time = 0;
@@ -167,6 +172,8 @@ impl TimeFreezeTracker {
             action_index,
             prevent_counter: properties.prevent_time_freeze_counter,
         });
+
+        dropped_action_index
     }
 
     pub fn queue_animation(&mut self, duration: FrameTime, begin_callback: BattleCallback) {

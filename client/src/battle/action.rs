@@ -426,7 +426,13 @@ impl Action {
 
             if action.properties.time_freeze {
                 let time_freeze_tracker = &mut simulation.time_freeze_tracker;
-                time_freeze_tracker.set_team_action(entity.team, index, &action.properties);
+                let dropped_action_index =
+                    time_freeze_tracker.set_team_action(entity.team, index, &action.properties);
+
+                if let Some(action_index) = dropped_action_index {
+                    // delete previous action
+                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                }
             } else {
                 entity.action_index = Some(index);
             }
