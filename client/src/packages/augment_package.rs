@@ -24,6 +24,7 @@ struct AugmentMeta {
     flat: bool,
     shape: Option<Vec<Vec<u8>>>,
     byproducts: Vec<PackageId>,
+    prevent_byproducts: bool,
 }
 
 #[derive(Default, Clone)]
@@ -46,6 +47,7 @@ pub struct AugmentPackage {
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
     pub byproducts: Vec<PackageId>,
+    pub prevent_byproducts: bool,
 }
 
 impl AugmentPackage {
@@ -127,6 +129,7 @@ impl Package for AugmentPackage {
         package.is_flat = meta.flat;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
+        package.prevent_byproducts = meta.prevent_byproducts;
 
         // block tags
         if package.has_shape {
