@@ -1,8 +1,8 @@
 use super::{
-    Artifact, BattleCallback, BattleSimulation, Character, Entity, Player, SharedBattleResources,
-    TimeFreezeEntityBackup,
+    Action, Artifact, BattleCallback, BattleSimulation, Character, Entity, Player,
+    SharedBattleResources, TimeFreezeEntityBackup,
 };
-use crate::bindable::{CardProperties, Team};
+use crate::bindable::{CardProperties, EntityId, Team};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -22,6 +22,7 @@ enum ActionFreezeState {
     HideSummary,
     Action,
     ActionCleanup,
+    PollEntityAction,
     FadeOut,
 }
 
@@ -62,10 +63,8 @@ impl ActionFreezeState {
             Self::DisplaySummary | Self::HideSummary => Self::SUMMARY_TRANSITION_DURATION,
             Self::Counterable => Self::COUNTER_DURATION,
             Self::Action => Self::MAX_ACTION_DURATION,
-            Self::ActionCleanup => {
-                // let the cleanup logic handle the timing
-                FrameTime::MAX
-            }
+            Self::ActionCleanup => 1,
+            Self::PollEntityAction => 1,
         }
     }
 
@@ -77,7 +76,8 @@ impl ActionFreezeState {
             Self::Counterable => Self::HideSummary.into(),
             Self::HideSummary => Self::Action.into(),
             Self::Action => Self::ActionCleanup.into(),
-            Self::ActionCleanup => Self::FadeOut.into(),
+            Self::ActionCleanup => Self::PollEntityAction.into(),
+            Self::PollEntityAction => Self::FadeOut.into(),
             Self::FadeOut => TimeFreezeState::Thawed,
         }
     }
@@ -100,6 +100,7 @@ impl From<ActionFreezeState> for TimeFreezeState {
 #[derive(Default, Clone)]
 struct TrackedAction {
     team: Team,
+    entity: EntityId,
     action_index: GenerationalIndex,
     prevent_counter: bool,
 }
@@ -110,6 +111,7 @@ pub struct TimeFreezeTracker {
     active_time: FrameTime,
     state_start_time: FrameTime,
     state: TimeFreezeState,
+    previous_state: TimeFreezeState,
     should_defrost: bool,
     skipping_intros: bool,
     character_backup: Option<TimeFreezeEntityBackup>,
@@ -146,7 +148,7 @@ impl TimeFreezeTracker {
         &mut self,
         team: Team,
         action_index: GenerationalIndex,
-        properties: &CardProperties,
+        action: &Action,
     ) -> Option<GenerationalIndex> {
         let mut tracked_action_iter = self.action_chain.iter();
         let dropped_action_index = tracked_action_iter
@@ -159,18 +161,23 @@ impl TimeFreezeTracker {
         if !self.time_is_frozen() {
             self.active_time = 0;
             self.state = ActionFreezeState::Freeze.into();
+            self.skipping_intros = action.properties.skip_time_freeze_intro;
         } else if self.can_processing_action_counter() {
             self.state = ActionFreezeState::Countered.into();
+        } else if action.properties.skip_time_freeze_intro {
+            self.state = ActionFreezeState::Action.into();
+        } else {
+            self.state = ActionFreezeState::DisplaySummary.into();
         }
 
         // set the state start time to allow other players to counter, as well as initialize
         self.state_start_time = self.active_time;
-        self.skipping_intros = properties.skip_time_freeze_intro;
 
         self.action_chain.push(TrackedAction {
             team,
+            entity: action.entity,
             action_index,
-            prevent_counter: properties.prevent_time_freeze_counter,
+            prevent_counter: action.properties.prevent_time_freeze_counter,
         });
 
         dropped_action_index
@@ -207,6 +214,15 @@ impl TimeFreezeTracker {
             && self.action_chain.last().is_some_and(|t| !t.prevent_counter)
     }
 
+    // the entity polled for back to back freezes
+    pub fn polled_entity(&self) -> Option<EntityId> {
+        if self.state != ActionFreezeState::PollEntityAction.into() {
+            return None;
+        }
+
+        self.action_chain.last().map(|t| t.entity)
+    }
+
     fn should_freeze(&self) -> bool {
         matches!(
             self.state,
@@ -226,7 +242,7 @@ impl TimeFreezeTracker {
         self.state = ActionFreezeState::ActionCleanup.into();
     }
 
-    fn advance_action(&mut self) {
+    fn advance_team_action(&mut self) {
         self.action_chain.pop();
 
         if self.action_chain.is_empty() {
@@ -236,10 +252,6 @@ impl TimeFreezeTracker {
         }
 
         self.state_start_time = self.active_time;
-    }
-
-    fn should_cleanup_action(&self) -> bool {
-        self.state == ActionFreezeState::ActionCleanup.into()
     }
 
     #[must_use]
@@ -272,6 +284,12 @@ impl TimeFreezeTracker {
     fn increment_time(&mut self) {
         self.active_time += 1;
         self.should_defrost = false;
+
+        if self.state != self.previous_state {
+            self.previous_state = self.state;
+            // prevent state changes if we just changed states
+            return;
+        }
 
         let state_elapsed_time = self.active_time - self.state_start_time;
 
@@ -395,30 +413,32 @@ impl TimeFreezeTracker {
             ActionFreezeState::Action => {
                 if state_just_started {
                     Self::begin_action(simulation);
+                } else if let Some(index) = time_freeze_tracker.active_action_index() {
+                    // detect action end
+                    if !simulation.actions.contains_key(index) {
+                        // action completed, update tracking
+                        time_freeze_tracker.end_action();
+                    }
                 }
+            }
+            ActionFreezeState::ActionCleanup => {
+                if let Some(action_index) = simulation.time_freeze_tracker.active_action_index() {
+                    // try deleting, just in case we only timed out
+                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                }
+
+                if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
+                    entity_backup.restore(game_io, resources, simulation);
+                }
+            }
+            ActionFreezeState::PollEntityAction => {
+                simulation.time_freeze_tracker.advance_team_action();
             }
             _ => {}
         }
 
-        // detect action end
-        if let Some(index) = simulation.time_freeze_tracker.active_action_index() {
-            if !simulation.actions.contains_key(index) {
-                // action completed, update tracking
-                simulation.time_freeze_tracker.end_action();
-            }
-        }
-
         // increment the time
         simulation.time_freeze_tracker.increment_time();
-
-        // handle the action cleanup
-        if simulation.time_freeze_tracker.should_cleanup_action() {
-            if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
-                entity_backup.restore(game_io, resources, simulation);
-            }
-
-            simulation.time_freeze_tracker.advance_action();
-        }
     }
 
     fn detect_counter_attempt(

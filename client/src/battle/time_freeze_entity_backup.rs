@@ -7,11 +7,11 @@ use framework::prelude::GameIO;
 
 #[derive(Clone)]
 pub struct TimeFreezeEntityBackup {
-    entity_id: EntityId,
-    action_index: Option<GenerationalIndex>,
-    movement: Option<Movement>,
-    animator: BattleAnimator,
-    status_director: Option<StatusDirector>,
+    pub entity_id: EntityId,
+    pub action_index: Option<GenerationalIndex>,
+    pub movement: Option<Movement>,
+    pub animator: BattleAnimator,
+    pub status_director: Option<StatusDirector>,
 }
 
 impl TimeFreezeEntityBackup {
