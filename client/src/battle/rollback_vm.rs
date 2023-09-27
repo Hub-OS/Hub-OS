@@ -22,7 +22,7 @@ impl RollbackVM {
             .iter()
             .map(|ns| match ns {
                 PackageNamespace::Netplay(index) => *index,
-                _ => usize::MAX,
+                _ => u8::MAX,
             })
             .min()
             .unwrap();

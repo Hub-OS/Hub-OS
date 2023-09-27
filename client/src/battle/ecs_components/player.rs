@@ -467,7 +467,7 @@ impl Player {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        PackageNamespace::Netplay(self.index)
+        PackageNamespace::Netplay(self.index as u8)
     }
 
     pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {

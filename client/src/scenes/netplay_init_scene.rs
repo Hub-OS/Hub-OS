@@ -395,7 +395,7 @@ impl NetplayInitScene {
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
-                            let namespace = PackageNamespace::Netplay(connection.index);
+                            let namespace = PackageNamespace::Netplay(connection.index as u8);
                             globals.load_virtual_package(category, namespace, hash);
                         }
                     }
@@ -641,7 +641,7 @@ impl NetplayInitScene {
 
             // setup other players
             for mut connection in std::mem::take(&mut self.player_connections) {
-                let namespace = PackageNamespace::Netplay(connection.index);
+                let namespace = PackageNamespace::Netplay(connection.index as u8);
                 let package = globals
                     .player_packages
                     .package_or_override(namespace, &connection.player_package);

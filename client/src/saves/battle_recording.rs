@@ -27,7 +27,7 @@ impl BattleRecording {
             }
             PackageNamespace::Local => {
                 if let Some(i) = local_index {
-                    PackageNamespace::Netplay(i)
+                    PackageNamespace::Netplay(i as u8)
                 } else {
                     log::error!(
                         "Unabled to handle Local namespace in BattleRecording::normalize_namespace()"

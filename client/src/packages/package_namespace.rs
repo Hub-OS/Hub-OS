@@ -8,7 +8,7 @@ pub enum PackageNamespace {
     Local,
     Server,
     RecordingServer,
-    Netplay(usize),
+    Netplay(u8),
 }
 
 impl PackageNamespace {
@@ -72,7 +72,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for PackageNamespace {
             0 => PackageNamespace::Local,
             1 => PackageNamespace::Server,
             2 => PackageNamespace::RecordingServer,
-            _ => PackageNamespace::Netplay(number as usize - 3),
+            _ => PackageNamespace::Netplay((number - 3) as u8),
         };
 
         Ok(ns)

@@ -43,7 +43,7 @@ impl PlayerSetup {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        PackageNamespace::Netplay(self.index)
+        PackageNamespace::Netplay(self.index as u8)
     }
 
     pub fn from_globals(game_io: &GameIO) -> Self {
