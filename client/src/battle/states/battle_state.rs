@@ -517,6 +517,8 @@ impl BattleState {
             Living::process_hits(game_io, resources, simulation, id.into());
         }
 
+        Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
+
         simulation.field.resolve_wash_and_ignored_attackers();
     }
 

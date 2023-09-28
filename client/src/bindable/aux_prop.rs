@@ -192,6 +192,8 @@ impl AuxRequirement {
 
 #[derive(Default, Debug, Clone)]
 pub enum AuxEffect {
+    InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
+    InterruptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     StatusImmunity(HitFlags),
     ApplyStatus(HitFlags, FrameTime),
     RemoveStatus(HitFlags),
@@ -200,7 +202,6 @@ pub enum AuxEffect {
     DecreaseDamageSum(MathExpr<f32, AuxVariable>),
     DrainHP(i32),
     RecoverHP(i32),
-    InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     #[default]
     None,
 }
@@ -208,37 +209,45 @@ pub enum AuxEffect {
 impl AuxEffect {
     fn priority(&self) -> usize {
         match self {
-            AuxEffect::StatusImmunity(_) => 0,
-            AuxEffect::ApplyStatus(_, _) => 1,
-            AuxEffect::RemoveStatus(_) => 2,
-            AuxEffect::IncreaseHitDamage(_) => 3,
-            AuxEffect::DecreaseHitDamage(_) => 4,
-            AuxEffect::DecreaseDamageSum(_) => 5,
-            AuxEffect::DrainHP(_) => 6,
-            AuxEffect::RecoverHP(_) => 7,
-            AuxEffect::InterceptAction(_) => 8,
-            AuxEffect::None => 9,
+            AuxEffect::InterceptAction(_) => 0,
+            AuxEffect::InterruptAction(_) => 1,
+            AuxEffect::StatusImmunity(_) => 2,
+            AuxEffect::ApplyStatus(_, _) => 3,
+            AuxEffect::RemoveStatus(_) => 4,
+            AuxEffect::IncreaseHitDamage(_) => 5,
+            AuxEffect::DecreaseHitDamage(_) => 6,
+            AuxEffect::DecreaseDamageSum(_) => 7,
+            AuxEffect::DrainHP(_) => 8,
+            AuxEffect::RecoverHP(_) => 9,
+            AuxEffect::None => 10,
         }
     }
 
     pub fn execute_before_hit(&self) -> bool {
-        self.priority() < 3
+        // StatusImmunity - RemoveStatus
+        (2..=4).contains(&self.priority())
     }
 
     pub fn execute_on_hit(&self) -> bool {
-        (3..=4).contains(&self.priority())
+        // IncreaseHitDamage - DecreaseHitDamage
+        (5..=6).contains(&self.priority())
     }
 
     pub fn execute_after_hit(&self) -> bool {
-        self.priority() > 4 && self.hit_related()
+        // DecreaseDamageSum - None
+        (7..=10).contains(&self.priority())
     }
 
     pub fn hit_related(&self) -> bool {
-        self.priority() <= 7 || matches!(self, AuxEffect::None)
+        (2..=10).contains(&self.priority())
+    }
+
+    pub fn action_queue_related(&self) -> bool {
+        self.priority() == 0
     }
 
     pub fn action_related(&self) -> bool {
-        self.priority() == 8
+        self.priority() == 1
     }
 
     fn from_lua<'lua>(
@@ -281,6 +290,15 @@ impl AuxEffect {
                     |_, lua, index| lua.pack_multi(create_action_table(lua, index)?),
                 )?;
                 AuxEffect::InterceptAction(callback)
+            }
+            "interrupt_action" => {
+                let callback = BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?,
+                    table.get(2)?,
+                    |_, lua, index| lua.pack_multi(create_action_table(lua, index)?),
+                )?;
+                AuxEffect::InterruptAction(callback)
             }
             _ => {
                 return Err(rollback_mlua::Error::FromLuaConversionError {

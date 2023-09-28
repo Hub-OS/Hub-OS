@@ -95,8 +95,27 @@ impl Living {
         aux_props
     }
 
-    pub fn delete_completed_aux_props(&mut self) {
-        self.aux_props.retain(|_, prop| !prop.completed());
+    pub fn aux_prop_cleanup(simulation: &mut BattleSimulation, filter: impl Fn(&AuxProp) -> bool) {
+        let entities = &mut simulation.entities;
+
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            // mark auxprops as tested in case they haven't already been marked
+            for aux_prop in living.aux_props.values_mut() {
+                if filter(aux_prop) {
+                    aux_prop.mark_tested();
+                }
+            }
+
+            // delete completed auxprops
+            living.aux_props.retain(|_, prop| !prop.completed());
+
+            // reset tests for next run
+            for aux_prop in living.aux_props.values_mut() {
+                if filter(aux_prop) {
+                    aux_prop.reset_tests();
+                }
+            }
+        }
     }
 
     pub fn process_hits(
@@ -123,10 +142,6 @@ impl Living {
         let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();
 
         for aux_prop in living.aux_props.values_mut() {
-            if aux_prop.effect().hit_related() {
-                aux_prop.reset_tests();
-            }
-
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
             aux_prop.process_time(simulation.battle_time);
@@ -383,9 +398,6 @@ impl Living {
                 .extend(aux_prop.callbacks().iter().cloned())
         }
 
-        // delete completed aux props
-        living.delete_completed_aux_props();
-
         // apply damage and health modifier
         living.set_health(living.health - total_damage + health_modifier);
 
@@ -426,7 +438,7 @@ impl Living {
             };
 
             for aux_prop in living.aux_props.values_mut() {
-                if !aux_prop.effect().action_related() || aux_prop.activated() {
+                if !aux_prop.effect().action_queue_related() || aux_prop.activated() {
                     // skip unrelated aux_props
                     // also skip already activated aux_props to prevent infinite loops
                     continue;
@@ -481,6 +493,46 @@ impl Living {
                 // resolved to no action
                 return None;
             }
+        }
+    }
+
+    pub fn attempt_interrupt(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        action_index: GenerationalIndex,
+    ) {
+        let Some(action) = simulation.actions.get_mut(action_index) else {
+            return;
+        };
+
+        let entities = &mut simulation.entities;
+        let Ok(living) = entities.query_one_mut::<&mut Living>(action.entity.into()) else {
+            return;
+        };
+
+        for aux_prop in living.aux_props.values_mut() {
+            if !aux_prop.effect().action_related() {
+                continue;
+            }
+
+            aux_prop.process_action(Some(action));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            match aux_prop.effect() {
+                AuxEffect::InterruptAction(callback) => {
+                    let callback = callback.clone();
+                    callback.call(game_io, resources, simulation, action_index);
+
+                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                }
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            return;
         }
     }
 }

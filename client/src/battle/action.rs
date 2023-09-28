@@ -340,7 +340,7 @@ impl Action {
         // ensure initial test values for all action related aux props
         for (_, living) in entities.query_mut::<&mut Living>() {
             for aux_prop in living.aux_props.values_mut() {
-                if aux_prop.effect().action_related() {
+                if aux_prop.effect().action_queue_related() {
                     aux_prop.process_action(None);
                 }
             }
@@ -447,27 +447,13 @@ impl Action {
         }
 
         // clean up action related aux props
-        let entities = &mut simulation.entities;
-
-        for (_, living) in entities.query_mut::<&mut Living>() {
-            for aux_prop in living.aux_props.values_mut() {
-                if aux_prop.effect().action_related() {
-                    aux_prop.mark_tested();
-                }
-            }
-
-            living.delete_completed_aux_props();
-
-            for aux_prop in living.aux_props.values_mut() {
-                if aux_prop.effect().action_related() {
-                    aux_prop.reset_tests();
-                }
-            }
-        }
+        Living::aux_prop_cleanup(simulation, |aux_prop| {
+            aux_prop.effect().action_queue_related()
+        });
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // cancel card_use_requested to fix cards used
-            for (_, player) in entities.query_mut::<&mut Character>() {
+            for (_, player) in simulation.entities.query_mut::<&mut Character>() {
                 player.card_use_requested = false;
             }
         }
@@ -489,6 +475,8 @@ impl Action {
 
         // card actions
         for action_index in action_indices {
+            Living::attempt_interrupt(game_io, resources, simulation, action_index);
+
             let Some(action) = simulation.actions.get_mut(action_index) else {
                 continue;
             };
@@ -588,6 +576,8 @@ impl Action {
                 actions_pending_deletion.push(action_index);
             }
         }
+
+        Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().action_related());
 
         Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
     }

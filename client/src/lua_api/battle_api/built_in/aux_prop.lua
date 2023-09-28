@@ -52,6 +52,7 @@ local eff_list = {
   "drain_health",
   "recover_health",
   "intercept_action",
+  "interrupt_action",
 }
 
 for _, name in ipairs(eff_list) do
