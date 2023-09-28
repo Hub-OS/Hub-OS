@@ -473,6 +473,125 @@ impl Action {
         }
     }
 
+    pub fn process_actions(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let mut actions_pending_deletion = Vec::new();
+        let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        let action_indices: Vec<_> = (simulation.actions)
+            .iter()
+            .filter(|(_, action)| action.queued)
+            .map(|(index, _)| index)
+            .collect();
+
+        // card actions
+        for action_index in action_indices {
+            let Some(action) = simulation.actions.get_mut(action_index) else {
+                continue;
+            };
+
+            if time_is_frozen && !action.properties.time_freeze {
+                // non time freeze action in time freeze
+                continue;
+            }
+
+            let entities = &mut simulation.entities;
+            let entity_id = action.entity;
+
+            let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+                continue;
+            };
+
+            if !entity.spawned || entity.deleted || entity.time_frozen {
+                continue;
+            }
+
+            let animator_index = entity.animator_index;
+
+            // execute
+            if !action.executed {
+                if entity.movement.is_some() {
+                    continue;
+                }
+
+                if !simulation.is_entity_actionable(resources, entity_id) {
+                    continue;
+                }
+
+                Action::execute(game_io, resources, simulation, action_index);
+            }
+
+            // update callback
+            let Some(action) = simulation.actions.get_mut(action_index) else {
+                continue;
+            };
+
+            if let Some(callback) = action.update_callback.clone() {
+                callback.call(game_io, resources, simulation, ());
+            }
+
+            // steps
+            let Some(action) = simulation.actions.get_mut(action_index) else {
+                continue;
+            };
+
+            while action.step_index < action.steps.len() {
+                let step = &mut action.steps[action.step_index];
+
+                if !step.completed {
+                    let callback = step.callback.clone();
+
+                    callback.call(game_io, resources, simulation, ());
+                    break;
+                }
+
+                action.step_index += 1;
+            }
+
+            // handling async card actions
+            let Some(action) = simulation.actions.get_mut(action_index) else {
+                continue;
+            };
+
+            let animation_completed = simulation.animators[animator_index].is_complete();
+
+            let entity = simulation
+                .entities
+                .query_one_mut::<&mut Entity>(action.entity.into())
+                .unwrap();
+
+            if action.is_async() && animation_completed && entity.action_index == Some(action_index)
+            {
+                // async action completed sync portion
+                action.complete_sync(
+                    &mut simulation.entities,
+                    &mut simulation.animators,
+                    &mut simulation.pending_callbacks,
+                    &mut simulation.field,
+                );
+            }
+
+            // detecting end
+            let is_complete = match action.lockout_type {
+                ActionLockout::Animation => animation_completed,
+                ActionLockout::Sequence => action.step_index >= action.steps.len(),
+                ActionLockout::Async(frames) => action.active_frames >= frames,
+            };
+
+            action.active_frames += 1;
+
+            if is_complete {
+                // queue deletion
+                actions_pending_deletion.push(action_index);
+            }
+        }
+
+        Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
+    }
+
     pub fn delete_multi(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -532,7 +651,7 @@ impl Action {
         simulation.call_pending_callbacks(game_io, resources);
     }
 
-    pub fn complete_sync(
+    fn complete_sync(
         &mut self,
         entities: &mut hecs::World,
         animators: &mut SlotMap<BattleAnimator>,
