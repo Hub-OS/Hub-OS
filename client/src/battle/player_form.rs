@@ -2,6 +2,7 @@ use super::BattleCallback;
 use crate::bindable::{CardProperties, GenerationalIndex};
 use crate::render::FrameTime;
 use framework::prelude::Texture;
+use packets::structures::Direction;
 use std::sync::Arc;
 
 #[derive(Default, Clone)]
@@ -18,4 +19,5 @@ pub struct PlayerForm {
     pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
     pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
+    pub movement_callback: Option<BattleCallback<Direction>>,
 }

@@ -1,7 +1,7 @@
 use super::errors::{augment_not_found, entity_not_found};
 use super::{
     create_entity_table, BattleLuaApi, AUGMENT_TABLE, CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN,
-    CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
+    CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN, MOVEMENT_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
 use crate::battle::{Augment, BattleCallback, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
@@ -66,6 +66,13 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         CHARGED_CARD_FN,
         |augment: &mut Augment| &mut augment.charged_card_callback,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
+    );
+
+    callback_setter(
+        lua_api,
+        MOVEMENT_FN,
+        |augment: &mut Augment| &mut augment.movement_callback,
+        |lua, table, direction| lua.pack_multi((table, direction)),
     );
 
     callback_setter(

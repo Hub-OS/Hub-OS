@@ -686,137 +686,15 @@ impl BattleState {
             return;
         }
 
-        let mut movement_tests = Vec::new();
-
-        let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
+        let entity_ids: Vec<EntityId> = entities
+            .query_mut::<&Player>()
+            .into_iter()
+            .map(|(id, _)| id.into())
+            .collect();
 
-        for (id, (entity, living, player)) in
-            entities.query_mut::<(&mut Entity, &Living, &mut Player)>()
-        {
-            // can't move if there's a blocking action or immoble
-            if entity.action_index.is_some()
-                || !entity.action_queue.is_empty()
-                || living.status_director.is_immobile(status_registry)
-            {
-                continue;
-            }
-
-            let input = &simulation.inputs[player.index];
-            let anim = &simulation.animators[entity.animator_index];
-
-            // test for flip requests
-            let face_left = input.was_just_pressed(Input::FaceLeft);
-            let face_right = input.was_just_pressed(Input::FaceRight);
-
-            player.flip_requested |= (face_left && face_right)
-                || (face_left && entity.facing != Direction::Left)
-                || (face_right && entity.facing != Direction::Right);
-
-            // can only move if there's no move action queued and the current animation is PLAYER_IDLE
-            if entity.movement.is_some() || anim.current_state() != Some(Player::IDLE_STATE) {
-                continue;
-            }
-
-            let confused = (living.status_director).remaining_status_time(HitFlag::CONFUSE) > 0;
-
-            let mut x_offset =
-                input.is_down(Input::Right) as i32 - input.is_down(Input::Left) as i32;
-
-            if entity.team == Team::Blue {
-                // flipped perspective
-                x_offset = -x_offset;
-            }
-
-            if confused {
-                x_offset = -x_offset;
-            }
-
-            let tile_exists = simulation
-                .field
-                .tile_at_mut((entity.x + x_offset, entity.y))
-                .is_some();
-
-            if x_offset != 0 && tile_exists {
-                movement_tests.push((
-                    id,
-                    entity.can_move_to_callback.clone(),
-                    (entity.x + x_offset, entity.y),
-                    player.slide_when_moving,
-                ));
-            }
-
-            let mut y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
-
-            if confused {
-                y_offset = -y_offset;
-            }
-
-            let tile_exists = simulation
-                .field
-                .tile_at_mut((entity.x, entity.y + y_offset))
-                .is_some();
-
-            if y_offset != 0 && tile_exists {
-                movement_tests.push((
-                    id,
-                    entity.can_move_to_callback.clone(),
-                    (entity.x, entity.y + y_offset),
-                    player.slide_when_moving,
-                ));
-            }
-
-            // handle flipping
-            if player.flip_requested && player.can_flip {
-                entity.facing = entity.facing.reversed();
-            }
-            player.flip_requested = false;
-        }
-
-        // try movement
-        for (id, can_move_to_callback, dest, slide) in movement_tests {
-            // movement test
-            if can_move_to_callback.call(game_io, resources, simulation, dest) {
-                // statistics
-                if simulation.local_player_id == EntityId::from(id) {
-                    simulation.statistics.movements += 1;
-                }
-
-                // actual movement
-                let (entity, player) = simulation
-                    .entities
-                    .query_one_mut::<(&mut Entity, &Player)>(id)
-                    .unwrap();
-
-                if slide {
-                    entity.movement = Some(Movement::slide(dest, 14));
-                } else {
-                    let mut move_event = Movement::teleport(dest);
-                    move_event.delay = 5;
-                    move_event.endlag = 7;
-
-                    let animator_index = entity.animator_index;
-                    let movement_state = player.movement_animation_state.clone();
-
-                    move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
-                        let anim = &mut simulation.animators[animator_index];
-
-                        let callbacks = anim.set_state(&movement_state);
-                        simulation.pending_callbacks.extend(callbacks);
-
-                        // reset to PLAYER_IDLE when movement finishes
-                        anim.on_complete(BattleCallback::new(move |_, _, simulation, _| {
-                            let anim = &mut simulation.animators[animator_index];
-                            let callbacks = anim.set_state(Player::IDLE_STATE);
-                            anim.set_loop_mode(AnimatorLoopMode::Loop);
-
-                            simulation.pending_callbacks.extend(callbacks);
-                        }));
-                    }));
-
-                    entity.movement = Some(move_event);
-                }
-            }
+        for entity_id in entity_ids {
+            Player::handle_movement_input(game_io, resources, simulation, entity_id);
         }
     }
 

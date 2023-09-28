@@ -7,7 +7,7 @@ use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
 use super::sync_node_api::create_sync_node_table;
-use super::tile_api::create_tile_table;
+use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
@@ -1388,6 +1388,33 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "queue_default_player_movement",
+        |api_ctx, lua, params| {
+            let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
+                lua.unpack_multi(params)?;
+
+            let Some(tile_table) = tile_table else {
+                return lua.pack_multi(());
+            };
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let Ok(tile) = tile_mut_from_table(&mut simulation.field, tile_table) else {
+                return lua.pack_multi(());
+            };
+
+            let tile_position = tile.position();
+            Player::queue_default_movement(simulation, id, tile_position);
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_form", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -1678,6 +1705,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         CHARGED_CARD_FN,
         |player: &mut Player| &mut player.charged_card_callback,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
+    );
+
+    callback_setter(
+        lua_api,
+        MOVEMENT_FN,
+        |player: &mut Player| &mut player.movement_callback,
+        |lua, table, direction| lua.pack_multi((table, direction)),
     );
 }
 

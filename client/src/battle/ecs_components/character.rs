@@ -78,9 +78,8 @@ impl Character {
         living.add_aux_prop(elemental_weakness_aux_prop);
 
         entity.can_move_to_callback = BattleCallback::new(move |_, _, simulation, dest| {
-            let tile = match simulation.field.tile_at_mut(dest) {
-                Some(tile) => tile,
-                None => return false,
+            let Some(tile) = simulation.field.tile_at_mut(dest) else {
+                return false;
             };
 
             if tile.state_index() == TileState::HIDDEN {
