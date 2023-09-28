@@ -511,7 +511,9 @@ impl BattleScene {
 
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
-                let buffer_item = controller.buffer.pop_next().unwrap();
+                let Some(buffer_item) = controller.buffer.pop_next() else {
+                    continue;
+                };
 
                 // record input
                 if let Some(recording) = &mut self.recording {
@@ -734,8 +736,14 @@ impl BattleScene {
         } else {
             // normal update
             let can_simulate = if self.is_playing_back_recording {
+                let controller_iter = self.player_controllers.iter();
+                let total_frames = controller_iter
+                    .map(|controller| controller.buffer.len() as FrameTime)
+                    .max()
+                    .unwrap_or_default();
+
                 // simulate as long as we have input
-                self.simulation.time < self.player_controllers[0].buffer.len() as FrameTime
+                self.simulation.time < total_frames
             } else {
                 // simulate as long as we can roll back to the synced time
                 self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
