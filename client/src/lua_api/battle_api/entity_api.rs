@@ -1373,9 +1373,15 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(
+    getter(
         lua_api,
         "slide_when_moving",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.slide_when_moving),
+    );
+
+    setter(
+        lua_api,
+        "set_slide_when_moving",
         |player: &mut Player, _, slide: Option<bool>| {
             player.slide_when_moving = slide.unwrap_or(true);
             Ok(())
