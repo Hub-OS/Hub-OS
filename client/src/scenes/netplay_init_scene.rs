@@ -367,7 +367,7 @@ impl NetplayInitScene {
                 if self.local_index == recipient_index {
                     connection.requested_packages = Some(list);
 
-                    if self.received_every_missing_list() {
+                    if self.received_every_missing_list() && !self.received_every_zip() {
                         self.broadcast(NetplayPacket::ReadyForPackages {
                             index: self.local_index,
                         });
