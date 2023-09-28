@@ -230,19 +230,24 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     use crate::bindable::ActionLockout;
 
-    globals.set(
-        "make_animation_lockout",
+    let action_lockout = lua.create_table()?;
+    action_lockout.set(
+        "new_animation",
         lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Animation))?,
     )?;
-    globals.set(
-        "make_sequence_lockout",
+    action_lockout.set(
+        "new_sequence",
         lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Sequence))?,
     )?;
-    globals.set(
-        "make_async_lockout",
+    action_lockout.set(
+        "new_async",
         lua.create_function(|lua, duration: FrameTime| {
             lua.to_value(&ActionLockout::Async(duration))
         })?,
+    )?;
+    globals.set(
+        "ActionLockout",
+        lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Animation))?,
     )?;
 
     let audio_behavior_table = lua.create_table()?;
