@@ -41,9 +41,9 @@ futures = { version = "0.3", default-features = false, features = [
   "async-await"
 ] }
 walkdir = "2.3"
-toml = "0.7"
+toml = "0.8"
 serde_json = "1.0"
-enum-map = "2.4"
+enum-map = "2"
 smallvec = "1.10"
 field_count = "0.1"
 rustysynth = "1.1"
