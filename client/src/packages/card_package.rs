@@ -26,6 +26,7 @@ struct CardMeta {
     time_freeze: bool,
     skip_time_freeze_intro: bool,
     prevent_time_freeze_counter: bool,
+    conceal: bool,
     tags: Vec<String>,
 }
 
@@ -121,6 +122,7 @@ impl Package for CardPackage {
         package.card_properties.time_freeze = meta.time_freeze;
         package.card_properties.skip_time_freeze_intro = meta.skip_time_freeze_intro;
         package.card_properties.prevent_time_freeze_counter = meta.prevent_time_freeze_counter;
+        package.card_properties.conceal = meta.conceal;
         package.card_properties.tags = meta.tags;
 
         package
