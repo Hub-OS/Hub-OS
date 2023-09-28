@@ -245,10 +245,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
             lua.to_value(&ActionLockout::Async(duration))
         })?,
     )?;
-    globals.set(
-        "ActionLockout",
-        lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Animation))?,
-    )?;
+    globals.set("ActionLockout", action_lockout)?;
 
     let audio_behavior_table = lua.create_table()?;
     audio_behavior_table.set("Default", AudioBehavior::Default)?;
