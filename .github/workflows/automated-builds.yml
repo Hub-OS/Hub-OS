@@ -27,7 +27,11 @@ jobs:
           targets: x86_64-pc-windows-gnu
 
       - name: Install Linux Dependencies
-        run: sudo apt-get update && sudo apt-get install -y mingw-w64 libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64 mold libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+          mkdir .cargo
+          printf "[target.x86_64-unknown-linux-gnu]\nlinker = \"/usr/bin/clang\"\nrustflags = [\"-C\", \"link-arg=--ld-path=/usr/bin/mold\"]" > .cargo/config.toml
 
       - uses: actions/cache@v3
         with:
