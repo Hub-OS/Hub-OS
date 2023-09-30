@@ -48,6 +48,7 @@ pub struct Entity {
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub spawn_callback: BattleCallback,
     pub update_callback: BattleCallback,
+    pub idle_callback: BattleCallback,
     pub counter_callback: BattleCallback<EntityId>,
     pub battle_start_callback: BattleCallback,
     pub battle_end_callback: BattleCallback,
@@ -101,6 +102,7 @@ impl Entity {
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
             update_callback: BattleCallback::stub(()),
+            idle_callback: BattleCallback::stub(()),
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:

@@ -88,6 +88,7 @@ const ACTION_END_FN: &str = "on_action_end_func";
 const EXECUTE_FN: &str = "on_execute_func";
 
 // all entities
+const IDLE_FN: &str = "on_idle_func";
 const DELETE_FN: &str = "on_delete_func";
 const BATTLE_START_FN: &str = "on_battle_start_func";
 const BATTLE_END_FN: &str = "on_battle_end_func";

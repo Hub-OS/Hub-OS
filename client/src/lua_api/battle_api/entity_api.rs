@@ -777,6 +777,27 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_idle", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+
+        let entities = &mut simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let idle_callback = entity.idle_callback.clone();
+        idle_callback.call(game_io, resources, simulation, ());
+
+        lua.pack_multi(())
+    });
+
     callback_setter(
         lua_api,
         SPAWN_FN,
@@ -788,6 +809,13 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         UPDATE_FN,
         |entity: &mut Entity| &mut entity.update_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
+    callback_setter(
+        lua_api,
+        IDLE_FN,
+        |entity: &mut Entity| &mut entity.idle_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
@@ -967,14 +995,6 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
 
     //     if entity.action_index.is_some() {
     //         return lua.pack_multi(false);
-    //     }
-
-    //     if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into()) {
-    //         let animator = &api_ctx.simulation.animators[entity.animator_index];
-
-    //         if animator.current_state() != Some(Player::IDLE_STATE) {
-    //             return lua.pack_multi(false);
-    //         }
     //     }
 
     //     lua.pack_multi(api_ctx.simulation.is_entity_actionable(entity_id))

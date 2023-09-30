@@ -158,6 +158,9 @@ impl Player {
             .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
             .unwrap();
 
+        // capture animator index for use later
+        let animator_index = entity.animator_index;
+
         // spawn immediately
         entity.pending_spawn = true;
 
@@ -168,6 +171,17 @@ impl Player {
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
         living.status_director.set_input_index(setup.index);
+
+        // idle callback
+        entity.idle_callback = BattleCallback::new(move |_, _, simulation, _| {
+            let Some(animator) = simulation.animators.get_mut(animator_index) else {
+                return;
+            };
+
+            let callbacks = animator.set_state(Player::IDLE_STATE);
+            animator.set_loop_mode(AnimatorLoopMode::Loop);
+            simulation.pending_callbacks.extend(callbacks);
+        });
 
         // delete callback
         entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
@@ -193,32 +207,11 @@ impl Player {
 
                 player.cancel_charge();
 
-                // play flinch animation
-                let animator = &mut simulation.animators[entity.animator_index];
-
-                let callbacks = animator.set_state(&player.flinch_animation_state);
-                simulation.pending_callbacks.extend(callbacks);
-
-                // on complete will return to idle
-                animator.on_complete(BattleCallback::new(
-                    move |game_io, resources, simulation, _| {
-                        let entity = simulation
-                            .entities
-                            .query_one_mut::<&Entity>(id.into())
-                            .unwrap();
-
-                        let animator = &mut simulation.animators[entity.animator_index];
-
-                        let callbacks = animator.set_state(Player::IDLE_STATE);
-                        animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        simulation.pending_callbacks.extend(callbacks);
-
-                        simulation.call_pending_callbacks(game_io, resources);
-                    },
-                ));
+                let state = player.flinch_animation_state.clone();
+                let flinch_action_index = Action::create(game_io, simulation, state, id).unwrap();
+                Action::queue_action(simulation, id, flinch_action_index);
 
                 simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
-                simulation.call_pending_callbacks(game_io, resources);
             }),
         );
 
@@ -620,8 +613,7 @@ impl Player {
         player.card_chargable_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
-        let animator = &simulation.animators[entity.animator_index];
-        let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
+        let is_idle = entity.movement.is_none();
         let input = &simulation.inputs[player.index];
 
         if can_charge_card && input.was_just_pressed(Input::UseCard) {
@@ -947,10 +939,8 @@ impl Player {
             return;
         }
 
-        let animator = &simulation.animators[entity.animator_index];
-
-        // can only move if there's no move action queued and the current animation is PLAYER_IDLE
-        if entity.movement.is_some() || animator.current_state() != Some(Player::IDLE_STATE) {
+        // can only move if there's no move action queued
+        if entity.movement.is_some() {
             return;
         }
 
@@ -1031,6 +1021,7 @@ impl Player {
 
             let animator_index = entity.animator_index;
             let movement_state = player.movement_animation_state.clone();
+            let idle_callback = entity.idle_callback.clone();
 
             move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
                 let anim = &mut simulation.animators[animator_index];
@@ -1038,14 +1029,8 @@ impl Player {
                 let callbacks = anim.set_state(&movement_state);
                 simulation.pending_callbacks.extend(callbacks);
 
-                // reset to PLAYER_IDLE when movement finishes
-                anim.on_complete(BattleCallback::new(move |_, _, simulation, _| {
-                    let anim = &mut simulation.animators[animator_index];
-                    let callbacks = anim.set_state(Player::IDLE_STATE);
-                    anim.set_loop_mode(AnimatorLoopMode::Loop);
-
-                    simulation.pending_callbacks.extend(callbacks);
-                }));
+                // idle when movement finishes
+                anim.on_complete(idle_callback.clone());
             }));
 
             entity.movement = Some(move_event);

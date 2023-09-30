@@ -7,7 +7,7 @@ use crate::bindable::{
 };
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
-use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
+use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
 use crate::resources::Globals;
 use crate::structures::SlotMap;
 use framework::prelude::GameIO;
@@ -21,7 +21,6 @@ pub struct Action {
     pub deleted: bool,
     pub entity: EntityId,
     pub state: String,
-    pub prev_state: Option<(String, AnimatorLoopMode, bool)>,
     pub frame_callbacks: Vec<(usize, BattleCallback)>,
     pub sprite_index: GenerationalIndex,
     pub properties: CardProperties,
@@ -47,7 +46,6 @@ impl Action {
             deleted: false,
             entity: entity_id,
             state,
-            prev_state: None,
             frame_callbacks: Vec::new(),
             sprite_index,
             properties: CardProperties::default(),
@@ -181,11 +179,6 @@ impl Action {
 
         // animations
         let animator_index = entity.animator_index;
-        let animator = &mut simulation.animators[animator_index];
-
-        action.prev_state = animator
-            .current_state()
-            .map(|state| (state.to_string(), animator.loop_mode(), animator.reversed()));
 
         if let Some(derived_frames) = action.derived_frames.take() {
             action.state = BattleAnimator::derive_state(
@@ -578,7 +571,6 @@ impl Action {
                 // async action completed sync portion
                 action.complete_sync(
                     &mut simulation.entities,
-                    &mut simulation.animators,
                     &mut simulation.pending_callbacks,
                     &mut simulation.field,
                 );
@@ -631,7 +623,6 @@ impl Action {
             if entity.action_index == Some(index) {
                 action.complete_sync(
                     &mut simulation.entities,
-                    &mut simulation.animators,
                     &mut simulation.pending_callbacks,
                     &mut simulation.field,
                 );
@@ -666,7 +657,6 @@ impl Action {
     fn complete_sync(
         &mut self,
         entities: &mut hecs::World,
-        animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         field: &mut Field,
     ) {
@@ -676,19 +666,6 @@ impl Action {
         // unset action_index to allow other card actions to be used
         entity.action_index = None;
 
-        // revert animation
-        if let Some((state, loop_mode, reversed)) = self.prev_state.take() {
-            let animator = &mut animators[entity.animator_index];
-            let callbacks = animator.set_state(&state);
-            animator.set_loop_mode(loop_mode);
-            animator.set_reversed(reversed);
-
-            pending_callbacks.extend(callbacks);
-
-            let sprite_node = entity.sprite_tree.root_mut();
-            animator.apply(sprite_node);
-        }
-
         // update reservations as they're ignored while in a sync card action
         if entity.auto_reserves_tiles {
             let old_tile = field.tile_at_mut(self.old_position).unwrap();
@@ -697,6 +674,8 @@ impl Action {
             let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
             current_tile.reserve_for(entity.id);
         }
+
+        pending_callbacks.push(entity.idle_callback.clone());
     }
 }
 

@@ -629,18 +629,11 @@ impl BattleState {
                 continue;
             }
 
-            let animator = &simulation.animators[entity.animator_index];
-            let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
-
             if character.cards.is_empty() {
                 character.card_use_requested = false;
             }
 
-            if character.card_use_requested
-                && entity.movement.is_none()
-                && is_idle
-                && self.time > GRACE_TIME
-            {
+            if character.card_use_requested && entity.movement.is_none() && self.time > GRACE_TIME {
                 // wait until movement ends before adding a card action
                 // this is to prevent time freeze cards from applying during movement
                 // process_action_queues only prevents non time freeze actions from starting until movements end
