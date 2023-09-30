@@ -148,10 +148,10 @@ impl State for BattleState {
 
         if let Ok(character) = entities.query_one_mut::<&Character>(entity_id.into()) {
             let mut actions_iter = simulation.actions.iter();
-            let action_queued =
-                actions_iter.any(|(_, action)| action.entity == entity_id && action.queued);
+            let action_processed =
+                actions_iter.any(|(_, action)| action.entity == entity_id && action.processed);
 
-            if !action_queued {
+            if !action_processed {
                 // only render if there's no active / queued actions
                 if let Some(card_props) = character.cards.last() {
                     // render on the bottom left
@@ -620,11 +620,11 @@ impl BattleState {
                 continue;
             }
 
-            let action_queued = (simulation.actions)
+            let action_processed = (simulation.actions)
                 .values()
-                .any(|action| action.queued && action.entity == entity.id);
+                .any(|action| action.processed && action.entity == entity.id);
 
-            if action_queued {
+            if action_processed {
                 player.cancel_charge();
                 continue;
             }

@@ -1,6 +1,6 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    action_aready_queued, action_entity_mismatch, action_not_found, aux_prop_already_bound,
+    action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
     entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
 };
 use super::field_api::get_field_table;
@@ -571,8 +571,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .get_mut(action_index)
             .ok_or_else(action_not_found)?;
 
-        if action.queued {
-            return Err(action_aready_queued());
+        if action.processed {
+            return Err(action_aready_processed());
         }
 
         if action.entity != id {

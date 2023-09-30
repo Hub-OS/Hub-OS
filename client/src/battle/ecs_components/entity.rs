@@ -220,7 +220,7 @@ impl Entity {
 
         let card_indices: Vec<_> = (simulation.actions)
             .iter()
-            .filter(|(_, action)| action.entity == id && action.queued)
+            .filter(|(_, action)| action.entity == id && action.processed)
             .map(|(index, _)| index)
             .collect();
 
