@@ -59,7 +59,7 @@ impl CardProperties {
         position: Vec2,
         scale: Vec2,
         center: bool,
-    ) {
+    ) -> TextStyle {
         let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
         text_style.monospace = true;
         text_style.bounds.set_position(position);
@@ -91,12 +91,12 @@ impl CardProperties {
         // measure text
         let name_width = text_style.measure(name_text).size.x;
 
-        if center {
-            text_style.font_style = FontStyle::GradientOrange;
-            let damage_width = text_style.measure(&damage_text).size.x;
-            let text_width = name_width + text_style.letter_spacing + damage_width;
+        text_style.font_style = FontStyle::GradientOrange;
+        let damage_width = text_style.measure(&damage_text).size.x;
 
-            text_style.bounds.x -= text_width * 0.5;
+        if center {
+            let final_width = name_width + text_style.letter_spacing + damage_width;
+            text_style.bounds.x -= final_width * 0.5;
         }
 
         // draw name
@@ -109,6 +109,10 @@ impl CardProperties {
         text_style.font_style = FontStyle::GradientOrange;
         text_style.bounds.x += name_width + text_style.letter_spacing;
         text_style.draw(game_io, sprite_queue, &damage_text);
+
+        text_style.bounds.x += damage_width + text_style.letter_spacing;
+
+        text_style
     }
 }
 

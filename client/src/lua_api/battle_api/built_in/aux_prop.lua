@@ -52,6 +52,7 @@ local eff_list = {
   "drain_health",
   "recover_health",
   "intercept_action",
+  "increase_card_multiplier",
   "interrupt_action",
 }
 

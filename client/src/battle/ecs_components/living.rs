@@ -439,13 +439,13 @@ impl Living {
             };
 
             for aux_prop in living.aux_props.values_mut() {
-                if !aux_prop.effect().action_queue_related() || aux_prop.activated() {
+                if !aux_prop.effect().resolves_action() || aux_prop.activated() {
                     // skip unrelated aux_props
                     // also skip already activated aux_props to prevent infinite loops
                     continue;
                 }
 
-                aux_prop.process_action(Some(action));
+                aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
                     continue;
@@ -497,6 +497,74 @@ impl Living {
         }
     }
 
+    #[must_use]
+    pub fn modify_used_card(
+        &mut self,
+        card_properties: &mut CardProperties,
+    ) -> Vec<BattleCallback> {
+        let mut multiplier = 1.0;
+        let mut callbacks = Vec::new();
+
+        for aux_prop in self.aux_props.values_mut() {
+            if !aux_prop.effect().executes_on_card_use() {
+                // skip unrelated aux_props
+                continue;
+            }
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            aux_prop.mark_activated();
+
+            match aux_prop.effect() {
+                AuxEffect::IncreaseCardMultiplier(increase) => multiplier += increase,
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            callbacks.extend(aux_prop.callbacks().iter().cloned());
+        }
+
+        let original_damage = card_properties.damage;
+        let new_damage = (original_damage as f32 * multiplier.max(0.0)) as i32;
+
+        card_properties.damage = new_damage;
+        card_properties.boosted_damage = new_damage - original_damage;
+
+        callbacks
+    }
+
+    pub fn predict_card_multiplier(&self, card_properties: &CardProperties) -> f32 {
+        let mut multiplier = 1.0;
+
+        if card_properties.damage == 0 {
+            // the multiplier doesn't matter if the damage is 0
+            return multiplier;
+        }
+
+        for aux_prop in self.aux_props.values() {
+            let AuxEffect::IncreaseCardMultiplier(increase) = aux_prop.effect() else {
+                // skip unrelated aux_props
+                continue;
+            };
+
+            // clone to avoid modifying the original
+            let mut aux_prop = aux_prop.clone();
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            multiplier += increase;
+        }
+
+        multiplier.max(0.0)
+    }
+
     pub fn attempt_interrupt(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -513,11 +581,11 @@ impl Living {
         };
 
         for aux_prop in living.aux_props.values_mut() {
-            if !aux_prop.effect().action_related() {
+            if !aux_prop.effect().executes_on_current_action() {
                 continue;
             }
 
-            aux_prop.process_action(Some(action));
+            aux_prop.process_card(Some(&action.properties));
 
             if !aux_prop.passed_all_tests() {
                 continue;

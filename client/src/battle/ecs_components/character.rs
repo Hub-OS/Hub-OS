@@ -1,13 +1,15 @@
+use super::{Artifact, Living, Player};
 use crate::battle::{
-    Action, BattleCallback, BattleSimulation, Entity, SharedBattleResources, TileState,
+    Action, BattleCallback, BattleSimulation, BattleState, Entity, SharedBattleResources, TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
-use framework::prelude::{GameIO, Vec2};
+use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::{FrameTime, SpriteColorQueue};
+use crate::resources::RESOLUTION_F;
+use framework::prelude::{Color, GameIO, Vec2};
 use packets::structures::PackageId;
-
-use super::{Artifact, Living};
 
 #[derive(Clone)]
 pub struct Character {
@@ -157,10 +159,18 @@ impl Character {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        let (entity, character) = simulation
-            .entities
-            .query_one_mut::<(&mut Entity, &mut Character)>(entity_id.into())
-            .unwrap();
+        let entities = &mut simulation.entities;
+        let is_player = entities
+            .satisfies::<&Player>(entity_id.into())
+            .unwrap_or(false);
+
+        if is_player && !simulation.time_freeze_tracker.time_is_frozen() {
+            Player::use_card(game_io, resources, simulation, entity_id);
+            return;
+        }
+
+        type Query<'a> = (&'a mut Entity, &'a mut Character);
+        let (entity, character) = entities.query_one_mut::<Query>(entity_id.into()).unwrap();
 
         // allow attacks to counter
         let original_context_flags = entity.hit_context.flags;
@@ -247,5 +257,115 @@ impl Character {
 
     pub fn invert_card_index(&self, index: usize) -> usize {
         self.cards.len().wrapping_sub(index).wrapping_sub(1)
+    }
+
+    pub fn process_card_requests(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        state_time: FrameTime,
+    ) {
+        // ensure initial test values for all card use aux props
+        for (_, living) in simulation.entities.query_mut::<&mut Living>() {
+            for aux_prop in living.aux_props.values_mut() {
+                if aux_prop.effect().executes_on_card_use() {
+                    aux_prop.process_card(None);
+                }
+            }
+        }
+
+        if state_time > BattleState::GRACE_TIME {
+            let mut requesters = Vec::new();
+
+            let entities = &mut simulation.entities;
+            type Query<'a> = (&'a Entity, &'a mut Character, &'a mut Living);
+
+            for (_, (entity, character, living)) in entities.query_mut::<Query>() {
+                if !character.card_use_requested || entity.movement.is_some() {
+                    // wait until movement ends before adding a card action
+                    // this is to prevent time freeze cards from applying during movement
+                    // process_action_queues only prevents non time freeze actions from starting until movements end
+                    continue;
+                }
+
+                let action_processed = (simulation.actions)
+                    .values()
+                    .any(|action| action.processed && action.entity == entity.id);
+
+                if action_processed {
+                    continue;
+                }
+
+                character.card_use_requested = false;
+
+                let Some(card_properties) = character.cards.last_mut() else {
+                    continue;
+                };
+
+                // update card with multipliers
+                let callbacks = living.modify_used_card(card_properties);
+                simulation.pending_callbacks.extend(callbacks);
+
+                requesters.push(entity.id);
+            }
+
+            for requester in requesters {
+                Self::use_card(game_io, resources, simulation, requester);
+            }
+        }
+
+        // clean up card use aux props
+        Living::aux_prop_cleanup(simulation, |aux_prop| {
+            aux_prop.effect().executes_on_card_use()
+        });
+
+        simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    pub fn draw_top_card_ui(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        type Query<'a> = (&'a Character, &'a Living);
+
+        let entities = &mut simulation.entities;
+        let Ok((character, living)) = entities.query_one_mut::<Query>(entity_id.into()) else {
+            return;
+        };
+
+        // only render if there's no processed actions
+        let mut actions_iter = simulation.actions.iter();
+        let action_processed =
+            actions_iter.any(|(_, action)| action.entity == entity_id && action.processed);
+
+        if action_processed {
+            return;
+        }
+
+        let Some(card_props) = character.cards.last() else {
+            return;
+        };
+
+        // render on the bottom left
+        const MARGIN: Vec2 = Vec2::new(1.0, -1.0);
+
+        let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
+        let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
+
+        let mut text_style =
+            card_props.draw_summary(game_io, sprite_queue, position, Vec2::ONE, false);
+
+        // draw card multiplier
+        let card_multiplier = (living.predict_card_multiplier(card_props) * 100.0).trunc() / 100.0;
+
+        if card_multiplier != 1.0 {
+            let multiplier_string = format!("\u{00D7}{card_multiplier}");
+
+            text_style.shadow_color = Color::BLACK;
+            text_style.font_style = FontStyle::Thick;
+            text_style.draw(game_io, sprite_queue, &multiplier_string);
+        }
     }
 }

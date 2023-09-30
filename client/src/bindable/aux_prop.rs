@@ -1,5 +1,8 @@
-use super::{CardClass, Comparison, Element, GenerationalIndex, HitFlags, HitProperties, MathExpr};
-use crate::battle::{Action, BattleCallback, Character, Entity, Player, SharedBattleResources};
+use super::{
+    CardClass, CardProperties, Comparison, Element, GenerationalIndex, HitFlags, HitProperties,
+    MathExpr,
+};
+use crate::battle::{BattleCallback, Character, Entity, Player, SharedBattleResources};
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
@@ -193,6 +196,7 @@ impl AuxRequirement {
 
 #[derive(Default, Debug, Clone)]
 pub enum AuxEffect {
+    IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     InterruptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     StatusImmunity(HitFlags),
@@ -208,25 +212,38 @@ pub enum AuxEffect {
 }
 
 impl AuxEffect {
-    const PRE_HIT_START: usize = 2; // StatusImmunity
-    const ON_HIT_START: usize = 5; // IncreaseHitDamage
-    const POST_HIT_START: usize = 7; // DecreaseDamageSum
-    const POST_HIT_END: usize = 10; // None
+    const PRE_HIT_START: usize = 3; // StatusImmunity
+    const ON_HIT_START: usize = 6; // IncreaseHitDamage
+    const POST_HIT_START: usize = 8; // DecreaseDamageSum
+    const POST_HIT_END: usize = 11; // None
 
     const fn priority(&self) -> usize {
         match self {
-            AuxEffect::InterceptAction(_) => 0,
-            AuxEffect::InterruptAction(_) => 1,
-            AuxEffect::StatusImmunity(_) => 2,
-            AuxEffect::ApplyStatus(_, _) => 3,
-            AuxEffect::RemoveStatus(_) => 4,
-            AuxEffect::IncreaseHitDamage(_) => 5,
-            AuxEffect::DecreaseHitDamage(_) => 6,
-            AuxEffect::DecreaseDamageSum(_) => 7,
-            AuxEffect::DrainHP(_) => 8,
-            AuxEffect::RecoverHP(_) => 9,
-            AuxEffect::None => 10,
+            AuxEffect::IncreaseCardMultiplier(_) => 0,
+            AuxEffect::InterceptAction(_) => 1,
+            AuxEffect::InterruptAction(_) => 2,
+            AuxEffect::StatusImmunity(_) => 3,
+            AuxEffect::ApplyStatus(_, _) => 4,
+            AuxEffect::RemoveStatus(_) => 5,
+            AuxEffect::IncreaseHitDamage(_) => 6,
+            AuxEffect::DecreaseHitDamage(_) => 7,
+            AuxEffect::DecreaseDamageSum(_) => 8,
+            AuxEffect::DrainHP(_) => 9,
+            AuxEffect::RecoverHP(_) => 10,
+            AuxEffect::None => 11,
         }
+    }
+
+    pub fn executes_on_card_use(&self) -> bool {
+        matches!(self, AuxEffect::IncreaseCardMultiplier(_))
+    }
+
+    pub fn resolves_action(&self) -> bool {
+        matches!(self, AuxEffect::InterceptAction(_))
+    }
+
+    pub fn executes_on_current_action(&self) -> bool {
+        matches!(self, AuxEffect::InterruptAction(_))
     }
 
     pub fn execute_before_hit(&self) -> bool {
@@ -252,14 +269,6 @@ impl AuxEffect {
         const HIT_RANGE: RangeInclusive<usize> = AuxEffect::PRE_HIT_START..=AuxEffect::POST_HIT_END;
 
         HIT_RANGE.contains(&self.priority())
-    }
-
-    pub fn action_queue_related(&self) -> bool {
-        self.priority() == 0
-    }
-
-    pub fn action_related(&self) -> bool {
-        self.priority() == 1
     }
 
     fn from_lua<'lua>(
@@ -303,6 +312,7 @@ impl AuxEffect {
                 )?;
                 AuxEffect::InterceptAction(callback)
             }
+            "increase_card_multiplier" => AuxEffect::IncreaseCardMultiplier(table.get(2)?),
             "interrupt_action" => {
                 let callback = BattleCallback::new_transformed_lua_callback(
                     lua,
@@ -498,9 +508,7 @@ impl AuxProp {
         }
     }
 
-    pub fn process_action(&mut self, action: Option<&Action>) {
-        let card = action.map(|action| &action.properties);
-
+    pub fn process_card(&mut self, card: Option<&CardProperties>) {
         for (requirement, state) in &mut self.requirements {
             let result = match requirement {
                 AuxRequirement::CardElement(elem) => card

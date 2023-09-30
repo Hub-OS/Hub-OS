@@ -8,8 +8,6 @@ use crate::resources::*;
 use framework::prelude::*;
 use rand::Rng;
 
-const GRACE_TIME: FrameTime = 5;
-
 #[derive(Clone)]
 pub struct BattleState {
     time: FrameTime,
@@ -50,6 +48,8 @@ impl State for BattleState {
 
         // new: process player input
         self.process_input(game_io, resources, simulation);
+
+        Character::process_card_requests(game_io, resources, simulation, self.time);
 
         Action::process_queues(game_io, resources, simulation);
 
@@ -142,32 +142,18 @@ impl State for BattleState {
         // trap indicators
         DefenseRule::draw_trap_ui(game_io, simulation, sprite_queue);
 
-        // render top card text
-        let entities = &mut simulation.entities;
-        let entity_id = simulation.local_player_id;
-
-        if let Ok(character) = entities.query_one_mut::<&Character>(entity_id.into()) {
-            let mut actions_iter = simulation.actions.iter();
-            let action_processed =
-                actions_iter.any(|(_, action)| action.entity == entity_id && action.processed);
-
-            if !action_processed {
-                // only render if there's no active / queued actions
-                if let Some(card_props) = character.cards.last() {
-                    // render on the bottom left
-                    const MARGIN: Vec2 = Vec2::new(1.0, -1.0);
-
-                    let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
-                    let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
-
-                    card_props.draw_summary(game_io, sprite_queue, position, Vec2::ONE, false);
-                }
-            }
-        }
+        Character::draw_top_card_ui(
+            game_io,
+            simulation,
+            simulation.local_player_id,
+            sprite_queue,
+        );
     }
 }
 
 impl BattleState {
+    pub const GRACE_TIME: FrameTime = 5;
+
     pub fn new() -> Self {
         Self {
             time: 0,
@@ -631,16 +617,6 @@ impl BattleState {
 
             if character.cards.is_empty() {
                 character.card_use_requested = false;
-            }
-
-            if character.card_use_requested && entity.movement.is_none() && self.time > GRACE_TIME {
-                // wait until movement ends before adding a card action
-                // this is to prevent time freeze cards from applying during movement
-                // process_action_queues only prevents non time freeze actions from starting until movements end
-                character.card_use_requested = false;
-
-                Player::use_card(game_io, resources, simulation, id.into());
-                continue;
             }
 
             // ignore other actions if we're waiting on a card

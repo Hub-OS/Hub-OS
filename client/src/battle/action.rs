@@ -355,8 +355,8 @@ impl Action {
         // ensure initial test values for all action related aux props
         for (_, living) in entities.query_mut::<&mut Living>() {
             for aux_prop in living.aux_props.values_mut() {
-                if aux_prop.effect().action_queue_related() {
-                    aux_prop.process_action(None);
+                if aux_prop.effect().resolves_action() {
+                    aux_prop.process_card(None);
                 }
             }
         }
@@ -462,9 +462,7 @@ impl Action {
         }
 
         // clean up action related aux props
-        Living::aux_prop_cleanup(simulation, |aux_prop| {
-            aux_prop.effect().action_queue_related()
-        });
+        Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().resolves_action());
 
         if simulation.time_freeze_tracker.time_is_frozen() {
             // cancel card_use_requested to fix cards used
@@ -591,7 +589,9 @@ impl Action {
             }
         }
 
-        Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().action_related());
+        Living::aux_prop_cleanup(simulation, |aux_prop| {
+            aux_prop.effect().executes_on_current_action()
+        });
 
         Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
     }
