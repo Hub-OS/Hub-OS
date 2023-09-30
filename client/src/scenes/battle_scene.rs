@@ -87,7 +87,10 @@ impl BattleScene {
 
         // resolve dependencies for loading vms
         let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(game_io, &props);
+        let mut dependencies = globals.battle_dependencies(game_io, &props);
+
+        // sort by namespace, ensuring proper load order
+        dependencies.sort_by_key(|(_, ns)| *ns);
 
         // create initial simulation
         let mut simulation = BattleSimulation::new(game_io, &props);

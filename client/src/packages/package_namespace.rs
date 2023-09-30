@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
     Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord,
 )]
 pub enum PackageNamespace {
+    RecordingServer,
+    Server,
     #[default]
     Local,
-    Server,
-    RecordingServer,
     Netplay(u8),
 }
 
