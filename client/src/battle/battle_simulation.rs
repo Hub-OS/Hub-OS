@@ -688,8 +688,17 @@ impl BattleSimulation {
 
             // elevation
             offset.y -= entity.elevation;
+
+            // shadow offset
+            let mut shadow_y = entity.elevation;
+
+            if let Some(movement) = &entity.movement {
+                let progress = movement.animation_progress_percent();
+                shadow_y += movement.interpolate_jump_height(progress);
+            }
+
             let shadow_node = &mut entity.sprite_tree[entity.shadow_index];
-            shadow_node.set_offset(Vec2::new(shadow_node.offset().x, entity.elevation));
+            shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
 
             let tile_center =
                 (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);

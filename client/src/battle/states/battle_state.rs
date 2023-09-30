@@ -942,8 +942,7 @@ impl BattleState {
                 }
             } else {
                 // apply jump height
-                let height_multiplier = crate::ease::quadratic(animation_progress);
-                entity.tile_offset.y -= movement.height * height_multiplier;
+                entity.tile_offset.y -= movement.interpolate_jump_height(animation_progress);
 
                 // calculate slide
                 let start = IVec2::from(movement.source).as_vec2();

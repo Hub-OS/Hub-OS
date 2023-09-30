@@ -103,6 +103,10 @@ impl Movement {
         // prefer horizontal
         horizontal
     }
+
+    pub fn interpolate_jump_height(&self, progress: f32) -> f32 {
+        self.height * crate::ease::quadratic(progress)
+    }
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
