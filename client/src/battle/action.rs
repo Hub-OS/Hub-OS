@@ -2,7 +2,9 @@ use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
     Field, Living, SharedBattleResources,
 };
-use crate::bindable::{ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag};
+use crate::bindable::{
+    ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
+};
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::{AnimatorLoopMode, DerivedFrame, FrameTime, SpriteNode, Tree};
@@ -37,7 +39,7 @@ pub struct Action {
 }
 
 impl Action {
-    pub fn new(entity_id: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
+    fn new(entity_id: EntityId, state: String, sprite_index: GenerationalIndex) -> Self {
         Self {
             active_frames: 0,
             processed: false,
@@ -61,6 +63,26 @@ impl Action {
             end_callback: None,
             animation_end_callback: None,
         }
+    }
+
+    pub fn create(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        animation_state: String,
+        entity_id: EntityId,
+    ) -> Option<GenerationalIndex> {
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return None;
+        };
+
+        let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
+        sprite_node.set_visible(false);
+
+        let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
+
+        let action = Action::new(entity_id, animation_state, sprite_index);
+        Some(simulation.actions.insert(action))
     }
 
     pub fn create_from_card_properties(

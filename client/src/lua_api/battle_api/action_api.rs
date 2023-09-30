@@ -91,18 +91,11 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let mut sprite_node = SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add);
-        sprite_node.set_visible(false);
-
-        let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
-
-        let action = Action::new(entity_id, state.unwrap_or_default(), sprite_index);
-        let action_index = api_ctx.simulation.actions.insert(action);
+        let game_io = api_ctx.game_io;
+        let simulation = &mut api_ctx.simulation;
+        let action_index =
+            Action::create(game_io, simulation, state.unwrap_or_default(), entity_id)
+                .ok_or_else(entity_not_found)?;
 
         let table = create_action_table(lua, action_index)?;
 
