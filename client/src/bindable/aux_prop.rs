@@ -3,6 +3,7 @@ use crate::battle::{Action, BattleCallback, Character, Entity, Player, SharedBat
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
+use std::ops::{Range, RangeInclusive};
 
 #[derive(Clone, Debug)]
 pub enum AuxVariable {
@@ -207,7 +208,12 @@ pub enum AuxEffect {
 }
 
 impl AuxEffect {
-    fn priority(&self) -> usize {
+    const PRE_HIT_START: usize = 2; // StatusImmunity
+    const ON_HIT_START: usize = 5; // IncreaseHitDamage
+    const POST_HIT_START: usize = 7; // DecreaseDamageSum
+    const POST_HIT_END: usize = 10; // None
+
+    const fn priority(&self) -> usize {
         match self {
             AuxEffect::InterceptAction(_) => 0,
             AuxEffect::InterruptAction(_) => 1,
@@ -224,22 +230,28 @@ impl AuxEffect {
     }
 
     pub fn execute_before_hit(&self) -> bool {
-        // StatusImmunity - RemoveStatus
-        (2..=4).contains(&self.priority())
+        const PRE_HIT_RANGE: Range<usize> = AuxEffect::PRE_HIT_START..AuxEffect::ON_HIT_START;
+
+        PRE_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn execute_on_hit(&self) -> bool {
-        // IncreaseHitDamage - DecreaseHitDamage
-        (5..=6).contains(&self.priority())
+        const ON_HIT_RANGE: Range<usize> = AuxEffect::ON_HIT_START..AuxEffect::POST_HIT_START;
+
+        ON_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn execute_after_hit(&self) -> bool {
-        // DecreaseDamageSum - None
-        (7..=10).contains(&self.priority())
+        const POST_HIT_RANGE: RangeInclusive<usize> =
+            AuxEffect::POST_HIT_START..=AuxEffect::POST_HIT_END;
+
+        POST_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn hit_related(&self) -> bool {
-        (2..=10).contains(&self.priority())
+        const HIT_RANGE: RangeInclusive<usize> = AuxEffect::PRE_HIT_START..=AuxEffect::POST_HIT_END;
+
+        HIT_RANGE.contains(&self.priority())
     }
 
     pub fn action_queue_related(&self) -> bool {
