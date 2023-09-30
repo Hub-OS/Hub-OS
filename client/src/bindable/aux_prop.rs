@@ -532,14 +532,14 @@ impl AuxProp {
         }
     }
 
-    pub fn process_time(&mut self, time: FrameTime) {
+    pub fn process_time(&mut self, time_frozen: bool, time: FrameTime) {
         for (requirement, state) in &mut self.requirements {
             let AuxRequirement::Interval(n) = requirement else {
                 continue;
             };
 
             state.tested = true;
-            state.passed = time % *n == 0;
+            state.passed = !time_frozen && time % *n == 0;
         }
     }
 

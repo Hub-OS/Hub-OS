@@ -144,7 +144,8 @@ impl Living {
         for aux_prop in living.aux_props.values_mut() {
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
-            aux_prop.process_time(simulation.battle_time);
+            let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+            aux_prop.process_time(time_frozen, simulation.battle_time);
             aux_prop.process_body(player, character, entity);
 
             for hit_props in &mut hit_prop_list {
