@@ -523,6 +523,8 @@ impl Living {
                 continue;
             }
 
+            aux_prop.mark_activated();
+
             match aux_prop.effect() {
                 AuxEffect::InterruptAction(callback) => {
                     let callback = callback.clone();
