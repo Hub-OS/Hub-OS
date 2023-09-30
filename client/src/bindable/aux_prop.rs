@@ -75,6 +75,7 @@ pub enum AuxRequirement {
     TotalDamage(Comparison, i32),
     Element(Element),
     Emotion(Emotion),
+    ChargedCard,
     CardElement(Element),
     CardNotElement(Element),
     CardDamage(Comparison, i32),
@@ -117,6 +118,7 @@ impl AuxRequirement {
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
+            | AuxRequirement::ChargedCard
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
             | AuxRequirement::CardDamage(_, _)
@@ -162,6 +164,7 @@ impl AuxRequirement {
             "require_total_damage" => AuxRequirement::TotalDamage(table.get(2)?, table.get(3)?),
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
+            "require_charged_card" => AuxRequirement::ChargedCard,
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
@@ -479,6 +482,9 @@ impl AuxProp {
                 AuxRequirement::Emotion(emot) => {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
                 }
+                AuxRequirement::ChargedCard => player.is_some_and(|player| {
+                    player.card_charge.fully_charged() || player.card_charged
+                }),
                 AuxRequirement::CardElement(elem) => card
                     .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
                 AuxRequirement::CardNotElement(elem) => card

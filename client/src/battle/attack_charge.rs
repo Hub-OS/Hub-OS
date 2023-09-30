@@ -64,6 +64,10 @@ impl AttackCharge {
         self.charging = active;
     }
 
+    pub fn fully_charged(&self) -> bool {
+        self.charging_time >= self.max_charge_time + Self::CHARGE_DELAY
+    }
+
     pub fn set_max_charge_time(&mut self, time: FrameTime) {
         self.max_charge_time = time
     }
@@ -128,7 +132,7 @@ impl AttackCharge {
             self.charging_time += 1;
         } else if previously_charging {
             // shooting
-            let fully_charged = self.charging_time >= self.max_charge_time + Self::CHARGE_DELAY;
+            let fully_charged = self.fully_charged();
 
             self.charging_time = 0;
 
