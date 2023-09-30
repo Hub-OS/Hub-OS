@@ -899,15 +899,9 @@ impl Player {
         Action::queue_action(simulation, entity_id, index);
     }
 
-    fn resolve_movement_callback(
-        simulation: &mut BattleSimulation,
-        entity_id: EntityId,
-    ) -> BattleCallback<Direction> {
-        let entities = &mut simulation.entities;
-        let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
-
+    fn resolve_movement_callback(&mut self) -> BattleCallback<Direction> {
         // augment
-        let augment_iter = player.augments.values();
+        let augment_iter = self.augments.values();
         let augment_callback = augment_iter
             .flat_map(|augment| augment.movement_callback.clone())
             .next();
@@ -917,8 +911,8 @@ impl Player {
         }
 
         // form
-        let form_callback = player.active_form.and_then(|index| {
-            let form = player.forms.get(index)?;
+        let form_callback = self.active_form.and_then(|index| {
+            let form = self.forms.get(index)?;
 
             form.movement_callback.clone()
         });
@@ -928,7 +922,7 @@ impl Player {
         }
 
         // base
-        player.movement_callback.clone()
+        self.movement_callback.clone()
     }
 
     pub fn handle_movement_input(
@@ -1000,7 +994,7 @@ impl Player {
             return;
         }
 
-        let movement_callback = Self::resolve_movement_callback(simulation, entity_id);
+        let movement_callback = player.resolve_movement_callback();
         movement_callback.call(game_io, resources, simulation, direction);
 
         // movement statistics
