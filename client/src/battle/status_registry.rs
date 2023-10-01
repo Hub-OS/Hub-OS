@@ -36,22 +36,9 @@ impl StatusRegistry {
         Self {
             next_shift: HitFlag::BUILT_IN.len() + 1,
             list: Vec::new(),
-            blockers: vec![
-                StatusBlocker {
-                    blocking_flag: HitFlag::FREEZE,
-                    blocked_flag: HitFlag::PARALYZE,
-                },
-                StatusBlocker {
-                    blocking_flag: HitFlag::PARALYZE,
-                    blocked_flag: HitFlag::FREEZE,
-                },
-                StatusBlocker {
-                    blocking_flag: HitFlag::CONFUSE,
-                    blocked_flag: HitFlag::FREEZE,
-                },
-            ],
-            immobilizing_flags: vec![HitFlag::PARALYZE, HitFlag::FREEZE],
-            inactionable_flags: vec![HitFlag::PARALYZE, HitFlag::FREEZE, HitFlag::ROOT],
+            blockers: Vec::new(),
+            immobilizing_flags: vec![HitFlag::PARALYZE],
+            inactionable_flags: vec![HitFlag::PARALYZE, HitFlag::ROOT],
         }
     }
 

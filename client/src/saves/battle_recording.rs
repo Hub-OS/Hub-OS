@@ -36,6 +36,13 @@ impl BattleRecording {
                     PackageNamespace::RecordingServer
                 }
             }
+            PackageNamespace::BuiltIn => {
+                if let Some(i) = local_index {
+                    PackageNamespace::Netplay(i as u8)
+                } else {
+                    PackageNamespace::RecordingServer
+                }
+            }
         }
     }
 
@@ -95,7 +102,7 @@ impl BattleRecording {
         let folder_path = format!(
             "{}{}{}-recording/",
             ResourcePaths::game_folder(),
-            PackageCategory::Encounter.path(),
+            PackageCategory::Encounter.mod_path(),
             unique_id
         );
 

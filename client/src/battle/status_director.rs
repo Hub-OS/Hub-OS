@@ -6,7 +6,7 @@ use crate::resources::{
 };
 use framework::prelude::GameIO;
 
-const MASHABLE_STATUSES: [HitFlags; 2] = [HitFlag::PARALYZE, HitFlag::FREEZE];
+const MASHABLE_STATUSES: [HitFlags; 1] = [HitFlag::PARALYZE];
 
 #[derive(Clone)]
 struct AppliedStatus {
@@ -193,7 +193,6 @@ impl StatusDirector {
         resources: &SharedBattleResources,
         entity: &mut Entity,
     ) {
-        self.update_status_sprite(game_io, resources, entity, HitFlag::FREEZE);
         self.update_status_sprite(game_io, resources, entity, HitFlag::BLIND);
         self.update_status_sprite(game_io, resources, entity, HitFlag::CONFUSE);
     }
@@ -231,7 +230,7 @@ impl StatusDirector {
 
         let sprite_node = &mut sprite_tree[index];
         let animator = &mut *resources.statuses_animator.borrow_mut();
-        let state = HitFlag::status_animation_state(status_flag, entity.height);
+        let state = HitFlag::status_animation_state(status_flag);
 
         if animator.current_state() != Some(state) {
             animator.set_state(state);

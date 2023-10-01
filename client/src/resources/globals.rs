@@ -72,8 +72,13 @@ impl Globals {
         let mut resource_packages: PackageManager<ResourcePackage> =
             PackageManager::new(PackageCategory::Resource);
 
-        let resources_mod_path = resource_packages.category().path();
-        resource_packages.load_packages_in_folder(&assets, resources_mod_path, |_, _| {});
+        let resources_mod_path = resource_packages.category().mod_path();
+        resource_packages.load_packages_in_folder(
+            &assets,
+            PackageNamespace::Local,
+            resources_mod_path,
+            |_, _| {},
+        );
         resource_packages.apply(game_io, &mut global_save, &assets);
 
         // load font
@@ -356,9 +361,9 @@ impl Globals {
     // returns package info, and the namespace the package should be loaded with
     pub fn battle_dependencies<'a>(
         &'a self,
-        game_io: &'a GameIO,
-        props: &'a BattleProps,
-    ) -> Vec<(&PackageInfo, PackageNamespace)> {
+        game_io: &GameIO,
+        props: &BattleProps,
+    ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
         let player_triplet_iter = props.player_setups.iter().map(|setup| {
             (
                 PackageCategory::Player,
@@ -397,10 +402,16 @@ impl Globals {
             // in this case, Local is serving the battle anyway. so this isn't inaccurate
             .map(|(category, ns, id)| (category, ns.into_server(), id));
 
+        let built_in_triplet_iter = self
+            .status_packages
+            .packages(PackageNamespace::BuiltIn)
+            .map(|package| package.package_info.triplet());
+
         let triplet_iter = player_triplet_iter
             .chain(card_triplet_iter)
             .chain(augment_triplet_iter)
-            .chain(encounter_triplet_iter);
+            .chain(encounter_triplet_iter)
+            .chain(built_in_triplet_iter);
 
         self.package_dependency_iter(triplet_iter)
     }
@@ -629,7 +640,7 @@ impl Globals {
             package.base_path.clone()
         } else {
             let encoded_id = uri_encode(id.as_str());
-            format!("{}{}/", category.path(), encoded_id)
+            format!("{}{}/", category.mod_path(), encoded_id)
         }
     }
 

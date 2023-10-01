@@ -92,9 +92,9 @@ impl State for BattleState {
             }
         }
 
-        self.apply_status_vfx(game_io, resources, simulation);
-
         simulation.call_pending_callbacks(game_io, resources);
+
+        self.apply_status_vfx(game_io, resources, simulation);
 
         if self.message.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
             // only update the time statistic if the battle is still going for the local player
@@ -943,12 +943,6 @@ impl BattleState {
         {
             let sprite_tree = &mut entity.sprite_tree;
             let status_director = &mut living.status_director;
-
-            if status_director.status_lifetime(HitFlag::FREEZE).is_some() {
-                let root_sprite = sprite_tree.root_mut();
-                root_sprite.set_color_mode(SpriteColorMode::Add);
-                root_sprite.set_color(Color::new(0.7, 0.8, 0.9, 1.0));
-            }
 
             if let Some(lifetime) = status_director.status_lifetime(HitFlag::PARALYZE) {
                 if (lifetime / 2) % 2 == 0 {

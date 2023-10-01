@@ -9,6 +9,7 @@ pub enum PackageNamespace {
     #[default]
     Local,
     Netplay(u8),
+    BuiltIn,
 }
 
 impl PackageNamespace {
@@ -31,10 +32,13 @@ impl PackageNamespace {
             PackageNamespace::Netplay(_) => callback(PackageNamespace::RecordingServer)
                 .or_else(|| callback(PackageNamespace::Server))
                 .or_else(|| callback(self))
-                .or_else(|| callback(PackageNamespace::Local)),
+                .or_else(|| callback(PackageNamespace::Local))
+                .or_else(|| callback(PackageNamespace::BuiltIn)),
             PackageNamespace::RecordingServer => callback(PackageNamespace::RecordingServer),
-            PackageNamespace::Server | PackageNamespace::Local => {
-                callback(PackageNamespace::Server).or_else(|| callback(PackageNamespace::Local))
+            PackageNamespace::Server | PackageNamespace::Local | PackageNamespace::BuiltIn => {
+                callback(PackageNamespace::Server)
+                    .or_else(|| callback(PackageNamespace::Local))
+                    .or_else(|| callback(PackageNamespace::BuiltIn))
             }
         }
     }
@@ -72,7 +76,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for PackageNamespace {
             0 => PackageNamespace::Local,
             1 => PackageNamespace::Server,
             2 => PackageNamespace::RecordingServer,
-            _ => PackageNamespace::Netplay((number - 3) as u8),
+            3 => PackageNamespace::BuiltIn,
+            _ => PackageNamespace::Netplay((number - 4) as u8),
         };
 
         Ok(ns)
@@ -88,7 +93,8 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for PackageNamespace {
             PackageNamespace::Local => 0,
             PackageNamespace::Server => 1,
             PackageNamespace::RecordingServer => 2,
-            PackageNamespace::Netplay(i) => i as rollback_mlua::Integer + 3,
+            PackageNamespace::BuiltIn => 3,
+            PackageNamespace::Netplay(i) => i as rollback_mlua::Integer + 4,
         };
 
         Ok(rollback_mlua::Value::Integer(number))
