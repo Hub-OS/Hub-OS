@@ -24,6 +24,16 @@ local function is_mashing(entity)
   return false
 end
 
+local function spawn_alert(parent)
+  local alert_artifact = Alert.new()
+  alert_artifact:sprite():set_never_flip(true)
+
+  local tile_offset = parent:tile_offset()
+  alert_artifact:set_offset(tile_offset.x, tile_offset.y - parent:height())
+
+  parent:field():spawn(alert_artifact, parent:current_tile())
+end
+
 function status_init(status)
   Resources.play_audio(SFX)
 
@@ -82,6 +92,7 @@ function status_init(status)
     if hit_props.element == Element.Break or hit_props.secondary_element == Element.Break then
       hit_props.damage = hit_props.damage * 2
       status:set_remaining_time(0)
+      spawn_alert(entity)
     end
 
     return hit_props
