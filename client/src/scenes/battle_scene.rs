@@ -72,6 +72,12 @@ impl BattleScene {
             // recording namespaces have precedence over other namespaces
             let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.remove_namespace(PackageNamespace::RecordingServer);
+
+            // prevent unused netplay packages from overriding local packages
+            if let Some(local_setup) = props.player_setups.iter().find(|s| s.local) {
+                globals.remove_namespace(local_setup.namespace());
+            }
+
             globals.assets.remove_unused_virtual_zips();
         }
 
