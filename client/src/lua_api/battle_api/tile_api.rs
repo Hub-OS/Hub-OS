@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
 use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell, Tile,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -361,10 +361,10 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    generate_find_hittable_fn::<()>(lua_api, "find_entities");
-    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
-    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
-    generate_find_hittable_fn::<&Player>(lua_api, "find_players");
+    generate_find_entity_fn::<()>(lua_api, "find_entities");
+    generate_find_entity_fn::<&Character>(lua_api, "find_characters");
+    generate_find_entity_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_entity_fn::<&Player>(lua_api, "find_players");
     generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
 }
 
@@ -406,50 +406,6 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
 
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
                 if entity.x == x && entity.y == y && !entity.deleted && entity.on_field {
-                    tables.push(create_entity_table(lua, id.into())?);
-                }
-            }
-
-            tables
-        };
-
-        let filtered_tables: Vec<rollback_mlua::Table> = tables
-            .into_iter()
-            .filter(|table| {
-                callback.call::<_, bool>(table.clone()).unwrap_or_else(|e| {
-                    log::error!("{e}");
-                    false
-                })
-            })
-            .collect();
-
-        lua.pack_multi(filtered_tables)
-    });
-}
-
-fn generate_find_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
-    lua_api.add_dynamic_function(TILE_TABLE, name, |api_ctx, lua, params| {
-        let (tile_table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
-
-        let x: i32 = tile_table.get("#x")?;
-        let y: i32 = tile_table.get("#y")?;
-
-        let tables = {
-            // scope to prevent RefCell borrow escaping when control is passed back to lua
-            let mut api_ctx = api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-
-            let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
-
-            for (id, (entity, living)) in entities.query_mut::<hecs::With<(&Entity, &Living), Q>>()
-            {
-                if entity.x == x
-                    && entity.y == y
-                    && !entity.deleted
-                    && entity.on_field
-                    && living.hitbox_enabled
-                {
                     tables.push(create_entity_table(lua, id.into())?);
                 }
             }
