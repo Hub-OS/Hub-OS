@@ -3,6 +3,13 @@ use crate::battle::TurnGauge;
 use crate::render::*;
 
 pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "frozen", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        let time_freeze_tracker = &api_ctx.simulation.time_freeze_tracker;
+
+        lua.pack_multi(time_freeze_tracker.time_is_frozen())
+    });
+
     lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "progress", |api_ctx, lua, _| {
         lua.pack_multi(api_ctx.borrow().simulation.turn_gauge.progress())
     });
