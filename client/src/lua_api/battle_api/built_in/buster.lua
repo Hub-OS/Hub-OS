@@ -1,5 +1,8 @@
 local Buster = {}
 
+---@param user Entity
+---@param charged boolean
+---@param damage number
 function Buster.new(user, charged, damage)
     local action = Action.new(user, "PLAYER_SHOOTING")
     local context = user:context()
