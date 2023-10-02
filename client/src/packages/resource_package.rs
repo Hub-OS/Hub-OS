@@ -62,10 +62,6 @@ impl Package for ResourcePackage {
         &self.package_info
     }
 
-    fn package_info_mut(&mut self) -> &mut PackageInfo {
-        &mut self.package_info
-    }
-
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
             id: self.package_info.id.clone(),
