@@ -14,6 +14,7 @@ for _, value in pairs(Input.Pressed) do
   inputs[#inputs + 1] = value
 end
 
+---@param entity Entity
 local function is_mashing(entity)
   for _, value in ipairs(inputs) do
     if entity:input_has(value) then
@@ -24,6 +25,7 @@ local function is_mashing(entity)
   return false
 end
 
+---@param parent Entity
 local function spawn_alert(parent)
   local alert_artifact = Alert.new()
   alert_artifact:sprite():set_never_flip(true)
@@ -34,6 +36,7 @@ local function spawn_alert(parent)
   parent:field():spawn(alert_artifact, parent:current_tile())
 end
 
+---@param status Status
 function status_init(status)
   Resources.play_audio(SFX)
 
@@ -59,7 +62,7 @@ function status_init(status)
   animator:apply(freeze_sprite)
 
   -- this component updates the status's animation and handles mashing
-  local component = entity:create_component(Lifetimes.Battle)
+  local component = entity:create_component(Lifetime.Battle)
   local time = 0
 
   component.on_update_func = function()
