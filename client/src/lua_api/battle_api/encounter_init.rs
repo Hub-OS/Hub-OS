@@ -109,39 +109,6 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_panels", |api_ctx, lua, params| {
-        let (_, texture_paths, animation_path, spacing_x, spacing_y): (
-            rollback_mlua::Table,
-            [String; 3],
-            String,
-            f32,
-            f32,
-        ) = lua.unpack_multi(params)?;
-
-        let [red_texture_path, blue_texture_path, other_texture_path] = texture_paths;
-
-        let red_texture_path = absolute_path(lua, red_texture_path)?;
-        let blue_texture_path = absolute_path(lua, blue_texture_path)?;
-        let other_texture_path = absolute_path(lua, other_texture_path)?;
-        let animation_path = absolute_path(lua, animation_path)?;
-        let spacing = Vec2::new(spacing_x, spacing_y);
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let game_io = api_ctx.game_io;
-        let field = &mut api_ctx.simulation.field;
-
-        field.set_sprites(
-            game_io,
-            &red_texture_path,
-            &blue_texture_path,
-            &other_texture_path,
-            &animation_path,
-            spacing,
-        );
-
-        lua.pack_multi(())
-    });
-
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_music", |api_ctx, lua, params| {
         let (_, path, loops, start_ms, end_ms): (
             rollback_mlua::Table,
