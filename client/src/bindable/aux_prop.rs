@@ -325,12 +325,11 @@ impl AuxEffect {
                 )?;
                 AuxEffect::InterruptAction(callback)
             }
+            "recover_health" => AuxEffect::RecoverHP(table.get(2)?),
             _ => {
-                return Err(rollback_mlua::Error::FromLuaConversionError {
-                    from: lua_value.type_name(),
-                    to: "AuxEffect",
-                    message: None,
-                });
+                return Err(rollback_mlua::Error::RuntimeError(String::from(
+                    "invalid or missing AuxProp effect",
+                )));
             }
         };
 
