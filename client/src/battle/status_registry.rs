@@ -37,8 +37,8 @@ impl StatusRegistry {
             next_shift: HitFlag::BUILT_IN.len() + 1,
             list: Vec::new(),
             blockers: Vec::new(),
-            immobilizing_flags: vec![HitFlag::PARALYZE],
-            inactionable_flags: vec![HitFlag::PARALYZE, HitFlag::ROOT],
+            immobilizing_flags: vec![HitFlag::PARALYZE, HitFlag::ROOT],
+            inactionable_flags: vec![HitFlag::PARALYZE],
         }
     }
 
