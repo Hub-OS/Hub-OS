@@ -505,6 +505,28 @@ impl Living {
         let mut multiplier = 1.0;
         let mut callbacks = Vec::new();
 
+        if card_properties.can_boost {
+            for aux_prop in self.aux_props.values_mut() {
+                let AuxEffect::IncreaseCardDamage(increase) = aux_prop.effect() else {
+                    // skip unrelated aux_props
+                    continue;
+                };
+
+                let increase = *increase;
+                aux_prop.process_card(Some(card_properties));
+
+                if !aux_prop.passed_all_tests() {
+                    continue;
+                }
+
+                aux_prop.mark_activated();
+                card_properties.damage += increase;
+                card_properties.boosted_damage += increase;
+
+                callbacks.extend(aux_prop.callbacks().iter().cloned());
+            }
+        }
+
         for aux_prop in self.aux_props.values_mut() {
             if !aux_prop.effect().executes_on_card_use() {
                 // skip unrelated aux_props
@@ -520,6 +542,7 @@ impl Living {
             aux_prop.mark_activated();
 
             match aux_prop.effect() {
+                AuxEffect::IncreaseCardDamage(_) => {}
                 AuxEffect::IncreaseCardMultiplier(increase) => multiplier += increase,
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
@@ -527,6 +550,7 @@ impl Living {
             callbacks.extend(aux_prop.callbacks().iter().cloned());
         }
 
+        // apply multiplier
         let original_damage = card_properties.damage - card_properties.boosted_damage;
         let new_damage = (card_properties.damage as f32 * multiplier.max(0.0)) as i32;
 
@@ -534,6 +558,34 @@ impl Living {
         card_properties.boosted_damage = new_damage - original_damage;
 
         callbacks
+    }
+
+    pub fn predict_card_aux_damage(&self, card_properties: &CardProperties) -> i32 {
+        let mut damage = 0;
+
+        if !card_properties.can_boost {
+            return 0;
+        }
+
+        for aux_prop in self.aux_props.values() {
+            let AuxEffect::IncreaseCardDamage(increase) = aux_prop.effect() else {
+                // skip unrelated aux_props
+                continue;
+            };
+
+            // clone to avoid modifying the original
+            let mut aux_prop = aux_prop.clone();
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            damage += increase;
+        }
+
+        damage
     }
 
     pub fn predict_card_multiplier(&self, card_properties: &CardProperties) -> f32 {

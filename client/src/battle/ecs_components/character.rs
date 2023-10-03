@@ -328,7 +328,7 @@ impl Character {
         entity_id: EntityId,
         sprite_queue: &mut SpriteColorQueue,
     ) {
-        type Query<'a> = (&'a Character, &'a Living);
+        type Query<'a> = (&'a mut Character, &'a Living);
 
         let entities = &mut simulation.entities;
         let Ok((character, living)) = entities.query_one_mut::<Query>(entity_id.into()) else {
@@ -344,7 +344,7 @@ impl Character {
             return;
         }
 
-        let Some(card_props) = character.cards.last() else {
+        let Some(card_props) = character.cards.last_mut() else {
             return;
         };
 
@@ -353,6 +353,11 @@ impl Character {
 
         let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
         let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
+
+        // apply aux damage
+        let aux_damage = living.predict_card_aux_damage(card_props);
+        card_props.damage += aux_damage;
+        card_props.boosted_damage += aux_damage;
 
         let mut text_style =
             card_props.draw_summary(game_io, sprite_queue, position, Vec2::ONE, false);
@@ -367,5 +372,9 @@ impl Character {
             text_style.font_style = FontStyle::Thick;
             text_style.draw(game_io, sprite_queue, &multiplier_string);
         }
+
+        // revert aux damage
+        card_props.damage -= aux_damage;
+        card_props.boosted_damage -= aux_damage;
     }
 }

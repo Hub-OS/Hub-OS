@@ -199,6 +199,7 @@ impl AuxRequirement {
 
 #[derive(Default, Debug, Clone)]
 pub enum AuxEffect {
+    IncreaseCardDamage(i32),
     IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     InterruptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
@@ -215,30 +216,34 @@ pub enum AuxEffect {
 }
 
 impl AuxEffect {
-    const PRE_HIT_START: usize = 3; // StatusImmunity
-    const ON_HIT_START: usize = 6; // IncreaseHitDamage
-    const POST_HIT_START: usize = 8; // DecreaseDamageSum
-    const POST_HIT_END: usize = 11; // None
+    const PRE_HIT_START: usize = 4; // StatusImmunity
+    const ON_HIT_START: usize = 7; // IncreaseHitDamage
+    const POST_HIT_START: usize = 9; // DecreaseDamageSum
+    const POST_HIT_END: usize = 12; // None
 
     const fn priority(&self) -> usize {
         match self {
-            AuxEffect::IncreaseCardMultiplier(_) => 0,
-            AuxEffect::InterceptAction(_) => 1,
-            AuxEffect::InterruptAction(_) => 2,
-            AuxEffect::StatusImmunity(_) => 3,
-            AuxEffect::ApplyStatus(_, _) => 4,
-            AuxEffect::RemoveStatus(_) => 5,
-            AuxEffect::IncreaseHitDamage(_) => 6,
-            AuxEffect::DecreaseHitDamage(_) => 7,
-            AuxEffect::DecreaseDamageSum(_) => 8,
-            AuxEffect::DrainHP(_) => 9,
-            AuxEffect::RecoverHP(_) => 10,
-            AuxEffect::None => 11,
+            AuxEffect::IncreaseCardDamage(_) => 0,
+            AuxEffect::IncreaseCardMultiplier(_) => 1,
+            AuxEffect::InterceptAction(_) => 2,
+            AuxEffect::InterruptAction(_) => 3,
+            AuxEffect::StatusImmunity(_) => 4,
+            AuxEffect::ApplyStatus(_, _) => 5,
+            AuxEffect::RemoveStatus(_) => 6,
+            AuxEffect::IncreaseHitDamage(_) => 7,
+            AuxEffect::DecreaseHitDamage(_) => 8,
+            AuxEffect::DecreaseDamageSum(_) => 9,
+            AuxEffect::DrainHP(_) => 10,
+            AuxEffect::RecoverHP(_) => 11,
+            AuxEffect::None => 12,
         }
     }
 
     pub fn executes_on_card_use(&self) -> bool {
-        matches!(self, AuxEffect::IncreaseCardMultiplier(_))
+        matches!(
+            self,
+            AuxEffect::IncreaseCardMultiplier(_) | AuxEffect::IncreaseCardDamage(_)
+        )
     }
 
     pub fn resolves_action(&self) -> bool {
@@ -306,6 +311,8 @@ impl AuxEffect {
             }
             "drain_hp" => AuxEffect::DrainHP(table.get(2)?),
             "recover_hp" => AuxEffect::RecoverHP(table.get(2)?),
+            "increase_card_damage" => AuxEffect::IncreaseCardDamage(table.get(2)?),
+            "increase_card_multiplier" => AuxEffect::IncreaseCardMultiplier(table.get(2)?),
             "intercept_action" => {
                 let callback = BattleCallback::new_transformed_lua_callback(
                     lua,
@@ -315,7 +322,6 @@ impl AuxEffect {
                 )?;
                 AuxEffect::InterceptAction(callback)
             }
-            "increase_card_multiplier" => AuxEffect::IncreaseCardMultiplier(table.get(2)?),
             "interrupt_action" => {
                 let callback = BattleCallback::new_transformed_lua_callback(
                     lua,
