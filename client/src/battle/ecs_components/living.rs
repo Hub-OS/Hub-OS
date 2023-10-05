@@ -234,11 +234,7 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        if result < hit_props.damage {
-                            log::warn!("An AuxProp is decreasing damage with an increasing effect");
-                        }
-
-                        hit_damage += result - hit_props.damage;
+                        hit_damage += result.max(0);
                     }
                     AuxEffect::DecreaseHitDamage(expr) => {
                         let result = expr.eval(AuxVariable::create_resolver(
@@ -247,11 +243,7 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        if result > hit_props.damage {
-                            log::warn!("An AuxProp is increasing damage with a decreasing effect");
-                        }
-
-                        hit_damage += result - hit_props.damage;
+                        hit_damage -= result.max(0);
                     }
                     _ => log::error!("Engine error: Unexpected AuxEffect!"),
                 }
@@ -362,6 +354,7 @@ impl Living {
 
         // apply post hit aux props
         let mut health_modifier = 0;
+        let mut modified_total_damage = total_damage;
 
         for aux_prop in Living::post_hit_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
@@ -375,18 +368,13 @@ impl Living {
 
             match aux_prop.effect() {
                 AuxEffect::DecreaseDamageSum(expr) => {
-                    let damage = expr.eval(AuxVariable::create_resolver(
+                    let result = expr.eval(AuxVariable::create_resolver(
                         living.health,
                         living.max_health,
-                        total_damage,
+                        modified_total_damage,
                     )) as i32;
 
-                    if total_damage > 0 && damage <= 0 {
-                        // final damage should be at least 1 if it was already higher than zero
-                        total_damage = 1;
-                    } else {
-                        total_damage = damage;
-                    }
+                    modified_total_damage = (modified_total_damage - result.max(0)).max(0);
                 }
                 AuxEffect::DrainHP(drain) => health_modifier -= drain,
                 AuxEffect::RecoverHP(recover) => health_modifier += recover,
@@ -397,6 +385,13 @@ impl Living {
             simulation
                 .pending_callbacks
                 .extend(aux_prop.callbacks().iter().cloned())
+        }
+
+        if total_damage > 0 && modified_total_damage == 0 {
+            // final damage should be at least 1 if it was already higher than zero
+            total_damage = 1;
+        } else {
+            total_damage = modified_total_damage;
         }
 
         // apply damage and health modifier
