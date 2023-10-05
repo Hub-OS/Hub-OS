@@ -20,6 +20,7 @@ local req_list = {
   "require_total_damage",
   "require_element",
   "require_emotion",
+  "require_negative_tile_interaction",
   "require_charged_card",
   "require_card_element",
   "require_card_not_element",
