@@ -312,8 +312,6 @@ impl AuxEffect {
                 let expr = resources.parse_math_expr(table.get(2)?)?;
                 AuxEffect::DecreaseDamageSum(expr)
             }
-            "drain_hp" => AuxEffect::DrainHP(table.get(2)?),
-            "recover_hp" => AuxEffect::RecoverHP(table.get(2)?),
             "increase_card_damage" => AuxEffect::IncreaseCardDamage(table.get(2)?),
             "increase_card_multiplier" => AuxEffect::IncreaseCardMultiplier(table.get(2)?),
             "intercept_action" => {
@@ -334,6 +332,7 @@ impl AuxEffect {
                 )?;
                 AuxEffect::InterruptAction(callback)
             }
+            "drain_health" => AuxEffect::DrainHP(table.get(2)?),
             "recover_health" => AuxEffect::RecoverHP(table.get(2)?),
             _ => {
                 return Err(rollback_mlua::Error::RuntimeError(String::from(
