@@ -21,6 +21,7 @@ pub enum BootEvent {
     EncounterManager(PackageManager<EncounterPackage>),
     AugmentManager(PackageManager<AugmentPackage>),
     StatusManager(PackageManager<StatusPackage>),
+    TileStateManager(PackageManager<TileStatePackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
     Done,
@@ -134,6 +135,11 @@ impl BootThread {
         let status_packages = self.load_category(PackageCategory::Status, "Statuses");
 
         self.send(BootEvent::StatusManager(status_packages));
+
+        // load tile states
+        let tile_state_packages = self.load_category(PackageCategory::TileState, "Tiles");
+
+        self.send(BootEvent::TileStateManager(tile_state_packages));
 
         // load libraries
         let library_packages = self.load_category(PackageCategory::Library, "Libraries");

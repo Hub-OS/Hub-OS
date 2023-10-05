@@ -11,7 +11,6 @@ use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
-use crate::lua_api::errors::unexpected_nil;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
@@ -1014,7 +1013,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
             rollback_mlua::MultiValue,
         ) = lua.unpack_multi(params)?;
 
-        let middle_param = rest.pop_front().ok_or_else(|| unexpected_nil("Element"))?;
+        let middle_param = rest.pop_front().unwrap_or(rollback_mlua::Value::Nil);
 
         let secondary_element: Element;
         let context: Option<HitContext>;
@@ -1123,6 +1122,15 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         living.set_health(health);
         Ok(())
     });
+
+    setter(
+        lua_api,
+        "hit",
+        |living: &mut Living, _, hit_props: HitProperties| {
+            living.pending_hits.push(hit_props);
+            Ok(())
+        },
+    );
 
     getter(lua_api, "hitbox_enabled", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.hitbox_enabled)
@@ -2024,7 +2032,7 @@ fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        if entities.query_one_mut::<Q>(id.into()).is_ok() {
+        if entities.satisfies::<Q>(id.into()).unwrap_or_default() {
             lua.pack_multi(table)
         } else {
             lua.pack_multi(())

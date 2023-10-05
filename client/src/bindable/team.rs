@@ -14,6 +14,14 @@ impl Team {
     pub fn flips_perspective(&self) -> bool {
         matches!(self, Team::Blue)
     }
+
+    pub fn opposite(self) -> Team {
+        match self {
+            Team::Red => Team::Blue,
+            Team::Blue => Team::Red,
+            _ => self,
+        }
+    }
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for Team {

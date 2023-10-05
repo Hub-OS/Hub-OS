@@ -1,31 +1,150 @@
-use super::{BattleCallback, Entity, Living};
-use crate::battle::Artifact;
-use crate::bindable::{
-    AuxEffect, AuxProp, AuxRequirement, AuxVariable, Comparison, Element, EntityId, HitFlag,
-    HitProperties, MathExpr, Movement,
-};
-use crate::render::FrameTime;
-use crate::resources::{
-    Globals, BROKEN_LIFETIME, CONVEYOR_LIFETIME, CONVEYOR_SLIDE_DURATION, CONVEYOR_WAIT_DELAY,
-    GRASS_HEAL_INTERVAL, GRASS_SLOWED_HEAL_INTERVAL, POISON_INTERVAL,
-};
-use packets::structures::Direction;
+use super::{BattleCallback, BattleSimulation, SharedBattleResources};
+use crate::battle::Entity;
+use crate::bindable::{Element, EntityId, Team};
+use crate::lua_api::create_custom_tile_state_table;
+use crate::packages::{PackageInfo, PackageNamespace};
+use crate::render::{Animator, FrameTime};
+use crate::resources::{AssetManager, Globals, ResourcePaths, BROKEN_LIFETIME};
+use framework::prelude::{GameIO, Texture};
+use packets::structures::PackageCategory;
+use std::sync::Arc;
+
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub enum TileStateAnimationSupport {
+    Single,
+    SingleFlip,
+    Rows,
+    RowsFlip,
+    Team,
+    TeamFlip,
+    TeamRows,
+    TeamRowsFlip,
+    None,
+}
+
+impl TileStateAnimationSupport {
+    pub fn from_animator(animator: &Animator) -> Self {
+        if animator.has_state("DEFAULT_FLIPPED") {
+            Self::SingleFlip
+        } else if animator.has_state("DEFAULT") {
+            Self::Single
+        } else if animator.has_state("2_FLIPPED") {
+            Self::RowsFlip
+        } else if animator.has_state("2") {
+            Self::Rows
+        } else if animator.has_state("RED") {
+            Self::Team
+        } else if animator.has_state("RED_FLIPPED") {
+            Self::TeamFlip
+        } else if animator.has_state("RED_2") {
+            Self::TeamRows
+        } else if animator.has_state("RED_2_FLIPPED") {
+            Self::TeamRowsFlip
+        } else {
+            Self::None
+        }
+    }
+
+    fn supports_flipped(self) -> bool {
+        matches!(
+            self,
+            Self::SingleFlip | Self::RowsFlip | Self::TeamFlip | Self::TeamRowsFlip
+        )
+    }
+
+    pub fn animation_state(
+        self,
+        team: Team,
+        row: usize,
+        perspective_flipped: bool,
+    ) -> &'static str {
+        // many matches to avoid string creation
+
+        debug_assert!((1..=3).contains(&row));
+
+        let team = if perspective_flipped {
+            team.opposite()
+        } else {
+            team
+        };
+
+        let flipped = self.supports_flipped() && perspective_flipped;
+
+        match self {
+            TileStateAnimationSupport::Single
+            | TileStateAnimationSupport::SingleFlip
+            | TileStateAnimationSupport::None => {
+                if flipped {
+                    "DEFAULT_FLIPPED"
+                } else {
+                    "DEFAULT"
+                }
+            }
+            TileStateAnimationSupport::Rows | TileStateAnimationSupport::RowsFlip => {
+                match (row, flipped) {
+                    (1, false) => "1",
+                    (1, true) => "1_FLIPPED",
+                    (2, false) => "2",
+                    (2, true) => "2_FLIPPED",
+                    (3, false) => "3",
+                    (3, true) => "3_FLIPPED",
+                    _ => unreachable!(),
+                }
+            }
+            TileStateAnimationSupport::Team | TileStateAnimationSupport::TeamFlip => {
+                match (team, flipped) {
+                    (Team::Red, false) => "RED",
+                    (Team::Red, true) => "RED_FLIPPED",
+                    (Team::Blue, false) => "BLUE",
+                    (Team::Blue, true) => "BLUE_FLIPPED",
+                    (_, false) => "OTHER",
+                    (_, true) => "OTHER_FLIPPED",
+                }
+            }
+            TileStateAnimationSupport::TeamRows | TileStateAnimationSupport::TeamRowsFlip => {
+                match (team, row, flipped) {
+                    (Team::Red, 1, false) => "RED_1",
+                    (Team::Red, 2, false) => "RED_2",
+                    (Team::Red, 3, false) => "RED_3",
+                    (Team::Red, 1, true) => "RED_1_FLIPPED",
+                    (Team::Red, 2, true) => "RED_2_FLIPPED",
+                    (Team::Red, 3, true) => "RED_3_FLIPPED",
+                    (Team::Blue, 1, false) => "BLUE_1",
+                    (Team::Blue, 2, false) => "BLUE_2",
+                    (Team::Blue, 3, false) => "BLUE_3",
+                    (Team::Blue, 1, true) => "BLUE_1_FLIPPED",
+                    (Team::Blue, 2, true) => "BLUE_2_FLIPPED",
+                    (Team::Blue, 3, true) => "BLUE_3_FLIPPED",
+                    (_, 1, false) => "OTHER_1",
+                    (_, 2, false) => "OTHER_2",
+                    (_, 3, false) => "OTHER_3",
+                    (_, 1, true) => "OTHER_1_FLIPPED",
+                    (_, 2, true) => "OTHER_2_FLIPPED",
+                    (_, 3, true) => "OTHER_3_FLIPPED",
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct TileState {
-    pub default_animation_state: String,
-    pub flipped_animation_state: String,
+    pub state_name: String,
+    pub texture: Arc<Texture>,
+    pub animator: Animator,
+    pub animation_support: TileStateAnimationSupport,
     pub cleanser_element: Option<Element>,
     pub blocks_team_change: bool,
+    pub hide_frame: bool,
+    pub hide_body: bool,
     pub is_hole: bool,
     pub max_lifetime: Option<FrameTime>,
-    pub change_request_callback: BattleCallback<usize, bool>,
+    pub change_request_callback: BattleCallback<(i32, i32, usize), bool>,
     pub update_callback: BattleCallback<(i32, i32)>,
     pub entity_enter_callback: BattleCallback<EntityId>,
-    pub entity_leave_callback: BattleCallback<(EntityId, Movement)>,
-    pub entity_stop_callback: BattleCallback<(EntityId, Movement)>,
-    pub entity_update_callback: BattleCallback<EntityId>,
-    // pub card_use_callback: BattleCallback,
+    pub entity_leave_callback: BattleCallback<(EntityId, i32, i32)>,
+    pub entity_stop_callback: BattleCallback<(EntityId, i32, i32)>,
 }
 
 impl TileState {
@@ -34,31 +153,19 @@ impl TileState {
     pub const HOLE: usize = 2;
     pub const CRACKED: usize = 3;
     pub const BROKEN: usize = 4;
-    pub const ICE: usize = 5;
-    pub const GRASS: usize = 6;
-    pub const LAVA: usize = 7;
-    pub const POISON: usize = 8;
-    pub const HOLY: usize = 9;
-    pub const DIRECTION_LEFT: usize = 10;
-    pub const DIRECTION_RIGHT: usize = 11;
-    pub const DIRECTION_UP: usize = 12;
-    pub const DIRECTION_DOWN: usize = 13;
-    pub const VOLCANO: usize = 14;
-    pub const SEA: usize = 15;
-    pub const SAND: usize = 16;
-    pub const METAL: usize = 17;
-    const TOTAL_BUILT_IN: usize = 18;
 
-    pub fn new(state: String) -> Self {
-        Self::new_directional(state.clone(), state)
-    }
+    pub fn new(state_name: String, texture: Arc<Texture>, animator: Animator) -> Self {
+        let animation_support = TileStateAnimationSupport::from_animator(&animator);
 
-    pub fn new_directional(default_state: String, flipped_state: String) -> Self {
         Self {
-            default_animation_state: default_state,
-            flipped_animation_state: flipped_state,
+            state_name,
+            texture,
+            animator,
+            animation_support,
             cleanser_element: None,
             blocks_team_change: false,
+            hide_frame: false,
+            hide_body: false,
             is_hole: false,
             max_lifetime: None,
             change_request_callback: BattleCallback::stub(true),
@@ -66,40 +173,51 @@ impl TileState {
             entity_enter_callback: BattleCallback::default(),
             entity_leave_callback: BattleCallback::default(),
             entity_stop_callback: BattleCallback::default(),
-            entity_update_callback: BattleCallback::default(),
         }
     }
 
-    pub fn create_registry() -> Vec<TileState> {
+    pub fn create_registry(game_io: &GameIO) -> Vec<TileState> {
         let mut registry = Vec::new();
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+        let texture = globals.assets.texture(game_io, ResourcePaths::BATTLE_TILES);
 
         // Hidden
         debug_assert_eq!(registry.len(), TileState::HIDDEN);
-        let mut hidden_state = TileState::new(String::from(""));
+        let mut hidden_state =
+            TileState::new(String::from("Hidden"), texture.clone(), Animator::new());
         hidden_state.blocks_team_change = true;
         hidden_state.is_hole = true;
+        hidden_state.hide_frame = true;
+        hidden_state.hide_body = true;
         hidden_state.change_request_callback = BattleCallback::stub(false);
         registry.push(hidden_state);
 
         // Normal
         debug_assert_eq!(registry.len(), TileState::NORMAL);
-        let normal_state = TileState::new(String::from("normal"));
+        let normal_state = TileState::new(String::from("Normal"), texture.clone(), Animator::new());
         registry.push(normal_state);
 
         // Hole
         debug_assert_eq!(registry.len(), TileState::HOLE);
-        let mut hole_state = TileState::new(String::from("hole"));
+        let mut hole_state =
+            TileState::new(String::from("PermaHole"), texture.clone(), Animator::new());
         hole_state.change_request_callback = BattleCallback::stub(false);
         hole_state.blocks_team_change = true;
+        hole_state.hide_body = true;
         hole_state.is_hole = true;
         registry.push(hole_state);
 
         // Cracked
         debug_assert_eq!(registry.len(), TileState::CRACKED);
-        let mut cracked_state = TileState::new(String::from("cracked"));
+        let animator = Animator::load_new(assets, ResourcePaths::BATTLE_TILE_CRACKED_ANIMATION);
+        let mut cracked_state = TileState::new(String::from("Cracked"), texture.clone(), animator);
+        cracked_state.hide_frame = true;
+        cracked_state.hide_body = true;
 
         cracked_state.entity_leave_callback = BattleCallback::new(
-            |game_io, _, simulation, (entity_id, movement): (EntityId, Movement)| {
+            |game_io, _, simulation, (entity_id, old_x, old_y): (EntityId, i32, i32)| {
                 let entities = &mut simulation.entities;
                 let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
                     return;
@@ -109,7 +227,7 @@ impl TileState {
                     return;
                 }
 
-                let Some(tile) = simulation.field.tile_at_mut(movement.source) else {
+                let Some(tile) = simulation.field.tile_at_mut((old_x, old_y)) else {
                     return;
                 };
 
@@ -123,338 +241,72 @@ impl TileState {
                 }
             },
         );
-
         registry.push(cracked_state);
 
         // Broken
         debug_assert_eq!(registry.len(), TileState::BROKEN);
-        let mut broken_state = TileState::new(String::from("broken"));
+        let animator = Animator::load_new(assets, ResourcePaths::BATTLE_TILE_BROKEN_ANIMATION);
+        let mut broken_state = TileState::new(String::from("Broken"), texture, animator);
+        broken_state.hide_frame = true;
+        broken_state.hide_body = true;
         broken_state.is_hole = true;
         broken_state.max_lifetime = Some(BROKEN_LIFETIME);
         registry.push(broken_state);
 
-        // Ice
-        debug_assert_eq!(registry.len(), TileState::ICE);
-        let mut ice_state = TileState::new(String::from("ice"));
-
-        ice_state.entity_stop_callback = BattleCallback::new(
-            |game_io, resources, simulation, (entity_id, movement): (EntityId, Movement)| {
-                let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
-                    return;
-                };
-
-                if entity.element == Element::Aqua {
-                    return;
-                }
-
-                let direction = movement.aligned_direction();
-                let offset = direction.i32_vector();
-                let dest = (entity.x + offset.0, entity.y + offset.1);
-
-                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
-
-                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
-                    return;
-                }
-
-                let entities = &mut simulation.entities;
-
-                if let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) {
-                    entity.movement = Some(Movement::slide(dest, 4));
-                }
-            },
-        );
-
-        registry.push(ice_state);
-
-        // Grass
-        debug_assert_eq!(registry.len(), TileState::GRASS);
-        let mut grass_state = TileState::new(String::from("grass"));
-        grass_state.cleanser_element = Some(Element::Fire);
-
-        grass_state.entity_update_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok((entity, living)) =
-                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-                else {
-                    return;
-                };
-
-                let double_damage_aux_prop =
-                    AuxProp::new_element_bonus(Element::Fire).delete_next_run();
-                living.add_aux_prop(double_damage_aux_prop);
-
-                if entity.element != Element::Wood || living.health >= living.max_health {
-                    return;
-                }
-
-                let heal_fast_aux_prop = AuxProp::new()
-                    .with_requirement(AuxRequirement::Element(Element::Wood))
-                    .with_requirement(AuxRequirement::Interval(GRASS_HEAL_INTERVAL))
-                    .with_requirement(AuxRequirement::HP(Comparison::GE, 9))
-                    .with_effect(AuxEffect::RecoverHP(1))
-                    .delete_next_run();
-                living.add_aux_prop(heal_fast_aux_prop);
-
-                let heal_slow_aux_prop = AuxProp::new()
-                    .with_requirement(AuxRequirement::Element(Element::Wood))
-                    .with_requirement(AuxRequirement::Interval(GRASS_SLOWED_HEAL_INTERVAL))
-                    .with_requirement(AuxRequirement::HP(Comparison::LT, 9))
-                    .with_effect(AuxEffect::RecoverHP(1))
-                    .delete_next_run();
-                living.add_aux_prop(heal_slow_aux_prop);
-            });
-
-        registry.push(grass_state);
-
-        // Lava
-        debug_assert_eq!(registry.len(), TileState::LAVA);
-        let mut lava_state = TileState::new(String::from("lava"));
-
-        lava_state.entity_update_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok((entity, living)) =
-                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-                else {
-                    return;
-                };
-
-                // install aux prop
-                let aux_prop = AuxProp::new_element_bonus(Element::Aqua).delete_next_run();
-                living.add_aux_prop(aux_prop);
-
-                if entity.ignore_negative_tile_effects || entity.element == Element::Fire {
-                    return;
-                }
-
-                let position = (entity.x, entity.y);
-
-                // todo: spawn explosion artifact
-
-                let hit_props = HitProperties {
-                    damage: 50,
-                    element: Element::Fire,
-                    ..Default::default()
-                };
-
-                living.pending_hits.push(hit_props);
-
-                if let Some(tile) = simulation.field.tile_at_mut(position) {
-                    tile.set_state_index(TileState::NORMAL, None);
-                }
-            });
-
-        registry.push(lava_state);
-
-        // Poison
-        debug_assert_eq!(registry.len(), TileState::POISON);
-        let mut poison_state = TileState::new(String::from("poison"));
-
-        poison_state.entity_enter_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok((entity, living)) =
-                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-                else {
-                    return;
-                };
-
-                if entity.ignore_negative_tile_effects {
-                    return;
-                }
-
-                // take 1hp immediately for stepping on poison
-                let aux_prop = AuxProp::new()
-                    .with_effect(AuxEffect::DrainHP(1))
-                    .delete_next_run();
-                living.add_aux_prop(aux_prop);
-            });
-
-        poison_state.entity_update_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok((entity, living)) =
-                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-                else {
-                    return;
-                };
-
-                if entity.ignore_negative_tile_effects {
-                    return;
-                }
-
-                let aux_prop = AuxProp::new()
-                    .with_effect(AuxEffect::DrainHP(1))
-                    .with_requirement(AuxRequirement::Interval(POISON_INTERVAL))
-                    .delete_next_run();
-                living.add_aux_prop(aux_prop);
-            });
-
-        registry.push(poison_state);
-
-        // Holy
-        debug_assert_eq!(registry.len(), TileState::HOLY);
-        let mut holy_state = TileState::new(String::from("holy"));
-
-        holy_state.entity_update_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
-                    return;
-                };
-
-                let aux_prop = AuxProp::new()
-                    .with_effect(AuxEffect::DecreaseDamageSum(
-                        MathExpr::from_number(0.0)
-                            .sub_variable(AuxVariable::Damage)
-                            .mul(0.5)
-                            .add_variable(AuxVariable::Damage),
-                    ))
-                    .delete_next_run();
-                living.add_aux_prop(aux_prop);
-            });
-
-        registry.push(holy_state);
-
-        // conveyors
-        let generate_conveyor_update = |direction: Direction| {
-            let offset = direction.i32_vector();
-
-            BattleCallback::new(move |game_io, resources, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
-                    return;
-                };
-
-                if entity.ignore_negative_tile_effects {
-                    return;
-                }
-
-                let elapsed_since_movement = simulation.battle_time - entity.last_movement_time;
-
-                if entity.movement.is_some() || elapsed_since_movement < CONVEYOR_WAIT_DELAY {
-                    return;
-                }
-
-                let dest = (entity.x + offset.0, entity.y + offset.1);
-
-                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
-
-                if !can_move_to_callback.call(game_io, resources, simulation, dest) {
-                    return;
-                }
-
-                let entities = &mut simulation.entities;
-                if let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) {
-                    let movement = Movement::slide(dest, CONVEYOR_SLIDE_DURATION);
-                    entity.movement = Some(movement);
-                }
-            })
-        };
-
-        // DirectionLeft
-        debug_assert_eq!(registry.len(), TileState::DIRECTION_LEFT);
-        let mut direction_left_state = TileState::new_directional(
-            String::from("direction_left"),
-            String::from("direction_right"),
-        );
-        direction_left_state.cleanser_element = Some(Element::Wood);
-        direction_left_state.max_lifetime = Some(CONVEYOR_LIFETIME);
-        direction_left_state.entity_update_callback = generate_conveyor_update(Direction::Left);
-
-        registry.push(direction_left_state);
-
-        // DirectionRight
-        debug_assert_eq!(registry.len(), TileState::DIRECTION_RIGHT);
-        let mut direction_right_state = TileState::new_directional(
-            String::from("direction_right"),
-            String::from("direction_left"),
-        );
-        direction_right_state.cleanser_element = Some(Element::Wood);
-        direction_right_state.max_lifetime = Some(CONVEYOR_LIFETIME);
-        direction_right_state.entity_update_callback = generate_conveyor_update(Direction::Right);
-
-        registry.push(direction_right_state);
-
-        // DirectionUp
-        debug_assert_eq!(registry.len(), TileState::DIRECTION_UP);
-        let mut direction_up_state = TileState::new(String::from("direction_up"));
-        direction_up_state.cleanser_element = Some(Element::Wood);
-        direction_up_state.max_lifetime = Some(CONVEYOR_LIFETIME);
-        direction_up_state.entity_update_callback = generate_conveyor_update(Direction::Up);
-        registry.push(direction_up_state);
-
-        // DirectionDown
-        debug_assert_eq!(registry.len(), TileState::DIRECTION_DOWN);
-        let mut direction_down_state = TileState::new(String::from("direction_down"));
-        direction_down_state.cleanser_element = Some(Element::Wood);
-        direction_down_state.max_lifetime = Some(CONVEYOR_LIFETIME);
-        direction_down_state.entity_update_callback = generate_conveyor_update(Direction::Down);
-        registry.push(direction_down_state);
-
-        // Volcano
-        debug_assert_eq!(registry.len(), TileState::VOLCANO);
-        let mut volcano_state = TileState::new(String::from("volcano"));
-        volcano_state.cleanser_element = Some(Element::Aqua);
-        registry.push(volcano_state);
-
-        // Sea
-        debug_assert_eq!(registry.len(), TileState::SEA);
-        let mut sea_state = TileState::new(String::from("sea"));
-
-        sea_state.entity_stop_callback = BattleCallback::new(
-            |game_io, _, simulation, (entity_id, _): (EntityId, Movement)| {
-                let entities = &mut simulation.entities;
-                let Ok((entity, living)) =
-                    entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
-                else {
-                    return;
-                };
-
-                if entity.element == Element::Aqua {
-                    return;
-                }
-
-                let position = (entity.x, entity.y);
-
-                living.status_director.apply_status(HitFlag::ROOT, 20);
-
-                let splash_id = Artifact::create_splash(game_io, simulation);
-                simulation.request_entity_spawn(splash_id, position);
-            },
-        );
-
-        sea_state.entity_update_callback =
-            BattleCallback::new(|_, _, simulation, entity_id: EntityId| {
-                let entities = &mut simulation.entities;
-                let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
-                    return;
-                };
-
-                let aux_prop = AuxProp::new_element_bonus(Element::Elec).delete_next_run();
-                living.add_aux_prop(aux_prop);
-            });
-
-        registry.push(sea_state);
-
-        // Sand
-        debug_assert_eq!(registry.len(), TileState::SAND);
-        let mut sand_state = TileState::new(String::from("sand"));
-        sand_state.cleanser_element = Some(Element::Wind);
-        registry.push(sand_state);
-
-        // Metal
-        debug_assert_eq!(registry.len(), TileState::METAL);
-        let mut metal_state = TileState::new(String::from("metal"));
-
-        metal_state.change_request_callback =
-            BattleCallback::new(|_, _, _, state_index: usize| state_index != TileState::CRACKED);
-
-        registry.push(metal_state);
-
         registry
+    }
+
+    pub fn complete_registry(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        resources: &SharedBattleResources,
+        dependencies: &[(&PackageInfo, PackageNamespace)],
+    ) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+        let packages = &globals.tile_state_packages;
+
+        for (info, namespace) in dependencies {
+            if info.package_category != PackageCategory::TileState {
+                continue;
+            }
+
+            let Some(package) = packages.package_or_override(*namespace, &info.id) else {
+                continue;
+            };
+
+            let mut registry_iter = simulation.tile_states.iter();
+
+            if registry_iter.any(|state| state.state_name == package.state_name) {
+                continue;
+            }
+
+            let texture = assets.texture(game_io, &package.texture_path);
+            let animator = Animator::load_new(assets, &package.animation_path);
+
+            let mut tile_state = TileState::new(package.state_name.clone(), texture, animator);
+            tile_state.max_lifetime = package.max_lifetime;
+            tile_state.hide_frame = package.hide_frame;
+            tile_state.hide_body = package.hide_body;
+            tile_state.is_hole = package.hole;
+            tile_state.cleanser_element = package.cleanser_element;
+
+            let index = simulation.tile_states.len();
+            simulation.tile_states.push(tile_state);
+
+            let vm_manager = &resources.vm_manager;
+            let Some(vm_index) = vm_manager.find_vm_from_info(info) else {
+                continue;
+            };
+
+            let result =
+                simulation.call_global(game_io, resources, vm_index, "tile_state_init", |lua| {
+                    create_custom_tile_state_table(lua, index)
+                });
+
+            if let Err(err) = result {
+                log::error!("{err}");
+            }
+        }
     }
 }

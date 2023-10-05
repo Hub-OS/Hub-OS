@@ -360,6 +360,7 @@ impl BattleState {
         }
 
         let queued_attacks = std::mem::take(&mut simulation.queued_attacks);
+        let mut washed_tiles = Vec::new();
 
         // interactions between attack boxes and tiles
         for attack_box in &queued_attacks {
@@ -376,7 +377,11 @@ impl BattleState {
             let secondary_element = attack_box.props.secondary_element;
 
             if cleanser_element == Some(element) || cleanser_element == Some(secondary_element) {
-                tile.set_washed(true);
+                let wash_data = (tile.state_index(), tile.position());
+
+                if !washed_tiles.contains(&wash_data) {
+                    washed_tiles.push(wash_data);
+                }
             }
 
             // highlight
@@ -505,7 +510,26 @@ impl BattleState {
 
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
 
-        simulation.field.resolve_wash_and_ignored_attackers();
+        // resolve wash
+        for (state_index, (x, y)) in washed_tiles {
+            let tile = simulation.field.tile_at_mut((x, y)).unwrap();
+
+            if tile.state_index() != state_index {
+                // already modified
+                continue;
+            }
+
+            let tile_state = &simulation.tile_states[state_index];
+            let request_change = tile_state.change_request_callback.clone();
+
+            if request_change.call(game_io, resources, simulation, (x, y, TileState::NORMAL)) {
+                // revert to NORMAL with permission
+                let tile = simulation.field.tile_at_mut((x, y)).unwrap();
+                tile.set_state_index(TileState::NORMAL, None);
+            }
+        }
+
+        simulation.field.resolve_ignored_attackers();
     }
 
     fn mark_deleted(
@@ -800,7 +824,6 @@ impl BattleState {
             };
 
             if movement.elapsed == 0 {
-                entity.last_movement_time = simulation.battle_time;
                 movement.source = (entity.x, entity.y);
             }
 
@@ -810,10 +833,6 @@ impl BattleState {
 
             if update_progress {
                 movement.elapsed += 1;
-            }
-
-            if !movement.is_in_endlag() {
-                entity.last_movement_time = simulation.battle_time;
             }
 
             let animation_progress = movement.animation_progress_percent();
@@ -857,17 +876,18 @@ impl BattleState {
                     // process stepping off the tile
                     let tile_state = &simulation.tile_states[start_tile.state_index()];
                     let tile_callback = tile_state.entity_leave_callback.clone();
-                    let params = (entity.id, movement);
+                    let params = (entity.id, movement.source.0, movement.source.1);
 
                     let callback =
                         BattleCallback::new(move |game_io, resources, simulation, ()| {
-                            tile_callback.call(game_io, resources, simulation, params.clone());
+                            tile_callback.call(game_io, resources, simulation, params);
                         });
 
                     simulation.pending_callbacks.push(callback);
 
                     // process stepping onto the new tile
-                    let tile_state = &simulation.tile_states[start_tile.state_index()];
+                    let dest_tile = simulation.field.tile_at_mut(movement.dest).unwrap();
+                    let tile_state = &simulation.tile_states[dest_tile.state_index()];
                     let tile_callback = tile_state.entity_enter_callback.clone();
                     let params = entity.id;
 
@@ -895,16 +915,12 @@ impl BattleState {
 
                     let tile_state = &simulation.tile_states[current_tile.state_index()];
                     let tile_callback = tile_state.entity_stop_callback.clone();
-                    let entity_id = entity.id;
+
+                    let params = (entity.id, movement.source.0, movement.source.1);
 
                     let callback =
                         BattleCallback::new(move |game_io, resources, simulation, ()| {
-                            tile_callback.call(
-                                game_io,
-                                resources,
-                                simulation,
-                                (entity_id, movement.clone()),
-                            );
+                            tile_callback.call(game_io, resources, simulation, params);
                         });
 
                     simulation.pending_callbacks.push(callback);

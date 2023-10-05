@@ -73,8 +73,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let max_lifetime = tile_state.max_lifetime;
 
         let field = &mut simulation.field;
-        let tile_position = tile_position_from(table)?;
-        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+        let (x, y) = tile_position_from(table)?;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
 
         if tile_state.is_hole && !tile.reservations().is_empty() {
             // tile must be walkable for entities that are on or are moving to this tile
@@ -84,16 +84,30 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
         let change_request_callback = current_tile_state.change_request_callback.clone();
         let change_passed =
-            change_request_callback.call(game_io, resources, simulation, state_index);
+            change_request_callback.call(game_io, resources, simulation, (x, y, state_index));
 
         if !change_passed {
             return lua.pack_multi(());
         }
 
         let field = &mut simulation.field;
-        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
 
         tile.set_state_index(state_index, max_lifetime);
+
+        // activate entity_enter_callback for every entity on this tile
+        let tile_state = &simulation.tile_states[state_index];
+        let tile_callback = tile_state.entity_enter_callback.clone();
+
+        let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
+        let same_tile_entity_iter =
+            entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y);
+
+        let entity_ids: Vec<EntityId> = same_tile_entity_iter.map(|(id, _)| id.into()).collect();
+
+        for id in entity_ids {
+            tile_callback.call(game_io, resources, simulation, id);
+        }
 
         lua.pack_multi(())
     });
@@ -313,7 +327,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let y: i32 = table.raw_get("#y")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
@@ -325,11 +340,18 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let actions = &api_ctx.simulation.actions;
+        let actions = &simulation.actions;
 
-        let field = &mut api_ctx.simulation.field;
+        let field = &mut simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
         current_tile.handle_auto_reservation_removal(actions, entity);
+
+        let old_x = entity.x;
+        let old_y = entity.y;
+        let old_state = current_tile.state_index();
+        let leave_callback = simulation.tile_states[old_state]
+            .entity_leave_callback
+            .clone();
 
         entity.on_field = true;
         entity.x = x;
@@ -337,6 +359,16 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let tile = field.tile_at_mut((x, y)).unwrap();
         tile.handle_auto_reservation_addition(actions, entity);
+
+        let new_state = tile.state_index();
+        let enter_callback = simulation.tile_states[new_state]
+            .entity_enter_callback
+            .clone();
+
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        leave_callback.call(game_io, resources, simulation, (entity_id, old_x, old_y));
+        enter_callback.call(game_io, resources, simulation, entity_id);
 
         lua.pack_multi(())
     });

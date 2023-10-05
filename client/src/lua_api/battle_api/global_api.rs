@@ -140,29 +140,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     color_mode_table.set("Reverse", AnimatorPlaybackMode::Reverse)?;
     globals.set("Playback", color_mode_table)?;
 
-    use crate::battle::TileState;
-
-    let tile_state_table = lua.create_table()?;
-    tile_state_table.set("Hidden", TileState::HIDDEN)?;
-    tile_state_table.set("Normal", TileState::NORMAL)?;
-    tile_state_table.set("Hole", TileState::HOLE)?;
-    tile_state_table.set("Cracked", TileState::CRACKED)?;
-    tile_state_table.set("Broken", TileState::BROKEN)?;
-    tile_state_table.set("Ice", TileState::ICE)?;
-    tile_state_table.set("Grass", TileState::GRASS)?;
-    tile_state_table.set("Lava", TileState::LAVA)?;
-    tile_state_table.set("Poison", TileState::POISON)?;
-    tile_state_table.set("Holy", TileState::HOLY)?;
-    tile_state_table.set("DirectionLeft", TileState::DIRECTION_LEFT)?;
-    tile_state_table.set("DirectionRight", TileState::DIRECTION_RIGHT)?;
-    tile_state_table.set("DirectionUp", TileState::DIRECTION_UP)?;
-    tile_state_table.set("DirectionDown", TileState::DIRECTION_DOWN)?;
-    tile_state_table.set("Volcano", TileState::VOLCANO)?;
-    tile_state_table.set("Sea", TileState::SEA)?;
-    tile_state_table.set("Sand", TileState::SAND)?;
-    tile_state_table.set("Metal", TileState::METAL)?;
-    globals.set("TileState", tile_state_table)?;
-
     use crate::bindable::TileHighlight;
 
     let tile_state_table = lua.create_table()?;

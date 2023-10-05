@@ -68,7 +68,7 @@ impl BattleSimulation {
             fade_sprite,
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
-            tile_states: TileState::create_registry(),
+            tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
@@ -413,6 +413,10 @@ impl BattleSimulation {
                 self.pending_callbacks
                     .push(entity.battle_start_callback.clone())
             }
+
+            let tile_state = &self.tile_states[tile.state_index()];
+            let tile_callback = tile_state.entity_enter_callback.clone();
+            self.pending_callbacks.push(tile_callback.bind(entity.id));
         }
     }
 
@@ -646,7 +650,7 @@ impl BattleSimulation {
         self.field.draw(
             game_io,
             &mut sprite_queue,
-            &self.tile_states,
+            &mut self.tile_states,
             perspective_flipped,
         );
 

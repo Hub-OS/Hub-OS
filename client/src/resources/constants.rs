@@ -22,11 +22,6 @@ pub const BATTLE_UI_MARGIN: f32 = 2.0;
 
 // tile states
 pub const POISON_INTERVAL: FrameTime = 7;
-pub const GRASS_HEAL_INTERVAL: FrameTime = 20;
-pub const GRASS_SLOWED_HEAL_INTERVAL: FrameTime = 180;
-pub const CONVEYOR_SLIDE_DURATION: FrameTime = 4;
-pub const CONVEYOR_WAIT_DELAY: FrameTime = 7;
-pub const CONVEYOR_LIFETIME: FrameTime = 1800;
 pub const BROKEN_LIFETIME: FrameTime = 600;
 pub const TILE_FLICKER_DURATION: FrameTime = 60;
 pub const TEMP_TEAM_DURATION: FrameTime = 1800;

@@ -30,6 +30,7 @@ pub enum PackagePreviewData {
     Library,
     Status,
     Resource,
+    TileState,
     Unknown,
 }
 
@@ -49,6 +50,7 @@ impl PackagePreviewData {
             }
             PackagePreviewData::Resource => Some(PackageCategory::Resource),
             PackagePreviewData::Status => Some(PackageCategory::Status),
+            PackagePreviewData::TileState => Some(PackageCategory::TileState),
             _ => None,
         }
     }

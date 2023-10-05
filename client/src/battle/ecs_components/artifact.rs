@@ -159,13 +159,4 @@ impl Artifact {
             ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION,
         )
     }
-
-    pub fn create_splash(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
-        Self::create_animated_artifact(
-            game_io,
-            simulation,
-            ResourcePaths::BATTLE_SPLASH,
-            ResourcePaths::BATTLE_SPLASH_ANIMATION,
-        )
-    }
 }

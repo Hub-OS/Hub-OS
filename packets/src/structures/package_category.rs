@@ -12,6 +12,7 @@ pub enum PackageCategory {
     Player,
     Resource,
     Status,
+    TileState,
 }
 
 impl PackageCategory {
@@ -24,6 +25,7 @@ impl PackageCategory {
             PackageCategory::Player => "mods/players/",
             PackageCategory::Resource => "mods/resources/",
             PackageCategory::Status => "mods/statuses/",
+            PackageCategory::TileState => "mods/tile_states/",
         }
     }
 
@@ -36,6 +38,7 @@ impl PackageCategory {
             PackageCategory::Player => "resources/packages/players/",
             PackageCategory::Resource => "resources/packages/resources/",
             PackageCategory::Status => "resources/packages/statuses/",
+            PackageCategory::TileState => "resources/packages/tile_states/",
         }
     }
 

@@ -1,0 +1,26 @@
+animation state="RED_1"
+frame x="120" w="40" h="30"
+
+animation state="RED_2"
+frame x="160" w="40" h="30"
+
+animation state="RED_3"
+frame x="200" w="40" h="30"
+
+animation state="BLUE_1"
+frame x="120" y="30" w="40" h="30"
+
+animation state="BLUE_2"
+frame x="160" y="30" w="40" h="30"
+
+animation state="BLUE_3"
+frame x="200" y="30" w="40" h="30"
+
+animation state="OTHER_1"
+frame x="120" y="60" w="40" h="30"
+
+animation state="OTHER_2"
+frame x="160" y="60" w="40" h="30"
+
+animation state="OTHER_3"
+frame x="200" y="60" w="40" h="30"

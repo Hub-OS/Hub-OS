@@ -1,7 +1,0 @@
-animation state="SPLASH"
-frame duration="0.067" x="2" y="101" w="26" h="12" originx="13" originy="6"
-frame duration="0.067" x="2" y="78" w="44" h="19" originx="22" originy="11"
-frame duration="0.067" x="2" y="30" w="46" h="20" originx="23" originy="12"
-frame duration="0.067" x="2" y="54" w="48" h="20" originx="24" originy="12"
-frame duration="0.067" x="2" y="2" w="48" h="24" originx="24" originy="16"
-frame duration="0.033" x="32" y="101" w="1" h="1" originx="192" originy="192"

@@ -71,6 +71,7 @@ impl PackageInfo {
             self.process_dependencies(dep_table, "characters", PackageCategory::Character);
             self.process_dependencies(dep_table, "libraries", PackageCategory::Library);
             self.process_dependencies(dep_table, "statuses", PackageCategory::Status);
+            self.process_dependencies(dep_table, "tile_states", PackageCategory::TileState);
         }
 
         if let Some(defines_table) = meta_table.get("defines") {

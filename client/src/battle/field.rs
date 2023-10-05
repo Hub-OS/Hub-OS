@@ -1,9 +1,13 @@
-use super::{BattleCallback, BattleSimulation, Living, SharedBattleResources, TileState};
+use super::{
+    BattleCallback, BattleSimulation, SharedBattleResources, TileState, TileStateAnimationSupport,
+};
 use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+
+const FRAME_ANIMATION_SUPPORT: TileStateAnimationSupport = TileStateAnimationSupport::TeamRows;
 
 #[derive(Clone)]
 pub struct Field {
@@ -11,10 +15,9 @@ pub struct Field {
     cols: usize,
     tiles: Vec<Tile>,
     tile_size: Vec2,
-    red_tile_sprite: Sprite,
-    blue_tile_sprite: Sprite,
-    other_tile_sprite: Sprite,
-    tile_animator: Animator,
+    frame_sprite: Sprite,
+    frame_animator: Animator,
+    frame_full_animator: Animator,
     time: FrameTime,
 }
 
@@ -34,53 +37,22 @@ impl Field {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut red_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_RED_TILES);
-        let mut blue_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BLUE_TILES);
-        let mut other_tile_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_OTHER_TILES);
-
-        red_tile_sprite.set_color(Color::BLACK);
-        blue_tile_sprite.set_color(Color::BLACK);
-        other_tile_sprite.set_color(Color::BLACK);
+        let mut frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TILES);
+        frame_sprite.set_color(Color::BLACK);
 
         Self {
             cols,
             rows,
             tiles,
             tile_size: Vec2::new(40.0, 25.0), // todo: read from .animation?
-            red_tile_sprite,
-            blue_tile_sprite,
-            other_tile_sprite,
-            tile_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_ANIMATION),
+            frame_sprite,
+            frame_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_HOLE_ANIMATION),
+            frame_full_animator: Animator::load_new(
+                assets,
+                ResourcePaths::BATTLE_TILE_NORMAL_ANIMATION,
+            ),
             time: 0,
         }
-    }
-
-    pub fn set_sprites(
-        &mut self,
-        game_io: &GameIO,
-        red_texture_path: &str,
-        blue_texture_path: &str,
-        other_texture_path: &str,
-        animation_path: &str,
-        spacing: Vec2,
-    ) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-
-        let red_tile_texture = assets.texture(game_io, red_texture_path);
-        let blue_tile_texture = assets.texture(game_io, blue_texture_path);
-        let other_tile_texture = assets.texture(game_io, other_texture_path);
-
-        self.red_tile_sprite.set_texture(red_tile_texture);
-        self.blue_tile_sprite.set_texture(blue_tile_texture);
-        self.other_tile_sprite.set_texture(other_tile_texture);
-
-        self.red_tile_sprite.set_color(Color::BLACK);
-        self.blue_tile_sprite.set_color(Color::BLACK);
-        self.other_tile_sprite.set_color(Color::BLACK);
-
-        self.tile_animator = Animator::load_new(assets, animation_path);
-        self.tile_size = spacing;
     }
 
     pub fn cols(&self) -> usize {
@@ -144,9 +116,8 @@ impl Field {
         }
     }
 
-    pub fn resolve_wash_and_ignored_attackers(&mut self) {
+    pub fn resolve_ignored_attackers(&mut self) {
         for tile in &mut self.tiles {
-            tile.apply_wash();
             tile.unignore_inactive_attackers();
         }
     }
@@ -260,28 +231,6 @@ impl Field {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        // per entity update
-        for (_, (entity, _)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if !entity.on_field || entity.deleted {
-                continue;
-            }
-
-            let tile_pos = (entity.x, entity.y);
-            let tile = simulation.field.tile_at_mut(tile_pos).unwrap();
-
-            let tile_state = &simulation.tile_states[tile.state_index()];
-            let tile_callback = tile_state.entity_update_callback.clone();
-            let entity_id = entity.id;
-
-            let callback = BattleCallback::new(move |game_io, resources, simulation, ()| {
-                tile_callback.call(game_io, resources, simulation, entity_id);
-            });
-
-            simulation.pending_callbacks.push(callback);
-        }
-
-        simulation.call_pending_callbacks(game_io, resources);
-
         // per tile update
         for tile in &mut simulation.field.tiles {
             let tile_state = &simulation.tile_states[tile.state_index()];
@@ -310,34 +259,21 @@ impl Field {
         &mut self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
-        tile_states: &[TileState],
+        tile_states: &mut [TileState],
         flipped: bool,
     ) {
         sprite_queue.set_color_mode(SpriteColorMode::Add);
 
-        self.tile_animator.sync_time(self.time);
-
         let sprite_origin = Vec2::new(self.tile_size.x * 0.5, 0.0);
         let x_start = self.cols as f32 * 0.5 * -self.tile_size.x + sprite_origin.x;
         let y_start = -self.tile_size.y;
-
-        let red_sprite;
-        let blue_sprite;
-
-        if flipped {
-            red_sprite = &mut self.blue_tile_sprite;
-            blue_sprite = &mut self.red_tile_sprite;
-        } else {
-            red_sprite = &mut self.red_tile_sprite;
-            blue_sprite = &mut self.blue_tile_sprite;
-        }
 
         let flip_multiplier = if flipped { -1.0 } else { 1.0 };
 
         let mut highlight_positions = Vec::new();
 
         for row in 0..self.rows {
-            let prefix = format!("row_{}_", 3 - (row) * 3 / (self.rows - 1));
+            let state_row = (row) * 3 / (self.rows - 1) + 1;
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];
@@ -349,42 +285,67 @@ impl Field {
 
                 // resolve displayed tile state
                 let tile_state = if tile.flicker_normal_state() {
-                    &tile_states[TileState::NORMAL]
+                    &mut tile_states[TileState::NORMAL]
                 } else {
-                    &tile_states[state_index]
+                    &mut tile_states[state_index]
                 };
 
-                let tile_animation_state = if flipped {
-                    &tile_state.flipped_animation_state
-                } else {
-                    &tile_state.default_animation_state
-                };
+                let team = tile.visible_team();
 
-                let animation_string = prefix.clone() + tile_animation_state;
-                self.tile_animator.set_state(&animation_string);
-                self.tile_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                self.tile_animator.sync_time(self.time);
+                let frame_animation_state =
+                    FRAME_ANIMATION_SUPPORT.animation_state(team, state_row, flipped);
 
-                let sprite = match tile.visible_team() {
-                    Team::Red => &mut *red_sprite,
-                    Team::Blue => &mut *blue_sprite,
-                    _ => &mut self.other_tile_sprite,
-                };
-
-                // set position
-                sprite.set_position(Vec2::new(
+                // resolve position
+                let position = Vec2::new(
                     (x_start + col as f32 * self.tile_size.x) * flip_multiplier,
                     y_start + row as f32 * self.tile_size.y,
-                ));
+                );
 
-                // set frame and draw
-                self.tile_animator.apply(sprite);
-                sprite.set_origin(sprite_origin);
-                sprite_queue.draw_sprite(sprite);
+                // draw frame
+                if !tile_state.hide_frame {
+                    let frame_animator = if tile_state.hide_body {
+                        // render just the frame
+                        &mut self.frame_animator
+                    } else {
+                        // render the full tile
+                        &mut self.frame_full_animator
+                    };
+
+                    frame_animator.set_state(frame_animation_state);
+                    frame_animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    frame_animator.sync_time(self.time);
+
+                    // set frame and draw
+                    self.frame_sprite.set_position(position - sprite_origin);
+                    frame_animator.apply(&mut self.frame_sprite);
+                    sprite_queue.draw_sprite(&self.frame_sprite);
+                }
 
                 // resolve highlight
                 if tile.should_highlight() {
-                    highlight_positions.push(sprite.position());
+                    highlight_positions.push(position);
+                }
+
+                // render state sprite
+                let state_animation_support = tile_state.animation_support;
+
+                if state_animation_support == TileStateAnimationSupport::None {
+                    // no animation support, we can skip
+                    continue;
+                }
+
+                let animation_state =
+                    state_animation_support.animation_state(team, state_row, flipped);
+
+                if tile_state.animator.set_state(animation_state) {
+                    tile_state.animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    tile_state.animator.sync_time(self.time);
+
+                    let mut state_sprite = Sprite::new(game_io, tile_state.texture.clone());
+                    tile_state.animator.apply(&mut state_sprite);
+                    state_sprite.set_position(position - sprite_origin);
+                    state_sprite.set_color(Color::BLACK);
+                    sprite_queue.draw_sprite(&state_sprite);
                 }
             }
         }

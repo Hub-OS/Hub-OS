@@ -19,6 +19,7 @@ mod sprite_api;
 mod status_api;
 mod sync_node_api;
 mod tile_api;
+mod tile_state_api;
 mod turn_gauge_api;
 
 pub use action_api::create_action_table;
@@ -28,6 +29,7 @@ pub use encounter_init::encounter_init;
 pub use entity_api::create_entity_table;
 pub use movement_api::create_movement_table;
 pub use status_api::create_status_table;
+pub use tile_state_api::create_custom_tile_state_table;
 
 // tables, most are stored as named registry values
 // naming conflicts with simple registry values are avoided by using PascalCase
@@ -55,6 +57,8 @@ pub const ATTACHMENT_TABLE: &str = "Attachment";
 pub const COMPONENT_TABLE: &str = "Component";
 pub const FIELD_TABLE: &str = "Field";
 pub const TILE_TABLE: &str = "Tile";
+pub const TILE_STATE_TABLE: &str = "TileState";
+pub const CUSTOM_TILE_STATE_TABLE: &str = "CustomTileState";
 pub const ENTITY_TABLE: &str = "Entity";
 pub const PLAYER_TABLE: &str = "Player";
 pub const PLAYER_FORM_TABLE: &str = "PlayerForm";
