@@ -138,15 +138,17 @@ impl State for BattleState {
         let time_freeze_tracker = &simulation.time_freeze_tracker;
         time_freeze_tracker.draw_ui(game_io, simulation, sprite_queue);
 
+        // trap indicators
+        DefenseRule::draw_trap_ui(game_io, simulation, sprite_queue);
+
         // render top card text
         let entities = &mut simulation.entities;
         let entity_id = simulation.local_player_id;
 
         if let Ok(character) = entities.query_one_mut::<&Character>(entity_id.into()) {
-            let action_active = simulation
-                .actions
-                .iter()
-                .any(|(_, action)| action.entity == entity_id && action.used);
+            let mut actions_iter = simulation.actions.iter();
+            let action_active =
+                actions_iter.any(|(_, action)| action.entity == entity_id && action.used);
 
             if !action_active {
                 // only render if there's no active / queued actions
@@ -154,10 +156,8 @@ impl State for BattleState {
                     // render on the bottom left
                     const MARGIN: Vec2 = Vec2::new(1.0, -1.0);
 
-                    let position = Vec2::new(
-                        0.0,
-                        RESOLUTION_F.y - TextStyle::new(game_io, FontStyle::Thick).line_height(),
-                    ) + MARGIN;
+                    let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
+                    let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
 
                     card_props.draw_summary(game_io, sprite_queue, position, false);
                 }
