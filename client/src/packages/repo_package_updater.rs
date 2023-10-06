@@ -199,7 +199,7 @@ impl RepoPackageUpdater {
     }
 
     fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, old_id, _) = &self.install_required[self.install_position];
+        let (category, old_id, new_id) = &self.install_required[self.install_position];
         let category = *category;
         self.install_position += 1;
 
@@ -209,6 +209,13 @@ impl RepoPackageUpdater {
 
         globals.unload_package(category, PackageNamespace::Local, old_id);
         globals.load_package(category, PackageNamespace::Local, &path);
+
+        // update save
+        if old_id != new_id {
+            let global_save = &mut globals.global_save;
+            global_save.update_package_id(old_id, new_id);
+            global_save.save();
+        }
 
         // continue working on queue
         self.request_latest_listing(game_io);
