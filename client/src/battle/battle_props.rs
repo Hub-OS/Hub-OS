@@ -6,6 +6,7 @@ use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use crate::saves::PlayerInputBuffer;
 use framework::prelude::*;
+use packets::structures::InstalledSwitchDrive;
 use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +19,7 @@ pub struct PlayerSetup {
     pub emotion: Emotion,
     pub deck: Deck,
     pub blocks: Vec<InstalledBlock>,
+    pub drives: Vec<InstalledSwitchDrive>,
     pub index: usize,
     pub local: bool,
     pub buffer: PlayerInputBuffer,
@@ -36,6 +38,7 @@ impl PlayerSetup {
             emotion: Emotion::default(),
             deck: Deck::new(String::new()),
             blocks: Vec::new(),
+            drives: Vec::new(),
             index,
             local,
             buffer: PlayerInputBuffer::default(),
@@ -44,6 +47,19 @@ impl PlayerSetup {
 
     pub fn namespace(&self) -> PackageNamespace {
         PackageNamespace::Netplay(self.index as u8)
+    }
+
+    pub fn drives_augment_iter<'a, 'b: 'a>(
+        &'a self,
+        game_io: &'b GameIO,
+    ) -> impl Iterator<Item = &'b AugmentPackage> + 'a {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let augment_packages = &globals.augment_packages;
+        let namespace = self.namespace();
+
+        self.drives.iter().flat_map(move |drive| {
+            augment_packages.package_or_override(namespace, &drive.package_id)
+        })
     }
 
     pub fn from_globals(game_io: &GameIO) -> Self {
@@ -70,6 +86,12 @@ impl PlayerSetup {
             Vec::new()
         };
 
+        let drives: Vec<_> = if let Some(drives) = global_save.active_drive_parts() {
+            drives.clone()
+        } else {
+            Vec::new()
+        };
+
         let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
 
         // resolve health
@@ -79,6 +101,8 @@ impl PlayerSetup {
 
         // deck
         deck_restrictions.apply_augments(grid.augments(game_io));
+
+        // TODO: Filter Switch Drive restrictions to deck as well.
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
         deck.conform(game_io, PackageNamespace::Local, &deck_restrictions);
@@ -92,6 +116,7 @@ impl PlayerSetup {
             index: 0,
             deck,
             blocks,
+            drives,
             local: true,
             buffer: PlayerInputBuffer::default(),
         }

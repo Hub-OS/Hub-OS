@@ -17,3 +17,4 @@ pub use player_input_buffer::*;
 pub use server_info::*;
 
 pub use packets::structures::InstalledBlock;
+pub use packets::structures::InstalledSwitchDrive;

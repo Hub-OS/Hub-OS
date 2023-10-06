@@ -8,7 +8,7 @@ use crate::saves::{Card, Deck, PlayerInputBuffer};
 use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo};
+use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo, InstalledSwitchDrive};
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -48,6 +48,7 @@ struct RemotePlayerConnection {
     emotion: Emotion,
     deck: Deck,
     blocks: Vec<InstalledBlock>,
+    drives: Vec<InstalledSwitchDrive>,
     load_map: HashMap<FileHash, PackageCategory>,
     requested_packages: Option<Vec<FileHash>>,
     ready_for_packages: bool,
@@ -164,6 +165,7 @@ impl NetplayInitScene {
                 emotion: info.emotion,
                 deck: Deck::default(),
                 blocks: Vec::new(),
+                drives: Vec::new(),
                 load_map: HashMap::new(),
                 requested_packages: None,
                 ready_for_packages: false,
@@ -306,6 +308,7 @@ impl NetplayInitScene {
                 cards,
                 regular_card,
                 blocks,
+                drives,
                 ..
             } => {
                 connection.player_package = player_package;
@@ -316,6 +319,7 @@ impl NetplayInitScene {
                     .map(|(package_id, code)| Card { package_id, code })
                     .collect();
                 connection.blocks = blocks;
+                connection.drives = drives;
             }
             NetplayPacket::PackageList { index, packages } => {
                 connection.received_package_list = true;
@@ -508,6 +512,7 @@ impl NetplayInitScene {
             .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
         let blocks = player_setup.blocks.clone();
+        let drives = player_setup.drives.clone();
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
@@ -516,6 +521,7 @@ impl NetplayInitScene {
             cards,
             regular_card: player_setup.deck.regular_index,
             blocks,
+            drives,
         })
     }
 
@@ -669,6 +675,7 @@ impl NetplayInitScene {
                     emotion: connection.emotion,
                     deck: connection.deck.clone(),
                     blocks: connection.blocks.clone(),
+                    drives: connection.drives.clone(),
                     index: connection.index,
                     local: false,
                     buffer: connection.buffer,

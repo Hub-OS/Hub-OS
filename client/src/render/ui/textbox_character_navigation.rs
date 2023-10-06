@@ -4,6 +4,8 @@ use crate::resources::*;
 use framework::prelude::GameIO;
 use framework::prelude::*;
 
+const TOTAL_OPTIONS: usize = 3;
+
 pub struct TextboxCharacterNavigation {
     selection: usize,
     callback: Box<dyn Fn(usize)>,
@@ -27,15 +29,19 @@ impl TextboxCharacterNavigation {
 
         let old_selection = self.selection;
 
+        if self.selection == 0 {
+            self.selection = TOTAL_OPTIONS;
+        }
+
         if self.input_tracker.is_active(Input::Up) {
-            self.selection += 1;
+            self.selection -= 1;
         }
 
         if self.input_tracker.is_active(Input::Down) {
             self.selection += 1;
         }
 
-        self.selection %= 2;
+        self.selection %= TOTAL_OPTIONS;
 
         if self.selection != old_selection {
             let globals = game_io.resource::<Globals>().unwrap();
@@ -53,7 +59,7 @@ impl TextboxCharacterNavigation {
 
 impl TextboxInterface for TextboxCharacterNavigation {
     fn text(&self) -> &str {
-        "Here is my status.\x02\n  Customize\n  Switch"
+        "\x02  Customize\n  Switch\n  Drives"
     }
 
     fn is_complete(&self) -> bool {
@@ -71,7 +77,7 @@ impl TextboxInterface for TextboxCharacterNavigation {
 
         let cursor = self.cursor.as_mut().unwrap();
 
-        let cursor_line = 1.0 + self.selection as f32;
+        let cursor_line = self.selection as f32;
 
         let line_height = text_style.line_height();
         let relative_position = Vec2::new(

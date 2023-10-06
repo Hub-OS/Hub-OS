@@ -1,4 +1,4 @@
-use super::{CharacterSelectScene, CustomizeScene};
+use super::{CharacterSelectScene, CustomizeScene, ManageSwitchDriveScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
@@ -12,6 +12,7 @@ use framework::prelude::*;
 enum Event {
     BlockCustomization,
     CharacterSelect,
+    EquipDrives,
 }
 
 pub struct CharacterScene {
@@ -77,8 +78,10 @@ impl CharacterScene {
         let interface = TextboxCharacterNavigation::new(move |i| {
             let event = if i == 0 {
                 Event::BlockCustomization
-            } else {
+            } else if i == 1 {
                 Event::CharacterSelect
+            } else {
+                Event::EquipDrives
             };
 
             event_sender.send(event).unwrap();
@@ -140,6 +143,11 @@ impl Scene for CharacterScene {
                 Event::CharacterSelect => {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     self.next_scene = NextScene::new_push(CharacterSelectScene::new(game_io))
+                        .with_transition(transition)
+                }
+                Event::EquipDrives => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(ManageSwitchDriveScene::new(game_io))
                         .with_transition(transition)
                 }
             }

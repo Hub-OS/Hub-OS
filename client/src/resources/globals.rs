@@ -403,13 +403,28 @@ impl Globals {
             card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
         });
 
-        let augment_triplet_iter = props.player_setups.iter().flat_map(|setup| {
+        let block_triplet_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
             BlockGrid::new(ns)
                 .with_blocks(game_io, setup.blocks.clone())
                 .augments(game_io)
                 .map(move |(augment, _)| {
+                    (
+                        PackageCategory::Augment,
+                        ns,
+                        augment.package_info.id.clone(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        });
+
+        let drive_triplet_iter = props.player_setups.iter().flat_map(|setup| {
+            let ns = setup.namespace();
+
+            setup
+                .drives_augment_iter(game_io)
+                .map(move |augment| {
                     (
                         PackageCategory::Augment,
                         ns,
@@ -438,7 +453,8 @@ impl Globals {
 
         let triplet_iter = player_triplet_iter
             .chain(card_triplet_iter)
-            .chain(augment_triplet_iter)
+            .chain(block_triplet_iter)
+            .chain(drive_triplet_iter)
             .chain(encounter_triplet_iter)
             .chain(status_triplet_iter)
             .chain(tile_state_triplet_iter);

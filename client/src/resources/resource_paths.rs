@@ -183,6 +183,10 @@ impl ResourcePaths {
     pub const CHARACTER_SELECT_INVALID_ANIMATION: &str =
         "resources/scenes/character_select/invalid.animation";
 
+    // ManageSwitchDriveScene
+    pub const SWITCH_DRIVE_UI: &str = "resources/scenes/switch_drives/ui.png";
+    pub const SWITCH_DRIVE_UI_ANIMATION: &str = "resources/scenes/switch_drives/ui.animation";
+
     // KeyItemsScene
     pub const KEY_ITEMS_LAYOUT_ANIMATION: &str = "resources/scenes/key_items/layout.animation";
     pub const KEY_ITEMS_MUG: &str = "resources/scenes/key_items/mug.png";

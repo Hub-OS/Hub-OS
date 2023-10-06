@@ -2,6 +2,7 @@ use super::{BlockGrid, Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::GameIO;
+use packets::structures::InstalledSwitchDrive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -14,6 +15,7 @@ pub struct GlobalSave {
     pub selected_deck: usize,
     pub server_list: Vec<ServerInfo>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
+    pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
     pub resource_package_order: Vec<(PackageId, bool)>,
 }
 
@@ -77,6 +79,10 @@ impl GlobalSave {
 
     pub fn active_blocks(&self) -> Option<&Vec<InstalledBlock>> {
         self.installed_blocks.get(&self.selected_character)
+    }
+
+    pub fn active_drive_parts(&self) -> Option<&Vec<InstalledSwitchDrive>> {
+        self.installed_drive_parts.get(&self.selected_character)
     }
 
     pub fn valid_augments<'a>(
@@ -155,6 +161,7 @@ impl Default for GlobalSave {
             selected_deck: 0,
             server_list: Vec::new(),
             installed_blocks: HashMap::new(),
+            installed_drive_parts: HashMap::new(),
             resource_package_order: Vec::new(),
         }
     }
