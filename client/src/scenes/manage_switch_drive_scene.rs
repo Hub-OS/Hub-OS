@@ -134,12 +134,7 @@ impl ManageSwitchDriveScene {
         arm_text.text = arm_text_string;
         leg_text.text = leg_text_string;
 
-        let mut drive_names = Vec::<Text>::new();
-
-        drive_names.push(head_text);
-        drive_names.push(body_text);
-        drive_names.push(arm_text);
-        drive_names.push(leg_text);
+        let mut drive_names = vec![head_text, body_text, arm_text, leg_text];
 
         if let Some(drive_parts_iter) = global_save.active_drive_parts() {
             for drive_part in drive_parts_iter {
@@ -446,11 +441,7 @@ impl ManageSwitchDriveScene {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
                     let global_save = &mut globals.global_save;
 
-                    let mut slot_match_vec = Vec::new();
-                    slot_match_vec.push("head");
-                    slot_match_vec.push("body");
-                    slot_match_vec.push("arms");
-                    slot_match_vec.push("legs");
+                    let slot_match_vec = ["head", "body", "arms", "legs"];
 
                     global_save
                         .installed_drive_parts
@@ -571,7 +562,7 @@ impl Scene for ManageSwitchDriveScene {
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
+        SceneTitle::new("DRIVES").draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

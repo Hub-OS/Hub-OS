@@ -36,7 +36,7 @@ impl GridArrow {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);
 
         // resolve start point
         animator.set_state("GRID");
@@ -49,7 +49,7 @@ impl GridArrow {
         let max_width = end.x - start.x;
 
         // resolve sprites
-        let mut sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+        let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
         sprite.set_frame(Rect::ZERO);
         let mut body_sprites = Vec::new();
 

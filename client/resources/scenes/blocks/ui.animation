@@ -1,0 +1,188 @@
+animation state="GRID"
+frame duration="3f" x="1" y="0" w="127" h="130" originx="-10" originy="-17"
+point label="GRID_START" x="-8" y="2"
+point label="GRID_STEP" x="20" y="20"
+point label="COLORS_START" x="9" y="3"
+point label="COLORS_STEP" x="15" y="0"
+point label="ARROW_START" x="4" y="65"
+point label="ARROW_END" x="116" y="65"
+
+animation state="RAIL"
+frame duration="0f" x="5" y="131" w="117" h="22" originx="-15" originy="-78"
+
+animation state="GRID_CURSOR"
+frame duration="4f" x="1" y="177" w="16" h="16" originx="-2" originy="-2"
+frame duration="4f" x="18" y="177" w="14" h="14" originx="-3" originy="-3"
+frame duration="4f" x="33" y="177" w="12" h="12" originx="-4" originy="-4"
+frame duration="4f" x="18" y="177" w="14" h="14" originx="-3" originy="-3"
+
+animation state="CLAW_CURSOR"
+frame duration="8f" x="37" y="194" w="14" h="14" originx="-3" originy="1"
+frame duration="6f" x="20" y="194" w="16" h="13" originx="-2" originy="1"
+frame duration="6f" x="1" y="194" w="18" h="11" originx="-1" originy="2"
+
+animation state="CLAW_GRIP"
+frame duration="50f" x="37" y="194" w="14" h="14" originx="-3" originy="1"
+
+animation state="TEXTBOX_CURSOR"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="9" originy="-2"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="10" originy="-2"
+frame duration="6f" x="47" y="177" w="9" h="14" originx="11" originy="-2"
+
+animation state="TEXTBOX"
+frame duration="50f" x="163" y="195" w="92" h="60" originx="-140" originy="-94"
+point label="TEXT_START" x="4" y="12"
+point label="TEXT_END" x="88" y="56"
+
+animation state="OVERLAP_U"
+frame duration="50f" x="1" y="154" w="18" h="5" originx="-1" originy="-14"
+
+animation state="OVERLAP_R"
+frame duration="50f" x="1" y="154" w="5" h="18" originx="-1" originy="-1"
+
+animation state="OVERLAP_D"
+frame duration="50f" x="1" y="154" w="18" h="5" originx="-1" originy="-1"
+
+animation state="OVERLAP_L"
+frame duration="50f" x="1" y="154" w="5" h="18" originx="-14" originy="-1"
+
+animation state="ARROW_TIP"
+frame duration="35f" x="57" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="64" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="71" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="78" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="85" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="92" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="3f" x="57" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="64" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="71" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="78" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="85" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="92" y="182" w="6" h="12" originx="0" originy="-1"
+frame duration="3f" x="57" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="64" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="71" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="78" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="85" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="92" y="195" w="6" h="12" originx="0" originy="-1"
+frame duration="3f" x="99" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="106" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="113" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="120" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="127" y="169" w="6" h="12" originx="0" originy="-1"
+frame duration="1f" x="134" y="169" w="6" h="12" originx="0" originy="-1"
+
+animation state="ARROW_BODY"
+frame duration="50f" x="20" y="154" w="64" h="14"
+
+animation state="APPLY"
+frame duration="50f" x="75" y="216" w="73" h="19"
+
+animation state="APPLY_BLINK"
+frame duration="9f" x="75" y="236" w="73" h="19"
+frame duration="9f" x="75" y="216" w="73" h="19"
+
+animation state="OPTION"
+frame duration="50f" x="1" y="216" w="73" h="19"
+point label="START" x="144" y="0"
+point label="STEP" x="0" y="18"
+point label="TEXT_START" x="4" y="4"
+point label="TEXT_END" x="69" y="18"
+point label="BLOCK_PREVIEW" x="76" y="-1"
+
+animation state="OPTION_BLINK"
+frame duration="9f" x="1" y="236" w="73" h="19"
+frame duration="9f" x="1" y="216" w="73" h="19"
+
+animation state="WHITE_FLAT"
+frame duration="50f" x="163" y="1" w="18" h="18" originx="-1" originy="-1"
+
+animation state="WHITE_PLUS"
+frame duration="50f" x="182" y="1" w="18" h="18" originx="-1" originy="-1"
+
+animation state="WHITE_FLAT_HELD"
+frame duration="50f" x="201" y="0" w="20" h="20"
+
+animation state="WHITE_PLUS_HELD"
+frame duration="50f" x="222" y="0" w="20" h="20"
+
+animation state="WHITE_INDICATOR"
+frame duration="50f" x="243" y="1" w="12" h="7"
+
+animation state="RED_FLAT"
+frame duration="50f" x="163" y="22" w="18" h="18" originx="-1" originy="-1"
+
+animation state="RED_PLUS"
+frame duration="50f" x="182" y="22" w="18" h="18" originx="-1" originy="-1"
+
+animation state="RED_FLAT_HELD"
+frame duration="50f" x="201" y="21" w="20" h="20"
+
+animation state="RED_PLUS_HELD"
+frame duration="50f" x="222" y="21" w="20" h="20"
+
+animation state="RED_INDICATOR"
+frame duration="50f" x="243" y="22" w="12" h="7"
+
+animation state="GREEN_FLAT"
+frame duration="50f" x="163" y="43" w="18" h="18" originx="-1" originy="-1"
+
+animation state="GREEN_PLUS"
+frame duration="50f" x="182" y="43" w="18" h="18" originx="-1" originy="-1"
+
+animation state="GREEN_FLAT_HELD"
+frame duration="50f" x="201" y="42" w="20" h="20"
+
+animation state="GREEN_PLUS_HELD"
+frame duration="50f" x="222" y="42" w="20" h="20"
+
+animation state="GREEN_INDICATOR"
+frame duration="50f" x="243" y="43" w="12" h="7"
+
+animation state="BLUE_FLAT"
+frame duration="50f" x="163" y="64" w="18" h="18" originx="-1" originy="-1"
+
+animation state="BLUE_PLUS"
+frame duration="50f" x="182" y="64" w="18" h="18" originx="-1" originy="-1"
+
+animation state="BLUE_FLAT_HELD"
+frame duration="50f" x="201" y="63" w="20" h="20"
+
+animation state="BLUE_PLUS_HELD"
+frame duration="50f" x="222" y="63" w="20" h="20"
+
+animation state="BLUE_INDICATOR"
+frame duration="50f" x="243" y="64" w="12" h="7"
+
+animation state="PINK_FLAT"
+frame duration="50f" x="163" y="85" w="18" h="18" originx="-1" originy="-1"
+
+animation state="PINK_PLUS"
+frame duration="50f" x="182" y="85" w="18" h="18" originx="-1" originy="-1"
+
+animation state="PINK_FLAT_HELD"
+frame duration="50f" x="201" y="84" w="20" h="20"
+
+animation state="PINK_PLUS_HELD"
+frame duration="50f" x="222" y="84" w="20" h="20"
+
+animation state="PINK_INDICATOR"
+frame duration="50f" x="243" y="85" w="12" h="7"
+
+animation state="YELLOW_FLAT"
+frame duration="50f" x="163" y="106" w="18" h="18" originx="-1" originy="-1"
+
+animation state="YELLOW_PLUS"
+frame duration="50f" x="182" y="106" w="18" h="18" originx="-1" originy="-1"
+
+animation state="YELLOW_FLAT_HELD"
+frame duration="50f" x="201" y="105" w="20" h="20"
+
+animation state="YELLOW_PLUS_HELD"
+frame duration="50f" x="222" y="105" w="20" h="20"
+
+animation state="YELLOW_INDICATOR"
+frame duration="50f" x="243" y="106" w="12" h="7"
+
+animation state="INVALID_FRAME"
+frame duration="50f" x="140" y="22" w="22" h="22" originx="1" originy="1"

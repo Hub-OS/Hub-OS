@@ -166,12 +166,12 @@ impl ResourcePaths {
     pub const CHARACTER_PAGES: &str = "resources/scenes/character_status/pages.png";
     pub const CHARACTER_PAGES_ANIMATION: &str = "resources/scenes/character_status/pages.animation";
 
-    // CustomizeScene
-    pub const CUSTOMIZE_BG: &str = "resources/scenes/customize/bg.png";
-    pub const CUSTOMIZE_BG_ANIMATION: &str = "resources/scenes/customize/bg.animation";
-    pub const CUSTOMIZE_UI: &str = "resources/scenes/customize/ui.png";
-    pub const CUSTOMIZE_UI_ANIMATION: &str = "resources/scenes/customize/ui.animation";
-    pub const CUSTOMIZE_PREVIEW_ANIMATION: &str = "resources/scenes/customize/preview.animation";
+    // BlocksScene
+    pub const BLOCKS_BG: &str = "resources/scenes/blocks/bg.png";
+    pub const BLOCKS_BG_ANIMATION: &str = "resources/scenes/blocks/bg.animation";
+    pub const BLOCKS_UI: &str = "resources/scenes/blocks/ui.png";
+    pub const BLOCKS_UI_ANIMATION: &str = "resources/scenes/blocks/ui.animation";
+    pub const BLOCKS_PREVIEW_ANIMATION: &str = "resources/scenes/blocks/preview.animation";
 
     // CharacterSelectScene
     pub const CHARACTER_SELECT_LAYOUT_ANIMATION: &str =

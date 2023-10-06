@@ -18,8 +18,8 @@ impl BlockPreview {
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-        let mut sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
-        let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_PREVIEW_ANIMATION);
+        let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
+        let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
 
         // add background to sprites list
         animator.set_state("GRID");

@@ -257,11 +257,11 @@ impl PackagePreview {
                 self.sprites.extend(sprites);
 
                 // generate color list preview
-                let mut sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+                let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
                 sprite.set_scale(Vec2::new(2.0, 2.0));
 
                 let mut animator =
-                    Animator::load_new(assets, ResourcePaths::CUSTOMIZE_PREVIEW_ANIMATION);
+                    Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
                 animator.set_state(preview_color.flat_state());
                 animator.apply(&mut sprite);
 

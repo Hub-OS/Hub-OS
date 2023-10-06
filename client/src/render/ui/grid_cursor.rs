@@ -13,11 +13,11 @@ impl GridCursor {
     pub fn new(game_io: &GameIO) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-        let animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION)
+        let animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION)
             .with_state("TEXTBOX_CURSOR")
             .with_loop_mode(AnimatorLoopMode::Loop);
 
-        let mut sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+        let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
         animator.apply(&mut sprite);
 
         Self {

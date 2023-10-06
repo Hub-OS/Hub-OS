@@ -59,7 +59,7 @@ impl TextboxCharacterNavigation {
 
 impl TextboxInterface for TextboxCharacterNavigation {
     fn text(&self) -> &str {
-        "\x02  Customize\n  Switch\n  Drives"
+        "\x02  Blocks\n  Drives\n  Switch"
     }
 
     fn is_complete(&self) -> bool {

@@ -43,7 +43,7 @@ enum State {
     Applying,
 }
 
-pub struct CustomizeScene {
+pub struct BlocksScene {
     camera: Camera,
     background: Background,
     frame: SubSceneFrame,
@@ -74,7 +74,7 @@ pub struct CustomizeScene {
     next_scene: NextScene,
 }
 
-impl CustomizeScene {
+impl BlocksScene {
     pub fn new(game_io: &GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -127,8 +127,8 @@ impl CustomizeScene {
         packages.sort_by(|a, b| a.id.cmp(&b.id));
 
         // load ui sprites
-        let mut animator = Animator::load_new(assets, ResourcePaths::CUSTOMIZE_UI_ANIMATION);
-        let mut grid_sprite = assets.new_sprite(game_io, ResourcePaths::CUSTOMIZE_UI);
+        let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_UI_ANIMATION);
+        let mut grid_sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
 
         // grid sprite
         animator.set_state("GRID");
@@ -773,7 +773,7 @@ impl CustomizeScene {
     }
 }
 
-impl Scene for CustomizeScene {
+impl Scene for BlocksScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
@@ -1034,7 +1034,7 @@ impl Scene for CustomizeScene {
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("CUSTOMIZE").draw(game_io, &mut sprite_queue);
+        SceneTitle::new("BLOCKS").draw(game_io, &mut sprite_queue);
 
         // draw block preview
         if let Some(preview) = &mut self.block_preview {
