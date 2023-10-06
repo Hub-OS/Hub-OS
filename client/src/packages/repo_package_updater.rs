@@ -26,7 +26,7 @@ pub struct RepoPackageUpdater {
     task: Option<AsyncTask<Event>>,
     queue: Vec<PackageId>,
     queue_position: usize,
-    install_required: Vec<(PackageCategory, PackageId)>,
+    install_required: Vec<(PackageCategory, PackageId, PackageId)>,
     install_position: usize,
 }
 
@@ -90,14 +90,20 @@ impl RepoPackageUpdater {
                 // test for required install
                 if let Some(category) = listing.preview_data.category() {
                     let id = &self.queue[self.queue_position];
+                    let latest_id = listing.id;
 
                     let existing_hash = globals
                         .package_info(category, PackageNamespace::Local, id)
                         .map(|package| package.hash);
 
-                    if existing_hash != Some(listing.hash) {
+                    let requires_update = existing_hash != Some(listing.hash);
+                    let already_updating =
+                        (self.install_required.iter()).any(|(_, _, id)| *id == latest_id);
+
+                    if requires_update && !already_updating {
                         // save package id for install pass
-                        self.install_required.push((category, id.clone()));
+                        let old_id = id.clone();
+                        self.install_required.push((category, old_id, latest_id));
                     }
                 }
 
@@ -132,6 +138,7 @@ impl RepoPackageUpdater {
 
         let task = game_io.spawn_local_task(async move {
             let Some(value) = crate::http::request_json(&uri).await else {
+                log::error!("Failed to download meta file");
                 return Event::Failed;
             };
 
@@ -145,7 +152,9 @@ impl RepoPackageUpdater {
     }
 
     fn download_package(&mut self, game_io: &GameIO) {
-        let Some(&(category, ref id)) = self.install_required.get(self.install_position) else {
+        let Some(&(category, ref old_id, ref id)) =
+            self.install_required.get(self.install_position)
+        else {
             self.status = UpdateStatus::Success;
             return;
         };
@@ -155,10 +164,11 @@ impl RepoPackageUpdater {
         let encoded_id = uri_encode(id.as_str());
 
         let uri = format!("{repo}/api/mods/{encoded_id}");
-        let base_path = globals.resolve_package_download_path(category, id);
+        let base_path = globals.resolve_package_download_path(category, old_id);
 
         let task = game_io.spawn_local_task(async move {
             let Some(zip_bytes) = crate::http::request(&uri).await else {
+                log::error!("Failed to download zip");
                 return Event::Failed;
             };
 
@@ -189,14 +199,15 @@ impl RepoPackageUpdater {
     }
 
     fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, id) = self.install_required[self.install_position].clone();
+        let (category, old_id, _) = &self.install_required[self.install_position];
+        let category = *category;
         self.install_position += 1;
 
         // reload package
         let globals = game_io.resource_mut::<Globals>().unwrap();
-        let path = globals.resolve_package_download_path(category, &id);
+        let path = globals.resolve_package_download_path(category, old_id);
 
-        globals.unload_package(category, PackageNamespace::Local, &id);
+        globals.unload_package(category, PackageNamespace::Local, old_id);
         globals.load_package(category, PackageNamespace::Local, &path);
 
         // continue working on queue
