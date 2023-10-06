@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 pub struct InstalledSwitchDrive {
     pub package_id: PackageId,
     pub slot: SwitchDriveSlot,
+    pub name: String,
 }
 
 impl InstalledSwitchDrive {
-    pub fn get_slot(&mut self) -> SwitchDriveSlot {
+    pub fn get_slot(&self) -> SwitchDriveSlot {
         self.slot
     }
 }
