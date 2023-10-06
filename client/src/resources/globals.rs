@@ -30,6 +30,7 @@ pub struct Globals {
     pub character_packages: PackageManager<CharacterPackage>,
     pub augment_packages: PackageManager<AugmentPackage>,
     pub status_packages: PackageManager<StatusPackage>,
+    pub tile_state_packages: PackageManager<TileStatePackage>,
     pub library_packages: PackageManager<LibraryPackage>,
     pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
@@ -72,8 +73,13 @@ impl Globals {
         let mut resource_packages: PackageManager<ResourcePackage> =
             PackageManager::new(PackageCategory::Resource);
 
-        let resources_mod_path = resource_packages.category().path();
-        resource_packages.load_packages_in_folder(&assets, resources_mod_path, |_, _| {});
+        let resources_mod_path = resource_packages.category().mod_path();
+        resource_packages.load_packages_in_folder(
+            &assets,
+            PackageNamespace::Local,
+            resources_mod_path,
+            |_, _| {},
+        );
         resource_packages.apply(game_io, &mut global_save, &assets);
 
         // load font
@@ -124,6 +130,7 @@ impl Globals {
             character_packages: PackageManager::new(PackageCategory::Character),
             augment_packages: PackageManager::new(PackageCategory::Augment),
             status_packages: PackageManager::new(PackageCategory::Status),
+            tile_state_packages: PackageManager::new(PackageCategory::TileState),
             library_packages: PackageManager::new(PackageCategory::Library),
             resource_packages,
             battle_api: BattleLuaApi::new(),
@@ -190,6 +197,16 @@ impl Globals {
                 .packages(namespace)
                 .map(|package| &package.package_info),
         )
+        .chain(
+            self.status_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
+        .chain(
+            self.tile_state_packages
+                .packages(namespace)
+                .map(|package| &package.package_info),
+        )
     }
 
     pub fn load_virtual_package(
@@ -229,6 +246,10 @@ impl Globals {
             }
             PackageCategory::Status => {
                 self.status_packages
+                    .load_virtual_package(&self.assets, namespace, hash)
+            }
+            PackageCategory::TileState => {
+                self.tile_state_packages
                     .load_virtual_package(&self.assets, namespace, hash)
             }
         }?;
@@ -280,6 +301,10 @@ impl Globals {
             }
             PackageCategory::Status => {
                 self.status_packages
+                    .load_package(&self.assets, namespace, path)
+            }
+            PackageCategory::TileState => {
+                self.tile_state_packages
                     .load_package(&self.assets, namespace, path)
             }
         }?;
@@ -342,6 +367,10 @@ impl Globals {
                 self.status_packages
                     .unload_package(&self.assets, namespace, id);
             }
+            PackageCategory::TileState => {
+                self.tile_state_packages
+                    .unload_package(&self.assets, namespace, id);
+            }
         }
 
         // unload child packages
@@ -356,9 +385,9 @@ impl Globals {
     // returns package info, and the namespace the package should be loaded with
     pub fn battle_dependencies<'a>(
         &'a self,
-        game_io: &'a GameIO,
-        props: &'a BattleProps,
-    ) -> Vec<(&PackageInfo, PackageNamespace)> {
+        game_io: &GameIO,
+        props: &BattleProps,
+    ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
         let player_triplet_iter = props.player_setups.iter().map(|setup| {
             (
                 PackageCategory::Player,
@@ -412,11 +441,23 @@ impl Globals {
             // in this case, Local is serving the battle anyway. so this isn't inaccurate
             .map(|(category, ns, id)| (category, ns.into_server(), id));
 
+        let status_triplet_iter = self
+            .status_packages
+            .packages(PackageNamespace::BuiltIn)
+            .map(|package| package.package_info.triplet());
+
+        let tile_state_triplet_iter = self
+            .tile_state_packages
+            .packages(PackageNamespace::BuiltIn)
+            .map(|package| package.package_info.triplet());
+
         let triplet_iter = player_triplet_iter
             .chain(card_triplet_iter)
             .chain(block_triplet_iter)
+            .chain(drive_triplet_iter)
             .chain(encounter_triplet_iter)
-            .chain(drive_triplet_iter);
+            .chain(status_triplet_iter)
+            .chain(tile_state_triplet_iter);
 
         self.package_dependency_iter(triplet_iter)
     }
@@ -507,6 +548,10 @@ impl Globals {
                 .status_packages
                 .package(namespace, id)
                 .map(|package| package.package_info()),
+            PackageCategory::TileState => self
+                .tile_state_packages
+                .package(namespace, id)
+                .map(|package| package.package_info()),
         }
     }
 
@@ -547,6 +592,10 @@ impl Globals {
                 .map(|package| package.package_info()),
             PackageCategory::Status => self
                 .status_packages
+                .package_or_override(namespace, id)
+                .map(|package| package.package_info()),
+            PackageCategory::TileState => self
+                .tile_state_packages
                 .package_or_override(namespace, id)
                 .map(|package| package.package_info()),
         }
@@ -592,6 +641,10 @@ impl Globals {
                 .status_packages
                 .package(namespace, id)
                 .map(|package| package.create_package_listing()),
+            PackageCategory::TileState => self
+                .tile_state_packages
+                .package(namespace, id)
+                .map(|package| package.create_package_listing()),
         }
     }
 
@@ -607,6 +660,7 @@ impl Globals {
             .chain(self.player_packages.namespaces())
             .chain(self.library_packages.namespaces())
             .chain(self.status_packages.namespaces())
+            .chain(self.tile_state_packages.namespaces())
             .filter(move |ns| namespace_set.insert(*ns))
     }
 
@@ -633,6 +687,9 @@ impl Globals {
 
         self.status_packages
             .remove_namespace(&self.assets, namespace);
+
+        self.tile_state_packages
+            .remove_namespace(&self.assets, namespace);
     }
 
     pub fn resolve_package_download_path(
@@ -645,7 +702,7 @@ impl Globals {
             package.base_path.clone()
         } else {
             let encoded_id = uri_encode(id.as_str());
-            format!("{}{}/", category.path(), encoded_id)
+            format!("{}{}/", category.mod_path(), encoded_id)
         }
     }
 

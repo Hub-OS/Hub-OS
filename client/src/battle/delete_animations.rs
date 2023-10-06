@@ -1,4 +1,4 @@
-use super::{Artifact, BattleCallback, BattleSimulation, Component, Entity, Living};
+use super::{Artifact, BattleCallback, BattleSimulation, Component, Entity, Player};
 use crate::bindable::EntityId;
 use crate::resources::Globals;
 use framework::prelude::GameIO;
@@ -8,9 +8,9 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
     let sfx = &game_io.resource::<Globals>().unwrap().sfx;
     simulation.play_sound(game_io, &sfx.player_deleted);
 
-    let (entity, living) = simulation
+    let (entity, player) = simulation
         .entities
-        .query_one_mut::<(&mut Entity, &Living)>(id.into())
+        .query_one_mut::<(&mut Entity, Option<&Player>)>(id.into())
         .unwrap();
 
     let x = entity.x;
@@ -18,11 +18,14 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
     // flinch
     let player_animator = &mut simulation.animators[entity.animator_index];
-    let callbacks = player_animator.set_state(living.flinch_anim_state.as_ref().unwrap());
-    simulation.pending_callbacks.extend(callbacks);
 
-    let player_root_node = entity.sprite_tree.root_mut();
-    player_animator.apply(player_root_node);
+    if let Some(player) = player {
+        let callbacks = player_animator.set_state(&player.flinch_animation_state);
+        simulation.pending_callbacks.extend(callbacks);
+
+        let player_root_node = entity.sprite_tree.root_mut();
+        player_animator.apply(player_root_node);
+    }
 
     player_animator.disable();
 
@@ -43,7 +46,7 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
     animator.on_complete(BattleCallback::new(
         move |game_io, resources, simulation, _| {
-            simulation.mark_entity_for_erasure(game_io, resources, artifact_id);
+            Entity::mark_erased(game_io, resources, simulation, artifact_id);
         },
     ));
 }

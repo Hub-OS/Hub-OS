@@ -1,8 +1,12 @@
-use super::{CardClass, Comparison, Element, GenerationalIndex, HitFlags, HitProperties, MathExpr};
-use crate::battle::{Action, BattleCallback, Character, Entity, Player, SharedBattleResources};
+use super::{
+    CardClass, CardProperties, Comparison, Element, GenerationalIndex, HitFlags, HitProperties,
+    MathExpr,
+};
+use crate::battle::{BattleCallback, Character, Entity, Player, SharedBattleResources};
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
+use std::ops::{Range, RangeInclusive};
 
 #[derive(Clone, Debug)]
 pub enum AuxVariable {
@@ -71,6 +75,8 @@ pub enum AuxRequirement {
     TotalDamage(Comparison, i32),
     Element(Element),
     Emotion(Emotion),
+    NegativeTileInteraction,
+    ChargedCard,
     CardElement(Element),
     CardNotElement(Element),
     CardDamage(Comparison, i32),
@@ -113,6 +119,8 @@ impl AuxRequirement {
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
+            | AuxRequirement::NegativeTileInteraction
+            | AuxRequirement::ChargedCard
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
             | AuxRequirement::CardDamage(_, _)
@@ -158,6 +166,8 @@ impl AuxRequirement {
             "require_total_damage" => AuxRequirement::TotalDamage(table.get(2)?, table.get(3)?),
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
+            "require_negative_tile_interaction" => AuxRequirement::NegativeTileInteraction,
+            "require_charged_card" => AuxRequirement::ChargedCard,
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
@@ -192,6 +202,10 @@ impl AuxRequirement {
 
 #[derive(Default, Debug, Clone)]
 pub enum AuxEffect {
+    IncreaseCardDamage(i32),
+    IncreaseCardMultiplier(f32),
+    InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
+    InterruptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     StatusImmunity(HitFlags),
     ApplyStatus(HitFlags, FrameTime),
     RemoveStatus(HitFlags),
@@ -200,45 +214,72 @@ pub enum AuxEffect {
     DecreaseDamageSum(MathExpr<f32, AuxVariable>),
     DrainHP(i32),
     RecoverHP(i32),
-    InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     #[default]
     None,
 }
 
 impl AuxEffect {
-    fn priority(&self) -> usize {
+    const PRE_HIT_START: usize = 4; // StatusImmunity
+    const ON_HIT_START: usize = 7; // IncreaseHitDamage
+    const POST_HIT_START: usize = 9; // DecreaseDamageSum
+    const POST_HIT_END: usize = 12; // None
+
+    const fn priority(&self) -> usize {
         match self {
-            AuxEffect::StatusImmunity(_) => 0,
-            AuxEffect::ApplyStatus(_, _) => 1,
-            AuxEffect::RemoveStatus(_) => 2,
-            AuxEffect::IncreaseHitDamage(_) => 3,
-            AuxEffect::DecreaseHitDamage(_) => 4,
-            AuxEffect::DecreaseDamageSum(_) => 5,
-            AuxEffect::DrainHP(_) => 6,
-            AuxEffect::RecoverHP(_) => 7,
-            AuxEffect::InterceptAction(_) => 8,
-            AuxEffect::None => 9,
+            AuxEffect::IncreaseCardDamage(_) => 0,
+            AuxEffect::IncreaseCardMultiplier(_) => 1,
+            AuxEffect::InterceptAction(_) => 2,
+            AuxEffect::InterruptAction(_) => 3,
+            AuxEffect::StatusImmunity(_) => 4,
+            AuxEffect::ApplyStatus(_, _) => 5,
+            AuxEffect::RemoveStatus(_) => 6,
+            AuxEffect::IncreaseHitDamage(_) => 7,
+            AuxEffect::DecreaseHitDamage(_) => 8,
+            AuxEffect::DecreaseDamageSum(_) => 9,
+            AuxEffect::DrainHP(_) => 10,
+            AuxEffect::RecoverHP(_) => 11,
+            AuxEffect::None => 12,
         }
     }
 
+    pub fn executes_on_card_use(&self) -> bool {
+        matches!(
+            self,
+            AuxEffect::IncreaseCardMultiplier(_) | AuxEffect::IncreaseCardDamage(_)
+        )
+    }
+
+    pub fn resolves_action(&self) -> bool {
+        matches!(self, AuxEffect::InterceptAction(_))
+    }
+
+    pub fn executes_on_current_action(&self) -> bool {
+        matches!(self, AuxEffect::InterruptAction(_))
+    }
+
     pub fn execute_before_hit(&self) -> bool {
-        self.priority() < 3
+        const PRE_HIT_RANGE: Range<usize> = AuxEffect::PRE_HIT_START..AuxEffect::ON_HIT_START;
+
+        PRE_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn execute_on_hit(&self) -> bool {
-        (3..=4).contains(&self.priority())
+        const ON_HIT_RANGE: Range<usize> = AuxEffect::ON_HIT_START..AuxEffect::POST_HIT_START;
+
+        ON_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn execute_after_hit(&self) -> bool {
-        self.priority() > 4 && self.hit_related()
+        const POST_HIT_RANGE: RangeInclusive<usize> =
+            AuxEffect::POST_HIT_START..=AuxEffect::POST_HIT_END;
+
+        POST_HIT_RANGE.contains(&self.priority())
     }
 
     pub fn hit_related(&self) -> bool {
-        self.priority() <= 7 || matches!(self, AuxEffect::None)
-    }
+        const HIT_RANGE: RangeInclusive<usize> = AuxEffect::PRE_HIT_START..=AuxEffect::POST_HIT_END;
 
-    pub fn action_related(&self) -> bool {
-        self.priority() == 8
+        HIT_RANGE.contains(&self.priority())
     }
 
     fn from_lua<'lua>(
@@ -271,8 +312,8 @@ impl AuxEffect {
                 let expr = resources.parse_math_expr(table.get(2)?)?;
                 AuxEffect::DecreaseDamageSum(expr)
             }
-            "drain_hp" => AuxEffect::DrainHP(table.get(2)?),
-            "recover_hp" => AuxEffect::RecoverHP(table.get(2)?),
+            "increase_card_damage" => AuxEffect::IncreaseCardDamage(table.get(2)?),
+            "increase_card_multiplier" => AuxEffect::IncreaseCardMultiplier(table.get(2)?),
             "intercept_action" => {
                 let callback = BattleCallback::new_transformed_lua_callback(
                     lua,
@@ -282,12 +323,21 @@ impl AuxEffect {
                 )?;
                 AuxEffect::InterceptAction(callback)
             }
+            "interrupt_action" => {
+                let callback = BattleCallback::new_transformed_lua_callback(
+                    lua,
+                    lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?,
+                    table.get(2)?,
+                    |_, lua, index| lua.pack_multi(create_action_table(lua, index)?),
+                )?;
+                AuxEffect::InterruptAction(callback)
+            }
+            "drain_health" => AuxEffect::DrainHP(table.get(2)?),
+            "recover_health" => AuxEffect::RecoverHP(table.get(2)?),
             _ => {
-                return Err(rollback_mlua::Error::FromLuaConversionError {
-                    from: lua_value.type_name(),
-                    to: "AuxEffect",
-                    message: None,
-                });
+                return Err(rollback_mlua::Error::RuntimeError(String::from(
+                    "invalid or missing AuxProp effect",
+                )));
             }
         };
 
@@ -439,6 +489,10 @@ impl AuxProp {
                 AuxRequirement::Emotion(emot) => {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
                 }
+                AuxRequirement::NegativeTileInteraction => !entity.ignore_negative_tile_effects,
+                AuxRequirement::ChargedCard => player.is_some_and(|player| {
+                    player.card_charge.fully_charged() || player.card_charged
+                }),
                 AuxRequirement::CardElement(elem) => card
                     .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
                 AuxRequirement::CardNotElement(elem) => card
@@ -468,9 +522,7 @@ impl AuxProp {
         }
     }
 
-    pub fn process_action(&mut self, action: Option<&Action>) {
-        let card = action.map(|action| &action.properties);
-
+    pub fn process_card(&mut self, card: Option<&CardProperties>) {
         for (requirement, state) in &mut self.requirements {
             let result = match requirement {
                 AuxRequirement::CardElement(elem) => card
@@ -502,14 +554,14 @@ impl AuxProp {
         }
     }
 
-    pub fn process_time(&mut self, time: FrameTime) {
+    pub fn process_time(&mut self, time_frozen: bool, time: FrameTime) {
         for (requirement, state) in &mut self.requirements {
             let AuxRequirement::Interval(n) = requirement else {
                 continue;
             };
 
             state.tested = true;
-            state.passed = time % *n == 0;
+            state.passed = !time_frozen && time % *n == 0;
         }
     }
 

@@ -56,10 +56,15 @@ impl<T: Package> PackageManager<T> {
                     PackageNamespace::Server,
                     ns,
                     PackageNamespace::Local,
+                    PackageNamespace::BuiltIn,
                 ]
             }
-            PackageNamespace::Local | PackageNamespace::Server => {
-                vec![PackageNamespace::Server, PackageNamespace::Local]
+            PackageNamespace::Local | PackageNamespace::Server | PackageNamespace::BuiltIn => {
+                vec![
+                    PackageNamespace::Server,
+                    PackageNamespace::Local,
+                    PackageNamespace::BuiltIn,
+                ]
             }
             PackageNamespace::RecordingServer => vec![PackageNamespace::RecordingServer],
         };
@@ -108,6 +113,7 @@ impl<T: Package> PackageManager<T> {
     pub fn load_packages_in_folder<F>(
         &mut self,
         assets: &LocalAssetManager,
+        namespace: PackageNamespace,
         path: &str,
         mut callback: F,
     ) where
@@ -126,7 +132,7 @@ impl<T: Package> PackageManager<T> {
         let total = paths.len();
 
         for (i, base_path) in paths.into_iter().enumerate() {
-            self.load_package(assets, PackageNamespace::Local, &base_path);
+            self.load_package(assets, namespace, &base_path);
             callback(i, total);
         }
     }

@@ -18,8 +18,16 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
     inject_step_api(lua_api);
     inject_attachment_api(lua_api);
 
-    lua_api.add_dynamic_function(CARD_PROPERTIES_TABLE, "new", move |_, lua, _| {
-        lua.pack_multi(CardProperties::default())
+    lua_api.add_dynamic_function(CARD_PROPERTIES_TABLE, "new", move |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+
+        let vms = api_ctx.resources.vm_manager.vms();
+        let namespace = vms[api_ctx.vm_index].preferred_namespace();
+
+        lua.pack_multi(CardProperties {
+            namespace: Some(namespace),
+            ..Default::default()
+        })
     });
 
     lua_api.add_dynamic_function(
@@ -28,7 +36,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let (package_id, code): (PackageId, Option<String>) = lua.unpack_multi(params)?;
 
-            let api_ctx = &mut *api_ctx.borrow_mut();
+            let api_ctx = api_ctx.borrow();
 
             let vms = api_ctx.resources.vm_manager.vms();
             let namespace = vms[api_ctx.vm_index].preferred_namespace();
@@ -36,15 +44,18 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
 
-            if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
-                let status_registry = &api_ctx.resources.status_registry;
-                lua.pack_multi(package.card_properties.to_bindable(status_registry))
-            } else {
-                lua.pack_multi(CardProperties {
-                    code: code.unwrap_or_default(),
-                    ..CardProperties::default()
-                })
-            }
+            let mut card_properties =
+                if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
+                    let status_registry = &api_ctx.resources.status_registry;
+                    package.card_properties.to_bindable(status_registry)
+                } else {
+                    CardProperties::default()
+                };
+
+            card_properties.code = code.unwrap_or_default();
+            card_properties.namespace = Some(namespace);
+
+            lua.pack_multi(card_properties)
         },
     );
 
@@ -80,18 +91,11 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let mut sprite_node = SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add);
-        sprite_node.set_visible(false);
-
-        let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
-
-        let action = Action::new(entity_id, state.unwrap_or_default(), sprite_index);
-        let action_index = api_ctx.simulation.actions.insert(action);
+        let game_io = api_ctx.game_io;
+        let simulation = &mut api_ctx.simulation;
+        let action_index =
+            Action::create(game_io, simulation, state.unwrap_or_default(), entity_id)
+                .ok_or_else(entity_not_found)?;
 
         let table = create_action_table(lua, action_index)?;
 
@@ -170,7 +174,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             return Err(action_not_found());
         }
 
-        simulation.delete_actions(api_ctx.game_io, api_ctx.resources, [id]);
+        Action::delete_multi(api_ctx.game_io, api_ctx.resources, simulation, [id]);
 
         lua.pack_multi(())
     });

@@ -37,18 +37,17 @@ pub struct Entity {
     pub offset: Vec2,      // does not flip with teams, only perspective
     pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
-    pub time_frozen_count: usize,
+    pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
     pub movement: Option<Movement>,
-    pub move_anim_state: Option<String>,
-    pub last_movement_time: FrameTime, // stores the simulation.battle_time for the last movement update, excluding endlag
     pub action_queue: VecDeque<GenerationalIndex>,
     pub action_index: Option<GenerationalIndex>,
     pub local_components: Vec<GenerationalIndex>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub spawn_callback: BattleCallback,
     pub update_callback: BattleCallback,
+    pub idle_callback: BattleCallback,
     pub counter_callback: BattleCallback<EntityId>,
     pub battle_start_callback: BattleCallback,
     pub battle_end_callback: BattleCallback,
@@ -92,24 +91,23 @@ impl Entity {
                 aggressor: id,
                 flags: HitFlag::NONE,
             },
-            time_frozen_count: 0,
+            time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
             movement: None,
-            move_anim_state: None,
-            last_movement_time: 0,
             action_queue: VecDeque::new(),
             action_index: None,
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
             update_callback: BattleCallback::stub(()),
+            idle_callback: BattleCallback::stub(()),
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
             battle_end_callback: BattleCallback::stub(()), // todo:
             counter_callback: BattleCallback::stub(()),
             delete_callback: BattleCallback::new(move |game_io, resources, simulation, _| {
                 // default behavior, just erase
-                simulation.mark_entity_for_erasure(game_io, resources, id);
+                Entity::mark_erased(game_io, resources, simulation, id);
             }),
             delete_callbacks: Vec::new(),
         }
@@ -204,5 +202,74 @@ impl Entity {
         let offset = self.corrected_offset(perspective_flipped);
         let tile_center = field.calc_tile_center((self.x, self.y), perspective_flipped);
         tile_center + offset
+    }
+
+    pub fn delete(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        id: EntityId,
+    ) {
+        let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(id.into()) else {
+            return;
+        };
+
+        if entity.deleted {
+            return;
+        }
+
+        let card_indices: Vec<_> = (simulation.actions)
+            .iter()
+            .filter(|(_, action)| action.entity == id && action.processed)
+            .map(|(index, _)| index)
+            .collect();
+
+        entity.deleted = true;
+
+        let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
+        let delete_callback = entity.delete_callback.clone();
+
+        // delete player augments
+        if let Ok(player) = simulation.entities.query_one_mut::<&mut Player>(id.into()) {
+            let augment_iter = player.augments.values();
+            let augment_callbacks =
+                augment_iter.flat_map(|augment| augment.delete_callback.clone());
+
+            simulation.pending_callbacks.extend(augment_callbacks);
+            simulation.call_pending_callbacks(game_io, resources);
+        }
+
+        // delete card actions
+        Action::delete_multi(game_io, resources, simulation, card_indices);
+
+        // call delete callbacks after
+        simulation.pending_callbacks.extend(listener_callbacks);
+        simulation.pending_callbacks.push(delete_callback);
+
+        simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    pub fn mark_erased(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        id: EntityId,
+    ) {
+        let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(id.into()) else {
+            return;
+        };
+
+        if entity.erased {
+            return;
+        }
+
+        // clear the delete callback
+        entity.delete_callback = BattleCallback::default();
+
+        // mark as erased
+        entity.erased = true;
+
+        // delete
+        Entity::delete(game_io, resources, simulation, id);
     }
 }

@@ -1,17 +1,16 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    action_aready_used, action_entity_mismatch, action_not_found, aux_prop_already_bound,
+    action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
     entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
 };
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
 use super::sync_node_api::create_sync_node_table;
-use super::tile_api::create_tile_table;
+use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::*;
 use crate::battle::*;
 use crate::bindable::*;
-use crate::lua_api::errors::unexpected_nil;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
@@ -571,8 +570,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .get_mut(action_index)
             .ok_or_else(action_not_found)?;
 
-        if action.used {
-            return Err(action_aready_used());
+        if action.processed {
+            return Err(action_aready_processed());
         }
 
         if action.entity != id {
@@ -687,7 +686,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.mark_entity_for_erasure(api_ctx.game_io, api_ctx.resources, id);
+        Entity::mark_erased(api_ctx.game_io, api_ctx.resources, simulation, id);
 
         lua.pack_multi(())
     });
@@ -699,7 +698,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+        Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
         lua.pack_multi(())
     });
@@ -714,12 +713,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
-            let is_living = simulation
-                .entities
-                .query_one_mut::<&Living>(id.into())
-                .is_ok();
+            let entities = &mut simulation.entities;
+            let is_living = entities.satisfies::<&Living>(id.into()).is_ok();
 
             if is_living {
                 crate::battle::delete_player_animation(api_ctx.game_io, simulation, id);
@@ -740,7 +737,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
-            simulation.delete_entity(api_ctx.game_io, api_ctx.resources, id);
+            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
             if simulation.entities.contains(id.into()) {
                 crate::battle::delete_character_animation(simulation, id, explosion_count);
@@ -779,6 +776,27 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_idle", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+
+        let entities = &mut simulation.entities;
+        let entity = entities
+            .query_one_mut::<&mut Entity>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let idle_callback = entity.idle_callback.clone();
+        idle_callback.call(game_io, resources, simulation, ());
+
+        lua.pack_multi(())
+    });
+
     callback_setter(
         lua_api,
         SPAWN_FN,
@@ -790,6 +808,13 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         UPDATE_FN,
         |entity: &mut Entity| &mut entity.update_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
+    callback_setter(
+        lua_api,
+        IDLE_FN,
+        |entity: &mut Entity| &mut entity.idle_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 
@@ -971,14 +996,6 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     //         return lua.pack_multi(false);
     //     }
 
-    //     if let Ok((entity, _)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into()) {
-    //         let animator = &api_ctx.simulation.animators[entity.animator_index];
-
-    //         if animator.current_state() != Some(Player::IDLE_STATE) {
-    //             return lua.pack_multi(false);
-    //         }
-    //     }
-
     //     lua.pack_multi(api_ctx.simulation.is_entity_actionable(entity_id))
     // });
 
@@ -996,7 +1013,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
             rollback_mlua::MultiValue,
         ) = lua.unpack_multi(params)?;
 
-        let middle_param = rest.pop_front().ok_or_else(|| unexpected_nil("Element"))?;
+        let middle_param = rest.pop_front().unwrap_or(rollback_mlua::Value::Nil);
 
         let secondary_element: Element;
         let context: Option<HitContext>;
@@ -1105,6 +1122,15 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         living.set_health(health);
         Ok(())
     });
+
+    setter(
+        lua_api,
+        "hit",
+        |living: &mut Living, _, hit_props: HitProperties| {
+            living.pending_hits.push(hit_props);
+            Ok(())
+        },
+    );
 
     getter(lua_api, "hitbox_enabled", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.hitbox_enabled)
@@ -1375,12 +1401,45 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(
+    getter(
         lua_api,
         "slide_when_moving",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.slide_when_moving),
+    );
+
+    setter(
+        lua_api,
+        "set_slide_when_moving",
         |player: &mut Player, _, slide: Option<bool>| {
             player.slide_when_moving = slide.unwrap_or(true);
             Ok(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "queue_default_player_movement",
+        |api_ctx, lua, params| {
+            let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
+                lua.unpack_multi(params)?;
+
+            let Some(tile_table) = tile_table else {
+                return lua.pack_multi(());
+            };
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let Ok(tile) = tile_mut_from_table(&mut simulation.field, tile_table) else {
+                return lua.pack_multi(());
+            };
+
+            let tile_position = tile.position();
+            Player::queue_default_movement(simulation, id, tile_position);
+
+            lua.pack_multi(())
         },
     );
 
@@ -1675,6 +1734,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |player: &mut Player| &mut player.charged_card_callback,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
+
+    callback_setter(
+        lua_api,
+        MOVEMENT_FN,
+        |player: &mut Player| &mut player.movement_callback,
+        |lua, table, direction| lua.pack_multi((table, direction)),
+    );
 }
 
 fn delete_getter<F>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
@@ -1966,7 +2032,7 @@ fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        if entities.query_one_mut::<Q>(id.into()).is_ok() {
+        if entities.satisfies::<Q>(id.into()).unwrap_or_default() {
             lua.pack_multi(table)
         } else {
             lua.pack_multi(())

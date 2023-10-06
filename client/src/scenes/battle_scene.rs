@@ -52,6 +52,7 @@ pub struct BattleScene {
     receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
+    draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
     exiting: bool,
@@ -63,8 +64,7 @@ impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
         let mut is_playing_back_recording = false;
 
-        if let Some(recording) = props.recording_data(game_io) {
-            recording.load_packages(game_io);
+        if let Some(recording) = props.try_load_recording(game_io) {
             props = BattleProps::from_recording(game_io, &recording);
             is_playing_back_recording = true;
         } else {
@@ -72,6 +72,12 @@ impl BattleScene {
             // recording namespaces have precedence over other namespaces
             let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.remove_namespace(PackageNamespace::RecordingServer);
+
+            // prevent unused netplay packages from overriding local packages
+            if let Some(local_setup) = props.player_setups.iter().find(|s| s.local) {
+                globals.remove_namespace(local_setup.namespace());
+            }
+
             globals.assets.remove_unused_virtual_zips();
         }
 
@@ -87,7 +93,10 @@ impl BattleScene {
 
         // resolve dependencies for loading vms
         let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(game_io, &props);
+        let mut dependencies = globals.battle_dependencies(game_io, &props);
+
+        // sort by namespace, ensuring proper load order
+        dependencies.sort_by_key(|(_, ns)| *ns);
 
         // create initial simulation
         let mut simulation = BattleSimulation::new(game_io, &props);
@@ -97,6 +106,9 @@ impl BattleScene {
 
         // create shared resources
         let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
+
+        // register tile states
+        TileState::complete_registry(game_io, &mut simulation, &resources, &dependencies);
 
         // load battle package
         if let Some(encounter_package) = props.encounter_package(game_io) {
@@ -165,6 +177,7 @@ impl BattleScene {
             receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
+            draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
             exiting: false,
@@ -510,7 +523,9 @@ impl BattleScene {
 
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
-                let buffer_item = controller.buffer.pop_next().unwrap();
+                let Some(buffer_item) = controller.buffer.pop_next() else {
+                    continue;
+                };
 
                 // record input
                 if let Some(recording) = &mut self.recording {
@@ -663,7 +678,7 @@ impl BattleScene {
         }
     }
 
-    fn detect_debug_hotkeys(&self, game_io: &mut GameIO) {
+    fn detect_debug_hotkeys(&mut self, game_io: &mut GameIO) {
         if !game_io.input().is_key_down(Key::F3) {
             return;
         }
@@ -680,6 +695,10 @@ impl BattleScene {
             } else {
                 log::error!("Recording is disabled");
             }
+        }
+
+        if game_io.input().was_key_just_pressed(Key::I) {
+            self.draw_player_indices = !self.draw_player_indices;
         }
     }
 
@@ -729,8 +748,14 @@ impl BattleScene {
         } else {
             // normal update
             let can_simulate = if self.is_playing_back_recording {
+                let controller_iter = self.player_controllers.iter();
+                let total_frames = controller_iter
+                    .map(|controller| controller.buffer.len() as FrameTime)
+                    .max()
+                    .unwrap_or_default();
+
                 // simulate as long as we have input
-                self.simulation.time < self.player_controllers[0].buffer.len() as FrameTime
+                self.simulation.time < total_frames
             } else {
                 // simulate as long as we can roll back to the synced time
                 self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
@@ -806,15 +831,20 @@ impl Scene for BattleScene {
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw simulation
-        self.simulation.draw(game_io, render_pass);
+        self.simulation
+            .draw(game_io, render_pass, self.draw_player_indices);
 
         // draw ui
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.ui_camera, SpriteColorMode::Multiply);
 
         self.simulation.draw_ui(game_io, &mut sprite_queue);
-        self.state
-            .draw_ui(game_io, &mut self.simulation, &mut sprite_queue);
+        self.state.draw_ui(
+            game_io,
+            &self.resources,
+            &mut self.simulation,
+            &mut sprite_queue,
+        );
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);

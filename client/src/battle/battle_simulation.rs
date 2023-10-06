@@ -68,7 +68,7 @@ impl BattleSimulation {
             fade_sprite,
             turn_gauge: TurnGauge::new(game_io),
             field: Field::new(game_io, 8, 5),
-            tile_states: TileState::create_registry(),
+            tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
@@ -312,7 +312,7 @@ impl BattleSimulation {
         let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
 
         for (id, entity) in self.entities.query::<&Entity>().into_iter() {
-            if entity.time_frozen_count > 0 {
+            if entity.time_frozen {
                 continue;
             }
 
@@ -337,7 +337,7 @@ impl BattleSimulation {
                 continue;
             };
 
-            if entity.time_frozen_count > 0 || (time_is_frozen && !action.properties.time_freeze) {
+            if entity.time_frozen || (time_is_frozen && !action.properties.time_freeze) {
                 continue;
             }
 
@@ -413,6 +413,10 @@ impl BattleSimulation {
                 self.pending_callbacks
                     .push(entity.battle_start_callback.clone())
             }
+
+            let tile_state = &self.tile_states[tile.state_index()];
+            let tile_callback = tile_state.entity_enter_callback.clone();
+            self.pending_callbacks.push(tile_callback.bind(entity.id));
         }
     }
 
@@ -551,7 +555,7 @@ impl BattleSimulation {
                 return false;
             };
 
-            if entity.time_frozen_count > 0 {
+            if entity.time_frozen {
                 return false;
             }
         }
@@ -562,135 +566,6 @@ impl BattleSimulation {
         };
 
         true
-    }
-
-    pub fn delete_actions(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        delete_indices: impl IntoIterator<Item = GenerationalIndex>,
-    ) {
-        for index in delete_indices {
-            let Some(action) = self.actions.get_mut(index) else {
-                continue;
-            };
-
-            if action.deleted {
-                // avoid callbacks calling delete_actions on this card action
-                continue;
-            }
-
-            action.deleted = true;
-
-            // remove the index from the entity
-            let entity = self
-                .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
-                .unwrap();
-
-            if entity.action_index == Some(index) {
-                action.complete_sync(
-                    &mut self.entities,
-                    &mut self.animators,
-                    &mut self.pending_callbacks,
-                    &mut self.field,
-                );
-            }
-
-            // end callback
-            if let Some(callback) = action.end_callback.clone() {
-                callback.call(game_io, resources, self, ());
-            }
-
-            let action = self.actions.get(index).unwrap();
-
-            // remove attachments from the entity
-            let entity = self
-                .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
-                .unwrap();
-
-            entity.sprite_tree.remove(action.sprite_index);
-
-            for attachment in &action.attachments {
-                self.animators.remove(attachment.animator_index);
-            }
-
-            // finally remove the card action
-            self.actions.remove(index);
-        }
-
-        self.call_pending_callbacks(game_io, resources);
-    }
-
-    pub fn mark_entity_for_erasure(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        id: EntityId,
-    ) {
-        let Ok(entity) = self.entities.query_one_mut::<&mut Entity>(id.into()) else {
-            return;
-        };
-
-        if entity.erased {
-            return;
-        }
-
-        // clear the delete callback
-        entity.delete_callback = BattleCallback::default();
-
-        // mark as erased
-        entity.erased = true;
-
-        // delete
-        self.delete_entity(game_io, resources, id);
-    }
-
-    pub fn delete_entity(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        id: EntityId,
-    ) {
-        let entity = match self.entities.query_one_mut::<&mut Entity>(id.into()) {
-            Ok(entity) => entity,
-            _ => return,
-        };
-
-        if entity.deleted {
-            return;
-        }
-
-        let card_indices: Vec<_> = (self.actions)
-            .iter()
-            .filter(|(_, action)| action.entity == id && action.used)
-            .map(|(index, _)| index)
-            .collect();
-
-        entity.deleted = true;
-
-        let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
-        let delete_callback = entity.delete_callback.clone();
-
-        // delete player augments
-        if let Ok(player) = self.entities.query_one_mut::<&mut Player>(id.into()) {
-            let augment_iter = player.augments.values();
-            let augment_callbacks =
-                augment_iter.flat_map(|augment| augment.delete_callback.clone());
-
-            self.pending_callbacks.extend(augment_callbacks);
-            self.call_pending_callbacks(game_io, resources);
-        }
-
-        // delete card actions
-        self.delete_actions(game_io, resources, card_indices);
-
-        // call delete callbacks after
-        self.pending_callbacks.extend(listener_callbacks);
-        self.pending_callbacks.push(delete_callback);
-
-        self.call_pending_callbacks(game_io, resources);
     }
 
     pub fn request_entity_spawn(&mut self, id: EntityId, (x, y): (i32, i32)) {
@@ -741,7 +616,12 @@ impl BattleSimulation {
         Ok(())
     }
 
-    pub fn draw(&mut self, game_io: &GameIO, render_pass: &mut RenderPass) {
+    pub fn draw(
+        &mut self,
+        game_io: &GameIO,
+        render_pass: &mut RenderPass,
+        draw_player_indices: bool,
+    ) {
         let mut blind_filter = None;
 
         // resolve perspective
@@ -770,7 +650,7 @@ impl BattleSimulation {
         self.field.draw(
             game_io,
             &mut sprite_queue,
-            &self.tile_states,
+            &mut self.tile_states,
             perspective_flipped,
         );
 
@@ -812,8 +692,17 @@ impl BattleSimulation {
 
             // elevation
             offset.y -= entity.elevation;
+
+            // shadow offset
+            let mut shadow_y = entity.elevation;
+
+            if let Some(movement) = &entity.movement {
+                let progress = movement.animation_progress_percent();
+                shadow_y += movement.interpolate_jump_height(progress);
+            }
+
             let shadow_node = &mut entity.sprite_tree[entity.shadow_index];
-            shadow_node.set_offset(Vec2::new(shadow_node.offset().x, entity.elevation));
+            shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
 
             let tile_center =
                 (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
@@ -862,6 +751,35 @@ impl BattleSimulation {
                 hp_text.style.bounds.x -= text_size.x * 0.5;
                 hp_text.style.bounds.y += tile_size.y * 0.5 - text_size.y;
                 hp_text.draw(game_io, &mut sprite_queue);
+            }
+        }
+
+        // draw player indices
+        if draw_player_indices {
+            let mut index_text = Text::new(game_io, FontStyle::Wide);
+            index_text.style.color = Color::GREEN;
+            index_text.style.shadow_color = Color::BLACK;
+
+            for (_, (entity, player)) in self.entities.query_mut::<(&Entity, &Player)>() {
+                if !entity.on_field || !entity.sprite_tree.root().visible() {
+                    continue;
+                }
+
+                if blind_filter.is_some() && blind_filter != Some(entity.team) {
+                    // blindness filter
+                    continue;
+                }
+
+                let entity_screen_position =
+                    entity.screen_position(&self.field, perspective_flipped);
+
+                index_text.text = player.index.to_string();
+                let text_size = index_text.measure().size;
+
+                (index_text.style.bounds).set_position(entity_screen_position);
+                index_text.style.bounds.x -= text_size.x * 0.5;
+                index_text.style.bounds.y -= text_size.y;
+                index_text.draw(game_io, &mut sprite_queue);
             }
         }
 
@@ -937,10 +855,12 @@ impl BattleSimulation {
             .filter(|action| action.executed && !action.is_async())
             .count();
 
+        let time_is_frozen = self.time_freeze_tracker.time_is_frozen();
+
         // if there's more executed actions than held actions, we forgot to delete one
         // we can have more actions than held actions still since
         // scripters don't need to attach card actions to entities
-        // we also can ignore async actions
-        assert!(held_action_count >= executed_action_count);
+        // we also can ignore async actions and time freeze
+        assert!(held_action_count >= executed_action_count || time_is_frozen);
     }
 }

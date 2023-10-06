@@ -12,10 +12,11 @@ pub enum PackageCategory {
     Player,
     Resource,
     Status,
+    TileState,
 }
 
 impl PackageCategory {
-    pub fn path(&self) -> &'static str {
+    pub fn mod_path(&self) -> &'static str {
         match self {
             PackageCategory::Augment => "mods/augments/",
             PackageCategory::Character | PackageCategory::Encounter => "mods/encounters/",
@@ -24,6 +25,20 @@ impl PackageCategory {
             PackageCategory::Player => "mods/players/",
             PackageCategory::Resource => "mods/resources/",
             PackageCategory::Status => "mods/statuses/",
+            PackageCategory::TileState => "mods/tile_states/",
+        }
+    }
+
+    pub fn built_in_path(&self) -> &'static str {
+        match self {
+            PackageCategory::Augment => "resources/packages/augments/",
+            PackageCategory::Character | PackageCategory::Encounter => "mods/encounters/",
+            PackageCategory::Card => "resources/packages/cards/",
+            PackageCategory::Library => "resources/packages/libraries/",
+            PackageCategory::Player => "resources/packages/players/",
+            PackageCategory::Resource => "resources/packages/resources/",
+            PackageCategory::Status => "resources/packages/statuses/",
+            PackageCategory::TileState => "resources/packages/tile_states/",
         }
     }
 

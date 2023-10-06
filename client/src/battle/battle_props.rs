@@ -46,7 +46,7 @@ impl PlayerSetup {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        PackageNamespace::Netplay(self.index)
+        PackageNamespace::Netplay(self.index as u8)
     }
 
     pub fn drives_augment_iter<'a, 'b: 'a>(
@@ -187,13 +187,18 @@ impl BattleProps {
         }
     }
 
-    pub fn recording_data(&self, game_io: &GameIO) -> Option<BattleRecording> {
+    pub fn try_load_recording(&self, game_io: &mut GameIO) -> Option<BattleRecording> {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        BattleRecording::load(
-            assets,
-            self.encounter_package(game_io)?.recording_path.as_ref()?,
-        )
+        // load recording
+        let encounter_package = self.encounter_package(game_io)?;
+        let recording = BattleRecording::load(assets, encounter_package.recording_path.as_ref()?)?;
+
+        // load packages
+        let ignored_package_ids = encounter_package.recording_overrides.clone();
+        recording.load_packages(game_io, ignored_package_ids);
+
+        Some(recording)
     }
 }

@@ -156,6 +156,7 @@ impl State for CardSelectState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
+        _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -837,6 +838,7 @@ impl CardSelectState {
                     .unwrap_or_default();
 
                 card_properties.code = card.code.clone();
+                card_properties.namespace = Some(namespace);
                 character.cards.push(card_properties);
             }
 

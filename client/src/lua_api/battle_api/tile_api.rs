@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
 use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Living, Obstacle, Player, Spell, Tile,
+    AttackBox, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -54,7 +54,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.state_index())
     });
 
@@ -73,8 +73,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let max_lifetime = tile_state.max_lifetime;
 
         let field = &mut simulation.field;
-        let tile_position = tile_position_from(table)?;
-        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+        let (x, y) = tile_position_from(table)?;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
 
         if tile_state.is_hole && !tile.reservations().is_empty() {
             // tile must be walkable for entities that are on or are moving to this tile
@@ -84,16 +84,30 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
         let change_request_callback = current_tile_state.change_request_callback.clone();
         let change_passed =
-            change_request_callback.call(game_io, resources, simulation, state_index);
+            change_request_callback.call(game_io, resources, simulation, (x, y, state_index));
 
         if !change_passed {
             return lua.pack_multi(());
         }
 
         let field = &mut simulation.field;
-        let tile = field.tile_at_mut(tile_position).ok_or_else(invalid_tile)?;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
 
         tile.set_state_index(state_index, max_lifetime);
+
+        // activate entity_enter_callback for every entity on this tile
+        let tile_state = &simulation.tile_states[state_index];
+        let tile_callback = tile_state.entity_enter_callback.clone();
+
+        let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
+        let same_tile_entity_iter =
+            entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y);
+
+        let entity_ids: Vec<EntityId> = same_tile_entity_iter.map(|(id, _)| id.into()).collect();
+
+        for id in entity_ids {
+            tile_callback.call(game_io, resources, simulation, id);
+        }
 
         lua.pack_multi(())
     });
@@ -113,7 +127,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         let tile_state = &api_ctx.simulation.tile_states[tile.state_index()];
         lua.pack_multi(!tile_state.is_hole)
     });
@@ -123,7 +137,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
 
         let excluded_count = tile
             .reservations()
@@ -138,7 +152,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.reserve_for(id);
 
         lua.pack_multi(())
@@ -151,7 +165,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.reserve_for(entity_id);
 
         lua.pack_multi(())
@@ -164,7 +178,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
             tile.remove_reservation_for(id);
 
             lua.pack_multi(())
@@ -181,7 +195,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             let entity_id: EntityId = entity_table.raw_get("#id")?;
 
             let mut api_ctx = api_ctx.borrow_mut();
-            let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+            let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
             tile.remove_reservation_for(entity_id);
 
             lua.pack_multi(())
@@ -192,7 +206,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.team())
     });
 
@@ -202,7 +216,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        let tile = tile_from(&mut simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut simulation.field, table)?;
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
 
         if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
@@ -216,7 +230,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         lua.pack_multi(tile.direction())
     });
 
@@ -224,17 +238,17 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let (table, direction): (rollback_mlua::Table, Direction) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.set_direction(direction);
 
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(TILE_TABLE, "highlight", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(TILE_TABLE, "set_highlight", |api_ctx, lua, params| {
         let (table, highlight): (rollback_mlua::Table, TileHighlight) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_from(&mut api_ctx.simulation.field, table)?;
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
         tile.set_highlight(highlight);
 
         lua.pack_multi(())
@@ -313,7 +327,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let y: i32 = table.raw_get("#y")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
@@ -325,11 +340,18 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let actions = &api_ctx.simulation.actions;
+        let actions = &simulation.actions;
 
-        let field = &mut api_ctx.simulation.field;
+        let field = &mut simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
         current_tile.handle_auto_reservation_removal(actions, entity);
+
+        let old_x = entity.x;
+        let old_y = entity.y;
+        let old_state = current_tile.state_index();
+        let leave_callback = simulation.tile_states[old_state]
+            .entity_leave_callback
+            .clone();
 
         entity.on_field = true;
         entity.x = x;
@@ -337,6 +359,16 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let tile = field.tile_at_mut((x, y)).unwrap();
         tile.handle_auto_reservation_addition(actions, entity);
+
+        let new_state = tile.state_index();
+        let enter_callback = simulation.tile_states[new_state]
+            .entity_enter_callback
+            .clone();
+
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        leave_callback.call(game_io, resources, simulation, (entity_id, old_x, old_y));
+        enter_callback.call(game_io, resources, simulation, entity_id);
 
         lua.pack_multi(())
     });
@@ -361,10 +393,10 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    generate_find_hittable_fn::<()>(lua_api, "find_entities");
-    generate_find_hittable_fn::<&Character>(lua_api, "find_characters");
-    generate_find_hittable_fn::<&Obstacle>(lua_api, "find_obstacles");
-    generate_find_hittable_fn::<&Player>(lua_api, "find_players");
+    generate_find_entity_fn::<()>(lua_api, "find_entities");
+    generate_find_entity_fn::<&Character>(lua_api, "find_characters");
+    generate_find_entity_fn::<&Obstacle>(lua_api, "find_obstacles");
+    generate_find_entity_fn::<&Player>(lua_api, "find_players");
     generate_find_entity_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, "find_spells");
 }
 
@@ -427,50 +459,6 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
     });
 }
 
-fn generate_find_hittable_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
-    lua_api.add_dynamic_function(TILE_TABLE, name, |api_ctx, lua, params| {
-        let (tile_table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
-
-        let x: i32 = tile_table.get("#x")?;
-        let y: i32 = tile_table.get("#y")?;
-
-        let tables = {
-            // scope to prevent RefCell borrow escaping when control is passed back to lua
-            let mut api_ctx = api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-
-            let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
-
-            for (id, (entity, living)) in entities.query_mut::<hecs::With<(&Entity, &Living), Q>>()
-            {
-                if entity.x == x
-                    && entity.y == y
-                    && !entity.deleted
-                    && entity.on_field
-                    && living.hitbox_enabled
-                {
-                    tables.push(create_entity_table(lua, id.into())?);
-                }
-            }
-
-            tables
-        };
-
-        let filtered_tables: Vec<rollback_mlua::Table> = tables
-            .into_iter()
-            .filter(|table| {
-                callback.call::<_, bool>(table.clone()).unwrap_or_else(|e| {
-                    log::error!("{e}");
-                    false
-                })
-            })
-            .collect();
-
-        lua.pack_multi(filtered_tables)
-    });
-}
-
 fn inject_tile_cache(lua_api: &mut BattleLuaApi) {
     lua_api.add_static_injector(|lua| {
         lua.set_named_registry_value(TILE_CACHE_REGISTRY_KEY, lua.create_table()?)?;
@@ -503,7 +491,7 @@ pub fn create_tile_table(
     Ok(table)
 }
 
-fn tile_from<'a>(
+pub fn tile_mut_from_table<'a>(
     field: &'a mut Field,
     table: rollback_mlua::Table,
 ) -> rollback_mlua::Result<&'a mut Tile> {

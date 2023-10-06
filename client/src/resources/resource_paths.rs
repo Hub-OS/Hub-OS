@@ -198,10 +198,12 @@ impl ResourcePaths {
     // BattleScene
     pub const BATTLE_BG: &str = "resources/scenes/battle/bg.png";
     pub const BATTLE_BG_ANIMATION: &str = "resources/scenes/battle/bg.animation";
-    pub const BATTLE_RED_TILES: &str = "resources/scenes/battle/tile_atlas_red.png";
-    pub const BATTLE_BLUE_TILES: &str = "resources/scenes/battle/tile_atlas_blue.png";
-    pub const BATTLE_OTHER_TILES: &str = "resources/scenes/battle/tile_atlas_other.png";
-    pub const BATTLE_TILE_ANIMATION: &str = "resources/scenes/battle/tiles.animation";
+    pub const BATTLE_TILES: &str = "resources/scenes/battle/tiles.png";
+    pub const BATTLE_TILE_HOLE_ANIMATION: &str = "resources/scenes/battle/tile_hole.animation";
+    pub const BATTLE_TILE_NORMAL_ANIMATION: &str = "resources/scenes/battle/tile_normal.animation";
+    pub const BATTLE_TILE_CRACKED_ANIMATION: &str =
+        "resources/scenes/battle/tile_cracked.animation";
+    pub const BATTLE_TILE_BROKEN_ANIMATION: &str = "resources/scenes/battle/tile_broken.animation";
     pub const BATTLE_SHADOW_SMALL: &str = "resources/scenes/battle/shadow_small.png";
     pub const BATTLE_SHADOW_BIG: &str = "resources/scenes/battle/shadow_big.png";
     pub const BATTLE_CHARGE: &str = "resources/scenes/battle/charge.png";
@@ -217,8 +219,6 @@ impl ResourcePaths {
     pub const BATTLE_TURN_GAUGE_ANIMATION: &str = "resources/scenes/battle/turn_gauge.animation";
     pub const BATTLE_EXPLOSION: &str = "resources/scenes/battle/explosion.png";
     pub const BATTLE_EXPLOSION_ANIMATION: &str = "resources/scenes/battle/explosion.animation";
-    pub const BATTLE_SPLASH: &str = "resources/scenes/battle/splash.png";
-    pub const BATTLE_SPLASH_ANIMATION: &str = "resources/scenes/battle/splash.animation";
     pub const BATTLE_STATUSES: &str = "resources/scenes/battle/statuses.png";
     pub const BATTLE_STATUSES_ANIMATION: &str = "resources/scenes/battle/statuses.animation";
     pub const BATTLE_POOF: &str = "resources/scenes/battle/poof.png";

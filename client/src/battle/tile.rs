@@ -18,7 +18,6 @@ pub struct Tile {
     direction: Direction,
     highlight: TileHighlight,
     flash_time: FrameTime,
-    washed: bool, // an attack washed the state out
     ignored_attackers: Vec<EntityId>,
     active_attackers: Vec<EntityId>,
     reservations: Vec<EntityId>,
@@ -121,17 +120,6 @@ impl Tile {
 
     pub fn set_highlight(&mut self, highlight: TileHighlight) {
         self.highlight = self.highlight.max(highlight);
-    }
-
-    pub fn apply_wash(&mut self) {
-        if self.washed {
-            self.state_index = TileState::NORMAL;
-            self.washed = false;
-        }
-    }
-
-    pub fn set_washed(&mut self, washed: bool) {
-        self.washed = washed;
     }
 
     pub fn ignoring_attacker(&self, id: EntityId) -> bool {

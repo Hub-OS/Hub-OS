@@ -1,6 +1,6 @@
 use super::{CardClass, Element, HitFlag, HitFlags};
 use crate::battle::StatusRegistry;
-use crate::packages::PackageId;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::prelude::{Color, GameIO, Vec2};
@@ -9,6 +9,7 @@ use std::borrow::Cow;
 #[derive(Clone, PartialEq, Eq)]
 pub struct CardProperties<H = HitFlags> {
     pub package_id: PackageId,
+    pub namespace: Option<PackageNamespace>,
     pub code: String,
     pub short_name: Cow<'static, str>,
     pub damage: i32,
@@ -21,6 +22,8 @@ pub struct CardProperties<H = HitFlags> {
     pub can_boost: bool,
     pub time_freeze: bool,
     pub skip_time_freeze_intro: bool,
+    pub prevent_time_freeze_counter: bool,
+    pub conceal: bool,
     pub tags: Vec<String>,
 }
 
@@ -28,6 +31,7 @@ impl<H: Default> Default for CardProperties<H> {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
+            namespace: None,
             code: String::new(),
             short_name: Cow::Borrowed("?????"),
             damage: 0,
@@ -40,6 +44,8 @@ impl<H: Default> Default for CardProperties<H> {
             hit_flags: Default::default(),
             can_boost: true,
             skip_time_freeze_intro: false,
+            prevent_time_freeze_counter: false,
+            conceal: false,
             tags: Vec::new(),
         }
     }
@@ -51,11 +57,19 @@ impl CardProperties {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
+        scale: Vec2,
         center: bool,
-    ) {
+    ) -> TextStyle {
         let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
         text_style.monospace = true;
         text_style.bounds.set_position(position);
+
+        // if we're scaling vertically, we want to do so from the center
+        let original_line_height = text_style.line_height();
+        text_style.bounds.y += (original_line_height - original_line_height * scale.y) * 0.5;
+
+        // set the scale after we've adjusted the offset for vertical scaling
+        text_style.scale = scale;
 
         let name_text = &self.short_name;
         let damage_text = if self.damage == 0 {
@@ -77,12 +91,12 @@ impl CardProperties {
         // measure text
         let name_width = text_style.measure(name_text).size.x;
 
-        if center {
-            text_style.font_style = FontStyle::GradientOrange;
-            let damage_width = text_style.measure(&damage_text).size.x;
-            let text_width = name_width + text_style.letter_spacing + damage_width;
+        text_style.font_style = FontStyle::GradientOrange;
+        let damage_width = text_style.measure(&damage_text).size.x;
 
-            text_style.bounds.x -= text_width * 0.5;
+        if center {
+            let final_width = name_width + text_style.letter_spacing + damage_width;
+            text_style.bounds.x -= final_width * 0.5;
         }
 
         // draw name
@@ -95,6 +109,10 @@ impl CardProperties {
         text_style.font_style = FontStyle::GradientOrange;
         text_style.bounds.x += name_width + text_style.letter_spacing;
         text_style.draw(game_io, sprite_queue, &damage_text);
+
+        text_style.bounds.x += damage_width + text_style.letter_spacing;
+
+        text_style
     }
 }
 
@@ -102,6 +120,7 @@ impl CardProperties<Vec<String>> {
     pub fn to_bindable(&self, registry: &StatusRegistry) -> CardProperties<HitFlags> {
         CardProperties::<HitFlags> {
             package_id: self.package_id.clone(),
+            namespace: self.namespace,
             code: self.code.clone(),
             short_name: self.short_name.clone(),
             damage: self.damage,
@@ -118,6 +137,8 @@ impl CardProperties<Vec<String>> {
             can_boost: self.can_boost,
             time_freeze: self.time_freeze,
             skip_time_freeze_intro: self.skip_time_freeze_intro,
+            prevent_time_freeze_counter: self.prevent_time_freeze_counter,
+            conceal: self.conceal,
             tags: self.tags.clone(),
         }
     }
@@ -141,6 +162,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
 
         Ok(CardProperties {
             package_id: table.get("package_id").unwrap_or_default(),
+            namespace: table.get("namespace").unwrap_or_default(),
             code: table.get("code").unwrap_or_default(),
             short_name: table
                 .get::<_, String>("short_name")
@@ -156,6 +178,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             can_boost: table.get("can_boost").unwrap_or(true),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
+            prevent_time_freeze_counter: table
+                .get("prevent_time_freeze_counter")
+                .unwrap_or_default(),
+            conceal: table.get("conceal").unwrap_or_default(),
             tags: table.get("tags").unwrap_or_default(),
         })
     }
@@ -177,6 +203,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
         table.set("package_id", self.package_id.as_str())?;
+        table.set("namespace", self.namespace)?;
         table.set("code", self.code.as_str())?;
         table.set("short_name", self.short_name.as_ref())?;
         table.set("damage", self.damage)?;
@@ -187,15 +214,23 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("hit_flags", self.hit_flags)?;
 
         if self.can_boost {
-            table.set("can_boost", self.can_boost)?;
+            table.set("can_boost", true)?;
         }
 
         if self.time_freeze {
-            table.set("time_freeze", self.time_freeze)?;
+            table.set("time_freeze", true)?;
         }
 
         if self.skip_time_freeze_intro {
-            table.set("skip_time_freeze_intro", self.skip_time_freeze_intro)?;
+            table.set("skip_time_freeze_intro", true)?;
+        }
+
+        if self.prevent_time_freeze_counter {
+            table.set("prevent_time_freeze_counter", true)?;
+        }
+
+        if self.conceal {
+            table.set("conceal", true)?;
         }
 
         table.set(

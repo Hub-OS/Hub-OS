@@ -20,13 +20,12 @@ pub mod HitFlag {
     pub const PIERCE_GUARD: HitFlags = 1 << 9; // NOTE: this is what we refer to as "true breaking"
     pub const PIERCE_GROUND: HitFlags = 1 << 10;
 
-    pub const FREEZE: HitFlags = 1 << 11;
-    pub const PARALYZE: HitFlags = 1 << 12;
-    pub const ROOT: HitFlags = 1 << 13;
-    pub const BLIND: HitFlags = 1 << 14;
-    pub const CONFUSE: HitFlags = 1 << 15;
+    pub const PARALYZE: HitFlags = 1 << 11;
+    pub const ROOT: HitFlags = 1 << 12;
+    pub const BLIND: HitFlags = 1 << 13;
+    pub const CONFUSE: HitFlags = 1 << 14;
 
-    pub const BUILT_IN: [HitFlags; 15] = [
+    pub const BUILT_IN: [HitFlags; 14] = [
         RETAIN_INTANGIBLE,
         NO_COUNTER,
         DRAG,
@@ -37,7 +36,6 @@ pub mod HitFlag {
         PIERCE_INVIS,
         PIERCE_GUARD,
         PIERCE_GROUND,
-        FREEZE,
         PARALYZE,
         ROOT,
         BLIND,
@@ -56,7 +54,6 @@ pub mod HitFlag {
             "PierceInvis" => PIERCE_INVIS,
             "PierceGuard" => PIERCE_GUARD,
             "PierceGround" => PIERCE_GROUND,
-            "Freeze" => FREEZE,
             "Paralyze" => PARALYZE,
             "Root" => ROOT,
             "Blind" => BLIND,
@@ -65,21 +62,12 @@ pub mod HitFlag {
         }
     }
 
-    pub const BUILT_IN_STATUSES: [HitFlags; 5] = [FREEZE, PARALYZE, ROOT, BLIND, CONFUSE];
+    pub const BUILT_IN_STATUSES: [HitFlags; 4] = [PARALYZE, ROOT, BLIND, CONFUSE];
 
-    pub fn status_animation_state(flag: HitFlags, height: f32) -> &'static str {
+    pub fn status_animation_state(flag: HitFlags) -> &'static str {
         match flag {
             CONFUSE => "CONFUSE",
             BLIND => "BLIND",
-            FREEZE => {
-                if height <= 48.0 {
-                    "FREEZE_SMALL"
-                } else if height <= 75.0 {
-                    "FREEZE_MEDIUM"
-                } else {
-                    "FREEZE_LARGE"
-                }
-            }
             _ => "",
         }
     }
@@ -88,7 +76,6 @@ pub mod HitFlag {
         match flag {
             CONFUSE => Vec2::new(0.0, -height),
             BLIND => Vec2::new(0.0, -height),
-            FREEZE => Vec2::new(0.0, -height * 0.5),
             _ => Vec2::ZERO,
         }
     }

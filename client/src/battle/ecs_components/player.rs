@@ -15,7 +15,6 @@ pub struct Player {
     pub deck: Vec<Card>,
     pub has_regular_card: bool,
     pub can_flip: bool,
-    pub flip_requested: bool,
     pub attack_boost: u8,
     pub rapid_boost: u8,
     pub charge_boost: u8,
@@ -24,6 +23,8 @@ pub struct Player {
     pub card_charged: bool,
     pub card_charge: AttackCharge,
     pub buster_charge: AttackCharge,
+    pub flinch_animation_state: String,
+    pub movement_animation_state: String,
     pub slide_when_moving: bool,
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
@@ -35,6 +36,7 @@ pub struct Player {
     pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
     pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
+    pub movement_callback: BattleCallback<Direction>,
 }
 
 impl Player {
@@ -55,6 +57,7 @@ impl Player {
     fn new(
         game_io: &GameIO,
         setup: PlayerSetup,
+        entity_id: EntityId,
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
@@ -74,7 +77,6 @@ impl Player {
             deck: deck.cards,
             has_regular_card: deck.regular_index.is_some(),
             can_flip: true,
-            flip_requested: false,
             attack_boost: 0,
             rapid_boost: 0,
             charge_boost: 0,
@@ -92,6 +94,8 @@ impl Player {
                 ResourcePaths::BATTLE_CHARGE_ANIMATION,
             )
             .with_color(Color::MAGENTA),
+            flinch_animation_state: String::new(),
+            movement_animation_state: String::new(),
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
@@ -109,6 +113,29 @@ impl Player {
             special_attack_callback: None,
             charged_card_callback: None,
             can_charge_card_callback: None,
+            movement_callback: BattleCallback::new(
+                move |game_io, resources, simulation, direction: Direction| {
+                    let entities = &mut simulation.entities;
+                    let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                        return;
+                    };
+
+                    let mut dest = (entity.x, entity.y);
+                    let offset = direction.i32_vector();
+
+                    if offset.1 != 0 {
+                        dest.1 += offset.1;
+                    } else {
+                        dest.0 += offset.0;
+                    }
+
+                    let can_move_to_callback = entity.can_move_to_callback.clone();
+
+                    if can_move_to_callback.call(game_io, resources, simulation, dest) {
+                        Self::queue_default_movement(simulation, entity_id, dest);
+                    }
+                },
+            ),
         }
     }
 
@@ -131,6 +158,9 @@ impl Player {
             .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
             .unwrap();
 
+        // capture animator index for use later
+        let animator_index = entity.animator_index;
+
         // spawn immediately
         entity.pending_spawn = true;
 
@@ -142,23 +172,16 @@ impl Player {
         entity.name = player_package.name.clone();
         living.status_director.set_input_index(setup.index);
 
-        // derive states
-        let move_anim_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_MOVE",
-            Player::MOVE_FRAMES.to_vec(),
-            entity.animator_index,
-        );
+        // idle callback
+        entity.idle_callback = BattleCallback::new(move |_, _, simulation, _| {
+            let Some(animator) = simulation.animators.get_mut(animator_index) else {
+                return;
+            };
 
-        let flinch_anim_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_HIT",
-            Player::HIT_FRAMES.to_vec(),
-            entity.animator_index,
-        );
-
-        entity.move_anim_state = Some(move_anim_state);
-        living.flinch_anim_state = Some(flinch_anim_state);
+            let callbacks = animator.set_state(Player::IDLE_STATE);
+            animator.set_loop_mode(AnimatorLoopMode::Loop);
+            simulation.pending_callbacks.extend(callbacks);
+        });
 
         // delete callback
         entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
@@ -184,32 +207,11 @@ impl Player {
 
                 player.cancel_charge();
 
-                // play flinch animation
-                let animator = &mut simulation.animators[entity.animator_index];
-
-                let callbacks = animator.set_state(living.flinch_anim_state.as_ref().unwrap());
-                simulation.pending_callbacks.extend(callbacks);
-
-                // on complete will return to idle
-                animator.on_complete(BattleCallback::new(
-                    move |game_io, resources, simulation, _| {
-                        let entity = simulation
-                            .entities
-                            .query_one_mut::<&Entity>(id.into())
-                            .unwrap();
-
-                        let animator = &mut simulation.animators[entity.animator_index];
-
-                        let callbacks = animator.set_state(Player::IDLE_STATE);
-                        animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        simulation.pending_callbacks.extend(callbacks);
-
-                        simulation.call_pending_callbacks(game_io, resources);
-                    },
-                ));
+                let state = player.flinch_animation_state.clone();
+                let flinch_action_index = Action::create(game_io, simulation, state, id).unwrap();
+                Action::queue_action(simulation, id, flinch_action_index);
 
                 simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
-                simulation.call_pending_callbacks(game_io, resources);
             }),
         );
 
@@ -227,49 +229,66 @@ impl Player {
         let decross_aux_prop = AuxProp::new()
             .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
             .with_requirement(AuxRequirement::HitElementIsWeakness)
-            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
-                let (entity, living, player) = simulation
-                    .entities
-                    .query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
-                    .unwrap();
-
-                if living.health <= 0 || entity.deleted {
-                    // skip decross if we're already deleted
-                    return;
-                }
+            .with_callback(BattleCallback::new(move |_, _, simulation, _| {
+                let entities = &mut simulation.entities;
+                let player = entities.query_one_mut::<&Player>(id.into()).unwrap();
 
                 // deactivate form
-                let Some(index) = player.active_form.take() else {
+                let Some(form_index) = player.active_form else {
                     return;
                 };
 
-                simulation.time_freeze_tracker.start_decross();
+                simulation.time_freeze_tracker.queue_animation(
+                    30,
+                    BattleCallback::new(move |game_io, _, simulation, _| {
+                        let entities = &mut simulation.entities;
 
-                let form = &mut player.forms[index];
-                form.deactivated = true;
+                        let Ok((entity, living, player)) =
+                            entities.query_one_mut::<(&Entity, &Living, &mut Player)>(id.into())
+                        else {
+                            return;
+                        };
 
-                if let Some(callback) = form.deactivate_callback.clone() {
-                    simulation.pending_callbacks.push(callback);
-                }
+                        if living.health <= 0 || entity.deleted {
+                            // skip decross if we're already deleted
+                            return;
+                        }
 
-                // spawn shine fx
-                let mut shine_position = entity.full_position();
-                shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+                        if player.active_form != Some(form_index) {
+                            // this is a different form
+                            // must have switched in cust with some frame perfect shenanigans
+                            return;
+                        }
 
-                // play revert sfx
-                let sfx = &game_io.resource::<Globals>().unwrap().sfx;
-                simulation.play_sound(game_io, &sfx.transform_revert);
+                        player.active_form = None;
 
-                // actual shine creation as indicated above
-                let shine_id = Artifact::create_transformation_shine(game_io, simulation);
-                let shine_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(shine_id.into())
-                    .unwrap();
+                        let form = &mut player.forms[form_index];
+                        form.deactivated = true;
 
-                // shine position, set to spawn
-                shine_entity.copy_full_position(shine_position);
-                shine_entity.pending_spawn = true;
+                        if let Some(callback) = form.deactivate_callback.clone() {
+                            simulation.pending_callbacks.push(callback);
+                        }
+
+                        // spawn shine fx
+                        let mut shine_position = entity.full_position();
+                        shine_position.offset += Vec2::new(0.0, -entity.height * 0.5);
+
+                        // play revert sfx
+                        let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+                        simulation.play_sound(game_io, &sfx.transform_revert);
+
+                        // actual shine creation as indicated above
+                        let shine_id = Artifact::create_transformation_shine(game_io, simulation);
+                        let shine_entity = simulation
+                            .entities
+                            .query_one_mut::<&mut Entity>(shine_id.into())
+                            .unwrap();
+
+                        // shine position, set to spawn
+                        shine_entity.copy_full_position(shine_position);
+                        shine_entity.pending_spawn = true;
+                    }),
+                );
             }));
         living.add_aux_prop(decross_aux_prop);
 
@@ -302,18 +321,29 @@ impl Player {
             ResourcePaths::BATTLE_CHARGE,
         );
 
-        simulation
-            .entities
-            .insert_one(
-                id.into(),
-                Player::new(
-                    game_io,
-                    setup,
-                    card_charge_sprite_index,
-                    buster_charge_sprite_index,
-                ),
-            )
-            .unwrap();
+        let mut player = Player::new(
+            game_io,
+            setup,
+            id,
+            card_charge_sprite_index,
+            buster_charge_sprite_index,
+        );
+
+        player.movement_animation_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_MOVE",
+            Player::MOVE_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        player.flinch_animation_state = BattleAnimator::derive_state(
+            &mut simulation.animators,
+            "PLAYER_HIT",
+            Player::HIT_FRAMES.to_vec(),
+            entity.animator_index,
+        );
+
+        simulation.entities.insert_one(id.into(), player).unwrap();
 
         // init player
         if script_enabled {
@@ -467,7 +497,7 @@ impl Player {
     }
 
     pub fn namespace(&self) -> PackageNamespace {
-        PackageNamespace::Netplay(self.index)
+        PackageNamespace::Netplay(self.index as u8)
     }
 
     pub fn active_form_update_callback(&self) -> Option<&BattleCallback> {
@@ -596,8 +626,7 @@ impl Player {
         player.card_chargable_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
-        let animator = &simulation.animators[entity.animator_index];
-        let is_idle = animator.current_state() == Some(Player::IDLE_STATE);
+        let is_idle = entity.movement.is_none();
         let input = &simulation.inputs[player.index];
 
         if can_charge_card && input.was_just_pressed(Input::UseCard) {
@@ -873,5 +902,151 @@ impl Player {
         };
 
         Action::queue_action(simulation, entity_id, index);
+    }
+
+    fn resolve_movement_callback(&mut self) -> BattleCallback<Direction> {
+        // augment
+        let augment_iter = self.augments.values();
+        let augment_callback = augment_iter
+            .flat_map(|augment| augment.movement_callback.clone())
+            .next();
+
+        if let Some(callback) = augment_callback {
+            return callback;
+        }
+
+        // form
+        let form_callback = self.active_form.and_then(|index| {
+            let form = self.forms.get(index)?;
+
+            form.movement_callback.clone()
+        });
+
+        if let Some(callback) = form_callback {
+            return callback;
+        }
+
+        // base
+        self.movement_callback.clone()
+    }
+
+    pub fn handle_movement_input(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) {
+        type Query<'a> = (&'a mut Entity, &'a Living, &'a mut Player);
+
+        let entities = &mut simulation.entities;
+        let Ok((entity, living, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
+            return;
+        };
+
+        // can't move if there's a blocking action or immoble
+        let status_registry = &resources.status_registry;
+        if entity.action_index.is_some()
+            || !entity.action_queue.is_empty()
+            || living.status_director.is_immobile(status_registry)
+        {
+            return;
+        }
+
+        // can only move if there's no move action queued
+        if entity.movement.is_some() {
+            return;
+        }
+
+        let input = &simulation.inputs[player.index];
+
+        // handle flipping
+        let face_left = input.was_just_pressed(Input::FaceLeft);
+        let face_right = input.was_just_pressed(Input::FaceRight);
+
+        let flip_requested = (face_left && face_right)
+            || (face_left && entity.facing != Direction::Left)
+            || (face_right && entity.facing != Direction::Right);
+
+        if flip_requested && player.can_flip {
+            entity.facing = entity.facing.reversed();
+        }
+
+        // handle movement
+        let confused = (living.status_director).remaining_status_time(HitFlag::CONFUSE) > 0;
+
+        let mut x_offset = input.is_down(Input::Right) as i32 - input.is_down(Input::Left) as i32;
+
+        if entity.team == Team::Blue {
+            // flipped perspective
+            x_offset = -x_offset;
+        }
+
+        if confused {
+            x_offset = -x_offset;
+        }
+
+        let mut y_offset = input.is_down(Input::Down) as i32 - input.is_down(Input::Up) as i32;
+
+        if confused {
+            y_offset = -y_offset;
+        }
+
+        let direction = Direction::from_i32_vector((x_offset, y_offset));
+
+        if direction == Direction::None {
+            return;
+        }
+
+        let movement_callback = player.resolve_movement_callback();
+        movement_callback.call(game_io, resources, simulation, direction);
+
+        // movement statistics
+        if simulation.local_player_id == entity_id {
+            let entities = &mut simulation.entities;
+            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                return;
+            };
+
+            if entity.movement.is_some() {
+                simulation.statistics.movements += 1;
+            }
+        }
+    }
+
+    pub fn queue_default_movement(
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        dest: (i32, i32),
+    ) {
+        type Query<'a> = (&'a mut Entity, &'a mut Player);
+
+        let entities = &mut simulation.entities;
+        let Ok((entity, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
+            return;
+        };
+
+        if player.slide_when_moving {
+            entity.movement = Some(Movement::slide(dest, 14));
+        } else {
+            let mut move_event = Movement::teleport(dest);
+            move_event.delay = 5;
+            move_event.endlag = 7;
+
+            let animator_index = entity.animator_index;
+            let movement_state = player.movement_animation_state.clone();
+            let idle_callback = entity.idle_callback.clone();
+
+            move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
+                let anim = &mut simulation.animators[animator_index];
+
+                let callbacks = anim.set_state(&movement_state);
+                simulation.pending_callbacks.extend(callbacks);
+
+                // idle when movement finishes
+                anim.on_complete(idle_callback.clone());
+            }));
+
+            entity.movement = Some(move_event);
+        }
     }
 }

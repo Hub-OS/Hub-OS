@@ -1,0 +1,10 @@
+[package]
+category = "status"
+id = "dev.hubos.Statuses.Freeze"
+name = "Freeze Status"
+flag_name = "Freeze"
+blocks_flags = ["Paralyze"]
+blocked_by = ["Paralyze", "Confuse"]
+blocks_actions = true
+blocks_mobility = true
+durations = [150]

@@ -263,7 +263,6 @@ frame duration="0" x="184" y="106" w="2" h="7" originx="0" originy="0" flipx="0"
 
 animation state="THICK_U000041"
 frame duration="0.05" x="244" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
-frame duration="0.05" x="0" y="0" w="0" h="0" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="THICK_U000042"
 frame duration="0.05" x="254" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
@@ -339,6 +338,9 @@ frame duration="0.05" x="274" y="28" w="6" h="10" originx="0" originy="0" flipx=
 
 animation state="THICK_U00005A"
 frame duration="0.05" x="284" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="THICK_U0000D7"
+frame duration="0.05" x="294" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="THICK_U000061"
 frame duration="0.05" x="244" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"

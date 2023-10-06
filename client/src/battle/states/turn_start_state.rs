@@ -123,6 +123,7 @@ impl State for TurnStartState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
+        _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {

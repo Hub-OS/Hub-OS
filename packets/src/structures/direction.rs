@@ -225,6 +225,22 @@ impl Direction {
 
         x_direction.join(y_direction)
     }
+
+    pub fn from_i32_vector((x, y): (i32, i32)) -> Direction {
+        use std::cmp::Ordering;
+
+        match (x.cmp(&0), y.cmp(&0)) {
+            (Ordering::Less, Ordering::Less) => Direction::UpLeft,
+            (Ordering::Less, Ordering::Equal) => Direction::Left,
+            (Ordering::Less, Ordering::Greater) => Direction::DownLeft,
+            (Ordering::Equal, Ordering::Less) => Direction::Up,
+            (Ordering::Equal, Ordering::Equal) => Direction::None,
+            (Ordering::Equal, Ordering::Greater) => Direction::Down,
+            (Ordering::Greater, Ordering::Less) => Direction::UpRight,
+            (Ordering::Greater, Ordering::Equal) => Direction::Right,
+            (Ordering::Greater, Ordering::Greater) => Direction::DownRight,
+        }
+    }
 }
 
 impl From<&String> for Direction {

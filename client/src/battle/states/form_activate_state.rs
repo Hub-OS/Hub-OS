@@ -2,7 +2,7 @@ use super::{State, TurnStartState};
 use crate::battle::{Artifact, BattleSimulation, Entity, Living, Player, SharedBattleResources};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
-use crate::render::{AnimatorLoopMode, FrameTime};
+use crate::render::FrameTime;
 use crate::resources::Globals;
 use framework::prelude::{Color, GameIO, Vec2};
 
@@ -93,8 +93,6 @@ impl FormActivateState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let mut updated_animators = Vec::new();
-
         // deactivate previous forms, and activate new forms
         for (_, (entity, living, player)) in simulation
             .entities
@@ -114,13 +112,9 @@ impl FormActivateState {
             // cancel movement
             entity.movement = None;
 
-            // set animation to idle
-            let animator = &mut simulation.animators[entity.animator_index];
-            let callbacks = animator.set_state(Player::IDLE_STATE);
-            animator.set_loop_mode(AnimatorLoopMode::Loop);
-            simulation.pending_callbacks.extend(callbacks);
-
-            updated_animators.push(entity.animator_index);
+            // call idle callback
+            let idle_callback = entity.idle_callback.clone();
+            simulation.pending_callbacks.push(idle_callback);
 
             // deactivate previous forms
             for form in &player.forms {

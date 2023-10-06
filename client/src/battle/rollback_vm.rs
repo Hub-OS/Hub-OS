@@ -9,12 +9,17 @@ pub struct RollbackVM {
 
 impl RollbackVM {
     pub fn preferred_namespace(&self) -> PackageNamespace {
-        if self.namespaces.contains(&PackageNamespace::Server) {
-            return PackageNamespace::Server;
-        }
+        let is_server_or_built_in = |namespace: &&PackageNamespace| {
+            matches!(
+                namespace,
+                PackageNamespace::Server
+                    | PackageNamespace::RecordingServer
+                    | PackageNamespace::BuiltIn
+            )
+        };
 
-        if self.namespaces.contains(&PackageNamespace::RecordingServer) {
-            return PackageNamespace::RecordingServer;
+        if let Some(namespace) = self.namespaces.iter().find(is_server_or_built_in) {
+            return *namespace;
         }
 
         let index = self
@@ -22,7 +27,7 @@ impl RollbackVM {
             .iter()
             .map(|ns| match ns {
                 PackageNamespace::Netplay(index) => *index,
-                _ => usize::MAX,
+                _ => u8::MAX,
             })
             .min()
             .unwrap();

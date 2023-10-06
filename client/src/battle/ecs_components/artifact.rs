@@ -54,7 +54,7 @@ impl Artifact {
         // delete when the animation completes
         animator.on_complete(BattleCallback::new(
             move |game_io, resources, simulation, _| {
-                simulation.mark_entity_for_erasure(game_io, resources, id);
+                Entity::mark_erased(game_io, resources, simulation, id);
             },
         ));
 
@@ -157,15 +157,6 @@ impl Artifact {
             simulation,
             ResourcePaths::BATTLE_TRANSFORM_SHINE,
             ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION,
-        )
-    }
-
-    pub fn create_splash(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
-        Self::create_animated_artifact(
-            game_io,
-            simulation,
-            ResourcePaths::BATTLE_SPLASH,
-            ResourcePaths::BATTLE_SPLASH_ANIMATION,
         )
     }
 }

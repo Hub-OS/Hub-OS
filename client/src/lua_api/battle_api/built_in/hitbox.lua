@@ -1,5 +1,7 @@
 local Hitbox = {}
 
+---@param team? Team
+---@param damage? number
 function Hitbox.new(team, damage)
     local spell = Spell.new(team)
     spell:set_hit_props(HitProps.new(

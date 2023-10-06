@@ -26,6 +26,7 @@ struct AugmentMeta {
     slot: Option<SwitchDriveSlot>,
     shape: Option<Vec<Vec<u8>>>,
     byproducts: Vec<PackageId>,
+    prevent_byproducts: bool,
 }
 
 #[derive(Default, Clone)]
@@ -49,6 +50,7 @@ pub struct AugmentPackage {
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
     pub byproducts: Vec<PackageId>,
+    pub prevent_byproducts: bool,
 }
 
 impl AugmentPackage {
@@ -71,10 +73,6 @@ impl AugmentPackage {
 impl Package for AugmentPackage {
     fn package_info(&self) -> &PackageInfo {
         &self.package_info
-    }
-
-    fn package_info_mut(&mut self) -> &mut PackageInfo {
-        &mut self.package_info
     }
 
     fn create_package_listing(&self) -> PackageListing {
@@ -131,6 +129,7 @@ impl Package for AugmentPackage {
         package.slot = meta.slot;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
+        package.prevent_byproducts = meta.prevent_byproducts;
 
         // block tags
         if package.has_shape {

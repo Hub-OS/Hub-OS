@@ -4,9 +4,10 @@ use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths}
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use std::collections::HashSet;
+use std::sync::Arc;
 
 pub struct ProgressUpdate {
-    pub label: &'static str,
+    pub label: Arc<str>,
     pub progress: usize,
     pub total: usize,
 }
@@ -20,6 +21,7 @@ pub enum BootEvent {
     EncounterManager(PackageManager<EncounterPackage>),
     AugmentManager(PackageManager<AugmentPackage>),
     StatusManager(PackageManager<StatusPackage>),
+    TileStateManager(PackageManager<TileStatePackage>),
     LibraryManager(PackageManager<LibraryPackage>),
     CharacterManager(PackageManager<CharacterPackage>),
     Done,
@@ -28,7 +30,7 @@ pub enum BootEvent {
 pub struct BootThread {
     sender: flume::Sender<BootEvent>,
     assets: LocalAssetManager,
-    child_packages: Vec<ChildPackageInfo>,
+    child_packages: Vec<(ChildPackageInfo, PackageNamespace)>,
     hashes: HashSet<FileHash>,
 }
 
@@ -63,7 +65,7 @@ impl BootThread {
 
         // load sound font for music
         self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-            label: "Loading Music",
+            label: Arc::from("Loading Music"),
             progress: 0,
             total,
         }));
@@ -75,7 +77,7 @@ impl BootThread {
 
         let load = |path: &str| {
             self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-                label: "Loading Music",
+                label: Arc::from("Loading Music"),
                 progress,
                 total,
             }));
@@ -94,7 +96,7 @@ impl BootThread {
 
         let load = |path: &str| {
             self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-                label: "Loading SFX",
+                label: Arc::from("Loading SFX"),
                 progress,
                 total,
             }));
@@ -110,50 +112,37 @@ impl BootThread {
 
     fn load_packages(&mut self) {
         // load players
-        let player_packages =
-            self.load_package_folder(PackageCategory::Player, "./mods/players", "Loading Players");
+        let player_packages = self.load_category(PackageCategory::Player, "Players");
 
         self.send(BootEvent::PlayerManager(player_packages));
 
         // load cards
-        let card_packages =
-            self.load_package_folder(PackageCategory::Card, "./mods/cards", "Loading Cards");
+        let card_packages = self.load_category(PackageCategory::Card, "Cards");
 
         self.send(BootEvent::CardManager(card_packages));
 
         // load battles
-        let encounter_packages = self.load_package_folder(
-            PackageCategory::Encounter,
-            "./mods/encounters",
-            "Loading Battles",
-        );
+        let encounter_packages = self.load_category(PackageCategory::Encounter, "Battles");
 
         self.send(BootEvent::EncounterManager(encounter_packages));
 
         // load augments
-        let augment_packages = self.load_package_folder(
-            PackageCategory::Augment,
-            "./mods/augments",
-            "Loading Augments",
-        );
+        let augment_packages = self.load_category(PackageCategory::Augment, "Augments");
 
         self.send(BootEvent::AugmentManager(augment_packages));
 
         // load statuses
-        let status_packages = self.load_package_folder(
-            PackageCategory::Status,
-            "./mods/statuses",
-            "Loading Statuses",
-        );
+        let status_packages = self.load_category(PackageCategory::Status, "Statuses");
 
         self.send(BootEvent::StatusManager(status_packages));
 
+        // load tile states
+        let tile_state_packages = self.load_category(PackageCategory::TileState, "Tiles");
+
+        self.send(BootEvent::TileStateManager(tile_state_packages));
+
         // load libraries
-        let library_packages = self.load_package_folder(
-            PackageCategory::Library,
-            "./mods/libraries",
-            "Loading Libraries",
-        );
+        let library_packages = self.load_category(PackageCategory::Library, "Libraries");
 
         self.send(BootEvent::LibraryManager(library_packages));
 
@@ -167,34 +156,67 @@ impl BootThread {
         self.send(BootEvent::Done);
     }
 
-    fn load_package_folder<P: Package>(
+    fn load_category<P: Package>(
         &mut self,
         category: PackageCategory,
-        folder: &str,
-        label: &'static str,
+        plural_name: &'static str,
     ) -> PackageManager<P> {
         let mut package_manager = PackageManager::<P>::new(category);
-        package_manager.load_packages_in_folder(&self.assets, folder, |progress, total| {
-            let status_update = ProgressUpdate {
-                label,
-                progress,
-                total,
-            };
 
-            let event = BootEvent::ProgressUpdate(status_update);
-            self.sender.send(event).unwrap();
-        });
+        let label: Arc<str> = Arc::from(format!("Loading {plural_name}"));
+
+        self.load_package_folder(
+            &mut package_manager,
+            PackageNamespace::BuiltIn,
+            category.built_in_path(),
+            label.clone(),
+        );
+
+        self.load_package_folder(
+            &mut package_manager,
+            PackageNamespace::Local,
+            category.mod_path(),
+            label,
+        );
+
+        package_manager
+    }
+
+    fn load_package_folder<P: Package>(
+        &mut self,
+        package_manager: &mut PackageManager<P>,
+        namespace: PackageNamespace,
+        path: &'static str,
+        label: Arc<str>,
+    ) {
+        package_manager.load_packages_in_folder(
+            &self.assets,
+            namespace,
+            path,
+            |progress, total| {
+                let status_update = ProgressUpdate {
+                    label: label.clone(),
+                    progress,
+                    total,
+                };
+
+                let event = BootEvent::ProgressUpdate(status_update);
+                self.sender.send(event).unwrap();
+            },
+        );
 
         // gather hashes
-        for package in package_manager.packages(PackageNamespace::Local) {
+        for package in package_manager.packages(namespace) {
             self.hashes.insert(package.package_info().hash);
         }
 
         // track child packages
-        self.child_packages
-            .extend(package_manager.child_packages(PackageNamespace::Local));
+        let child_package_iter = package_manager
+            .child_packages(namespace)
+            .into_iter()
+            .map(move |info| (info, namespace));
 
-        package_manager
+        self.child_packages.extend(child_package_iter);
     }
 
     fn load_child_packages(&mut self) {
@@ -204,9 +226,9 @@ impl BootThread {
         // characters and child packages are currently the same
         let total_child_packages = self.child_packages.len();
 
-        for (i, child_package) in self.child_packages.iter().enumerate() {
+        for (i, (child_package, namespace)) in self.child_packages.iter().enumerate() {
             let status_update = ProgressUpdate {
-                label: "Loading Enemies",
+                label: Arc::from("Loading Enemies"),
                 progress: i,
                 total: total_child_packages,
             };
@@ -214,7 +236,7 @@ impl BootThread {
             let event = BootEvent::ProgressUpdate(status_update);
             self.sender.send(event).unwrap();
 
-            character_packages.load_child_package(PackageNamespace::Local, child_package);
+            character_packages.load_child_package(*namespace, child_package);
         }
 
         self.send(BootEvent::CharacterManager(character_packages));
@@ -247,7 +269,7 @@ impl BootThread {
 
         for (i, entry) in entries.into_iter().enumerate() {
             let status_update = ProgressUpdate {
-                label: "Cleaning Cache",
+                label: Arc::from("Cleaning Cache"),
                 progress: i,
                 total,
             };

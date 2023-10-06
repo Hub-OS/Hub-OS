@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
-pub struct PackageId(String);
+pub struct PackageId(Box<str>);
 
 impl PackageId {
     pub fn new_blank() -> Self {
-        Self(String::new())
+        Self(Box::from(""))
     }
 
     pub fn is_blank(&self) -> bool {
@@ -19,19 +19,13 @@ impl PackageId {
 
 impl From<&str> for PackageId {
     fn from(id: &str) -> Self {
-        Self(id.to_string())
+        Self(Box::from(id))
     }
 }
 
 impl From<String> for PackageId {
     fn from(id: String) -> Self {
-        Self(id)
-    }
-}
-
-impl From<PackageId> for String {
-    fn from(id: PackageId) -> Self {
-        id.0
+        Self(Box::from(id))
     }
 }
 
@@ -61,13 +55,13 @@ impl<'lua> mlua::FromLua<'lua> for PackageId {
             });
         };
 
-        Ok(Self(id.to_string_lossy().to_string()))
+        Ok(Self(Box::from(id.to_string_lossy())))
     }
 }
 
 #[cfg(feature = "rollback_mlua")]
 impl<'lua> mlua::IntoLua<'lua> for PackageId {
     fn into_lua(self, lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
-        lua.create_string(&self.0).map(mlua::Value::String)
+        lua.create_string(&*self.0).map(mlua::Value::String)
     }
 }

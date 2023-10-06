@@ -140,29 +140,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     color_mode_table.set("Reverse", AnimatorPlaybackMode::Reverse)?;
     globals.set("Playback", color_mode_table)?;
 
-    use crate::battle::TileState;
-
-    let tile_state_table = lua.create_table()?;
-    tile_state_table.set("Hidden", TileState::HIDDEN)?;
-    tile_state_table.set("Normal", TileState::NORMAL)?;
-    tile_state_table.set("Hole", TileState::HOLE)?;
-    tile_state_table.set("Cracked", TileState::CRACKED)?;
-    tile_state_table.set("Broken", TileState::BROKEN)?;
-    tile_state_table.set("Ice", TileState::ICE)?;
-    tile_state_table.set("Grass", TileState::GRASS)?;
-    tile_state_table.set("Lava", TileState::LAVA)?;
-    tile_state_table.set("Poison", TileState::POISON)?;
-    tile_state_table.set("Holy", TileState::HOLY)?;
-    tile_state_table.set("DirectionLeft", TileState::DIRECTION_LEFT)?;
-    tile_state_table.set("DirectionRight", TileState::DIRECTION_RIGHT)?;
-    tile_state_table.set("DirectionUp", TileState::DIRECTION_UP)?;
-    tile_state_table.set("DirectionDown", TileState::DIRECTION_DOWN)?;
-    tile_state_table.set("Volcano", TileState::VOLCANO)?;
-    tile_state_table.set("Sea", TileState::SEA)?;
-    tile_state_table.set("Sand", TileState::SAND)?;
-    tile_state_table.set("Metal", TileState::METAL)?;
-    globals.set("TileState", tile_state_table)?;
-
     use crate::bindable::TileHighlight;
 
     let tile_state_table = lua.create_table()?;
@@ -202,11 +179,11 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     use crate::bindable::ComponentLifetime;
 
-    let lifetimes_table = lua.create_table()?;
-    lifetimes_table.set("Local", ComponentLifetime::Local)?;
-    lifetimes_table.set("Battle", ComponentLifetime::BattleStep)?;
-    lifetimes_table.set("Scene", ComponentLifetime::Scene)?;
-    globals.set("Lifetimes", lifetimes_table)?;
+    let lifetime_table = lua.create_table()?;
+    lifetime_table.set("Local", ComponentLifetime::Local)?;
+    lifetime_table.set("Battle", ComponentLifetime::BattleStep)?;
+    lifetime_table.set("Scene", ComponentLifetime::Scene)?;
+    globals.set("Lifetime", lifetime_table)?;
 
     use crate::bindable::DefensePriority;
 
@@ -230,20 +207,22 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     use crate::bindable::ActionLockout;
 
-    globals.set(
-        "make_animation_lockout",
+    let action_lockout = lua.create_table()?;
+    action_lockout.set(
+        "new_animation",
         lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Animation))?,
     )?;
-    globals.set(
-        "make_sequence_lockout",
+    action_lockout.set(
+        "new_sequence",
         lua.create_function(|lua, _: ()| lua.to_value(&ActionLockout::Sequence))?,
     )?;
-    globals.set(
-        "make_async_lockout",
+    action_lockout.set(
+        "new_async",
         lua.create_function(|lua, duration: FrameTime| {
             lua.to_value(&ActionLockout::Async(duration))
         })?,
     )?;
+    globals.set("ActionLockout", action_lockout)?;
 
     let audio_behavior_table = lua.create_table()?;
     audio_behavior_table.set("Default", AudioBehavior::Default)?;

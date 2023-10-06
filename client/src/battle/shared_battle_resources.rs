@@ -17,6 +17,7 @@ pub struct SharedBattleResources {
     pub status_registry: StatusRegistry,
     pub statuses_texture: Arc<Texture>,
     pub statuses_animator: RefCell<Animator>,
+    pub alert_animator: RefCell<Animator>,
     pub math_expressions:
         RefCell<HashMap<String, rollback_mlua::Result<MathExpr<f32, AuxVariable>>>>,
     pub event_sender: flume::Sender<BattleEvent>,
@@ -41,6 +42,9 @@ impl SharedBattleResources {
                 assets,
                 ResourcePaths::BATTLE_STATUSES_ANIMATION,
             )),
+            alert_animator: RefCell::new(
+                Animator::load_new(assets, ResourcePaths::BATTLE_ALERT_ANIMATION).with_state("UI"),
+            ),
             math_expressions: Default::default(),
             event_sender,
             event_receiver,

@@ -465,7 +465,7 @@ impl Animator {
         self.states.iter()
     }
 
-    pub fn set_state(&mut self, state: &str) {
+    pub fn set_state(&mut self, state: &str) -> bool {
         // reset progress
         self.frame_index = 0;
         self.frame_progress = 0;
@@ -480,8 +480,10 @@ impl Animator {
 
         if !self.states.contains_key(&state) {
             self.current_state = None;
+            false
         } else {
             self.current_state = Some(state);
+            true
         }
     }
 

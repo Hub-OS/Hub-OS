@@ -40,8 +40,8 @@ pub fn action_step_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("action step deleted"))
 }
 
-pub fn action_aready_used() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("action already used"))
+pub fn action_aready_processed() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("action already processed"))
 }
 
 pub fn action_entity_mismatch() -> rollback_mlua::Error {
@@ -58,6 +58,10 @@ pub fn animator_not_found() -> rollback_mlua::Error {
 
 pub fn invalid_tile() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("invalid tile"))
+}
+
+pub fn invalid_custom_tile_state() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from("invalid custom tile state"))
 }
 
 pub fn mismatched_entity() -> rollback_mlua::Error {

@@ -20,6 +20,8 @@ enum MathExprNode<N, V> {
     Mul(usize, usize),
     Div(usize, usize),
     Mod(usize, usize),
+    Min(usize, usize),
+    Max(usize, usize),
     Clamp(usize, usize, usize),
 }
 
@@ -36,7 +38,9 @@ impl<N, V> MathExprNode<N, V> {
             | MathExprNode::Sub(a_index, b_index)
             | MathExprNode::Mul(a_index, b_index)
             | MathExprNode::Div(a_index, b_index)
-            | MathExprNode::Mod(a_index, b_index) => {
+            | MathExprNode::Mod(a_index, b_index)
+            | MathExprNode::Min(a_index, b_index)
+            | MathExprNode::Max(a_index, b_index) => {
                 *a_index += base;
                 *b_index += base;
             }
@@ -186,6 +190,24 @@ impl<N, V> MathExpr<N, V> {
         self
     }
 
+    pub fn min(mut self, b_expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(b_expr);
+        let b_index = self.nodes.len() - 1;
+
+        self.nodes.push(MathExprNode::Min(a_index, b_index));
+        self
+    }
+
+    pub fn max(mut self, b_expr: Self) -> Self {
+        let a_index = self.nodes.len() - 1;
+        self.adopt_nodes(b_expr);
+        let b_index = self.nodes.len() - 1;
+
+        self.nodes.push(MathExprNode::Max(a_index, b_index));
+        self
+    }
+
     pub fn clamp(mut self, b_expr: Self, c_expr: Self) -> Self {
         let a_index = self.nodes.len() - 1;
         self.adopt_nodes(b_expr);
@@ -228,6 +250,26 @@ where
             }
             MathExprNode::Mod(a_index, b_index) => {
                 self.eval_branch(*a_index, var) % self.eval_branch(*b_index, var)
+            }
+            MathExprNode::Min(a_index, b_index) => {
+                let a = self.eval_branch(*a_index, var);
+                let b = self.eval_branch(*b_index, var);
+
+                if a < b {
+                    a
+                } else {
+                    b
+                }
+            }
+            MathExprNode::Max(a_index, b_index) => {
+                let a = self.eval_branch(*a_index, var);
+                let b = self.eval_branch(*b_index, var);
+
+                if a > b {
+                    a
+                } else {
+                    b
+                }
             }
             MathExprNode::Clamp(a_index, b_index, c_index) => {
                 let value = self.eval_branch(*a_index, var);
@@ -323,6 +365,20 @@ where
         .parse(i)?;
 
         match name {
+            "min" => {
+                let Ok([a, b]) = <[Self; 2]>::try_from(args) else {
+                    return Err(parse_failure());
+                };
+
+                Ok((i, a.min(b)))
+            }
+            "max" => {
+                let Ok([a, b]) = <[Self; 2]>::try_from(args) else {
+                    return Err(parse_failure());
+                };
+
+                Ok((i, a.max(b)))
+            }
             "clamp" => {
                 let Ok([a, b, c]) = <[Self; 3]>::try_from(args) else {
                     return Err(parse_failure());
@@ -560,6 +616,20 @@ where
                 MathExprNode::Sign(a_index) => {
                     write_function(&mut work, &mut strings, "sign", &[*a_index], arg_index)
                 }
+                MathExprNode::Min(a_index, b_index) => write_function(
+                    &mut work,
+                    &mut strings,
+                    "min",
+                    &[*a_index, *b_index],
+                    arg_index,
+                ),
+                MathExprNode::Max(a_index, b_index) => write_function(
+                    &mut work,
+                    &mut strings,
+                    "max",
+                    &[*a_index, *b_index],
+                    arg_index,
+                ),
                 MathExprNode::Clamp(a_index, b_index, c_index) => write_function(
                     &mut work,
                     &mut strings,

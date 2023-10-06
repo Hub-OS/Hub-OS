@@ -214,6 +214,8 @@ impl BlockGrid {
         let augment_packages = &globals.augment_packages;
 
         let mut list = Vec::new();
+        let mut byproducts = Vec::new();
+        let mut prevent_byproducts = false;
 
         // special insert, adds to count + preserves order
         let push_id =
@@ -226,7 +228,7 @@ impl BlockGrid {
                 }
             };
 
-        for (_, block) in &self.blocks {
+        for block in self.blocks.values() {
             let Some(package) =
                 augment_packages.package_or_override(self.namespace, &block.package_id)
             else {
@@ -238,13 +240,19 @@ impl BlockGrid {
             if !package.is_flat || touches_line {
                 // add augment if it's valid
                 push_id(&mut list, &package.package_info.id, false);
+                prevent_byproducts |= package.prevent_byproducts;
             }
 
             if (!package.is_flat && touches_line) || self.has_conflicts(block, package) {
-                // add byproducts as priority to override other augments
-                for id in &package.byproducts {
-                    push_id(&mut list, id, true);
-                }
+                // append byproducts if we're invalid
+                byproducts.extend(&package.byproducts);
+            }
+        }
+
+        if !prevent_byproducts {
+            // add byproducts as priority to override other augments
+            for id in byproducts {
+                push_id(&mut list, id, true);
             }
         }
 

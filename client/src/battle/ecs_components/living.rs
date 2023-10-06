@@ -15,7 +15,6 @@ pub struct Living {
     pub pending_damage: i32,
     pub intangibility: Intangibility,
     pub defense_rules: Vec<DefenseRule>,
-    pub flinch_anim_state: Option<String>,
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub countered_callback: BattleCallback,
@@ -34,7 +33,6 @@ impl Default for Living {
             pending_damage: 0,
             intangibility: Intangibility::default(),
             defense_rules: Vec::new(),
-            flinch_anim_state: None,
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
             countered_callback: BattleCallback::default(),
@@ -97,8 +95,27 @@ impl Living {
         aux_props
     }
 
-    pub fn delete_completed_aux_props(&mut self) {
-        self.aux_props.retain(|_, prop| !prop.completed());
+    pub fn aux_prop_cleanup(simulation: &mut BattleSimulation, filter: impl Fn(&AuxProp) -> bool) {
+        let entities = &mut simulation.entities;
+
+        for (_, living) in entities.query_mut::<&mut Living>() {
+            // mark auxprops as tested in case they haven't already been marked
+            for aux_prop in living.aux_props.values_mut() {
+                if filter(aux_prop) {
+                    aux_prop.mark_tested();
+                }
+            }
+
+            // delete completed auxprops
+            living.aux_props.retain(|_, prop| !prop.completed());
+
+            // reset tests for next run
+            for aux_prop in living.aux_props.values_mut() {
+                if filter(aux_prop) {
+                    aux_prop.reset_tests();
+                }
+            }
+        }
     }
 
     pub fn process_hits(
@@ -125,13 +142,10 @@ impl Living {
         let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();
 
         for aux_prop in living.aux_props.values_mut() {
-            if aux_prop.effect().hit_related() {
-                aux_prop.reset_tests();
-            }
-
             // using battle_time as auxprops can be frame temporary
             // thus can't depend on their own timers
-            aux_prop.process_time(simulation.battle_time);
+            let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+            aux_prop.process_time(time_frozen, simulation.battle_time);
             aux_prop.process_body(player, character, entity);
 
             for hit_props in &mut hit_prop_list {
@@ -220,11 +234,7 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        if result < hit_props.damage {
-                            log::warn!("An AuxProp is decreasing damage with an increasing effect");
-                        }
-
-                        hit_damage += result - hit_props.damage;
+                        hit_damage += result.max(0);
                     }
                     AuxEffect::DecreaseHitDamage(expr) => {
                         let result = expr.eval(AuxVariable::create_resolver(
@@ -233,11 +243,7 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        if result > hit_props.damage {
-                            log::warn!("An AuxProp is increasing damage with a decreasing effect");
-                        }
-
-                        hit_damage += result - hit_props.damage;
+                        hit_damage -= result.max(0);
                     }
                     _ => log::error!("Engine error: Unexpected AuxEffect!"),
                 }
@@ -256,9 +262,7 @@ impl Living {
             }
 
             // time freeze effects
-            let time_is_frozen = entity.time_frozen_count > 0;
-
-            if time_is_frozen {
+            if entity.time_frozen {
                 hit_props.flags |= HitFlag::SHAKE;
                 hit_props.context.flags |= HitFlag::NO_COUNTER;
             }
@@ -350,6 +354,7 @@ impl Living {
 
         // apply post hit aux props
         let mut health_modifier = 0;
+        let mut modified_total_damage = total_damage;
 
         for aux_prop in Living::post_hit_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
@@ -363,18 +368,13 @@ impl Living {
 
             match aux_prop.effect() {
                 AuxEffect::DecreaseDamageSum(expr) => {
-                    let damage = expr.eval(AuxVariable::create_resolver(
+                    let result = expr.eval(AuxVariable::create_resolver(
                         living.health,
                         living.max_health,
-                        total_damage,
+                        modified_total_damage,
                     )) as i32;
 
-                    if total_damage > 0 && damage <= 0 {
-                        // final damage should be at least 1 if it was already higher than zero
-                        total_damage = 1;
-                    } else {
-                        total_damage = damage;
-                    }
+                    modified_total_damage = (modified_total_damage - result.max(0)).max(0);
                 }
                 AuxEffect::DrainHP(drain) => health_modifier -= drain,
                 AuxEffect::RecoverHP(recover) => health_modifier += recover,
@@ -387,8 +387,12 @@ impl Living {
                 .extend(aux_prop.callbacks().iter().cloned())
         }
 
-        // delete completed aux props
-        living.delete_completed_aux_props();
+        if total_damage > 0 && modified_total_damage == 0 {
+            // final damage should be at least 1 if it was already higher than zero
+            total_damage = 1;
+        } else {
+            total_damage = modified_total_damage;
+        }
 
         // apply damage and health modifier
         living.set_health(living.health - total_damage + health_modifier);
@@ -430,13 +434,13 @@ impl Living {
             };
 
             for aux_prop in living.aux_props.values_mut() {
-                if !aux_prop.effect().action_related() || aux_prop.activated() {
+                if !aux_prop.effect().resolves_action() || aux_prop.activated() {
                     // skip unrelated aux_props
                     // also skip already activated aux_props to prevent infinite loops
                     continue;
                 }
 
-                aux_prop.process_action(Some(action));
+                aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
                     continue;
@@ -475,7 +479,7 @@ impl Living {
 
             if new_index != Some(index) {
                 // delete the old action if we're not using it
-                simulation.delete_actions(game_io, resources, [index]);
+                Action::delete_multi(game_io, resources, simulation, [index]);
             }
 
             if let Some(new_index) = new_index {
@@ -485,6 +489,168 @@ impl Living {
                 // resolved to no action
                 return None;
             }
+        }
+    }
+
+    #[must_use]
+    pub fn modify_used_card(
+        &mut self,
+        card_properties: &mut CardProperties,
+    ) -> Vec<BattleCallback> {
+        let mut multiplier = 1.0;
+        let mut callbacks = Vec::new();
+
+        if card_properties.can_boost {
+            for aux_prop in self.aux_props.values_mut() {
+                let AuxEffect::IncreaseCardDamage(increase) = aux_prop.effect() else {
+                    // skip unrelated aux_props
+                    continue;
+                };
+
+                let increase = *increase;
+                aux_prop.process_card(Some(card_properties));
+
+                if !aux_prop.passed_all_tests() {
+                    continue;
+                }
+
+                aux_prop.mark_activated();
+                card_properties.damage += increase;
+                card_properties.boosted_damage += increase;
+
+                callbacks.extend(aux_prop.callbacks().iter().cloned());
+            }
+        }
+
+        for aux_prop in self.aux_props.values_mut() {
+            if !aux_prop.effect().executes_on_card_use() {
+                // skip unrelated aux_props
+                continue;
+            }
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            aux_prop.mark_activated();
+
+            match aux_prop.effect() {
+                AuxEffect::IncreaseCardDamage(_) => {}
+                AuxEffect::IncreaseCardMultiplier(increase) => multiplier += increase,
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            callbacks.extend(aux_prop.callbacks().iter().cloned());
+        }
+
+        // apply multiplier
+        let original_damage = card_properties.damage - card_properties.boosted_damage;
+        let new_damage = (card_properties.damage as f32 * multiplier.max(0.0)) as i32;
+
+        card_properties.damage = new_damage;
+        card_properties.boosted_damage = new_damage - original_damage;
+
+        callbacks
+    }
+
+    pub fn predict_card_aux_damage(&self, card_properties: &CardProperties) -> i32 {
+        let mut damage = 0;
+
+        if !card_properties.can_boost {
+            return 0;
+        }
+
+        for aux_prop in self.aux_props.values() {
+            let AuxEffect::IncreaseCardDamage(increase) = aux_prop.effect() else {
+                // skip unrelated aux_props
+                continue;
+            };
+
+            // clone to avoid modifying the original
+            let mut aux_prop = aux_prop.clone();
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            damage += increase;
+        }
+
+        damage
+    }
+
+    pub fn predict_card_multiplier(&self, card_properties: &CardProperties) -> f32 {
+        let mut multiplier = 1.0;
+
+        if card_properties.damage == 0 {
+            // the multiplier doesn't matter if the damage is 0
+            return multiplier;
+        }
+
+        for aux_prop in self.aux_props.values() {
+            let AuxEffect::IncreaseCardMultiplier(increase) = aux_prop.effect() else {
+                // skip unrelated aux_props
+                continue;
+            };
+
+            // clone to avoid modifying the original
+            let mut aux_prop = aux_prop.clone();
+
+            aux_prop.process_card(Some(card_properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            multiplier += increase;
+        }
+
+        multiplier.max(0.0)
+    }
+
+    pub fn attempt_interrupt(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        action_index: GenerationalIndex,
+    ) {
+        let Some(action) = simulation.actions.get_mut(action_index) else {
+            return;
+        };
+
+        let entities = &mut simulation.entities;
+        let Ok(living) = entities.query_one_mut::<&mut Living>(action.entity.into()) else {
+            return;
+        };
+
+        for aux_prop in living.aux_props.values_mut() {
+            if !aux_prop.effect().executes_on_current_action() {
+                continue;
+            }
+
+            aux_prop.process_card(Some(&action.properties));
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            aux_prop.mark_activated();
+
+            match aux_prop.effect() {
+                AuxEffect::InterruptAction(callback) => {
+                    let callback = callback.clone();
+                    callback.call(game_io, resources, simulation, action_index);
+
+                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                }
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            return;
         }
     }
 }

@@ -115,23 +115,24 @@ impl BootScene {
                 }
                 BootEvent::PlayerManager(player_packages) => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
-
                     globals.player_packages = player_packages;
                 }
                 BootEvent::CardManager(card_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
                 }
                 BootEvent::EncounterManager(encounter_packages) => {
-                    game_io
-                        .resource_mut::<Globals>()
-                        .unwrap()
-                        .encounter_packages = encounter_packages;
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.encounter_packages = encounter_packages;
                 }
                 BootEvent::AugmentManager(augment_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
                 }
                 BootEvent::StatusManager(status_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().status_packages = status_packages;
+                }
+                BootEvent::TileStateManager(tile_state_packages) => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.tile_state_packages = tile_state_packages;
                 }
                 BootEvent::LibraryManager(library_packages) => {
                     game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;
