@@ -141,7 +141,18 @@ impl GlobalSave {
             }
         }
 
-        // todo: update switch drive parts
+        // update switch drive parts
+        if let Some(parts) = self.installed_drive_parts.remove(old_id) {
+            self.installed_drive_parts.insert(new_id.clone(), parts);
+        }
+
+        for parts in &mut self.installed_drive_parts.values_mut() {
+            for part in parts {
+                if part.package_id == *old_id {
+                    part.package_id = new_id.clone();
+                }
+            }
+        }
 
         // update resources
         for (id, _) in &mut self.resource_package_order {
