@@ -676,6 +676,20 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(entity.movement.is_some())
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "is_dragged", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let Ok(living) = entities.query_one_mut::<&Living>(id.into()) else {
+            return lua.pack_multi(false);
+        };
+
+        lua.pack_multi(living.status_director.is_dragged())
+    });
+
     delete_getter(lua_api, "deleted", |entity: &Entity| entity.deleted);
     delete_getter(lua_api, "will_erase_eof", |entity: &Entity| entity.erased);
 
