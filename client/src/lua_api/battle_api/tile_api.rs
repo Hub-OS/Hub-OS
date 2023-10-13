@@ -292,8 +292,14 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<(&Entity, &Spell)>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
-        let attack_box = AttackBox::new_from((x, y), entity, spell);
-        api_ctx.simulation.queued_attacks.push(attack_box);
+        let queued_attacks = &mut api_ctx.simulation.queued_attacks;
+        let is_same_attack =
+            |attack: &AttackBox| attack.attacker_id == entity.id && attack.x == x && attack.y == y;
+
+        if !queued_attacks.iter().any(is_same_attack) {
+            let attack_box = AttackBox::new_from((x, y), entity, spell);
+            queued_attacks.push(attack_box);
+        }
 
         lua.pack_multi(())
     });
