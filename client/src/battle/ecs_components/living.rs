@@ -264,8 +264,8 @@ impl Living {
             // update total damage
             total_damage += modified_hit_damage - hit_props.damage;
 
-            if modified_hit_damage == 0 {
-                // no hit flags can apply if damage is 0
+            if modified_hit_damage == 0 && hit_props.damage != 0 {
+                // no hit flags can apply if damage is changed to 0 by aux props
                 continue;
             }
 
