@@ -1141,7 +1141,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "hit",
         |living: &mut Living, _, hit_props: HitProperties| {
-            living.pending_hits.push(hit_props);
+            living.queue_hit(hit_props);
             Ok(())
         },
     );

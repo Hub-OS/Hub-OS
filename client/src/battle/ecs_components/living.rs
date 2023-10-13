@@ -58,6 +58,12 @@ impl Living {
         callbacks.push(callback);
     }
 
+    pub fn queue_hit(&mut self, mut hit_props: HitProperties) {
+        // negative values are prevented as they may cause accidental healing
+        hit_props.damage = hit_props.damage.max(0);
+        self.pending_hits.push(hit_props);
+    }
+
     pub fn add_aux_prop(&mut self, aux_prop: AuxProp) -> GenerationalIndex {
         self.aux_props.insert(aux_prop)
     }
@@ -204,11 +210,11 @@ impl Living {
                 return;
             };
 
-            let mut hit_damage = hit_props.damage;
+            let mut modified_hit_damage = hit_props.damage;
 
             // super effective bonus
             if hit_props.is_super_effective(entity.element) {
-                hit_damage += hit_props.damage;
+                modified_hit_damage += hit_props.damage;
             }
 
             // apply hit modifying aux props
@@ -234,7 +240,7 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        hit_damage += result.max(0);
+                        modified_hit_damage += result.max(0);
                     }
                     AuxEffect::DecreaseHitDamage(expr) => {
                         let result = expr.eval(AuxVariable::create_resolver(
@@ -243,7 +249,9 @@ impl Living {
                             hit_props.damage,
                         )) as i32;
 
-                        hit_damage -= result.max(0);
+                        modified_hit_damage -= result.max(0);
+                        // prevent accidental healing from stacking damage decreases
+                        modified_hit_damage = modified_hit_damage.max(0);
                     }
                     _ => log::error!("Engine error: Unexpected AuxEffect!"),
                 }
@@ -254,9 +262,9 @@ impl Living {
             }
 
             // update total damage
-            total_damage += hit_damage - hit_props.damage;
+            total_damage += modified_hit_damage - hit_props.damage;
 
-            if hit_damage == 0 {
+            if modified_hit_damage == 0 {
                 // no hit flags can apply if damage is 0
                 continue;
             }

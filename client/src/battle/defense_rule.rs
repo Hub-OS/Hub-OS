@@ -294,6 +294,12 @@ impl DefenseJudge {
 
                 *props = callback.call(&*props)?;
 
+                // negative values are not allowed to prevent accidental healing and incorrect logic
+                if props.damage < 0 {
+                    log::warn!("filter_statuses_func returned hit props with negative damage");
+                    props.damage = 0;
+                }
+
                 Ok(())
             });
         }

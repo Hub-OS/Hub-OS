@@ -496,7 +496,7 @@ impl BattleState {
                 }
 
                 if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                    living.pending_hits.push(attack_box.props);
+                    living.queue_hit(attack_box.props);
                 }
 
                 // spell attack callback
