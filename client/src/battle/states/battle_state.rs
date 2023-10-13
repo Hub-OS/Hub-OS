@@ -460,6 +460,7 @@ impl BattleState {
                 );
 
                 if simulation.defense_judge.damage_blocked {
+                    // blocked by a defense rule such as barrier, mark as ignored as if we collided
                     if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
                         tile.ignore_attacker(attacker_id);
                     }
@@ -472,6 +473,11 @@ impl BattleState {
                             continue;
                         }
                     }
+                }
+
+                // mark as ignored as we did collide
+                if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
+                    tile.ignore_attacker(attacker_id);
                 }
 
                 collision_callback.call(game_io, resources, simulation, id.into());
@@ -489,10 +495,6 @@ impl BattleState {
 
                 if simulation.defense_judge.damage_blocked {
                     continue;
-                }
-
-                if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
-                    tile.ignore_attacker(attacker_id);
                 }
 
                 if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
