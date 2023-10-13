@@ -668,7 +668,6 @@ impl BattleScene {
             simulation.handle_local_signals(index, resources);
         }
 
-        simulation.update_background();
         simulation.pre_update(game_io, resources, state);
         state.update(game_io, resources, simulation);
         simulation.post_update(game_io, resources);
@@ -722,11 +721,6 @@ impl BattleScene {
     }
 
     fn core_update(&mut self, game_io: &GameIO) {
-        if game_io.is_in_transition() {
-            self.simulation.update_background();
-            return;
-        }
-
         let input_util = InputUtil::new(game_io);
 
         if self.frame_by_frame_debug {

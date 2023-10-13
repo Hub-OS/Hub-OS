@@ -3,6 +3,7 @@ use crate::battle::*;
 use crate::bindable::EntityId;
 use crate::render::FrameTime;
 use crate::resources::{Globals, SoundBuffer};
+use crate::transitions::BATTLE_FADE_DURATION;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -60,17 +61,25 @@ impl State for IntroState {
                 let root_node = entity.sprite_tree.root_mut();
                 root_node.set_alpha(0.0);
             }
+        }
 
-            // start music
-            if let Some(init_music) = simulation.config.battle_init_music.take() {
-                simulation.play_music(
-                    game_io,
-                    &init_music.buffer,
-                    init_music.loops,
-                    init_music.start_ms,
-                    init_music.end_ms,
-                );
-            }
+        // wait for the transition to end
+        let transition_frames =
+            BATTLE_FADE_DURATION.as_secs_f32() / game_io.target_duration().as_secs_f32();
+
+        if simulation.time < transition_frames.round() as FrameTime {
+            return;
+        }
+
+        // start music
+        if let Some(init_music) = simulation.config.battle_init_music.take() {
+            simulation.play_music(
+                game_io,
+                &init_music.buffer,
+                init_music.loops,
+                init_music.start_ms,
+                init_music.end_ms,
+            );
         }
 
         let entities = &mut simulation.entities;

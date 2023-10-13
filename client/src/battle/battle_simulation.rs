@@ -249,10 +249,6 @@ impl BattleSimulation {
         }
     }
 
-    pub fn update_background(&mut self) {
-        self.background.update();
-    }
-
     pub fn pre_update(
         &mut self,
         game_io: &GameIO,
@@ -261,6 +257,9 @@ impl BattleSimulation {
     ) {
         #[cfg(debug_assertions)]
         self.assertions();
+
+        // update background
+        self.background.update();
 
         // reset fade
         self.fade_sprite.set_color(Color::TRANSPARENT);

@@ -15,7 +15,7 @@ use packets::structures::Direction;
 
 pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
 pub const DEFAULT_FADE_DURATION: Duration = Duration::from_millis(500);
-pub const DRAMATIC_FADE_DURATION: Duration = Duration::from_millis(1200);
+pub const BATTLE_FADE_DURATION: Duration = Duration::from_millis(1200);
 // true hold duration is BATTLE_HOLD_DURATION - DRAMATIC_FADE_DURATION / 2
 // total transition duration is BATTLE_HOLD_DURATION + DRAMATIC_FADE_DURATION / 2
 pub const BATTLE_HOLD_DURATION: Duration = Duration::from_millis(750);
@@ -41,7 +41,7 @@ pub fn new_sub_scene_pop(game_io: &GameIO) -> ColorFadeTransition {
 }
 
 pub fn new_battle(game_io: &GameIO) -> ColorFadeTransition {
-    ColorFadeTransition::new(game_io, Color::WHITE, DRAMATIC_FADE_DURATION)
+    ColorFadeTransition::new(game_io, Color::WHITE, BATTLE_FADE_DURATION)
 }
 
 pub fn new_battle_pop(game_io: &GameIO) -> ColorFadeTransition {
