@@ -42,7 +42,7 @@ impl TextInput {
             lines_per_page: 0,
             cached_metrics: TextMetrics {
                 size: Vec2::ZERO,
-                line_ranges: vec![0..0],
+                line_ranges: vec![0..0; 1],
             },
             sizing_dirty: false,
             filter_callback: Box::new(|_| true),
