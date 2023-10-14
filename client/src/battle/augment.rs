@@ -1,8 +1,6 @@
-use super::BattleCallback;
-use crate::bindable::{CardProperties, GenerationalIndex};
+use super::{BattleCallback, PlayerOverridables};
 use crate::packages::AugmentPackage;
-use crate::render::FrameTime;
-use packets::structures::{Direction, PackageId};
+use packets::structures::PackageId;
 use std::borrow::Cow;
 
 #[derive(Clone)]
@@ -14,13 +12,7 @@ pub struct Augment {
     pub charge_boost: i8,
     pub hand_size_boost: i8,
     pub tags: Vec<Cow<'static, str>>,
-    pub calculate_charge_time_callback: Option<BattleCallback<u8, FrameTime>>,
-    pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
-    pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
-    pub movement_callback: Option<BattleCallback<Direction>>,
+    pub overridables: PlayerOverridables,
     pub delete_callback: Option<BattleCallback>,
 }
 
@@ -34,13 +26,7 @@ impl From<(&AugmentPackage, usize)> for Augment {
             charge_boost: package.charge_boost,
             hand_size_boost: package.hand_size_boost,
             tags: package.tags.clone(),
-            calculate_charge_time_callback: None,
-            normal_attack_callback: None,
-            charged_attack_callback: None,
-            special_attack_callback: None,
-            can_charge_card_callback: None,
-            charged_card_callback: None,
-            movement_callback: None,
+            overridables: PlayerOverridables::default(),
             delete_callback: None,
         }
     }

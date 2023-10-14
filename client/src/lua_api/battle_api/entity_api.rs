@@ -1682,7 +1682,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let level = level.unwrap_or_else(|| player.charge_level());
 
-            let time = Player::calculate_default_charge_time(level);
+            let time = PlayerOverridables::default_calculate_charge_time(level);
 
             lua.pack_multi(time)
         },
@@ -1707,52 +1707,52 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    callback_setter(
+    optional_callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
-        |player: &mut Player| &mut player.calculate_charge_time_callback,
+        |player: &mut Player| &mut player.overridables.calculate_charge_time,
         |lua, table, _| lua.pack_multi(table),
     );
 
     optional_callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
-        |player: &mut Player| &mut player.normal_attack_callback,
+        |player: &mut Player| &mut player.overridables.normal_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     optional_callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |player: &mut Player| &mut player.charged_attack_callback,
+        |player: &mut Player| &mut player.overridables.charged_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     optional_callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |player: &mut Player| &mut player.special_attack_callback,
+        |player: &mut Player| &mut player.overridables.special_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     optional_callback_setter(
         lua_api,
         CAN_CHARGE_CARD_FN,
-        |player: &mut Player| &mut player.can_charge_card_callback,
+        |player: &mut Player| &mut player.overridables.can_charge_card,
         |lua, _, card_props| lua.pack_multi(card_props),
     );
 
     optional_callback_setter(
         lua_api,
         CHARGED_CARD_FN,
-        |player: &mut Player| &mut player.charged_card_callback,
+        |player: &mut Player| &mut player.overridables.charged_card,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 
-    callback_setter(
+    optional_callback_setter(
         lua_api,
         MOVEMENT_FN,
-        |player: &mut Player| &mut player.movement_callback,
+        |player: &mut Player| &mut player.overridables.movement,
         |lua, table, direction| lua.pack_multi((table, direction)),
     );
 }

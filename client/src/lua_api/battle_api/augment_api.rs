@@ -29,49 +29,49 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
-        |augment| &mut augment.calculate_charge_time_callback,
+        |augment| &mut augment.overridables.calculate_charge_time,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
-        |augment: &mut Augment| &mut augment.normal_attack_callback,
+        |augment: &mut Augment| &mut augment.overridables.normal_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |augment: &mut Augment| &mut augment.charged_attack_callback,
+        |augment: &mut Augment| &mut augment.overridables.charged_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |augment: &mut Augment| &mut augment.special_attack_callback,
+        |augment: &mut Augment| &mut augment.overridables.special_attack,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         CAN_CHARGE_CARD_FN,
-        |augment: &mut Augment| &mut augment.can_charge_card_callback,
+        |augment: &mut Augment| &mut augment.overridables.can_charge_card,
         |lua, _, card_props| lua.pack_multi(card_props),
     );
 
     callback_setter(
         lua_api,
         CHARGED_CARD_FN,
-        |augment: &mut Augment| &mut augment.charged_card_callback,
+        |augment: &mut Augment| &mut augment.overridables.charged_card,
         |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 
     callback_setter(
         lua_api,
         MOVEMENT_FN,
-        |augment: &mut Augment| &mut augment.movement_callback,
+        |augment: &mut Augment| &mut augment.overridables.movement,
         |lua, table, direction| lua.pack_multi((table, direction)),
     );
 

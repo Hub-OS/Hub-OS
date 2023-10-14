@@ -30,13 +30,7 @@ pub struct Player {
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
     pub augments: DenseSlotMap<Augment>,
-    pub calculate_charge_time_callback: BattleCallback<u8, FrameTime>,
-    pub normal_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub charged_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub special_attack_callback: Option<BattleCallback<(), Option<GenerationalIndex>>>,
-    pub can_charge_card_callback: Option<BattleCallback<CardProperties, bool>>,
-    pub charged_card_callback: Option<BattleCallback<CardProperties, Option<GenerationalIndex>>>,
-    pub movement_callback: BattleCallback<Direction>,
+    pub overridables: PlayerOverridables,
 }
 
 impl Player {
@@ -57,7 +51,6 @@ impl Player {
     fn new(
         game_io: &GameIO,
         setup: PlayerSetup,
-        entity_id: EntityId,
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
@@ -105,37 +98,7 @@ impl Player {
             forms: Vec::new(),
             active_form: None,
             augments: Default::default(),
-            calculate_charge_time_callback: BattleCallback::new(|_, _, _, level| {
-                Self::calculate_default_charge_time(level)
-            }),
-            normal_attack_callback: None,
-            charged_attack_callback: None,
-            special_attack_callback: None,
-            charged_card_callback: None,
-            can_charge_card_callback: None,
-            movement_callback: BattleCallback::new(
-                move |game_io, resources, simulation, direction: Direction| {
-                    let entities = &mut simulation.entities;
-                    let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
-                        return;
-                    };
-
-                    let mut dest = (entity.x, entity.y);
-                    let offset = direction.i32_vector();
-
-                    if offset.1 != 0 {
-                        dest.1 += offset.1;
-                    } else {
-                        dest.0 += offset.0;
-                    }
-
-                    let can_move_to_callback = entity.can_move_to_callback.clone();
-
-                    if can_move_to_callback.call(game_io, resources, simulation, dest) {
-                        Self::queue_default_movement(simulation, entity_id, dest);
-                    }
-                },
-            ),
+            overridables: PlayerOverridables::default(),
         }
     }
 
@@ -324,7 +287,6 @@ impl Player {
         let mut player = Player::new(
             game_io,
             setup,
-            id,
             card_charge_sprite_index,
             buster_charge_sprite_index,
         );
@@ -544,16 +506,6 @@ impl Player {
         base_charge + self.charge_boost
     }
 
-    pub fn calculate_default_charge_time(level: u8) -> FrameTime {
-        match level {
-            0 | 1 => 100,
-            2 => 90,
-            3 => 80,
-            4 => 70,
-            _ => 60,
-        }
-    }
-
     pub fn calculate_charge_time(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -568,21 +520,16 @@ impl Player {
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let augment_iter = player.augments.values();
-        let augment_callback = augment_iter
-            .flat_map(|augment| augment.calculate_charge_time_callback.clone())
-            .next();
+        let callback = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+            callbacks.calculate_charge_time.clone()
+        })
+        .next();
 
-        let callback = augment_callback
-            .or_else(|| {
-                player.active_form.and_then(|index| {
-                    let form = player.forms.get(index)?;
-                    form.calculate_charge_time_callback.clone()
-                })
-            })
-            .unwrap_or_else(|| player.calculate_charge_time_callback.clone());
-
-        callback.call(game_io, resources, simulation, level)
+        if let Some(callback) = callback {
+            callback.call(game_io, resources, simulation, level)
+        } else {
+            PlayerOverridables::default_calculate_charge_time(level)
+        }
     }
 
     pub fn cancel_charge(&mut self) {
@@ -687,22 +634,10 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        // resolve action for normal attack
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return;
-        };
-
-        // augment
-        let augment_iter = player.augments.values();
-        let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|augment| augment.normal_attack_callback.clone())
-            .collect();
-
-        // base
-        if let Some(callback) = player.normal_attack_callback.clone() {
-            callbacks.push(callback);
-        }
+        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+            callbacks.normal_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -713,32 +648,10 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        // resolve action for charged attack
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return;
-        };
-
-        // augment
-        let augment_iter = player.augments.values();
-        let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|augment| augment.charged_attack_callback.clone())
-            .collect();
-
-        // form
-        let form_callback = player
-            .active_form
-            .and_then(|index| player.forms.get(index))
-            .and_then(|form| form.special_attack_callback.clone());
-
-        if let Some(callback) = form_callback {
-            callbacks.push(callback);
-        }
-
-        // base
-        if let Some(callback) = player.charged_attack_callback.clone() {
-            callbacks.push(callback);
-        }
+        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+            callbacks.charged_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -749,32 +662,10 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        // resolve action for special attack
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return;
-        };
-
-        // augment
-        let augment_iter = player.augments.values();
-        let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|augment| augment.special_attack_callback.clone())
-            .collect();
-
-        // form
-        let form_callback = player
-            .active_form
-            .and_then(|index| player.forms.get(index))
-            .and_then(|form| form.special_attack_callback.clone());
-
-        if let Some(callback) = form_callback {
-            callbacks.push(callback);
-        }
-
-        // base
-        if let Some(callback) = player.special_attack_callback.clone() {
-            callbacks.push(callback);
-        }
+        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+            callbacks.special_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -786,43 +677,14 @@ impl Player {
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return None;
-        };
-
-        // augment
-        let augment_iter = player.augments.values();
-        let mut callbacks: Vec<_> = augment_iter
-            .flat_map(|augment| {
+        let callbacks: Vec<_> =
+            PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
                 Some((
-                    augment.can_charge_card_callback.clone()?,
-                    augment.charged_card_callback.clone()?,
+                    callbacks.can_charge_card.clone()?,
+                    callbacks.charged_card.clone()?,
                 ))
             })
             .collect();
-
-        // form
-        let form_callback = player.active_form.and_then(|index| {
-            let form = player.forms.get(index)?;
-
-            Some((
-                form.can_charge_card_callback.clone()?,
-                form.charged_card_callback.clone()?,
-            ))
-        });
-
-        if let Some(callback) = form_callback {
-            callbacks.push(callback);
-        }
-
-        // base
-        if let (Some(support_test), Some(callback)) = (
-            player.can_charge_card_callback.clone(),
-            player.charged_card_callback.clone(),
-        ) {
-            callbacks.push((support_test, callback));
-        }
 
         callbacks
             .into_iter()
@@ -904,32 +766,6 @@ impl Player {
         Action::queue_action(simulation, entity_id, index);
     }
 
-    fn resolve_movement_callback(&mut self) -> BattleCallback<Direction> {
-        // augment
-        let augment_iter = self.augments.values();
-        let augment_callback = augment_iter
-            .flat_map(|augment| augment.movement_callback.clone())
-            .next();
-
-        if let Some(callback) = augment_callback {
-            return callback;
-        }
-
-        // form
-        let form_callback = self.active_form.and_then(|index| {
-            let form = self.forms.get(index)?;
-
-            form.movement_callback.clone()
-        });
-
-        if let Some(callback) = form_callback {
-            return callback;
-        }
-
-        // base
-        self.movement_callback.clone()
-    }
-
     pub fn handle_movement_input(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -997,8 +833,19 @@ impl Player {
             return;
         }
 
-        let movement_callback = player.resolve_movement_callback();
-        movement_callback.call(game_io, resources, simulation, direction);
+        let movement_callback =
+            PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+                callbacks.movement.clone()
+            })
+            .next();
+
+        if let Some(callback) = movement_callback {
+            callback.call(game_io, resources, simulation, direction);
+        } else {
+            PlayerOverridables::default_movement(
+                game_io, resources, simulation, entity_id, direction,
+            );
+        }
 
         // movement statistics
         if simulation.local_player_id == entity_id {

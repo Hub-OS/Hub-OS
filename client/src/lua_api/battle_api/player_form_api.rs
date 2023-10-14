@@ -81,7 +81,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
-        |form| &mut form.calculate_charge_time_callback,
+        |form| &mut form.overridables.calculate_charge_time,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))
@@ -101,7 +101,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
-        |form| &mut form.charged_attack_callback,
+        |form| &mut form.overridables.charged_attack,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))
@@ -111,7 +111,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
-        |form| &mut form.special_attack_callback,
+        |form| &mut form.overridables.special_attack,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))
@@ -121,14 +121,14 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         CAN_CHARGE_CARD_FN,
-        |form| &mut form.can_charge_card_callback,
+        |form| &mut form.overridables.can_charge_card,
         |lua, _, card_props| lua.pack_multi(card_props),
     );
 
     callback_setter(
         lua_api,
         CHARGED_CARD_FN,
-        |form| &mut form.charged_card_callback,
+        |form| &mut form.overridables.charged_card,
         |lua, form_table, card_props| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table, card_props))
@@ -138,7 +138,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     callback_setter(
         lua_api,
         MOVEMENT_FN,
-        |form| &mut form.movement_callback,
+        |form| &mut form.overridables.movement,
         |lua, form_table, direction| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table, direction))
