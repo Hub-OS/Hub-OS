@@ -43,10 +43,12 @@ pub struct AugmentPackage {
     pub hand_size_boost: i8,
     pub tags: Vec<Cow<'static, str>>,
 
+    // switch drive specific
+    pub slot: Option<SwitchDriveSlot>,
+
     // block specific
     pub has_shape: bool,
     pub is_flat: bool,
-    pub slot: Option<SwitchDriveSlot>,
     pub block_colors: Vec<BlockColor>,
     pub shape: [bool; 5 * 5],
     pub byproducts: Vec<PackageId>,
@@ -123,10 +125,12 @@ impl Package for AugmentPackage {
         package.hand_size_boost = meta.hand_size_boost;
         package.tags = meta.tags;
 
+        // switch drive specific
+        package.slot = meta.slot;
+
         // block specific
         package.has_shape = meta.shape.is_some();
         package.is_flat = meta.flat;
-        package.slot = meta.slot;
         package.block_colors = meta.colors.into_iter().map(BlockColor::from).collect();
         package.byproducts = meta.byproducts;
         package.prevent_byproducts = meta.prevent_byproducts;
