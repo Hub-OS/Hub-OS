@@ -20,10 +20,12 @@ struct AugmentMeta {
     hand_size_boost: i8,
     tags: Vec<Cow<'static, str>>,
 
+    // switch drive specific
+    slot: Option<SwitchDriveSlot>,
+
     // block specific
     colors: Vec<String>,
     flat: bool,
-    slot: Option<SwitchDriveSlot>,
     shape: Option<Vec<Vec<u8>>>,
     byproducts: Vec<PackageId>,
     prevent_byproducts: bool,
