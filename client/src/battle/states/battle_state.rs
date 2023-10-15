@@ -704,7 +704,9 @@ impl BattleState {
         let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
-        for (id, (entity, living)) in entities.query::<(&mut Entity, &mut Living)>().into_iter() {
+        type Query<'a> = (&'a mut Entity, &'a mut Living, Option<&'a Player>);
+
+        for (id, (entity, living, player)) in entities.query_mut::<Query>().into_iter() {
             if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
@@ -712,9 +714,7 @@ impl BattleState {
             if !living.status_director.is_inactionable(status_registry) {
                 callbacks.push(entity.update_callback.clone());
 
-                let mut player_query = entities.query_one::<&Player>(id).unwrap();
-
-                if let Some(player) = player_query.get() {
+                if let Some(player) = player {
                     if let Some(callback) = player.active_form_update_callback() {
                         callbacks.push(callback.clone());
                     }
