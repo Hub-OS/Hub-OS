@@ -120,6 +120,11 @@ const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
 
+// defense rules
+pub const BLOCK_FN: &str = "can_block_func";
+pub const REPLACE_FN: &str = "on_replace_func";
+pub const FILTER_STATUSES_FN: &str = "filter_statuses_func";
+
 // components
 const INIT_FN: &str = "on_init_func";
 

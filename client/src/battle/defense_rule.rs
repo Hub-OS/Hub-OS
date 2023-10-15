@@ -1,7 +1,9 @@
 use super::{AttackBox, BattleScriptContext};
 use super::{BattleSimulation, Entity, Living, Player, SharedBattleResources};
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
-use crate::lua_api::{create_entity_table, DEFENSE_JUDGE_TABLE};
+use crate::lua_api::{
+    create_entity_table, BLOCK_FN, DEFENSE_JUDGE_TABLE, FILTER_STATUSES_FN, REPLACE_FN,
+};
 use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteColorQueue;
 use crate::resources::{Globals, RESOLUTION_F};
@@ -128,7 +130,7 @@ impl DefenseRule {
         lua_api.inject_dynamic(lua, &context, |_| {
             table.raw_set("#replaced", true)?;
 
-            if let Ok(callback) = table.get::<_, LuaFunction>("on_replace_func") {
+            if let Ok(callback) = table.get::<_, LuaFunction>(REPLACE_FN) {
                 callback.call(())?;
             };
 
@@ -243,7 +245,7 @@ impl DefenseJudge {
             let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |lua| {
-                let Ok(callback): LuaResult<LuaFunction> = table.get("can_block_func") else {
+                let Ok(callback): LuaResult<LuaFunction> = table.get(BLOCK_FN) else {
                     return Ok(());
                 };
 
@@ -288,7 +290,7 @@ impl DefenseJudge {
             let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |_| {
-                let Ok(callback): LuaResult<LuaFunction> = table.get("filter_statuses_func") else {
+                let Ok(callback): LuaResult<LuaFunction> = table.get(FILTER_STATUSES_FN) else {
                     return Ok(());
                 };
 
@@ -296,7 +298,10 @@ impl DefenseJudge {
 
                 // negative values are not allowed to prevent accidental healing and incorrect logic
                 if props.damage < 0 {
-                    log::warn!("filter_statuses_func returned hit props with negative damage");
+                    log::warn!(
+                        "{} returned hit props with negative damage",
+                        FILTER_STATUSES_FN
+                    );
                     props.damage = 0;
                 }
 
