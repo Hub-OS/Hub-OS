@@ -273,7 +273,7 @@ impl Scene for DeckEditorScene {
 
             dock.draw(game_io, &mut sprite_queue, self.mode, offset);
 
-            if !self.context_menu.is_open() {
+            if !self.textbox.is_open() && !self.context_menu.is_open() {
                 dock.draw_cursor(&mut sprite_queue, offset);
             }
         }
