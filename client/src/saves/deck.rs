@@ -6,7 +6,7 @@ use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Deck {
     pub name: String,
     pub cards: Vec<Card>,

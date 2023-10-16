@@ -141,31 +141,40 @@ impl DeckEditorScene {
         }
     }
 
-    fn leave(&mut self, game_io: &mut GameIO, equip_deck: bool) {
-        let transition = crate::transitions::new_sub_scene_pop(game_io);
-        self.next_scene = NextScene::new_pop().with_transition(transition);
+    fn create_deck(&self, game_io: &GameIO) -> Deck {
+        let global_save = &game_io.resource::<Globals>().unwrap().global_save;
+        let old_deck = &global_save.decks[self.deck_index];
 
-        // save
-        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        let mut deck = Deck::new(old_deck.name.clone());
 
-        if equip_deck {
-            global_save.selected_deck = self.deck_index;
-        }
-
-        let deck = &mut global_save.decks[self.deck_index];
-        deck.cards = self.clone_cards();
-        deck.regular_index = self.resolve_regular_index();
-
-        global_save.save();
-    }
-
-    fn clone_cards(&self) -> Vec<Card> {
-        self.deck_dock
+        deck.cards = self
+            .deck_dock
             .card_slots
             .iter()
             .flatten()
             .map(|item| item.card.clone())
-            .collect()
+            .collect();
+
+        deck.regular_index = self.resolve_regular_index();
+
+        deck
+    }
+
+    fn save_deck(&self, game_io: &mut GameIO, deck: Deck) {
+        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        global_save.decks[self.deck_index] = deck;
+        global_save.save();
+    }
+
+    fn equip_deck(&self, game_io: &mut GameIO) {
+        let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        global_save.selected_deck = self.deck_index;
+        global_save.save();
+    }
+
+    fn leave(&mut self, game_io: &mut GameIO) {
+        let transition = crate::transitions::new_sub_scene_pop(game_io);
+        self.next_scene = NextScene::new_pop().with_transition(transition);
     }
 
     fn resolve_regular_index(&self) -> Option<usize> {
@@ -300,7 +309,11 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     match event {
         Event::Leave(equip) => {
-            scene.leave(game_io, equip);
+            if equip {
+                scene.equip_deck(game_io);
+            }
+
+            scene.leave(game_io);
         }
         Event::SwitchMode(mode) => {
             match mode {
@@ -379,12 +392,14 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
         // closing
         if !cancel_handled {
-            let deck = &globals.global_save.decks[scene.deck_index];
+            let old_deck = &globals.global_save.decks[scene.deck_index];
+            let deck = scene.create_deck(game_io);
             let is_equipped = globals.global_save.selected_deck == scene.deck_index;
+            let deck_updated = *old_deck != deck;
 
-            if is_equipped || deck.cards == scene.clone_cards() {
+            if is_equipped || !deck_updated {
                 // didn't modify the deck, leave without changing the equipped deck
-                scene.leave(game_io, false);
+                scene.leave(game_io);
             } else {
                 let event_sender = scene.event_sender.clone();
                 let callback = move |response| {
@@ -392,10 +407,14 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                 };
 
                 let textbox_interface =
-                    TextboxQuestion::new(format!("Equip {}?", deck.name), callback);
+                    TextboxQuestion::new(format!("Equip {}?", old_deck.name), callback);
 
                 scene.textbox.push_interface(textbox_interface);
                 scene.textbox.open();
+            }
+
+            if deck_updated {
+                scene.save_deck(game_io, deck);
             }
 
             return;
