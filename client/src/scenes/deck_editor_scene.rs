@@ -10,8 +10,15 @@ use std::collections::HashMap;
 
 const NAMESPACE: PackageNamespace = PackageNamespace::Local;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum EditorMode {
+    Default,
+    Regular,
+}
+
 enum Event {
     Leave(bool),
+    SwitchMode(EditorMode),
 }
 
 #[repr(u8)]
@@ -37,6 +44,7 @@ pub struct DeckEditorScene {
     page_tracker: PageTracker,
     context_menu: ContextMenu<Sorting>,
     last_sort: Option<Sorting>,
+    mode: EditorMode,
     deck_dock: Dock,
     pack_dock: Dock,
     deck_total_sprite: Sprite,
@@ -121,6 +129,7 @@ impl DeckEditorScene {
                 ],
             ),
             last_sort: None,
+            mode: EditorMode::Default,
             deck_dock,
             pack_dock,
             deck_total_sprite,
@@ -187,6 +196,10 @@ impl Scene for DeckEditorScene {
 
         self.page_tracker.update();
 
+        if self.textbox.is_complete() {
+            self.textbox.close();
+        }
+
         self.textbox.update(game_io);
 
         // input
@@ -249,7 +262,7 @@ impl Scene for DeckEditorScene {
                 _ => unreachable!(),
             };
 
-            dock.draw(game_io, &mut sprite_queue, offset);
+            dock.draw(game_io, &mut sprite_queue, self.mode, offset);
 
             if !self.context_menu.is_open() {
                 dock.draw_cursor(&mut sprite_queue, offset);
@@ -281,9 +294,27 @@ impl Scene for DeckEditorScene {
 }
 
 fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
-    if let Ok(Event::Leave(equip)) = scene.event_receiver.try_recv() {
-        scene.leave(game_io, equip);
-        scene.textbox.close();
+    let Ok(event) = scene.event_receiver.try_recv() else {
+        return;
+    };
+
+    match event {
+        Event::Leave(equip) => {
+            scene.leave(game_io, equip);
+        }
+        Event::SwitchMode(mode) => {
+            match mode {
+                EditorMode::Default => {}
+                EditorMode::Regular => {
+                    let interface = TextboxMessage::new(String::from(
+                        "Choose a card to\nuse as a Regular\nCard!",
+                    ));
+                    scene.textbox.push_interface(interface);
+                }
+            }
+
+            scene.mode = mode;
+        }
     }
 }
 
@@ -296,15 +327,11 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     }
 
     // dock scrolling
-    let (active_dock, inactive_dock);
-
-    if scene.page_tracker.active_page() == 0 {
-        active_dock = &mut scene.deck_dock;
-        inactive_dock = &mut scene.pack_dock;
+    let active_dock = if scene.page_tracker.active_page() == 0 {
+        &mut scene.deck_dock
     } else {
-        active_dock = &mut scene.pack_dock;
-        inactive_dock = &mut scene.deck_dock;
-    }
+        &mut scene.pack_dock
+    };
 
     let scroll_tracker = &mut active_dock.scroll_tracker;
     let original_index = scroll_tracker.selected_index();
@@ -323,24 +350,16 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     let previous_page = scene.page_tracker.active_page();
 
-    scene.page_tracker.handle_input(game_io);
+    if scene.mode != EditorMode::Default {
+        scene.page_tracker.handle_input(game_io);
+    }
 
     if previous_page != scene.page_tracker.active_page() {
         scene.last_sort = None;
     }
 
     if input_util.was_just_pressed(Input::Confirm) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        globals.audio.play_sound(&globals.sfx.cursor_select);
-
-        if let Some(index) = active_dock.scroll_tracker.forget_index() {
-            dock_internal_swap(scene, game_io, index);
-        } else if let Some(inactive_index) = inactive_dock.scroll_tracker.forget_index() {
-            let active_index = active_dock.scroll_tracker.selected_index();
-            inter_dock_swap(scene, game_io, inactive_index, active_index);
-        } else {
-            active_dock.scroll_tracker.remember_index();
-        }
+        select_card(scene, game_io);
     }
 
     // cancelling
@@ -348,6 +367,13 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
+        if scene.mode == EditorMode::Regular {
+            // revert to default mode
+            scene.mode = EditorMode::Default;
+            return;
+        }
+
+        // default handling
         let cancel_handled = scene.deck_dock.scroll_tracker.forget_index().is_some()
             || scene.pack_dock.scroll_tracker.forget_index().is_some();
 
@@ -386,40 +412,18 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     // handle selecting regular card
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let card_packages = &globals.card_packages;
+        let event_sender = scene.event_sender.clone();
 
-        let deck_dock = &mut scene.deck_dock;
-        let slots = &mut deck_dock.card_slots;
-        let index = deck_dock.scroll_tracker.selected_index();
-
-        if let Some(item) = &mut slots[index] {
-            let package_id = &item.card.package_id;
-
-            let is_standard = card_packages
-                .package_or_override(NAMESPACE, package_id)
-                .is_some_and(|package| package.card_properties.card_class == CardClass::Standard);
-
-            if is_standard {
-                item.is_regular = !item.is_regular;
-                globals.audio.play_sound(&globals.sfx.cursor_select);
-
-                // unmark other slots
-                for (i, slot) in slots.iter_mut().enumerate() {
-                    let Some(item) = slot else {
-                        continue;
-                    };
-
-                    if index != i {
-                        item.is_regular = false;
-                    }
-                }
-            } else {
-                globals.audio.play_sound(&globals.sfx.cursor_error);
+        let interface = TextboxQuestion::new(String::from("Choose Regular Card?"), move |yes| {
+            if yes {
+                event_sender
+                    .send(Event::SwitchMode(EditorMode::Regular))
+                    .unwrap();
             }
-        } else {
-            globals.audio.play_sound(&globals.sfx.cursor_error);
-        }
+        });
+
+        scene.textbox.push_interface(interface);
+        scene.textbox.open();
     }
 }
 
@@ -488,6 +492,95 @@ where
     K: std::cmp::Ord,
 {
     card_slots.sort_by_cached_key(move |slot| slot.as_ref().map(key_function));
+}
+
+fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
+    // see if we should do something other than default handling based on mode
+    match scene.mode {
+        EditorMode::Regular => {
+            select_regular_card(scene, game_io);
+            return;
+        }
+        EditorMode::Default => {}
+    }
+
+    // default handling, moving cards around
+    let (active_dock, inactive_dock);
+
+    if scene.page_tracker.active_page() == 0 {
+        active_dock = &mut scene.deck_dock;
+        inactive_dock = &mut scene.pack_dock;
+    } else {
+        active_dock = &mut scene.pack_dock;
+        inactive_dock = &mut scene.deck_dock;
+    }
+
+    let globals = game_io.resource::<Globals>().unwrap();
+    globals.audio.play_sound(&globals.sfx.cursor_select);
+
+    if let Some(index) = active_dock.scroll_tracker.forget_index() {
+        dock_internal_swap(scene, game_io, index);
+    } else if let Some(inactive_index) = inactive_dock.scroll_tracker.forget_index() {
+        let active_index = active_dock.scroll_tracker.selected_index();
+        inter_dock_swap(scene, game_io, inactive_index, active_index);
+    } else {
+        active_dock.scroll_tracker.remember_index();
+    }
+}
+
+fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
+    let globals = game_io.resource::<Globals>().unwrap();
+
+    let deck_dock = &mut scene.deck_dock;
+    let slots = &mut deck_dock.card_slots;
+    let index = deck_dock.scroll_tracker.selected_index();
+
+    let Some(item) = &mut slots[index] else {
+        globals.audio.play_sound(&globals.sfx.cursor_error);
+        return;
+    };
+
+    let package_id = &item.card.package_id;
+
+    let regular_allowed = item.valid && {
+        let card_packages = &globals.card_packages;
+        let package = card_packages.package_or_override(NAMESPACE, package_id);
+        package.is_some_and(|package| package.regular_allowed)
+    };
+
+    if !regular_allowed {
+        globals.audio.play_sound(&globals.sfx.cursor_error);
+        return;
+    }
+
+    item.is_regular = !item.is_regular;
+
+    if item.is_regular {
+        // unmark other slots
+        for (i, slot) in slots.iter_mut().enumerate() {
+            let Some(item) = slot else {
+                continue;
+            };
+
+            if index != i {
+                item.is_regular = false;
+            }
+        }
+
+        let interface = TextboxMessage::new(String::from("Finished setting up\nthe Regular Card"));
+        scene.textbox.push_interface(interface);
+        scene.textbox.open();
+
+        globals.audio.play_sound(&globals.sfx.card_select_confirm);
+    } else {
+        let interface = TextboxMessage::new(String::from("Regular Card\nsettings released."));
+        scene.textbox.push_interface(interface);
+        scene.textbox.open();
+
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+    }
+
+    scene.mode = EditorMode::Default;
 }
 
 fn dock_internal_swap(scene: &mut DeckEditorScene, game_io: &GameIO, index: usize) {
@@ -853,7 +946,13 @@ impl Dock {
         None
     }
 
-    fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, offset_x: f32) {
+    fn draw(
+        &mut self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        mode: EditorMode,
+        offset_x: f32,
+    ) {
         let offset = Vec2::new(offset_x, 0.0);
 
         self.dock_animator.update();
@@ -880,7 +979,7 @@ impl Dock {
             let mut position = self.list_position + offset;
             position.y += relative_index as f32 * self.scroll_tracker.cursor_multiplier();
 
-            card_item.draw_list_item(game_io, sprite_queue, position);
+            card_item.draw_list_item(game_io, sprite_queue, mode, position);
 
             if card_item.is_regular {
                 self.regular_sprite.set_position(position);
@@ -1036,10 +1135,32 @@ impl CardListItem {
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        mode: EditorMode,
         position: Vec2,
     ) {
+        let mut color = if self.valid {
+            Color::WHITE
+        } else {
+            Color::ORANGE
+        };
+
+        if mode == EditorMode::Regular {
+            let regular_allowed = self.valid && {
+                let globals = game_io.resource::<Globals>().unwrap();
+                let card_packages = &globals.card_packages;
+
+                card_packages
+                    .package_or_override(NAMESPACE, &self.card.package_id)
+                    .is_some_and(|package| package.regular_allowed)
+            };
+
+            if !regular_allowed {
+                color = color.multiply_color(0.75);
+            }
+        }
+
         self.card
-            .draw_list_item(game_io, sprite_queue, position, self.valid);
+            .draw_list_item(game_io, sprite_queue, position, color);
 
         if !self.show_count {
             return;
@@ -1048,12 +1169,7 @@ impl CardListItem {
         const COUNT_OFFSET: Vec2 = Vec2::new(120.0, 3.0);
 
         let mut label = Text::new(game_io, FontStyle::Thick);
-
-        label.style.color = if self.valid {
-            Color::WHITE
-        } else {
-            Color::ORANGE
-        };
+        label.style.color = color;
 
         label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         label.style.bounds.set_position(COUNT_OFFSET + position);

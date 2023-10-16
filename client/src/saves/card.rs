@@ -155,7 +155,7 @@ impl Card {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         position: Vec2,
-        valid: bool,
+        color: Color,
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -198,7 +198,7 @@ impl Card {
         // text style
         let mut label = TextStyle::new(game_io, FontStyle::Thick);
         label.shadow_color = TEXT_DARK_SHADOW_COLOR;
-        label.color = if valid { Color::WHITE } else { Color::ORANGE };
+        label.color = color;
 
         // name
         label.bounds.set_position(NAME_OFFSET + position);

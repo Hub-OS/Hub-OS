@@ -283,8 +283,9 @@ impl Scene for DeckListScene {
             for i in range {
                 let card = &deck.cards[i];
                 let valid = deck_validity.is_card_valid(card);
+                let color = if valid { Color::WHITE } else { Color::ORANGE };
 
-                card.draw_list_item(game_io, &mut sprite_queue, card_position, valid);
+                card.draw_list_item(game_io, &mut sprite_queue, card_position, color);
 
                 if deck.regular_index == Some(i) {
                     self.regular_card_sprite.set_position(card_position);

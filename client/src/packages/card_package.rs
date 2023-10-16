@@ -1,5 +1,5 @@
 use super::*;
-use crate::bindable::CardProperties;
+use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 
@@ -10,6 +10,7 @@ struct CardMeta {
     icon_texture_path: String,
     preview_texture_path: String,
     codes: Vec<String>,
+    regular_allowed: Option<bool>,
 
     // card properties
     name: String,
@@ -38,8 +39,9 @@ pub struct CardPackage {
     pub card_properties: CardProperties<Vec<String>>,
     pub description: String,
     pub long_description: String,
-    pub limit: usize,
     pub default_codes: Vec<String>,
+    pub regular_allowed: bool,
+    pub limit: usize,
 }
 
 impl Package for CardPackage {
@@ -120,6 +122,12 @@ impl Package for CardPackage {
         package.card_properties.prevent_time_freeze_counter = meta.prevent_time_freeze_counter;
         package.card_properties.conceal = meta.conceal;
         package.card_properties.tags = meta.tags;
+
+        // default for regular_allowed is based on card class
+        let card_class = package.card_properties.card_class;
+        package.regular_allowed = meta
+            .regular_allowed
+            .unwrap_or(card_class == CardClass::Standard);
 
         package
     }
