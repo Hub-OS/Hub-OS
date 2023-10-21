@@ -54,38 +54,30 @@ impl PlayerOverridables {
         }
     }
 
-    pub fn flat_map_for<T: 'static>(
-        simulation: &mut BattleSimulation,
-        entity_id: EntityId,
-        map: impl Fn(&Self) -> Option<T> + Clone + 'static,
-    ) -> impl Iterator<Item = T> + '_ {
-        let entities = &mut simulation.entities;
-        let player_iter = entities
-            .query_one_mut::<&Player>(entity_id.into())
+    pub fn flat_map_for<'a, T: 'a>(
+        player: &'a mut Player,
+        map: impl Fn(&'a mut Self) -> Option<T> + Clone + 'static,
+    ) -> impl Iterator<Item = T> + 'a {
+        // form
+        let form_iter = player
+            .active_form
+            .and_then(|index| player.forms.get_mut(index))
             .into_iter();
 
-        player_iter.flat_map(move |player| {
-            // form
-            let form_iter = player
-                .active_form
-                .into_iter()
-                .flat_map(|index| player.forms.get(index));
+        let form_map = map.clone();
+        let form_callback_iter = form_iter.flat_map(move |form| form_map(&mut form.overridables));
 
-            let form_map = map.clone();
-            let form_callback_iter = form_iter.flat_map(move |form| form_map(&form.overridables));
+        // augment
+        let augment_iter = player.augments.values_mut();
+        let augment_map = map.clone();
+        let augment_callback_iter =
+            augment_iter.flat_map(move |augment| augment_map(&mut augment.overridables));
 
-            // augment
-            let augment_iter = player.augments.values();
-            let augment_map = map.clone();
-            let augment_callback_iter =
-                augment_iter.flat_map(move |augment| augment_map(&augment.overridables));
+        // base
+        let player_callback_iter = map(&mut player.overridables).into_iter();
 
-            // base
-            let player_callback_iter = map(&player.overridables).into_iter();
-
-            form_callback_iter
-                .chain(augment_callback_iter)
-                .chain(player_callback_iter)
-        })
+        form_callback_iter
+            .chain(augment_callback_iter)
+            .chain(player_callback_iter)
     }
 }

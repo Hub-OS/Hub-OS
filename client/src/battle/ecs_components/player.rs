@@ -514,13 +514,13 @@ impl Player {
         level: Option<u8>,
     ) -> FrameTime {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return 0;
         };
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let callback = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
+        let callback = PlayerOverridables::flat_map_for(player, |callbacks| {
             callbacks.calculate_charge_time.clone()
         })
         .next();
@@ -634,10 +634,14 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
-            callbacks.normal_attack.clone()
-        })
-        .collect();
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return;
+        };
+
+        let callbacks =
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.normal_attack.clone())
+                .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -648,10 +652,14 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
-            callbacks.charged_attack.clone()
-        })
-        .collect();
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return;
+        };
+
+        let callbacks =
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.charged_attack.clone())
+                .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -662,10 +670,13 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        let callbacks = PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
-            callbacks.special_attack.clone()
-        })
-        .collect();
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return;
+        };
+        let callbacks =
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.special_attack.clone())
+                .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -677,14 +688,18 @@ impl Player {
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
-        let callbacks: Vec<_> =
-            PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
-                Some((
-                    callbacks.can_charge_card.clone()?,
-                    callbacks.charged_card.clone()?,
-                ))
-            })
-            .collect();
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return None;
+        };
+
+        let callbacks: Vec<_> = PlayerOverridables::flat_map_for(player, |callbacks| {
+            Some((
+                callbacks.can_charge_card.clone()?,
+                callbacks.charged_card.clone()?,
+            ))
+        })
+        .collect();
 
         callbacks
             .into_iter()
@@ -834,10 +849,7 @@ impl Player {
         }
 
         let movement_callback =
-            PlayerOverridables::flat_map_for(simulation, entity_id, |callbacks| {
-                callbacks.movement.clone()
-            })
-            .next();
+            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.movement.clone()).next();
 
         if let Some(callback) = movement_callback {
             callback.call(game_io, resources, simulation, direction);
