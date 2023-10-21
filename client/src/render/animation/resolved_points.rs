@@ -16,6 +16,18 @@ impl<K: EnumArray<Vec2>> ResolvedPoints<K> {
     }
 }
 
+impl<K> Clone for ResolvedPoints<K>
+where
+    K: EnumArray<Vec2> + Clone,
+    <K as EnumArray<Vec2>>::Array: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            position_map: self.position_map.clone(),
+        }
+    }
+}
+
 impl<K: EnumArray<Vec2>> Index<K> for ResolvedPoints<K> {
     type Output = Vec2;
 
@@ -141,11 +153,11 @@ mod test {
 
     const ANIMATION_STR: &str = r#"
         animation state="0"
-        frame
+        frame originy="-1"
         point label="A" x="1"
 
         animation state="1"
-        frame
+        frame originy="-1"
         point label="B" x="10"
 
         animation state="2"
@@ -203,5 +215,11 @@ mod test {
         assert_eq!(points[Points::B].x, 11.0);
         assert_eq!(points[Points::C].x, 111.0);
         assert_eq!(points[Points::D].x, 1011.0);
+
+        // origin
+        assert_eq!(points[Points::A].y, 1.0);
+        assert_eq!(points[Points::B].y, 2.0);
+        assert_eq!(points[Points::C].y, 2.0);
+        assert_eq!(points[Points::D].y, 2.0);
     }
 }

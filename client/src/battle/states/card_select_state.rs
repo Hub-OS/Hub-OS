@@ -8,12 +8,23 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
 use crate::scenes::BattleEvent;
+use enum_map::enum_map;
+use enum_map::Enum;
 use framework::prelude::*;
 use std::sync::Arc;
 
 const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
 const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
+
+#[derive(Enum, Clone, Copy, PartialEq, Eq)]
+enum UiPoint {
+    CardStart,
+    Confirm,
+    Preview,
+    FormListStart,
+    SelectedCardStart,
+}
 
 #[derive(Clone, Default)]
 struct Selection {
@@ -58,11 +69,7 @@ pub struct CardSelectState {
     view_index: GenerationalIndex,
     form_list_index: GenerationalIndex,
     animator: Animator,
-    card_start: Vec2,
-    confirm_point: Vec2,
-    preview_point: Vec2,
-    form_list_start: Vec2,
-    selected_card_start: Vec2,
+    points: ResolvedPoints<UiPoint>,
     player_selections: Vec<Selection>,
     time: FrameTime,
     completed: bool,
@@ -242,7 +249,7 @@ impl State for CardSelectState {
                 self.animator.apply(&mut recycled_sprite);
 
                 let row_height = recycled_sprite.bounds().height;
-                let mut offset = self.form_list_start;
+                let mut offset = self.points[UiPoint::FormListStart];
 
                 for _ in player.available_forms() {
                     recycled_sprite.set_position(offset);
@@ -254,7 +261,7 @@ impl State for CardSelectState {
                 // draw mugs
                 let mut mug_sprite = Sprite::new(game_io, recycled_sprite.texture().clone());
 
-                let mut offset = self.form_list_start;
+                let mut offset = self.points[UiPoint::FormListStart];
 
                 for (row, (index, form)) in player.available_forms().enumerate() {
                     // default to greyscale
@@ -286,7 +293,7 @@ impl State for CardSelectState {
 
                 // draw cursor
                 if selection.form_select_time.is_none() {
-                    let mut offset = self.form_list_start;
+                    let mut offset = self.points[UiPoint::FormListStart];
                     offset.y += row_height * selection.form_row as f32;
 
                     self.animator.set_state("FORM_CURSOR");
@@ -323,7 +330,7 @@ impl State for CardSelectState {
                         self.animator.sync_time(self.time);
 
                         self.animator.apply(&mut recycled_sprite);
-                        recycled_sprite.set_position(self.confirm_point);
+                        recycled_sprite.set_position(self.points[UiPoint::Confirm]);
                         sprite_queue.draw_sprite(&recycled_sprite);
                     }
                     _ => {}
@@ -341,7 +348,7 @@ impl State for CardSelectState {
             }
 
             // draw preview icon
-            let preview_point = self.preview_point + self.sprites.root().offset();
+            let preview_point = self.points[UiPoint::Preview] + self.sprites.root().offset();
 
             match selected_item {
                 SelectedItem::Card(i) => {
@@ -477,27 +484,13 @@ impl CardSelectState {
         root_node.set_layer(-1);
         root_node.apply_animation(&animator);
 
-        // points
-        let origin = animator.origin();
-        let card_start = animator.point("card_start").unwrap_or_default() - origin;
-        let confirm_point = animator.point("confirm").unwrap_or_default() - origin;
-
         // card frame
         animator.set_state("STANDARD_FRAME");
-
-        let origin = animator.origin();
-        let preview_point = animator.point("preview").unwrap_or_default() - origin;
 
         let mut card_frame_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
         card_frame_node.set_texture_direct(texture.clone());
         card_frame_node.apply_animation(&animator);
         let view_index = sprites.insert_root_child(card_frame_node);
-
-        // form list frame, just grabbing the start position for the list
-        animator.set_state("FORM_LIST_FRAME");
-
-        let origin = animator.origin();
-        let form_list_start = animator.point("start").unwrap_or_default() - origin;
 
         // start form list frame as the tab
         animator.set_state("FORM_TAB");
@@ -511,14 +504,22 @@ impl CardSelectState {
         // selection
         animator.set_state("SELECTION_FRAME");
 
-        let selection_origin = animator.origin();
-        let selected_card_start =
-            animator.point("start").unwrap_or_default() - selection_origin - origin;
-
         let mut selection_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
         selection_node.set_texture_direct(texture.clone());
         selection_node.apply_animation(&animator);
         sprites.insert_root_child(selection_node);
+
+        let points = ResolvedPoints::new_parented(
+            &mut animator,
+            enum_map! {
+                UiPoint::CardStart => ("ROOT", "CARD_START"),
+                UiPoint::Confirm => ("ROOT", "CONFIRM"),
+                UiPoint::FormListStart => ("FORM_LIST_FRAME", "START"),
+                UiPoint::Preview => ("STANDARD_FRAME", "PREVIEW"),
+                UiPoint::SelectedCardStart => ("SELECTION_FRAME", "START"),
+            },
+            |_| None,
+        );
 
         Self {
             sprites,
@@ -526,11 +527,7 @@ impl CardSelectState {
             view_index,
             form_list_index,
             animator,
-            card_start,
-            confirm_point,
-            preview_point,
-            form_list_start,
-            selected_card_start,
+            points,
             player_selections: Vec::new(),
             time: 0,
             completed: false,
@@ -953,7 +950,7 @@ impl CardSelectState {
         &self,
         player: &'a Player,
     ) -> impl Iterator<Item = (usize, &'a Card, Vec2)> {
-        let mut start = self.card_start;
+        let mut start = self.points[UiPoint::CardStart];
         start.x += self.sprites.root().offset().x;
 
         // draw icons
@@ -973,7 +970,7 @@ impl CardSelectState {
     }
 
     fn calculate_icon_position(&self, col: i32, row: i32) -> Vec2 {
-        let mut start = self.card_start;
+        let mut start = self.points[UiPoint::CardStart];
         start.x += self.sprites.root().offset().x;
 
         calculate_icon_position(start, col, row)
@@ -986,7 +983,7 @@ impl CardSelectState {
     ) -> impl Iterator<Item = (&'a Card, Vec2)> {
         const VERTICAL_OFFSET: f32 = 16.0;
 
-        let mut start = self.selected_card_start;
+        let mut start = self.points[UiPoint::SelectedCardStart];
         start.x += self.sprites.root().offset().x;
 
         // draw icons
