@@ -41,7 +41,7 @@ impl CategoryFilter {
         match self {
             CategoryFilter::Cards => "Cards",
             CategoryFilter::Augments => "Augments",
-            CategoryFilter::Encounters => "Battle",
+            CategoryFilter::Encounters => "Battles",
             CategoryFilter::Players => "Players",
             CategoryFilter::Resource => "Resource",
             CategoryFilter::Packs => "Packs",
