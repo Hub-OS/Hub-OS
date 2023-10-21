@@ -25,7 +25,7 @@ impl PushTransition {
     }
 }
 
-impl Transition for PushTransition {
+impl SceneTransition for PushTransition {
     fn draw(
         &mut self,
         game_io: &mut GameIO,

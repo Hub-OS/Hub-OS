@@ -53,7 +53,7 @@ const TITLE_LIST: [&str; 3] = [
     "Hub OS: Modular Battler",
 ];
 
-pub fn main(app: PlatformApp) -> anyhow::Result<()> {
+pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     // init_game_folder in case we haven't already
     ResourcePaths::init_game_folder(&app);
 
@@ -67,7 +67,7 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
     let random_title = TITLE_LIST.choose(&mut rand::thread_rng()).unwrap();
-    let game = Game::new(random_title, TRUE_RESOLUTION.into())
+    let game = Game::<WinitGameLoop>::new(random_title, TRUE_RESOLUTION.into())
         .with_platform_app(app)
         .with_resizable(true)
         .with_setup(|game_io| {
@@ -94,7 +94,7 @@ pub fn main(app: PlatformApp) -> anyhow::Result<()> {
 
 #[cfg(target_os = "android")]
 #[no_mangle]
-pub fn android_main(app: PlatformApp) {
+pub fn android_main(app: WinitPlatformApp) {
     // init_game_folder for set_current_dir
     ResourcePaths::init_game_folder(&app);
 
@@ -106,7 +106,7 @@ pub fn android_main(app: PlatformApp) {
 }
 
 #[cfg(target_os = "android")]
-fn update_resources(app: &PlatformApp) {
+fn update_resources(app: &WinitPlatformApp) {
     // instead of extracting a zip and running the exe,
     // users are only receiving an apk for android
     // so we're storing the resources as a zip in the apk and extracting when stored hashes differ
@@ -121,7 +121,7 @@ fn update_resources(app: &PlatformApp) {
 
     let ndk_assets = app.asset_manager();
     let mut zip_asset = ndk_assets.open(zip_c_name.as_c_str()).unwrap();
-    let zip_bytes = zip_asset.get_buffer().unwrap();
+    let zip_bytes = zip_asset.buffer().unwrap();
 
     // compare hashes
     let resources_hash = FileHash::hash(zip_bytes);

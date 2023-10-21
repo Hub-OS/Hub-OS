@@ -5,7 +5,7 @@ use packets::structures::Direction;
 use std::collections::HashMap;
 
 pub struct InputUtil<'a> {
-    input_manager: &'a InputManager,
+    input_manager: &'a GameInputManager,
     emulated: &'a EmulatedInput,
     config: &'a Config,
 }

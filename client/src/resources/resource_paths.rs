@@ -1,4 +1,4 @@
-use framework::prelude::PlatformApp;
+use framework::prelude::WinitPlatformApp;
 use std::sync::OnceLock;
 
 static GAME_PATH: OnceLock<String> = OnceLock::new();
@@ -248,7 +248,7 @@ impl ResourcePaths {
         "resources/scenes/resource_order/layout.animation";
 
     #[allow(unused_variables)]
-    pub fn init_game_folder(app: &PlatformApp) {
+    pub fn init_game_folder(app: &WinitPlatformApp) {
         #[cfg(not(target_os = "android"))]
         let _ = GAME_PATH.set(ResourcePaths::clean_folder(
             &std::env::current_dir()

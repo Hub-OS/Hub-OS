@@ -1,6 +1,6 @@
 // #![windows_subsystem = "windows"]
 
-use framework::prelude::PlatformApp;
+use framework::prelude::WinitPlatformApp;
 use std::panic;
 
 fn main() {
@@ -15,5 +15,5 @@ fn main() {
     }));
 
     // check lib.rs
-    hub_os::main(PlatformApp::default()).unwrap()
+    hub_os::main(WinitPlatformApp::default()).unwrap()
 }

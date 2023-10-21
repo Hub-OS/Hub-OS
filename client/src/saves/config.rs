@@ -1,7 +1,7 @@
 use crate::render::PostProcessColorBlindness;
 use crate::resources::{AssetManager, Input, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
+use framework::cfg_macros::{cfg_android, cfg_desktop_and_web};
 use framework::input::{Button, Key};
-use framework::{cfg_android, cfg_desktop_and_web};
 use itertools::Itertools;
 use std::collections::HashMap;
 

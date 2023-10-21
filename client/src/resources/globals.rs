@@ -106,16 +106,14 @@ impl Globals {
         let post_process_ghosting = config.ghosting as f32 * 0.01;
         let post_process_color_blindness = config.color_blindness;
 
-        let graphics = game_io.graphics_mut();
-
         let enable_adjustment = post_process_adjust_config.should_enable();
         let enable_ghosting = config.ghosting > 0;
         let enable_color_blindness =
             config.color_blindness < PostProcessColorBlindness::TOTAL_OPTIONS;
 
-        graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
-        graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
-        graphics.set_post_process_enabled::<PostProcessColorBlindness>(enable_color_blindness);
+        game_io.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
+        game_io.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
+        game_io.set_post_process_enabled::<PostProcessColorBlindness>(enable_color_blindness);
 
         Self {
             config,

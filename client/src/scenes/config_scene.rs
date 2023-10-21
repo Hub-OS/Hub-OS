@@ -206,7 +206,7 @@ impl ConfigScene {
                 |game_io, mut config| {
                     config.vsync = !config.vsync;
 
-                    game_io.graphics_mut().set_vsync_enabled(config.vsync);
+                    game_io.window_mut().set_vsync_enabled(config.vsync);
 
                     config.vsync
                 },
@@ -242,8 +242,7 @@ impl ConfigScene {
                             PostProcessAdjustConfig::from_config(&config);
 
                         let enable = globals.post_process_adjust_config.should_enable();
-                        let graphics = game_io.graphics_mut();
-                        graphics.set_post_process_enabled::<PostProcessAdjust>(enable);
+                        game_io.set_post_process_enabled::<PostProcessAdjust>(enable);
                     },
                 )
                 .with_lower_bound(10),
@@ -260,8 +259,7 @@ impl ConfigScene {
                         PostProcessAdjustConfig::from_config(&config);
 
                     let enable = globals.post_process_adjust_config.should_enable();
-                    let graphics = game_io.graphics_mut();
-                    graphics.set_post_process_enabled::<PostProcessAdjust>(enable);
+                    game_io.set_post_process_enabled::<PostProcessAdjust>(enable);
                 },
             )),
             Box::new(
@@ -276,8 +274,7 @@ impl ConfigScene {
                         globals.post_process_ghosting = value as f32 * 0.01;
 
                         let enable = value > 0;
-                        let graphics = game_io.graphics_mut();
-                        graphics.set_post_process_enabled::<PostProcessGhosting>(enable);
+                        game_io.set_post_process_enabled::<PostProcessGhosting>(enable);
                     },
                 )
                 .with_upper_bound(98),
@@ -299,8 +296,7 @@ impl ConfigScene {
                     globals.post_process_color_blindness = value;
 
                     let enable = value < PostProcessColorBlindness::TOTAL_OPTIONS;
-                    let graphics = game_io.graphics_mut();
-                    graphics.set_post_process_enabled::<PostProcessColorBlindness>(enable);
+                    game_io.set_post_process_enabled::<PostProcessColorBlindness>(enable);
                 },
             )),
         ]
@@ -752,10 +748,9 @@ impl ConfigScene {
                         }
 
                         // post processing again
-                        let graphics = game_io.graphics_mut();
-                        graphics.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
-                        graphics.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
-                        graphics.set_post_process_enabled::<PostProcessColorBlindness>(
+                        game_io.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
+                        game_io.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
+                        game_io.set_post_process_enabled::<PostProcessColorBlindness>(
                             enable_color_blindness,
                         );
                     }

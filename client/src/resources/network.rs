@@ -1,8 +1,8 @@
 use crate::args::Args;
 use crate::render::FrameTime;
 use crate::structures::{DenseSlotMap, GenerationalIndex};
+use framework::math::Instant;
 use framework::prelude::async_sleep;
-use framework::util::Instant;
 use packets::{
     deserialize, ClientPacket, NetplayPacket, PacketChannels, Reliability, ServerPacket,
     SERVER_TICK_RATE,

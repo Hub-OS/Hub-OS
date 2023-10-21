@@ -26,7 +26,7 @@ impl FadeTransition {
     }
 }
 
-impl Transition for FadeTransition {
+impl SceneTransition for FadeTransition {
     fn draw(
         &mut self,
         game_io: &mut GameIO,

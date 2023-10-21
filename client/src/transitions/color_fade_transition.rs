@@ -26,7 +26,7 @@ impl ColorFadeTransition {
     }
 }
 
-impl Transition for ColorFadeTransition {
+impl SceneTransition for ColorFadeTransition {
     fn draw(
         &mut self,
         game_io: &mut GameIO,
