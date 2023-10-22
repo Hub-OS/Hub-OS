@@ -277,10 +277,12 @@ impl ResourcePaths {
     }
 
     pub fn clean(path_str: &str) -> String {
-        path_clean::clean(path_str)
+        let path = path_clean::clean(path_str)
             .to_str()
             .unwrap_or_default()
-            .replace('\\', Self::SEPARATOR)
+            .replace('\\', Self::SEPARATOR);
+
+        path.strip_prefix("./").map(String::from).unwrap_or(path)
     }
 
     pub fn clean_folder(path_str: &str) -> String {
@@ -311,6 +313,7 @@ mod tests {
     #[test]
     fn clean() {
         assert_eq!(ResourcePaths::clean("./.\\test"), String::from("test"));
+        assert_eq!(ResourcePaths::clean("./\\test"), String::from("test"));
         assert_eq!(ResourcePaths::clean("../test"), String::from("../test"));
         assert_eq!(ResourcePaths::clean("..\\test"), String::from("../test"));
     }
