@@ -28,6 +28,14 @@ enum UiPoint {
     SelectedCardStart,
 }
 
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+enum HistoryHint {
+    #[default]
+    Card,
+    CardButton,
+    SpecialButton,
+}
+
 #[derive(Clone, Default)]
 struct Selection {
     col: i32,
@@ -38,6 +46,7 @@ struct Selection {
     form_select_time: Option<FrameTime>,
     selected_form_index: Option<usize>,
     selected_card_indices: Vec<usize>,
+    history: Vec<HistoryHint>,
     form_open_time: Option<FrameTime>,
     confirm_time: FrameTime,
     animating_slide: bool,
@@ -722,8 +731,9 @@ impl CardSelectState {
         let globals = game_io.resource::<Globals>().unwrap();
         let mut pending_sfx = Vec::new();
 
-        let input = &simulation.inputs[player.index];
-        let selection = &mut self.player_selections[player.index];
+        let player_index = player.index;
+        let input = &simulation.inputs[player_index];
+        let selection = &mut self.player_selections[player_index];
 
         let previous_item = resolve_selected_item(player, selection);
 
@@ -768,6 +778,7 @@ impl CardSelectState {
         if input.was_just_pressed(Input::Confirm) {
             match selected_item {
                 SelectedItem::Confirm => {
+                    selection.history.clear();
                     selection.confirm_time = self.time;
 
                     // sfx
@@ -779,6 +790,7 @@ impl CardSelectState {
                     if !selection.selected_card_indices.contains(&index)
                         && can_player_select(player, selection, index)
                     {
+                        selection.history.push(HistoryHint::Card);
                         selection.selected_card_indices.push(index);
 
                         // sfx
@@ -790,34 +802,36 @@ impl CardSelectState {
                         pending_sfx.push(&globals.sfx.cursor_error);
                     }
                 }
-                _ => {}
+                SelectedItem::CardButton => {
+                    self.activate_button(
+                        game_io,
+                        resources,
+                        simulation,
+                        entity_id,
+                        HistoryHint::CardButton,
+                    );
+                }
+                SelectedItem::SpecialButton => {
+                    self.activate_button(
+                        game_io,
+                        resources,
+                        simulation,
+                        entity_id,
+                        HistoryHint::SpecialButton,
+                    );
+                }
+                SelectedItem::None => {}
             }
         }
+
+        let input = &simulation.inputs[player_index];
 
         if input.was_just_pressed(Input::Cancel) {
-            let mut applied = false;
-
-            if !selection.selected_card_indices.is_empty() {
-                selection.selected_card_indices.pop();
-                applied = true;
-            } else if selection.selected_form_index.is_some() {
-                selection.selected_form_index = None;
-                applied = true;
-
-                if selection.local {
-                    pending_sfx.push(&globals.sfx.transform_revert);
-                }
-            }
-
-            // sfx
-            if selection.local {
-                if applied {
-                    pending_sfx.push(&globals.sfx.cursor_cancel);
-                } else {
-                    pending_sfx.push(&globals.sfx.cursor_error);
-                }
-            }
+            self.undo(game_io, resources, simulation, entity_id);
         }
+
+        let input = &simulation.inputs[player_index];
+        let selection = &mut self.player_selections[player_index];
 
         if input.fleeing() || input.disconnected() {
             // clear selection
@@ -837,6 +851,9 @@ impl CardSelectState {
 
             if input.was_just_pressed(Input::Info) {
                 if let SelectedItem::Card(index) = selected_item {
+                    let entities = &mut simulation.entities;
+                    let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
+
                     let card = &player.deck[index];
 
                     let event = BattleEvent::DescribeCard(card.package_id.clone());
@@ -850,6 +867,113 @@ impl CardSelectState {
         }
     }
 
+    fn activate_button(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        history_hint: HistoryHint,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let card_button =
+            PlayerOverridables::flat_map_for(player, move |overridables| match history_hint {
+                HistoryHint::CardButton => overridables.card_button.as_ref(),
+                HistoryHint::SpecialButton => overridables.special_button.as_ref(),
+                _ => unreachable!(),
+            })
+            .next();
+
+        let Some(button) = card_button else {
+            return;
+        };
+
+        let Some(callback) = button.activate_callback.clone() else {
+            return;
+        };
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let selection = &mut self.player_selections[player.index];
+        let can_undo = button.undo_callback.is_some();
+
+        let success = callback.call(game_io, resources, simulation, ());
+
+        if success {
+            if can_undo {
+                selection.history.push(history_hint);
+            } else {
+                selection.history.clear();
+            }
+
+            if selection.local {
+                simulation.play_sound(game_io, &globals.sfx.cursor_select);
+            }
+        } else if selection.local {
+            simulation.play_sound(game_io, &globals.sfx.cursor_error);
+        }
+    }
+
+    fn undo(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let selection = &mut self.player_selections[player.index];
+        let hint = selection.history.pop().unwrap_or_default();
+        let mut applied = false;
+
+        match hint {
+            HistoryHint::Card => {
+                if !selection.selected_card_indices.is_empty() {
+                    selection.selected_card_indices.pop();
+                    applied = true;
+                } else if selection.selected_form_index.is_some() {
+                    selection.selected_form_index = None;
+                    applied = true;
+
+                    if selection.local {
+                        simulation.play_sound(game_io, &globals.sfx.transform_revert);
+                    }
+                }
+            }
+            HistoryHint::CardButton | HistoryHint::SpecialButton => {
+                let card_button =
+                    PlayerOverridables::flat_map_for(player, move |overridables| match hint {
+                        HistoryHint::CardButton => overridables.card_button.as_ref(),
+                        HistoryHint::SpecialButton => overridables.special_button.as_ref(),
+                        _ => unreachable!(),
+                    })
+                    .next();
+
+                if let Some(callback) = card_button.and_then(|button| button.undo_callback.clone())
+                {
+                    callback.call(game_io, resources, simulation, ());
+                }
+            }
+        }
+
+        // sfx
+        if selection.local {
+            if applied {
+                simulation.play_sound(game_io, &globals.sfx.cursor_cancel);
+            } else {
+                simulation.play_sound(game_io, &globals.sfx.cursor_error);
+            }
+        }
+    }
+
     fn complete(
         &mut self,
         game_io: &GameIO,
@@ -858,9 +982,8 @@ impl CardSelectState {
     ) {
         let card_packages = &game_io.resource::<Globals>().unwrap().card_packages;
 
-        for (_, (player, character)) in
-            (simulation.entities).query_mut::<(&mut Player, &mut Character)>()
-        {
+        let entities = &mut simulation.entities;
+        for (_, (player, character)) in entities.query_mut::<(&mut Player, &mut Character)>() {
             let selection = &mut self.player_selections[player.index];
 
             if selection.selected_form_index.is_some() {
