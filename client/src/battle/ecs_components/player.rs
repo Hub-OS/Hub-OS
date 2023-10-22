@@ -467,6 +467,7 @@ impl Player {
     }
 
     pub fn hand_size(&self) -> usize {
+        const MAX_HAND_SIZE: usize = CARD_SELECT_ROWS * CARD_SELECT_CARD_COLS;
         const BASE_HAND_SIZE: i8 = 5;
 
         let boosted_hand_size = BASE_HAND_SIZE.saturating_add(self.hand_size_boost);
@@ -476,7 +477,19 @@ impl Player {
             acc.saturating_add(m.hand_size_boost * m.level as i8)
         });
 
-        augmented_hand_size.clamp(1, 10) as usize
+        // subtract space taken up by card button
+        let card_button = PlayerOverridables::flat_map_for(self, |overridables| {
+            overridables.card_button.as_ref()
+        })
+        .next();
+
+        let card_button_width = card_button
+            .map(|button| button.slot_width)
+            .unwrap_or_default();
+
+        let max = MAX_HAND_SIZE.saturating_sub(card_button_width);
+
+        (augmented_hand_size as usize).clamp(1, max)
     }
 
     pub fn attack_level(&self) -> u8 {
@@ -520,7 +533,7 @@ impl Player {
 
         let level = level.unwrap_or_else(|| player.charge_level());
 
-        let callback = PlayerOverridables::flat_map_for(player, |callbacks| {
+        let callback = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
             callbacks.calculate_charge_time.clone()
         })
         .next();
@@ -639,9 +652,10 @@ impl Player {
             return;
         };
 
-        let callbacks =
-            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.normal_attack.clone())
-                .collect();
+        let callbacks = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
+            callbacks.normal_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -657,9 +671,10 @@ impl Player {
             return;
         };
 
-        let callbacks =
-            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.charged_attack.clone())
-                .collect();
+        let callbacks = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
+            callbacks.charged_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -674,9 +689,10 @@ impl Player {
         let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return;
         };
-        let callbacks =
-            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.special_attack.clone())
-                .collect();
+        let callbacks = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
+            callbacks.special_attack.clone()
+        })
+        .collect();
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -693,7 +709,7 @@ impl Player {
             return None;
         };
 
-        let callbacks: Vec<_> = PlayerOverridables::flat_map_for(player, |callbacks| {
+        let callbacks: Vec<_> = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
             Some((
                 callbacks.can_charge_card.clone()?,
                 callbacks.charged_card.clone()?,
@@ -849,7 +865,8 @@ impl Player {
         }
 
         let movement_callback =
-            PlayerOverridables::flat_map_for(player, |callbacks| callbacks.movement.clone()).next();
+            PlayerOverridables::flat_map_mut_for(player, |callbacks| callbacks.movement.clone())
+                .next();
 
         if let Some(callback) = movement_callback {
             callback.call(game_io, resources, simulation, direction);

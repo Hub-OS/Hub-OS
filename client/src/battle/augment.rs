@@ -1,5 +1,8 @@
-use super::{BattleCallback, PlayerOverridables};
+use super::{BattleCallback, BattleSimulation, Player, PlayerOverridables, SharedBattleResources};
+use crate::bindable::EntityId;
 use crate::packages::AugmentPackage;
+use crate::structures::GenerationalIndex;
+use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::borrow::Cow;
 
@@ -28,6 +31,30 @@ impl From<(&AugmentPackage, usize)> for Augment {
             tags: package.tags.clone(),
             overridables: PlayerOverridables::default(),
             delete_callback: None,
+        }
+    }
+}
+
+impl Augment {
+    pub fn delete(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        index: GenerationalIndex,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return;
+        };
+
+        let augment = player.augments.remove(index).unwrap();
+
+        let overridables = augment.overridables;
+        overridables.delete_self(&mut simulation.animators);
+
+        if let Some(callback) = augment.delete_callback {
+            callback.call(game_io, resources, simulation, ());
         }
     }
 }

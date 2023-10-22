@@ -1457,6 +1457,68 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "create_card_button",
+        |api_ctx, lua, params| {
+            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let entity_id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+
+            let button_path = CardSelectButtonPath {
+                entity_id,
+                form_index: None,
+                augment_index: None,
+                uses_card_slots: true,
+            };
+
+            let table = create_card_select_button_and_table(
+                game_io,
+                simulation,
+                lua,
+                &table,
+                button_path,
+                slot_width,
+            )?;
+
+            lua.pack_multi(table)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "create_special_button",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+            let entity_id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+
+            let button_path = CardSelectButtonPath {
+                entity_id,
+                form_index: None,
+                augment_index: None,
+                uses_card_slots: false,
+            };
+
+            let table = create_card_select_button_and_table(
+                game_io,
+                simulation,
+                lua,
+                &table,
+                button_path,
+                1,
+            )?;
+
+            lua.pack_multi(table)
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_form", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -1540,6 +1602,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
         let simulation = &mut api_ctx.simulation;
         let entities = &mut simulation.entities;
 
@@ -1557,15 +1621,11 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             if augment.level == 0 {
                 // delete
-                let augment = player.augments.remove(index).unwrap();
-
-                if let Some(callback) = augment.delete_callback {
-                    callback.call(api_ctx.game_io, api_ctx.resources, simulation, ());
-                }
+                Augment::delete(game_io, resources, simulation, id, index);
             }
         } else if level_boost > 0 {
             // create
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let globals = game_io.resource::<Globals>().unwrap();
             let package_id = PackageId::from(augment_id);
             let namespace = player.namespace();
             let package = globals
@@ -1575,7 +1635,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let package_info = &package.package_info;
 
-            let vm_manager = &api_ctx.resources.vm_manager;
+            let vm_manager = &resources.vm_manager;
             let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
             let index = player
@@ -1590,9 +1650,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 .unwrap_or_default();
 
             if has_init {
-                let result = api_ctx.simulation.call_global(
-                    api_ctx.game_io,
-                    api_ctx.resources,
+                let result = simulation.call_global(
+                    game_io,
+                    resources,
                     vm_index,
                     "augment_init",
                     move |lua| create_augment_table(lua, id, index),

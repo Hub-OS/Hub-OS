@@ -19,6 +19,9 @@ pub const BATTLE_PREVIEW_SIZE_F: Vec2 = Vec2::new(72.0, 56.0);
 
 // battle
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
+pub const CARD_SELECT_CARD_COLS: usize = 5;
+pub const CARD_SELECT_COLS: usize = CARD_SELECT_CARD_COLS + 1;
+pub const CARD_SELECT_ROWS: usize = 2;
 
 // tile states
 pub const POISON_INTERVAL: FrameTime = 7;

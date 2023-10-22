@@ -3,6 +3,7 @@ mod animation_api;
 mod augment_api;
 mod battle_lua_api;
 mod built_in_api;
+mod card_select_button_api;
 mod component_api;
 mod defense_rule_api;
 mod encounter_init;
@@ -25,6 +26,7 @@ mod turn_gauge_api;
 pub use action_api::create_action_table;
 pub use augment_api::create_augment_table;
 pub use battle_lua_api::*;
+pub use card_select_button_api::*;
 pub use encounter_init::encounter_init;
 pub use entity_api::create_entity_table;
 pub use movement_api::create_movement_table;
@@ -76,6 +78,7 @@ pub const HIT_PROPS_TABLE: &str = "HitProps";
 pub const HITBOX_TABLE: &str = "Hitbox";
 pub const SHARED_HITBOX_TABLE: &str = "SharedHitbox";
 pub const AUGMENT_TABLE: &str = "Augment";
+pub const CARD_SELECT_BUTTON_TABLE: &str = "CardSelectButton";
 pub const AUX_PROP_TABLE: &str = "AuxProp";
 
 // callbacks
@@ -119,6 +122,9 @@ const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 // player forms and buttons
 const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
+
+// buttons
+const UNDO_FN: &str = "on_undo_func";
 
 // defense rules
 pub const BLOCK_FN: &str = "can_block_func";

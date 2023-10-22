@@ -16,11 +16,13 @@ use std::sync::Arc;
 const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
 const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
+const CARD_COLS: usize = CARD_SELECT_CARD_COLS;
 
 #[derive(Enum, Clone, Copy, PartialEq, Eq)]
 enum UiPoint {
     CardStart,
     Confirm,
+    SpecialButton,
     Preview,
     FormListStart,
     SelectedCardStart,
@@ -31,6 +33,8 @@ struct Selection {
     col: i32,
     row: i32,
     form_row: usize,
+    card_button_width: usize,
+    has_special_button: bool,
     form_select_time: Option<FrameTime>,
     selected_form_index: Option<usize>,
     selected_card_indices: Vec<usize>,
@@ -45,7 +49,6 @@ struct Selection {
 enum SelectedItem {
     Card(usize),
     CardButton,
-    WideButton,
     SpecialButton,
     Confirm,
     None,
@@ -112,18 +115,25 @@ impl State for CardSelectState {
 
         // we'll only see our own selection
         // but we must simulate every player's input to stay in sync
-        for (_, player) in (simulation.entities).query_mut::<&Player>() {
-            if player.index >= self.player_selections.len() {
+        let id_index_local_tuples = simulation
+            .entities
+            .query_mut::<&Player>()
+            .into_iter()
+            .map(|(id, player)| (id.into(), player.index, player.local))
+            .collect::<Vec<(EntityId, usize, bool)>>();
+
+        for (entity_id, player_index, local) in id_index_local_tuples {
+            if player_index >= self.player_selections.len() {
                 self.player_selections
-                    .resize_with(player.index + 1, Selection::default);
+                    .resize_with(player_index + 1, Selection::default);
 
                 // initialize selection
-                let selection = &mut self.player_selections[player.index];
-                selection.local = player.local;
+                let selection = &mut self.player_selections[player_index];
+                selection.local = local;
                 selection.animating_slide = true;
             }
 
-            let selection = &mut self.player_selections[player.index];
+            let selection = &mut self.player_selections[player_index];
 
             // unmark as erased
             selection.erased = false;
@@ -133,21 +143,15 @@ impl State for CardSelectState {
                 continue;
             }
 
-            let input = &simulation.inputs[player.index];
-            self.handle_input(
-                game_io,
-                resources,
-                player,
-                input,
-                simulation.is_resimulation,
-            );
+            self.handle_input(game_io, resources, simulation, entity_id, player_index);
         }
-
-        self.animate_form_list(simulation);
 
         for i in 0..self.player_selections.len() {
             self.animate_slide(simulation, i);
         }
+
+        self.animate_form_list(simulation);
+        self.update_buttons(simulation);
 
         let all_confirmed = (self.player_selections).iter().all(|selection| {
             selection.erased || (!selection.animating_slide && selection.confirm_time != 0)
@@ -171,9 +175,10 @@ impl State for CardSelectState {
             return;
         }
 
+        let entity_id = simulation.local_player_id;
         let entities = &mut simulation.entities;
-        let Ok((entity, player)) =
-            entities.query_one_mut::<(&Entity, &Player)>(simulation.local_player_id.into())
+
+        let Ok((entity, player)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into())
         else {
             return;
         };
@@ -240,6 +245,26 @@ impl State for CardSelectState {
             card.draw_icon(game_io, sprite_queue, position);
         }
 
+        // draw buttons
+        let card_button = PlayerOverridables::flat_map_for(player, |overridables| {
+            overridables.card_button.as_ref()
+        })
+        .next();
+
+        if let Some(button) = card_button {
+            sprite_queue.draw_sprite(&button.sprite);
+        }
+
+        let special_button = PlayerOverridables::flat_map_for(player, |card_button| {
+            card_button.special_button.as_ref()
+        })
+        .next();
+
+        if let Some(button) = special_button {
+            sprite_queue.draw_sprite(&button.sprite);
+        }
+
+        // drawing selection
         if let Some(time) = selection.form_open_time {
             // draw form selection
 
@@ -312,38 +337,55 @@ impl State for CardSelectState {
             let selected_item = resolve_selected_item(player, selection);
 
             if selection.confirm_time == 0 {
+                let animator = &mut self.animator;
+                let root_offset = self.sprites.root().offset();
+                let mut draw_state_at = |state: &str, position: Vec2| {
+                    animator.set_state(state);
+                    animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    animator.sync_time(self.time);
+                    animator.apply(&mut recycled_sprite);
+                    recycled_sprite.set_position(position + root_offset);
+                    sprite_queue.draw_sprite(&recycled_sprite);
+                };
+
                 match selected_item {
                     SelectedItem::Card(_) => {
-                        self.animator.set_state("CARD_CURSOR");
-                        self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        self.animator.sync_time(self.time);
+                        let position = calculate_icon_position(
+                            self.points[UiPoint::CardStart],
+                            selection.col,
+                            selection.row,
+                        );
 
-                        let offset = self.calculate_icon_position(selection.col, selection.row);
-
-                        self.animator.apply(&mut recycled_sprite);
-                        recycled_sprite.set_position(offset);
-                        sprite_queue.draw_sprite(&recycled_sprite);
+                        draw_state_at("CARD_CURSOR", position);
                     }
                     SelectedItem::Confirm => {
-                        self.animator.set_state("SIDE_CURSOR");
-                        self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                        self.animator.sync_time(self.time);
+                        draw_state_at("CONFIRM_CURSOR", self.points[UiPoint::Confirm]);
+                    }
+                    SelectedItem::SpecialButton => {
+                        draw_state_at("SPECIAL_CURSOR", self.points[UiPoint::SpecialButton]);
+                    }
+                    SelectedItem::CardButton => {
+                        let button_width = selection.card_button_width;
+                        let start_position = calculate_icon_position(
+                            self.points[UiPoint::CardStart],
+                            CARD_COLS.saturating_sub(button_width) as i32,
+                            CARD_SELECT_ROWS as i32 - 1,
+                        );
 
-                        self.animator.apply(&mut recycled_sprite);
-                        recycled_sprite.set_position(self.points[UiPoint::Confirm]);
-                        sprite_queue.draw_sprite(&recycled_sprite);
+                        let end_position = calculate_icon_position(
+                            self.points[UiPoint::CardStart],
+                            CARD_COLS as i32,
+                            CARD_SELECT_ROWS as i32 - 1,
+                        );
+
+                        draw_state_at("CARD_BUTTON_LEFT_CURSOR", start_position);
+                        draw_state_at("CARD_BUTTON_RIGHT_CURSOR", end_position);
                     }
                     _ => {}
                 }
 
                 if player.has_regular_card {
-                    self.animator.set_state("REGULAR_FRAME");
-                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    self.animator.sync_time(self.time);
-                    self.animator.apply(&mut recycled_sprite);
-
-                    recycled_sprite.set_position(self.sprites.root().offset());
-                    sprite_queue.draw_sprite(&recycled_sprite);
+                    draw_state_at("REGULAR_FRAME", Vec2::ZERO);
                 }
             }
 
@@ -372,10 +414,7 @@ impl State for CardSelectState {
                     recycled_sprite.set_position(preview_point);
                     sprite_queue.draw_sprite(&recycled_sprite);
                 }
-                SelectedItem::CardButton
-                | SelectedItem::WideButton
-                | SelectedItem::SpecialButton
-                | SelectedItem::None => {
+                SelectedItem::CardButton | SelectedItem::SpecialButton | SelectedItem::None => {
                     // unreachable, currently
                 }
             }
@@ -514,6 +553,7 @@ impl CardSelectState {
             enum_map! {
                 UiPoint::CardStart => ("ROOT", "CARD_START"),
                 UiPoint::Confirm => ("ROOT", "CONFIRM"),
+                UiPoint::SpecialButton => ("ROOT", "SPECIAL"),
                 UiPoint::FormListStart => ("FORM_LIST_FRAME", "START"),
                 UiPoint::Preview => ("STANDARD_FRAME", "PREVIEW"),
                 UiPoint::SelectedCardStart => ("SELECTION_FRAME", "START"),
@@ -538,11 +578,11 @@ impl CardSelectState {
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        player: &Player,
-        input: &PlayerInput,
-        is_resimulation: bool,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        player_index: usize,
     ) {
-        let selection = &mut self.player_selections[player.index];
+        let selection = &mut self.player_selections[player_index];
 
         if let Some(time) = selection.form_select_time {
             let elapsed = self.time - time;
@@ -553,10 +593,8 @@ impl CardSelectState {
                     selection.form_open_time = None;
 
                     // sfx
-                    if !is_resimulation {
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.transform_select);
-                    }
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    simulation.play_sound(game_io, &globals.sfx.transform_select);
 
                     return;
                 }
@@ -569,9 +607,9 @@ impl CardSelectState {
         }
 
         if selection.form_open_time.is_some() {
-            self.handle_form_input(game_io, resources, player, input, is_resimulation);
+            self.handle_form_input(game_io, resources, simulation, entity_id);
         } else {
-            self.handle_card_input(game_io, resources, player, input, is_resimulation);
+            self.handle_card_input(game_io, resources, simulation, entity_id);
         }
     }
 
@@ -579,10 +617,18 @@ impl CardSelectState {
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        player: &Player,
-        input: &PlayerInput,
-        is_resimulation: bool,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
     ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let mut pending_sfx = Vec::new();
+
+        let input = &simulation.inputs[player.index];
         let selection = &mut self.player_selections[player.index];
 
         let prev_row = selection.form_row;
@@ -604,10 +650,9 @@ impl CardSelectState {
             }
         }
 
-        if prev_row != selection.form_row && selection.local && !is_resimulation {
+        if prev_row != selection.form_row && selection.local {
             // cursor move sfx
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.cursor_move);
+            pending_sfx.push(&globals.sfx.cursor_move);
         }
 
         if input.was_just_pressed(Input::Confirm) {
@@ -624,9 +669,8 @@ impl CardSelectState {
             }
 
             // sfx
-            if selection.local && !is_resimulation {
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.cursor_select);
+            if selection.local {
+                pending_sfx.push(&globals.sfx.cursor_select);
             }
         }
 
@@ -635,22 +679,23 @@ impl CardSelectState {
             selection.form_open_time = None;
 
             // sfx
-            if selection.local && !is_resimulation {
-                let globals = game_io.resource::<Globals>().unwrap();
-                globals.audio.play_sound(&globals.sfx.form_select_close);
+            if selection.local {
+                pending_sfx.push(&globals.sfx.form_select_close);
             }
         }
 
-        if is_resimulation || !selection.local {
-            // the rest deals with signals
-            return;
+        if selection.local && !simulation.is_resimulation {
+            // dealing with signals
+            if input.was_just_pressed(Input::Info) {
+                if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
+                    let event = BattleEvent::Description((*form.description).clone());
+                    resources.event_sender.send(event).unwrap();
+                }
+            }
         }
 
-        if input.was_just_pressed(Input::Info) {
-            if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
-                let event = BattleEvent::Description((*form.description).clone());
-                resources.event_sender.send(event).unwrap();
-            }
+        for sfx in pending_sfx {
+            simulation.play_sound(game_io, sfx);
         }
     }
 
@@ -658,10 +703,18 @@ impl CardSelectState {
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        player: &Player,
-        input: &PlayerInput,
-        is_resimulation: bool,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
     ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let mut pending_sfx = Vec::new();
+
+        let input = &simulation.inputs[player.index];
         let selection = &mut self.player_selections[player.index];
 
         let previous_item = resolve_selected_item(player, selection);
@@ -677,8 +730,7 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.form_select_open);
+            pending_sfx.push(&globals.sfx.form_select_open);
             return;
         }
 
@@ -701,9 +753,8 @@ impl CardSelectState {
         let selected_item = resolve_selected_item(player, selection);
 
         // sfx
-        if previous_item != selected_item && selection.local && !is_resimulation {
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.cursor_move);
+        if previous_item != selected_item && selection.local {
+            pending_sfx.push(&globals.sfx.cursor_move);
         }
 
         if input.was_just_pressed(Input::Confirm) {
@@ -712,9 +763,8 @@ impl CardSelectState {
                     selection.confirm_time = self.time;
 
                     // sfx
-                    if selection.local && !is_resimulation {
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.card_select_confirm);
+                    if selection.local {
+                        pending_sfx.push(&globals.sfx.card_select_confirm);
                     }
                 }
                 SelectedItem::Card(index) => {
@@ -724,14 +774,12 @@ impl CardSelectState {
                         selection.selected_card_indices.push(index);
 
                         // sfx
-                        if selection.local && !is_resimulation {
-                            let globals = game_io.resource::<Globals>().unwrap();
-                            globals.audio.play_sound(&globals.sfx.cursor_select);
+                        if selection.local {
+                            pending_sfx.push(&globals.sfx.cursor_select);
                         }
-                    } else if selection.local && !is_resimulation {
+                    } else if selection.local {
                         // error sfx
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.cursor_error);
+                        pending_sfx.push(&globals.sfx.cursor_error);
                     }
                 }
                 _ => {}
@@ -739,7 +787,6 @@ impl CardSelectState {
         }
 
         if input.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
             let mut applied = false;
 
             if !selection.selected_card_indices.is_empty() {
@@ -749,17 +796,17 @@ impl CardSelectState {
                 selection.selected_form_index = None;
                 applied = true;
 
-                if selection.local && !is_resimulation {
-                    globals.audio.play_sound(&globals.sfx.transform_revert);
+                if selection.local {
+                    pending_sfx.push(&globals.sfx.transform_revert);
                 }
             }
 
             // sfx
-            if selection.local && !is_resimulation {
+            if selection.local {
                 if applied {
-                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                    pending_sfx.push(&globals.sfx.cursor_cancel);
                 } else {
-                    globals.audio.play_sound(&globals.sfx.cursor_error);
+                    pending_sfx.push(&globals.sfx.cursor_error);
                 }
             }
         }
@@ -773,23 +820,25 @@ impl CardSelectState {
             selection.confirm_time = self.time;
         }
 
-        if selection.confirm_time != 0 || is_resimulation || !selection.local {
-            // the rest deals with signals
-            return;
-        }
-
-        if input.was_just_pressed(Input::Flee) {
-            let event = BattleEvent::RequestFlee;
-            resources.event_sender.send(event).unwrap();
-        }
-
-        if input.was_just_pressed(Input::Info) {
-            if let SelectedItem::Card(index) = selected_item {
-                let card = &player.deck[index];
-
-                let event = BattleEvent::DescribeCard(card.package_id.clone());
+        if selection.local && !simulation.is_resimulation && selection.confirm_time == 0 {
+            // dealing with signals
+            if input.was_just_pressed(Input::Flee) {
+                let event = BattleEvent::RequestFlee;
                 resources.event_sender.send(event).unwrap();
             }
+
+            if input.was_just_pressed(Input::Info) {
+                if let SelectedItem::Card(index) = selected_item {
+                    let card = &player.deck[index];
+
+                    let event = BattleEvent::DescribeCard(card.package_id.clone());
+                    resources.event_sender.send(event).unwrap();
+                }
+            }
+        }
+
+        for sfx in pending_sfx {
+            simulation.play_sound(game_io, sfx);
         }
     }
 
@@ -858,6 +907,60 @@ impl CardSelectState {
         Character::mutate_cards(game_io, resources, simulation);
 
         self.completed = true;
+    }
+
+    fn update_buttons(&mut self, simulation: &mut BattleSimulation) {
+        let entities = &mut simulation.entities;
+        let root_offset = self.sprites.root().offset();
+
+        // we must update buttons for every player to keep the game in sync
+        for (_, player) in entities.query_mut::<&mut Player>() {
+            let selection = &mut self.player_selections[player.index];
+
+            let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
+                overridables.card_button.as_mut()
+            })
+            .next();
+
+            if let Some(button) = card_button {
+                let button_width = button.slot_width.min(CARD_COLS);
+
+                // update position
+                let position = calculate_icon_position(
+                    self.points[UiPoint::CardStart],
+                    CARD_COLS.saturating_sub(button_width) as i32,
+                    CARD_SELECT_ROWS as i32 - 1,
+                ) + root_offset;
+
+                button.sprite.set_position(position);
+
+                // animate
+                let animator = &mut simulation.animators[button.animator_index];
+                simulation.pending_callbacks.extend(animator.update());
+                animator.animator().apply(&mut button.sprite);
+
+                // update slot width
+                selection.card_button_width = button_width;
+            }
+
+            let special_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
+                overridables.special_button.as_mut()
+            })
+            .next();
+
+            selection.has_special_button = special_button.is_some();
+
+            if let Some(button) = special_button {
+                // update position
+                let position = self.points[UiPoint::SpecialButton] + root_offset;
+                button.sprite.set_position(position);
+
+                // animate
+                let animator = &mut simulation.animators[button.animator_index];
+                simulation.pending_callbacks.extend(animator.update());
+                animator.animator().apply(&mut button.sprite);
+            }
+        }
     }
 
     fn animate_form_list(&mut self, simulation: &mut BattleSimulation) {
@@ -960,8 +1063,8 @@ impl CardSelectState {
             .take(player.hand_size())
             .enumerate()
             .map(move |(i, card)| {
-                let col = i % 5;
-                let row = i / 5;
+                let col = i % CARD_COLS;
+                let row = i / CARD_COLS;
 
                 let top_left = calculate_icon_position(start, col as i32, row as i32);
 
@@ -1012,22 +1115,35 @@ fn calculate_icon_position(start: Vec2, col: i32, row: i32) -> Vec2 {
 }
 
 fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem {
-    if selection.row == 0 && selection.col == 5 {
+    let col = selection.col as usize;
+    let row = selection.row as usize;
+
+    if row == 0 && col == CARD_SELECT_COLS - 1 {
         return SelectedItem::Confirm;
     }
 
-    if selection.row == 1 && selection.col == 5 {
-        return SelectedItem::Confirm;
+    if row == 1 && col == CARD_SELECT_COLS - 1 {
+        return if selection.has_special_button {
+            SelectedItem::SpecialButton
+        } else {
+            SelectedItem::Confirm
+        };
+    }
+
+    let card_button_range = (CARD_COLS - selection.card_button_width)..(CARD_COLS + 1);
+
+    if row == 1 && card_button_range.contains(&col) {
+        return SelectedItem::CardButton;
     }
 
     let card_view_size = player.deck.len().min(player.hand_size());
-    let card_index = (selection.row * 5 + selection.col) as usize;
+    let card_index = row * CARD_COLS + col;
 
     if card_index < card_view_size {
         return SelectedItem::Card(card_index);
     }
 
-    // todo: Wide, Card, Special
+    // todo: Card
 
     SelectedItem::None
 }
@@ -1103,7 +1219,6 @@ fn resolve_card_restriction<'a>(player: &'a Player, selection: &Selection) -> Ca
 
 fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {
     let previous_selection = resolve_selected_item(player, selection);
-    let mut same_selection_encountered = false;
 
     // 6 attempts, we should've looped back around by then
     for _ in 0..6 {
@@ -1111,15 +1226,15 @@ fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32
         selection.row += row_diff;
 
         if selection.col == -1 {
-            selection.col = 5;
+            selection.col = CARD_SELECT_COLS as i32 - 1;
         }
 
         if selection.row == -1 {
-            selection.row = 1;
+            selection.row = CARD_SELECT_ROWS as i32 - 1;
         }
 
-        selection.col %= 6;
-        selection.row %= 2;
+        selection.col %= CARD_SELECT_COLS as i32;
+        selection.row %= CARD_SELECT_ROWS as i32;
 
         let new_selection = resolve_selected_item(player, selection);
 
@@ -1127,9 +1242,8 @@ fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32
             continue;
         }
 
-        if new_selection == previous_selection && !same_selection_encountered {
-            // account for wide buttons
-            same_selection_encountered = true;
+        if new_selection == previous_selection {
+            // selection takes up multiple slots
             continue;
         }
 

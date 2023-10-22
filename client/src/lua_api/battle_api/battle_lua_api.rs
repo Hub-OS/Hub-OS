@@ -78,6 +78,7 @@ impl BattleLuaApi {
         super::turn_gauge_api::inject_turn_gauge_api(&mut lua_api);
         super::entity_api::inject_entity_api(&mut lua_api);
         super::player_form_api::inject_player_form_api(&mut lua_api);
+        super::card_select_button_api::inject_card_select_button_api(&mut lua_api);
         super::component_api::inject_component_api(&mut lua_api);
         super::action_api::inject_action_api(&mut lua_api);
         super::movement_api::inject_movement_api(&mut lua_api);

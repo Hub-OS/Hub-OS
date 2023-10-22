@@ -1,11 +1,17 @@
-use super::{BattleCallback, BattleSimulation, Entity, Player, SharedBattleResources};
+use super::{
+    BattleAnimator, BattleCallback, BattleSimulation, CardSelectButton, Entity, Player,
+    SharedBattleResources,
+};
 use crate::bindable::{CardProperties, EntityId, GenerationalIndex};
 use crate::render::FrameTime;
+use crate::structures::SlotMap;
 use framework::prelude::GameIO;
 use packets::structures::Direction;
 
 #[derive(Default, Clone)]
 pub struct PlayerOverridables {
+    pub card_button: Option<CardSelectButton>,
+    pub special_button: Option<CardSelectButton>,
     pub calculate_charge_time: Option<BattleCallback<u8, FrameTime>>,
     pub normal_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -54,7 +60,7 @@ impl PlayerOverridables {
         }
     }
 
-    pub fn flat_map_for<'a, T: 'a>(
+    pub fn flat_map_mut_for<'a, T: 'a>(
         player: &'a mut Player,
         map: impl Fn(&'a mut Self) -> Option<T> + Clone + 'static,
     ) -> impl Iterator<Item = T> + 'a {
@@ -79,5 +85,42 @@ impl PlayerOverridables {
         form_callback_iter
             .chain(augment_callback_iter)
             .chain(player_callback_iter)
+    }
+
+    pub fn flat_map_for<'a, T: 'a>(
+        player: &'a Player,
+        map: impl Fn(&'a Self) -> Option<T> + Clone + 'static,
+    ) -> impl Iterator<Item = T> + 'a {
+        // form
+        let form_iter = player
+            .active_form
+            .and_then(|index| player.forms.get(index))
+            .into_iter();
+
+        let form_map = map.clone();
+        let form_callback_iter = form_iter.flat_map(move |form| form_map(&form.overridables));
+
+        // augment
+        let augment_iter = player.augments.values();
+        let augment_map = map.clone();
+        let augment_callback_iter =
+            augment_iter.flat_map(move |augment| augment_map(&augment.overridables));
+
+        // base
+        let player_callback_iter = map(&player.overridables).into_iter();
+
+        form_callback_iter
+            .chain(augment_callback_iter)
+            .chain(player_callback_iter)
+    }
+
+    pub fn delete_self(self, animators: &mut SlotMap<BattleAnimator>) {
+        if let Some(button) = self.card_button {
+            animators.remove(button.animator_index);
+        }
+
+        if let Some(button) = self.special_button {
+            animators.remove(button.animator_index);
+        }
     }
 }

@@ -1,71 +1,84 @@
 # @frame_rate 60
 
 animation state="ROOT"
-frame duration="0f" x="236" y="192" w="120" h="64" originx="0" originy="-96" flipx="0" flipy="0"
+frame x="236" y="192" w="120" h="64" originy="-96"
 point label="CARD_START" x="9" y="9"
 point label="CONFIRM" x="91" y="16"
+point label="SPECIAL" x="103.5" y="48"
 
 animation state="STANDARD_FRAME"
-frame duration="0f" x="0" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+frame x="0" y="0" w="88" h="100"
 point label="PREVIEW" x="44" y="24"
 
 animation state="MEGA_FRAME"
-frame duration="0f" x="89" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+frame x="89" y="0" w="88" h="100"
 
 animation state="GIGA_FRAME"
-frame duration="0f" x="0" y="101" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+frame x="0" y="101" w="88" h="100"
 
 animation state="DARK_FRAME"
-frame duration="0f" x="89" y="101" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+frame x="89" y="101" w="88" h="100"
 
 animation state="EMPTY_MESSAGE"
-frame duration="0f" x="178" y="0" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
+frame x="178" y="0" w="56" h="48" originx="28"
 
 animation state="CONFIRM_MESSAGE"
-frame duration="0f" x="178" y="49" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
+frame x="178" y="49" w="56" h="48" originx="28"
 
 animation state="ERROR_MESSAGE"
-frame duration="0f" x="178" y="98" w="56" h="48" originx="28" originy="0" flipx="0" flipy="0"
+frame x="178" y="98" w="56" h="48" originx="28"
 
 animation state="FORM_LIST_FRAME"
-frame duration="3f" x="235" y="0" w="88" h="100" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="3f" x="235" y="0" w="88" h="100"
 point label="START" x="8" y="8"
 point label="INITIAL_ORIGIN" x="0" y="-88"
 
 animation state="FORM_TAB"
-frame duration="50f" x="235" y="101" w="88" h="12" originx="0" originy="-88" flipx="0" flipy="0"
+frame duration="50f" x="235" y="101" w="88" h="12" originx="0" originy="-88"
 
 animation state="FORM_FRAME"
-frame duration="50f" x="235" y="114" w="72" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="235" y="114" w="72" h="16"
 
 animation state="SELECTION_FRAME"
-frame duration="0f" x="324" y="0" w="32" h="111" originx="-88" originy="0" flipx="0" flipy="0"
+frame x="324" y="0" w="32" h="111" originx="-88"
 point label="START" x="9" y="25"
 
 animation state="SELECTED_FRAME"
-frame duration="0f" x="329" y="112" w="22" h="16" originx="4" originy="1" flipx="0" flipy="0"
+frame x="329" y="112" w="22" h="16" originx="4" originy="1"
 
 animation state="CARD_CURSOR"
-frame duration="8f" x="0" y="202" w="18" h="18" originx="2" originy="2" flipx="0" flipy="0"
-frame duration="8f" x="19" y="202" w="22" h="22" originx="4" originy="4" flipx="0" flipy="0"
+frame duration="8f" x="0" y="202" w="18" h="18" originx="2" originy="2"
+frame duration="8f" x="19" y="202" w="22" h="22" originx="4" originy="4"
 
-animation state="SIDE_CURSOR"
-frame duration="8f" x="53" y="202" w="25" h="22" originx="0" originy="1" flipx="0" flipy="0"
-frame duration="8f" x="79" y="202" w="29" h="26" originx="2" originy="3" flipx="0" flipy="0"
+animation state="CARD_BUTTON_LEFT_CURSOR"
+frame duration="8f" x="58" y="229" w="6" h="22" originx="1" originy="0"
+frame duration="8f" x="72" y="229" w="6" h="26" originx="2" originy="2"
+
+animation state="CARD_BUTTON_RIGHT_CURSOR"
+frame duration="8f" x="65" y="229" w="6" h="22" originx="7" originy="0"
+frame duration="8f" x="79" y="229" w="6" h="26" originx="6" originy="2"
+
+animation state="SPECIAL_CURSOR"
+frame duration="8f" x="0" y="225" w="27" h="18" originx="13.5" originy="9"
+frame duration="8f" x="28" y="225" w="29" h="20" originx="14.5" originy="10"
+
+animation state="CONFIRM_CURSOR"
+frame duration="8f" x="53" y="202" w="25" h="22" originx="0" originy="1"
+frame duration="8f" x="79" y="202" w="29" h="26" originx="2" originy="3"
 
 animation state="FORM_CURSOR"
-frame duration="8f" x="109" y="202" w="72" h="18" originx="0" originy="1" flipx="0" flipy="0"
-frame duration="8f" x="109" y="223" w="72" h="18" originx="0" originy="1" flipx="0" flipy="0"
+frame duration="8f" x="109" y="202" w="72" h="18" originx="0" originy="1"
+frame duration="8f" x="109" y="223" w="72" h="18" originx="0" originy="1"
 
 animation state="ICON_FRAME"
-frame duration="50f" x="244" y="200" w="16" h="24" originx="1" originy="1" flipx="0" flipy="0"
+frame duration="50f" x="244" y="200" w="16" h="24" originx="1" originy="1"
 
 animation state="NAME_PLATE"
-frame duration="50f" x="356" y="178" w="1" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="356" y="178" w="1" h="11" originx="0"
 
 animation state="NAME_PLATE_EDGE"
-frame duration="50f" x="346" y="178" w="9" h="11" originx="9" originy="0" flipx="0" flipy="0"
+frame duration="50f" x="346" y="178" w="9" h="11" originx="9"
 
 animation state="REGULAR_FRAME"
-frame duration="8f" x="214" y="214" w="21" h="18" originx="-4" originy="-103" flipx="0" flipy="0"
-frame duration="8f" x="214" y="237" w="21" h="18" originx="-4" originy="-103" flipx="0" flipy="0"
+frame duration="8f" x="214" y="214" w="21" h="18" originx="-4" originy="-103"
+frame duration="8f" x="214" y="237" w="21" h="18" originx="-4" originy="-103"

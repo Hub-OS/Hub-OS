@@ -1,9 +1,10 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{
-    BattleLuaApi, ACTIVATE_FN, CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN,
-    CHARGE_TIMING_FN, DEACTIVATE_FN, MOVEMENT_FN, PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN, UPDATE_FN,
+    create_card_select_button_and_table, BattleLuaApi, ACTIVATE_FN, CAN_CHARGE_CARD_FN,
+    CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, MOVEMENT_FN,
+    PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
-use crate::battle::{BattleCallback, Player, PlayerForm};
+use crate::battle::{BattleCallback, CardSelectButtonPath, Player, PlayerForm};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
@@ -55,6 +56,70 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
             form.description = Arc::new(description);
 
             lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        PLAYER_FORM_TABLE,
+        "create_card_button",
+        |api_ctx, lua, params| {
+            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let entity_table: rollback_mlua::Table = table.raw_get("#entity")?;
+            let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+
+            let button_path = CardSelectButtonPath {
+                entity_id,
+                form_index: Some(table.raw_get("#index")?),
+                augment_index: None,
+                uses_card_slots: true,
+            };
+
+            let table = create_card_select_button_and_table(
+                game_io,
+                simulation,
+                lua,
+                &entity_table,
+                button_path,
+                slot_width,
+            )?;
+
+            lua.pack_multi(table)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        PLAYER_FORM_TABLE,
+        "create_special_button",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+            let entity_table: rollback_mlua::Table = table.raw_get("#entity")?;
+            let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+
+            let button_path = CardSelectButtonPath {
+                entity_id,
+                form_index: Some(table.raw_get("#index")?),
+                augment_index: None,
+                uses_card_slots: false,
+            };
+
+            let table = create_card_select_button_and_table(
+                game_io,
+                simulation,
+                lua,
+                &entity_table,
+                button_path,
+                1,
+            )?;
+
+            lua.pack_multi(table)
         },
     );
 
