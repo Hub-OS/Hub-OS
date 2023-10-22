@@ -163,7 +163,9 @@ fn button_mut_from_table<'a>(
         uses_card_slots,
     };
 
-    CardSelectButton::resolve_button_option_mut(simulation, button_path)?.as_mut()
+    CardSelectButton::resolve_button_option_mut(simulation, button_path)?
+        .as_mut()
+        .map(|button| &mut **button)
 }
 
 pub fn create_card_select_button_and_table<'lua>(
@@ -187,7 +189,8 @@ pub fn create_card_select_button_and_table<'lua>(
         return Err(button_already_exists());
     }
 
-    *button_option = Some(CardSelectButton::new(game_io, animator_index, slot_width));
+    let button = CardSelectButton::new(game_io, animator_index, slot_width);
+    *button_option = Some(Box::new(button));
 
     // create the table
     let table = lua.create_table()?;

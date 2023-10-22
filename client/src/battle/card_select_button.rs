@@ -42,7 +42,7 @@ impl CardSelectButton {
     pub fn resolve_button_option_mut(
         simulation: &mut BattleSimulation,
         button_path: CardSelectButtonPath,
-    ) -> Option<&mut Option<Self>> {
+    ) -> Option<&mut Option<Box<Self>>> {
         let entities = &mut simulation.entities;
         let player = entities
             .query_one_mut::<&mut Player>(button_path.entity_id.into())

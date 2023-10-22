@@ -10,8 +10,8 @@ use packets::structures::Direction;
 
 #[derive(Default, Clone)]
 pub struct PlayerOverridables {
-    pub card_button: Option<CardSelectButton>,
-    pub special_button: Option<CardSelectButton>,
+    pub card_button: Option<Box<CardSelectButton>>,
+    pub special_button: Option<Box<CardSelectButton>>,
     pub calculate_charge_time: Option<BattleCallback<u8, FrameTime>>,
     pub normal_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
