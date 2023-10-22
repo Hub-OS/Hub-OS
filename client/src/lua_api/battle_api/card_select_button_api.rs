@@ -1,34 +1,13 @@
 use super::animation_api::create_animation_table;
 use super::errors::{button_already_exists, button_not_found};
 use super::{BattleLuaApi, ACTIVATE_FN, CARD_SELECT_BUTTON_TABLE, UNDO_FN};
-use crate::battle::{
-    BattleAnimator, BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath,
-};
+use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
 use framework::prelude::GameIO;
 
 pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(
-        CARD_SELECT_BUTTON_TABLE,
-        "set_preview_texture",
-        move |api_ctx, lua, params| {
-            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-            let path = absolute_path(lua, path)?;
-
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let game_io = api_ctx.game_io;
-            let globals = game_io.resource::<Globals>().unwrap();
-            let simulation = &mut api_ctx.simulation;
-
-            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
-            button.preview_texture = globals.assets.texture(game_io, &path);
-
-            lua.pack_multi(())
-        },
-    );
-
     lua_api.add_dynamic_function(
         CARD_SELECT_BUTTON_TABLE,
         "set_texture",
@@ -60,6 +39,42 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
 
             let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
             let animation_table = create_animation_table(lua, button.animator_index)?;
+
+            lua.pack_multi(animation_table)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "set_preview_texture",
+        move |api_ctx, lua, params| {
+            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+            let path = absolute_path(lua, path)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let globals = game_io.resource::<Globals>().unwrap();
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+            let texture = globals.assets.texture(game_io, &path);
+            button.preview_sprite.set_texture(texture);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "preview_animation",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+            let animation_table = create_animation_table(lua, button.preview_animator_index)?;
 
             lua.pack_multi(animation_table)
         },
@@ -163,7 +178,8 @@ fn button_mut_from_table<'a>(
         uses_card_slots,
     };
 
-    CardSelectButton::resolve_button_option_mut(simulation, button_path)?
+    let entities = &mut simulation.entities;
+    CardSelectButton::resolve_button_option_mut(entities, button_path)?
         .as_mut()
         .map(|button| &mut **button)
 }
@@ -179,17 +195,16 @@ pub fn create_card_select_button_and_table<'lua>(
     let entity_id: EntityId = entity_table.get("#id")?;
 
     // create the button
-    let animator_index = simulation.animators.insert(BattleAnimator::new());
-    let button_option = CardSelectButton::resolve_button_option_mut(simulation, button_path)
+    let entities = &mut simulation.entities;
+    let button_option = CardSelectButton::resolve_button_option_mut(entities, button_path)
         .ok_or_else(button_not_found)?;
 
     if button_option.is_some() {
-        // delete the animator on failure
-        simulation.animators.remove(animator_index);
+        // delete the animators on failure
         return Err(button_already_exists());
     }
 
-    let button = CardSelectButton::new(game_io, animator_index, slot_width);
+    let button = CardSelectButton::new(game_io, &mut simulation.animators, slot_width);
     *button_option = Some(Box::new(button));
 
     // create the table

@@ -414,9 +414,17 @@ impl State for CardSelectState {
                     recycled_sprite.set_position(preview_point);
                     sprite_queue.draw_sprite(&recycled_sprite);
                 }
-                SelectedItem::CardButton | SelectedItem::SpecialButton | SelectedItem::None => {
-                    // unreachable, currently
+                SelectedItem::CardButton => {
+                    if let Some(button) = card_button {
+                        sprite_queue.draw_sprite(&button.preview_sprite);
+                    }
                 }
+                SelectedItem::SpecialButton => {
+                    if let Some(button) = special_button {
+                        sprite_queue.draw_sprite(&button.preview_sprite);
+                    }
+                }
+                SelectedItem::None => {}
             }
         }
 
@@ -911,11 +919,18 @@ impl CardSelectState {
 
     fn update_buttons(&mut self, simulation: &mut BattleSimulation) {
         let entities = &mut simulation.entities;
+        let animators = &mut simulation.animators;
+        let pending_callbacks = &mut simulation.pending_callbacks;
+
         let root_offset = self.sprites.root().offset();
+
+        let mut preview_position = self.points[UiPoint::Preview] + root_offset;
+        preview_position.x -= CARD_PREVIEW_SIZE.x * 0.5;
 
         // we must update buttons for every player to keep the game in sync
         for (_, player) in entities.query_mut::<&mut Player>() {
             let selection = &mut self.player_selections[player.index];
+            let selected_item = resolve_selected_item(player, selection);
 
             let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
                 overridables.card_button.as_mut()
@@ -923,24 +938,23 @@ impl CardSelectState {
             .next();
 
             if let Some(button) = card_button {
+                // update slot width
                 let button_width = button.slot_width.min(CARD_COLS);
+                selection.card_button_width = button_width;
 
-                // update position
+                // animate
                 let position = calculate_icon_position(
                     self.points[UiPoint::CardStart],
                     CARD_COLS.saturating_sub(button_width) as i32,
                     CARD_SELECT_ROWS as i32 - 1,
                 ) + root_offset;
 
-                button.sprite.set_position(position);
+                button.animate_sprite(animators, pending_callbacks, position);
 
-                // animate
-                let animator = &mut simulation.animators[button.animator_index];
-                simulation.pending_callbacks.extend(animator.update());
-                animator.animator().apply(&mut button.sprite);
-
-                // update slot width
-                selection.card_button_width = button_width;
+                // animate preview sprite
+                if selected_item == SelectedItem::CardButton {
+                    button.animate_preview_sprite(animators, pending_callbacks, preview_position);
+                }
             }
 
             let special_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
@@ -951,14 +965,14 @@ impl CardSelectState {
             selection.has_special_button = special_button.is_some();
 
             if let Some(button) = special_button {
-                // update position
-                let position = self.points[UiPoint::SpecialButton] + root_offset;
-                button.sprite.set_position(position);
-
                 // animate
-                let animator = &mut simulation.animators[button.animator_index];
-                simulation.pending_callbacks.extend(animator.update());
-                animator.animator().apply(&mut button.sprite);
+                let position = self.points[UiPoint::SpecialButton] + root_offset;
+                button.animate_sprite(animators, pending_callbacks, position);
+
+                // animate preview sprite
+                if selected_item == SelectedItem::SpecialButton {
+                    button.animate_preview_sprite(animators, pending_callbacks, preview_position);
+                }
             }
         }
     }

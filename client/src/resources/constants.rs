@@ -14,9 +14,6 @@ pub const TRUE_RESOLUTION: UVec2 = UVec2::new(
 );
 pub const MAX_VOLUME: u8 = 100;
 
-// battle select
-pub const BATTLE_PREVIEW_SIZE_F: Vec2 = Vec2::new(72.0, 56.0);
-
 // battle
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const CARD_SELECT_CARD_COLS: usize = 5;

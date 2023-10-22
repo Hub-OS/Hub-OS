@@ -1,9 +1,8 @@
-use super::{BattleCallback, BattleSimulation, Player};
+use super::{BattleAnimator, BattleCallback, Player};
 use crate::bindable::EntityId;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
-use crate::structures::GenerationalIndex;
-use framework::prelude::{GameIO, Sprite, Texture};
-use std::sync::Arc;
+use crate::structures::{GenerationalIndex, SlotMap};
+use framework::prelude::{GameIO, Sprite, Vec2};
 
 #[derive(Clone, Copy)]
 pub struct CardSelectButtonPath {
@@ -16,34 +15,44 @@ pub struct CardSelectButtonPath {
 #[derive(Clone)]
 pub struct CardSelectButton {
     pub slot_width: usize,
-    pub preview_texture: Arc<Texture>,
     pub sprite: Sprite,
     pub animator_index: GenerationalIndex,
+    pub preview_sprite: Sprite,
+    pub preview_animator_index: GenerationalIndex,
     pub activate_callback: Option<BattleCallback<(), bool>>,
     pub undo_callback: Option<BattleCallback>,
 }
 
 impl CardSelectButton {
-    pub fn new(game_io: &GameIO, animator_index: GenerationalIndex, slot_width: usize) -> Self {
+    pub fn new(
+        game_io: &GameIO,
+        animators: &mut SlotMap<BattleAnimator>,
+        slot_width: usize,
+    ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
+
         let blank_texture = assets.texture(game_io, ResourcePaths::BLANK);
+        let blank_sprite = Sprite::new(game_io, blank_texture);
+
+        let animator_index = animators.insert(BattleAnimator::new());
+        let preview_animator_index = animators.insert(BattleAnimator::new());
 
         Self {
             slot_width,
-            preview_texture: blank_texture.clone(),
-            sprite: Sprite::new(game_io, blank_texture),
+            sprite: blank_sprite.clone(),
             animator_index,
+            preview_sprite: blank_sprite,
+            preview_animator_index,
             activate_callback: None,
             undo_callback: None,
         }
     }
 
     pub fn resolve_button_option_mut(
-        simulation: &mut BattleSimulation,
+        entities: &mut hecs::World,
         button_path: CardSelectButtonPath,
     ) -> Option<&mut Option<Box<Self>>> {
-        let entities = &mut simulation.entities;
         let player = entities
             .query_one_mut::<&mut Player>(button_path.entity_id.into())
             .ok()?;
@@ -66,5 +75,32 @@ impl CardSelectButton {
         };
 
         Some(button_option)
+    }
+
+    pub fn animate_sprite(
+        &mut self,
+        animators: &mut SlotMap<BattleAnimator>,
+        pending_callbacks: &mut Vec<BattleCallback>,
+        position: Vec2,
+    ) {
+        let animator = &mut animators[self.animator_index];
+        pending_callbacks.extend(animator.update());
+        animator.animator().apply(&mut self.sprite);
+
+        self.sprite.set_position(position);
+    }
+
+    pub fn animate_preview_sprite(
+        &mut self,
+        animators: &mut SlotMap<BattleAnimator>,
+        pending_callbacks: &mut Vec<BattleCallback>,
+        position: Vec2,
+    ) {
+        let preview_animator = &mut animators[self.preview_animator_index];
+        let callbacks = preview_animator.update();
+        preview_animator.animator().apply(&mut self.preview_sprite);
+        pending_callbacks.extend(callbacks);
+
+        self.preview_sprite.set_position(position);
     }
 }
