@@ -30,7 +30,7 @@ impl EmotionUi {
     }
 
     pub fn emotions(&self) -> impl Iterator<Item = &str> {
-        self.animator.iter_states().map(|(s, _)| s.as_str())
+        self.animator.iter_states().map(|(s, _)| s)
     }
 
     pub fn emotion(&self) -> &Emotion {

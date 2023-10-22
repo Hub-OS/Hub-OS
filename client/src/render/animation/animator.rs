@@ -4,6 +4,7 @@ use crate::resources::AssetManager;
 use framework::graphics::Sprite;
 use framework::prelude::{Rect, Vec2};
 use indexmap::IndexMap;
+use uncased::{Uncased, UncasedStr};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AnimatorLoopMode {
@@ -36,7 +37,7 @@ pub struct DerivedState {
 
 #[derive(Clone)]
 pub struct Animator {
-    current_state: Option<String>,
+    current_state: Option<Uncased<'static>>,
     frame_index: usize,
     frame_progress: FrameTime,
     complete: bool,
@@ -44,7 +45,7 @@ pub struct Animator {
     loop_count: usize,
     bounced: bool,
     reversed: bool,
-    states: IndexMap<String, FrameList>,
+    states: IndexMap<Uncased<'static>, FrameList>,
     derived_states: Vec<DerivedState>,
 }
 
@@ -125,16 +126,15 @@ impl Animator {
                             frame_list.add_frame(frame);
                         }
 
-                        self.states.insert(state_name, frame_list);
+                        self.states.insert(Uncased::from(state_name), frame_list);
                     }
 
                     let attributes = Animator::read_attributes(word, line, i);
 
                     let state_name = attributes
                         .get("state")
-                        .cloned()
-                        .unwrap_or_default()
-                        .to_uppercase();
+                        .map(|value| value.to_ascii_uppercase())
+                        .unwrap_or_else(|| "".into());
 
                     let frame_list = FrameList::default();
 
@@ -215,7 +215,7 @@ impl Animator {
 
                         let label = attributes
                             .get("label")
-                            .map(|label| label.to_uppercase())
+                            .map(|label| label.to_ascii_uppercase())
                             .unwrap_or_default();
 
                         let point = Vec2::new(
@@ -223,7 +223,7 @@ impl Animator {
                             parse_or_default(attributes.get("y").cloned()),
                         );
 
-                        frame.points.insert(label, point);
+                        frame.points.insert(label.into(), point);
                     } else {
                         log::warn!("Line {}: no frame has been defined yet", i + 1);
                     }
@@ -244,7 +244,7 @@ impl Animator {
                 frame_list.add_frame(frame);
             }
 
-            self.states.insert(state_name, frame_list);
+            self.states.insert(Uncased::from(state_name), frame_list);
         }
 
         self.rederive_states();
@@ -254,7 +254,7 @@ impl Animator {
             let loop_mode = self.loop_mode;
             let reversed = self.reversed;
 
-            self.set_state(&current_state);
+            self.set_state(current_state.as_str());
 
             self.loop_mode = loop_mode;
             self.reversed = reversed;
@@ -368,7 +368,8 @@ impl Animator {
                 .derive_frames(&data.original_state, &data.frame_derivation)
                 .unwrap_or_default();
 
-            self.states.insert(data.state.clone(), frame_list);
+            let state = data.state.clone().into();
+            self.states.insert(state, frame_list);
         }
     }
 
@@ -390,24 +391,25 @@ impl Animator {
         original_state: &str,
         frame_derivation: Vec<DerivedFrame>,
     ) {
-        let original_state = &original_state.to_uppercase();
+        let original_state = &original_state.to_ascii_uppercase();
         let frames = self
             .derive_frames(original_state, &frame_derivation)
             .unwrap_or_default();
 
         let derivation = DerivedState {
-            state: new_state.to_uppercase(),
+            state: new_state.to_ascii_uppercase(),
             original_state: original_state.to_owned(),
             frame_derivation,
         };
 
-        self.states.insert(derivation.state.clone(), frames);
+        let state = derivation.state.clone().into();
+        self.states.insert(state, frames);
         self.derived_states.push(derivation);
     }
 
     /// Assumes state is uppercase
     fn derive_frames(&self, state: &str, frame_derivation: &[DerivedFrame]) -> Option<FrameList> {
-        let original_frame_list = self.states.get(&state.to_uppercase())?;
+        let original_frame_list = self.states.get(&Uncased::from_borrowed(state))?;
         let mut frame_list = FrameList::default();
 
         for data in frame_derivation {
@@ -424,7 +426,8 @@ impl Animator {
         Some(frame_list)
     }
 
-    pub fn add_state(&mut self, state: String, frame_list: FrameList) {
+    pub fn add_state<S: AsRef<str>>(&mut self, state: S, frame_list: FrameList) {
+        let state = state.as_ref().to_ascii_uppercase().into();
         self.states.insert(state, frame_list);
     }
 
@@ -454,15 +457,17 @@ impl Animator {
     }
 
     pub fn current_state(&self) -> Option<&str> {
-        self.current_state.as_deref()
+        self.current_state.as_ref().map(|name| name.as_str())
     }
 
     pub fn has_state(&self, state: &str) -> bool {
-        self.states.contains_key(&state.to_uppercase())
+        self.states.contains_key(&Uncased::from_borrowed(state))
     }
 
-    pub fn iter_states(&self) -> impl Iterator<Item = (&String, &FrameList)> {
-        self.states.iter()
+    pub fn iter_states(&self) -> impl Iterator<Item = (&str, &FrameList)> {
+        self.states
+            .iter()
+            .map(|(state, frame_list)| (state.as_str(), frame_list))
     }
 
     pub fn set_state(&mut self, state: &str) -> bool {
@@ -476,14 +481,12 @@ impl Animator {
         self.loop_count = 0;
 
         // update state
-        let state = state.to_uppercase();
-
-        if !self.states.contains_key(&state) {
+        if let Some((key, _)) = self.states.get_key_value(<&UncasedStr>::from(state)) {
+            self.current_state = Some(key.clone());
+            true
+        } else {
             self.current_state = None;
             false
-        } else {
-            self.current_state = Some(state);
-            true
         }
     }
 
@@ -516,7 +519,7 @@ impl Animator {
     }
 
     fn current_frame_list(&self) -> Option<&FrameList> {
-        let state = self.current_state.as_ref()?.as_str();
+        let state = self.current_state.as_ref()?;
         self.states.get(state)
     }
 
@@ -539,7 +542,7 @@ impl Animator {
     }
 
     pub fn frame_list(&self, state: &str) -> Option<&FrameList> {
-        self.states.get(&state.to_uppercase())
+        self.states.get(<&UncasedStr>::from(state))
     }
 
     pub fn set_frame(&mut self, frame_index: usize) {
@@ -777,5 +780,41 @@ impl From<&String> for Animator {
 impl Default for Animator {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const ANIMATION_STR: &str = r#"
+        animation state="a"
+
+        animation state="B"
+        frame originx="64"
+    "#;
+
+    #[test]
+    fn capitalized_states() {
+        let mut animator = Animator::new();
+        animator.load_from_str(ANIMATION_STR);
+
+        let state_names = animator
+            .iter_states()
+            .map(|(name, _)| name)
+            .collect::<Vec<_>>();
+
+        assert_eq!(state_names, ["A", "B"]);
+    }
+
+    #[test]
+    fn insensitive_has_and_set_state() {
+        let mut animator = Animator::new();
+        animator.load_from_str(ANIMATION_STR);
+
+        assert!(animator.has_state("a"));
+
+        animator.set_state("b");
+        assert_eq!(animator.origin().x, 64.0);
     }
 }

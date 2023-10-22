@@ -100,7 +100,7 @@ impl Background {
         };
 
         // resolve path
-        let relative_path = backgrounds[index].1;
+        let relative_path = backgrounds[index].1.as_str();
         let path = ResourcePaths::MAIN_MENU_ROOT.to_string() + relative_path;
         let cleaned_path = ResourcePaths::clean(&path);
 
