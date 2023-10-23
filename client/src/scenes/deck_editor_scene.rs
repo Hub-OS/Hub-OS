@@ -363,7 +363,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     let previous_page = scene.page_tracker.active_page();
 
-    if scene.mode != EditorMode::Default {
+    if scene.mode == EditorMode::Default {
         scene.page_tracker.handle_input(game_io);
     }
 
