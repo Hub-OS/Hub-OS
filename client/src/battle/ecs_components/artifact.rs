@@ -42,9 +42,11 @@ impl Artifact {
             .unwrap();
 
         // load texture
-        let texture_string = ResourcePaths::absolute(texture_path);
-        let sprite_root = entity.sprite_tree.root_mut();
-        sprite_root.set_texture(game_io, texture_string);
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            let texture_string = ResourcePaths::absolute(texture_path);
+            let sprite_root = sprite_tree.root_mut();
+            sprite_root.set_texture(game_io, texture_string);
+        }
 
         // load animation
         let animator = &mut simulation.animators[entity.animator_index];

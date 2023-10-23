@@ -2,6 +2,7 @@ use super::animation_api::create_animation_table;
 use super::entity_api::create_entity_table;
 use super::errors::{
     action_not_found, action_step_not_found, attachment_not_found, entity_not_found,
+    sprite_not_found,
 };
 use super::sprite_api::create_sprite_table;
 use super::tile_api::create_tile_table;
@@ -362,30 +363,11 @@ pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(ATTACHMENT_TABLE, "sprite", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ATTACHMENT_TABLE, "sprite", |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let sprite_table: rollback_mlua::Table = table.raw_get("#sprite")?;
 
-        let action_id: GenerationalIndex = table.raw_get("#id")?;
-        let attachment_index: usize = table.raw_get("#index")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-
-        let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(action_id).ok_or_else(action_not_found)?;
-
-        let attachment = action
-            .attachments
-            .get_mut(attachment_index)
-            .ok_or_else(attachment_not_found)?;
-
-        let sprite_index = attachment.sprite_index;
-
-        lua.pack_multi(create_sprite_table(
-            lua,
-            action.entity,
-            sprite_index,
-            Some(attachment.animator_index),
-        )?)
+        lua.pack_multi(sprite_table)
     });
 
     lua_api.add_dynamic_function(ATTACHMENT_TABLE, "animation", |api_ctx, lua, params| {
@@ -438,8 +420,12 @@ fn shared_attachment_constructor<'lua>(
         None => (action.sprite_index, entity.animator_index),
     };
 
-    let sprite_index = entity
-        .sprite_tree
+    let sprite_tree = simulation
+        .sprite_trees
+        .get_mut(entity.sprite_tree_index)
+        .ok_or_else(sprite_not_found)?;
+
+    let sprite_index = sprite_tree
         .insert_child(
             parent_sprite_index,
             SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add),
@@ -448,7 +434,7 @@ fn shared_attachment_constructor<'lua>(
 
     // create animator
     let mut animator = BattleAnimator::new();
-    animator.set_target(action.entity, sprite_index);
+    animator.set_target(entity.sprite_tree_index, sprite_index);
 
     if !action.executed {
         // disable to prevent updates during card action startup frames
@@ -467,7 +453,7 @@ fn shared_attachment_constructor<'lua>(
 
     // update attachment's offset
     if action.executed {
-        attachment.apply_animation(&mut entity.sprite_tree, &mut simulation.animators);
+        attachment.apply_animation(sprite_tree, &mut simulation.animators);
     }
 
     action.attachments.push(attachment);
@@ -476,6 +462,15 @@ fn shared_attachment_constructor<'lua>(
     let table = lua.create_table()?;
     table.raw_set("#id", action_id)?;
     table.raw_set("#index", action.attachments.len() - 1)?;
+    table.raw_set(
+        "#sprite",
+        create_sprite_table(
+            lua,
+            entity.sprite_tree_index,
+            sprite_index,
+            Some(animator_index),
+        )?,
+    )?;
     inherit_metatable(lua, ATTACHMENT_TABLE, &table)?;
 
     Ok(table)

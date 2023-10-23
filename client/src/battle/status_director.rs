@@ -4,6 +4,7 @@ use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::{
     Input, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
 };
+use crate::structures::Tree;
 use framework::prelude::GameIO;
 
 const MASHABLE_STATUSES: [HitFlags; 1] = [HitFlag::PARALYZE];
@@ -192,9 +193,10 @@ impl StatusDirector {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         entity: &mut Entity,
+        sprite_tree: &mut Tree<SpriteNode>,
     ) {
-        self.update_status_sprite(game_io, resources, entity, HitFlag::BLIND);
-        self.update_status_sprite(game_io, resources, entity, HitFlag::CONFUSE);
+        self.update_status_sprite(game_io, resources, entity, sprite_tree, HitFlag::BLIND);
+        self.update_status_sprite(game_io, resources, entity, sprite_tree, HitFlag::CONFUSE);
     }
 
     fn update_status_sprite(
@@ -202,10 +204,9 @@ impl StatusDirector {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         entity: &mut Entity,
+        sprite_tree: &mut Tree<SpriteNode>,
         status_flag: HitFlags,
     ) {
-        let sprite_tree = &mut entity.sprite_tree;
-
         let existing_index = self.status_sprite_index(status_flag);
 
         let Some(lifetime) = self.status_lifetime(status_flag) else {

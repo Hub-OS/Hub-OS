@@ -81,8 +81,11 @@ impl PlayerPackage {
             .unwrap();
 
         // clone the texture path
-        let sprite_node = entity.sprite_tree.root();
-        let texture_path = sprite_node.texture_path().to_string();
+        let texture_path = simulation
+            .sprite_trees
+            .get(entity.sprite_tree_index)
+            .map(|sprite_tree| sprite_tree.root().texture_path().to_string())
+            .unwrap_or_default();
 
         // clone the animator
         let battle_animator = simulation.animators.remove(entity.animator_index).unwrap();

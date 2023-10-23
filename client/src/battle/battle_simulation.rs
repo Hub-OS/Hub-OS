@@ -30,6 +30,7 @@ pub struct BattleSimulation {
     pub generation_tracking: Vec<hecs::Entity>,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
+    pub sprite_trees: SlotMap<Tree<SpriteNode>>,
     pub animators: SlotMap<BattleAnimator>,
     pub actions: DenseSlotMap<Action>,
     pub time_freeze_tracker: TimeFreezeTracker,
@@ -73,6 +74,7 @@ impl BattleSimulation {
             generation_tracking: Vec::new(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
+            sprite_trees: Default::default(),
             animators: Default::default(),
             actions: Default::default(),
             time_freeze_tracker: TimeFreezeTracker::new(),
@@ -153,6 +155,7 @@ impl BattleSimulation {
             generation_tracking: self.generation_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
             defense_judge: self.defense_judge,
+            sprite_trees: self.sprite_trees.clone(),
             animators: self.animators.clone(),
             actions: self.actions.clone(),
             time_freeze_tracker: self.time_freeze_tracker.clone(),
@@ -421,7 +424,10 @@ impl BattleSimulation {
 
     fn apply_animations(&mut self) {
         for (_, entity) in self.entities.query_mut::<&mut Entity>() {
-            let sprite_node = entity.sprite_tree.root_mut();
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+            let sprite_node = sprite_tree.root_mut();
 
             // update root sprite
             self.animators[entity.animator_index].apply(sprite_node);
@@ -439,8 +445,12 @@ impl BattleSimulation {
                 continue;
             };
 
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+
             for attachment in &mut action.attachments {
-                attachment.apply_animation(&mut entity.sprite_tree, &mut self.animators);
+                attachment.apply_animation(sprite_tree, &mut self.animators);
             }
         }
     }
@@ -455,7 +465,7 @@ impl BattleSimulation {
         for animator_index in syncers {
             BattleAnimator::sync_animators(
                 &mut self.animators,
-                &mut self.entities,
+                &mut self.sprite_trees,
                 &mut self.pending_callbacks,
                 animator_index,
             );
@@ -496,6 +506,7 @@ impl BattleSimulation {
                 }
             }
 
+            self.sprite_trees.remove(entity.sprite_tree_index);
             self.animators.remove(entity.animator_index);
 
             pending_removal.push(id);
@@ -669,15 +680,23 @@ impl BattleSimulation {
                 continue;
             }
 
-            if entity.on_field && entity.sprite_tree.root().visible() {
-                sorted_entities.push((id, entity.sort_key()));
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+
+            if entity.on_field && sprite_tree.root().visible() {
+                sorted_entities.push((id, entity.sort_key(&self.sprite_trees)));
             }
         }
 
         // add everything else
         for (id, entity) in self.entities.query_mut::<hecs::Without<&Entity, &Living>>() {
-            if entity.on_field && entity.sprite_tree.root().visible() {
-                sorted_entities.push((id, entity.sort_key()));
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+
+            if entity.on_field && sprite_tree.root().visible() {
+                sorted_entities.push((id, entity.sort_key(&self.sprite_trees)));
             }
         }
 
@@ -700,8 +719,13 @@ impl BattleSimulation {
                 shadow_y += movement.interpolate_jump_height(progress);
             }
 
-            let shadow_node = &mut entity.sprite_tree[entity.shadow_index];
-            shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
+            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                continue;
+            };
+
+            if let Some(shadow_node) = &mut sprite_tree.get_mut(entity.shadow_index) {
+                shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
+            }
 
             let tile_center =
                 (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
@@ -711,7 +735,6 @@ impl BattleSimulation {
             let flipped = perspective_flipped ^ entity.flipped();
 
             // offset each child by parent node accounting for perspective, and draw
-            let sprite_tree = &mut entity.sprite_tree;
             sprite_tree.draw_with_offset(&mut sprite_queue, initial_position, flipped);
         }
 
@@ -729,9 +752,16 @@ impl BattleSimulation {
                 if entity.deleted
                     || !entity.on_field
                     || living.health <= 0
-                    || !entity.sprite_tree.root().visible()
                     || entity.id == self.local_player_id
                 {
+                    continue;
+                }
+
+                let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                    continue;
+                };
+
+                if !sprite_tree.root().visible() {
                     continue;
                 }
 
@@ -760,7 +790,15 @@ impl BattleSimulation {
             index_text.style.shadow_color = Color::BLACK;
 
             for (_, (entity, player)) in self.entities.query_mut::<(&Entity, &Player)>() {
-                if !entity.on_field || !entity.sprite_tree.root().visible() {
+                if !entity.on_field {
+                    continue;
+                }
+
+                let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
+                    continue;
+                };
+
+                if !sprite_tree.root().visible() {
                     continue;
                 }
 

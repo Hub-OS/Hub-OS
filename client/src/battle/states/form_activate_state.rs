@@ -60,13 +60,13 @@ impl State for FormActivateState {
             match self.time {
                 // flash white and activate forms
                 15 => {
-                    set_relevant_color(&mut simulation.entities, Color::WHITE);
+                    set_relevant_color(simulation, Color::WHITE);
                     self.activate_forms(game_io, resources, simulation);
                 }
                 // flash white for 9 more frames
-                16..=25 => set_relevant_color(&mut simulation.entities, Color::WHITE),
+                16..=25 => set_relevant_color(simulation, Color::WHITE),
                 // reset color
-                26 => set_relevant_color(&mut simulation.entities, Color::BLACK),
+                26 => set_relevant_color(simulation, Color::BLACK),
                 // wait for the shine artifacts to complete animation
                 27.. => self.detect_animation_end(game_io, resources, simulation),
                 _ => {}
@@ -249,7 +249,9 @@ fn has_pending_activations(simulation: &mut BattleSimulation) -> bool {
     false
 }
 
-fn set_relevant_color(entities: &mut hecs::World, color: Color) {
+fn set_relevant_color(simulation: &mut BattleSimulation, color: Color) {
+    let entities = &mut simulation.entities;
+
     for (_, (entity, player)) in entities.query_mut::<(&mut Entity, &Player)>() {
         let Some(index) = player.active_form else {
             continue;
@@ -259,8 +261,10 @@ fn set_relevant_color(entities: &mut hecs::World, color: Color) {
             continue;
         }
 
-        let root_node = entity.sprite_tree.root_mut();
-        root_node.set_color_mode(SpriteColorMode::Add);
-        root_node.set_color(color);
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            let root_node = sprite_tree.root_mut();
+            root_node.set_color_mode(SpriteColorMode::Add);
+            root_node.set_color(color);
+        }
     }
 }

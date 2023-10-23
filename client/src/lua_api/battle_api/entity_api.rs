@@ -1,7 +1,8 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
     action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
-    entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, too_many_forms,
+    entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, sprite_not_found,
+    too_many_forms,
 };
 use super::field_api::get_field_table;
 use super::player_form_api::create_player_form_table;
@@ -15,6 +16,7 @@ use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
+use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
@@ -250,80 +252,17 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "never_flip", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.sprite_tree.root().never_flip())
-    });
-    setter(
-        lua_api,
-        "set_never_flip",
-        |entity: &mut Entity, _, never_flip: Option<bool>| {
-            let never_flip = never_flip.unwrap_or(true);
-            entity.sprite_tree.root_mut().set_never_flip(never_flip);
-            Ok(())
-        },
-    );
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "never_flip");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_never_flip");
 
-    getter(lua_api, "sprite", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(create_sprite_table(
-            lua,
-            entity.id,
-            entity.sprite_tree.root_index(),
-            Some(entity.animator_index),
-        )?)
-    });
-
-    getter(lua_api, "texture", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.sprite_tree.root().texture_path())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_texture", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let game_io = &api_ctx.game_io;
-        let sprite_node = entity.sprite_tree.root_mut();
-        sprite_node.set_texture(game_io, path);
-        simulation.animators[entity.animator_index].apply(sprite_node);
-
-        lua.pack_multi(())
-    });
-
-    getter(lua_api, "palette", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.sprite_tree.root().palette_path())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "set_palette", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
-        let path = path.map(|path| absolute_path(lua, path)).transpose()?;
-
-        let id: EntityId = table.raw_get("#id")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let sprite_node = entity.sprite_tree.root_mut();
-        sprite_node.set_palette(api_ctx.game_io, path);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(ENTITY_TABLE, "create_node", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function(ENTITY_TABLE, "sprite", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
+        // get sprite table from cache
+        if let Ok(sprite_table) = table.raw_get::<_, rollback_mlua::Table>("#sprite") {
+            return lua.pack_multi(sprite_table);
+        }
+
         let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
@@ -334,14 +273,24 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let sprite_index = entity
-            .sprite_tree
-            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
+        let sprite_table = create_sprite_table(
+            lua,
+            entity.sprite_tree_index,
+            TreeIndex::tree_root(),
+            Some(entity.animator_index),
+        )?;
 
-        let sprite_table = create_sprite_table(lua, id, sprite_index, None);
+        // cache sprite table
+        table.raw_set("#sprite", sprite_table.clone())?;
 
         lua.pack_multi(sprite_table)
     });
+
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "texture");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_texture");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "palette");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_palette");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "create_node");
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -356,9 +305,13 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let sprite_index = entity
-            .sprite_tree
-            .insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(entity.sprite_tree_index)
+            .ok_or_else(sprite_not_found)?;
+
+        let sprite_index =
+            sprite_tree.insert_root_child(SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add));
 
         // copy derived states
         let entity_animator = &simulation.animators[entity.animator_index];
@@ -366,7 +319,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         // create and setup the new animator
         let mut animator = BattleAnimator::new();
-        animator.set_target(id, sprite_index);
+        animator.set_target(entity.sprite_tree_index, sprite_index);
         animator.copy_derive_states(derived_states);
         let animator_index = simulation.animators.insert(animator);
 
@@ -374,7 +327,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let entity_animator = &mut simulation.animators[entity.animator_index];
         entity_animator.add_synced_animator(animator_index);
 
-        let sync_node_table = create_sync_node_table(lua, id, sprite_index, animator_index);
+        let sync_node_table =
+            create_sync_node_table(lua, entity.sprite_tree_index, sprite_index, animator_index);
 
         lua.pack_multi(sync_node_table)
     });
@@ -399,7 +353,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 return Err(invalid_sync_node());
             };
 
-            if animator.target_entity_id() != Some(id) {
+            if animator.target_tree_index() != Some(entity.sprite_tree_index) {
                 return Err(mismatched_entity());
             }
 
@@ -409,8 +363,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 return Err(invalid_sync_node());
             }
 
-            // remove sprite and animator from the simulation
-            entity.sprite_tree.remove(sprite_index);
+            // remove sprite
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                sprite_tree.remove(sprite_index);
+            }
+
+            // remove animator
             simulation.animators.remove(animator_index);
         }
 
@@ -421,26 +379,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    setter(lua_api, "hide", |entity: &mut Entity, _, _: ()| {
-        entity.sprite_tree.root_mut().set_visible(false);
-        Ok(())
-    });
-    setter(lua_api, "reveal", |entity: &mut Entity, _, _: ()| {
-        entity.sprite_tree.root_mut().set_visible(true);
-        Ok(())
-    });
-
-    getter(lua_api, "color", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(LuaColor::from(entity.sprite_tree.root().color()))
-    });
-    setter(
-        lua_api,
-        "set_color",
-        |entity: &mut Entity, _, color: LuaColor| {
-            entity.sprite_tree.root_mut().set_color(color.into());
-            Ok(())
-        },
-    );
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "hide");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "reveal");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "color");
+    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_color");
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
@@ -456,7 +398,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        entity.set_shadow(api_ctx.game_io, path);
+        entity.set_shadow(api_ctx.game_io, &mut simulation.sprite_trees, path);
 
         lua.pack_multi(())
     });
@@ -474,8 +416,11 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Entity>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let sprite_node = &mut entity.sprite_tree[entity.shadow_index];
-        sprite_node.set_visible(visible.unwrap_or(true));
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            if let Some(sprite_node) = sprite_tree.get_mut(entity.shadow_index) {
+                sprite_node.set_visible(visible.unwrap_or(true));
+            }
+        }
 
         lua.pack_multi(())
     });
@@ -515,8 +460,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let animator = &mut simulation.animators[entity.animator_index];
         let callbacks = animator.load(api_ctx.game_io, &path);
 
-        let root_node = entity.sprite_tree.root_mut();
-        animator.apply(root_node);
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            let root_node = sprite_tree.root_mut();
+            animator.apply(root_node);
+        }
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
@@ -1405,11 +1352,12 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 .query_one_mut::<(&mut Entity, &Player)>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            let sprite_tree = &mut entity.sprite_tree;
-            let offset = Vec2::new(x, y);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                let offset = Vec2::new(x, y);
 
-            player.card_charge.update_sprite_offset(sprite_tree, offset);
-            (player.buster_charge).update_sprite_offset(sprite_tree, offset);
+                player.card_charge.update_sprite_offset(sprite_tree, offset);
+                (player.buster_charge).update_sprite_offset(sprite_tree, offset);
+            }
 
             lua.pack_multi(())
         },
@@ -1986,6 +1934,26 @@ fn optional_callback_setter<C, G, P, F, R>(
             .transpose()?;
 
         lua.pack_multi(())
+    });
+}
+
+fn generate_convenience_fn(
+    lua_api: &mut BattleLuaApi,
+    base_table_name: &'static str,
+    getter_method_name: &'static str,
+    method_name: &'static str,
+) {
+    lua_api.add_dynamic_function(base_table_name, method_name, move |_, lua, params| {
+        let (base_table, mut args): (rollback_mlua::Table, rollback_mlua::MultiValue) =
+            lua.unpack_multi(params)?;
+
+        let getter_fn: rollback_mlua::Function = base_table.get(getter_method_name)?;
+
+        let table: rollback_mlua::Table = getter_fn.call(base_table)?;
+        let method_fn: rollback_mlua::Function = table.get(method_name)?;
+
+        args.push_front(rollback_mlua::Value::Table(table));
+        method_fn.call(args)
     });
 }
 

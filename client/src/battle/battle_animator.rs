@@ -1,16 +1,17 @@
-use super::{BattleCallback, Entity};
-use crate::bindable::{AnimatorPlaybackMode, EntityId, GenerationalIndex};
+use super::BattleCallback;
+use crate::bindable::{AnimatorPlaybackMode, GenerationalIndex};
 use crate::render::{
     Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameTime, SpriteNode,
 };
 use crate::resources::Globals;
-use crate::structures::SlotMap;
+use crate::structures::{SlotMap, Tree, TreeIndex};
 use framework::prelude::{GameIO, Vec2};
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct BattleAnimator {
-    target: Option<(hecs::Entity, GenerationalIndex)>,
+    // (tree_slot_index, sprite_index)
+    target: Option<(GenerationalIndex, TreeIndex)>,
     synced_animators: Vec<GenerationalIndex>,
     complete_callbacks: Vec<BattleCallback>,
     interrupt_callbacks: Vec<BattleCallback>,
@@ -42,29 +43,31 @@ impl BattleAnimator {
         self.animator
     }
 
-    pub fn set_target(&mut self, entity_id: EntityId, sprite_index: GenerationalIndex) {
-        self.target = Some((entity_id.into(), sprite_index));
+    pub fn set_target(&mut self, slot_index: GenerationalIndex, sprite_index: TreeIndex) {
+        self.target = Some((slot_index, sprite_index));
     }
 
-    pub fn target_entity_id(&self) -> Option<EntityId> {
-        self.target.map(|(entity_id, _)| entity_id.into())
+    pub fn target_tree_index(&self) -> Option<GenerationalIndex> {
+        self.target.map(|(slot_index, _)| slot_index)
     }
 
-    pub fn target_sprite_index(&self) -> Option<GenerationalIndex> {
+    pub fn target_sprite_index(&self) -> Option<TreeIndex> {
         self.target.map(|(_, sprite_index)| sprite_index)
     }
 
-    pub fn find_and_apply_to_target(&self, entities: &mut hecs::World) {
-        if let Some(sprite_node) = self.find_target(entities) {
+    pub fn find_and_apply_to_target(&self, sprite_trees: &mut SlotMap<Tree<SpriteNode>>) {
+        if let Some(sprite_node) = self.find_target(sprite_trees) {
             self.apply(sprite_node)
         }
     }
 
-    fn find_target<'a>(&self, entities: &'a mut hecs::World) -> Option<&'a mut SpriteNode> {
-        let (entity_id, sprite_index) = self.target?;
-        let entity = entities.query_one_mut::<&mut Entity>(entity_id).ok()?;
+    fn find_target<'a>(
+        &self,
+        sprite_trees: &'a mut SlotMap<Tree<SpriteNode>>,
+    ) -> Option<&'a mut SpriteNode> {
+        let (slot_index, sprite_index) = self.target?;
 
-        entity.sprite_tree.get_mut(sprite_index)
+        sprite_trees.get_mut(slot_index)?.get_mut(sprite_index)
     }
 
     pub fn has_synced_animators(&self) -> bool {
@@ -83,7 +86,7 @@ impl BattleAnimator {
 
     pub fn sync_animators(
         battle_animators: &mut SlotMap<BattleAnimator>,
-        entities: &mut hecs::World,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         pending_callbacks: &mut Vec<BattleCallback>,
         animator_index: GenerationalIndex,
     ) {
@@ -105,7 +108,7 @@ impl BattleAnimator {
 
             battle_animator.sync(pending_callbacks, &state, loop_mode, reversed, time);
 
-            battle_animator.find_and_apply_to_target(entities);
+            battle_animator.find_and_apply_to_target(sprite_trees);
         }
     }
 

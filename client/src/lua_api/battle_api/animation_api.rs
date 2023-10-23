@@ -1,9 +1,10 @@
-use super::errors::{animator_not_found, entity_not_found, sprite_not_found};
+use super::errors::{animator_not_found, sprite_not_found};
 use super::{BattleLuaApi, ANIMATION_TABLE};
-use crate::battle::{BattleAnimator, BattleCallback, Entity};
-use crate::bindable::{EntityId, GenerationalIndex, LuaVector};
+use crate::battle::{BattleAnimator, BattleCallback};
+use crate::bindable::{GenerationalIndex, LuaVector};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::{DerivedFrame, FrameTime};
+use crate::structures::TreeIndex;
 use framework::prelude::GameIO;
 
 pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
@@ -45,7 +46,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
             .ok_or_else(animator_not_found)?;
 
         let callbacks = animator.copy_from(other_animator);
-        animator.find_and_apply_to_target(&mut simulation.entities);
+        animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(api_ctx.game_io, api_ctx.resources);
@@ -60,19 +61,19 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         let id: GenerationalIndex = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let animators = &mut api_ctx.simulation.animators;
+        let simulation = &mut api_ctx.simulation;
+        let animators = &mut simulation.animators;
         let animator = animators.get_mut(id).ok_or_else(animator_not_found)?;
 
-        let sprite_entity_id: EntityId = sprite_table.raw_get("#id")?;
-        let sprite_index: GenerationalIndex = sprite_table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = sprite_table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = sprite_table.raw_get("#sprite")?;
 
-        let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(sprite_entity_id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let sprite_node = entity
-            .sprite_tree
+        let sprite_node = sprite_tree
             .get_mut(sprite_index)
             .ok_or_else(sprite_not_found)?;
 
@@ -251,7 +252,7 @@ where
 
         let callbacks = callback(animator, game_io, lua, param)?;
 
-        animator.find_and_apply_to_target(&mut simulation.entities);
+        animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
         simulation.pending_callbacks.extend(callbacks);
         simulation.call_pending_callbacks(game_io, api_ctx.resources);

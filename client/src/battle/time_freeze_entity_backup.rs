@@ -45,9 +45,13 @@ impl TimeFreezeEntityBackup {
 
         // backup status_director
         let status_director = living.map(|living| {
-            // delete old status sprites
-            for (_, index) in living.status_director.take_status_sprites() {
-                entity.sprite_tree.remove(index);
+            let status_sprites = living.status_director.take_status_sprites();
+
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                // delete old status sprites
+                for (_, index) in status_sprites {
+                    sprite_tree.remove(index);
+                }
             }
 
             std::mem::take(&mut living.status_director)

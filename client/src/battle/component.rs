@@ -90,9 +90,12 @@ impl Component {
                     1.0 - progress
                 };
 
-                let root_node = entity.sprite_tree.root_mut();
-                root_node.set_color(Color::WHITE.multiply_alpha(alpha));
-                root_node.set_pixelate_with_alpha(true);
+                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                {
+                    let root_node = sprite_tree.root_mut();
+                    root_node.set_color(Color::WHITE.multiply_alpha(alpha));
+                    root_node.set_pixelate_with_alpha(true);
+                }
 
                 if elapsed_time >= TOTAL_DURATION {
                     Entity::mark_erased(game_io, resources, simulation, entity_id);
@@ -130,8 +133,11 @@ impl Component {
                     Color::BLACK
                 };
 
-                let root_node = entity.sprite_tree.root_mut();
-                root_node.set_color(color);
+                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                {
+                    let root_node = sprite_tree.root_mut();
+                    root_node.set_color(color);
+                }
 
                 // spawn explosions
                 let entity_x = entity.x;
@@ -149,7 +155,10 @@ impl Component {
                     explosion_entity.pending_spawn = true;
                     explosion_entity.x = entity_x;
                     explosion_entity.y = entity_y;
-                    explosion_entity.sprite_tree.root_mut().set_layer(-1);
+
+                    let sprite_tree =
+                        &mut simulation.sprite_trees[explosion_entity.sprite_tree_index];
+                    sprite_tree.root_mut().set_layer(-1);
 
                     // random offset
                     let tile_size = simulation.field.tile_size();

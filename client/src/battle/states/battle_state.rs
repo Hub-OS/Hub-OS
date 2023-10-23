@@ -287,12 +287,14 @@ impl BattleState {
         for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
             entity.updated = false;
 
-            let sprite_node = entity.sprite_tree.root_mut();
-
             // reset frame temp properties
             entity.tile_offset = Vec2::ZERO;
-            sprite_node.set_color(Color::BLACK);
-            sprite_node.set_color_mode(SpriteColorMode::Add);
+
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                let sprite_node = sprite_tree.root_mut();
+                sprite_node.set_color(Color::BLACK);
+                sprite_node.set_color_mode(SpriteColorMode::Add);
+            }
         }
     }
 
@@ -665,8 +667,10 @@ impl BattleState {
                 .query_one_mut::<(&mut Entity, &mut Player)>(id)
                 .unwrap();
 
-            player.card_charge.update_sprite(&mut entity.sprite_tree);
-            player.buster_charge.update_sprite(&mut entity.sprite_tree);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                player.card_charge.update_sprite(sprite_tree);
+                player.buster_charge.update_sprite(sprite_tree);
+            }
         }
     }
 
@@ -955,11 +959,14 @@ impl BattleState {
         shared_assets: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        for (_, (entity, living)) in simulation
-            .entities
-            .query_mut::<(&mut Entity, &mut Living)>()
-        {
-            let sprite_tree = &mut entity.sprite_tree;
+        let entities = &mut simulation.entities;
+
+        for (_, (entity, living)) in entities.query_mut::<(&mut Entity, &mut Living)>() {
+            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+            else {
+                continue;
+            };
+
             let status_director = &mut living.status_director;
 
             if let Some(lifetime) = status_director.status_lifetime(HitFlag::PARALYZE) {
@@ -991,12 +998,12 @@ impl BattleState {
             }
 
             if living.hit {
-                let root_node = entity.sprite_tree.root_mut();
+                let root_node = sprite_tree.root_mut();
                 root_node.set_color(Color::WHITE);
                 root_node.set_color_mode(SpriteColorMode::Add);
             }
 
-            status_director.update_status_sprites(game_io, shared_assets, entity);
+            status_director.update_status_sprites(game_io, shared_assets, entity, sprite_tree);
         }
     }
 }

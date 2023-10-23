@@ -1,34 +1,34 @@
-use super::errors::{entity_not_found, sprite_not_found};
+use super::errors::sprite_not_found;
 use super::{BattleLuaApi, SPRITE_TABLE};
-use crate::battle::Entity;
-use crate::bindable::{EntityId, GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
+use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::SpriteNode;
+use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
 
 pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(SPRITE_TABLE, "create_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let child_index = entity
-            .sprite_tree
+        let child_index = sprite_tree
             .insert_child(
-                index,
+                sprite_index,
                 SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add),
             )
             .ok_or_else(sprite_not_found)?;
 
-        let child_table = create_sprite_table(lua, id, child_index, None)?;
+        let child_table = create_sprite_table(lua, slot_index, child_index, None)?;
 
         lua.pack_multi(child_table)
     });
@@ -37,35 +37,35 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let (table, child_table): (rollback_mlua::Table, rollback_mlua::Table) =
             lua.unpack_multi(params)?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
-        let child_id: EntityId = child_table.raw_get("#id")?;
-        let child_index: GenerationalIndex = child_table.raw_get("#index")?;
+        let child_slot_index: GenerationalIndex = child_table.raw_get("#tree")?;
+        let sprite_child_index: TreeIndex = child_table.raw_get("#sprite")?;
 
-        if id != child_id {
+        if slot_index != child_slot_index {
             return lua.pack_multi(());
         }
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
         // verify existence of sprite
-        let sprite_node_node = entity
-            .sprite_tree
-            .get_node(index)
+        let sprite_node_node = sprite_tree
+            .get_node(sprite_index)
             .ok_or_else(sprite_not_found)?;
 
         // verify the child is a child of the sprite
-        if !sprite_node_node.children().contains(&child_index) {
+        if !sprite_node_node.children().contains(&sprite_child_index) {
             return lua.pack_multi(());
         }
 
-        entity.sprite_tree.remove(child_index);
+        sprite_tree.remove(sprite_child_index);
 
         lua.pack_multi(())
     });
@@ -78,20 +78,19 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
         let path = absolute_path(lua, path)?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let sprite_node = entity
-            .sprite_tree
-            .get_mut(index)
+        let sprite_node = sprite_tree
+            .get_mut(sprite_index)
             .ok_or_else(sprite_not_found)?;
 
         sprite_node.set_texture(api_ctx.game_io, path);
@@ -217,20 +216,19 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let (table, path): (rollback_mlua::Table, Option<String>) = lua.unpack_multi(params)?;
         let path = path.map(|path| absolute_path(lua, path)).transpose()?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let sprite_node = entity
-            .sprite_tree
-            .get_mut(index)
+        let sprite_node = sprite_tree
+            .get_mut(sprite_index)
             .ok_or_else(sprite_not_found)?;
 
         sprite_node.set_palette(api_ctx.game_io, path);
@@ -264,13 +262,13 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
 
 pub fn create_sprite_table(
     lua: &rollback_mlua::Lua,
-    entity_id: EntityId,
-    index: GenerationalIndex,
+    slot_index: GenerationalIndex,
+    sprite_index: TreeIndex,
     animator_index: Option<GenerationalIndex>,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
-    table.raw_set("#id", entity_id)?;
-    table.raw_set("#index", index)?;
+    table.raw_set("#tree", slot_index)?;
+    table.raw_set("#sprite", sprite_index)?;
 
     if let Some(index) = animator_index {
         table.raw_set("#anim", index)?;
@@ -290,17 +288,18 @@ where
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
 
-        let entity = entities
-            .query_one_mut::<&Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let sprite_node = entity.sprite_tree.get(index).ok_or_else(sprite_not_found)?;
+        let sprite_node = sprite_tree.get(sprite_index).ok_or_else(sprite_not_found)?;
 
         lua.pack_multi(callback(sprite_node, lua, param)?)
     });
@@ -316,19 +315,19 @@ where
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
 
-        let id: EntityId = table.raw_get("#id")?;
-        let index: GenerationalIndex = table.raw_get("#index")?;
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut api_ctx.simulation;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
 
-        let sprite_node = entity
-            .sprite_tree
-            .get_mut(index)
+        let sprite_node = sprite_tree
+            .get_mut(sprite_index)
             .ok_or_else(sprite_not_found)?;
 
         lua.pack_multi(callback(sprite_node, lua, param)?)

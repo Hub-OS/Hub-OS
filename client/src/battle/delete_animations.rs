@@ -23,8 +23,10 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
         let callbacks = player_animator.set_state(&player.flinch_animation_state);
         simulation.pending_callbacks.extend(callbacks);
 
-        let player_root_node = entity.sprite_tree.root_mut();
-        player_animator.apply(player_root_node);
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            let player_root_node = sprite_tree.root_mut();
+            player_animator.apply(player_root_node);
+        }
     }
 
     player_animator.disable();

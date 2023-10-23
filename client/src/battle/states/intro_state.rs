@@ -58,8 +58,11 @@ impl State for IntroState {
 
                 self.tracked_entities.push_front(entity.id);
 
-                let root_node = entity.sprite_tree.root_mut();
-                root_node.set_alpha(0.0);
+                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                {
+                    let root_node = sprite_tree.root_mut();
+                    root_node.set_alpha(0.0);
+                }
             }
         }
 
@@ -89,7 +92,12 @@ impl State for IntroState {
                 continue;
             };
 
-            let root_node = entity.sprite_tree.root_mut();
+            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+            else {
+                continue;
+            };
+
+            let root_node = sprite_tree.root_mut();
 
             let alpha = if i == 0 {
                 let max_time = MAX_ANIMATION_TIME / 2;

@@ -124,6 +124,9 @@ impl Player {
         // capture animator index for use later
         let animator_index = entity.animator_index;
 
+        // grab sprite tree reference for use later
+        let sprite_tree = &mut simulation.sprite_trees[entity.sprite_tree_index];
+
         // spawn immediately
         entity.pending_spawn = true;
 
@@ -272,17 +275,11 @@ impl Player {
         // insert entity
         let script_enabled = setup.script_enabled;
 
-        let card_charge_sprite_index = AttackCharge::create_sprite(
-            game_io,
-            &mut entity.sprite_tree,
-            ResourcePaths::BATTLE_CARD_CHARGE,
-        );
+        let card_charge_sprite_index =
+            AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CARD_CHARGE);
 
-        let buster_charge_sprite_index = AttackCharge::create_sprite(
-            game_io,
-            &mut entity.sprite_tree,
-            ResourcePaths::BATTLE_CHARGE,
-        );
+        let buster_charge_sprite_index =
+            AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CHARGE);
 
         let mut player = Player::new(
             game_io,
@@ -329,13 +326,13 @@ impl Player {
                 .unwrap();
 
             // adopt texture
-            let sprite_node = entity.sprite_tree.root_mut();
+            let sprite_node = sprite_tree.root_mut();
             sprite_node.set_texture(game_io, texture_path);
 
             // adopt animator
             let battle_animator = &mut simulation.animators[entity.animator_index];
             let callbacks = battle_animator.copy_from_animator(&animator);
-            battle_animator.find_and_apply_to_target(&mut simulation.entities);
+            battle_animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
             // callbacks
             simulation.pending_callbacks.extend(callbacks);

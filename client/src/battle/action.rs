@@ -74,10 +74,12 @@ impl Action {
             return None;
         };
 
+        let sprite_tree = simulation.sprite_trees.get_mut(entity.sprite_tree_index)?;
+
         let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
         sprite_node.set_visible(false);
 
-        let sprite_index = entity.sprite_tree.insert_root_child(sprite_node);
+        let sprite_index = sprite_tree.insert_root_child(sprite_node);
 
         let action = Action::new(entity_id, animation_state, sprite_index);
         Some(simulation.actions.insert(action))
@@ -196,8 +198,10 @@ impl Action {
             simulation.pending_callbacks.extend(callbacks);
 
             // update entity sprite
-            let sprite_node = entity.sprite_tree.root_mut();
-            animator.apply(sprite_node);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                let sprite_node = sprite_tree.root_mut();
+                animator.apply(sprite_node);
+            }
         }
 
         // allow attacks to counter
@@ -257,12 +261,14 @@ impl Action {
         animator.on_interrupt(interrupt_callback);
 
         // update attachments
-        if let Some(sprite) = entity.sprite_tree.get_mut(action.sprite_index) {
-            sprite.set_visible(true);
-        }
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            if let Some(sprite) = sprite_tree.get_mut(action.sprite_index) {
+                sprite.set_visible(true);
+            }
 
-        for attachment in &mut action.attachments {
-            attachment.apply_animation(&mut entity.sprite_tree, &mut simulation.animators);
+            for attachment in &mut action.attachments {
+                attachment.apply_animation(sprite_tree, &mut simulation.animators);
+            }
         }
 
         action.executed = true;
@@ -641,7 +647,9 @@ impl Action {
                 .query_one_mut::<&mut Entity>(action.entity.into())
                 .unwrap();
 
-            entity.sprite_tree.remove(action.sprite_index);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                sprite_tree.remove(action.sprite_index);
+            }
 
             for attachment in &action.attachments {
                 simulation.animators.remove(attachment.animator_index);

@@ -2,6 +2,7 @@ use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
 use crate::structures::DenseSlotMap;
+use crate::structures::SlotMap;
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -32,7 +33,7 @@ pub struct Entity {
     pub height: f32,
     pub elevation: f32,
     pub animator_index: GenerationalIndex,
-    pub sprite_tree: Tree<SpriteNode>,
+    pub sprite_tree_index: GenerationalIndex,
     pub shadow_index: TreeIndex,
     pub offset: Vec2,      // does not flip with teams, only perspective
     pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
@@ -56,7 +57,10 @@ pub struct Entity {
 }
 
 impl Entity {
-    fn new(game_io: &GameIO, id: EntityId, animator_index: GenerationalIndex) -> Self {
+    pub fn create(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
+        let id: EntityId = Self::reserve(simulation);
+
+        // create sprite tree
         let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
 
         let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
@@ -64,7 +68,16 @@ impl Entity {
         shadow_node.set_layer(i32::MAX);
         let shadow_index = sprite_tree.insert_root_child(shadow_node);
 
-        Self {
+        let sprite_tree_index = simulation.sprite_trees.insert(sprite_tree);
+
+        // create animator
+        let mut animator = BattleAnimator::new();
+        animator.set_target(sprite_tree_index, GenerationalIndex::tree_root());
+        animator.disable();
+
+        let animator_index = simulation.animators.insert(animator);
+
+        let entity = Self {
             updated: false,
             pending_spawn: false,
             spawned: false,
@@ -83,7 +96,7 @@ impl Entity {
             height: 0.0,
             elevation: 0.0,
             animator_index,
-            sprite_tree,
+            sprite_tree_index,
             shadow_index,
             offset: Vec2::ZERO,
             tile_offset: Vec2::ZERO,
@@ -110,21 +123,9 @@ impl Entity {
                 Entity::mark_erased(game_io, resources, simulation, id);
             }),
             delete_callbacks: Vec::new(),
-        }
-    }
+        };
 
-    pub fn create(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
-        let id: EntityId = Self::reserve(simulation);
-
-        let mut animator = BattleAnimator::new();
-        animator.set_target(id, GenerationalIndex::tree_root());
-        animator.disable();
-
-        let animator_index = simulation.animators.insert(animator);
-
-        simulation
-            .entities
-            .spawn_at(id.into(), (Entity::new(game_io, id, animator_index),));
+        simulation.entities.spawn_at(id.into(), (entity,));
 
         id
     }
@@ -158,12 +159,20 @@ impl Entity {
         self.tile_offset = full_position.tile_offset;
     }
 
-    pub fn set_shadow(&mut self, game_io: &GameIO, path: String) {
-        let sprite_node = &mut self.sprite_tree[self.shadow_index];
-        sprite_node.set_texture(game_io, path);
+    pub fn set_shadow(
+        &mut self,
+        game_io: &GameIO,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
+        path: String,
+    ) {
+        if let Some(sprite_tree) = sprite_trees.get_mut(self.sprite_tree_index) {
+            if let Some(sprite_node) = sprite_tree.get_mut(self.shadow_index) {
+                sprite_node.set_texture(game_io, path);
 
-        let shadow_size = sprite_node.size();
-        sprite_node.set_origin(shadow_size * 0.5);
+                let shadow_size = sprite_node.size();
+                sprite_node.set_origin(shadow_size * 0.5);
+            }
+        }
     }
 
     pub fn current_can_move_to_callback(
@@ -180,8 +189,12 @@ impl Entity {
         self.can_move_to_callback.clone()
     }
 
-    pub fn sort_key(&self) -> (i32, i32, i32) {
-        (self.y, self.x, -self.sprite_tree.root().layer())
+    pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
+        let Some(sprite_tree) = sprite_trees.get(self.sprite_tree_index) else {
+            return (self.y, self.x, 0);
+        };
+
+        (self.y, self.x, -sprite_tree.root().layer())
     }
 
     pub fn flipped(&self) -> bool {
