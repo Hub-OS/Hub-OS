@@ -3,8 +3,8 @@ use super::{
     SharedBattleResources,
 };
 use crate::bindable::{CardProperties, EntityId, GenerationalIndex};
-use crate::render::FrameTime;
-use crate::structures::SlotMap;
+use crate::render::{FrameTime, SpriteNode};
+use crate::structures::{SlotMap, Tree};
 use framework::prelude::GameIO;
 use packets::structures::Direction;
 
@@ -114,13 +114,17 @@ impl PlayerOverridables {
             .chain(player_callback_iter)
     }
 
-    pub fn delete_self(self, animators: &mut SlotMap<BattleAnimator>) {
+    pub fn delete_self(
+        self,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
+        animators: &mut SlotMap<BattleAnimator>,
+    ) {
         if let Some(button) = self.card_button {
-            animators.remove(button.animator_index);
+            button.delete_self(sprite_trees, animators);
         }
 
         if let Some(button) = self.special_button {
-            animators.remove(button.animator_index);
+            button.delete_self(sprite_trees, animators);
         }
     }
 }

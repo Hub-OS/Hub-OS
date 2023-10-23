@@ -261,7 +261,10 @@ impl State for CardSelectState {
         .next();
 
         if let Some(button) = card_button {
-            sprite_queue.draw_sprite(&button.sprite);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index) {
+                sprite_tree.draw(sprite_queue);
+                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+            }
         }
 
         let special_button = PlayerOverridables::flat_map_for(player, |card_button| {
@@ -270,7 +273,10 @@ impl State for CardSelectState {
         .next();
 
         if let Some(button) = special_button {
-            sprite_queue.draw_sprite(&button.sprite);
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index) {
+                sprite_tree.draw(sprite_queue);
+                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+            }
         }
 
         // drawing selection
@@ -423,14 +429,20 @@ impl State for CardSelectState {
                     recycled_sprite.set_position(preview_point);
                     sprite_queue.draw_sprite(&recycled_sprite);
                 }
-                SelectedItem::CardButton => {
-                    if let Some(button) = card_button {
-                        sprite_queue.draw_sprite(&button.preview_sprite);
-                    }
-                }
-                SelectedItem::SpecialButton => {
-                    if let Some(button) = special_button {
-                        sprite_queue.draw_sprite(&button.preview_sprite);
+                SelectedItem::CardButton | SelectedItem::SpecialButton => {
+                    let button = match selected_item {
+                        SelectedItem::CardButton => card_button,
+                        SelectedItem::SpecialButton => special_button,
+                        _ => unreachable!(),
+                    };
+
+                    if let Some(button) = button {
+                        let index = button.preview_sprite_tree_index;
+
+                        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(index) {
+                            sprite_tree.draw(sprite_queue);
+                            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+                        }
                     }
                 }
                 SelectedItem::None => {}
@@ -1042,6 +1054,7 @@ impl CardSelectState {
 
     fn update_buttons(&mut self, simulation: &mut BattleSimulation) {
         let entities = &mut simulation.entities;
+        let sprite_trees = &mut simulation.sprite_trees;
         let animators = &mut simulation.animators;
         let pending_callbacks = &mut simulation.pending_callbacks;
 
@@ -1072,11 +1085,16 @@ impl CardSelectState {
                     CARD_SELECT_ROWS as i32 - 1,
                 ) + root_offset;
 
-                button.animate_sprite(animators, pending_callbacks, position);
+                button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
 
                 // animate preview sprite
                 if selected_item == SelectedItem::CardButton {
-                    button.animate_preview_sprite(animators, pending_callbacks, preview_position);
+                    button.animate_preview_sprite(
+                        sprite_trees,
+                        animators,
+                        pending_callbacks,
+                        preview_position,
+                    );
                 }
             }
 
@@ -1090,11 +1108,16 @@ impl CardSelectState {
             if let Some(button) = special_button {
                 // animate
                 let position = self.points[UiPoint::SpecialButton] + root_offset;
-                button.animate_sprite(animators, pending_callbacks, position);
+                button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
 
                 // animate preview sprite
                 if selected_item == SelectedItem::SpecialButton {
-                    button.animate_preview_sprite(animators, pending_callbacks, preview_position);
+                    button.animate_preview_sprite(
+                        sprite_trees,
+                        animators,
+                        pending_callbacks,
+                        preview_position,
+                    );
                 }
             }
         }

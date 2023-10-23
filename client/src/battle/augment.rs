@@ -51,7 +51,7 @@ impl Augment {
         let augment = player.augments.remove(index).unwrap();
 
         let overridables = augment.overridables;
-        overridables.delete_self(&mut simulation.animators);
+        overridables.delete_self(&mut simulation.sprite_trees, &mut simulation.animators);
 
         if let Some(callback) = augment.delete_callback {
             callback.call(game_io, resources, simulation, ());

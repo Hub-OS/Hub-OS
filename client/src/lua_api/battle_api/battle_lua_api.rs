@@ -201,8 +201,11 @@ impl BattleLuaApi {
         base_table_name: &'static str,
         getter_method_name: &'static str,
         method_name: &'static str,
+        renamed_method: Option<&'static str>,
     ) {
-        self.add_dynamic_function(base_table_name, method_name, move |_, lua, params| {
+        let renamed_method = renamed_method.unwrap_or(method_name);
+
+        self.add_dynamic_function(base_table_name, renamed_method, move |_, lua, params| {
             let (base_table, mut args): (rollback_mlua::Table, rollback_mlua::MultiValue) =
                 lua.unpack_multi(params)?;
 

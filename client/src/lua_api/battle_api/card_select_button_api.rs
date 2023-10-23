@@ -1,32 +1,23 @@
 use super::animation_api::create_animation_table;
 use super::errors::{button_already_exists, button_not_found};
+use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, ACTIVATE_FN, CARD_SELECT_BUTTON_TABLE, UNDO_FN};
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
 use crate::bindable::EntityId;
-use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::resources::{AssetManager, Globals};
+use crate::lua_api::helpers::inherit_metatable;
+use crate::structures::TreeIndex;
 use framework::prelude::GameIO;
 
 pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(
-        CARD_SELECT_BUTTON_TABLE,
-        "set_texture",
-        move |api_ctx, lua, params| {
-            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-            let path = absolute_path(lua, path)?;
+    lua_api.add_dynamic_function(CARD_SELECT_BUTTON_TABLE, "sprite", move |_, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let sprite_table: rollback_mlua::Table = table.raw_get("#sprite")?;
 
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let game_io = api_ctx.game_io;
-            let globals = game_io.resource::<Globals>().unwrap();
-            let simulation = &mut api_ctx.simulation;
+        lua.pack_multi(sprite_table)
+    });
 
-            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
-            let texture = globals.assets.texture(game_io, &path);
-            button.sprite.set_texture(texture);
-
-            lua.pack_multi(())
-        },
-    );
+    lua_api.add_convenience_method(CARD_SELECT_BUTTON_TABLE, "sprite", "texture", None);
+    lua_api.add_convenience_method(CARD_SELECT_BUTTON_TABLE, "sprite", "set_texture", None);
 
     lua_api.add_dynamic_function(
         CARD_SELECT_BUTTON_TABLE,
@@ -46,22 +37,26 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         CARD_SELECT_BUTTON_TABLE,
-        "set_preview_texture",
-        move |api_ctx, lua, params| {
-            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-            let path = absolute_path(lua, path)?;
+        "preview_sprite",
+        move |_, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+            let sprite_table: rollback_mlua::Table = table.raw_get("#preview_sprite")?;
 
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let game_io = api_ctx.game_io;
-            let globals = game_io.resource::<Globals>().unwrap();
-            let simulation = &mut api_ctx.simulation;
-
-            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
-            let texture = globals.assets.texture(game_io, &path);
-            button.preview_sprite.set_texture(texture);
-
-            lua.pack_multi(())
+            lua.pack_multi(sprite_table)
         },
+    );
+
+    lua_api.add_convenience_method(
+        CARD_SELECT_BUTTON_TABLE,
+        "preview_sprite",
+        "texture",
+        Some("preview_texture"),
+    );
+    lua_api.add_convenience_method(
+        CARD_SELECT_BUTTON_TABLE,
+        "preview_sprite",
+        "set_texture",
+        Some("set_preview_texture"),
     );
 
     lua_api.add_dynamic_function(
@@ -204,13 +199,35 @@ pub fn create_card_select_button_and_table<'lua>(
         return Err(button_already_exists());
     }
 
-    let button = CardSelectButton::new(game_io, &mut simulation.animators, slot_width);
+    let button = CardSelectButton::new(
+        game_io,
+        &mut simulation.sprite_trees,
+        &mut simulation.animators,
+        slot_width,
+    );
+
+    let sprite_table = create_sprite_table(
+        lua,
+        button.sprite_tree_index,
+        TreeIndex::tree_root(),
+        Some(button.animator_index),
+    )?;
+
+    let preview_sprite_table = create_sprite_table(
+        lua,
+        button.preview_sprite_tree_index,
+        TreeIndex::tree_root(),
+        Some(button.preview_animator_index),
+    )?;
+
     *button_option = Some(Box::new(button));
 
     // create the table
     let table = lua.create_table()?;
     table.raw_set("#entity", entity_table.clone())?;
     table.raw_set("#entity_id", entity_id)?;
+    table.raw_set("#sprite", sprite_table)?;
+    table.raw_set("#preview_sprite", preview_sprite_table)?;
 
     if button_path.uses_card_slots {
         table.raw_set("#card_slots", true)?;

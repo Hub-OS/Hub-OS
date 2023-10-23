@@ -1,8 +1,8 @@
 use super::{BattleAnimator, BattleCallback, Player};
-use crate::bindable::EntityId;
-use crate::resources::{AssetManager, Globals, ResourcePaths};
-use crate::structures::{GenerationalIndex, SlotMap};
-use framework::prelude::{GameIO, Sprite, Vec2};
+use crate::bindable::{EntityId, SpriteColorMode};
+use crate::render::SpriteNode;
+use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
+use framework::prelude::{GameIO, Vec2};
 
 #[derive(Clone, Copy)]
 pub struct CardSelectButtonPath {
@@ -15,9 +15,9 @@ pub struct CardSelectButtonPath {
 #[derive(Clone)]
 pub struct CardSelectButton {
     pub slot_width: usize,
-    pub sprite: Sprite,
+    pub sprite_tree_index: GenerationalIndex,
     pub animator_index: GenerationalIndex,
-    pub preview_sprite: Sprite,
+    pub preview_sprite_tree_index: TreeIndex,
     pub preview_animator_index: GenerationalIndex,
     pub activate_callback: Option<BattleCallback<(), bool>>,
     pub undo_callback: Option<BattleCallback>,
@@ -26,23 +26,27 @@ pub struct CardSelectButton {
 impl CardSelectButton {
     pub fn new(
         game_io: &GameIO,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
         slot_width: usize,
     ) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
+        // sprites
+        let default_node = SpriteNode::new(game_io, SpriteColorMode::Add);
+        let sprite_tree = Tree::new(default_node.clone());
+        let preview_sprite_tree = Tree::new(default_node.clone());
 
-        let blank_texture = assets.texture(game_io, ResourcePaths::BLANK);
-        let blank_sprite = Sprite::new(game_io, blank_texture);
+        let sprite_tree_index = sprite_trees.insert(sprite_tree);
+        let preview_sprite_tree_index = sprite_trees.insert(preview_sprite_tree);
 
+        // animators
         let animator_index = animators.insert(BattleAnimator::new());
         let preview_animator_index = animators.insert(BattleAnimator::new());
 
         Self {
             slot_width,
-            sprite: blank_sprite.clone(),
+            sprite_tree_index,
             animator_index,
-            preview_sprite: blank_sprite,
+            preview_sprite_tree_index,
             preview_animator_index,
             activate_callback: None,
             undo_callback: None,
@@ -79,28 +83,50 @@ impl CardSelectButton {
 
     pub fn animate_sprite(
         &mut self,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         position: Vec2,
     ) {
-        let animator = &mut animators[self.animator_index];
-        pending_callbacks.extend(animator.update());
-        animator.animator().apply(&mut self.sprite);
+        if let Some(sprite_tree) = sprite_trees.get_mut(self.sprite_tree_index) {
+            let sprite_node = sprite_tree.root_mut();
 
-        self.sprite.set_position(position);
+            let preview_animator = &mut animators[self.animator_index];
+            let callbacks = preview_animator.update();
+            preview_animator.apply(sprite_node);
+            pending_callbacks.extend(callbacks);
+
+            sprite_node.set_offset(position);
+        }
     }
 
     pub fn animate_preview_sprite(
         &mut self,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
         pending_callbacks: &mut Vec<BattleCallback>,
         position: Vec2,
     ) {
-        let preview_animator = &mut animators[self.preview_animator_index];
-        let callbacks = preview_animator.update();
-        preview_animator.animator().apply(&mut self.preview_sprite);
-        pending_callbacks.extend(callbacks);
+        if let Some(sprite_tree) = sprite_trees.get_mut(self.preview_sprite_tree_index) {
+            let sprite_node = sprite_tree.root_mut();
 
-        self.preview_sprite.set_position(position);
+            let preview_animator = &mut animators[self.preview_animator_index];
+            let callbacks = preview_animator.update();
+            preview_animator.apply(sprite_node);
+            pending_callbacks.extend(callbacks);
+
+            sprite_node.set_offset(position);
+        }
+    }
+
+    pub fn delete_self(
+        self,
+        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
+        animators: &mut SlotMap<BattleAnimator>,
+    ) {
+        sprite_trees.remove(self.sprite_tree_index);
+        sprite_trees.remove(self.preview_sprite_tree_index);
+        animators.remove(self.animator_index);
+        animators.remove(self.preview_animator_index);
     }
 }
