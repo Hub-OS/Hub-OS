@@ -815,7 +815,7 @@ impl CardSelectState {
                     }
                 }
                 SelectedItem::CardButton => {
-                    self.activate_button(
+                    self.use_button(
                         game_io,
                         resources,
                         simulation,
@@ -824,7 +824,7 @@ impl CardSelectState {
                     );
                 }
                 SelectedItem::SpecialButton => {
-                    self.activate_button(
+                    self.use_button(
                         game_io,
                         resources,
                         simulation,
@@ -879,7 +879,7 @@ impl CardSelectState {
         }
     }
 
-    fn activate_button(
+    fn use_button(
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -904,7 +904,7 @@ impl CardSelectState {
             return;
         };
 
-        let Some(callback) = button.activate_callback.clone() else {
+        let Some(callback) = button.use_callback.clone() else {
             return;
         };
 

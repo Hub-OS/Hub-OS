@@ -19,7 +19,7 @@ pub struct CardSelectButton {
     pub animator_index: GenerationalIndex,
     pub preview_sprite_tree_index: TreeIndex,
     pub preview_animator_index: GenerationalIndex,
-    pub activate_callback: Option<BattleCallback<(), bool>>,
+    pub use_callback: Option<BattleCallback<(), bool>>,
     pub undo_callback: Option<BattleCallback>,
 }
 
@@ -48,7 +48,7 @@ impl CardSelectButton {
             animator_index,
             preview_sprite_tree_index,
             preview_animator_index,
-            activate_callback: None,
+            use_callback: None,
             undo_callback: None,
         }
     }

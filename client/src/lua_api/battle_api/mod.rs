@@ -119,11 +119,12 @@ const CHARGED_CARD_FN: &str = "charged_card_func";
 const CAN_CHARGE_CARD_FN: &str = "can_charge_card_func";
 const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 
-// player forms and buttons
+// player forms
 const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
 
 // buttons
+const USE_FN: &str = "on_use_func";
 const UNDO_FN: &str = "on_undo_func";
 
 // defense rules
