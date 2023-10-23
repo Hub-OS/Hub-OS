@@ -252,8 +252,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "never_flip");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_never_flip");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "never_flip");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_never_flip");
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "sprite", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -286,11 +286,11 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(sprite_table)
     });
 
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "texture");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_texture");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "palette");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_palette");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "create_node");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "texture");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_texture");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "palette");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_palette");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "create_node");
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "create_sync_node", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -379,10 +379,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "hide");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "reveal");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "color");
-    generate_convenience_fn(lua_api, ENTITY_TABLE, "sprite", "set_color");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "hide");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "reveal");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "color");
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_color");
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
         let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
@@ -1934,26 +1934,6 @@ fn optional_callback_setter<C, G, P, F, R>(
             .transpose()?;
 
         lua.pack_multi(())
-    });
-}
-
-fn generate_convenience_fn(
-    lua_api: &mut BattleLuaApi,
-    base_table_name: &'static str,
-    getter_method_name: &'static str,
-    method_name: &'static str,
-) {
-    lua_api.add_dynamic_function(base_table_name, method_name, move |_, lua, params| {
-        let (base_table, mut args): (rollback_mlua::Table, rollback_mlua::MultiValue) =
-            lua.unpack_multi(params)?;
-
-        let getter_fn: rollback_mlua::Function = base_table.get(getter_method_name)?;
-
-        let table: rollback_mlua::Table = getter_fn.call(base_table)?;
-        let method_fn: rollback_mlua::Function = table.get(method_name)?;
-
-        args.push_front(rollback_mlua::Value::Table(table));
-        method_fn.call(args)
     });
 }
 

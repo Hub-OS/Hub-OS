@@ -196,6 +196,26 @@ impl BattleLuaApi {
         }
     }
 
+    pub fn add_convenience_method(
+        &mut self,
+        base_table_name: &'static str,
+        getter_method_name: &'static str,
+        method_name: &'static str,
+    ) {
+        self.add_dynamic_function(base_table_name, method_name, move |_, lua, params| {
+            let (base_table, mut args): (rollback_mlua::Table, rollback_mlua::MultiValue) =
+                lua.unpack_multi(params)?;
+
+            let getter_fn: rollback_mlua::Function = base_table.get(getter_method_name)?;
+
+            let table: rollback_mlua::Table = getter_fn.call(base_table)?;
+            let method_fn: rollback_mlua::Function = table.get(method_name)?;
+
+            args.push_front(rollback_mlua::Value::Table(table));
+            method_fn.call(args)
+        });
+    }
+
     /// Should be called on lua vm creation after static functions are created on the api struct
     pub fn inject_static(&self, lua: &rollback_mlua::Lua) -> rollback_mlua::Result<()> {
         for table_path in &self.table_paths {
