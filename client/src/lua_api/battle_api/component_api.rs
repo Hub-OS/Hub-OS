@@ -1,5 +1,5 @@
 use super::errors::component_not_found;
-use super::{BattleLuaApi, COMPONENT_TABLE, INIT_FN, UPDATE_FN};
+use super::{BattleLuaApi, COMPONENT_TABLE, INIT_FN, TURN_START_FN, UPDATE_FN};
 use crate::battle::*;
 use crate::bindable::*;
 
@@ -30,6 +30,13 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         UPDATE_FN,
         |component| &mut component.update_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
+
+    callback_setter(
+        lua_api,
+        TURN_START_FN,
+        |component| &mut component.turn_start_callback,
         |lua, table, _| lua.pack_multi(table),
     );
 

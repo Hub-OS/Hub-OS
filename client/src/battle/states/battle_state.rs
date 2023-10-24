@@ -38,7 +38,10 @@ impl State for BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        self.detect_battle_start(game_io, resources, simulation);
+        if self.time == 0 {
+            self.detect_battle_start(game_io, resources, simulation);
+            self.turn_start(game_io, resources, simulation);
+        }
 
         // reset frame temporary variables
         self.prepare_updates(simulation);
@@ -274,9 +277,22 @@ impl BattleState {
         simulation.battle_started = true;
 
         for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-            simulation
-                .pending_callbacks
-                .push(entity.battle_start_callback.clone())
+            let callback = entity.battle_start_callback.clone();
+            simulation.pending_callbacks.push(callback);
+        }
+
+        simulation.call_pending_callbacks(game_io, resources);
+    }
+
+    fn turn_start(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        for (_, component) in &simulation.components {
+            let callback = component.turn_start_callback.clone();
+            simulation.pending_callbacks.push(callback);
         }
 
         simulation.call_pending_callbacks(game_io, resources);

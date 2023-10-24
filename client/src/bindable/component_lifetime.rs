@@ -6,6 +6,7 @@ pub enum ComponentLifetime {
     Local,
     BattleStep,
     Scene,
+    Nil,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for ComponentLifetime {

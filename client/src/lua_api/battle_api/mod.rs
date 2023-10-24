@@ -134,6 +134,7 @@ pub const FILTER_STATUSES_FN: &str = "filter_statuses_func";
 
 // components
 const INIT_FN: &str = "on_init_func";
+const TURN_START_FN: &str = "on_turn_start_func";
 
 // globals, using named registry keys to avoid lua globals / implementation privacy
 // naming conflicts with table names are avoided by using snake_case
