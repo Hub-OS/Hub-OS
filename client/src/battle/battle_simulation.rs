@@ -1,9 +1,9 @@
 use super::*;
 use crate::bindable::*;
+use crate::packages::CardPackage;
 use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Card;
 use crate::scenes::BattleEvent;
 use crate::structures::{DenseSlotMap, SlotMap};
 use framework::prelude::*;
@@ -835,10 +835,6 @@ impl BattleSimulation {
 
             for i in 0..character.cards.len() {
                 let card = &character.cards[i];
-                let blank_card = Card {
-                    package_id: card.package_id.clone(),
-                    code: String::new(),
-                };
 
                 let cards_before = character.cards.len() - i;
                 let card_offset = 2.0 * cards_before as f32;
@@ -847,7 +843,7 @@ impl BattleSimulation {
                 border_sprite.set_position(position - 1.0);
                 sprite_queue.draw_sprite(&border_sprite);
 
-                blank_card.draw_icon(game_io, &mut sprite_queue, position);
+                CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
             }
         }
 

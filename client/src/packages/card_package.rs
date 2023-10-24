@@ -1,7 +1,11 @@
 use super::*;
 use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
+use crate::render::SpriteColorQueue;
+use crate::resources::{AssetManager, Globals, ResourcePaths};
+use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -130,5 +134,42 @@ impl Package for CardPackage {
             .unwrap_or(card_class == CardClass::Standard);
 
         package
+    }
+}
+
+impl CardPackage {
+    // used in netplay, luckily we shouldnt see what remotes have, so using local namespace is fine
+    pub fn draw_icon(
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        package_id: &PackageId,
+        position: Vec2,
+    ) {
+        let (icon_texture, _) = Self::icon_texture(game_io, package_id);
+
+        let mut sprite = Sprite::new(game_io, icon_texture);
+        sprite.set_position(position);
+        sprite_queue.draw_sprite(&sprite);
+    }
+
+    pub fn icon_texture<'a>(
+        game_io: &'a GameIO,
+        package_id: &PackageId,
+    ) -> (Arc<Texture>, &'a str) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+        let package_manager = &globals.card_packages;
+        let ns = PackageNamespace::Local;
+
+        if let Some(package) = package_manager.package_or_override(ns, package_id) {
+            let icon_texture = assets.texture(game_io, &package.icon_texture_path);
+
+            if icon_texture.size() == UVec2::new(14, 14) {
+                return (icon_texture, &package.icon_texture_path);
+            }
+        };
+
+        let path = ResourcePaths::CARD_ICON_MISSING;
+        (assets.texture(game_io, path), path)
     }
 }

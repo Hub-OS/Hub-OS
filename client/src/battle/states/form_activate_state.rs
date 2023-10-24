@@ -143,12 +143,20 @@ impl FormActivateState {
     fn spawn_shine(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
         let mut relevant_ids = Vec::new();
 
-        for (id, player) in simulation.entities.query_mut::<&Player>() {
+        for (id, player) in simulation.entities.query_mut::<&mut Player>() {
             let Some(index) = player.active_form else {
                 continue;
             };
 
-            if player.forms[index].activated {
+            let form = &mut player.forms[index];
+
+            // allow activated form to reactivate
+            if form.deactivated {
+                form.activated = false;
+                form.deactivated = false;
+            }
+
+            if form.activated {
                 continue;
             }
 

@@ -16,6 +16,7 @@ use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::packages::PackageId;
 use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
+use crate::saves::Card;
 use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
 
@@ -1404,6 +1405,81 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(())
         },
     );
+
+    getter(
+        lua_api,
+        "has_regular_card",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.has_regular_card),
+    );
+
+    getter(lua_api, "deck_cards", |player: &Player, lua, _: ()| {
+        let card_iter = player.deck.iter();
+        let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
+        let table = lua.create_table_from(indexed_iter);
+
+        lua.pack_multi(table)
+    });
+
+    getter(
+        lua_api,
+        "deck_card",
+        |player: &Player, lua, index: usize| {
+            let index = index.saturating_sub(1);
+            let card = player.deck.get(index);
+
+            lua.pack_multi(card)
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_deck_card",
+        |player: &mut Player, _, (index, card): (usize, Card)| {
+            let index = index.saturating_sub(1);
+
+            let Some(card_ref) = player.deck.get_mut(index) else {
+                return Ok(());
+            };
+
+            *card_ref = card;
+
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "remove_deck_card",
+        |player: &mut Player, _, index: usize| {
+            let index = index.saturating_sub(1);
+
+            if player.deck.get(index).is_some() {
+                player.deck.remove(index);
+                player.staged_items.handle_deck_index_removed(index);
+            }
+
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "insert_deck_card",
+        |player: &mut Player, _, (index, card): (usize, Card)| {
+            let index = index.saturating_sub(1);
+
+            if index > player.deck.len() {
+                player.deck.push(card);
+            } else {
+                player.deck.insert(index, card);
+                player.staged_items.handle_deck_index_inserted(index);
+            }
+
+            Ok(())
+        },
+    );
+
+    // card_select_api.rs
 
     lua_api.add_dynamic_function(
         ENTITY_TABLE,

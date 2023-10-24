@@ -3,6 +3,7 @@ mod animation_api;
 mod augment_api;
 mod battle_lua_api;
 mod built_in_api;
+mod card_select_api;
 mod card_select_button_api;
 mod component_api;
 mod defense_rule_api;
@@ -124,8 +125,7 @@ const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
 
 // buttons
-const USE_FN: &str = "on_use_func";
-const UNDO_FN: &str = "on_undo_func";
+const USE_FN: &str = "use_func";
 
 // defense rules
 pub const BLOCK_FN: &str = "can_block_func";

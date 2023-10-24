@@ -14,32 +14,6 @@ pub struct Card {
 }
 
 impl Card {
-    // used in netplay, luckily we shouldnt see what remotes have, so using local namespace is fine
-    pub fn draw_icon(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, position: Vec2) {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-        let package_manager = &globals.card_packages;
-        let ns = PackageNamespace::Local;
-        let package = package_manager.package_or_override(ns, &self.package_id);
-
-        let icon_texture = match package {
-            Some(package) => {
-                let icon_texture = assets.texture(game_io, &package.icon_texture_path);
-
-                if icon_texture.size() == UVec2::new(14, 14) {
-                    icon_texture
-                } else {
-                    assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING)
-                }
-            }
-            None => assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING),
-        };
-
-        let mut sprite = Sprite::new(game_io, icon_texture);
-        sprite.set_position(position);
-        sprite_queue.draw_sprite(&sprite);
-    }
-
     pub fn draw_preview_title(
         &self,
         game_io: &GameIO,
@@ -224,5 +198,50 @@ impl Card {
         label.bounds.set_position(LIM_OFFSET + position);
         label.color = Color::WHITE;
         label.draw(game_io, sprite_queue, "LM");
+    }
+}
+
+impl<'lua> rollback_mlua::FromLua<'lua> for Card {
+    fn from_lua(
+        lua_value: rollback_mlua::Value<'lua>,
+        _lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<Self> {
+        let table = match lua_value {
+            rollback_mlua::Value::Table(table) => table,
+            _ => {
+                return Err(rollback_mlua::Error::FromLuaConversionError {
+                    from: lua_value.type_name(),
+                    to: "DeckCard",
+                    message: None,
+                })
+            }
+        };
+
+        Ok(Card {
+            package_id: table.get("package_id").unwrap_or_default(),
+            code: table.get("code").unwrap_or_default(),
+        })
+    }
+}
+
+impl<'lua> rollback_mlua::IntoLua<'lua> for Card {
+    fn into_lua(
+        self,
+        lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
+        <&Card>::into_lua(&self, lua)
+    }
+}
+
+impl<'lua> rollback_mlua::IntoLua<'lua> for &Card {
+    fn into_lua(
+        self,
+        lua: &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
+        let table = lua.create_table()?;
+        table.set("package_id", self.package_id.as_str())?;
+        table.set("code", self.code.as_str())?;
+
+        Ok(rollback_mlua::Value::Table(table))
     }
 }

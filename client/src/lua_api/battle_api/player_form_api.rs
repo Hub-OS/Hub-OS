@@ -11,6 +11,13 @@ use crate::resources::{AssetManager, Globals};
 use std::sync::Arc;
 
 pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(PLAYER_FORM_TABLE, "index", move |_, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let index: usize = table.raw_get("#index")?;
+
+        lua.pack_multi(index)
+    });
+
     lua_api.add_dynamic_function(
         PLAYER_FORM_TABLE,
         "set_mugshot_texture_path",
