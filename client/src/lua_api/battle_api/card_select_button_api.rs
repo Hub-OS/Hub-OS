@@ -75,6 +75,22 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "use_default_audio",
+        move |api_ctx, lua, params| {
+            let (table, value): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+            button.uses_default_audio = value;
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(CARD_SELECT_BUTTON_TABLE, "owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 

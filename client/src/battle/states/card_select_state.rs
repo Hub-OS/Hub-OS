@@ -896,10 +896,15 @@ impl CardSelectState {
 
         let globals = game_io.resource::<Globals>().unwrap();
         let selection = &mut self.player_selections[player.index];
+        let uses_default_audio = button.uses_default_audio;
 
         let success = callback.call(game_io, resources, simulation, ());
 
-        if selection.local && !success {
+        if success {
+            if uses_default_audio && selection.local {
+                simulation.play_sound(game_io, &globals.sfx.cursor_select);
+            }
+        } else if selection.local {
             simulation.play_sound(game_io, &globals.sfx.cursor_error);
         }
     }
