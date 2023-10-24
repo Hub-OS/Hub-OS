@@ -39,8 +39,14 @@ impl CardSelectButton {
         let preview_sprite_tree_index = sprite_trees.insert(preview_sprite_tree);
 
         // animators
-        let animator_index = animators.insert(BattleAnimator::new());
-        let preview_animator_index = animators.insert(BattleAnimator::new());
+        let mut animator = BattleAnimator::new();
+        animator.set_target(sprite_tree_index, TreeIndex::tree_root());
+
+        let mut preview_animator = BattleAnimator::new();
+        preview_animator.set_target(preview_sprite_tree_index, TreeIndex::tree_root());
+
+        let animator_index = animators.insert(animator);
+        let preview_animator_index = animators.insert(preview_animator);
 
         Self {
             slot_width,
