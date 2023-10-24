@@ -899,11 +899,7 @@ impl CardSelectState {
 
         let success = callback.call(game_io, resources, simulation, ());
 
-        if success {
-            if selection.local {
-                simulation.play_sound(game_io, &globals.sfx.cursor_select);
-            }
-        } else if selection.local {
+        if selection.local && !success {
             simulation.play_sound(game_io, &globals.sfx.cursor_error);
         }
     }
