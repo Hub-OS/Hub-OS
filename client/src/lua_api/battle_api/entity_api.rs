@@ -1315,6 +1315,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
+    // player:play_audio() is defined in resource_api.rs
+
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "set_fully_charged_color",
