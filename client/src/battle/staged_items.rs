@@ -79,11 +79,13 @@ impl StagedItems {
     }
 
     pub fn has_deck_index(&self, index: usize) -> bool {
-        self.items.iter().any(move |item| {
-            matches!(
-                &item.data,
-                StagedItemData::Deck(i) | StagedItemData::Discard(i) if *i == index
-            )
+        self.deck_card_indices().any(|i| i == index)
+    }
+
+    pub fn deck_card_indices(&self) -> impl Iterator<Item = usize> + '_ {
+        self.items.iter().flat_map(|item| match &item.data {
+            StagedItemData::Deck(i) | StagedItemData::Discard(i) => Some(*i),
+            _ => None,
         })
     }
 

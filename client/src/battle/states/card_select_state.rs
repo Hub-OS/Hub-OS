@@ -956,13 +956,11 @@ impl CardSelectState {
                 player.active_form = Some(index);
             }
 
-            if player.staged_items.visible_count() == 0 {
-                // if no cards were selected, we keep cards from the previous selection
-                continue;
+            if player.staged_items.visible_count() > 0 {
+                // only clear if there's no visible changes, we keep cards from the previous selection in that case
+                character.cards.clear();
+                character.next_card_mutation = Some(0);
             }
-
-            character.cards.clear();
-            character.next_card_mutation = Some(0);
 
             // load cards in reverse as we'll pop them off in battle state (first item must be last)
             let namespace = player.namespace();
@@ -975,7 +973,7 @@ impl CardSelectState {
 
             // remove the cards from the deck
             // must sort + loop in reverse to prevent issues from shifting indices
-            let mut deck_indices = player.staged_items.selected_deck_card_indices();
+            let mut deck_indices: Vec<_> = player.staged_items.deck_card_indices().collect();
             deck_indices.sort();
 
             for i in deck_indices.iter().rev() {
