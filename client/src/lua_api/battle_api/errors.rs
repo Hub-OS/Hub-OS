@@ -13,7 +13,7 @@ pub fn form_not_found() -> rollback_mlua::Error {
 }
 
 pub fn too_many_forms() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("too many forms"))
+    rollback_mlua::Error::RuntimeError(String::from("too many visible forms"))
 }
 
 pub fn augment_not_found() -> rollback_mlua::Error {

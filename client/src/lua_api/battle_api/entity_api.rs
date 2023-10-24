@@ -1558,7 +1558,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        if player.forms.len() >= 5 {
+        if player.available_forms().count() >= 5 {
             return Err(too_many_forms());
         }
 
@@ -1570,6 +1570,37 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(form_table)
     });
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "create_hidden_form",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let index = player.forms.len();
+
+            let form = PlayerForm {
+                activated: true,
+                ..Default::default()
+            };
+
+            player.forms.push(form);
+
+            let form_table = create_player_form_table(lua, table, index)?;
+
+            lua.pack_multi(form_table)
+        },
+    );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_augment", |api_ctx, lua, params| {
         let (table, augment_id): (rollback_mlua::Table, rollback_mlua::String) =
