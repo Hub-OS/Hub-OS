@@ -126,6 +126,7 @@ const DEACTIVATE_FN: &str = "on_deactivate_func";
 
 // buttons
 const USE_FN: &str = "use_func";
+const SELECTION_CHANGE_FN: &str = "on_selection_change_func";
 
 // defense rules
 pub const BLOCK_FN: &str = "can_block_func";

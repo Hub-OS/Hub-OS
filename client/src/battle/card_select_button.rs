@@ -1,4 +1,7 @@
-use super::{BattleAnimator, BattleCallback, Player};
+use super::{
+    BattleAnimator, BattleCallback, BattleSimulation, Player, PlayerOverridables,
+    SharedBattleResources,
+};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
@@ -21,6 +24,7 @@ pub struct CardSelectButton {
     pub preview_animator_index: GenerationalIndex,
     pub uses_default_audio: bool,
     pub use_callback: Option<BattleCallback<(), bool>>,
+    pub selection_change_callback: Option<BattleCallback>,
 }
 
 impl CardSelectButton {
@@ -56,6 +60,7 @@ impl CardSelectButton {
             preview_animator_index,
             uses_default_audio: true,
             use_callback: None,
+            selection_change_callback: None,
         }
     }
 
@@ -123,6 +128,42 @@ impl CardSelectButton {
 
             sprite_node.set_offset(position);
         }
+    }
+
+    pub fn update_all_from_staged_items(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        for (_, player) in simulation.entities.query_mut::<&mut Player>() {
+            if !player.staged_items.take_updated() {
+                return;
+            }
+
+            let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
+                overridables.card_button.as_mut()
+            })
+            .next();
+
+            if let Some(button) = card_button {
+                if let Some(callback) = button.selection_change_callback.clone() {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            let special_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
+                overridables.special_button.as_mut()
+            })
+            .next();
+
+            if let Some(button) = special_button {
+                if let Some(callback) = button.selection_change_callback.clone() {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+        }
+
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     pub fn delete_self(

@@ -1,7 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::errors::{button_already_exists, button_not_found};
 use super::sprite_api::create_sprite_table;
-use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, USE_FN};
+use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN};
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::inherit_metatable;
@@ -101,6 +101,16 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         USE_FN,
         |button| &mut button.use_callback,
+        |lua, button_table, _| {
+            let player_table = button_table.get::<_, rollback_mlua::Table>("#entity")?;
+            lua.pack_multi((button_table, player_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        SELECTION_CHANGE_FN,
+        |button| &mut button.selection_change_callback,
         |lua, button_table, _| {
             let player_table = button_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((button_table, player_table))

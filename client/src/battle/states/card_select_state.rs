@@ -103,9 +103,9 @@ impl State for CardSelectState {
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.sfx.card_select_open);
-
-            // initialize selections
         }
+
+        CardSelectButton::update_all_from_staged_items(game_io, resources, simulation);
 
         for selection in &mut self.player_selections {
             // assume erased until we hit the next loop

@@ -25,10 +25,15 @@ pub struct StagedItem {
 
 #[derive(Default, Clone)]
 pub struct StagedItems {
+    updated: bool,
     items: VecDeque<StagedItem>,
 }
 
 impl StagedItems {
+    pub fn take_updated(&mut self) -> bool {
+        self.updated
+    }
+
     pub fn stage_form(
         &mut self,
         form_index: usize,
@@ -45,6 +50,8 @@ impl StagedItems {
         } else {
             self.items.push_front(item);
         }
+
+        self.updated = true
     }
 
     pub fn stage_item(&mut self, item: StagedItem) {
@@ -63,6 +70,7 @@ impl StagedItems {
         }
 
         self.items.push_back(item);
+        self.updated = true
     }
 
     pub fn stored_form_index(&self) -> Option<usize> {
@@ -75,6 +83,7 @@ impl StagedItems {
     pub fn drop_form_selection(&mut self) {
         if self.stored_form_index().is_some() {
             self.items.pop_front();
+            self.updated = true
         }
     }
 
@@ -188,14 +197,17 @@ impl StagedItems {
     }
 
     pub fn pop(&mut self) -> Option<StagedItem> {
+        self.updated = true;
         self.items.pop_back()
     }
 
     pub fn clear(&mut self) {
-        self.items.clear()
+        self.items.clear();
+        self.updated = true;
     }
 
     pub fn handle_deck_index_removed(&mut self, index: usize) {
+        self.updated = true;
         self.items.retain_mut(|item| match &mut item.data {
             StagedItemData::Deck(i) | StagedItemData::Discard(i) => {
                 if *i > index {
@@ -209,6 +221,7 @@ impl StagedItems {
     }
 
     pub fn handle_deck_index_inserted(&mut self, index: usize) {
+        self.updated = true;
         for item in &mut self.items {
             match &mut item.data {
                 StagedItemData::Deck(i) | StagedItemData::Discard(i) => {
