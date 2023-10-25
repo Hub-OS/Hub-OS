@@ -20,7 +20,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         PLAYER_FORM_TABLE,
-        "set_mugshot_texture_path",
+        "set_mugshot_texture",
         move |api_ctx, lua, params| {
             let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
             let path = absolute_path(lua, path)?;
