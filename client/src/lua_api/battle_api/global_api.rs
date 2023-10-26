@@ -181,9 +181,10 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     let lifetime_table = lua.create_table()?;
     lifetime_table.set("Local", ComponentLifetime::Local)?;
-    lifetime_table.set("Battle", ComponentLifetime::BattleStep)?;
+    lifetime_table.set("Battle", ComponentLifetime::Battle)?;
     lifetime_table.set("Scene", ComponentLifetime::Scene)?;
-    lifetime_table.set("Nil", ComponentLifetime::Nil)?;
+    lifetime_table.set("CardSelectOpen", ComponentLifetime::CardSelectOpen)?;
+    lifetime_table.set("CardSelectClose", ComponentLifetime::CardSelectClose)?;
     globals.set("Lifetime", lifetime_table)?;
 
     use crate::bindable::DefensePriority;

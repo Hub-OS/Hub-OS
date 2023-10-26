@@ -11,7 +11,6 @@ pub struct Component {
     pub entity: EntityId,
     pub lifetime: ComponentLifetime,
     pub update_callback: BattleCallback,
-    pub turn_start_callback: BattleCallback,
     pub init_callback: BattleCallback,
 }
 
@@ -21,7 +20,6 @@ impl Component {
             entity,
             lifetime,
             update_callback: BattleCallback::default(),
-            turn_start_callback: BattleCallback::default(),
             init_callback: BattleCallback::default(),
         }
     }
@@ -54,7 +52,7 @@ impl Component {
 
     /// Causes the entity to rise, used for poof artifact
     pub fn create_float(simulation: &mut BattleSimulation, entity_id: EntityId) {
-        let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
+        let mut component = Self::new(entity_id, ComponentLifetime::Battle);
 
         component.update_callback = BattleCallback::new(move |_, _, simulation, _| {
             let entity = simulation
@@ -74,7 +72,7 @@ impl Component {
 
         let start_time = simulation.battle_time;
 
-        let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
+        let mut component = Self::new(entity_id, ComponentLifetime::Battle);
 
         component.update_callback =
             BattleCallback::new(move |game_io, resources, simulation, _| {
@@ -118,7 +116,7 @@ impl Component {
         let start_time = simulation.battle_time;
         let total_duration = EXPLOSION_RATE * explosion_count as FrameTime + END_DELAY;
 
-        let mut component = Self::new(entity_id, ComponentLifetime::BattleStep);
+        let mut component = Self::new(entity_id, ComponentLifetime::Battle);
 
         component.update_callback =
             BattleCallback::new(move |game_io, resources, simulation, _| {

@@ -4,9 +4,10 @@ use num_derive::FromPrimitive;
 #[derive(PartialEq, Eq, Clone, Copy, FromPrimitive)]
 pub enum ComponentLifetime {
     Local,
-    BattleStep,
+    Battle,
     Scene,
-    Nil,
+    CardSelectOpen,
+    CardSelectClose,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for ComponentLifetime {

@@ -287,12 +287,7 @@ impl BattleSimulation {
 
     pub fn post_update(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
         // update scene components
-        for (_, component) in &self.components {
-            if component.lifetime == ComponentLifetime::Scene {
-                self.pending_callbacks
-                    .push(component.update_callback.clone());
-            }
-        }
+        self.update_components(game_io, resources, ComponentLifetime::Scene);
 
         self.update_sync_nodes();
 
@@ -377,7 +372,7 @@ impl BattleSimulation {
         }
 
         for id in pending_deletion {
-            Component::create_delayed_deleter(self, id.into(), ComponentLifetime::BattleStep, 0);
+            Component::create_delayed_deleter(self, id.into(), ComponentLifetime::Battle, 0);
         }
     }
 
@@ -470,6 +465,22 @@ impl BattleSimulation {
                 animator_index,
             );
         }
+    }
+
+    pub fn update_components(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        lifetime: ComponentLifetime,
+    ) {
+        for (_, component) in &self.components {
+            if component.lifetime == lifetime {
+                let callback = component.update_callback.clone();
+                self.pending_callbacks.push(callback);
+            }
+        }
+
+        self.call_pending_callbacks(game_io, resources);
     }
 
     pub fn call_pending_callbacks(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {

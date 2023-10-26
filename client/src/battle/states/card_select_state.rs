@@ -103,6 +103,8 @@ impl State for CardSelectState {
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.sfx.card_select_open);
+
+            simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
         }
 
         CardSelectButton::update_all_from_staged_items(game_io, resources, simulation);
@@ -989,6 +991,8 @@ impl CardSelectState {
         }
 
         Character::mutate_cards(game_io, resources, simulation);
+
+        simulation.update_components(game_io, resources, ComponentLifetime::CardSelectClose);
 
         self.completed = true;
     }
