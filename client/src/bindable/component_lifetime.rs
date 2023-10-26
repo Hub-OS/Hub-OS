@@ -8,6 +8,7 @@ pub enum ComponentLifetime {
     Scene,
     CardSelectOpen,
     CardSelectClose,
+    Nil,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for ComponentLifetime {
