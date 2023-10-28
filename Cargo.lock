@@ -2052,6 +2052,7 @@ dependencies = [
  "bytemuck",
  "chrono",
  "clap",
+ "cpal",
  "enum-map",
  "field_count",
  "flate2",

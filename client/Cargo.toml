@@ -24,6 +24,8 @@ rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
 rodio = "0.17"
+# let rodio restrict cpal's version, we just want to specify the feature
+cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
 roxmltree = "0.18"
 rust-ini = "0.19"
 serde = { version = "1.0", features = ["derive"] }
