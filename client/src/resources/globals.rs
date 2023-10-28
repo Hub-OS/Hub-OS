@@ -2,9 +2,9 @@ use crate::args::Args;
 use crate::battle::BattleProps;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
-use crate::render::ui::PackageListing;
+use crate::render::ui::{GlyphMap, PackageListing};
 use crate::render::{
-    Animator, BackgroundPipeline, MapPipeline, PostProcessAdjust, PostProcessAdjustConfig,
+    BackgroundPipeline, MapPipeline, PostProcessAdjust, PostProcessAdjustConfig,
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
@@ -43,7 +43,7 @@ pub struct Globals {
     // assets
     pub assets: LocalAssetManager,
     pub font_texture: Arc<Texture>,
-    pub font_animator: Arc<Animator>,
+    pub glyph_map: Arc<GlyphMap>,
 
     // shaders
     pub sprite_pipeline_collection: SpritePipelineCollection,
@@ -140,7 +140,7 @@ impl Globals {
 
             // assets
             font_texture,
-            font_animator: Arc::new(Animator::load_new(&assets, ResourcePaths::FONTS_ANIMATION)),
+            glyph_map: Arc::new(GlyphMap::new(&assets)),
             assets,
 
             // shaders

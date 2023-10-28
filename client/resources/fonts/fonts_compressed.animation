@@ -1,1813 +1,1813 @@
 imagePath="fonts_compressed.png"
 
-animation state="SMALL_U000041"
+animation state="SMALL_U+0041"
 frame duration="0" x="0" y="103" w="5" h="7"
 
-animation state="SMALL_U000042"
+animation state="SMALL_U+0042"
 frame duration="0" x="83" y="96" w="5" h="7"
 
-animation state="SMALL_U000043"
+animation state="SMALL_U+0043"
 frame duration="0" x="155" y="107" w="4" h="7"
 
-animation state="SMALL_U000044"
+animation state="SMALL_U+0044"
 frame duration="0" x="67" y="96" w="5" h="7"
 
-animation state="SMALL_U000045"
+animation state="SMALL_U+0045"
 frame duration="0" x="56" y="96" w="5" h="7"
 
-animation state="SMALL_U000046"
+animation state="SMALL_U+0046"
 frame duration="0" x="51" y="96" w="5" h="7"
 
-animation state="SMALL_U000047"
+animation state="SMALL_U+0047"
 frame duration="0" x="46" y="96" w="5" h="7"
 
-animation state="SMALL_U000048"
+animation state="SMALL_U+0048"
 frame duration="0" x="33" y="97" w="5" h="7"
 
-animation state="SMALL_U000049"
+animation state="SMALL_U+0049"
 frame duration="0" x="43" y="97" w="3" h="7"
 
-animation state="SMALL_U00004A"
+animation state="SMALL_U+004A"
 frame duration="0" x="38" y="97" w="5" h="7"
 
-animation state="SMALL_U00004B"
+animation state="SMALL_U+004B"
 frame duration="0" x="108" y="105" w="4" h="7"
 
-animation state="SMALL_U00004C"
+animation state="SMALL_U+004C"
 frame duration="0" x="61" y="102" w="5" h="7"
 
-animation state="SMALL_U00004D"
+animation state="SMALL_U+004D"
 frame duration="0" x="112" y="102" w="5" h="7"
 
-animation state="SMALL_U00004E"
+animation state="SMALL_U+004E"
 frame duration="0" x="228" y="102" w="4" h="7"
 
-animation state="SMALL_U00004F"
+animation state="SMALL_U+004F"
 frame duration="0" x="20" y="102" w="5" h="7"
 
-animation state="SMALL_U000050"
+animation state="SMALL_U+0050"
 frame duration="0" x="232" y="99" w="5" h="7"
 
-animation state="SMALL_U000051"
+animation state="SMALL_U+0051"
 frame duration="0" x="28" y="97" w="5" h="7"
 
-animation state="SMALL_U000052"
+animation state="SMALL_U+0052"
 frame duration="0" x="174" y="96" w="5" h="7"
 
-animation state="SMALL_U000053"
+animation state="SMALL_U+0053"
 frame duration="0" x="169" y="96" w="5" h="7"
 
-animation state="SMALL_U000054"
+animation state="SMALL_U+0054"
 frame duration="0" x="164" y="96" w="5" h="7"
 
-animation state="SMALL_U000055"
+animation state="SMALL_U+0055"
 frame duration="0" x="159" y="96" w="5" h="7"
 
-animation state="SMALL_U000056"
+animation state="SMALL_U+0056"
 frame duration="0" x="5" y="96" w="5" h="7"
 
-animation state="SMALL_U000057"
+animation state="SMALL_U+0057"
 frame duration="0" x="125" y="96" w="5" h="7"
 
-animation state="SMALL_U000058"
+animation state="SMALL_U+0058"
 frame duration="0" x="0" y="96" w="5" h="7"
 
-animation state="SMALL_U000059"
+animation state="SMALL_U+0059"
 frame duration="0" x="10" y="96" w="5" h="7"
 
-animation state="SMALL_U00005A"
+animation state="SMALL_U+005A"
 frame duration="0" x="15" y="96" w="5" h="7"
 
-animation state="SMALL_U000061"
+animation state="SMALL_U+0061"
 frame duration="0" x="63" y="109" w="4" h="7"
 
-animation state="SMALL_U000062"
+animation state="SMALL_U+0062"
 frame duration="0" x="46" y="114" w="4" h="7"
 
-animation state="SMALL_U000063"
+animation state="SMALL_U+0063"
 frame duration="0" x="248" y="119" w="4" h="5"
 
-animation state="SMALL_U000064"
+animation state="SMALL_U+0064"
 frame duration="0" x="242" y="113" w="4" h="7"
 
-animation state="SMALL_U000065"
+animation state="SMALL_U+0065"
 frame duration="0" x="5" y="120" w="4" h="5"
 
-animation state="SMALL_U000066"
+animation state="SMALL_U+0066"
 frame duration="0" x="25" y="102" w="3" h="7"
 
-animation state="SMALL_U000067"
+animation state="SMALL_U+0067"
 frame duration="0" x="232" y="74" w="4" h="9" originx="0" originy="1"
 
-animation state="SMALL_U000068"
+animation state="SMALL_U+0068"
 frame duration="0" x="91" y="112" w="4" h="7"
 
-animation state="SMALL_U000069"
+animation state="SMALL_U+0069"
 frame duration="0" x="78" y="96" w="5" h="7"
 
-animation state="SMALL_U00006A"
+animation state="SMALL_U+006A"
 frame duration="0" x="67" y="54" w="5" h="9"
 
-animation state="SMALL_U00006B"
+animation state="SMALL_U+006B"
 frame duration="0" x="197" y="111" w="4" h="7"
 
-animation state="SMALL_U00006C"
+animation state="SMALL_U+006C"
 frame duration="0" x="197" y="77" w="5" h="8" originx="0" originy="1"
 
-animation state="SMALL_U00006D"
+animation state="SMALL_U+006D"
 frame duration="0" x="237" y="119" w="5" h="5"
 
-animation state="SMALL_U00006E"
+animation state="SMALL_U+006E"
 frame duration="0" x="9" y="120" w="4" h="5"
 
-animation state="SMALL_U00006F"
+animation state="SMALL_U+006F"
 frame duration="0" x="13" y="120" w="4" h="5"
 
-animation state="SMALL_U000070"
+animation state="SMALL_U+0070"
 frame duration="0" x="24" y="84" w="4" h="8"
 
-animation state="SMALL_U000071"
+animation state="SMALL_U+0071"
 frame duration="0" x="155" y="91" w="4" h="8"
 
-animation state="SMALL_U000072"
+animation state="SMALL_U+0072"
 frame duration="0" x="42" y="115" w="4" h="6"
 
-animation state="SMALL_U000073"
+animation state="SMALL_U+0073"
 frame duration="0" x="17" y="120" w="4" h="5"
 
-animation state="SMALL_U000074"
+animation state="SMALL_U+0074"
 frame duration="0" x="187" y="111" w="4" h="7"
 
-animation state="SMALL_U000075"
+animation state="SMALL_U+0075"
 frame duration="0" x="21" y="120" w="4" h="5"
 
-animation state="SMALL_U000076"
+animation state="SMALL_U+0076"
 frame duration="0" x="25" y="120" w="4" h="5"
 
-animation state="SMALL_U000077"
+animation state="SMALL_U+0077"
 frame duration="0" x="215" y="119" w="5" h="5"
 
-animation state="SMALL_U000078"
+animation state="SMALL_U+0078"
 frame duration="0" x="29" y="120" w="4" h="5"
 
-animation state="SMALL_U000079"
+animation state="SMALL_U+0079"
 frame duration="0" x="155" y="99" w="4" h="8"
 
-animation state="SMALL_U00007A"
+animation state="SMALL_U+007A"
 frame duration="0" x="33" y="120" w="4" h="5"
 
-animation state="SMALL_U000030"
+animation state="SMALL_U+0030"
 frame duration="0" x="67" y="110" w="4" h="7"
 
-animation state="SMALL_U000031"
+animation state="SMALL_U+0031"
 frame duration="0" x="83" y="74" w="2" h="7"
 
-animation state="SMALL_U000032"
+animation state="SMALL_U+0032"
 frame duration="0" x="232" y="106" w="5" h="7"
 
-animation state="SMALL_U000033"
+animation state="SMALL_U+0033"
 frame duration="0" x="228" y="109" w="4" h="7"
 
-animation state="SMALL_U000034"
+animation state="SMALL_U+0034"
 frame duration="0" x="0" y="110" w="4" h="7"
 
-animation state="SMALL_U000035"
+animation state="SMALL_U+0035"
 frame duration="0" x="143" y="111" w="4" h="7"
 
-animation state="SMALL_U000036"
+animation state="SMALL_U+0036"
 frame duration="0" x="147" y="111" w="4" h="7"
 
-animation state="SMALL_U000037"
+animation state="SMALL_U+0037"
 frame duration="0" x="151" y="111" w="4" h="7"
 
-animation state="SMALL_U000038"
+animation state="SMALL_U+0038"
 frame duration="0" x="179" y="111" w="4" h="7"
 
-animation state="SMALL_U000039"
+animation state="SMALL_U+0039"
 frame duration="0" x="183" y="111" w="4" h="7"
 
-animation state="SMALL_U000028"
+animation state="SMALL_U+0028"
 frame duration="0.05" x="252" y="66" w="3" h="7"
 
-animation state="SMALL_U000029"
+animation state="SMALL_U+0029"
 frame duration="0" x="252" y="73" w="3" h="7"
 
-animation state="SMALL_U00005F"
+animation state="SMALL_U+005F"
 frame duration="0" x="155" y="75" w="4" h="8"
 
-animation state="SMALL_U00002D"
+animation state="SMALL_U+002D"
 frame duration="0" x="252" y="50" w="3" h="8"
 
-animation state="SMALL_U00002B"
+animation state="SMALL_U+002B"
 frame duration="0" x="252" y="58" w="3" h="8"
 
-animation state="SMALL_U00003D"
+animation state="SMALL_U+003D"
 frame duration="0" x="24" y="76" w="4" h="8"
 
-animation state="SMALL_U00005C"
+animation state="SMALL_U+005C"
 frame duration="0" x="232" y="83" w="5" h="8"
 
-animation state="SMALL_U00002F"
+animation state="SMALL_U+002F"
 frame duration="0" x="185" y="86" w="5" h="8"
 
-animation state="SMALL_U00003C"
+animation state="SMALL_U+003C"
 frame duration="0" x="50" y="114" w="3" h="6"
 
-animation state="SMALL_U00003E"
+animation state="SMALL_U+003E"
 frame duration="0" x="187" y="63" w="3" h="7"
 
-animation state="SMALL_U00003F"
+animation state="SMALL_U+003F"
 frame duration="0" x="109" y="85" w="3" h="7"
 
-animation state="SMALL_U00002C"
+animation state="SMALL_U+002C"
 frame duration="0" x="155" y="83" w="4" h="8"
 
-animation state="SMALL_U00002E"
+animation state="SMALL_U+002E"
 frame duration="0" x="245" y="40" w="3" h="9" originx="0" originy="1"
 
-animation state="SMALL_U000021"
+animation state="SMALL_U+0021"
 frame duration="0" x="109" y="92" w="3" h="7"
 
-animation state="SMALL_U000040"
+animation state="SMALL_U+0040"
 frame duration="0" x="203" y="95" w="7" h="8"
 
-animation state="SMALL_U000023"
+animation state="SMALL_U+0023"
 frame duration="0" x="67" y="103" w="5" h="7"
 
-animation state="SMALL_U000024"
+animation state="SMALL_U+0024"
 frame duration="0" x="108" y="112" w="4" h="7"
 
-animation state="SMALL_U000025"
+animation state="SMALL_U+0025"
 frame duration="0" x="232" y="91" w="5" h="8"
 
-animation state="SMALL_U00005E"
+animation state="SMALL_U+005E"
 frame duration="0" x="88" y="96" w="3" h="7"
 
-animation state="SMALL_U000026"
+animation state="SMALL_U+0026"
 frame duration="0" x="232" y="113" w="4" h="7"
 
-animation state="SMALL_U00002A"
+animation state="SMALL_U+002A"
 frame duration="0" x="5" y="114" w="5" h="6"
 
-animation state="SMALL_U000027"
+animation state="SMALL_U+0027"
 frame duration="0" x="59" y="103" w="2" h="6"
 
-animation state="SMALL_U000022"
+animation state="SMALL_U+0022"
 frame duration="0" x="112" y="109" w="5" h="6"
 
-animation state="SMALL_U00003A"
+animation state="SMALL_U+003A"
 frame duration="0" x="188" y="52" w="2" h="8"
 
-animation state="SMALL_U00003B"
+animation state="SMALL_U+003B"
 frame duration="0" x="103" y="74" w="2" h="7"
 
-animation state="THICK_U000041"
+animation state="THICK_U+0041"
 frame duration="0.05" x="197" y="95" w="6" h="10"
 
-animation state="THICK_U000042"
+animation state="THICK_U+0042"
 frame duration="0.05" x="237" y="92" w="6" h="10"
 
-animation state="THICK_U000043"
+animation state="THICK_U+0043"
 frame duration="0.05" x="191" y="95" w="6" h="10"
 
-animation state="THICK_U000044"
+animation state="THICK_U+0044"
 frame duration="0.05" x="185" y="95" w="6" h="10"
 
-animation state="THICK_U000045"
+animation state="THICK_U+0045"
 frame duration="0.05" x="179" y="95" w="6" h="10"
 
-animation state="THICK_U000046"
+animation state="THICK_U+0046"
 frame duration="0.05" x="149" y="95" w="6" h="10"
 
-animation state="THICK_U000047"
+animation state="THICK_U+0047"
 frame duration="0.05" x="143" y="95" w="6" h="10"
 
-animation state="THICK_U000048"
+animation state="THICK_U+0048"
 frame duration="0.05" x="131" y="95" w="6" h="10"
 
-animation state="THICK_U000049"
+animation state="THICK_U+0049"
 frame duration="0.05" x="118" y="95" w="6" h="10"
 
-animation state="THICK_U00004A"
+animation state="THICK_U+004A"
 frame duration="0.05" x="103" y="95" w="6" h="10"
 
-animation state="THICK_U00004B"
+animation state="THICK_U+004B"
 frame duration="0.05" x="97" y="95" w="6" h="10"
 
-animation state="THICK_U00004C"
+animation state="THICK_U+004C"
 frame duration="0.05" x="91" y="95" w="6" h="10"
 
-animation state="THICK_U00004D"
+animation state="THICK_U+004D"
 frame duration="0.05" x="249" y="92" w="6" h="10"
 
-animation state="THICK_U00004E"
+animation state="THICK_U+004E"
 frame duration="0.05" x="243" y="92" w="6" h="10"
 
-animation state="THICK_U00004F"
+animation state="THICK_U+004F"
 frame duration="0.05" x="18" y="86" w="6" h="10"
 
-animation state="THICK_U000050"
+animation state="THICK_U+0050"
 frame duration="0.05" x="190" y="85" w="6" h="10"
 
-animation state="THICK_U000051"
+animation state="THICK_U+0051"
 frame duration="0.05" x="243" y="82" w="6" h="10"
 
-animation state="THICK_U000052"
+animation state="THICK_U+0052"
 frame duration="0.05" x="237" y="82" w="6" h="10"
 
-animation state="THICK_U000053"
+animation state="THICK_U+0053"
 frame duration="0.05" x="72" y="79" w="6" h="10"
 
-animation state="THICK_U000054"
+animation state="THICK_U+0054"
 frame duration="0.05" x="40" y="77" w="6" h="10"
 
-animation state="THICK_U000055"
+animation state="THICK_U+0055"
 frame duration="0.05" x="34" y="77" w="6" h="10"
 
-animation state="THICK_U000056"
+animation state="THICK_U+0056"
 frame duration="0.05" x="28" y="77" w="6" h="10"
 
-animation state="THICK_U000057"
+animation state="THICK_U+0057"
 frame duration="0.05" x="64" y="76" w="6" h="10"
 
-animation state="THICK_U000058"
+animation state="THICK_U+0058"
 frame duration="0.05" x="58" y="76" w="6" h="10"
 
-animation state="THICK_U000059"
+animation state="THICK_U+0059"
 frame duration="0.05" x="137" y="75" w="6" h="10"
 
-animation state="THICK_U00005A"
+animation state="THICK_U+005A"
 frame duration="0.05" x="46" y="76" w="6" h="10"
 
-animation state="THICK_U0000D7"
+animation state="THICK_U+00D7"
 frame duration="0.05" x="18" y="76" w="6" h="10"
 
-animation state="THICK_U000061"
+animation state="THICK_U+0061"
 frame duration="0.05" x="12" y="76" w="6" h="10"
 
-animation state="THICK_U000062"
+animation state="THICK_U+0062"
 frame duration="0.05" x="6" y="76" w="6" h="10"
 
-animation state="THICK_U000063"
+animation state="THICK_U+0063"
 frame duration="0.05" x="0" y="76" w="6" h="10"
 
-animation state="THICK_U000064"
+animation state="THICK_U+0064"
 frame duration="0.05" x="202" y="75" w="6" h="10"
 
-animation state="THICK_U000065"
+animation state="THICK_U+0065"
 frame duration="0.05" x="190" y="75" w="6" h="10"
 
-animation state="THICK_U000066"
+animation state="THICK_U+0066"
 frame duration="0.05" x="149" y="75" w="6" h="10"
 
-animation state="THICK_U000067"
+animation state="THICK_U+0067"
 frame duration="0.05" x="125" y="75" w="6" h="11"
 
-animation state="THICK_U000068"
+animation state="THICK_U+0068"
 frame duration="0.05" x="143" y="75" w="6" h="10"
 
-animation state="THICK_U000069"
+animation state="THICK_U+0069"
 frame duration="0.05" x="52" y="76" w="6" h="10"
 
-animation state="THICK_U00006B"
+animation state="THICK_U+006B"
 frame duration="0.05" x="12" y="86" w="6" h="10"
 
-animation state="THICK_U00006A"
+animation state="THICK_U+006A"
 frame duration="0.05" x="112" y="75" w="6" h="11"
 
-animation state="THICK_U00006C"
+animation state="THICK_U+006C"
 frame duration="0.05" x="40" y="87" w="6" h="10"
 
-animation state="THICK_U00006D"
+animation state="THICK_U+006D"
 frame duration="0.05" x="131" y="75" w="6" h="10"
 
-animation state="THICK_U00006E"
+animation state="THICK_U+006E"
 frame duration="0.05" x="34" y="87" w="6" h="10"
 
-animation state="THICK_U00006F"
+animation state="THICK_U+006F"
 frame duration="0.05" x="46" y="86" w="6" h="10"
 
-animation state="THICK_U000070"
+animation state="THICK_U+0070"
 frame duration="0.05" x="91" y="74" w="6" h="11"
 
-animation state="THICK_U000071"
+animation state="THICK_U+0071"
 frame duration="0.05" x="97" y="74" w="6" h="11"
 
-animation state="THICK_U000072"
+animation state="THICK_U+0072"
 frame duration="0.05" x="112" y="86" w="6" h="10"
 
-animation state="THICK_U000073"
+animation state="THICK_U+0073"
 frame duration="0.05" x="165" y="86" w="6" h="10"
 
-animation state="THICK_U000074"
+animation state="THICK_U+0074"
 frame duration="0.05" x="171" y="86" w="6" h="10"
 
-animation state="THICK_U000075"
+animation state="THICK_U+0075"
 frame duration="0.05" x="28" y="87" w="6" h="10"
 
-animation state="THICK_U000076"
+animation state="THICK_U+0076"
 frame duration="0.05" x="72" y="89" w="6" h="10"
 
-animation state="THICK_U000077"
+animation state="THICK_U+0077"
 frame duration="0.05" x="137" y="95" w="6" h="10"
 
-animation state="THICK_U000078"
+animation state="THICK_U+0078"
 frame duration="0.05" x="202" y="85" w="6" h="10"
 
-animation state="THICK_U000079"
+animation state="THICK_U+0079"
 frame duration="0.05" x="196" y="85" w="6" h="10"
 
-animation state="THICK_U00007A"
+animation state="THICK_U+007A"
 frame duration="0.05" x="159" y="86" w="6" h="10"
 
-animation state="THICK_U000030"
+animation state="THICK_U+0030"
 frame duration="0.05" x="125" y="86" w="6" h="10"
 
-animation state="THICK_U000031"
+animation state="THICK_U+0031"
 frame duration="0.05" x="84" y="86" w="6" h="10"
 
-animation state="THICK_U000032"
+animation state="THICK_U+0032"
 frame duration="0.05" x="78" y="86" w="6" h="10"
 
-animation state="THICK_U000033"
+animation state="THICK_U+0033"
 frame duration="0.05" x="64" y="86" w="6" h="10"
 
-animation state="THICK_U000034"
+animation state="THICK_U+0034"
 frame duration="0.05" x="52" y="86" w="6" h="10"
 
-animation state="THICK_U000035"
+animation state="THICK_U+0035"
 frame duration="0.05" x="58" y="86" w="6" h="10"
 
-animation state="THICK_U000036"
+animation state="THICK_U+0036"
 frame duration="0.05" x="85" y="76" w="6" h="10"
 
-animation state="THICK_U000037"
+animation state="THICK_U+0037"
 frame duration="0.05" x="91" y="85" w="6" h="10"
 
-animation state="THICK_U000038"
+animation state="THICK_U+0038"
 frame duration="0.05" x="97" y="85" w="6" h="10"
 
-animation state="THICK_U000039"
+animation state="THICK_U+0039"
 frame duration="0.05" x="103" y="85" w="6" h="10"
 
-animation state="THICK_U00007C"
+animation state="THICK_U+007C"
 frame duration="0.05" x="179" y="74" w="6" h="11"
 
-animation state="THICK_U00005B"
+animation state="THICK_U+005B"
 frame duration="0.05" x="208" y="74" w="6" h="11"
 
-animation state="THICK_U00005D"
+animation state="THICK_U+005D"
 frame duration="0.05" x="214" y="74" w="6" h="11"
 
-animation state="THICK_U000028"
+animation state="THICK_U+0028"
 frame duration="0.05" x="220" y="74" w="6" h="11"
 
-animation state="THICK_U000029"
+animation state="THICK_U+0029"
 frame duration="0.05" x="226" y="74" w="6" h="11"
 
-animation state="THICK_U00005F"
+animation state="THICK_U+005F"
 frame duration="0.05" x="85" y="64" w="6" h="12"
 
-animation state="THICK_U00002D"
+animation state="THICK_U+002D"
 frame duration="0.05" x="118" y="85" w="6" h="10"
 
-animation state="THICK_U00002B"
+animation state="THICK_U+002B"
 frame duration="0.05" x="131" y="85" w="6" h="10"
 
-animation state="THICK_U00003D"
+animation state="THICK_U+003D"
 frame duration="0.05" x="137" y="85" w="6" h="10"
 
-animation state="THICK_U00005C"
+animation state="THICK_U+005C"
 frame duration="0.05" x="143" y="85" w="6" h="10"
 
-animation state="THICK_U00002F"
+animation state="THICK_U+002F"
 frame duration="0.05" x="149" y="85" w="6" h="10"
 
-animation state="THICK_U00003C"
+animation state="THICK_U+003C"
 frame duration="0.05" x="179" y="85" w="6" h="10"
 
-animation state="THICK_U00003E"
+animation state="THICK_U+003E"
 frame duration="0.05" x="249" y="82" w="6" h="10"
 
-animation state="THICK_U00003F"
+animation state="THICK_U+003F"
 frame duration="0.05" x="208" y="85" w="6" h="10"
 
-animation state="THICK_U00002C"
+animation state="THICK_U+002C"
 frame duration="0.05" x="202" y="63" w="6" h="12"
 
-animation state="THICK_U00002E"
+animation state="THICK_U+002E"
 frame duration="0.05" x="214" y="85" w="6" h="10"
 
-animation state="THICK_U000021"
+animation state="THICK_U+0021"
 frame duration="0.05" x="220" y="85" w="6" h="10"
 
-animation state="THICK_U000040"
+animation state="THICK_U+0040"
 frame duration="0.05" x="226" y="85" w="6" h="10"
 
-animation state="THICK_U000023"
+animation state="THICK_U+0023"
 frame duration="0.05" x="105" y="75" w="7" h="10"
 
-animation state="THICK_U000024"
+animation state="THICK_U+0024"
 frame duration="0.05" x="248" y="0" w="7" h="13"
 
-animation state="THICK_U000025"
+animation state="THICK_U+0025"
 frame duration="0.05" x="118" y="75" w="7" h="10"
 
-animation state="THICK_U00005E"
+animation state="THICK_U+005E"
 frame duration="0.05" x="105" y="52" w="6" h="12"
 
-animation state="THICK_U000026"
+animation state="THICK_U+0026"
 frame duration="0.05" x="245" y="72" w="7" h="10"
 
-animation state="THICK_U00002A"
+animation state="THICK_U+002A"
 frame duration="0.05" x="91" y="52" w="7" h="11"
 
-animation state="THICK_U000027"
+animation state="THICK_U+0027"
 frame duration="0.05" x="85" y="52" w="6" h="12"
 
-animation state="THICK_U000022"
+animation state="THICK_U+0022"
 frame duration="0.05" x="72" y="44" w="6" h="12"
 
-animation state="THICK_U00003A"
+animation state="THICK_U+003A"
 frame duration="0.05" x="0" y="86" w="6" h="10"
 
-animation state="THICK_U00003B"
+animation state="THICK_U+003B"
 frame duration="0.05" x="6" y="86" w="6" h="10"
 
-animation state="TINY_U000041"
+animation state="TINY_U+0041"
 frame duration="0.05" x="248" y="124" w="3" h="5"
 
-animation state="TINY_U000042"
+animation state="TINY_U+0042"
 frame duration="0.05" x="251" y="124" w="3" h="5"
 
-animation state="TINY_U000043"
+animation state="TINY_U+0043"
 frame duration="0.05" x="5" y="125" w="3" h="5"
 
-animation state="TINY_U000044"
+animation state="TINY_U+0044"
 frame duration="0.05" x="8" y="125" w="3" h="5"
 
-animation state="TINY_U000045"
+animation state="TINY_U+0045"
 frame duration="0.05" x="11" y="125" w="3" h="5"
 
-animation state="TINY_U000046"
+animation state="TINY_U+0046"
 frame duration="0.05" x="176" y="124" w="3" h="5"
 
-animation state="TINY_U000047"
+animation state="TINY_U+0047"
 frame duration="0.05" x="237" y="124" w="3" h="5"
 
-animation state="TINY_U000048"
+animation state="TINY_U+0048"
 frame duration="0.05" x="179" y="123" w="3" h="5"
 
-animation state="TINY_U000049"
+animation state="TINY_U+0049"
 frame duration="0.05" x="77" y="37" w="1" h="5"
 
-animation state="TINY_U00004A"
+animation state="TINY_U+004A"
 frame duration="0.05" x="182" y="123" w="3" h="5"
 
-animation state="TINY_U00004B"
+animation state="TINY_U+004B"
 frame duration="0.05" x="185" y="123" w="3" h="5"
 
-animation state="TINY_U00004C"
+animation state="TINY_U+004C"
 frame duration="0.05" x="188" y="123" w="3" h="5"
 
-animation state="TINY_U00004D"
+animation state="TINY_U+004D"
 frame duration="0.05" x="67" y="117" w="5" h="5"
 
-animation state="TINY_U00004E"
+animation state="TINY_U+004E"
 frame duration="0.05" x="200" y="123" w="3" h="5"
 
-animation state="TINY_U00004F"
+animation state="TINY_U+004F"
 frame duration="0.05" x="83" y="124" w="3" h="5"
 
-animation state="TINY_U000050"
+animation state="TINY_U+0050"
 frame duration="0.05" x="86" y="124" w="3" h="5"
 
-animation state="TINY_U000051"
+animation state="TINY_U+0051"
 frame duration="0.05" x="89" y="124" w="3" h="5"
 
-animation state="TINY_U000052"
+animation state="TINY_U+0052"
 frame duration="0.05" x="152" y="123" w="3" h="5"
 
-animation state="TINY_U000053"
+animation state="TINY_U+0053"
 frame duration="0.05" x="125" y="124" w="3" h="5"
 
-animation state="TINY_U000054"
+animation state="TINY_U+0054"
 frame duration="0.05" x="128" y="124" w="3" h="5"
 
-animation state="TINY_U000055"
+animation state="TINY_U+0055"
 frame duration="0.05" x="155" y="124" w="3" h="5"
 
-animation state="TINY_U000056"
+animation state="TINY_U+0056"
 frame duration="0.05" x="158" y="124" w="3" h="5"
 
-animation state="TINY_U000057"
+animation state="TINY_U+0057"
 frame duration="0.05" x="237" y="114" w="5" h="5"
 
-animation state="TINY_U000058"
+animation state="TINY_U+0058"
 frame duration="0.05" x="164" y="124" w="3" h="5"
 
-animation state="TINY_U000059"
+animation state="TINY_U+0059"
 frame duration="0.05" x="167" y="124" w="3" h="5"
 
-animation state="TINY_U00005A"
+animation state="TINY_U+005A"
 frame duration="0.05" x="170" y="124" w="3" h="5"
 
-animation state="TINY_U000061"
+animation state="TINY_U+0061"
 frame duration="0.05" x="194" y="121" w="3" h="5"
 
-animation state="TINY_U000062"
+animation state="TINY_U+0062"
 frame duration="0.05" x="173" y="124" w="3" h="5"
 
-animation state="TINY_U000063"
+animation state="TINY_U+0063"
 frame duration="0.05" x="161" y="124" w="3" h="5"
 
-animation state="TINY_U000064"
+animation state="TINY_U+0064"
 frame duration="0.05" x="197" y="123" w="3" h="5"
 
-animation state="TINY_U000065"
+animation state="TINY_U+0065"
 frame duration="0.05" x="221" y="124" w="3" h="5"
 
-animation state="TINY_U000066"
+animation state="TINY_U+0066"
 frame duration="0.05" x="218" y="124" w="3" h="5"
 
-animation state="TINY_U000067"
+animation state="TINY_U+0067"
 frame duration="0.05" x="215" y="124" w="3" h="5"
 
-animation state="TINY_U000068"
+animation state="TINY_U+0068"
 frame duration="0.05" x="212" y="124" w="3" h="5"
 
-animation state="TINY_U000069"
+animation state="TINY_U+0069"
 frame duration="0.05" x="77" y="32" w="1" h="5"
 
-animation state="TINY_U00006A"
+animation state="TINY_U+006A"
 frame duration="0.05" x="253" y="108" w="2" h="5"
 
-animation state="TINY_U00006B"
+animation state="TINY_U+006B"
 frame duration="0.05" x="209" y="124" w="3" h="5"
 
-animation state="TINY_U00006C"
+animation state="TINY_U+006C"
 frame duration="0.05" x="236" y="63" w="1" h="5"
 
-animation state="TINY_U00006D"
+animation state="TINY_U+006D"
 frame duration="0.05" x="0" y="117" w="5" h="5"
 
-animation state="TINY_U00006E"
+animation state="TINY_U+006E"
 frame duration="0.05" x="206" y="124" w="3" h="5"
 
-animation state="TINY_U00006F"
+animation state="TINY_U+006F"
 frame duration="0.05" x="92" y="124" w="3" h="5"
 
-animation state="TINY_U000070"
+animation state="TINY_U+0070"
 frame duration="0.05" x="203" y="124" w="3" h="5"
 
-animation state="TINY_U000071"
+animation state="TINY_U+0071"
 frame duration="0.05" x="118" y="121" w="3" h="5"
 
-animation state="TINY_U000072"
+animation state="TINY_U+0072"
 frame duration="0.05" x="105" y="121" w="3" h="5"
 
-animation state="TINY_U000073"
+animation state="TINY_U+0073"
 frame duration="0.05" x="102" y="121" w="3" h="5"
 
-animation state="TINY_U000074"
+animation state="TINY_U+0074"
 frame duration="0.05" x="99" y="121" w="3" h="5"
 
-animation state="TINY_U000075"
+animation state="TINY_U+0075"
 frame duration="0.05" x="96" y="121" w="3" h="5"
 
-animation state="TINY_U000076"
+animation state="TINY_U+0076"
 frame duration="0.05" x="75" y="121" w="3" h="5"
 
-animation state="TINY_U000077"
+animation state="TINY_U+0077"
 frame duration="0.05" x="78" y="115" w="5" h="5"
 
-animation state="TINY_U000078"
+animation state="TINY_U+0078"
 frame duration="0.05" x="72" y="121" w="3" h="5"
 
-animation state="TINY_U000079"
+animation state="TINY_U+0079"
 frame duration="0.05" x="59" y="121" w="3" h="5"
 
-animation state="TINY_U00007A"
+animation state="TINY_U+007A"
 frame duration="0.05" x="45" y="121" w="3" h="5"
 
-animation state="TINY_U000030"
+animation state="TINY_U+0030"
 frame duration="0.05" x="252" y="119" w="3" h="5"
 
-animation state="TINY_U000031"
+animation state="TINY_U+0031"
 frame duration="0.05" x="89" y="109" w="2" h="5"
 
-animation state="TINY_U000032"
+animation state="TINY_U+0032"
 frame duration="0.05" x="245" y="120" w="3" h="5"
 
-animation state="TINY_U000033"
+animation state="TINY_U+0033"
 frame duration="0.05" x="242" y="120" w="3" h="5"
 
-animation state="TINY_U000034"
+animation state="TINY_U+0034"
 frame duration="0.05" x="232" y="120" w="3" h="5"
 
-animation state="TINY_U000035"
+animation state="TINY_U+0035"
 frame duration="0.05" x="115" y="120" w="3" h="5"
 
-animation state="TINY_U000036"
+animation state="TINY_U+0036"
 frame duration="0.05" x="112" y="120" w="3" h="5"
 
-animation state="TINY_U000037"
+animation state="TINY_U+0037"
 frame duration="0.05" x="78" y="120" w="3" h="5"
 
-animation state="TINY_U000038"
+animation state="TINY_U+0038"
 frame duration="0.05" x="56" y="120" w="3" h="5"
 
-animation state="TINY_U000039"
+animation state="TINY_U+0039"
 frame duration="0.05" x="53" y="120" w="3" h="5"
 
-animation state="TINY_U000028"
+animation state="TINY_U+0028"
 frame duration="0.05" x="50" y="120" w="3" h="5"
 
-animation state="TINY_U000029"
+animation state="TINY_U+0029"
 frame duration="0.05" x="37" y="120" w="3" h="5"
 
-animation state="TINY_U00005F"
+animation state="TINY_U+005F"
 frame duration="0.05" x="42" y="121" w="3" h="5"
 
-animation state="TINY_U00002D"
+animation state="TINY_U+002D"
 frame duration="0.05" x="177" y="108" w="2" h="5"
 
-animation state="TINY_U00002B"
+animation state="TINY_U+002B"
 frame duration="0.05" x="149" y="123" w="3" h="5"
 
-animation state="TINY_U00003D"
+animation state="TINY_U+003D"
 frame duration="0.05" x="146" y="123" w="3" h="5"
 
-animation state="TINY_U00005C"
+animation state="TINY_U+005C"
 frame duration="0.05" x="143" y="123" w="3" h="5"
 
-animation state="TINY_U00002F"
+animation state="TINY_U+002F"
 frame duration="0.05" x="228" y="122" w="3" h="5"
 
-animation state="TINY_U00003C"
+animation state="TINY_U+003C"
 frame duration="0.05" x="69" y="122" w="3" h="5"
 
-animation state="TINY_U00003E"
+animation state="TINY_U+003E"
 frame duration="0.05" x="66" y="122" w="3" h="5"
 
-animation state="TINY_U00003F"
+animation state="TINY_U+003F"
 frame duration="0.05" x="63" y="122" w="3" h="5"
 
-animation state="TINY_U00002C"
+animation state="TINY_U+002C"
 frame duration="0.05" x="83" y="81" w="2" h="5"
 
-animation state="TINY_U00002E"
+animation state="TINY_U+002E"
 frame duration="0.05" x="236" y="68" w="1" h="5"
 
-animation state="TINY_U000021"
+animation state="TINY_U+0021"
 frame duration="0.05" x="244" y="65" w="1" h="5"
 
-animation state="TINY_U000040"
+animation state="TINY_U+0040"
 frame duration="0.05" x="0" y="122" w="3" h="5"
 
-animation state="TINY_U000023"
+animation state="TINY_U+0023"
 frame duration="0.05" x="191" y="121" w="3" h="5"
 
-animation state="TINY_U000024"
+animation state="TINY_U+0024"
 frame duration="0.05" x="140" y="121" w="3" h="5"
 
-animation state="TINY_U000025"
+animation state="TINY_U+0025"
 frame duration="0.05" x="137" y="121" w="3" h="5"
 
-animation state="TINY_U00005E"
+animation state="TINY_U+005E"
 frame duration="0.05" x="134" y="121" w="3" h="5"
 
-animation state="TINY_U000026"
+animation state="TINY_U+0026"
 frame duration="0.05" x="220" y="119" w="5" h="5"
 
-animation state="TINY_U00002A"
+animation state="TINY_U+002A"
 frame duration="0.05" x="131" y="121" w="3" h="5"
 
-animation state="TINY_U000027"
+animation state="TINY_U+0027"
 frame duration="0.05" x="244" y="60" w="1" h="5"
 
-animation state="TINY_U000022"
+animation state="TINY_U+0022"
 frame duration="0.05" x="121" y="121" w="3" h="5"
 
-animation state="TINY_U00003A"
+animation state="TINY_U+003A"
 frame duration="0.05" x="71" y="65" w="1" h="5"
 
-animation state="TINY_U00003B"
+animation state="TINY_U+003B"
 frame duration="0.05" x="177" y="103" w="2" h="5"
 
-animation state="WIDE_U000041"
+animation state="WIDE_U+0041"
 frame duration="0.05" x="46" y="103" w="7" h="5"
 
-animation state="WIDE_U000042"
+animation state="WIDE_U+0042"
 frame duration="0.05" x="159" y="109" w="6" h="5"
 
-animation state="WIDE_U000043"
+animation state="WIDE_U+0043"
 frame duration="0.05" x="165" y="109" w="6" h="5"
 
-animation state="WIDE_U000044"
+animation state="WIDE_U+0044"
 frame duration="0.05" x="171" y="109" w="6" h="5"
 
-animation state="WIDE_U000045"
+animation state="WIDE_U+0045"
 frame duration="0.05" x="203" y="109" w="6" h="5"
 
-animation state="WIDE_U000046"
+animation state="WIDE_U+0046"
 frame duration="0.05" x="83" y="109" w="6" h="5"
 
-animation state="WIDE_U000047"
+animation state="WIDE_U+0047"
 frame duration="0.05" x="28" y="110" w="6" h="5"
 
-animation state="WIDE_U000048"
+animation state="WIDE_U+0048"
 frame duration="0.05" x="34" y="110" w="6" h="5"
 
-animation state="WIDE_U000049"
+animation state="WIDE_U+0049"
 frame duration="0.05" x="40" y="110" w="6" h="5"
 
-animation state="WIDE_U00004A"
+animation state="WIDE_U+004A"
 frame duration="0.05" x="72" y="111" w="6" h="5"
 
-animation state="WIDE_U00004B"
+animation state="WIDE_U+004B"
 frame duration="0.05" x="96" y="111" w="6" h="5"
 
-animation state="WIDE_U00004C"
+animation state="WIDE_U+004C"
 frame duration="0.05" x="191" y="111" w="6" h="5"
 
-animation state="WIDE_U00004D"
+animation state="WIDE_U+004D"
 frame duration="0.05" x="102" y="111" w="6" h="5"
 
-animation state="WIDE_U00004E"
+animation state="WIDE_U+004E"
 frame duration="0.05" x="118" y="111" w="6" h="5"
 
-animation state="WIDE_U00004F"
+animation state="WIDE_U+004F"
 frame duration="0.05" x="131" y="111" w="6" h="5"
 
-animation state="WIDE_U000050"
+animation state="WIDE_U+0050"
 frame duration="0.05" x="137" y="111" w="6" h="5"
 
-animation state="WIDE_U000051"
+animation state="WIDE_U+0051"
 frame duration="0.05" x="5" y="103" w="7" h="5"
 
-animation state="WIDE_U000052"
+animation state="WIDE_U+0052"
 frame duration="0.05" x="167" y="114" w="6" h="5"
 
-animation state="WIDE_U000053"
+animation state="WIDE_U+0053"
 frame duration="0.05" x="209" y="119" w="6" h="5"
 
-animation state="WIDE_U000054"
+animation state="WIDE_U+0054"
 frame duration="0.05" x="173" y="119" w="6" h="5"
 
-animation state="WIDE_U000055"
+animation state="WIDE_U+0055"
 frame duration="0.05" x="125" y="119" w="6" h="5"
 
-animation state="WIDE_U000056"
+animation state="WIDE_U+0056"
 frame duration="0.05" x="83" y="119" w="6" h="5"
 
-animation state="WIDE_U000057"
+animation state="WIDE_U+0057"
 frame duration="0.05" x="185" y="118" w="6" h="5"
 
-animation state="WIDE_U000058"
+animation state="WIDE_U+0058"
 frame duration="0.05" x="191" y="116" w="6" h="5"
 
-animation state="WIDE_U000059"
+animation state="WIDE_U+0059"
 frame duration="0.05" x="131" y="116" w="6" h="5"
 
-animation state="WIDE_U00005A"
+animation state="WIDE_U+005A"
 frame duration="0.05" x="137" y="116" w="6" h="5"
 
-animation state="WIDE_U000030"
+animation state="WIDE_U+0030"
 frame duration="0.05" x="143" y="118" w="6" h="5"
 
-animation state="WIDE_U000031"
+animation state="WIDE_U+0031"
 frame duration="0.05" x="149" y="118" w="6" h="5"
 
-animation state="WIDE_U000032"
+animation state="WIDE_U+0032"
 frame duration="0.05" x="197" y="118" w="6" h="5"
 
-animation state="WIDE_U000033"
+animation state="WIDE_U+0033"
 frame duration="0.05" x="118" y="116" w="6" h="5"
 
-animation state="WIDE_U000034"
+animation state="WIDE_U+0034"
 frame duration="0.05" x="89" y="119" w="6" h="5"
 
-animation state="WIDE_U000035"
+animation state="WIDE_U+0035"
 frame duration="0.05" x="155" y="119" w="6" h="5"
 
-animation state="WIDE_U000036"
+animation state="WIDE_U+0036"
 frame duration="0.05" x="161" y="119" w="6" h="5"
 
-animation state="WIDE_U000037"
+animation state="WIDE_U+0037"
 frame duration="0.05" x="167" y="119" w="6" h="5"
 
-animation state="WIDE_U000038"
+animation state="WIDE_U+0038"
 frame duration="0.05" x="203" y="119" w="6" h="5"
 
-animation state="WIDE_U000039"
+animation state="WIDE_U+0039"
 frame duration="0.05" x="179" y="118" w="6" h="5"
 
-animation state="WIDE_U000028"
+animation state="WIDE_U+0028"
 frame duration="0.05" x="125" y="114" w="6" h="5"
 
-animation state="WIDE_U000029"
+animation state="WIDE_U+0029"
 frame duration="0.05" x="242" y="108" w="6" h="5"
 
-animation state="WIDE_U00005F"
+animation state="WIDE_U+005F"
 frame duration="0.05" x="249" y="102" w="6" h="6"
 
-animation state="WIDE_U00002D"
+animation state="WIDE_U+002D"
 frame duration="0.05" x="155" y="114" w="6" h="5"
 
-animation state="WIDE_U00002B"
+animation state="WIDE_U+002B"
 frame duration="0.05" x="161" y="114" w="6" h="5"
 
-animation state="WIDE_U00003D"
+animation state="WIDE_U+003D"
 frame duration="0.05" x="12" y="115" w="6" h="5"
 
-animation state="WIDE_U00005C"
+animation state="WIDE_U+005C"
 frame duration="0.05" x="173" y="114" w="6" h="5"
 
-animation state="WIDE_U00002F"
+animation state="WIDE_U+002F"
 frame duration="0.05" x="203" y="114" w="6" h="5"
 
-animation state="WIDE_U00003C"
+animation state="WIDE_U+003C"
 frame duration="0.05" x="209" y="114" w="6" h="5"
 
-animation state="WIDE_U00003E"
+animation state="WIDE_U+003E"
 frame duration="0.05" x="215" y="114" w="6" h="5"
 
-animation state="WIDE_U00003F"
+animation state="WIDE_U+003F"
 frame duration="0.05" x="221" y="114" w="6" h="5"
 
-animation state="WIDE_U00002C"
+animation state="WIDE_U+002C"
 frame duration="0.05" x="248" y="114" w="6" h="5"
 
-animation state="WIDE_U00002E"
+animation state="WIDE_U+002E"
 frame duration="0.05" x="83" y="114" w="6" h="5"
 
-animation state="WIDE_U000021"
+animation state="WIDE_U+0021"
 frame duration="0.05" x="18" y="115" w="6" h="5"
 
-animation state="WIDE_U000040"
+animation state="WIDE_U+0040"
 frame duration="0.05" x="218" y="95" w="7" h="7"
 
-animation state="WIDE_U000023"
+animation state="WIDE_U+0023"
 frame duration="0.05" x="243" y="102" w="6" h="6"
 
-animation state="WIDE_U000024"
+animation state="WIDE_U+0024"
 frame duration="0.05" x="24" y="115" w="6" h="5"
 
-animation state="WIDE_U000025"
+animation state="WIDE_U+0025"
 frame duration="0.05" x="30" y="115" w="6" h="5"
 
-animation state="WIDE_U00005E"
+animation state="WIDE_U+005E"
 frame duration="0.05" x="36" y="115" w="6" h="5"
 
-animation state="WIDE_U000026"
+animation state="WIDE_U+0026"
 frame duration="0.05" x="53" y="115" w="6" h="5"
 
-animation state="WIDE_U00002A"
+animation state="WIDE_U+002A"
 frame duration="0.05" x="112" y="115" w="6" h="5"
 
-animation state="WIDE_U000027"
+animation state="WIDE_U+0027"
 frame duration="0.05" x="72" y="116" w="6" h="5"
 
-animation state="WIDE_U000022"
+animation state="WIDE_U+0022"
 frame duration="0.05" x="96" y="116" w="6" h="5"
 
-animation state="WIDE_U00003A"
+animation state="WIDE_U+003A"
 frame duration="0.05" x="102" y="116" w="6" h="5"
 
-animation state="WIDE_U00003B"
+animation state="WIDE_U+003B"
 frame duration="0.05" x="125" y="109" w="6" h="5"
 
-animation state="THIN_U000041"
+animation state="THIN_U+0041"
 frame duration="0.05" x="78" y="40" w="7" h="12"
 
-animation state="THIN_U000042"
+animation state="THIN_U+0042"
 frame duration="0.05" x="85" y="40" w="7" h="12"
 
-animation state="THIN_U000043"
+animation state="THIN_U+0043"
 frame duration="0.05" x="92" y="40" w="7" h="12"
 
-animation state="THIN_U000044"
+animation state="THIN_U+0044"
 frame duration="0.05" x="99" y="40" w="7" h="12"
 
-animation state="THIN_U000045"
+animation state="THIN_U+0045"
 frame duration="0.05" x="106" y="40" w="7" h="12"
 
-animation state="THIN_U000046"
+animation state="THIN_U+0046"
 frame duration="0.05" x="113" y="40" w="7" h="12"
 
-animation state="THIN_U000047"
+animation state="THIN_U+0047"
 frame duration="0.05" x="21" y="32" w="7" h="12"
 
-animation state="THIN_U000048"
+animation state="THIN_U+0048"
 frame duration="0.05" x="127" y="40" w="7" h="12"
 
-animation state="THIN_U000049"
+animation state="THIN_U+0049"
 frame duration="0.05" x="134" y="40" w="7" h="12"
 
-animation state="THIN_U00004A"
+animation state="THIN_U+004A"
 frame duration="0.05" x="141" y="40" w="7" h="12"
 
-animation state="THIN_U00004B"
+animation state="THIN_U+004B"
 frame duration="0.05" x="148" y="40" w="7" h="12"
 
-animation state="THIN_U00004C"
+animation state="THIN_U+004C"
 frame duration="0.05" x="155" y="40" w="7" h="12"
 
-animation state="THIN_U00004D"
+animation state="THIN_U+004D"
 frame duration="0.05" x="162" y="40" w="7" h="12"
 
-animation state="THIN_U00004E"
+animation state="THIN_U+004E"
 frame duration="0.05" x="169" y="40" w="7" h="12"
 
-animation state="THIN_U00004F"
+animation state="THIN_U+004F"
 frame duration="0.05" x="176" y="40" w="7" h="12"
 
-animation state="THIN_U000050"
+animation state="THIN_U+0050"
 frame duration="0.05" x="183" y="40" w="7" h="12"
 
-animation state="THIN_U000051"
+animation state="THIN_U+0051"
 frame duration="0.05" x="202" y="40" w="7" h="12"
 
-animation state="THIN_U000052"
+animation state="THIN_U+0052"
 frame duration="0.05" x="209" y="40" w="7" h="12"
 
-animation state="THIN_U000053"
+animation state="THIN_U+0053"
 frame duration="0.05" x="216" y="40" w="7" h="12"
 
-animation state="THIN_U000054"
+animation state="THIN_U+0054"
 frame duration="0.05" x="223" y="40" w="7" h="12"
 
-animation state="THIN_U000055"
+animation state="THIN_U+0055"
 frame duration="0.05" x="230" y="40" w="7" h="12"
 
-animation state="THIN_U000056"
+animation state="THIN_U+0056"
 frame duration="0.05" x="162" y="28" w="7" h="12"
 
-animation state="THIN_U000057"
+animation state="THIN_U+0057"
 frame duration="0.05" x="232" y="16" w="7" h="12"
 
-animation state="THIN_U000058"
+animation state="THIN_U+0058"
 frame duration="0.05" x="239" y="16" w="7" h="12"
 
-animation state="THIN_U000059"
+animation state="THIN_U+0059"
 frame duration="0.05" x="248" y="26" w="7" h="12"
 
-animation state="THIN_U00005A"
+animation state="THIN_U+005A"
 frame duration="0.05" x="78" y="28" w="7" h="12"
 
-animation state="THIN_U00003A"
+animation state="THIN_U+003A"
 frame duration="0.05" x="174" y="74" w="5" h="12"
 
-animation state="THIN_U000026"
+animation state="THIN_U+0026"
 frame duration="0.05" x="85" y="28" w="7" h="12"
 
-animation state="THIN_U000027"
+animation state="THIN_U+0027"
 frame duration="0.05" x="72" y="56" w="6" h="12"
 
-animation state="THIN_U00003D"
+animation state="THIN_U+003D"
 frame duration="0.05" x="92" y="28" w="7" h="12"
 
-animation state="THIN_U000030"
+animation state="THIN_U+0030"
 frame duration="0.05" x="99" y="28" w="7" h="12"
 
-animation state="THIN_U000031"
+animation state="THIN_U+0031"
 frame duration="0.05" x="106" y="28" w="7" h="12"
 
-animation state="THIN_U000032"
+animation state="THIN_U+0032"
 frame duration="0.05" x="113" y="28" w="7" h="12"
 
-animation state="THIN_U000033"
+animation state="THIN_U+0033"
 frame duration="0.05" x="120" y="28" w="7" h="12"
 
-animation state="THIN_U000034"
+animation state="THIN_U+0034"
 frame duration="0.05" x="127" y="28" w="7" h="12"
 
-animation state="THIN_U000035"
+animation state="THIN_U+0035"
 frame duration="0.05" x="134" y="28" w="7" h="12"
 
-animation state="THIN_U000036"
+animation state="THIN_U+0036"
 frame duration="0.05" x="141" y="28" w="7" h="12"
 
-animation state="THIN_U000037"
+animation state="THIN_U+0037"
 frame duration="0.05" x="148" y="28" w="7" h="12"
 
-animation state="THIN_U000038"
+animation state="THIN_U+0038"
 frame duration="0.05" x="155" y="28" w="7" h="12"
 
-animation state="THIN_U000039"
+animation state="THIN_U+0039"
 frame duration="0.05" x="225" y="16" w="7" h="12"
 
-animation state="THIN_U000061"
+animation state="THIN_U+0061"
 frame duration="0.05" x="169" y="28" w="7" h="12"
 
-animation state="THIN_U000062"
+animation state="THIN_U+0062"
 frame duration="0.05" x="40" y="54" w="6" h="12"
 
-animation state="THIN_U000063"
+animation state="THIN_U+0063"
 frame duration="0.05" x="111" y="63" w="6" h="12"
 
-animation state="THIN_U000064"
+animation state="THIN_U+0064"
 frame duration="0.05" x="117" y="63" w="6" h="12"
 
-animation state="THIN_U000065"
+animation state="THIN_U+0065"
 frame duration="0.05" x="176" y="28" w="7" h="12"
 
-animation state="THIN_U000066"
+animation state="THIN_U+0066"
 frame duration="0.05" x="169" y="74" w="5" h="12"
 
-animation state="THIN_U000067"
+animation state="THIN_U+0067"
 frame duration="0.05" x="72" y="16" w="6" h="14"
 
-animation state="THIN_U000068"
+animation state="THIN_U+0068"
 frame duration="0.05" x="123" y="63" w="6" h="12"
 
-animation state="THIN_U000069"
+animation state="THIN_U+0069"
 frame duration="0.05" x="246" y="16" w="1" h="12"
 
-animation state="THIN_U00006A"
+animation state="THIN_U+006A"
 frame duration="0.05" x="244" y="28" w="4" h="12"
 
-animation state="THIN_U00006B"
+animation state="THIN_U+006B"
 frame duration="0.05" x="129" y="63" w="6" h="12"
 
-animation state="THIN_U00006C"
+animation state="THIN_U+006C"
 frame duration="0.05" x="247" y="16" w="1" h="12"
 
-animation state="THIN_U00006D"
+animation state="THIN_U+006D"
 frame duration="0.05" x="183" y="28" w="7" h="12"
 
-animation state="THIN_U00006E"
+animation state="THIN_U+006E"
 frame duration="0.05" x="135" y="63" w="6" h="12"
 
-animation state="THIN_U00006F"
+animation state="THIN_U+006F"
 frame duration="0.05" x="141" y="63" w="6" h="12"
 
-animation state="THIN_U000070"
+animation state="THIN_U+0070"
 frame duration="0.05" x="190" y="28" w="6" h="13"
 
-animation state="THIN_U000071"
+animation state="THIN_U+0071"
 frame duration="0.05" x="196" y="28" w="6" h="13"
 
-animation state="THIN_U000072"
+animation state="THIN_U+0072"
 frame duration="0.05" x="164" y="74" w="5" h="12"
 
-animation state="THIN_U000073"
+animation state="THIN_U+0073"
 frame duration="0.05" x="147" y="63" w="6" h="12"
 
-animation state="THIN_U000074"
+animation state="THIN_U+0074"
 frame duration="0.05" x="159" y="74" w="5" h="12"
 
-animation state="THIN_U000075"
+animation state="THIN_U+0075"
 frame duration="0.05" x="153" y="63" w="6" h="12"
 
-animation state="THIN_U000076"
+animation state="THIN_U+0076"
 frame duration="0.05" x="202" y="28" w="7" h="12"
 
-animation state="THIN_U000077"
+animation state="THIN_U+0077"
 frame duration="0.05" x="209" y="28" w="7" h="12"
 
-animation state="THIN_U000078"
+animation state="THIN_U+0078"
 frame duration="0.05" x="216" y="28" w="7" h="12"
 
-animation state="THIN_U000079"
+animation state="THIN_U+0079"
 frame duration="0.05" x="248" y="13" w="7" h="13"
 
-animation state="THIN_U00007A"
+animation state="THIN_U+007A"
 frame duration="0.05" x="223" y="28" w="7" h="12"
 
-animation state="THIN_U00002D"
+animation state="THIN_U+002D"
 frame duration="0.05" x="230" y="28" w="7" h="12"
 
-animation state="THIN_U000021"
+animation state="THIN_U+0021"
 frame duration="0.05" x="185" y="74" w="4" h="12"
 
-animation state="THIN_U00002F"
+animation state="THIN_U+002F"
 frame duration="0.05" x="237" y="28" w="7" h="12"
 
-animation state="THIN_U00002E"
+animation state="THIN_U+002E"
 frame duration="0.05" x="78" y="74" w="5" h="12"
 
-animation state="THIN_U00003F"
+animation state="THIN_U+003F"
 frame duration="0.05" x="0" y="32" w="7" h="12"
 
-animation state="THIN_U00002C"
+animation state="THIN_U+002C"
 frame duration="0.05" x="197" y="65" w="5" h="12"
 
-animation state="GRADIENT_TALL_U000030"
+animation state="GRADIENT_TALL_U+0030"
 frame duration="0.05" x="7" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000031"
+animation state="GRADIENT_TALL_U+0031"
 frame duration="0.05" x="14" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000032"
+animation state="GRADIENT_TALL_U+0032"
 frame duration="0.05" x="28" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000033"
+animation state="GRADIENT_TALL_U+0033"
 frame duration="0.05" x="248" y="38" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000034"
+animation state="GRADIENT_TALL_U+0034"
 frame duration="0.05" x="70" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000035"
+animation state="GRADIENT_TALL_U+0035"
 frame duration="0.05" x="63" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000036"
+animation state="GRADIENT_TALL_U+0036"
 frame duration="0.05" x="56" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000037"
+animation state="GRADIENT_TALL_U+0037"
 frame duration="0.05" x="49" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000038"
+animation state="GRADIENT_TALL_U+0038"
 frame duration="0.05" x="42" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000039"
+animation state="GRADIENT_TALL_U+0039"
 frame duration="0.05" x="35" y="32" w="7" h="12"
 
-animation state="GRADIENT_TALL_U000053"
+animation state="GRADIENT_TALL_U+0053"
 frame duration="0.05" x="218" y="16" w="7" h="12"
 
-animation state="GRADIENT_TALL_U00003A"
+animation state="GRADIENT_TALL_U+003A"
 frame duration="0.05" x="120" y="40" w="7" h="12"
 
-animation state="GRADIENT_U000030"
+animation state="GRADIENT_U+0030"
 frame duration="0.05" x="78" y="63" w="7" h="11"
 
-animation state="GRADIENT_U000031"
+animation state="GRADIENT_U+0031"
 frame duration="0.05" x="245" y="61" w="7" h="11"
 
-animation state="GRADIENT_U000032"
+animation state="GRADIENT_U+0032"
 frame duration="0.05" x="237" y="60" w="7" h="11"
 
-animation state="GRADIENT_U000033"
+animation state="GRADIENT_U+0033"
 frame duration="0.05" x="60" y="54" w="7" h="11"
 
-animation state="GRADIENT_U000034"
+animation state="GRADIENT_U+0034"
 frame duration="0.05" x="21" y="65" w="7" h="11"
 
-animation state="GRADIENT_U000035"
+animation state="GRADIENT_U+0035"
 frame duration="0.05" x="14" y="65" w="7" h="11"
 
-animation state="GRADIENT_U000036"
+animation state="GRADIENT_U+0036"
 frame duration="0.05" x="7" y="65" w="7" h="11"
 
-animation state="GRADIENT_U000037"
+animation state="GRADIENT_U+0037"
 frame duration="0.05" x="0" y="65" w="7" h="11"
 
-animation state="GRADIENT_U000038"
+animation state="GRADIENT_U+0038"
 frame duration="0.05" x="190" y="64" w="7" h="11"
 
-animation state="GRADIENT_U000039"
+animation state="GRADIENT_U+0039"
 frame duration="0.05" x="229" y="63" w="7" h="11"
 
-animation state="GRADIENT_U000041"
+animation state="GRADIENT_U+0041"
 frame duration="0.05" x="222" y="63" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000030"
+animation state="GRADIENT_GOLD_U+0030"
 frame duration="0.05" x="208" y="63" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000031"
+animation state="GRADIENT_GOLD_U+0031"
 frame duration="0.05" x="180" y="63" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000032"
+animation state="GRADIENT_GOLD_U+0032"
 frame duration="0.05" x="173" y="63" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000033"
+animation state="GRADIENT_GOLD_U+0033"
 frame duration="0.05" x="166" y="63" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000034"
+animation state="GRADIENT_GOLD_U+0034"
 frame duration="0.05" x="78" y="52" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000035"
+animation state="GRADIENT_GOLD_U+0035"
 frame duration="0.05" x="245" y="50" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000036"
+animation state="GRADIENT_GOLD_U+0036"
 frame duration="0.05" x="21" y="54" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000037"
+animation state="GRADIENT_GOLD_U+0037"
 frame duration="0.05" x="14" y="54" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000038"
+animation state="GRADIENT_GOLD_U+0038"
 frame duration="0.05" x="7" y="54" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000039"
+animation state="GRADIENT_GOLD_U+0039"
 frame duration="0.05" x="190" y="53" w="7" h="11"
 
-animation state="GRADIENT_GOLD_U000041"
+animation state="GRADIENT_GOLD_U+0041"
 frame duration="0.05" x="230" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000030"
+animation state="GRADIENT_GREEN_U+0030"
 frame duration="0.05" x="223" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000031"
+animation state="GRADIENT_GREEN_U+0031"
 frame duration="0.05" x="216" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000032"
+animation state="GRADIENT_GREEN_U+0032"
 frame duration="0.05" x="118" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000033"
+animation state="GRADIENT_GREEN_U+0033"
 frame duration="0.05" x="202" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000034"
+animation state="GRADIENT_GREEN_U+0034"
 frame duration="0.05" x="181" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000035"
+animation state="GRADIENT_GREEN_U+0035"
 frame duration="0.05" x="174" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000036"
+animation state="GRADIENT_GREEN_U+0036"
 frame duration="0.05" x="167" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000037"
+animation state="GRADIENT_GREEN_U+0037"
 frame duration="0.05" x="160" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000038"
+animation state="GRADIENT_GREEN_U+0038"
 frame duration="0.05" x="153" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000039"
+animation state="GRADIENT_GREEN_U+0039"
 frame duration="0.05" x="146" y="52" w="7" h="11"
 
-animation state="GRADIENT_GREEN_U000041"
+animation state="GRADIENT_GREEN_U+0041"
 frame duration="0.05" x="139" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000030"
+animation state="GRADIENT_ORANGE_U+0030"
 frame duration="0.05" x="132" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000031"
+animation state="GRADIENT_ORANGE_U+0031"
 frame duration="0.05" x="125" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000032"
+animation state="GRADIENT_ORANGE_U+0032"
 frame duration="0.05" x="0" y="54" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000033"
+animation state="GRADIENT_ORANGE_U+0033"
 frame duration="0.05" x="98" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000034"
+animation state="GRADIENT_ORANGE_U+0034"
 frame duration="0.05" x="111" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000035"
+animation state="GRADIENT_ORANGE_U+0035"
 frame duration="0.05" x="209" y="52" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000036"
+animation state="GRADIENT_ORANGE_U+0036"
 frame duration="0.05" x="98" y="63" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000037"
+animation state="GRADIENT_ORANGE_U+0037"
 frame duration="0.05" x="46" y="65" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000038"
+animation state="GRADIENT_ORANGE_U+0038"
 frame duration="0.05" x="159" y="63" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000039"
+animation state="GRADIENT_ORANGE_U+0039"
 frame duration="0.05" x="215" y="63" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U00002B"
+animation state="GRADIENT_ORANGE_U+002B"
 frame duration="0.05" x="46" y="54" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U00002D"
+animation state="GRADIENT_ORANGE_U+002D"
 frame duration="0.05" x="53" y="54" w="7" h="11"
 
-animation state="GRADIENT_ORANGE_U000041"
+animation state="GRADIENT_ORANGE_U+0041"
 frame duration="0.05" x="91" y="63" w="7" h="11"
 
-animation state="THICK_U00E000"
+animation state="THICK_U+E000"
 frame duration="0.05" x="237" y="71" w="6" h="11"
 
-animation state="THICK_U00E001"
+animation state="THICK_U+E001"
 frame duration="0.05" x="72" y="68" w="6" h="11"
 
-animation state="THICK_U00E002"
+animation state="THICK_U+E002"
 frame duration="0.05" x="40" y="66" w="6" h="11"
 
-animation state="THICK_U00E003"
+animation state="THICK_U+E003"
 frame duration="0.05" x="34" y="66" w="6" h="11"
 
-animation state="THICK_U00E004"
+animation state="THICK_U+E004"
 frame duration="0.05" x="28" y="66" w="6" h="11"
 
-animation state="THICK_U0003B1"
+animation state="THICK_U+03B1"
 frame duration="0.05" x="65" y="65" w="6" h="11"
 
-animation state="THICK_U0003B2"
+animation state="THICK_U+03B2"
 frame duration="0.05" x="53" y="65" w="6" h="11"
 
-animation state="THICK_U0003A3"
+animation state="THICK_U+03A3"
 frame duration="0.05" x="105" y="64" w="6" h="11"
 
-animation state="THICK_U0003A9"
+animation state="THICK_U+03A9"
 frame duration="0.05" x="59" y="65" w="6" h="11"
 
-animation state="THIN_U000022"
+animation state="THIN_U+0022"
 frame duration="0.05" x="78" y="16" w="7" h="12"
 
-animation state="THIN_U00005F"
+animation state="THIN_U+005F"
 frame duration="0.05" x="85" y="16" w="7" h="12"
 
-animation state="THIN_U000024"
+animation state="THIN_U+0024"
 frame duration="0.05" x="92" y="16" w="7" h="12"
 
-animation state="THIN_U000028"
+animation state="THIN_U+0028"
 frame duration="0.05" x="99" y="16" w="7" h="12"
 
-animation state="THIN_U000029"
+animation state="THIN_U+0029"
 frame duration="0.05" x="106" y="16" w="7" h="12"
 
-animation state="THIN_U00005B"
+animation state="THIN_U+005B"
 frame duration="0.05" x="113" y="16" w="7" h="12"
 
-animation state="THIN_U00005D"
+animation state="THIN_U+005D"
 frame duration="0.05" x="120" y="16" w="7" h="12"
 
-animation state="THIN_U00007C"
+animation state="THIN_U+007C"
 frame duration="0.05" x="127" y="16" w="7" h="12"
 
-animation state="THIN_U00002A"
+animation state="THIN_U+002A"
 frame duration="0.05" x="134" y="16" w="7" h="12"
 
-animation state="THIN_U00007E"
+animation state="THIN_U+007E"
 frame duration="0.05" x="141" y="16" w="7" h="12"
 
-animation state="THIN_U000060"
+animation state="THIN_U+0060"
 frame duration="0.05" x="148" y="16" w="7" h="12"
 
-animation state="THIN_U00005E"
+animation state="THIN_U+005E"
 frame duration="0.05" x="155" y="16" w="7" h="12"
 
-animation state="THIN_U00002B"
+animation state="THIN_U+002B"
 frame duration="0.05" x="162" y="16" w="7" h="12"
 
-animation state="THIN_U000023"
+animation state="THIN_U+0023"
 frame duration="0.05" x="169" y="16" w="7" h="12"
 
-animation state="THIN_U000025"
+animation state="THIN_U+0025"
 frame duration="0.05" x="176" y="16" w="7" h="12"
 
-animation state="THIN_U000040"
+animation state="THIN_U+0040"
 frame duration="0.05" x="183" y="16" w="7" h="12"
 
-animation state="THIN_U00003C"
+animation state="THIN_U+003C"
 frame duration="0.05" x="190" y="16" w="7" h="12"
 
-animation state="THIN_U00003E"
+animation state="THIN_U+003E"
 frame duration="0.05" x="197" y="16" w="7" h="12"
 
-animation state="THIN_U00007B"
+animation state="THIN_U+007B"
 frame duration="0.05" x="204" y="16" w="7" h="12"
 
-animation state="THIN_U00007D"
+animation state="THIN_U+007D"
 frame duration="0.05" x="211" y="16" w="7" h="12"
 
-animation state="THIN_U00003B"
+animation state="THIN_U+003B"
 frame duration="0.05" x="197" y="53" w="5" h="12"
 
-animation state="BATTLE_U000041"
+animation state="BATTLE_U+0041"
 frame duration="0.05" x="176" y="0" w="8" h="16"
 
-animation state="BATTLE_U000042"
+animation state="BATTLE_U+0042"
 frame duration="0.05" x="224" y="0" w="8" h="16"
 
-animation state="BATTLE_U000043"
+animation state="BATTLE_U+0043"
 frame duration="0.05" x="24" y="16" w="8" h="16"
 
-animation state="BATTLE_U000044"
+animation state="BATTLE_U+0044"
 frame duration="0.05" x="160" y="0" w="8" h="16"
 
-animation state="BATTLE_U000045"
+animation state="BATTLE_U+0045"
 frame duration="0.05" x="152" y="0" w="8" h="16"
 
-animation state="BATTLE_U000046"
+animation state="BATTLE_U+0046"
 frame duration="0.05" x="144" y="0" w="8" h="16"
 
-animation state="BATTLE_U000047"
+animation state="BATTLE_U+0047"
 frame duration="0.05" x="136" y="0" w="8" h="16"
 
-animation state="BATTLE_U000048"
+animation state="BATTLE_U+0048"
 frame duration="0.05" x="128" y="0" w="8" h="16"
 
-animation state="BATTLE_U000049"
+animation state="BATTLE_U+0049"
 frame duration="0.05" x="120" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004A"
+animation state="BATTLE_U+004A"
 frame duration="0.05" x="112" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004B"
+animation state="BATTLE_U+004B"
 frame duration="0.05" x="104" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004C"
+animation state="BATTLE_U+004C"
 frame duration="0.05" x="96" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004D"
+animation state="BATTLE_U+004D"
 frame duration="0.05" x="0" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004E"
+animation state="BATTLE_U+004E"
 frame duration="0.05" x="80" y="0" w="8" h="16"
 
-animation state="BATTLE_U00004F"
+animation state="BATTLE_U+004F"
 frame duration="0.05" x="72" y="0" w="8" h="16"
 
-animation state="BATTLE_U000050"
+animation state="BATTLE_U+0050"
 frame duration="0.05" x="64" y="0" w="8" h="16"
 
-animation state="BATTLE_U000051"
+animation state="BATTLE_U+0051"
 frame duration="0.05" x="56" y="0" w="8" h="16"
 
-animation state="BATTLE_U000052"
+animation state="BATTLE_U+0052"
 frame duration="0.05" x="48" y="0" w="8" h="16"
 
-animation state="BATTLE_U000053"
+animation state="BATTLE_U+0053"
 frame duration="0.05" x="40" y="0" w="8" h="16"
 
-animation state="BATTLE_U000054"
+animation state="BATTLE_U+0054"
 frame duration="0.05" x="32" y="0" w="8" h="16"
 
-animation state="BATTLE_U000055"
+animation state="BATTLE_U+0055"
 frame duration="0.05" x="24" y="0" w="8" h="16"
 
-animation state="BATTLE_U000056"
+animation state="BATTLE_U+0056"
 frame duration="0.05" x="16" y="0" w="8" h="16"
 
-animation state="BATTLE_U000057"
+animation state="BATTLE_U+0057"
 frame duration="0.05" x="8" y="0" w="8" h="16"
 
-animation state="BATTLE_U000058"
+animation state="BATTLE_U+0058"
 frame duration="0.05" x="88" y="0" w="8" h="16"
 
-animation state="BATTLE_U000059"
+animation state="BATTLE_U+0059"
 frame duration="0.05" x="64" y="16" w="8" h="16"
 
-animation state="BATTLE_U00005A"
+animation state="BATTLE_U+005A"
 frame duration="0.05" x="56" y="16" w="8" h="16"
 
-animation state="BATTLE_U00005F"
+animation state="BATTLE_U+005F"
 frame duration="0.05" x="48" y="16" w="8" h="16"
 
-animation state="BATTLE_U00003C"
+animation state="BATTLE_U+003C"
 frame duration="0.05" x="40" y="16" w="8" h="16"
 
-animation state="BATTLE_U00003E"
+animation state="BATTLE_U+003E"
 frame duration="0.05" x="32" y="16" w="8" h="16"
 
-animation state="BATTLE_U000021"
+animation state="BATTLE_U+0021"
 frame duration="0.05" x="16" y="16" w="8" h="16"
 
-animation state="BATTLE_U000030"
+animation state="BATTLE_U+0030"
 frame duration="0.05" x="8" y="16" w="8" h="16"
 
-animation state="BATTLE_U000031"
+animation state="BATTLE_U+0031"
 frame duration="0.05" x="0" y="16" w="8" h="16"
 
-animation state="BATTLE_U000032"
+animation state="BATTLE_U+0032"
 frame duration="0.05" x="168" y="0" w="8" h="16"
 
-animation state="BATTLE_U000033"
+animation state="BATTLE_U+0033"
 frame duration="0.05" x="240" y="0" w="8" h="16"
 
-animation state="BATTLE_U000034"
+animation state="BATTLE_U+0034"
 frame duration="0.05" x="232" y="0" w="8" h="16"
 
-animation state="BATTLE_U000035"
+animation state="BATTLE_U+0035"
 frame duration="0.05" x="216" y="0" w="8" h="16"
 
-animation state="BATTLE_U000036"
+animation state="BATTLE_U+0036"
 frame duration="0.05" x="208" y="0" w="8" h="16"
 
-animation state="BATTLE_U000037"
+animation state="BATTLE_U+0037"
 frame duration="0.05" x="200" y="0" w="8" h="16"
 
-animation state="BATTLE_U000038"
+animation state="BATTLE_U+0038"
 frame duration="0.05" x="192" y="0" w="8" h="16"
 
-animation state="BATTLE_U000039"
+animation state="BATTLE_U+0039"
 frame duration="0.05" x="184" y="0" w="8" h="16"
 
-animation state="THICK_U00E005"
+animation state="THICK_U+E005"
 frame duration="0.05" x="28" y="54" w="6" h="12"
 
-animation state="THICK_U00E006"
+animation state="THICK_U+E006"
 frame duration="0.05" x="34" y="54" w="6" h="12"
 
-animation state="THICK_U00E007"
+animation state="THICK_U+E007"
 frame duration="0.05" x="196" y="41" w="6" h="12"
 
-animation state="THICK_U00E008"
+animation state="THICK_U+E008"
 frame duration="0.05" x="190" y="41" w="6" h="12"
 
-animation state="ENTITY_HP_U000030"
+animation state="ENTITY_HP_U+0030"
 frame duration="0.005" x="0" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000031"
+animation state="ENTITY_HP_U+0031"
 frame duration="0.005" x="8" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000032"
+animation state="ENTITY_HP_U+0032"
 frame duration="0.005" x="16" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000033"
+animation state="ENTITY_HP_U+0033"
 frame duration="0.005" x="24" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000034"
+animation state="ENTITY_HP_U+0034"
 frame duration="0.005" x="32" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000035"
+animation state="ENTITY_HP_U+0035"
 frame duration="0.005" x="40" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000036"
+animation state="ENTITY_HP_U+0036"
 frame duration="0.005" x="48" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000037"
+animation state="ENTITY_HP_U+0037"
 frame duration="0.005" x="56" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000038"
+animation state="ENTITY_HP_U+0038"
 frame duration="0.005" x="64" y="44" w="8" h="10"
 
-animation state="ENTITY_HP_U000039"
+animation state="ENTITY_HP_U+0039"
 frame duration="0.005" x="237" y="50" w="8" h="10"
 
-animation state="ENTITY_HP_U000052"
+animation state="ENTITY_HP_U+0052"
 frame duration="0.005" x="237" y="40" w="8" h="10"
 
-animation state="ENTITY_HP_U000041"
+animation state="ENTITY_HP_U+0041"
 frame duration="0.005" x="237" y="40" w="8" h="10"
 
-animation state="ENTITY_HP_U00003F"
+animation state="ENTITY_HP_U+003F"
 frame duration="0.005" x="237" y="40" w="8" h="10"
 
-animation state="CONTEXT_U000041"
+animation state="CONTEXT_U+0041"
 frame duration="0.05" x="53" y="103" w="6" h="6"
 
-animation state="CONTEXT_U000042"
+animation state="CONTEXT_U+0042"
 frame duration="0.05" x="78" y="103" w="6" h="6"
 
-animation state="CONTEXT_U000043"
+animation state="CONTEXT_U+0043"
 frame duration="0.05" x="96" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000044"
+animation state="CONTEXT_U+0044"
 frame duration="0.05" x="112" y="96" w="6" h="6"
 
-animation state="CONTEXT_U000045"
+animation state="CONTEXT_U+0045"
 frame duration="0.05" x="118" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000046"
+animation state="CONTEXT_U+0046"
 frame duration="0.05" x="12" y="103" w="6" h="6"
 
-animation state="CONTEXT_U000047"
+animation state="CONTEXT_U+0047"
 frame duration="0.05" x="28" y="104" w="6" h="6"
 
-animation state="CONTEXT_U000048"
+animation state="CONTEXT_U+0048"
 frame duration="0.05" x="40" y="104" w="6" h="6"
 
-animation state="CONTEXT_U000049"
+animation state="CONTEXT_U+0049"
 frame duration="0.05" x="18" y="103" w="2" h="6"
 
-animation state="CONTEXT_U00004A"
+animation state="CONTEXT_U+004A"
 frame duration="0.05" x="34" y="104" w="6" h="6"
 
-animation state="CONTEXT_U00004B"
+animation state="CONTEXT_U+004B"
 frame duration="0.05" x="203" y="103" w="6" h="6"
 
-animation state="CONTEXT_U00004C"
+animation state="CONTEXT_U+004C"
 frame duration="0.05" x="171" y="103" w="6" h="6"
 
-animation state="CONTEXT_U00004D"
+animation state="CONTEXT_U+004D"
 frame duration="0.05" x="165" y="103" w="6" h="6"
 
-animation state="CONTEXT_U00004E"
+animation state="CONTEXT_U+004E"
 frame duration="0.05" x="159" y="103" w="6" h="6"
 
-animation state="CONTEXT_U00004F"
+animation state="CONTEXT_U+004F"
 frame duration="0.05" x="125" y="103" w="6" h="6"
 
-animation state="CONTEXT_U000050"
+animation state="CONTEXT_U+0050"
 frame duration="0.05" x="237" y="102" w="6" h="6"
 
-animation state="CONTEXT_U000051"
+animation state="CONTEXT_U+0051"
 frame duration="0.05" x="222" y="102" w="6" h="6"
 
-animation state="CONTEXT_U000052"
+animation state="CONTEXT_U+0052"
 frame duration="0.05" x="216" y="102" w="6" h="6"
 
-animation state="CONTEXT_U000053"
+animation state="CONTEXT_U+0053"
 frame duration="0.05" x="210" y="102" w="6" h="6"
 
-animation state="CONTEXT_U000054"
+animation state="CONTEXT_U+0054"
 frame duration="0.05" x="84" y="103" w="6" h="6"
 
-animation state="CONTEXT_U000055"
+animation state="CONTEXT_U+0055"
 frame duration="0.05" x="72" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000056"
+animation state="CONTEXT_U+0056"
 frame duration="0.05" x="222" y="108" w="6" h="6"
 
-animation state="CONTEXT_U000057"
+animation state="CONTEXT_U+0057"
 frame duration="0.05" x="216" y="108" w="6" h="6"
 
-animation state="CONTEXT_U000058"
+animation state="CONTEXT_U+0058"
 frame duration="0.05" x="210" y="108" w="6" h="6"
 
-animation state="CONTEXT_U000059"
+animation state="CONTEXT_U+0059"
 frame duration="0.05" x="46" y="108" w="6" h="6"
 
-animation state="CONTEXT_U00005A"
+animation state="CONTEXT_U+005A"
 frame duration="0.05" x="5" y="108" w="6" h="6"
 
-animation state="CONTEXT_U000030"
+animation state="CONTEXT_U+0030"
 frame duration="0.05" x="197" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000031"
+animation state="CONTEXT_U+0031"
 frame duration="0.05" x="225" y="119" w="3" h="6"
 
-animation state="CONTEXT_U000032"
+animation state="CONTEXT_U+0032"
 frame duration="0.05" x="191" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000033"
+animation state="CONTEXT_U+0033"
 frame duration="0.05" x="185" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000034"
+animation state="CONTEXT_U+0034"
 frame duration="0.05" x="179" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000035"
+animation state="CONTEXT_U+0035"
 frame duration="0.05" x="149" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000036"
+animation state="CONTEXT_U+0036"
 frame duration="0.05" x="143" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000037"
+animation state="CONTEXT_U+0037"
 frame duration="0.05" x="137" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000038"
+animation state="CONTEXT_U+0038"
 frame duration="0.05" x="131" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000039"
+animation state="CONTEXT_U+0039"
 frame duration="0.05" x="102" y="105" w="6" h="6"
 
-animation state="CONTEXT_U000028"
+animation state="CONTEXT_U+0028"
 frame duration="0.05" x="63" y="116" w="4" h="6"
 
-animation state="CONTEXT_U000029"
+animation state="CONTEXT_U+0029"
 frame duration="0.05" x="108" y="119" w="4" h="6"
 
-animation state="CONTEXT_U00005F"
+animation state="CONTEXT_U+005F"
 frame duration="0.05" x="91" y="105" w="5" h="7"
 
-animation state="CONTEXT_U00002D"
+animation state="CONTEXT_U+002D"
 frame duration="0.05" x="78" y="109" w="5" h="6"
 
-animation state="CONTEXT_U00002B"
+animation state="CONTEXT_U+002B"
 frame duration="0.05" x="248" y="108" w="5" h="6"
 
-animation state="CONTEXT_U00003D"
+animation state="CONTEXT_U+003D"
 frame duration="0.05" x="58" y="109" w="5" h="6"
 
-animation state="CONTEXT_U00005C"
+animation state="CONTEXT_U+005C"
 frame duration="0.05" x="53" y="109" w="5" h="6"
 
-animation state="CONTEXT_U00002F"
+animation state="CONTEXT_U+002F"
 frame duration="0.05" x="22" y="109" w="5" h="6"
 
-animation state="CONTEXT_U00003C"
+animation state="CONTEXT_U+003C"
 frame duration="0.05" x="228" y="116" w="4" h="6"
 
-animation state="CONTEXT_U00003E"
+animation state="CONTEXT_U+003E"
 frame duration="0.05" x="59" y="115" w="4" h="6"
 
-animation state="CONTEXT_U00003F"
+animation state="CONTEXT_U+003F"
 frame duration="0.05" x="61" y="96" w="6" h="6"
 
-animation state="CONTEXT_U00002C"
+animation state="CONTEXT_U+002C"
 frame duration="0.05" x="26" y="96" w="2" h="6"
 
-animation state="CONTEXT_U00002E"
+animation state="CONTEXT_U+002E"
 frame duration="0.05" x="70" y="76" w="2" h="6"
 
-animation state="CONTEXT_U000021"
+animation state="CONTEXT_U+0021"
 frame duration="0.05" x="70" y="88" w="2" h="6"
 
-animation state="CONTEXT_U000040"
+animation state="CONTEXT_U+0040"
 frame duration="0.05" x="210" y="95" w="8" h="7"
 
-animation state="CONTEXT_U000023"
+animation state="CONTEXT_U+0023"
 frame duration="0.05" x="225" y="95" w="6" h="7"
 
-animation state="CONTEXT_U000024"
+animation state="CONTEXT_U+0024"
 frame duration="0.05" x="20" y="96" w="6" h="6"
 
-animation state="CONTEXT_U000025"
+animation state="CONTEXT_U+0025"
 frame duration="0.05" x="17" y="109" w="5" h="6"
 
-animation state="CONTEXT_U00005E"
+animation state="CONTEXT_U+005E"
 frame duration="0.05" x="109" y="99" w="3" h="6"
 
-animation state="CONTEXT_U000026"
+animation state="CONTEXT_U+0026"
 frame duration="0.05" x="72" y="99" w="6" h="6"
 
-animation state="CONTEXT_U00002A"
+animation state="CONTEXT_U+002A"
 frame duration="0.05" x="12" y="109" w="5" h="6"
 
-animation state="CONTEXT_U000027"
+animation state="CONTEXT_U+0027"
 frame duration="0.05" x="177" y="86" w="2" h="6"
 
-animation state="CONTEXT_U000022"
+animation state="CONTEXT_U+0022"
 frame duration="0.05" x="237" y="108" w="5" h="6"
 
-animation state="CONTEXT_U00003A"
+animation state="CONTEXT_U+003A"
 frame duration="0.05" x="70" y="82" w="2" h="6"
 
-animation state="CONTEXT_U00003B"
+animation state="CONTEXT_U+003B"
 frame duration="0.05" x="243" y="71" w="2" h="7"

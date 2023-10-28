@@ -1,4 +1,5 @@
 use super::FontStyle;
+use super::GlyphMap;
 use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
@@ -20,7 +21,7 @@ impl TextMetrics {
 
 #[derive(Clone)]
 pub struct TextStyle {
-    pub font_animator: Arc<Animator>,
+    pub glyph_map: Arc<GlyphMap>,
     pub font_style: FontStyle,
     pub letter_spacing: f32,
     pub line_spacing: f32,
@@ -38,7 +39,7 @@ impl TextStyle {
         let globals = game_io.resource::<Globals>().unwrap();
 
         Self {
-            font_animator: globals.font_animator.clone(),
+            glyph_map: globals.glyph_map.clone(),
             font_style,
             letter_spacing: 1.0,
             line_spacing: 1.0,
@@ -268,11 +269,8 @@ impl TextStyle {
     }
 
     pub fn supports_character(&self, character: &str) -> bool {
-        let state = self.character_state(character);
-
-        self.font_animator
-            .frame_list(&state)
-            .and_then(|frame_list| frame_list.frame(0))
+        self.glyph_map
+            .character_frame(self.font_style, character)
             .is_some()
             || character == " "
             || character == "\t"
@@ -280,30 +278,10 @@ impl TextStyle {
     }
 
     fn character_frame(&self, character: &str) -> AnimationFrame {
-        let state = self.character_state(character);
-
-        self.font_animator
-            .frame_list(&state)
-            .and_then(|frame_list| frame_list.frame(0).cloned())
+        self.glyph_map
+            .character_frame(self.font_style, character)
+            .cloned()
             .unwrap_or_default()
-    }
-
-    fn character_state(&self, character: &str) -> String {
-        use core::fmt::Write;
-
-        let state_prefix = self.font_style.state_prefix();
-
-        let mut state = String::with_capacity(state_prefix.len() + 6);
-
-        // begin with the state prefix
-        let _ = write!(state, "{state_prefix}");
-
-        // convert the character string to 6 hex chars
-        for c in character.chars() {
-            let _ = write!(state, "{:06x}", c as u32);
-        }
-
-        state
     }
 }
 
