@@ -796,6 +796,7 @@ checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 
 [[package]]
 name = "chrono"
@@ -1524,6 +1525,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "cfg_macros",
  "framework_core",
@@ -1537,6 +1539,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -2208,6 +2211,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "math",
  "strum",
@@ -2530,6 +2534,7 @@ dependencies = [
 [[package]]
 name = "logging"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2580,6 +2585,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "bytemuck",
  "glam",
@@ -4714,6 +4720,7 @@ checksum = "ca6ad05a4870b2bf5fe995117d3728437bd27d7cd5f06f13c17443ef369775a1"
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5247,6 +5254,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#c583f0fa0929229759a0d0428541e71064bd80d9"
 dependencies = [
  "anyhow",
  "async-executor",
