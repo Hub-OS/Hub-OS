@@ -76,25 +76,14 @@ impl MobileOverlay {
 
     fn touch_positions(game_io: &GameIO) -> Vec<Vec2> {
         let window = game_io.window();
-        let window_size = window.size().as_vec2();
-        let window_resolution = window.resolution().as_vec2();
-
-        let scale = window_size / window_resolution;
-        let mut render_offset = Vec2::ZERO;
-        let mut scaled_resolution = window_resolution;
-
-        if scale.x > scale.y {
-            scaled_resolution *= scale.y;
-            render_offset.x = (window_size.x - scaled_resolution.x) * 0.5;
-        } else {
-            scaled_resolution *= scale.x;
-            render_offset.y = (window_size.y - scaled_resolution.y) * 0.5;
-        }
+        let scale = window.render_scale();
+        let render_offset = window.render_offset();
+        let view_size = window.resolution().as_vec2() * scale;
 
         let touch_iter = game_io.input().touches().iter();
 
         touch_iter
-            .map(|touch| Self::unnormalize(scaled_resolution, touch.position) + render_offset)
+            .map(|touch| Self::unnormalize(view_size, touch.position) + render_offset)
             .collect()
     }
 }
@@ -206,6 +195,35 @@ impl GameOverlay for MobileOverlay {
 
         self.dpad_sprite.1.set_color(RELEASED_COLOR);
         queue.draw_sprite(&self.dpad_sprite.1);
+
+        #[cfg(debug_assertions)]
+        {
+            use crate::render::ui::{FontStyle, TextStyle};
+
+            let window = game_io.window();
+            let scale = window.render_scale();
+            let render_offset = window.render_offset();
+            let view_size = window.resolution().as_vec2() * scale;
+
+            let mut text_style = TextStyle::new(game_io, FontStyle::Small);
+            text_style.shadow_color = Color::BLACK;
+            text_style.scale *= scale;
+
+            for touch in game_io.input().touches() {
+                let text = match touch.phase {
+                    TouchPhase::Start => "START",
+                    TouchPhase::Moving => "MOVING",
+                    TouchPhase::End => "END",
+                    TouchPhase::Cancelled => "CANCELLED",
+                };
+
+                let mut position = Self::unnormalize(view_size, touch.position) + render_offset;
+                position -= text_style.measure(text).size * 0.5;
+                text_style.bounds.set_position(position);
+
+                text_style.draw(game_io, &mut queue, text);
+            }
+        }
 
         render_pass.consume_queue(queue);
     }
