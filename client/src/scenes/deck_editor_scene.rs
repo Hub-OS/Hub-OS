@@ -1129,6 +1129,7 @@ impl CardListItem {
             // use all packages for pack
             package_manager
                 .packages_with_override(NAMESPACE)
+                .filter(|package| !package.hidden)
                 .flat_map(|package| {
                     let package_info = package.package_info();
                     let triplet = package.package_info.triplet();

@@ -15,6 +15,7 @@ struct CardMeta {
     preview_texture_path: String,
     codes: Vec<String>,
     regular_allowed: Option<bool>,
+    hidden: bool,
 
     // card properties
     name: String,
@@ -45,6 +46,7 @@ pub struct CardPackage {
     pub long_description: String,
     pub default_codes: Vec<String>,
     pub regular_allowed: bool,
+    pub hidden: bool,
     pub limit: usize,
 }
 
@@ -102,6 +104,7 @@ impl Package for CardPackage {
         package.description = meta.description;
         package.long_description = meta.long_description;
         package.default_codes = meta.codes;
+        package.hidden = meta.hidden;
         package.limit = meta.limit.unwrap_or(5);
 
         // card properties

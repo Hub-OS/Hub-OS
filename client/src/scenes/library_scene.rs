@@ -206,7 +206,7 @@ impl Dock {
                     .card_packages
                     .package_or_override(PackageNamespace::Local, id)
             })
-            .filter(|package| package.card_properties.card_class == card_class)
+            .filter(|package| !package.hidden && package.card_properties.card_class == card_class)
             .map(|package| Card {
                 package_id: package.package_info.id.clone(),
                 code: String::new(),
