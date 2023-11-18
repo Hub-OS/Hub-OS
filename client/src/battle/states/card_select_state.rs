@@ -2,32 +2,15 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
-use crate::packages::CardPackage;
-use crate::packages::PackageId;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Card;
 use crate::scenes::BattleEvent;
-use enum_map::enum_map;
-use enum_map::Enum;
 use framework::prelude::*;
-use std::sync::Arc;
 
-const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
 const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
 const CARD_COLS: usize = CARD_SELECT_CARD_COLS;
-
-#[derive(Enum, Clone, Copy, PartialEq, Eq)]
-enum UiPoint {
-    CardStart,
-    Confirm,
-    SpecialButton,
-    Preview,
-    FormListStart,
-    SelectedCardStart,
-}
 
 #[derive(Clone, Default)]
 struct Selection {
@@ -53,25 +36,9 @@ enum SelectedItem {
     None,
 }
 
-#[derive(Clone, Copy)]
-enum CardRestriction<'a> {
-    Code(&'a str),
-    Package(&'a PackageId),
-    Mixed {
-        package_id: &'a PackageId,
-        code: &'a str,
-    },
-    Any,
-}
-
 #[derive(Clone)]
 pub struct CardSelectState {
-    sprites: Tree<SpriteNode>,
-    texture: Arc<Texture>,
-    view_index: GenerationalIndex,
-    form_list_index: GenerationalIndex,
-    animator: Animator,
-    points: ResolvedPoints<UiPoint>,
+    ui: CardSelectUi,
     player_selections: Vec<Selection>,
     time: FrameTime,
     completed: bool,
@@ -147,12 +114,33 @@ impl State for CardSelectState {
             self.handle_input(game_io, resources, simulation, entity_id, player_index);
         }
 
-        for i in 0..self.player_selections.len() {
-            self.animate_slide(simulation, i);
+        // animate ui
+
+        for selection in &mut self.player_selections {
+            // resolve the slide animation state of all players to stay in sync
+            let slide_progress = self.ui.slide_progress(selection.confirm_time);
+
+            selection.animating_slide = if selection.confirm_time == 0 {
+                slide_progress < 1.0
+            } else {
+                // animation is reversed when every player has confirmed
+                slide_progress > 0.0
+            };
+
+            if !selection.local {
+                continue;
+            }
+
+            // update the ui for just the local player
+
+            self.ui.animate_slide(simulation, selection.confirm_time);
+            self.ui
+                .animate_form_list(simulation, selection.form_open_time);
         }
 
-        self.animate_form_list(simulation);
         self.update_buttons(simulation);
+
+        // completion detection
 
         let all_confirmed = (self.player_selections).iter().all(|selection| {
             selection.erased || (!selection.animating_slide && selection.confirm_time != 0)
@@ -163,6 +151,7 @@ impl State for CardSelectState {
         }
 
         self.time += 1;
+        self.ui.advance_time();
     }
 
     fn draw_ui<'a>(
@@ -179,64 +168,23 @@ impl State for CardSelectState {
         let entity_id = simulation.local_player_id;
         let entities = &mut simulation.entities;
 
-        let Ok((entity, player)) = entities.query_one_mut::<(&Entity, &Player)>(entity_id.into())
-        else {
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
-        let player_team = entity.team;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let selection = &self.player_selections[player.index];
+        let selected_item = resolve_selected_item(player, selection);
+
+        // update frame
+        if let SelectedItem::Card(i) = selected_item {
+            self.ui.update_card_frame(game_io, player, i);
+        }
 
         // draw sprite tree
-        self.sprites.draw(sprite_queue);
-
-        // drawing hand
-        let mut recycled_sprite = Sprite::new(game_io, self.texture.clone());
-
-        // draw icons
-        self.animator.set_state("ICON_FRAME");
-        self.animator.apply(&mut recycled_sprite);
-        let maxed_card_usage = player.staged_items.visible_count() >= 5;
-        let card_restriction = resolve_card_restriction(player);
-
-        for (i, card, position) in self.card_icon_render_iter(player) {
-            sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-
-            recycled_sprite.set_position(position);
-            sprite_queue.draw_sprite(&recycled_sprite);
-
-            if player.staged_items.has_deck_index(i) {
-                continue;
-            }
-
-            if maxed_card_usage || !does_restriction_allow_card(card_restriction, card) {
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
-            } else {
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-            }
-
-            CardPackage::draw_icon(game_io, sprite_queue, &card.package_id, position);
-        }
-
-        sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-
-        // draw codes
-        const CODE_HORIZONTAL_OFFSET: f32 = 4.0;
-        const CODE_VERTICAL_OFFSET: f32 = 16.0;
-
-        let mut code_style = TextStyle::new(game_io, FontStyle::Wide);
-        code_style.color = Color::YELLOW;
-
-        for (_, card, position) in self.card_icon_render_iter(player) {
-            code_style.bounds.set_position(position);
-
-            code_style.bounds.x += CODE_HORIZONTAL_OFFSET;
-            code_style.bounds.y += CODE_VERTICAL_OFFSET;
-
-            code_style.draw(game_io, sprite_queue, &card.code);
-        }
-
-        // draw selected icons
-        self.draw_selected_icons(game_io, sprite_queue, &mut recycled_sprite, player);
+        self.ui.draw_tree(sprite_queue);
+        self.ui.draw_cards_in_hand(game_io, sprite_queue, player);
+        self.ui.draw_staged_icons(game_io, sprite_queue, player);
 
         // draw buttons
         let card_button = PlayerOverridables::flat_map_for(player, |overridables| {
@@ -264,157 +212,56 @@ impl State for CardSelectState {
         }
 
         // drawing selection
-        let root_offset = self.sprites.root().offset();
-        let selection = &self.player_selections[player.index];
-
         if let Some(time) = selection.form_open_time {
             // draw form selection
-
-            if self.time > time + FORM_LIST_ANIMATION_TIME {
-                // draw frames
-                self.animator.set_state("FORM_FRAME");
-                self.animator.apply(&mut recycled_sprite);
-
-                let row_height = recycled_sprite.bounds().height;
-                let mut offset = self.points[UiPoint::FormListStart];
-
-                for _ in player.available_forms() {
-                    recycled_sprite.set_position(offset);
-                    sprite_queue.draw_sprite(&recycled_sprite);
-
-                    offset.y += row_height;
-                }
-
-                // draw mugs
-                let mut mug_sprite = Sprite::new(game_io, recycled_sprite.texture().clone());
-
-                let mut offset = self.points[UiPoint::FormListStart];
-
-                for (row, (index, form)) in player.available_forms().enumerate() {
-                    // default to greyscale
-                    sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
-
-                    if player.staged_items.stored_form_index() == Some(index) {
-                        // selected color
-                        mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
-                    } else if selection.form_row == row {
-                        // hovered option is plain
-                        sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
-                        mug_sprite.set_color(Color::WHITE);
-                    } else {
-                        // default color darkens the image
-                        mug_sprite.set_color(Color::new(0.61, 0.68, 0.71, 1.0));
-                    }
-
-                    if let Some(texture) = form.mug_texture.as_ref() {
-                        mug_sprite.set_texture(texture.clone());
-                        mug_sprite.set_position(offset);
-                        sprite_queue.draw_sprite(&mug_sprite);
-                    }
-
-                    offset.y += row_height;
-                }
-
-                // reset shader effect
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
+            if self.time > time + CardSelectUi::FORM_LIST_ANIMATION_TIME {
+                self.ui
+                    .draw_form_list(game_io, sprite_queue, player, selection.form_row);
 
                 // draw cursor
                 if selection.form_select_time.is_none() {
-                    let mut offset = self.points[UiPoint::FormListStart];
-                    offset.y += row_height * selection.form_row as f32;
-
-                    self.animator.set_state("FORM_CURSOR");
-                    self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    self.animator.sync_time(self.time);
-
-                    self.animator.apply(&mut recycled_sprite);
-                    recycled_sprite.set_position(offset);
-                    sprite_queue.draw_sprite(&recycled_sprite);
+                    self.ui.draw_form_cursor(sprite_queue, selection.form_row);
                 }
             }
         } else {
-            // draw card selection
-
-            // draw cursor
-            let selected_item = resolve_selected_item(player, selection);
+            // draw card cursor
 
             if selection.confirm_time == 0 && !player.card_select_blocked {
-                let animator = &mut self.animator;
-                let mut draw_state_at = |state: &str, position: Vec2| {
-                    animator.set_state(state);
-                    animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    animator.sync_time(self.time);
-                    animator.apply(&mut recycled_sprite);
-                    recycled_sprite.set_position(position + root_offset);
-                    sprite_queue.draw_sprite(&recycled_sprite);
-                };
-
                 match selected_item {
                     SelectedItem::Card(_) => {
-                        let position = calculate_icon_position(
-                            self.points[UiPoint::CardStart],
-                            selection.col,
-                            selection.row,
-                        );
-
-                        draw_state_at("CARD_CURSOR", position);
+                        self.ui
+                            .draw_card_cursor(sprite_queue, selection.col, selection.row)
                     }
                     SelectedItem::Confirm => {
-                        draw_state_at("CONFIRM_CURSOR", self.points[UiPoint::Confirm]);
+                        self.ui.draw_confirm_cursor(sprite_queue);
                     }
                     SelectedItem::SpecialButton => {
-                        draw_state_at("SPECIAL_CURSOR", self.points[UiPoint::SpecialButton]);
+                        self.ui.draw_special_cursor(sprite_queue);
                     }
                     SelectedItem::CardButton => {
-                        let button_width = selection.card_button_width;
-                        let start_position = calculate_icon_position(
-                            self.points[UiPoint::CardStart],
-                            CARD_COLS.saturating_sub(button_width) as i32,
-                            CARD_SELECT_ROWS as i32 - 1,
-                        );
-
-                        let end_position = calculate_icon_position(
-                            self.points[UiPoint::CardStart],
-                            CARD_COLS as i32,
-                            CARD_SELECT_ROWS as i32 - 1,
-                        );
-
-                        draw_state_at("CARD_BUTTON_LEFT_CURSOR", start_position);
-                        draw_state_at("CARD_BUTTON_RIGHT_CURSOR", end_position);
+                        self.ui
+                            .draw_card_button_cursor(sprite_queue, selection.card_button_width);
                     }
                     _ => {}
                 }
             }
 
             if player.has_regular_card {
-                self.animator.set_state("REGULAR_FRAME");
-                self.animator.set_loop_mode(AnimatorLoopMode::Loop);
-                self.animator.sync_time(self.time);
-                self.animator.apply(&mut recycled_sprite);
-
-                recycled_sprite.set_position(root_offset);
-                sprite_queue.draw_sprite(&recycled_sprite);
+                self.ui.draw_regular_card_frame(sprite_queue);
             }
 
             // draw preview icon
-            let preview_point = self.points[UiPoint::Preview] + self.sprites.root().offset();
 
             match selected_item {
                 SelectedItem::Card(i) => {
                     let card = &player.deck[i];
+                    let preview_point = self.ui.preview_point();
+
                     card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
                     card.draw_preview_title(game_io, sprite_queue, preview_point);
                 }
                 SelectedItem::Confirm => {
-                    if player.staged_items.visible_count() > 0 {
-                        self.animator.set_state("CONFIRM_MESSAGE");
-                    } else {
-                        self.animator.set_state("EMPTY_MESSAGE");
-                    }
-
-                    self.animator.apply(&mut recycled_sprite);
-                    recycled_sprite.set_position(preview_point);
-                    sprite_queue.draw_sprite(&recycled_sprite);
+                    self.ui.draw_confirm_preview(player, sprite_queue);
                 }
                 SelectedItem::CardButton | SelectedItem::SpecialButton => {
                     let button = match selected_item {
@@ -437,54 +284,7 @@ impl State for CardSelectState {
         }
 
         if !simulation.battle_started {
-            let mut background_sprite = recycled_sprite.clone();
-            let mut edge_sprite = recycled_sprite;
-
-            self.animator.set_state("NAME_PLATE");
-            self.animator.apply(&mut background_sprite);
-
-            self.animator.set_state("NAME_PLATE_EDGE");
-            self.animator.apply(&mut edge_sprite);
-
-            let mut style = TextStyle::new(game_io, FontStyle::Thick);
-            let mut y = 3.0;
-
-            // draw names
-            for (_, (entity, character)) in simulation.entities.query_mut::<(&Entity, &Character)>()
-            {
-                if entity.team == player_team {
-                    continue;
-                }
-
-                let name = &entity.name;
-                let suffix = character.rank.suffix();
-
-                // calculate size + position for text
-                let name_width = style.measure(name).size.x + 1.0;
-                let text_width = name_width + style.measure(suffix).size.x;
-
-                style.bounds.x = RESOLUTION_F.x - text_width - 1.0;
-                style.bounds.y = y + 1.0;
-
-                // draw plate
-                let background_position = Vec2::new(style.bounds.x, y);
-
-                background_sprite.set_position(background_position);
-                background_sprite.set_width(text_width + 1.0);
-                sprite_queue.draw_sprite(&background_sprite);
-
-                edge_sprite.set_position(background_position);
-                sprite_queue.draw_sprite(&edge_sprite);
-
-                // draw name on top of plate
-                style.draw(game_io, sprite_queue, name);
-
-                // draw suffix after name
-                style.bounds.x += name_width;
-                style.draw(game_io, sprite_queue, suffix);
-
-                y += 16.0;
-            }
+            self.ui.draw_names(game_io, simulation, sprite_queue);
         }
 
         if !selection.animating_slide && selection.confirm_time != 0 {
@@ -514,7 +314,7 @@ impl State for CardSelectState {
                 inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
             let a = crate::ease::quadratic(progress);
 
-            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            let assets = &globals.assets;
 
             let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
             fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
@@ -526,64 +326,8 @@ impl State for CardSelectState {
 
 impl CardSelectState {
     pub fn new(game_io: &GameIO) -> Self {
-        let mut sprites = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Multiply));
-
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-        let mut animator = Animator::load_new(assets, ResourcePaths::BATTLE_CARD_SELECT_ANIMATION);
-        let texture = assets.texture(game_io, ResourcePaths::BATTLE_CARD_SELECT);
-
-        let root_node = sprites.root_mut();
-        root_node.set_texture_direct(texture.clone());
-        animator.set_state("ROOT");
-        root_node.set_layer(-1);
-        root_node.apply_animation(&animator);
-
-        // card frame
-        animator.set_state("STANDARD_FRAME");
-
-        let mut card_frame_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-        card_frame_node.set_texture_direct(texture.clone());
-        card_frame_node.apply_animation(&animator);
-        let view_index = sprites.insert_root_child(card_frame_node);
-
-        // start form list frame as the tab
-        animator.set_state("FORM_TAB");
-
-        let mut form_list_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-        form_list_node.set_texture_direct(texture.clone());
-        form_list_node.apply_animation(&animator);
-        form_list_node.set_visible(false);
-        let form_list_index = sprites.insert_root_child(form_list_node);
-
-        // selection
-        animator.set_state("SELECTION_FRAME");
-
-        let mut selection_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-        selection_node.set_texture_direct(texture.clone());
-        selection_node.apply_animation(&animator);
-        sprites.insert_root_child(selection_node);
-
-        let points = ResolvedPoints::new_parented(
-            &mut animator,
-            enum_map! {
-                UiPoint::CardStart => ("ROOT", "CARD_START"),
-                UiPoint::Confirm => ("ROOT", "CONFIRM"),
-                UiPoint::SpecialButton => ("ROOT", "SPECIAL"),
-                UiPoint::FormListStart => ("FORM_LIST_FRAME", "START"),
-                UiPoint::Preview => ("STANDARD_FRAME", "PREVIEW"),
-                UiPoint::SelectedCardStart => ("SELECTION_FRAME", "START"),
-            },
-            |_| None,
-        );
-
         Self {
-            sprites,
-            texture,
-            view_index,
-            form_list_index,
-            animator,
-            points,
+            ui: CardSelectUi::new(game_io),
             player_selections: Vec::new(),
             time: 0,
             completed: false,
@@ -759,6 +503,8 @@ impl CardSelectState {
             pending_sfx.push(&globals.sfx.form_select_open);
             return;
         }
+
+        // moving cursor
 
         if input.is_active(Input::Left) {
             move_card_selection(player, selection, -1, 0);
@@ -1003,9 +749,9 @@ impl CardSelectState {
         let animators = &mut simulation.animators;
         let pending_callbacks = &mut simulation.pending_callbacks;
 
-        let root_offset = self.sprites.root().offset();
+        let card_start_point = self.ui.card_start_point();
 
-        let mut preview_position = self.points[UiPoint::Preview] + root_offset;
+        let mut preview_position = self.ui.preview_point();
         preview_position.x -= CARD_PREVIEW_SIZE.x * 0.5;
 
         // we must update buttons for every player to keep the game in sync
@@ -1024,11 +770,11 @@ impl CardSelectState {
                 selection.card_button_width = button_width;
 
                 // animate
-                let position = calculate_icon_position(
-                    self.points[UiPoint::CardStart],
+                let position = CardSelectUi::calculate_icon_position(
+                    card_start_point,
                     CARD_COLS.saturating_sub(button_width) as i32,
                     CARD_SELECT_ROWS as i32 - 1,
-                ) + root_offset;
+                );
 
                 button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
 
@@ -1052,7 +798,7 @@ impl CardSelectState {
 
             if let Some(button) = special_button {
                 // animate
-                let position = self.points[UiPoint::SpecialButton] + root_offset;
+                let position = self.ui.special_button_point();
                 button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
 
                 // animate preview sprite
@@ -1067,162 +813,6 @@ impl CardSelectState {
             }
         }
     }
-
-    fn animate_form_list(&mut self, simulation: &mut BattleSimulation) {
-        let mut selections_iter = self.player_selections.iter();
-        let Some(selection) = selections_iter.find(|selection| selection.local) else {
-            return;
-        };
-
-        let form_list_node = &mut self.sprites[self.form_list_index];
-
-        // make visible if there's forms available
-        if let Ok(player) = simulation
-            .entities
-            .query_one_mut::<&Player>(simulation.local_player_id.into())
-        {
-            if player.available_forms().next().is_some() {
-                form_list_node.set_visible(true);
-            } else {
-                // no need to animate
-                return;
-            }
-        };
-
-        let Some(time) = selection.form_open_time else {
-            self.animator.set_state("FORM_TAB");
-            form_list_node.apply_animation(&self.animator);
-            return;
-        };
-
-        self.animator.set_state("FORM_LIST_FRAME");
-        form_list_node.apply_animation(&self.animator);
-
-        // animate origin
-        let inital_origin = self.animator.point("initial_origin").unwrap_or_default();
-        let progress = inverse_lerp!(time, time + FORM_LIST_ANIMATION_TIME, self.time);
-        let origin = inital_origin.lerp(self.animator.origin(), progress);
-        form_list_node.set_origin(origin)
-    }
-
-    fn animate_slide(&mut self, simulation: &mut BattleSimulation, player_index: usize) {
-        const ANIMATION_DURATION: f32 = 10.0;
-
-        let selection = &mut self.player_selections[player_index];
-
-        let progress = if selection.confirm_time == 0 {
-            inverse_lerp!(0.0, ANIMATION_DURATION, self.time)
-        } else {
-            1.0 - inverse_lerp!(0.0, ANIMATION_DURATION, self.time - selection.confirm_time)
-        };
-
-        if selection.local {
-            // update ui if this is the local selection
-            let root_node = self.sprites.root_mut();
-            let width = root_node.size().x;
-
-            root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
-
-            // note: moving health ui also moves emotion ui
-            (simulation.local_health_ui)
-                .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
-        }
-
-        // returns true if we're still animating
-        selection.animating_slide = if selection.confirm_time == 0 {
-            progress < 1.0
-        } else {
-            // animation is reversed when every player has confirmed
-            progress > 0.0
-        };
-    }
-
-    fn hide(&mut self, simulation: &mut BattleSimulation) {
-        let root_node = self.sprites.root_mut();
-        root_node.set_visible(false);
-
-        // note: moving health ui also moves emotion ui
-        (simulation.local_health_ui).set_position(Vec2::new(BATTLE_UI_MARGIN, 0.0));
-    }
-
-    fn reveal(&mut self, simulation: &mut BattleSimulation) {
-        let root_node = self.sprites.root_mut();
-        root_node.set_visible(true);
-
-        // note: moving health ui also moves emotion ui
-        let width = root_node.size().x;
-        (simulation.local_health_ui).set_position(Vec2::new(width + BATTLE_UI_MARGIN, 0.0));
-    }
-
-    fn card_icon_render_iter<'a>(
-        &self,
-        player: &'a Player,
-    ) -> impl Iterator<Item = (usize, &'a Card, Vec2)> {
-        let mut start = self.points[UiPoint::CardStart];
-        start.x += self.sprites.root().offset().x;
-
-        // draw icons
-        player
-            .deck
-            .iter()
-            .take(player.hand_size())
-            .enumerate()
-            .map(move |(i, card)| {
-                let col = i % CARD_COLS;
-                let row = i / CARD_COLS;
-
-                let top_left = calculate_icon_position(start, col as i32, row as i32);
-
-                (i, card, top_left)
-            })
-    }
-
-    fn calculate_icon_position(&self, col: i32, row: i32) -> Vec2 {
-        let mut start = self.points[UiPoint::CardStart];
-        start.x += self.sprites.root().offset().x;
-
-        calculate_icon_position(start, col, row)
-    }
-
-    fn draw_selected_icons(
-        &mut self,
-        game_io: &GameIO,
-        sprite_queue: &mut SpriteColorQueue,
-        recycled_sprite: &mut Sprite,
-        player: &Player,
-    ) {
-        const ITEM_OFFSET: Vec2 = Vec2::new(0.0, 16.0);
-
-        let mut start = self.points[UiPoint::SelectedCardStart];
-        start.x += self.sprites.root().offset().x;
-
-        // draw background frames
-        self.animator.set_state("SELECTED_FRAME");
-        self.animator.apply(recycled_sprite);
-
-        let mut position = start;
-
-        for _ in 0..player.staged_items.visible_count() {
-            recycled_sprite.set_position(position);
-            sprite_queue.draw_sprite(recycled_sprite);
-            position += ITEM_OFFSET;
-        }
-
-        // draw icons
-        player
-            .staged_items
-            .draw_icons(game_io, sprite_queue, &player.deck, start, ITEM_OFFSET);
-    }
-}
-
-fn calculate_icon_position(start: Vec2, col: i32, row: i32) -> Vec2 {
-    const HORIZONTAL_DIFF: f32 = 16.0;
-    const VERTICAL_DIFF: f32 = 24.0;
-
-    Vec2::new(
-        start.x + col as f32 * HORIZONTAL_DIFF,
-        start.y + row as f32 * VERTICAL_DIFF,
-    )
 }
 
 fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem {
@@ -1264,70 +854,10 @@ fn can_player_select(player: &Player, index: usize) -> bool {
         return false;
     }
 
-    let restriction = resolve_card_restriction(player);
+    let restriction = CardSelectRestriction::resolve(player);
     let card = &player.deck[index];
 
-    does_restriction_allow_card(restriction, card)
-}
-
-fn does_restriction_allow_card(restriction: CardRestriction, card: &Card) -> bool {
-    match restriction {
-        CardRestriction::Code(code) => card.code == code || card.code == "*",
-        CardRestriction::Package(package_id) => card.package_id == *package_id,
-        CardRestriction::Mixed { package_id, code } => {
-            card.package_id == *package_id || card.code == code || card.code == "*"
-        }
-        CardRestriction::Any => true,
-    }
-}
-
-fn resolve_card_restriction(player: &Player) -> CardRestriction {
-    let deck_indices = player.staged_items.selected_deck_card_indices();
-
-    if deck_indices.is_empty() {
-        return CardRestriction::Any;
-    }
-
-    let mut first_package_id: Option<&PackageId> = None;
-    let mut code_restriction: Option<&str> = None;
-
-    let mut same_package_id = true;
-    let mut same_code = true;
-
-    for i in deck_indices {
-        let card = &player.deck[i];
-
-        if let Some(package_id) = first_package_id {
-            same_package_id &= card.package_id == *package_id;
-        } else {
-            first_package_id = Some(&card.package_id);
-        }
-
-        if let Some(code) = code_restriction {
-            same_code &= card.code == code || card.code == "*";
-        } else if card.code != "*" {
-            code_restriction = Some(&card.code);
-        }
-    }
-
-    if let Some(code) = code_restriction {
-        if same_package_id {
-            if !same_code {
-                return CardRestriction::Package(first_package_id.unwrap());
-            } else {
-                return CardRestriction::Mixed {
-                    package_id: first_package_id.unwrap(),
-                    code,
-                };
-            }
-        }
-
-        if same_code {
-            return CardRestriction::Code(code);
-        }
-    }
-
-    CardRestriction::Any
+    restriction.allows_card(card)
 }
 
 fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {

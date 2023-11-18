@@ -1,4 +1,5 @@
 mod block_preview;
+mod card_select_ui;
 mod clock;
 mod context_menu;
 mod element_sprite;
@@ -43,6 +44,7 @@ mod ui_input_tracker;
 mod ui_layout;
 
 pub use block_preview::*;
+pub use card_select_ui::*;
 pub use clock::*;
 pub use context_menu::*;
 pub use element_sprite::*;
