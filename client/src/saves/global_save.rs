@@ -20,8 +20,8 @@ pub struct GlobalSave {
 }
 
 impl GlobalSave {
-    pub const PATH: &str = "save.dat";
-    pub const CORRUPTED_PATH: &str = "corrupted_save.dat";
+    pub const PATH: &'static str = "save.dat";
+    pub const CORRUPTED_PATH: &'static str = "corrupted_save.dat";
 
     pub fn new() -> Self {
         Self::default()

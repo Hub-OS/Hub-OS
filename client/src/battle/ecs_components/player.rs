@@ -36,7 +36,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub const IDLE_STATE: &str = "PLAYER_IDLE";
+    pub const IDLE_STATE: &'static str = "PLAYER_IDLE";
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
         DerivedFrame::new(0, 1),
