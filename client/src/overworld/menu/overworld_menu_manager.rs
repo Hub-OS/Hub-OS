@@ -114,6 +114,10 @@ impl OverworldMenuManager {
             || self.fading_menu.is_some()
     }
 
+    pub fn is_textbox_open(&self) -> bool {
+        self.textbox.is_open()
+    }
+
     pub fn is_blocking_hud(&self) -> bool {
         self.navigation_menu.is_open() || self.is_blocking_view()
     }

@@ -1797,6 +1797,11 @@ impl Scene for OverworldOnlineScene {
         sprite_queue.update_camera(&self.area.ui_camera);
 
         if !self.menu_manager.is_blocking_hud() {
+            // hide the map name while the textbox is visible
+            let texbox_is_open = self.menu_manager.is_textbox_open();
+            self.hud.set_map_name_visible(!texbox_is_open);
+
+            // draw the hud
             self.hud.draw(game_io, &mut sprite_queue, &self.area.map);
 
             // draw hud attachments

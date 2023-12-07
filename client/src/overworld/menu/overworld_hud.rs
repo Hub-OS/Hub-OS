@@ -6,6 +6,7 @@ use framework::prelude::*;
 
 pub struct OverworldHud {
     visible: bool,
+    map_name_visible: bool,
     health_ui: PlayerHealthUi,
 }
 
@@ -13,6 +14,7 @@ impl OverworldHud {
     pub fn new(game_io: &GameIO, health: i32) -> Self {
         Self {
             visible: true,
+            map_name_visible: true,
             health_ui: PlayerHealthUi::new(game_io)
                 .with_max_health(health)
                 .with_health(health),
@@ -21,6 +23,10 @@ impl OverworldHud {
 
     pub fn set_visible(&mut self, visible: bool) {
         self.visible = visible;
+    }
+
+    pub fn set_map_name_visible(&mut self, visible: bool) {
+        self.map_name_visible = visible;
     }
 
     pub fn update(&mut self, area: &OverworldArea) {
@@ -34,9 +40,12 @@ impl OverworldHud {
             return;
         }
 
-        draw_clock(game_io, sprite_queue);
-        draw_map_name(game_io, sprite_queue, map);
         self.health_ui.draw(game_io, sprite_queue);
+        draw_clock(game_io, sprite_queue);
+
+        if self.map_name_visible {
+            draw_map_name(game_io, sprite_queue, map);
+        }
     }
 }
 
