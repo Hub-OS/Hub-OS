@@ -58,6 +58,7 @@ impl MovementInterpolator {
         let screen_dist_sqr = screen_delta.length_squared();
 
         if world_delta == Vec2::ZERO {
+            self.resolved_direction = self.idle_direction;
             return;
         }
 
