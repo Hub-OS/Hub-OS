@@ -83,4 +83,43 @@ function Direction.diagonal_from_offset(x, y)
   end
 end
 
+local chebyshev_vectors = {
+  [Direction.UP] = { x = -1, y = -1 },
+  [Direction.LEFT] = { x = -1, y = 1 },
+  [Direction.DOWN] = { x = 1, y = 1 },
+  [Direction.RIGHT] = { x = 1, y = -1 },
+  [Direction.UP_LEFT] = { x = -1, y = 0 },
+  [Direction.UP_RIGHT] = { x = 0, y = -1 },
+  [Direction.DOWN_LEFT] = { x = 0, y = 1 },
+  [Direction.DOWN_RIGHT] = { x = 1, y = 0 },
+}
+
+function Direction.vector(direction)
+  local vector = chebyshev_vectors[direction]
+
+  if vector then
+    return { x = vector.x, y = vector.y }
+  end
+end
+
+local deg45radians = math.sin(math.pi / 4)
+local unit_vectors = {
+  [Direction.UP] = { x = -deg45radians, y = -deg45radians },
+  [Direction.LEFT] = { x = -deg45radians, y = deg45radians },
+  [Direction.DOWN] = { x = deg45radians, y = deg45radians },
+  [Direction.RIGHT] = { x = deg45radians, y = -deg45radians },
+  [Direction.UP_LEFT] = { x = -1, y = 0 },
+  [Direction.UP_RIGHT] = { x = 0, y = -1 },
+  [Direction.DOWN_LEFT] = { x = 0, y = 1 },
+  [Direction.DOWN_RIGHT] = { x = 1, y = 0 },
+}
+
+function Direction.unit_vector(direction)
+  local vector = unit_vectors[direction]
+
+  if vector then
+    return { x = vector.x, y = vector.y }
+  end
+end
+
 return Direction
