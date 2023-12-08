@@ -1,23 +1,23 @@
 local Direction = {
-  UP = "Up",
-  LEFT = "Left",
-  DOWN = "Down",
-  RIGHT = "Right",
-  UP_LEFT = "Up Left",
-  UP_RIGHT = "Up Right",
-  DOWN_LEFT = "Down Left",
-  DOWN_RIGHT = "Down Right",
+  UP = "UP",
+  LEFT = "LEFT",
+  DOWN = "DOWN",
+  RIGHT = "RIGHT",
+  UP_LEFT = "UP LEFT",
+  UP_RIGHT = "UP RIGHT",
+  DOWN_LEFT = "DOWN LEFT",
+  DOWN_RIGHT = "DOWN RIGHT",
 }
 
 local reverse_table = {
-  ["Up"] = "Down",
-  ["Left"] = "Left",
-  ["Down"] = "Up",
-  ["Right"] = "Left",
-  ["Up Left"] = "Down Right",
-  ["Up Right"] = "Down Left",
-  ["Down Left"] = "Up Right",
-  ["Down Right"] = "Up Left",
+  [Direction.UP] = Direction.DOWN,
+  [Direction.LEFT] = Direction.LEFT,
+  [Direction.DOWN] = Direction.UP,
+  [Direction.RIGHT] = Direction.LEFT,
+  [Direction.UP_LEFT] = Direction.DOWN_RIGHT,
+  [Direction.UP_RIGHT] = Direction.DOWN_LEFT,
+  [Direction.DOWN_LEFT] = Direction.UP_RIGHT,
+  [Direction.DOWN_RIGHT] = Direction.UP_LEFT,
 }
 
 function Direction.reverse(direction)
@@ -49,14 +49,14 @@ function Direction.diagonal_from_points(point_a, point_b)
 end
 
 local directions = {
-  "Up Left",
-  "Up",
-  "Up Right",
-  "Right",
-  "Down Right",
-  "Down",
-  "Down Left",
-  "Left",
+  Direction.UP_LEFT,
+  Direction.UP,
+  Direction.UP_RIGHT,
+  Direction.RIGHT,
+  Direction.DOWN_RIGHT,
+  Direction.DOWN,
+  Direction.DOWN_LEFT,
+  Direction.LEFT,
 }
 
 function Direction.from_offset(x, y)
