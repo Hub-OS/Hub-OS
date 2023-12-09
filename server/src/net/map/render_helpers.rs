@@ -5,8 +5,7 @@ pub fn render_custom_properties(custom_properties: &HashMap<String, String>) -> 
         return String::default();
     }
 
-    let mut property_strings: Vec<String> = vec![];
-    property_strings.reserve(custom_properties.len());
+    let mut property_strings = Vec::<String>::with_capacity(custom_properties.len());
 
     for (name, value) in custom_properties {
         let property_string = format!("<property name={:?} value={:?}/>", name, value);

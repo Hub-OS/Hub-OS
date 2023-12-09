@@ -191,8 +191,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 color_table.get("b")?,
             );
 
-            let mut posts = Vec::new();
-            posts.reserve(post_tables.len());
+            let mut posts = Vec::with_capacity(post_tables.len());
 
             for post_table in post_tables {
                 let read: Option<bool> = post_table.get("read")?;
@@ -231,8 +230,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let mut posts = Vec::new();
-        posts.reserve(post_tables.len());
+        let mut posts = Vec::with_capacity(post_tables.len());
 
         for post_table in post_tables {
             let read: Option<bool> = post_table.get("read")?;
@@ -268,8 +266,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let mut posts = Vec::new();
-        posts.reserve(post_tables.len());
+        let mut posts = Vec::with_capacity(post_tables.len());
 
         for post_table in post_tables {
             let read: Option<bool> = post_table.get("read")?;
@@ -345,8 +342,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             tracker.track_shop(api_ctx.script_index);
             let mut net = api_ctx.net_ref.borrow_mut();
 
-            let mut items = Vec::new();
-            items.reserve(item_tables.len());
+            let mut items = Vec::with_capacity(item_tables.len());
 
             for item_table in item_tables {
                 items.push(table_to_shop_item(item_table)?);

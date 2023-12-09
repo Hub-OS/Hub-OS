@@ -820,8 +820,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("turns", battle_stats.turns)?;
 
                 // ally list
-                let mut neutral_tables = Vec::new();
-                neutral_tables.reserve(battle_stats.ally_survivors.len());
+                let mut neutral_tables = Vec::with_capacity(battle_stats.ally_survivors.len());
 
                 for survivor in &battle_stats.ally_survivors {
                     let table = lua.create_table()?;
@@ -833,8 +832,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("allies", neutral_tables)?;
 
                 // enemy list
-                let mut enemy_tables = Vec::new();
-                enemy_tables.reserve(battle_stats.enemy_survivors.len());
+                let mut enemy_tables = Vec::with_capacity(battle_stats.enemy_survivors.len());
 
                 for survivor in &battle_stats.enemy_survivors {
                     let table = lua.create_table()?;
@@ -846,8 +844,7 @@ impl PluginInterface for LuaPluginInterface {
                 event.set("enemies", enemy_tables)?;
 
                 // neutral list
-                let mut neutral_tables = Vec::new();
-                neutral_tables.reserve(battle_stats.neutral_survivors.len());
+                let mut neutral_tables = Vec::with_capacity(battle_stats.neutral_survivors.len());
 
                 for survivor in &battle_stats.neutral_survivors {
                     let table = lua.create_table()?;

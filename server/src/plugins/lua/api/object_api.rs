@@ -322,8 +322,7 @@ fn parse_object_data(data_table: mlua::Table) -> mlua::Result<MapObjectData> {
 fn extract_points_from_table(data_table: mlua::Table) -> mlua::Result<Vec<(f32, f32)>> {
     let points_table: Vec<mlua::Table> = data_table.get("points")?;
 
-    let mut points = Vec::new();
-    points.reserve(points_table.len());
+    let mut points = Vec::with_capacity(points_table.len());
 
     for point_table in points_table {
         let x = point_table.get("x")?;
