@@ -83,6 +83,10 @@ impl LuaPluginInterface {
 
         self.lua_api.inject_static(lua)?;
 
+        lua.load(include_str!("api/deprecated_functions.lua"))
+            .set_name("internal: deprecated_functions.lua")
+            .exec()?;
+
         self.lua_api.inject_dynamic(lua, api_ctx, |_| {
             let parent_path = script_path
                 .parent()

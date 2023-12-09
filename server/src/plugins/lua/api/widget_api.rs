@@ -301,19 +301,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "close_bbs", |api_ctx, lua, params| {
-        log::warn!("Net.close_bbs() is deprecated, use Net.close_board()");
-
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.close_board(player_id_str);
-
-        lua.pack_multi(())
-    });
-
     lua_api.add_dynamic_function("Net", "close_board", |api_ctx, lua, params| {
         let player_id: mlua::String = lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
