@@ -46,10 +46,10 @@ pub fn slice_data(address: &str) -> &str {
     }
 }
 
-pub fn uri_encode(path: &str) -> String {
-    let mut encoded_string = String::with_capacity(path.len());
+pub fn uri_encode_raw(data: &[u8]) -> String {
+    let mut encoded_string = String::with_capacity(data.len());
 
-    for (i, b) in path.bytes().enumerate() {
+    for (i, &b) in data.iter().enumerate() {
         if b.is_ascii_alphanumeric() || b == b' ' || b == b'-' || b == b'_' || (b == b'.' && i > 0)
         {
             // doesn't need to be encoded
@@ -64,7 +64,11 @@ pub fn uri_encode(path: &str) -> String {
     encoded_string
 }
 
-pub fn uri_decode(path: &str) -> Option<String> {
+pub fn uri_encode(path: &str) -> String {
+    uri_encode_raw(path.as_bytes())
+}
+
+pub fn uri_decode_raw(path: &str) -> Option<Vec<u8>> {
     let mut decoded_string = Vec::<u8>::with_capacity(path.len());
 
     let mut bytes = path.bytes().enumerate();
@@ -86,7 +90,11 @@ pub fn uri_decode(path: &str) -> Option<String> {
         decoded_string.push(b);
     }
 
-    String::from_utf8(decoded_string).ok()
+    Some(decoded_string)
+}
+
+pub fn uri_decode(path: &str) -> Option<String> {
+    String::from_utf8(uri_decode_raw(path)?).ok()
 }
 
 #[cfg(test)]

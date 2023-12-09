@@ -6,6 +6,7 @@ mod bot_api;
 mod logging_api;
 mod lua_errors;
 mod lua_helpers;
+mod misc_api;
 mod object_api;
 mod player_api;
 mod player_data_api;
@@ -72,6 +73,8 @@ impl LuaApi {
 
         async_api::inject_static(&mut lua_api);
         async_api::inject_dynamic(&mut lua_api);
+
+        misc_api::inject_static(&mut lua_api);
 
         lua_api
     }
