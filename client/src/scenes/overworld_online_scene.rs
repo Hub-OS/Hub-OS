@@ -1415,6 +1415,7 @@ impl OverworldOnlineScene {
             match event {
                 OverworldEvent::SystemMessage { message } => {
                     let interface = TextboxMessage::new(message);
+                    self.menu_manager.use_player_avatar(game_io);
                     self.menu_manager.push_textbox_interface(interface);
                 }
                 OverworldEvent::EmoteSelected(emote_id) => {
