@@ -65,12 +65,12 @@ pub fn uri_encode(path: &str) -> String {
 }
 
 pub fn uri_decode(path: &str) -> Option<String> {
-    let mut decoded_string = String::with_capacity(path.len());
+    let mut decoded_string = Vec::<u8>::with_capacity(path.len());
 
-    let mut chars = path.chars().enumerate();
+    let mut bytes = path.bytes().enumerate();
 
-    while let Some((i, c)) = chars.next() {
-        if c != '%' {
+    while let Some((i, c)) = bytes.next() {
+        if c != b'%' {
             // doesn't need to be decoded
             decoded_string.push(c);
             continue;
@@ -79,14 +79,14 @@ pub fn uri_decode(path: &str) -> Option<String> {
         // needs decoding
 
         // skip two, also verifies that two characters exist for the next lines
-        chars.next()?;
-        chars.next()?;
+        bytes.next()?;
+        bytes.next()?;
 
         let b = u8::from_str_radix(&path[i + 1..i + 3], 16).ok()?;
-        decoded_string.push(b as char);
+        decoded_string.push(b);
     }
 
-    Some(decoded_string)
+    String::from_utf8(decoded_string).ok()
 }
 
 #[cfg(test)]
@@ -104,5 +104,14 @@ mod test {
         assert_eq!(uri_decode(EXPECTED), Some(INPUT.to_string()));
         assert_eq!(uri_decode(ENCODED_MALFORMED), None);
         assert_eq!(uri_decode(BLANK), Some(BLANK.to_string()));
+    }
+
+    #[test]
+    fn euro() {
+        const DECODED: &str = "€";
+        const ENCODED: &str = "%E2%82%AC";
+
+        assert_eq!(uri_encode(DECODED), ENCODED);
+        assert_eq!(uri_decode(ENCODED), Some(String::from(DECODED)));
     }
 }
