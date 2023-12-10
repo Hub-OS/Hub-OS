@@ -1,5 +1,5 @@
 use super::{Animator, Excluded};
-use crate::overworld::OverworldArea;
+use crate::overworld::{OverworldArea, OverworldEvent};
 use crate::render::FrameTime;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::{GameIO, Vec3};
@@ -36,37 +36,43 @@ pub struct WarpEffect {
 }
 
 impl WarpEffect {
+    // returns true if we should proceed with warping
     fn simplify_warp_type(
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         warp_type: &mut WarpType,
         effect_position: &mut Vec3,
-    ) {
+    ) -> bool {
         let entities = &mut area.entities;
         let warp_controller = entities
             .query_one_mut::<&WarpController>(target_entity)
             .unwrap();
 
         if !warp_controller.warped_out || warp_controller.warp_entity.is_some() {
-            return;
+            return true;
         };
 
         // already warped out
-        // convert WarpType::Full to just WarpType::In
 
-        let WarpType::Full {
-            position,
-            direction,
-        } = *warp_type
-        else {
-            return;
-        };
-
-        *effect_position = position;
-        *warp_type = WarpType::In {
-            position,
-            direction,
-        };
+        match *warp_type {
+            WarpType::In { .. } => {
+                // no need to update
+                true
+            }
+            WarpType::Out => false,
+            WarpType::Full {
+                position,
+                direction,
+            } => {
+                // convert WarpType::Full to just WarpType::In
+                *effect_position = position;
+                *warp_type = WarpType::In {
+                    position,
+                    direction,
+                };
+                true
+            }
+        }
     }
 
     pub fn spawn(
@@ -77,6 +83,14 @@ impl WarpEffect {
         callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>,
         mut warp_type: WarpType,
     ) {
+        // simplify the warp type
+        if !Self::simplify_warp_type(area, target_entity, &mut warp_type, &mut position) {
+            // warp type can be skipped, but we still need to use the callback
+            // we'll pass it as an event as we don't have mutable access to game_io
+            let _ = area.event_sender.send(OverworldEvent::Callback(callback));
+            return;
+        }
+
         let globals = game_io.resource::<Globals>().unwrap();
 
         // play sfx
@@ -90,9 +104,6 @@ impl WarpEffect {
         let assets = &globals.assets;
         let texture = assets.texture(game_io, ResourcePaths::OVERWORLD_WARP);
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_WARP_ANIMATION);
-
-        // simplify the warp type
-        Self::simplify_warp_type(area, target_entity, &mut warp_type, &mut position);
 
         match warp_type {
             WarpType::In { .. } => {

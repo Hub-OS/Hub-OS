@@ -1410,13 +1410,17 @@ impl OverworldOnlineScene {
         self.menu_manager.push_textbox_interface(doorstop_interface);
     }
 
-    fn handle_events(&mut self, game_io: &GameIO) {
+    fn handle_events(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.area.event_receiver.try_recv() {
             match event {
                 OverworldEvent::SystemMessage { message } => {
                     let interface = TextboxMessage::new(message);
                     self.menu_manager.use_player_avatar(game_io);
                     self.menu_manager.push_textbox_interface(interface);
+                }
+
+                OverworldEvent::Callback(callback) => {
+                    callback(game_io, &mut self.area);
                 }
                 OverworldEvent::EmoteSelected(emote_id) => {
                     (self.send_packet)(

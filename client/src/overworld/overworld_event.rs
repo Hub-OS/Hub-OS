@@ -1,4 +1,6 @@
+use super::OverworldArea;
 use crate::render::ui::PackageListing;
+use framework::common::GameIO;
 use framework::prelude::{NextScene, Vec3};
 use packets::structures::{BattleStatistics, Direction};
 
@@ -6,6 +8,7 @@ pub enum OverworldEvent {
     SystemMessage {
         message: String,
     },
+    Callback(Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>),
     EmoteSelected(String),
     ItemUse(String),
     TextboxResponse(u8),
