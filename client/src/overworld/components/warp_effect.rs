@@ -43,15 +43,17 @@ impl WarpEffect {
         position: Vec3,
         callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>,
         warp_type: WarpType,
-    ) -> hecs::Entity {
-        let screen_position = area.map.world_3d_to_screen(position);
-
+    ) {
         let globals = game_io.resource::<Globals>().unwrap();
+
+        // play sfx
+        let screen_position = area.map.world_3d_to_screen(position);
 
         if area.visible && area.ui_camera.bounds().contains(screen_position) {
             globals.audio.play_sound(&globals.sfx.appear);
         }
 
+        // create warp effect entity
         let assets = &globals.assets;
         let texture = assets.texture(game_io, ResourcePaths::OVERWORLD_WARP);
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_WARP_ANIMATION);
@@ -81,6 +83,7 @@ impl WarpEffect {
             )
             .unwrap();
 
+        // update warp controller
         let warp_controller = entities
             .query_one_mut::<&mut WarpController>(target_entity)
             .unwrap();
@@ -94,8 +97,6 @@ impl WarpEffect {
             // already warped out
             Excluded::decrement(entities, target_entity);
         }
-
-        warp_entity
     }
 
     pub fn warp_out(
@@ -103,7 +104,7 @@ impl WarpEffect {
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
         callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
-    ) -> hecs::Entity {
+    ) {
         let entities = &mut area.entities;
         let position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
 
@@ -124,7 +125,7 @@ impl WarpEffect {
         position: Vec3,
         direction: Direction,
         callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
-    ) -> hecs::Entity {
+    ) {
         Self::spawn(
             game_io,
             area,
@@ -145,7 +146,7 @@ impl WarpEffect {
         position: Vec3,
         direction: Direction,
         callback: impl FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync + 'static,
-    ) -> hecs::Entity {
+    ) {
         let entities = &mut area.entities;
         let out_position = *entities.query_one_mut::<&Vec3>(target_entity).unwrap();
 
