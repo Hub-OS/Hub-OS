@@ -15,7 +15,15 @@ pub fn inject_static(lua_api: &mut LuaApi) {
 
         net_table.set(
             "decode_uri_component",
-            lua.create_function(|_lua, text: mlua::String| Ok(uri_decode_raw(text.to_str()?)))?,
+            lua.create_function(|lua, text: mlua::String| {
+                let Some(decoded_bytes) = uri_decode_raw(text.to_str()?) else {
+                    return lua.pack_multi(());
+                };
+
+                let decoded_string = lua.create_string(decoded_bytes)?;
+
+                lua.pack_multi(decoded_string)
+            })?,
         )?;
 
         Ok(())
