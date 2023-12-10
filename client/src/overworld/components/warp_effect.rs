@@ -36,13 +36,46 @@ pub struct WarpEffect {
 }
 
 impl WarpEffect {
+    fn simplify_warp_type(
+        area: &mut OverworldArea,
+        target_entity: hecs::Entity,
+        warp_type: &mut WarpType,
+        effect_position: &mut Vec3,
+    ) {
+        let entities = &mut area.entities;
+        let warp_controller = entities
+            .query_one_mut::<&WarpController>(target_entity)
+            .unwrap();
+
+        if !warp_controller.warped_out || warp_controller.warp_entity.is_some() {
+            return;
+        };
+
+        // already warped out
+        // convert WarpType::Full to just WarpType::In
+
+        let WarpType::Full {
+            position,
+            direction,
+        } = *warp_type
+        else {
+            return;
+        };
+
+        *effect_position = position;
+        *warp_type = WarpType::In {
+            position,
+            direction,
+        };
+    }
+
     pub fn spawn(
         game_io: &GameIO,
         area: &mut OverworldArea,
         target_entity: hecs::Entity,
-        position: Vec3,
+        mut position: Vec3,
         callback: Box<dyn FnOnce(&mut GameIO, &mut OverworldArea) + Send + Sync>,
-        warp_type: WarpType,
+        mut warp_type: WarpType,
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
 
@@ -57,6 +90,9 @@ impl WarpEffect {
         let assets = &globals.assets;
         let texture = assets.texture(game_io, ResourcePaths::OVERWORLD_WARP);
         let mut animator = Animator::load_new(assets, ResourcePaths::OVERWORLD_WARP_ANIMATION);
+
+        // simplify the warp type
+        Self::simplify_warp_type(area, target_entity, &mut warp_type, &mut position);
 
         match warp_type {
             WarpType::In { .. } => {
