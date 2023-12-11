@@ -17,7 +17,7 @@ pub struct BattleInitScene {
 impl BattleInitScene {
     pub fn new(game_io: &mut GameIO, props: BattleProps) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
-        camera.invert_y(false);
+        camera.set_inverted_y(false);
 
         let mut model = FlatModel::new_square_model(game_io);
         model.set_color(Color::WHITE);

@@ -17,7 +17,7 @@ impl HoldColorScene {
         next_scene_callback: impl FnOnce(&GameIO) -> NextScene + 'static,
     ) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
-        camera.invert_y(false);
+        camera.set_inverted_y(false);
 
         let mut model = FlatModel::new_square_model(game_io);
         model.set_color(color);

@@ -24,7 +24,7 @@ pub struct Camera {
 impl Camera {
     pub fn new(game_io: &GameIO) -> Self {
         let mut internal_camera = OrthoCamera::new(game_io, RESOLUTION_F);
-        internal_camera.invert_y(true);
+        internal_camera.set_inverted_y(true);
 
         Self {
             internal_camera,
@@ -172,7 +172,7 @@ impl Camera {
 
     pub fn clone(&self, game_io: &GameIO) -> Self {
         let mut internal_camera = OrthoCamera::new(game_io, RESOLUTION_F);
-        internal_camera.invert_y(true);
+        internal_camera.set_inverted_y(true);
 
         Self {
             internal_camera,

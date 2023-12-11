@@ -13,7 +13,7 @@ impl PushTransition {
     /// * direction - The direction to enter from
     pub fn new(game_io: &GameIO, direction: Direction, duration: Duration) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
-        camera.invert_y(true);
+        camera.set_inverted_y(true);
 
         Self {
             start_instant: None,

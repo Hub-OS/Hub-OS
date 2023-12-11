@@ -11,7 +11,7 @@ pub struct ColorFadeTransition {
 impl ColorFadeTransition {
     pub fn new(game_io: &GameIO, color: Color, duration: Duration) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
-        camera.invert_y(false);
+        camera.set_inverted_y(false);
 
         let mesh = FlatModel::new_square_mesh(game_io);
         let model = FlatModel::new(mesh);

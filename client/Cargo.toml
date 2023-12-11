@@ -14,7 +14,7 @@ chrono = "0.4"
 flume = "0.11"
 slotmap = "1"
 hecs = "0.10"
-itertools = "0.11"
+itertools = "0.12"
 lazy_static = "1.4"
 log = "0.4"
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
@@ -26,8 +26,8 @@ rmp-serde = "1.1"
 rodio = "0.17"
 # let rodio restrict cpal's version, we just want to specify the feature
 cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
-roxmltree = "0.18"
-rust-ini = "0.19"
+roxmltree = "0.19"
+rust-ini = "0.20"
 serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.25", features = ["derive"] }
 taffy = "0.3"

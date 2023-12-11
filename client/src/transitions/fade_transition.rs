@@ -12,7 +12,7 @@ impl FadeTransition {
     pub fn new(game_io: &GameIO, duration: Duration) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::ONE);
         camera.set_position(Vec3::new(0.5, 0.5, 0.0));
-        camera.invert_y(false);
+        camera.set_inverted_y(false);
 
         let model = FlatModel::new_square_model(game_io);
 
