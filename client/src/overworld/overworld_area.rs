@@ -322,8 +322,12 @@ impl OverworldArea {
 
         // draw world
         for i in 0..self.map.tile_layers().len() {
-            self.map
-                .draw_tile_layer(game_io, sprite_queue, &self.world_camera, i);
+            let layer_is_visible = self.map.tile_layer(i).is_some_and(|layer| layer.visible());
+
+            if layer_is_visible {
+                self.map
+                    .draw_tile_layer(game_io, sprite_queue, &self.world_camera, i);
+            }
 
             self.map
                 .draw_objects_with_entities(sprite_queue, &self.entities, i);
