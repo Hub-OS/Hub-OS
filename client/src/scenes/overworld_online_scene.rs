@@ -766,9 +766,6 @@ impl OverworldOnlineScene {
             } => {
                 let send_packet = self.send_packet.clone();
 
-                // let the server know post selections from now on are for this board
-                send_packet(Reliability::ReliableOrdered, ClientPacket::BoardOpen);
-
                 let on_select = move |id: &str| {
                     send_packet(
                         Reliability::ReliableOrdered,
@@ -801,6 +798,9 @@ impl OverworldOnlineScene {
                 if let Some(bbs) = self.menu_manager.bbs_mut() {
                     bbs.append_posts(None, posts);
                 }
+
+                // let the server know post selections from now on are for this board
+                (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::BoardOpen);
             }
             ServerPacket::PrependPosts { reference, posts } => {
                 if let Some(bbs) = self.menu_manager.bbs_mut() {

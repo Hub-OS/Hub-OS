@@ -20,7 +20,7 @@ pub struct Bbs {
     static_sprites: [Sprite; 3],
     on_select: Box<dyn Fn(&str)>,
     request_more: Box<dyn Fn()>,
-    on_close: Box<dyn Fn()>,
+    on_close: Option<Box<dyn Fn()>>,
 }
 
 impl Bbs {
@@ -89,12 +89,14 @@ impl Bbs {
             static_sprites: [bg_sprite, frame_sprite, posts_bg_sprite],
             on_select: Box::new(on_select),
             request_more: Box::new(request_more),
-            on_close: Box::new(on_close),
+            on_close: Some(Box::new(on_close)),
         }
     }
 
     pub fn close(&mut self) {
-        (self.on_close)();
+        if let Some(callback) = self.on_close.take() {
+            callback();
+        }
     }
 
     pub fn prepend_posts(

@@ -357,25 +357,7 @@ impl OverworldMenuManager {
         }
     }
 
-    pub fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) -> NextScene {
-        let textbox_animations_enabled = !self.shop.is_some();
-        self.textbox
-            .set_transition_animation_enabled(textbox_animations_enabled);
-        self.textbox
-            .set_text_animation_enabled(textbox_animations_enabled);
-
-        if self.fade_time < self.max_fade_time {
-            self.fade_time += 1;
-
-            let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
-
-            if fade_progress > 0.5 {
-                // clear out the previous bbs to avoid extra updates
-                self.delete_fading_menu();
-            }
-        }
-
-        // handle events
+    fn handle_events(&mut self) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::SelectionMade => {
@@ -411,6 +393,67 @@ impl OverworldMenuManager {
                 }
             }
         }
+    }
+
+    fn update_navigation_menu(
+        &mut self,
+        game_io: &mut GameIO,
+        area: &mut OverworldArea,
+    ) -> NextScene {
+        let mut navigation_selection = None;
+
+        let next_scene =
+            self.navigation_menu
+                .update(game_io, |game_io, selection| match selection {
+                    SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
+                        game_io,
+                        &area.item_registry,
+                        &area.player_data.inventory,
+                    ))),
+                    _ => {
+                        navigation_selection = Some(selection);
+                        None
+                    }
+                });
+
+        if let Some(SceneOption::Items) = navigation_selection {
+            let menu_event_sender = self.event_sender.clone();
+            let area_event_sender = area.event_sender.clone();
+
+            let on_select = move |id: &str| {
+                menu_event_sender.send(Event::SelectionMade).unwrap();
+
+                let overworld_event = OverworldEvent::ItemUse(id.to_string());
+                area_event_sender.send(overworld_event).unwrap();
+            };
+
+            let menu_index = self.register_menu(Box::new(ItemsMenu::new(game_io, area, on_select)));
+            self.open_menu(game_io, area, menu_index);
+        }
+
+        next_scene
+    }
+
+    pub fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) -> NextScene {
+        let textbox_animations_enabled = !self.shop.is_some();
+        self.textbox
+            .set_transition_animation_enabled(textbox_animations_enabled);
+        self.textbox
+            .set_text_animation_enabled(textbox_animations_enabled);
+
+        if self.fade_time < self.max_fade_time {
+            self.fade_time += 1;
+
+            let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);
+
+            if fade_progress > 0.5 {
+                // clear out the previous bbs to avoid extra updates
+                self.delete_fading_menu();
+            }
+        }
+
+        // handle events created outside of this update
+        self.handle_events();
 
         let menus_block_view = self.is_blocking_view();
         let in_transition = game_io.is_in_transition() || self.fade_time != self.max_fade_time;
@@ -503,42 +546,15 @@ impl OverworldMenuManager {
             }
         }
 
-        if menus_block_view || in_transition {
-            // skip updating navigation menu if menus or transitions are blocking it
-            return NextScene::None;
+        let mut next_scene = NextScene::None;
+
+        if !menus_block_view && !in_transition {
+            // only update the navigation menu if menus or transitions aren't blocking it
+            next_scene = self.update_navigation_menu(game_io, area);
         }
 
-        // handle navigation menu, possible scene or menu changes
-        let mut navigation_selection = None;
-
-        let next_scene =
-            self.navigation_menu
-                .update(game_io, |game_io, selection| match selection {
-                    SceneOption::KeyItems => Some(Box::new(KeyItemsScene::new(
-                        game_io,
-                        &area.item_registry,
-                        &area.player_data.inventory,
-                    ))),
-                    _ => {
-                        navigation_selection = Some(selection);
-                        None
-                    }
-                });
-
-        if let Some(SceneOption::Items) = navigation_selection {
-            let menu_event_sender = self.event_sender.clone();
-            let area_event_sender = area.event_sender.clone();
-
-            let on_select = move |id: &str| {
-                menu_event_sender.send(Event::SelectionMade).unwrap();
-
-                let overworld_event = OverworldEvent::ItemUse(id.to_string());
-                area_event_sender.send(overworld_event).unwrap();
-            };
-
-            let menu_index = self.register_menu(Box::new(ItemsMenu::new(game_io, area, on_select)));
-            self.open_menu(game_io, area, menu_index);
-        }
+        // handle events created during this update
+        self.handle_events();
 
         next_scene
     }
