@@ -61,7 +61,11 @@ impl Client {
                 animation_path: asset::get_player_animation_path(&id),
                 mugshot_texture_path: asset::get_player_mugshot_texture_path(&id),
                 mugshot_animation_path: asset::get_player_mugshot_animation_path(&id),
-                direction: spawn_direction,
+                direction: if spawn_direction.is_none() {
+                    Direction::Down
+                } else {
+                    spawn_direction
+                },
                 x: spawn_x,
                 y: spawn_y,
                 z: spawn_z,

@@ -310,7 +310,10 @@ impl OverworldOnlineScene {
                     .query_one_mut::<(&mut Vec3, &mut Direction)>(player_entity)
                     .unwrap();
                 *position = spawn_position;
-                *direction = spawn_direction;
+
+                if !spawn_direction.is_none() {
+                    *direction = spawn_direction;
+                }
 
                 entities.remove_one::<Excluded>(player_entity);
 

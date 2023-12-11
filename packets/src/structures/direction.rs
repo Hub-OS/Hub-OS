@@ -270,14 +270,14 @@ impl From<&str> for Direction {
 impl From<Direction> for &'static str {
     fn from(direction: Direction) -> &'static str {
         match direction {
-            Direction::Left => "Left",
-            Direction::Right => "Right",
-            Direction::Up => "Up",
-            Direction::Down => "Down",
-            Direction::UpLeft => "Up Left",
-            Direction::UpRight => "Up Right",
-            Direction::DownLeft => "Down Left",
-            Direction::DownRight => "Down Right",
+            Direction::Left => "LEFT",
+            Direction::Right => "RIGHT",
+            Direction::Up => "UP",
+            Direction::Down => "DOWN",
+            Direction::UpLeft => "UP LEFT",
+            Direction::UpRight => "UP RIGHT",
+            Direction::DownLeft => "DOWN LEFT",
+            Direction::DownRight => "DOWN RIGHT",
             Direction::None => "",
         }
     }
