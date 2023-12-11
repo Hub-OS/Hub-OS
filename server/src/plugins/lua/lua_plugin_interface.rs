@@ -870,6 +870,8 @@ impl PluginInterface for LuaPluginInterface {
         socket_address: std::net::SocketAddr,
         data: &[u8],
     ) {
+        let address_string = socket_address.to_string();
+
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -880,8 +882,7 @@ impl PluginInterface for LuaPluginInterface {
             net,
             |lua, callback| {
                 let event = lua.create_table()?;
-                event.set("host", socket_address.ip().to_string())?;
-                event.set("port", socket_address.port())?;
+                event.set("address", address_string.as_str())?;
                 event.set("data", lua.create_string(data)?)?;
 
                 callback.call(("server_message", event))
