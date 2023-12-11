@@ -6,8 +6,6 @@ use hecs::Entity;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-const SHADOW_MULTIPLIER: f32 = 0.65;
-
 pub struct Map {
     cols: u32,
     rows: u32,
@@ -28,6 +26,8 @@ pub struct Map {
 }
 
 impl Map {
+    pub const SHADOW_MULTIPLIER: f32 = 0.65;
+
     pub fn new(cols: u32, rows: u32, tile_width: i32, tile_height: i32) -> Self {
         Self {
             cols,
@@ -715,7 +715,7 @@ impl Map {
     ) {
         self.iterate_visible_tiles(game_io, camera, layer_index, |sprite, _, _, (col, row)| {
             if self.shadow_map.has_shadow((col, row), layer_index as i32) {
-                sprite.set_color(Color::WHITE.multiply_color(SHADOW_MULTIPLIER));
+                sprite.set_color(Color::WHITE.multiply_color(Self::SHADOW_MULTIPLIER));
             } else {
                 sprite.set_color(Color::WHITE);
             }
@@ -724,51 +724,32 @@ impl Map {
         });
     }
 
-    /// sorts and renders actors with tile objects
-    /// actors must have a WorldPositon and Sprite
-    pub fn draw_objects_with_entities(
-        &self,
-        sprite_queue: &mut SpriteColorQueue,
-        entities: &hecs::World,
-        layer_index: usize,
-    ) {
-        use std::cmp::Ordering;
+    /// Generates layers of mixed actor and tile object sprites.
+    /// Actors must have a WorldPositon and Sprite for inclusion.
+    pub fn generate_sprite_layers(&self, entities: &hecs::World) -> Vec<OverworldSpriteLayer> {
+        let mut sprite_layers: Vec<OverworldSpriteLayer> = Vec::new();
+        sprite_layers.resize_with(self.tile_layers.len() + 1, Default::default);
 
         let mut queries = [entities, &self.object_entities]
             .map(|entities| entities.query::<hecs::Without<(&mut Sprite, &Vec3), &Excluded>>());
 
-        let mut render_order = Vec::new();
-
         for query in &mut queries {
             for (_, (sprite, &position)) in query.iter() {
-                // add sprites on the same layer, bump up sprites to the next layer if the sprite is on stairs
-                if position.z.ceil() as usize == layer_index {
-                    let sort_value = self.world_to_screen(position.xy()).y;
+                // sprites with a fractional z are bumped up to the next layer
+                // this pushes actors on stairs to the next layer
+                let mut layer_index = position.z.ceil() as usize;
+                layer_index = layer_index.min(sprite_layers.len() - 1);
 
-                    render_order.push((sprite, position, sort_value));
-                }
+                let sprite_layer = &mut sprite_layers[layer_index];
+
+                sprite_layer.add_sprite(self, sprite.clone(), position);
             }
         }
 
-        render_order.sort_unstable_by(|(_, _, sort_value_a), (_, _, sort_value_b)| {
-            sort_value_a
-                .partial_cmp(sort_value_b)
-                .unwrap_or(Ordering::Equal)
-        });
-
-        for (sprite, position, _) in render_order {
-            // shade
-            let original_color = sprite.color();
-
-            if self.is_in_shadow(position) {
-                sprite.set_color(original_color.multiply_color(SHADOW_MULTIPLIER));
-            }
-
-            // draw
-            sprite_queue.draw_sprite(sprite);
-
-            // reset color
-            sprite.set_color(original_color);
+        for sprite_layer in &mut sprite_layers {
+            sprite_layer.sort();
         }
+
+        sprite_layers
     }
 }
