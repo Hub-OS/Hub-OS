@@ -64,9 +64,9 @@ frame duration="8f" x="78" y="139" w="72" h="14" originx="6"
 frame duration="8f" x="3" y="139" w="72" h="14" originx="6"
 
 animation state="INFO"
-frame duration="50f" x="155" y="99" w="88" h="54" originx="-8" originy="-98"
-point label="HP" x="7" y="12"
-point label="MONEY" x="7" y="36"
+frame x="153" y="92" w="90" h="61" originx="-8" originy="-93"
+point label="HP" x="7" y="10"
+point label="MONEY" x="7" y="42"
 
 animation state="TOP_BAR"
 frame duration="50f" x="0" y="0" w="240" h="17"
