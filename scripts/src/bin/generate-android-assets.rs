@@ -8,9 +8,16 @@ fn main() -> ExitCode {
 
     std::fs::create_dir_all(android_assets_path).unwrap();
 
-    // linux only for now
-    let zip_output = Command::new("zip")
-        .args([&zip_path, "resources", "-r", "-D"])
+    let mut zip_command = Command::new("zip");
+
+    if cfg!(target_os = "windows") {
+        zip_command = Command::new("tar");
+        zip_command.args(["-cvf", &zip_path, "resources"]);
+    } else {
+        zip_command.args([&zip_path, "resources", "-r", "-D"]);
+    };
+
+    let zip_output = zip_command
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .output()
