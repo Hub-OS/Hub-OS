@@ -1,1816 +1,1816 @@
 imagePath="fonts.png"
 
 animation state="SMALL_U+0041"
-frame duration="0" x="4" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="9" w="5" h="7"
 
 animation state="SMALL_U+0042"
-frame duration="0" x="13" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="13" y="9" w="5" h="7"
 
 animation state="SMALL_U+0043"
-frame duration="0" x="22" y="9" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="22" y="9" w="4" h="7"
 
 animation state="SMALL_U+0044"
-frame duration="0" x="30" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="30" y="9" w="5" h="7"
 
 animation state="SMALL_U+0045"
-frame duration="0" x="39" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="39" y="9" w="5" h="7"
 
 animation state="SMALL_U+0046"
-frame duration="0" x="48" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="48" y="9" w="5" h="7"
 
 animation state="SMALL_U+0047"
-frame duration="0" x="57" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="57" y="9" w="5" h="7"
 
 animation state="SMALL_U+0048"
-frame duration="0" x="66" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="66" y="9" w="5" h="7"
 
 animation state="SMALL_U+0049"
-frame duration="0" x="75" y="9" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="75" y="9" w="3" h="7"
 
 animation state="SMALL_U+004A"
-frame duration="0" x="82" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="82" y="9" w="5" h="7"
 
 animation state="SMALL_U+004B"
-frame duration="0" x="91" y="9" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="91" y="9" w="4" h="7"
 
 animation state="SMALL_U+004C"
-frame duration="0" x="99" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="99" y="9" w="5" h="7"
 
 animation state="SMALL_U+004D"
-frame duration="0" x="108" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="108" y="9" w="5" h="7"
 
 animation state="SMALL_U+004E"
-frame duration="0" x="117" y="9" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="117" y="9" w="4" h="7"
 
 animation state="SMALL_U+004F"
-frame duration="0" x="125" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="125" y="9" w="5" h="7"
 
 animation state="SMALL_U+0050"
-frame duration="0" x="134" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="134" y="9" w="5" h="7"
 
 animation state="SMALL_U+0051"
-frame duration="0" x="143" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="143" y="9" w="5" h="7"
 
 animation state="SMALL_U+0052"
-frame duration="0" x="153" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="153" y="9" w="5" h="7"
 
 animation state="SMALL_U+0053"
-frame duration="0" x="162" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="162" y="9" w="5" h="7"
 
 animation state="SMALL_U+0054"
-frame duration="0" x="171" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="171" y="9" w="5" h="7"
 
 animation state="SMALL_U+0055"
-frame duration="0" x="180" y="9" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="180" y="9" w="5" h="7"
 
 animation state="SMALL_U+0056"
-frame duration="0" x="4" y="29" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="29" w="5" h="7"
 
 animation state="SMALL_U+0057"
-frame duration="0" x="13" y="29" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="13" y="29" w="5" h="7"
 
 animation state="SMALL_U+0058"
-frame duration="0" x="22" y="29" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="22" y="29" w="5" h="7"
 
 animation state="SMALL_U+0059"
-frame duration="0" x="31" y="29" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="31" y="29" w="5" h="7"
 
 animation state="SMALL_U+005A"
-frame duration="0" x="40" y="29" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="40" y="29" w="5" h="7"
 
 animation state="SMALL_U+0061"
-frame duration="0" x="4" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="48" w="4" h="7"
 
 animation state="SMALL_U+0062"
-frame duration="0" x="12" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="12" y="48" w="4" h="7"
 
 animation state="SMALL_U+0063"
-frame duration="0" x="20" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="20" y="50" w="4" h="5"
 
 animation state="SMALL_U+0064"
-frame duration="0" x="28" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="28" y="48" w="4" h="7"
 
 animation state="SMALL_U+0065"
-frame duration="0" x="36" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="36" y="50" w="4" h="5"
 
 animation state="SMALL_U+0066"
-frame duration="0" x="44" y="48" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="44" y="48" w="3" h="7"
 
 animation state="SMALL_U+0067"
-frame duration="0" x="51" y="47" w="4" h="9" originx="0" originy="1" flipx="0" flipy="0"
+frame x="51" y="47" w="4" h="9" originx="0" originy="1"
 
 animation state="SMALL_U+0068"
-frame duration="0" x="59" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="59" y="48" w="4" h="7"
 
 animation state="SMALL_U+0069"
-frame duration="0" x="65" y="48" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="65" y="48" w="5" h="7"
 
 animation state="SMALL_U+006A"
-frame duration="0" x="71" y="48" w="5" h="9" originx="0" originy="0" flipx="0" flipy="0"
+frame x="71" y="48" w="5" h="9"
 
 animation state="SMALL_U+006B"
-frame duration="0" x="78" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="78" y="48" w="4" h="7"
 
 animation state="SMALL_U+006C"
-frame duration="0" x="84" y="47" w="5" h="8" originx="0" originy="1" flipx="0" flipy="0"
+frame x="84" y="47" w="5" h="8" originx="0" originy="1"
 
 animation state="SMALL_U+006D"
-frame duration="0" x="91" y="50" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="91" y="50" w="5" h="5"
 
 animation state="SMALL_U+006E"
-frame duration="0" x="100" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="100" y="50" w="4" h="5"
 
 animation state="SMALL_U+006F"
-frame duration="0" x="108" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="108" y="50" w="4" h="5"
 
 animation state="SMALL_U+0070"
-frame duration="0" x="116" y="48" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="116" y="48" w="4" h="8"
 
 animation state="SMALL_U+0071"
-frame duration="0" x="125" y="48" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="125" y="48" w="4" h="8"
 
 animation state="SMALL_U+0072"
-frame duration="0" x="134" y="49" w="4" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="134" y="49" w="4" h="6"
 
 animation state="SMALL_U+0073"
-frame duration="0" x="142" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="142" y="50" w="4" h="5"
 
 animation state="SMALL_U+0074"
-frame duration="0" x="150" y="48" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="150" y="48" w="4" h="7"
 
 animation state="SMALL_U+0075"
-frame duration="0" x="158" y="50" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="158" y="50" w="4" h="5"
 
 animation state="SMALL_U+0076"
-frame duration="0" x="4" y="69" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="69" w="4" h="5"
 
 animation state="SMALL_U+0077"
-frame duration="0" x="12" y="69" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="12" y="69" w="5" h="5"
 
 animation state="SMALL_U+0078"
-frame duration="0" x="21" y="69" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="21" y="69" w="4" h="5"
 
 animation state="SMALL_U+0079"
-frame duration="0" x="29" y="67" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="29" y="67" w="4" h="8"
 
 animation state="SMALL_U+007A"
-frame duration="0" x="37" y="69" w="4" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="37" y="69" w="4" h="5"
 
 animation state="SMALL_U+0030"
-frame duration="0" x="4" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="86" w="4" h="7"
 
 animation state="SMALL_U+0031"
-frame duration="0" x="12" y="86" w="2" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="12" y="86" w="2" h="7"
 
 animation state="SMALL_U+0032"
-frame duration="0" x="18" y="86" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="18" y="86" w="5" h="7"
 
 animation state="SMALL_U+0033"
-frame duration="0" x="27" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="27" y="86" w="4" h="7"
 
 animation state="SMALL_U+0034"
-frame duration="0" x="35" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="35" y="86" w="4" h="7"
 
 animation state="SMALL_U+0035"
-frame duration="0" x="43" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="43" y="86" w="4" h="7"
 
 animation state="SMALL_U+0036"
-frame duration="0" x="51" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="51" y="86" w="4" h="7"
 
 animation state="SMALL_U+0037"
-frame duration="0" x="59" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="59" y="86" w="4" h="7"
 
 animation state="SMALL_U+0038"
-frame duration="0" x="67" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="67" y="86" w="4" h="7"
 
 animation state="SMALL_U+0039"
-frame duration="0" x="75" y="86" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="75" y="86" w="4" h="7"
 
 animation state="SMALL_U+0028"
-frame duration="0.05" x="4" y="105" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="105" w="3" h="7"
 
 animation state="SMALL_U+0029"
-frame duration="0" x="11" y="105" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="11" y="105" w="3" h="7"
 
 animation state="SMALL_U+005F"
-frame duration="0" x="18" y="105" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="18" y="105" w="4" h="8"
 
 animation state="SMALL_U+002D"
-frame duration="0" x="26" y="105" w="3" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="26" y="105" w="3" h="8"
 
 animation state="SMALL_U+002B"
-frame duration="0" x="33" y="105" w="3" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="33" y="105" w="3" h="8"
 
 animation state="SMALL_U+003D"
-frame duration="0" x="40" y="105" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="40" y="105" w="4" h="8"
 
 animation state="SMALL_U+005C"
-frame duration="0" x="48" y="105" w="5" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="48" y="105" w="5" h="8"
 
 animation state="SMALL_U+002F"
-frame duration="0" x="57" y="105" w="5" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="57" y="105" w="5" h="8"
 
 animation state="SMALL_U+003C"
-frame duration="0" x="66" y="106" w="3" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="66" y="106" w="3" h="6"
 
 animation state="SMALL_U+003E"
-frame duration="0" x="74" y="106" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="74" y="106" w="3" h="7"
 
 animation state="SMALL_U+003F"
-frame duration="0" x="81" y="105" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="81" y="105" w="3" h="7"
 
 animation state="SMALL_U+002C"
-frame duration="0" x="87" y="105" w="4" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="87" y="105" w="4" h="8"
 
 animation state="SMALL_U+002E"
-frame duration="0" x="93" y="104" w="3" h="9" originx="0" originy="1" flipx="0" flipy="0"
+frame x="93" y="104" w="3" h="9" originx="0" originy="1"
 
 animation state="SMALL_U+0021"
-frame duration="0" x="99" y="105" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="99" y="105" w="3" h="7"
 
 animation state="SMALL_U+0040"
-frame duration="0" x="104" y="104" w="7" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="104" y="104" w="7" h="8"
 
 animation state="SMALL_U+0023"
-frame duration="0" x="115" y="105" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="115" y="105" w="5" h="7"
 
 animation state="SMALL_U+0024"
-frame duration="0" x="124" y="105" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="124" y="105" w="4" h="7"
 
 animation state="SMALL_U+0025"
-frame duration="0" x="133" y="104" w="5" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="133" y="104" w="5" h="8"
 
 animation state="SMALL_U+005E"
-frame duration="0" x="142" y="105" w="3" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="142" y="105" w="3" h="7"
 
 animation state="SMALL_U+0026"
-frame duration="0" x="149" y="105" w="4" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="149" y="105" w="4" h="7"
 
 animation state="SMALL_U+002A"
-frame duration="0" x="157" y="106" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="157" y="106" w="5" h="6"
 
 animation state="SMALL_U+0027"
-frame duration="0" x="166" y="106" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="166" y="106" w="2" h="6"
 
 animation state="SMALL_U+0022"
-frame duration="0" x="171" y="106" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="171" y="106" w="5" h="6"
 
 animation state="SMALL_U+003A"
-frame duration="0" x="180" y="106" w="2" h="8" originx="0" originy="0" flipx="0" flipy="0"
+frame x="180" y="106" w="2" h="8"
 
 animation state="SMALL_U+003B"
-frame duration="0" x="184" y="106" w="2" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="184" y="106" w="2" h="7"
 
 animation state="THICK_U+0041"
-frame duration="0.05" x="244" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="244" y="8" w="6" h="10"
 
 animation state="THICK_U+0042"
-frame duration="0.05" x="254" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="254" y="8" w="6" h="10"
 
 animation state="THICK_U+0043"
-frame duration="0.05" x="264" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="264" y="8" w="6" h="10"
 
 animation state="THICK_U+0044"
-frame duration="0.05" x="274" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="274" y="8" w="6" h="10"
 
 animation state="THICK_U+0045"
-frame duration="0.05" x="284" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="284" y="8" w="6" h="10"
 
 animation state="THICK_U+0046"
-frame duration="0.05" x="294" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="294" y="8" w="6" h="10"
 
 animation state="THICK_U+0047"
-frame duration="0.05" x="304" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="304" y="8" w="6" h="10"
 
 animation state="THICK_U+0048"
-frame duration="0.05" x="314" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="314" y="8" w="6" h="10"
 
 animation state="THICK_U+0049"
-frame duration="0.05" x="322" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="322" y="8" w="6" h="10"
 
 animation state="THICK_U+004A"
-frame duration="0.05" x="330" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="330" y="8" w="6" h="10"
 
 animation state="THICK_U+004B"
-frame duration="0.05" x="339" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="339" y="8" w="6" h="10"
 
 animation state="THICK_U+004C"
-frame duration="0.05" x="349" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="349" y="8" w="6" h="10"
 
 animation state="THICK_U+004D"
-frame duration="0.05" x="359" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="359" y="8" w="6" h="10"
 
 animation state="THICK_U+004E"
-frame duration="0.05" x="369" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="369" y="8" w="6" h="10"
 
 animation state="THICK_U+004F"
-frame duration="0.05" x="379" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="379" y="8" w="6" h="10"
 
 animation state="THICK_U+0050"
-frame duration="0.05" x="389" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="389" y="8" w="6" h="10"
 
 animation state="THICK_U+0051"
-frame duration="0.05" x="399" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="399" y="8" w="6" h="10"
 
 animation state="THICK_U+0052"
-frame duration="0.05" x="410" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="410" y="8" w="6" h="10"
 
 animation state="THICK_U+0053"
-frame duration="0.05" x="420" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="420" y="8" w="6" h="10"
 
 animation state="THICK_U+0054"
-frame duration="0.05" x="430" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="430" y="8" w="6" h="10"
 
 animation state="THICK_U+0055"
-frame duration="0.05" x="440" y="8" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="440" y="8" w="6" h="10"
 
 animation state="THICK_U+0056"
-frame duration="0.05" x="244" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="244" y="28" w="6" h="10"
 
 animation state="THICK_U+0057"
-frame duration="0.05" x="254" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="254" y="28" w="6" h="10"
 
 animation state="THICK_U+0058"
-frame duration="0.05" x="264" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="264" y="28" w="6" h="10"
 
 animation state="THICK_U+0059"
-frame duration="0.05" x="274" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="274" y="28" w="6" h="10"
 
 animation state="THICK_U+005A"
-frame duration="0.05" x="284" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="284" y="28" w="6" h="10"
 
 animation state="THICK_U+00D7"
-frame duration="0.05" x="294" y="28" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="294" y="28" w="6" h="10"
 
 animation state="THICK_U+0061"
-frame duration="0.05" x="244" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="244" y="47" w="6" h="10"
 
 animation state="THICK_U+0062"
-frame duration="0.05" x="254" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="254" y="47" w="6" h="10"
 
 animation state="THICK_U+0063"
-frame duration="0.05" x="264" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="264" y="47" w="6" h="10"
 
 animation state="THICK_U+0064"
-frame duration="0.05" x="274" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="274" y="47" w="6" h="10"
 
 animation state="THICK_U+0065"
-frame duration="0.05" x="284" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="284" y="47" w="6" h="10"
 
 animation state="THICK_U+0066"
-frame duration="0.05" x="294" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="294" y="47" w="6" h="10"
 
 animation state="THICK_U+0067"
-frame duration="0.05" x="304" y="47" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="304" y="47" w="6" h="11"
 
 animation state="THICK_U+0068"
-frame duration="0.05" x="314" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="314" y="47" w="6" h="10"
 
 animation state="THICK_U+0069"
-frame duration="0.05" x="322" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="322" y="47" w="6" h="10"
 
 animation state="THICK_U+006B"
-frame duration="0.05" x="337" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="337" y="47" w="6" h="10"
 
 animation state="THICK_U+006A"
-frame duration="0.05" x="329" y="47" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="329" y="47" w="6" h="11"
 
 animation state="THICK_U+006C"
-frame duration="0.05" x="345" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="345" y="47" w="6" h="10"
 
 animation state="THICK_U+006D"
-frame duration="0.05" x="353" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="353" y="47" w="6" h="10"
 
 animation state="THICK_U+006E"
-frame duration="0.05" x="363" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="363" y="47" w="6" h="10"
 
 animation state="THICK_U+006F"
-frame duration="0.05" x="373" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="373" y="47" w="6" h="10"
 
 animation state="THICK_U+0070"
-frame duration="0.05" x="383" y="47" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="383" y="47" w="6" h="11"
 
 animation state="THICK_U+0071"
-frame duration="0.05" x="393" y="47" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="393" y="47" w="6" h="11"
 
 animation state="THICK_U+0072"
-frame duration="0.05" x="403" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="403" y="47" w="6" h="10"
 
 animation state="THICK_U+0073"
-frame duration="0.05" x="413" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="413" y="47" w="6" h="10"
 
 animation state="THICK_U+0074"
-frame duration="0.05" x="423" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="423" y="47" w="6" h="10"
 
 animation state="THICK_U+0075"
-frame duration="0.05" x="433" y="47" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="433" y="47" w="6" h="10"
 
 animation state="THICK_U+0076"
-frame duration="0.05" x="244" y="66" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="244" y="66" w="6" h="10"
 
 animation state="THICK_U+0077"
-frame duration="0.05" x="254" y="66" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="254" y="66" w="6" h="10"
 
 animation state="THICK_U+0078"
-frame duration="0.05" x="264" y="66" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="264" y="66" w="6" h="10"
 
 animation state="THICK_U+0079"
-frame duration="0.05" x="274" y="66" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="274" y="66" w="6" h="10"
 
 animation state="THICK_U+007A"
-frame duration="0.05" x="284" y="66" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="284" y="66" w="6" h="10"
 
 animation state="THICK_U+0030"
-frame duration="0.05" x="244" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="244" y="85" w="6" h="10"
 
 animation state="THICK_U+0031"
-frame duration="0.05" x="252" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="252" y="85" w="6" h="10"
 
 animation state="THICK_U+0032"
-frame duration="0.05" x="261" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="261" y="85" w="6" h="10"
 
 animation state="THICK_U+0033"
-frame duration="0.05" x="271" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="271" y="85" w="6" h="10"
 
 animation state="THICK_U+0034"
-frame duration="0.05" x="281" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="281" y="85" w="6" h="10"
 
 animation state="THICK_U+0035"
-frame duration="0.05" x="291" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="291" y="85" w="6" h="10"
 
 animation state="THICK_U+0036"
-frame duration="0.05" x="301" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="301" y="85" w="6" h="10"
 
 animation state="THICK_U+0037"
-frame duration="0.05" x="311" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="311" y="85" w="6" h="10"
 
 animation state="THICK_U+0038"
-frame duration="0.05" x="321" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="321" y="85" w="6" h="10"
 
 animation state="THICK_U+0039"
-frame duration="0.05" x="331" y="85" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="331" y="85" w="6" h="10"
 
 animation state="THICK_U+007C"
-frame duration="0.05" x="220" y="103" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="220" y="103" w="6" h="11"
 
 animation state="THICK_U+005B"
-frame duration="0.05" x="229" y="103" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="229" y="103" w="6" h="11"
 
 animation state="THICK_U+005D"
-frame duration="0.05" x="236" y="103" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="236" y="103" w="6" h="11"
 
 animation state="THICK_U+0028"
-frame duration="0.05" x="245" y="103" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="245" y="103" w="6" h="11"
 
 animation state="THICK_U+0029"
-frame duration="0.05" x="252" y="103" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="252" y="103" w="6" h="11"
 
 animation state="THICK_U+005F"
-frame duration="0.05" x="262" y="103" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="262" y="103" w="6" h="12"
 
 animation state="THICK_U+002D"
-frame duration="0.05" x="272" y="103" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="272" y="103" w="6" h="10"
 
 animation state="THICK_U+002B"
-frame duration="0.05" x="282" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="282" y="104" w="6" h="10"
 
 animation state="THICK_U+003D"
-frame duration="0.05" x="292" y="103" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="292" y="103" w="6" h="10"
 
 animation state="THICK_U+005C"
-frame duration="0.05" x="301" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="301" y="104" w="6" h="10"
 
 animation state="THICK_U+002F"
-frame duration="0.05" x="311" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="311" y="104" w="6" h="10"
 
 animation state="THICK_U+003C"
-frame duration="0.05" x="321" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="321" y="104" w="6" h="10"
 
 animation state="THICK_U+003E"
-frame duration="0.05" x="330" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="330" y="104" w="6" h="10"
 
 animation state="THICK_U+003F"
-frame duration="0.05" x="339" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="339" y="104" w="6" h="10"
 
 animation state="THICK_U+002C"
-frame duration="0.05" x="347" y="104" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="347" y="104" w="6" h="12"
 
 animation state="THICK_U+002E"
-frame duration="0.05" x="353" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="353" y="104" w="6" h="10"
 
 animation state="THICK_U+0021"
-frame duration="0.05" x="359" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="359" y="104" w="6" h="10"
 
 animation state="THICK_U+0040"
-frame duration="0.05" x="367" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="367" y="104" w="6" h="10"
 
 animation state="THICK_U+0023"
-frame duration="0.05" x="376" y="104" w="7" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="376" y="104" w="7" h="10"
 
 animation state="THICK_U+0024"
-frame duration="0.05" x="386" y="102" w="7" h="13" originx="0" originy="0" flipx="0" flipy="0"
+frame x="386" y="102" w="7" h="13"
 
 animation state="THICK_U+0025"
-frame duration="0.05" x="397" y="104" w="7" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="397" y="104" w="7" h="10"
 
 animation state="THICK_U+005E"
-frame duration="0.05" x="408" y="102" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="408" y="102" w="6" h="12"
 
 animation state="THICK_U+0026"
-frame duration="0.05" x="416" y="104" w="7" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="416" y="104" w="7" h="10"
 
 animation state="THICK_U+002A"
-frame duration="0.05" x="426" y="103" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="426" y="103" w="7" h="11"
 
 animation state="THICK_U+0027"
-frame duration="0.05" x="436" y="102" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="436" y="102" w="6" h="12"
 
 animation state="THICK_U+0022"
-frame duration="0.05" x="442" y="102" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="442" y="102" w="6" h="12"
 
 animation state="THICK_U+003A"
-frame duration="0.05" x="448" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="448" y="104" w="6" h="10"
 
 animation state="THICK_U+003B"
-frame duration="0.05" x="454" y="104" w="6" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="454" y="104" w="6" h="10"
 
 animation state="TINY_U+0041"
-frame duration="0.05" x="470" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="9" w="3" h="5"
 
 animation state="TINY_U+0042"
-frame duration="0.05" x="477" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="9" w="3" h="5"
 
 animation state="TINY_U+0043"
-frame duration="0.05" x="484" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="484" y="9" w="3" h="5"
 
 animation state="TINY_U+0044"
-frame duration="0.05" x="491" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="491" y="9" w="3" h="5"
 
 animation state="TINY_U+0045"
-frame duration="0.05" x="498" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="498" y="9" w="3" h="5"
 
 animation state="TINY_U+0046"
-frame duration="0.05" x="505" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="505" y="9" w="3" h="5"
 
 animation state="TINY_U+0047"
-frame duration="0.05" x="512" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="512" y="9" w="3" h="5"
 
 animation state="TINY_U+0048"
-frame duration="0.05" x="519" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="519" y="9" w="3" h="5"
 
 animation state="TINY_U+0049"
-frame duration="0.05" x="526" y="9" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="526" y="9" w="1" h="5"
 
 animation state="TINY_U+004A"
-frame duration="0.05" x="531" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="531" y="9" w="3" h="5"
 
 animation state="TINY_U+004B"
-frame duration="0.05" x="538" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="538" y="9" w="3" h="5"
 
 animation state="TINY_U+004C"
-frame duration="0.05" x="545" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="545" y="9" w="3" h="5"
 
 animation state="TINY_U+004D"
-frame duration="0.05" x="552" y="9" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="552" y="9" w="5" h="5"
 
 animation state="TINY_U+004E"
-frame duration="0.05" x="561" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="561" y="9" w="3" h="5"
 
 animation state="TINY_U+004F"
-frame duration="0.05" x="568" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="568" y="9" w="3" h="5"
 
 animation state="TINY_U+0050"
-frame duration="0.05" x="575" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="575" y="9" w="3" h="5"
 
 animation state="TINY_U+0051"
-frame duration="0.05" x="582" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="582" y="9" w="3" h="5"
 
 animation state="TINY_U+0052"
-frame duration="0.05" x="590" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="590" y="9" w="3" h="5"
 
 animation state="TINY_U+0053"
-frame duration="0.05" x="597" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="597" y="9" w="3" h="5"
 
 animation state="TINY_U+0054"
-frame duration="0.05" x="604" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="604" y="9" w="3" h="5"
 
 animation state="TINY_U+0055"
-frame duration="0.05" x="611" y="9" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="611" y="9" w="3" h="5"
 
 animation state="TINY_U+0056"
-frame duration="0.05" x="470" y="29" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="29" w="3" h="5"
 
 animation state="TINY_U+0057"
-frame duration="0.05" x="477" y="29" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="29" w="5" h="5"
 
 animation state="TINY_U+0058"
-frame duration="0.05" x="486" y="29" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="486" y="29" w="3" h="5"
 
 animation state="TINY_U+0059"
-frame duration="0.05" x="493" y="29" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="493" y="29" w="3" h="5"
 
 animation state="TINY_U+005A"
-frame duration="0.05" x="500" y="29" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="500" y="29" w="3" h="5"
 
 animation state="TINY_U+0061"
-frame duration="0.05" x="470" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="48" w="3" h="5"
 
 animation state="TINY_U+0062"
-frame duration="0.05" x="477" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="48" w="3" h="5"
 
 animation state="TINY_U+0063"
-frame duration="0.05" x="484" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="484" y="48" w="3" h="5"
 
 animation state="TINY_U+0064"
-frame duration="0.05" x="491" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="491" y="48" w="3" h="5"
 
 animation state="TINY_U+0065"
-frame duration="0.05" x="498" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="498" y="48" w="3" h="5"
 
 animation state="TINY_U+0066"
-frame duration="0.05" x="505" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="505" y="48" w="3" h="5"
 
 animation state="TINY_U+0067"
-frame duration="0.05" x="512" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="512" y="48" w="3" h="5"
 
 animation state="TINY_U+0068"
-frame duration="0.05" x="519" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="519" y="48" w="3" h="5"
 
 animation state="TINY_U+0069"
-frame duration="0.05" x="526" y="48" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="526" y="48" w="1" h="5"
 
 animation state="TINY_U+006A"
-frame duration="0.05" x="531" y="48" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="531" y="48" w="2" h="5"
 
 animation state="TINY_U+006B"
-frame duration="0.05" x="537" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="537" y="48" w="3" h="5"
 
 animation state="TINY_U+006C"
-frame duration="0.05" x="544" y="48" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="544" y="48" w="1" h="5"
 
 animation state="TINY_U+006D"
-frame duration="0.05" x="549" y="48" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="549" y="48" w="5" h="5"
 
 animation state="TINY_U+006E"
-frame duration="0.05" x="558" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="558" y="48" w="3" h="5"
 
 animation state="TINY_U+006F"
-frame duration="0.05" x="565" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="565" y="48" w="3" h="5"
 
 animation state="TINY_U+0070"
-frame duration="0.05" x="572" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="572" y="48" w="3" h="5"
 
 animation state="TINY_U+0071"
-frame duration="0.05" x="579" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="579" y="48" w="3" h="5"
 
 animation state="TINY_U+0072"
-frame duration="0.05" x="587" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="587" y="48" w="3" h="5"
 
 animation state="TINY_U+0073"
-frame duration="0.05" x="594" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="594" y="48" w="3" h="5"
 
 animation state="TINY_U+0074"
-frame duration="0.05" x="601" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="601" y="48" w="3" h="5"
 
 animation state="TINY_U+0075"
-frame duration="0.05" x="608" y="48" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="608" y="48" w="3" h="5"
 
 animation state="TINY_U+0076"
-frame duration="0.05" x="470" y="67" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="67" w="3" h="5"
 
 animation state="TINY_U+0077"
-frame duration="0.05" x="477" y="67" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="67" w="5" h="5"
 
 animation state="TINY_U+0078"
-frame duration="0.05" x="486" y="67" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="486" y="67" w="3" h="5"
 
 animation state="TINY_U+0079"
-frame duration="0.05" x="493" y="67" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="493" y="67" w="3" h="5"
 
 animation state="TINY_U+007A"
-frame duration="0.05" x="500" y="67" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="500" y="67" w="3" h="5"
 
 animation state="TINY_U+0030"
-frame duration="0.05" x="470" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="86" w="3" h="5"
 
 animation state="TINY_U+0031"
-frame duration="0.05" x="477" y="86" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="86" w="2" h="5"
 
 animation state="TINY_U+0032"
-frame duration="0.05" x="483" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="483" y="86" w="3" h="5"
 
 animation state="TINY_U+0033"
-frame duration="0.05" x="490" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="490" y="86" w="3" h="5"
 
 animation state="TINY_U+0034"
-frame duration="0.05" x="497" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="497" y="86" w="3" h="5"
 
 animation state="TINY_U+0035"
-frame duration="0.05" x="504" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="504" y="86" w="3" h="5"
 
 animation state="TINY_U+0036"
-frame duration="0.05" x="511" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="511" y="86" w="3" h="5"
 
 animation state="TINY_U+0037"
-frame duration="0.05" x="518" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="518" y="86" w="3" h="5"
 
 animation state="TINY_U+0038"
-frame duration="0.05" x="525" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="525" y="86" w="3" h="5"
 
 animation state="TINY_U+0039"
-frame duration="0.05" x="532" y="86" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="532" y="86" w="3" h="5"
 
 animation state="TINY_U+0028"
-frame duration="0.05" x="470" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="470" y="105" w="3" h="5"
 
 animation state="TINY_U+0029"
-frame duration="0.05" x="475" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="475" y="105" w="3" h="5"
 
 animation state="TINY_U+005F"
-frame duration="0.05" x="482" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="482" y="105" w="3" h="5"
 
 animation state="TINY_U+002D"
-frame duration="0.05" x="489" y="105" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="489" y="105" w="2" h="5"
 
 animation state="TINY_U+002B"
-frame duration="0.05" x="495" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="495" y="105" w="3" h="5"
 
 animation state="TINY_U+003D"
-frame duration="0.05" x="502" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="502" y="105" w="3" h="5"
 
 animation state="TINY_U+005C"
-frame duration="0.05" x="509" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="509" y="105" w="3" h="5"
 
 animation state="TINY_U+002F"
-frame duration="0.05" x="516" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="516" y="105" w="3" h="5"
 
 animation state="TINY_U+003C"
-frame duration="0.05" x="523" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="523" y="105" w="3" h="5"
 
 animation state="TINY_U+003E"
-frame duration="0.05" x="529" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="529" y="105" w="3" h="5"
 
 animation state="TINY_U+003F"
-frame duration="0.05" x="536" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="536" y="105" w="3" h="5"
 
 animation state="TINY_U+002C"
-frame duration="0.05" x="543" y="105" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="543" y="105" w="2" h="5"
 
 animation state="TINY_U+002E"
-frame duration="0.05" x="549" y="105" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="549" y="105" w="1" h="5"
 
 animation state="TINY_U+0021"
-frame duration="0.05" x="554" y="105" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="554" y="105" w="1" h="5"
 
 animation state="TINY_U+0040"
-frame duration="0.05" x="559" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="559" y="105" w="3" h="5"
 
 animation state="TINY_U+0023"
-frame duration="0.05" x="566" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="566" y="105" w="3" h="5"
 
 animation state="TINY_U+0024"
-frame duration="0.05" x="573" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="573" y="105" w="3" h="5"
 
 animation state="TINY_U+0025"
-frame duration="0.05" x="581" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="581" y="105" w="3" h="5"
 
 animation state="TINY_U+005E"
-frame duration="0.05" x="588" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="588" y="105" w="3" h="5"
 
 animation state="TINY_U+0026"
-frame duration="0.05" x="595" y="105" w="5" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="595" y="105" w="5" h="5"
 
 animation state="TINY_U+002A"
-frame duration="0.05" x="603" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="603" y="105" w="3" h="5"
 
 animation state="TINY_U+0027"
-frame duration="0.05" x="610" y="105" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="610" y="105" w="1" h="5"
 
 animation state="TINY_U+0022"
-frame duration="0.05" x="615" y="105" w="3" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="615" y="105" w="3" h="5"
 
 animation state="TINY_U+003A"
-frame duration="0.05" x="623" y="105" w="1" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="623" y="105" w="1" h="5"
 
 animation state="TINY_U+003B"
-frame duration="0.05" x="628" y="106" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="628" y="106" w="2" h="5"
 
 animation state="WIDE_U+0020"
 frame w="7" h="5"
 
 animation state="WIDE_U+0041"
-frame duration="0.05" x="639" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="639" y="9" w="6" h="5"
 
 animation state="WIDE_U+0042"
-frame duration="0.05" x="649" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="649" y="9" w="6" h="5"
 
 animation state="WIDE_U+0043"
-frame duration="0.05" x="659" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="659" y="9" w="6" h="5"
 
 animation state="WIDE_U+0044"
-frame duration="0.05" x="669" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="669" y="9" w="6" h="5"
 
 animation state="WIDE_U+0045"
-frame duration="0.05" x="679" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="679" y="9" w="6" h="5"
 
 animation state="WIDE_U+0046"
-frame duration="0.05" x="689" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="689" y="9" w="6" h="5"
 
 animation state="WIDE_U+0047"
-frame duration="0.05" x="699" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="699" y="9" w="6" h="5"
 
 animation state="WIDE_U+0048"
-frame duration="0.05" x="709" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="709" y="9" w="6" h="5"
 
 animation state="WIDE_U+0049"
-frame duration="0.05" x="717" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="717" y="9" w="6" h="5"
 
 animation state="WIDE_U+004A"
-frame duration="0.05" x="725" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="725" y="9" w="6" h="5"
 
 animation state="WIDE_U+004B"
-frame duration="0.05" x="734" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="734" y="9" w="6" h="5"
 
 animation state="WIDE_U+004C"
-frame duration="0.05" x="744" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="744" y="9" w="6" h="5"
 
 animation state="WIDE_U+004D"
-frame duration="0.05" x="754" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="754" y="9" w="6" h="5"
 
 animation state="WIDE_U+004E"
-frame duration="0.05" x="764" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="764" y="9" w="6" h="5"
 
 animation state="WIDE_U+004F"
-frame duration="0.05" x="774" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="774" y="9" w="6" h="5"
 
 animation state="WIDE_U+0050"
-frame duration="0.05" x="784" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="784" y="9" w="6" h="5"
 
 animation state="WIDE_U+0051"
-frame duration="0.05" x="794" y="9" w="7" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="794" y="9" w="7" h="5"
 
 animation state="WIDE_U+0052"
-frame duration="0.05" x="806" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="806" y="9" w="6" h="5"
 
 animation state="WIDE_U+0053"
-frame duration="0.05" x="816" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="816" y="9" w="6" h="5"
 
 animation state="WIDE_U+0054"
-frame duration="0.05" x="826" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="826" y="9" w="6" h="5"
 
 animation state="WIDE_U+0055"
-frame duration="0.05" x="836" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="836" y="9" w="6" h="5"
 
 animation state="WIDE_U+0056"
-frame duration="0.05" x="639" y="29" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="639" y="29" w="6" h="5"
 
 animation state="WIDE_U+0057"
-frame duration="0.05" x="649" y="29" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="649" y="29" w="6" h="5"
 
 animation state="WIDE_U+0058"
-frame duration="0.05" x="659" y="29" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="659" y="29" w="6" h="5"
 
 animation state="WIDE_U+0059"
-frame duration="0.05" x="669" y="29" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="669" y="29" w="6" h="5"
 
 animation state="WIDE_U+005A"
-frame duration="0.05" x="679" y="29" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="679" y="29" w="6" h="5"
 
 animation state="WIDE_U+0030"
-frame duration="0.05" x="639" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="639" y="86" w="6" h="5"
 
 animation state="WIDE_U+0031"
-frame duration="0.05" x="648" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="648" y="86" w="6" h="5"
 
 animation state="WIDE_U+0032"
-frame duration="0.05" x="656" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="656" y="86" w="6" h="5"
 
 animation state="WIDE_U+0033"
-frame duration="0.05" x="666" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="666" y="86" w="6" h="5"
 
 animation state="WIDE_U+0034"
-frame duration="0.05" x="676" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="676" y="86" w="6" h="5"
 
 animation state="WIDE_U+0035"
-frame duration="0.05" x="685" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="685" y="86" w="6" h="5"
 
 animation state="WIDE_U+0036"
-frame duration="0.05" x="695" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="695" y="86" w="6" h="5"
 
 animation state="WIDE_U+0037"
-frame duration="0.05" x="705" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="705" y="86" w="6" h="5"
 
 animation state="WIDE_U+0038"
-frame duration="0.05" x="715" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="715" y="86" w="6" h="5"
 
 animation state="WIDE_U+0039"
-frame duration="0.05" x="725" y="86" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="725" y="86" w="6" h="5"
 
 animation state="WIDE_U+0028"
-frame duration="0.05" x="639" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="639" y="105" w="6" h="5"
 
 animation state="WIDE_U+0029"
-frame duration="0.05" x="646" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="646" y="105" w="6" h="5"
 
 animation state="WIDE_U+005F"
-frame duration="0.05" x="655" y="105" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="655" y="105" w="6" h="6"
 
 animation state="WIDE_U+002D"
-frame duration="0.05" x="664" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="664" y="105" w="6" h="5"
 
 animation state="WIDE_U+002B"
-frame duration="0.05" x="672" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="672" y="105" w="6" h="5"
 
 animation state="WIDE_U+003D"
-frame duration="0.05" x="681" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="681" y="105" w="6" h="5"
 
 animation state="WIDE_U+005C"
-frame duration="0.05" x="691" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="691" y="105" w="6" h="5"
 
 animation state="WIDE_U+002F"
-frame duration="0.05" x="699" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="699" y="105" w="6" h="5"
 
 animation state="WIDE_U+003C"
-frame duration="0.05" x="708" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="708" y="105" w="6" h="5"
 
 animation state="WIDE_U+003E"
-frame duration="0.05" x="715" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="715" y="105" w="6" h="5"
 
 animation state="WIDE_U+003F"
-frame duration="0.05" x="725" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="725" y="105" w="6" h="5"
 
 animation state="WIDE_U+002C"
-frame duration="0.05" x="733" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="733" y="105" w="6" h="5"
 
 animation state="WIDE_U+002E"
-frame duration="0.05" x="740" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="740" y="105" w="6" h="5"
 
 animation state="WIDE_U+0021"
-frame duration="0.05" x="747" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="747" y="105" w="6" h="5"
 
 animation state="WIDE_U+0040"
-frame duration="0.05" x="754" y="104" w="7" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="754" y="104" w="7" h="7"
 
 animation state="WIDE_U+0023"
-frame duration="0.05" x="765" y="105" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="765" y="105" w="6" h="6"
 
 animation state="WIDE_U+0024"
-frame duration="0.05" x="774" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="774" y="105" w="6" h="5"
 
 animation state="WIDE_U+0025"
-frame duration="0.05" x="785" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="785" y="105" w="6" h="5"
 
 animation state="WIDE_U+005E"
-frame duration="0.05" x="794" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="794" y="105" w="6" h="5"
 
 animation state="WIDE_U+0026"
-frame duration="0.05" x="802" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="802" y="105" w="6" h="5"
 
 animation state="WIDE_U+002A"
-frame duration="0.05" x="812" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="812" y="105" w="6" h="5"
 
 animation state="WIDE_U+0027"
-frame duration="0.05" x="821" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="821" y="105" w="6" h="5"
 
 animation state="WIDE_U+0022"
-frame duration="0.05" x="828" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="828" y="105" w="6" h="5"
 
 animation state="WIDE_U+003A"
-frame duration="0.05" x="837" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="837" y="105" w="6" h="5"
 
 animation state="WIDE_U+003B"
-frame duration="0.05" x="844" y="105" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame x="844" y="105" w="6" h="5"
 
 animation state="THIN_U+0041"
-frame duration="0.05" x="859" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="5" w="7" h="12"
 
 animation state="THIN_U+0042"
-frame duration="0.05" x="879" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="5" w="7" h="12"
 
 animation state="THIN_U+0043"
-frame duration="0.05" x="899" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="5" w="7" h="12"
 
 animation state="THIN_U+0044"
-frame duration="0.05" x="919" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="5" w="7" h="12"
 
 animation state="THIN_U+0045"
-frame duration="0.05" x="939" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="5" w="7" h="12"
 
 animation state="THIN_U+0046"
-frame duration="0.05" x="959" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="5" w="7" h="12"
 
 animation state="THIN_U+0047"
-frame duration="0.05" x="979" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="979" y="5" w="7" h="12"
 
 animation state="THIN_U+0048"
-frame duration="0.05" x="999" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="5" w="7" h="12"
 
 animation state="THIN_U+0049"
-frame duration="0.05" x="1017" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1017" y="5" w="7" h="12"
 
 animation state="THIN_U+004A"
-frame duration="0.05" x="1039" y="5" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1039" y="5" w="7" h="12"
 
 animation state="THIN_U+004B"
-frame duration="0.05" x="859" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="25" w="7" h="12"
 
 animation state="THIN_U+004C"
-frame duration="0.05" x="879" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="25" w="7" h="12"
 
 animation state="THIN_U+004D"
-frame duration="0.05" x="899" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="25" w="7" h="12"
 
 animation state="THIN_U+004E"
-frame duration="0.05" x="919" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="25" w="7" h="12"
 
 animation state="THIN_U+004F"
-frame duration="0.05" x="939" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="25" w="7" h="12"
 
 animation state="THIN_U+0050"
-frame duration="0.05" x="959" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="25" w="7" h="12"
 
 animation state="THIN_U+0051"
-frame duration="0.05" x="979" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="979" y="25" w="7" h="12"
 
 animation state="THIN_U+0052"
-frame duration="0.05" x="999" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="25" w="7" h="12"
 
 animation state="THIN_U+0053"
-frame duration="0.05" x="1019" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1019" y="25" w="7" h="12"
 
 animation state="THIN_U+0054"
-frame duration="0.05" x="1039" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1039" y="25" w="7" h="12"
 
 animation state="THIN_U+0055"
-frame duration="0.05" x="859" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="45" w="7" h="12"
 
 animation state="THIN_U+0056"
-frame duration="0.05" x="879" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="45" w="7" h="12"
 
 animation state="THIN_U+0057"
-frame duration="0.05" x="899" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="45" w="7" h="12"
 
 animation state="THIN_U+0058"
-frame duration="0.05" x="919" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="45" w="7" h="12"
 
 animation state="THIN_U+0059"
-frame duration="0.05" x="939" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="45" w="7" h="12"
 
 animation state="THIN_U+005A"
-frame duration="0.05" x="959" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="45" w="7" h="12"
 
 animation state="THIN_U+003A"
-frame duration="0.05" x="983" y="43" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="983" y="43" w="5" h="12"
 
 animation state="THIN_U+0026"
-frame duration="0.05" x="999" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="45" w="7" h="12"
 
 animation state="THIN_U+0027"
-frame duration="0.05" x="1023" y="45" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1023" y="45" w="6" h="12"
 
 animation state="THIN_U+003D"
-frame duration="0.05" x="1043" y="43" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1043" y="43" w="7" h="12"
 
 animation state="THIN_U+0030"
-frame duration="0.05" x="859" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="65" w="7" h="12"
 
 animation state="THIN_U+0031"
-frame duration="0.05" x="878" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="878" y="65" w="7" h="12"
 
 animation state="THIN_U+0032"
-frame duration="0.05" x="899" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="65" w="7" h="12"
 
 animation state="THIN_U+0033"
-frame duration="0.05" x="919" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="65" w="7" h="12"
 
 animation state="THIN_U+0034"
-frame duration="0.05" x="939" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="65" w="7" h="12"
 
 animation state="THIN_U+0035"
-frame duration="0.05" x="959" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="65" w="7" h="12"
 
 animation state="THIN_U+0036"
-frame duration="0.05" x="979" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="979" y="65" w="7" h="12"
 
 animation state="THIN_U+0037"
-frame duration="0.05" x="999" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="65" w="7" h="12"
 
 animation state="THIN_U+0038"
-frame duration="0.05" x="1019" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1019" y="65" w="7" h="12"
 
 animation state="THIN_U+0039"
-frame duration="0.05" x="1039" y="65" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1039" y="65" w="7" h="12"
 
 animation state="THIN_U+0061"
-frame duration="0.05" x="859" y="85" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="85" w="7" h="12"
 
 animation state="THIN_U+0062"
-frame duration="0.05" x="879" y="85" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="85" w="6" h="12"
 
 animation state="THIN_U+0063"
-frame duration="0.05" x="899" y="85" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="85" w="6" h="12"
 
 animation state="THIN_U+0064"
-frame duration="0.05" x="919" y="85" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="85" w="6" h="12"
 
 animation state="THIN_U+0065"
-frame duration="0.05" x="939" y="85" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="85" w="7" h="12"
 
 animation state="THIN_U+0066"
-frame duration="0.05" x="959" y="85" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="85" w="5" h="12"
 
 animation state="THIN_U+0067"
-frame duration="0.05" x="979" y="84" w="6" h="14" originx="0" originy="0" flipx="0" flipy="0"
+frame x="979" y="84" w="6" h="14"
 
 animation state="THIN_U+0068"
-frame duration="0.05" x="999" y="85" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="85" w="6" h="12"
 
 animation state="THIN_U+0069"
-frame duration="0.05" x="1019" y="85" w="1" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1019" y="85" w="1" h="12"
 
 animation state="THIN_U+006A"
-frame duration="0.05" x="1039" y="85" w="4" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1039" y="85" w="4" h="12"
 
 animation state="THIN_U+006B"
-frame duration="0.05" x="859" y="105" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="105" w="6" h="12"
 
 animation state="THIN_U+006C"
-frame duration="0.05" x="879" y="105" w="1" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="105" w="1" h="12"
 
 animation state="THIN_U+006D"
-frame duration="0.05" x="899" y="105" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="105" w="7" h="12"
 
 animation state="THIN_U+006E"
-frame duration="0.05" x="919" y="105" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="105" w="6" h="12"
 
 animation state="THIN_U+006F"
-frame duration="0.05" x="939" y="105" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="105" w="6" h="12"
 
 animation state="THIN_U+0070"
-frame duration="0.05" x="959" y="104" w="6" h="13" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="104" w="6" h="13"
 
 animation state="THIN_U+0071"
-frame duration="0.05" x="979" y="104" w="6" h="13" originx="0" originy="0" flipx="0" flipy="0"
+frame x="979" y="104" w="6" h="13"
 
 animation state="THIN_U+0072"
-frame duration="0.05" x="999" y="105" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="999" y="105" w="5" h="12"
 
 animation state="THIN_U+0073"
-frame duration="0.05" x="1019" y="105" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1019" y="105" w="6" h="12"
 
 animation state="THIN_U+0074"
-frame duration="0.05" x="1039" y="105" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1039" y="105" w="5" h="12"
 
 animation state="THIN_U+0075"
-frame duration="0.05" x="859" y="125" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="859" y="125" w="6" h="12"
 
 animation state="THIN_U+0076"
-frame duration="0.05" x="879" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="879" y="125" w="7" h="12"
 
 animation state="THIN_U+0077"
-frame duration="0.05" x="899" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="899" y="125" w="7" h="12"
 
 animation state="THIN_U+0078"
-frame duration="0.05" x="919" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="919" y="125" w="7" h="12"
 
 animation state="THIN_U+0079"
-frame duration="0.05" x="939" y="124" w="7" h="13" originx="0" originy="0" flipx="0" flipy="0"
+frame x="939" y="124" w="7" h="13"
 
 animation state="THIN_U+007A"
-frame duration="0.05" x="959" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="959" y="125" w="7" h="12"
 
 animation state="THIN_U+002D"
-frame duration="0.05" x="983" y="124" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="983" y="124" w="7" h="12"
 
 animation state="THIN_U+0021"
-frame duration="0.05" x="998" y="125" w="4" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="998" y="125" w="4" h="12"
 
 animation state="THIN_U+002F"
-frame duration="0.05" x="1019" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1019" y="125" w="7" h="12"
 
 animation state="THIN_U+002E"
-frame duration="0.05" x="1045" y="122" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1045" y="122" w="5" h="12"
 
 animation state="THIN_U+003F"
-frame duration="0.05" x="1056" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1056" y="125" w="7" h="12"
 
 animation state="THIN_U+002C"
-frame duration="0.05" x="1024" y="40" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1024" y="40" w="5" h="12"
 
 animation state="GRADIENT_TALL_U+0030"
-frame duration="0.05" x="736" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="736" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0031"
-frame duration="0.05" x="745" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="745" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0032"
-frame duration="0.05" x="754" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="754" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0033"
-frame duration="0.05" x="764" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="764" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0034"
-frame duration="0.05" x="774" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="774" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0035"
-frame duration="0.05" x="784" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="784" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0036"
-frame duration="0.05" x="794" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="794" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0037"
-frame duration="0.05" x="804" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="804" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0038"
-frame duration="0.05" x="814" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="814" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0039"
-frame duration="0.05" x="824" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="824" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+0053"
-frame duration="0.05" x="834" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="834" y="125" w="7" h="12"
 
 animation state="GRADIENT_TALL_U+003A"
-frame duration="0.05" x="843" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="843" y="125" w="7" h="12"
 
 animation state="GRADIENT_U+0030"
-frame duration="0.05" x="755" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="755" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0031"
-frame duration="0.05" x="764" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="764" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0032"
-frame duration="0.05" x="771" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="771" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0033"
-frame duration="0.05" x="779" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="779" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0034"
-frame duration="0.05" x="787" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="787" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0035"
-frame duration="0.05" x="795" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="795" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0036"
-frame duration="0.05" x="803" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="803" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0037"
-frame duration="0.05" x="811" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="811" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0038"
-frame duration="0.05" x="819" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="819" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0039"
-frame duration="0.05" x="827" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="827" y="63" w="7" h="11"
 
 animation state="GRADIENT_U+0041"
-frame duration="0.05" x="835" y="63" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="835" y="63" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0030"
-frame duration="0.05" x="755" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="755" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0031"
-frame duration="0.05" x="764" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="764" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0032"
-frame duration="0.05" x="771" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="771" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0033"
-frame duration="0.05" x="779" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="779" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0034"
-frame duration="0.05" x="787" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="787" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0035"
-frame duration="0.05" x="795" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="795" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0036"
-frame duration="0.05" x="803" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="803" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0037"
-frame duration="0.05" x="811" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="811" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0038"
-frame duration="0.05" x="819" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="819" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0039"
-frame duration="0.05" x="827" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="827" y="74" w="7" h="11"
 
 animation state="GRADIENT_GOLD_U+0041"
-frame duration="0.05" x="835" y="74" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="835" y="74" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0030"
-frame duration="0.05" x="755" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="755" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0031"
-frame duration="0.05" x="764" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="764" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0032"
-frame duration="0.05" x="771" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="771" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0033"
-frame duration="0.05" x="779" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="779" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0034"
-frame duration="0.05" x="787" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="787" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0035"
-frame duration="0.05" x="795" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="795" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0036"
-frame duration="0.05" x="803" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="803" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0037"
-frame duration="0.05" x="811" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="811" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0038"
-frame duration="0.05" x="819" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="819" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0039"
-frame duration="0.05" x="827" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="827" y="85" w="7" h="11"
 
 animation state="GRADIENT_GREEN_U+0041"
-frame duration="0.05" x="835" y="85" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="835" y="85" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0030"
-frame duration="0.05" x="756" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="756" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0031"
-frame duration="0.05" x="765" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="765" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0032"
-frame duration="0.05" x="772" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="772" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0033"
-frame duration="0.05" x="780" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="780" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0034"
-frame duration="0.05" x="788" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="788" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0035"
-frame duration="0.05" x="796" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="796" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0036"
-frame duration="0.05" x="804" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="804" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0037"
-frame duration="0.05" x="812" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="812" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0038"
-frame duration="0.05" x="820" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="820" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0039"
-frame duration="0.05" x="828" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="828" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+002B"
-frame duration="0.05" x="748" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="748" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+002D"
-frame duration="0.05" x="738" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="738" y="113" w="7" h="11"
 
 animation state="GRADIENT_ORANGE_U+0041"
-frame duration="0.05" x="836" y="113" w="7" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="836" y="113" w="7" h="11"
 
 animation state="THICK_U+E000"
-frame duration="0.05" x="298" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="298" y="66" w="6" h="11"
 
 animation state="THICK_U+E001"
-frame duration="0.05" x="314" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="314" y="66" w="6" h="11"
 
 animation state="THICK_U+E002"
-frame duration="0.05" x="330" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="330" y="66" w="6" h="11"
 
 animation state="THICK_U+E003"
-frame duration="0.05" x="347" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="347" y="66" w="6" h="11"
 
 animation state="THICK_U+E004"
-frame duration="0.05" x="363" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="363" y="66" w="6" h="11"
 
 animation state="THICK_U+03B1"
-frame duration="0.05" x="379" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="379" y="66" w="6" h="11"
 
 animation state="THICK_U+03B2"
-frame duration="0.05" x="395" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="395" y="66" w="6" h="11"
 
 animation state="THICK_U+03A3"
-frame duration="0.05" x="427" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="427" y="66" w="6" h="11"
 
 animation state="THICK_U+03A9"
-frame duration="0.05" x="411" y="66" w="6" h="11" originx="0" originy="0" flipx="0" flipy="0"
+frame x="411" y="66" w="6" h="11"
 
 animation state="THIN_U+0022"
-frame duration="0.05" x="1060" y="47" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1060" y="47" w="7" h="12"
 
 animation state="THIN_U+005F"
-frame duration="0.05" x="1077" y="45" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1077" y="45" w="7" h="12"
 
 animation state="THIN_U+0024"
-frame duration="0.05" x="1074" y="24" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1074" y="24" w="7" h="12"
 
 animation state="THIN_U+0028"
-frame duration="0.05" x="1053" y="106" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1053" y="106" w="7" h="12"
 
 animation state="THIN_U+0029"
-frame duration="0.05" x="1065" y="106" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1065" y="106" w="7" h="12"
 
 animation state="THIN_U+005B"
-frame duration="0.05" x="1074" y="106" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1074" y="106" w="7" h="12"
 
 animation state="THIN_U+005D"
-frame duration="0.05" x="1086" y="106" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1086" y="106" w="7" h="12"
 
 animation state="THIN_U+007C"
-frame duration="0.05" x="1092" y="106" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1092" y="106" w="7" h="12"
 
 animation state="THIN_U+002A"
-frame duration="0.05" x="1081" y="84" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1081" y="84" w="7" h="12"
 
 animation state="THIN_U+007E"
-frame duration="0.05" x="1070" y="87" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1070" y="87" w="7" h="12"
 
 animation state="THIN_U+0060"
-frame duration="0.05" x="1062" y="64" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1062" y="64" w="7" h="12"
 
 animation state="THIN_U+005E"
-frame duration="0.05" x="1079" y="64" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1079" y="64" w="7" h="12"
 
 animation state="THIN_U+002B"
-frame duration="0.05" x="1053" y="64" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1053" y="64" w="7" h="12"
 
 animation state="THIN_U+0023"
-frame duration="0.05" x="1084" y="126" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1084" y="126" w="7" h="12"
 
 animation state="THIN_U+0025"
-frame duration="0.05" x="1072" y="125" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1072" y="125" w="7" h="12"
 
 animation state="THIN_U+0040"
-frame duration="0.05" x="1053" y="86" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1053" y="86" w="7" h="12"
 
 animation state="THIN_U+003C"
-frame duration="0.05" x="1054" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1054" y="25" w="7" h="12"
 
 animation state="THIN_U+003E"
-frame duration="0.05" x="1060" y="25" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1060" y="25" w="7" h="12"
 
 animation state="THIN_U+007B"
-frame duration="0.05" x="1075" y="140" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1075" y="140" w="7" h="12"
 
 animation state="THIN_U+007D"
-frame duration="0.05" x="1087" y="140" w="7" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1087" y="140" w="7" h="12"
 
 animation state="THIN_U+003B"
-frame duration="0.05" x="1012" y="43" w="5" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="1012" y="43" w="5" h="12"
 
 animation state="BATTLE_U+0041"
-frame duration="0.05" x="389" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="389" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0042"
-frame duration="0.05" x="400" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="400" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0043"
-frame duration="0.05" x="411" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="411" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0044"
-frame duration="0.05" x="422" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="422" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0045"
-frame duration="0.05" x="433" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="433" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0046"
-frame duration="0.05" x="445" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="445" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0047"
-frame duration="0.05" x="457" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="457" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0048"
-frame duration="0.05" x="469" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="469" y="115" w="8" h="16"
 
 animation state="BATTLE_U+0049"
-frame duration="0.05" x="480" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="480" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004A"
-frame duration="0.05" x="493" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="493" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004B"
-frame duration="0.05" x="504" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="504" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004C"
-frame duration="0.05" x="516" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="516" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004D"
-frame duration="0.05" x="527" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="527" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004E"
-frame duration="0.05" x="538" y="115" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="538" y="115" w="8" h="16"
 
 animation state="BATTLE_U+004F"
-frame duration="0.05" x="389" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="389" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0050"
-frame duration="0.05" x="400" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="400" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0051"
-frame duration="0.05" x="411" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="411" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0052"
-frame duration="0.05" x="423" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="423" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0053"
-frame duration="0.05" x="435" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="435" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0054"
-frame duration="0.05" x="447" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="447" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0055"
-frame duration="0.05" x="458" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="458" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0056"
-frame duration="0.05" x="471" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="471" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0057"
-frame duration="0.05" x="482" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="482" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0058"
-frame duration="0.05" x="493" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="493" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0059"
-frame duration="0.05" x="504" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="504" y="132" w="8" h="16"
 
 animation state="BATTLE_U+005A"
-frame duration="0.05" x="516" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="516" y="132" w="8" h="16"
 
 animation state="BATTLE_U+005F"
-frame duration="0.05" x="556" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="556" y="132" w="8" h="16"
 
 animation state="BATTLE_U+003C"
-frame duration="0.05" x="547" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="547" y="132" w="8" h="16"
 
 animation state="BATTLE_U+003E"
-frame duration="0.05" x="538" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="538" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0021"
-frame duration="0.05" x="527" y="132" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="527" y="132" w="8" h="16"
 
 animation state="BATTLE_U+0030"
-frame duration="0.05" x="406" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="406" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0031"
-frame duration="0.05" x="418" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="418" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0032"
-frame duration="0.05" x="429" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="429" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0033"
-frame duration="0.05" x="441" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="441" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0034"
-frame duration="0.05" x="452" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="452" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0035"
-frame duration="0.05" x="464" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="464" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0036"
-frame duration="0.05" x="477" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="477" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0037"
-frame duration="0.05" x="489" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="489" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0038"
-frame duration="0.05" x="501" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="501" y="152" w="8" h="16"
 
 animation state="BATTLE_U+0039"
-frame duration="0.05" x="513" y="152" w="8" h="16" originx="0" originy="0" flipx="0" flipy="0"
+frame x="513" y="152" w="8" h="16"
 
 animation state="THICK_U+E005"
-frame duration="0.05" x="347" y="83" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="347" y="83" w="6" h="12"
 
 animation state="THICK_U+E006"
-frame duration="0.05" x="363" y="83" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="363" y="83" w="6" h="12"
 
 animation state="THICK_U+E007"
-frame duration="0.05" x="379" y="83" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="379" y="83" w="6" h="12"
 
 animation state="THICK_U+E008"
-frame duration="0.05" x="395" y="83" w="6" h="12" originx="0" originy="0" flipx="0" flipy="0"
+frame x="395" y="83" w="6" h="12"
 
 animation state="ENTITY_HP_U+0030"
-frame duration="0.005" x="736" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="736" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0031"
-frame duration="0.005" x="745" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="745" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0032"
-frame duration="0.005" x="754" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="754" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0033"
-frame duration="0.005" x="763" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="763" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0034"
-frame duration="0.005" x="772" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="772" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0035"
-frame duration="0.005" x="781" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="781" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0036"
-frame duration="0.005" x="790" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="790" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0037"
-frame duration="0.005" x="799" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="799" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0038"
-frame duration="0.005" x="808" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="808" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0039"
-frame duration="0.005" x="817" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="817" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0052"
-frame duration="0.005" x="826" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="826" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+0041"
-frame duration="0.005" x="826" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="826" y="138" w="8" h="10"
 
 animation state="ENTITY_HP_U+003F"
-frame duration="0.005" x="826" y="138" w="8" h="10" originx="0" originy="0" flipx="0" flipy="0"
+frame x="826" y="138" w="8" h="10"
 
 animation state="CONTEXT_U+0041"
-frame duration="0.05" x="4" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0042"
-frame duration="0.05" x="11" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="11" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0043"
-frame duration="0.05" x="18" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="18" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0044"
-frame duration="0.05" x="25" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="25" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0045"
-frame duration="0.05" x="32" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="32" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0046"
-frame duration="0.05" x="39" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="39" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0047"
-frame duration="0.05" x="46" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="46" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0048"
-frame duration="0.05" x="53" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="53" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0049"
-frame duration="0.05" x="60" y="120" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="60" y="120" w="2" h="6"
 
 animation state="CONTEXT_U+004A"
-frame duration="0.05" x="63" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="63" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+004B"
-frame duration="0.05" x="70" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="70" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+004C"
-frame duration="0.05" x="77" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="77" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+004D"
-frame duration="0.05" x="84" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="84" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+004E"
-frame duration="0.05" x="91" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="91" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+004F"
-frame duration="0.05" x="98" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="98" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0050"
-frame duration="0.05" x="105" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="105" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0051"
-frame duration="0.05" x="112" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="112" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0052"
-frame duration="0.05" x="119" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="119" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0053"
-frame duration="0.05" x="126" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="126" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0054"
-frame duration="0.05" x="133" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="133" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0055"
-frame duration="0.05" x="140" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="140" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0056"
-frame duration="0.05" x="147" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="147" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0057"
-frame duration="0.05" x="154" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="154" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0058"
-frame duration="0.05" x="161" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="161" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0059"
-frame duration="0.05" x="168" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="168" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+005A"
-frame duration="0.05" x="175" y="120" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="175" y="120" w="6" h="6"
 
 animation state="CONTEXT_U+0030"
-frame duration="0.05" x="4" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="4" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0031"
-frame duration="0.05" x="11" y="127" w="3" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="11" y="127" w="3" h="6"
 
 animation state="CONTEXT_U+0032"
-frame duration="0.05" x="15" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="15" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0033"
-frame duration="0.05" x="22" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="22" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0034"
-frame duration="0.05" x="29" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="29" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0035"
-frame duration="0.05" x="36" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="36" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0036"
-frame duration="0.05" x="43" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="43" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0037"
-frame duration="0.05" x="50" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="50" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0038"
-frame duration="0.05" x="57" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="57" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0039"
-frame duration="0.05" x="64" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="64" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0028"
-frame duration="0.05" x="84" y="127" w="4" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="84" y="127" w="4" h="6"
 
 animation state="CONTEXT_U+0029"
-frame duration="0.05" x="128" y="127" w="4" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="128" y="127" w="4" h="6"
 
 animation state="CONTEXT_U+005F"
-frame duration="0.05" x="220" y="127" w="5" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="220" y="127" w="5" h="7"
 
 animation state="CONTEXT_U+002D"
-frame duration="0.05" x="158" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="158" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+002B"
-frame duration="0.05" x="164" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="164" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+003D"
-frame duration="0.05" x="226" y="128" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="226" y="128" w="5" h="6"
 
 animation state="CONTEXT_U+005C"
-frame duration="0.05" x="116" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="116" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+002F"
-frame duration="0.05" x="110" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="110" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+003C"
-frame duration="0.05" x="193" y="127" w="4" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="193" y="127" w="4" h="6"
 
 animation state="CONTEXT_U+003E"
-frame duration="0.05" x="199" y="127" w="4" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="199" y="127" w="4" h="6"
 
 animation state="CONTEXT_U+003F"
-frame duration="0.05" x="99" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="99" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+002C"
-frame duration="0.05" x="78" y="127" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="78" y="127" w="2" h="6"
 
 animation state="CONTEXT_U+002E"
-frame duration="0.05" x="71" y="127" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="71" y="127" w="2" h="6"
 
 animation state="CONTEXT_U+0021"
-frame duration="0.05" x="96" y="127" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="96" y="127" w="2" h="6"
 
 animation state="CONTEXT_U+0040"
-frame duration="0.05" x="170" y="127" w="8" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="170" y="127" w="8" h="7"
 
 animation state="CONTEXT_U+0023"
-frame duration="0.05" x="186" y="127" w="6" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="186" y="127" w="6" h="7"
 
 animation state="CONTEXT_U+0024"
-frame duration="0.05" x="133" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="133" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+0025"
-frame duration="0.05" x="140" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="140" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+005E"
-frame duration="0.05" x="147" y="127" w="3" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="147" y="127" w="3" h="6"
 
 animation state="CONTEXT_U+0026"
-frame duration="0.05" x="151" y="127" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="151" y="127" w="6" h="6"
 
 animation state="CONTEXT_U+002A"
-frame duration="0.05" x="89" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="89" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+0027"
-frame duration="0.05" x="107" y="127" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="107" y="127" w="2" h="6"
 
 animation state="CONTEXT_U+0022"
-frame duration="0.05" x="122" y="127" w="5" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="122" y="127" w="5" h="6"
 
 animation state="CONTEXT_U+003A"
-frame duration="0.05" x="74" y="127" w="2" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="74" y="127" w="2" h="6"
 
 animation state="CONTEXT_U+003B"
-frame duration="0.05" x="81" y="127" w="2" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="81" y="127" w="2" h="7"
