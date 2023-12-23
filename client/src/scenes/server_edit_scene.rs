@@ -70,13 +70,14 @@ impl ServerEditScene {
             ..Default::default()
         };
 
+        let input_height = 16.0 + input_9patch.top_height() + input_9patch.bottom_height();
         let input_style = UiStyle {
             margin_bottom: LengthPercentageAuto::Points(2.0),
             padding_top: 1.0,
             padding_left: 3.0,
             padding_right: 3.0,
-            min_height: Dimension::Points(20.0),
-            max_height: Dimension::Points(20.0),
+            min_height: Dimension::Points(input_height),
+            max_height: Dimension::Points(input_height),
             max_width: Dimension::Percent(1.0),
             nine_patch: Some(input_9patch.clone()),
             ..Default::default()
