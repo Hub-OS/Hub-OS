@@ -68,15 +68,7 @@ pub struct ServerAssetManager {
 
 impl ServerAssetManager {
     pub fn new(game_io: &GameIO, address: &str) -> Self {
-        let address = packets::address_parsing::strip_data(address).replace(':', "_p");
-        let address = uri_encode(&address);
-
-        const SEP: char = std::path::MAIN_SEPARATOR;
-        let path_prefix = ResourcePaths::clean_folder(&format!(
-            "{}{}",
-            ResourcePaths::SERVER_CACHE_FOLDER,
-            address
-        ));
+        let path_prefix = Self::resolve_prefix(address);
 
         // find stored assets
         let assets = Self::find_stored_assets(&path_prefix);
@@ -105,6 +97,13 @@ impl ServerAssetManager {
             sounds: RefCell::new(sounds),
             current_download: None,
         }
+    }
+
+    fn resolve_prefix(address: &str) -> String {
+        let mut prefix = packets::address_parsing::strip_data(address).replace(':', "_p");
+        prefix = uri_encode(&prefix);
+
+        ResourcePaths::clean_folder(&format!("{}{}", ResourcePaths::SERVER_CACHE_FOLDER, prefix))
     }
 
     fn find_stored_assets(path: &str) -> HashMap<String, CachedServerAsset> {

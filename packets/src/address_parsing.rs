@@ -1,7 +1,7 @@
 use std::fmt::Write;
 use std::net::{Ipv4Addr, SocketAddr};
 
-const DEFAULT_PORT: u16 = 8765;
+pub const DEFAULT_PORT: u16 = 8765;
 const DATA_SEPARATORS: [char; 3] = ['/', '?', '#'];
 
 pub async fn resolve_socket_addr(mut address: &str) -> Option<SocketAddr> {
