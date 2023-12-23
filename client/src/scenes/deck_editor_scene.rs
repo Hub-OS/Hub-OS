@@ -236,33 +236,6 @@ impl Scene for DeckEditorScene {
         self.frame.draw(&mut sprite_queue);
         SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
 
-        // draw deck total frame
-        let offset = Vec2::new(self.page_tracker.page_offset(0), 0.0);
-        let original_total_position = self.deck_total_sprite.position();
-        let adjusted_total_position = original_total_position + offset;
-
-        self.deck_total_sprite.set_position(adjusted_total_position);
-        sprite_queue.draw_sprite(&self.deck_total_sprite);
-        self.deck_total_sprite.set_position(original_total_position);
-
-        // draw deck total
-        let card_count = self.deck_dock.card_count;
-
-        let original_total_pos = self.deck_total_text.style.bounds.position();
-        self.deck_total_text.style.bounds += offset;
-
-        self.deck_total_text.style.color = if card_count == self.deck_restrictions.required_total {
-            Color::from((173, 255, 189))
-        } else {
-            Color::from((255, 181, 74))
-        };
-
-        self.deck_total_text.text =
-            format!("{card_count:>2}/{}", self.deck_restrictions.required_total);
-        self.deck_total_text.draw(game_io, &mut sprite_queue);
-
-        (self.deck_total_text.style.bounds).set_position(original_total_pos);
-
         // draw docks
         for (page, offset) in self.page_tracker.visible_pages() {
             let dock = match page {
@@ -296,6 +269,34 @@ impl Scene for DeckEditorScene {
             self.context_menu.draw(game_io, &mut sprite_queue);
         }
 
+        // draw deck total frame
+        let offset = Vec2::new(self.page_tracker.page_offset(0), 0.0);
+        let original_total_position = self.deck_total_sprite.position();
+        let adjusted_total_position = original_total_position + offset;
+
+        self.deck_total_sprite.set_position(adjusted_total_position);
+        sprite_queue.draw_sprite(&self.deck_total_sprite);
+        self.deck_total_sprite.set_position(original_total_position);
+
+        // draw deck total
+        let card_count = self.deck_dock.card_count;
+
+        let original_total_pos = self.deck_total_text.style.bounds.position();
+        self.deck_total_text.style.bounds += offset;
+
+        self.deck_total_text.style.color = if card_count == self.deck_restrictions.required_total {
+            Color::from((173, 255, 189))
+        } else {
+            Color::from((255, 181, 74))
+        };
+
+        self.deck_total_text.text =
+            format!("{card_count:>2}/{}", self.deck_restrictions.required_total);
+        self.deck_total_text.draw(game_io, &mut sprite_queue);
+
+        (self.deck_total_text.style.bounds).set_position(original_total_pos);
+
+        // draw textbox over everything else
         self.textbox.draw(game_io, &mut sprite_queue);
 
         render_pass.consume_queue(sprite_queue);
