@@ -795,8 +795,11 @@ frame duration="0.05" x="71" y="65" w="1" h="5"
 animation state="TINY_U+003B"
 frame duration="0.05" x="177" y="103" w="2" h="5"
 
+animation state="WIDE_U+0020"
+frame w="7" h="5"
+
 animation state="WIDE_U+0041"
-frame duration="0.05" x="46" y="103" w="7" h="5"
+frame duration="0.05" x="46" y="103" w="6" h="5"
 
 animation state="WIDE_U+0042"
 frame duration="0.05" x="159" y="109" w="6" h="5"

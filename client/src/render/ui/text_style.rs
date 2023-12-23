@@ -79,8 +79,8 @@ impl TextStyle {
     }
 
     pub fn line_height(&self) -> f32 {
-        let frame = self.character_frame("A");
-        frame.size().y * self.scale.y + self.line_spacing
+        let whitespace_size = self.glyph_map.resolve_whitespace_size(self.font_style);
+        whitespace_size.y * self.scale.y + self.line_spacing
     }
 
     pub fn measure(&self, text: &str) -> TextMetrics {
@@ -251,9 +251,11 @@ impl TextStyle {
     }
 
     fn measure_word(&self, word: &str) -> f32 {
+        let whitespace_size = self.glyph_map.resolve_whitespace_size(self.font_style);
+
         match word {
-            " " => self.character_frame("A").size().x,
-            "\t" => self.character_frame("A").size().x * 4.0,
+            " " => whitespace_size.x,
+            "\t" => whitespace_size.x * 4.0,
             "" | "\n" => 0.0,
             _ => {
                 let mut width = 0.0;
@@ -299,7 +301,7 @@ impl<'a> TextInsertTracker<'a> {
         Self {
             x: 0.0,
             y: 0.0,
-            whitespace: style.character_frame("A").size(),
+            whitespace: style.glyph_map.resolve_whitespace_size(style.font_style),
             style,
             line_start_index: 0,
             line_ranges: Vec::new(),

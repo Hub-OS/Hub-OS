@@ -1,5 +1,6 @@
 use crate::render::{AnimationFrame, Animator};
 use crate::resources::{LocalAssetManager, ResourcePaths};
+use framework::math::Vec2;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -127,5 +128,12 @@ impl GlyphMap {
         character: &'a str,
     ) -> Option<&AnimationFrame> {
         self.map.get(&(font_style, Cow::Borrowed(character)))
+    }
+
+    pub fn resolve_whitespace_size(&self, font_style: FontStyle) -> Vec2 {
+        self.character_frame(font_style, " ")
+            .or_else(|| self.character_frame(font_style, "A"))
+            .map(|frame| frame.bounds.size())
+            .unwrap_or_default()
     }
 }

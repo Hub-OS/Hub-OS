@@ -795,8 +795,11 @@ frame duration="0.05" x="623" y="105" w="1" h="5" originx="0" originy="0" flipx=
 animation state="TINY_U+003B"
 frame duration="0.05" x="628" y="106" w="2" h="5" originx="0" originy="0" flipx="0" flipy="0"
 
+animation state="WIDE_U+0020"
+frame w="7" h="5"
+
 animation state="WIDE_U+0041"
-frame duration="0.05" x="639" y="9" w="7" h="5" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.05" x="639" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
 
 animation state="WIDE_U+0042"
 frame duration="0.05" x="649" y="9" w="6" h="5" originx="0" originy="0" flipx="0" flipy="0"
