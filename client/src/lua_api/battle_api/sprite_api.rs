@@ -287,7 +287,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "use_root_shader",
         |node, _, enable: Option<bool>| {
-            node.set_using_parent_shader(enable.unwrap_or(true));
+            node.set_using_root_shader(enable.unwrap_or(true));
             Ok(())
         },
     );

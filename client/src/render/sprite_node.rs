@@ -18,7 +18,7 @@ pub struct SpriteNode {
     texture_path: String,
     sprite: Sprite,
     color_mode: SpriteColorMode, // root node resets every frame
-    using_parent_shader: bool,
+    using_root_shader: bool,
     pixelate_with_alpha: bool,
     never_flip: bool,
     visible: bool,
@@ -41,7 +41,7 @@ impl SpriteNode {
             texture_path: ResourcePaths::BLANK.to_string(),
             sprite,
             color_mode,
-            using_parent_shader: false,
+            using_root_shader: false,
             pixelate_with_alpha: false,
             never_flip: false,
             visible: true,
@@ -116,12 +116,12 @@ impl SpriteNode {
         self.never_flip = never_flip;
     }
 
-    pub fn using_parent_shader(&self) -> bool {
-        self.using_parent_shader
+    pub fn using_root_shader(&self) -> bool {
+        self.using_root_shader
     }
 
-    pub fn set_using_parent_shader(&mut self, using_parent_shader: bool) {
-        self.using_parent_shader = using_parent_shader;
+    pub fn set_using_root_shader(&mut self, using_root_shader: bool) {
+        self.using_root_shader = using_root_shader;
     }
 
     pub fn color(&self) -> Color {
@@ -235,7 +235,7 @@ impl Tree<SpriteNode> {
         // add characters
         TextStyle::new(game_io, font_style).iterate(text, |frame, offset| {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-            char_node.set_using_parent_shader(true);
+            char_node.set_using_root_shader(true);
 
             char_node.set_texture_direct(globals.font_texture.clone());
             frame.apply(&mut char_node.sprite);
@@ -372,7 +372,7 @@ impl Tree<SpriteNode> {
             let color;
             let original_color = node.color();
 
-            if node.using_parent_shader() {
+            if node.using_root_shader() {
                 shader_effect = root_shader_effect;
                 palette = &root_palette;
                 color_mode = root_color_mode;
