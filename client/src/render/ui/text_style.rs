@@ -138,14 +138,14 @@ impl TextStyle {
         }
     }
 
-    fn iterate<F>(&self, text: &str, callback: F) -> TextMetrics
+    pub fn iterate<F>(&self, text: &str, callback: F) -> TextMetrics
     where
         F: FnMut(AnimationFrame, Vec2),
     {
         self.iterate_slice(text, 0..text.len(), callback)
     }
 
-    fn iterate_slice<F>(&self, text: &str, range: Range<usize>, mut callback: F) -> TextMetrics
+    pub fn iterate_slice<F>(&self, text: &str, range: Range<usize>, mut callback: F) -> TextMetrics
     where
         F: FnMut(AnimationFrame, Vec2),
     {

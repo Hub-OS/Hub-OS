@@ -1,3 +1,4 @@
+use super::ui::{FontStyle, TextStyle};
 use super::{Animator, SpriteColorQueue, SpriteShaderEffect};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
@@ -219,6 +220,33 @@ impl SpriteNode {
 }
 
 impl Tree<SpriteNode> {
+    pub fn insert_text_child(
+        &mut self,
+        game_io: &GameIO,
+        parent: TreeIndex,
+        font_style: FontStyle,
+        text: &str,
+    ) -> Option<TreeIndex> {
+        let text_node_index =
+            self.insert_child(parent, SpriteNode::new(game_io, SpriteColorMode::Multiply))?;
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        // add characters
+        TextStyle::new(game_io, font_style).iterate(text, |frame, offset| {
+            let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+            char_node.set_using_parent_shader(true);
+
+            char_node.set_texture_direct(globals.font_texture.clone());
+            frame.apply(&mut char_node.sprite);
+            char_node.set_offset(offset);
+
+            self.insert_child(text_node_index, char_node);
+        });
+
+        Some(text_node_index)
+    }
+
     pub fn global_position(&self, mut index: TreeIndex) -> Vec2 {
         let mut position = Vec2::ZERO;
 

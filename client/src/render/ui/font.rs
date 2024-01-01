@@ -7,11 +7,11 @@ use std::collections::HashMap;
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FontStyle {
     Thick,
+    Thin,
     ThinSmall,
     Micro,
     Context,
     Wide,
-    Thin,
     PlayerHp,
     PlayerHpOrange,
     PlayerHpGreen,
@@ -22,6 +22,29 @@ pub enum FontStyle {
 }
 
 impl FontStyle {
+    pub fn from_name(name: &str) -> Option<Self> {
+        let font_style = match name.to_uppercase().as_str() {
+            "THICK" => FontStyle::Thick,
+            "THIN" => FontStyle::Thin,
+            "THIN_SMALL" => FontStyle::ThinSmall,
+            "MICRO" => FontStyle::Micro,
+            "CONTEXT" => FontStyle::Context,
+            "WIDE" => FontStyle::Wide,
+            "PLAYER_HP" => FontStyle::PlayerHp,
+            "PLAYER_HP_ORANGE" => FontStyle::PlayerHpOrange,
+            "PLAYER_HP_GREEN" => FontStyle::PlayerHpGreen,
+            "DAMAGE" => FontStyle::Damage,
+            "RESULT" => FontStyle::Result,
+            "BATTLE" => FontStyle::Battle,
+            "ENTITY_HP" => FontStyle::EntityHP,
+            _ => {
+                return None;
+            }
+        };
+
+        Some(font_style)
+    }
+
     pub fn from_state_prefix(state_prefix: &str) -> Option<Self> {
         let font_style = match state_prefix {
             "THICK_U+" => FontStyle::Thick,

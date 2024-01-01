@@ -1,7 +1,8 @@
-use super::errors::sprite_not_found;
+use super::errors::{invalid_font_name, sprite_not_found};
 use super::{BattleLuaApi, SPRITE_TABLE};
 use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
+use crate::render::ui::FontStyle;
 use crate::render::SpriteNode;
 use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
@@ -26,6 +27,38 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
                 sprite_index,
                 SpriteNode::new(api_ctx.game_io, SpriteColorMode::Add),
             )
+            .ok_or_else(sprite_not_found)?;
+
+        let child_table = create_sprite_table(lua, slot_index, child_index, None)?;
+
+        lua.pack_multi(child_table)
+    });
+
+    lua_api.add_dynamic_function(SPRITE_TABLE, "create_text_node", |api_ctx, lua, params| {
+        let (table, font_name, text): (
+            rollback_mlua::Table,
+            rollback_mlua::String,
+            rollback_mlua::String,
+        ) = lua.unpack_multi(params)?;
+
+        let Some(font_style) = FontStyle::from_name(font_name.to_str()?) else {
+            return Err(invalid_font_name());
+        };
+        let text = &*text.to_string_lossy();
+
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
+
+        let child_index = sprite_tree
+            .insert_text_child(api_ctx.game_io, sprite_index, font_style, text)
             .ok_or_else(sprite_not_found)?;
 
         let child_table = create_sprite_table(lua, slot_index, child_index, None)?;
