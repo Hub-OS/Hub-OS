@@ -106,7 +106,7 @@ impl EmoteMenu {
         self.search_layout = Some(UiLayout::new_horizontal(
             self.search_box_bounds,
             vec![UiLayoutNode::new(
-                TextInput::new(game_io, FontStyle::Small)
+                TextInput::new(game_io, FontStyle::ThinSmall)
                     .with_color(Color::WHITE)
                     .with_silent(true)
                     .with_active(true)
@@ -300,7 +300,7 @@ impl Menu for EmoteMenu {
 
             let text_bounds = self.search_box_9patch.body_bounds(self.search_box_bounds);
 
-            TextStyle::new(game_io, FontStyle::Small)
+            TextStyle::new(game_io, FontStyle::ThinSmall)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                 .with_bounds(text_bounds)
                 .draw(game_io, sprite_queue, selection_name);

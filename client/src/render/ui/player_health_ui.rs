@@ -29,7 +29,7 @@ impl PlayerHealthUi {
             current_health: 0,
             target_health: 0,
             style_change_cooldown: 0,
-            text: Text::new_monospace(game_io, FontStyle::Gradient),
+            text: Text::new_monospace(game_io, FontStyle::PlayerHp),
             text_offset,
             frame_sprite: assets.new_sprite(game_io, ResourcePaths::HEALTH_FRAME),
         };
@@ -86,9 +86,9 @@ impl PlayerHealthUi {
         }
 
         if self.is_low_hp() {
-            self.text.style.font_style = FontStyle::GradientGold;
+            self.text.style.font_style = FontStyle::PlayerHpOrange;
         } else if self.style_change_cooldown == 0 {
-            self.text.style.font_style = FontStyle::Gradient;
+            self.text.style.font_style = FontStyle::PlayerHp;
         }
 
         if self.current_health == self.target_health {
@@ -108,9 +108,9 @@ impl PlayerHealthUi {
 
         if diff < 0 {
             self.style_change_cooldown = 15; // quarter of a second
-            self.text.style.font_style = FontStyle::GradientGold;
+            self.text.style.font_style = FontStyle::PlayerHpOrange;
         } else {
-            self.text.style.font_style = FontStyle::GradientGreen;
+            self.text.style.font_style = FontStyle::PlayerHpGreen;
         }
 
         self.text.text = format!("{:>4}", self.current_health);

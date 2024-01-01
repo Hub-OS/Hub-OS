@@ -91,7 +91,7 @@ impl CardProperties {
         // measure text
         let name_width = text_style.measure(name_text).size.x;
 
-        text_style.font_style = FontStyle::GradientOrange;
+        text_style.font_style = FontStyle::Damage;
         let damage_width = text_style.measure(&damage_text).size.x;
 
         if center {
@@ -106,7 +106,7 @@ impl CardProperties {
 
         // draw damage
         text_style.shadow_color = Color::TRANSPARENT;
-        text_style.font_style = FontStyle::GradientOrange;
+        text_style.font_style = FontStyle::Damage;
         text_style.bounds.x += name_width + text_style.letter_spacing;
         text_style.draw(game_io, sprite_queue, &damage_text);
 

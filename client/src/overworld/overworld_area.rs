@@ -289,7 +289,7 @@ impl OverworldArea {
         // render the entity's name
         let name = &name_label.0;
 
-        let mut text_style = TextStyle::new(game_io, FontStyle::Tiny);
+        let mut text_style = TextStyle::new(game_io, FontStyle::Micro);
 
         // update bounds
         let text_size = text_style.measure(name).size;

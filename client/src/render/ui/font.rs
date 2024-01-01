@@ -7,16 +7,16 @@ use std::collections::HashMap;
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FontStyle {
     Thick,
-    Small,
-    Tiny,
+    ThinSmall,
+    Micro,
     Context,
     Wide,
     Thin,
-    Gradient,
-    GradientGold,
-    GradientGreen,
-    GradientOrange,
-    GradientTall,
+    PlayerHp,
+    PlayerHpOrange,
+    PlayerHpGreen,
+    Damage,
+    Result,
     Battle,
     EntityHP,
 }
@@ -25,16 +25,16 @@ impl FontStyle {
     pub fn from_state_prefix(state_prefix: &str) -> Option<Self> {
         let font_style = match state_prefix {
             "THICK_U+" => FontStyle::Thick,
-            "SMALL_U+" => FontStyle::Small,
-            "TINY_U+" => FontStyle::Tiny,
+            "THIN_U+" => FontStyle::Thin,
+            "THIN_SMALL_U+" => FontStyle::ThinSmall,
+            "MICRO_U+" => FontStyle::Micro,
             "CONTEXT_U+" => FontStyle::Context,
             "WIDE_U+" => FontStyle::Wide,
-            "THIN_U+" => FontStyle::Thin,
-            "GRADIENT_U+" => FontStyle::Gradient,
-            "GRADIENT_GOLD_U+" => FontStyle::GradientGold,
-            "GRADIENT_GREEN_U+" => FontStyle::GradientGreen,
-            "GRADIENT_ORANGE_U+" => FontStyle::GradientOrange,
-            "GRADIENT_TALL_U+" => FontStyle::GradientTall,
+            "PLAYER_HP_U+" => FontStyle::PlayerHp,
+            "PLAYER_HP_ORANGE_U+" => FontStyle::PlayerHpOrange,
+            "PLAYER_HP_GREEN_U+" => FontStyle::PlayerHpGreen,
+            "DAMAGE_U+" => FontStyle::Damage,
+            "RESULT_U+" => FontStyle::Result,
             "BATTLE_U+" => FontStyle::Battle,
             "ENTITY_HP_U+" => FontStyle::EntityHP,
             _ => {
@@ -48,7 +48,7 @@ impl FontStyle {
     pub fn has_lower_case(&self) -> bool {
         matches!(
             self,
-            FontStyle::Thick | FontStyle::Small | FontStyle::Tiny | FontStyle::Thin
+            FontStyle::Thick | FontStyle::Thin | FontStyle::ThinSmall | FontStyle::Micro
         )
     }
 }

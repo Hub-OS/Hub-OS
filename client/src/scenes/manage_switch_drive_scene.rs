@@ -98,7 +98,7 @@ impl ManageSwitchDriveScene {
             animator.point("HEAD_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut head_text = Text::new_monospace(game_io, FontStyle::Small)
+        let mut head_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(head_text_bounds);
 
@@ -107,7 +107,7 @@ impl ManageSwitchDriveScene {
             animator.point("BODY_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut body_text = Text::new_monospace(game_io, FontStyle::Small)
+        let mut body_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(body_text_bounds);
 
@@ -116,7 +116,7 @@ impl ManageSwitchDriveScene {
             animator.point("ARM_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut arm_text = Text::new_monospace(game_io, FontStyle::Small)
+        let mut arm_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(arm_text_bounds);
 
@@ -125,7 +125,7 @@ impl ManageSwitchDriveScene {
             animator.point("LEG_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut leg_text = Text::new_monospace(game_io, FontStyle::Small)
+        let mut leg_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(leg_text_bounds);
 

@@ -100,7 +100,7 @@ impl ScrollableFrame {
 
             let label_position = self.label_sprite.position() + self.label_text_offset;
 
-            let mut text_style = TextStyle::new(game_io, FontStyle::Tiny);
+            let mut text_style = TextStyle::new(game_io, FontStyle::Micro);
             text_style.bounds.set_position(label_position);
             text_style.draw(game_io, sprite_queue, text);
         }
