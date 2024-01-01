@@ -19,6 +19,7 @@ pub struct SpriteNode {
     sprite: Sprite,
     color_mode: SpriteColorMode, // root node resets every frame
     using_root_shader: bool,
+    using_parent_shader: bool,
     pixelate_with_alpha: bool,
     never_flip: bool,
     visible: bool,
@@ -42,6 +43,7 @@ impl SpriteNode {
             sprite,
             color_mode,
             using_root_shader: false,
+            using_parent_shader: false,
             pixelate_with_alpha: false,
             never_flip: false,
             visible: true,
@@ -122,6 +124,14 @@ impl SpriteNode {
 
     pub fn set_using_root_shader(&mut self, using_root_shader: bool) {
         self.using_root_shader = using_root_shader;
+    }
+
+    pub fn using_parent_shader(&self) -> bool {
+        self.using_parent_shader
+    }
+
+    pub fn set_using_parent_shader(&mut self, using_root_shader: bool) {
+        self.using_parent_shader = using_root_shader;
     }
 
     pub fn color(&self) -> Color {
@@ -235,7 +245,7 @@ impl Tree<SpriteNode> {
         // add characters
         TextStyle::new(game_io, font_style).iterate(text, |frame, offset| {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
-            char_node.set_using_root_shader(true);
+            char_node.set_using_parent_shader(true);
 
             char_node.set_texture_direct(globals.font_texture.clone());
             frame.apply(&mut char_node.sprite);
@@ -282,6 +292,11 @@ impl Tree<SpriteNode> {
             visible: bool,
             flipped: bool,
             scale: Vec2,
+            // shader
+            color_mode: SpriteColorMode,
+            color: Color,
+            palette: Option<Arc<Texture>>,
+            pixelate_with_alpha: bool,
         }
 
         let mut initial_scale = Vec2::ONE;
@@ -290,6 +305,8 @@ impl Tree<SpriteNode> {
             initial_scale.x = -1.0;
         }
 
+        let root_node = self.root();
+
         self.inherit(
             self.root_index(),
             InheritedProperties {
@@ -297,6 +314,10 @@ impl Tree<SpriteNode> {
                 visible: true,
                 flipped,
                 scale: initial_scale,
+                color_mode: root_node.color_mode,
+                color: root_node.color(),
+                palette: root_node.palette.clone(),
+                pixelate_with_alpha: root_node.pixelate_with_alpha,
             },
             |node, inherited| {
                 // calculate scale
@@ -317,12 +338,23 @@ impl Tree<SpriteNode> {
                 // calculate visibility
                 node.inherited_visible = node.visible && inherited.visible;
 
+                if node.using_parent_shader {
+                    node.color_mode = inherited.color_mode;
+                    node.set_color(inherited.color);
+                    node.palette = inherited.palette.clone();
+                    node.pixelate_with_alpha = inherited.pixelate_with_alpha;
+                }
+
                 InheritedProperties {
                     offset,
                     visible: node.inherited_visible,
                     // stop passing flipped once never_flip is hit
                     flipped: inherited.flipped && !node.never_flip,
                     scale,
+                    color_mode: node.color_mode,
+                    color: node.color(),
+                    palette: node.palette.clone(),
+                    pixelate_with_alpha: node.pixelate_with_alpha,
                 }
             },
         );
