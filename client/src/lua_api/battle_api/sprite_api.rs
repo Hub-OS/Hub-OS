@@ -178,6 +178,35 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     //     return sol::as_table(result);
     //   },
 
+    lua_api.add_dynamic_function(SPRITE_TABLE, "children", move |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let slot_index: GenerationalIndex = table.raw_get("#tree")?;
+        let sprite_index: TreeIndex = table.raw_get("#sprite")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let sprite_tree = simulation
+            .sprite_trees
+            .get_mut(slot_index)
+            .ok_or_else(sprite_not_found)?;
+
+        let sprite_tree_node = sprite_tree
+            .get_node(sprite_index)
+            .ok_or_else(sprite_not_found)?;
+
+        // create table
+        let children_table = lua.create_table()?;
+
+        for &child_index in sprite_tree_node.children() {
+            // todo: associate animators?
+            children_table.push(create_sprite_table(lua, slot_index, child_index, None)?)?;
+        }
+
+        lua.pack_multi(children_table)
+    });
+
     getter(lua_api, "offset", |node, _, _: ()| {
         Ok(LuaVector::from(node.offset()))
     });
