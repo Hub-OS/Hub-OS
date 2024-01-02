@@ -1,4 +1,4 @@
-use super::ui::{FontStyle, TextStyle};
+use super::ui::TextStyle;
 use super::{Animator, SpriteColorQueue, SpriteShaderEffect};
 use crate::bindable::SpriteColorMode;
 use crate::resources::*;
@@ -78,6 +78,10 @@ impl SpriteNode {
 
     pub fn apply_animation(&mut self, animator: &Animator) {
         animator.apply(&mut self.sprite);
+    }
+
+    pub fn set_frame(&mut self, frame: Rect) {
+        self.sprite.set_frame(frame);
     }
 
     pub fn scale(&self) -> Vec2 {
@@ -230,20 +234,31 @@ impl SpriteNode {
 }
 
 impl Tree<SpriteNode> {
+    pub fn insert_root_text_child(
+        &mut self,
+        game_io: &GameIO,
+        text_style: &TextStyle,
+        text: &str,
+    ) -> TreeIndex {
+        self.insert_text_child(game_io, self.root_index(), text_style, text)
+            .unwrap()
+    }
+
     pub fn insert_text_child(
         &mut self,
         game_io: &GameIO,
         parent: TreeIndex,
-        font_style: FontStyle,
+        text_style: &TextStyle,
         text: &str,
     ) -> Option<TreeIndex> {
-        let text_node_index =
-            self.insert_child(parent, SpriteNode::new(game_io, SpriteColorMode::Multiply))?;
+        let mut text_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+        text_node.set_color(text_style.color);
+        let text_node_index = self.insert_child(parent, text_node)?;
 
         let globals = game_io.resource::<Globals>().unwrap();
 
         // add characters
-        TextStyle::new(game_io, font_style).iterate(text, |frame, offset| {
+        text_style.iterate(text, |frame, offset| {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
             char_node.set_using_parent_shader(true);
 

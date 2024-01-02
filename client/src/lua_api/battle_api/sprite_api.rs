@@ -2,7 +2,7 @@ use super::errors::{invalid_font_name, sprite_not_found};
 use super::{BattleLuaApi, SPRITE_TABLE};
 use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::render::ui::FontStyle;
+use crate::render::ui::{FontStyle, TextStyle};
 use crate::render::SpriteNode;
 use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
@@ -50,6 +50,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let sprite_index: TreeIndex = table.raw_get("#sprite")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
         let simulation = &mut api_ctx.simulation;
 
         let sprite_tree = simulation
@@ -57,8 +58,9 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             .get_mut(slot_index)
             .ok_or_else(sprite_not_found)?;
 
+        let text_style = TextStyle::new(game_io, font_style);
         let child_index = sprite_tree
-            .insert_text_child(api_ctx.game_io, sprite_index, font_style, text)
+            .insert_text_child(game_io, sprite_index, &text_style, text)
             .ok_or_else(sprite_not_found)?;
 
         let child_table = create_sprite_table(lua, slot_index, child_index, None)?;
