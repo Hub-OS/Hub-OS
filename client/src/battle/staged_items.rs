@@ -31,7 +31,9 @@ pub struct StagedItems {
 
 impl StagedItems {
     pub fn take_updated(&mut self) -> bool {
-        self.updated
+        let updated = self.updated;
+        self.updated = false;
+        updated
     }
 
     pub fn stage_form(
