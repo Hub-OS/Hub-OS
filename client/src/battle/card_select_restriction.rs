@@ -15,9 +15,12 @@ pub enum CardSelectRestriction<'a> {
 
 impl<'a> CardSelectRestriction<'a> {
     pub fn resolve(player: &'a Player) -> Self {
-        let deck_indices = player.staged_items.selected_deck_card_indices();
+        let ids_and_codes: Vec<_> = player
+            .staged_items
+            .resolve_card_ids_and_codes(&player.deck)
+            .collect();
 
-        if deck_indices.is_empty() {
+        if ids_and_codes.is_empty() {
             return Self::Any;
         }
 
@@ -27,19 +30,17 @@ impl<'a> CardSelectRestriction<'a> {
         let mut same_package_id = true;
         let mut same_code = true;
 
-        for i in deck_indices {
-            let card = &player.deck[i];
-
-            if let Some(package_id) = first_package_id {
-                same_package_id &= card.package_id == *package_id;
+        for (package_id, code) in ids_and_codes {
+            if let Some(id) = first_package_id {
+                same_package_id &= package_id == id;
             } else {
-                first_package_id = Some(&card.package_id);
+                first_package_id = Some(package_id);
             }
 
-            if let Some(code) = code_restriction {
-                same_code &= card.code == code || card.code == "*";
-            } else if card.code != "*" {
-                code_restriction = Some(&card.code);
+            if let Some(code_restriction) = code_restriction {
+                same_code &= code == code_restriction || code == "*";
+            } else if code != "*" {
+                code_restriction = Some(code);
             }
         }
 

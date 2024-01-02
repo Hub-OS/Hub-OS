@@ -5,6 +5,7 @@ use crate::render::SpriteColorQueue;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::saves::Card;
 use framework::prelude::{GameIO, Texture, Vec2};
+use packets::structures::PackageId;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -133,6 +134,28 @@ impl StagedItems {
                 Some(card_properties)
             }
             StagedItemData::Card(properties) => Some(properties.clone()),
+            StagedItemData::Discard(_) | StagedItemData::Form(_) | StagedItemData::Icon(_) => None,
+        })
+    }
+
+    /// Iterator of card id and code references, includes staged cards not in the deck.
+    pub fn resolve_card_ids_and_codes<'a>(
+        &'a self,
+        deck: &'a [Card],
+    ) -> impl Iterator<Item = (&'a PackageId, &'a str)> + DoubleEndedIterator {
+        self.items.iter().flat_map(move |card| match &card.data {
+            StagedItemData::Deck(i) => {
+                let card = deck.get(*i)?;
+
+                Some((&card.package_id, card.code.as_str()))
+            }
+            StagedItemData::Card(properties) => {
+                if !properties.code.is_empty() {
+                    Some((&properties.package_id, properties.code.as_str()))
+                } else {
+                    None
+                }
+            }
             StagedItemData::Discard(_) | StagedItemData::Form(_) | StagedItemData::Icon(_) => None,
         })
     }

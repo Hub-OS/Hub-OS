@@ -28,8 +28,23 @@ code_node:set_offset(4, 16)
 -- functionality
 local used = false
 
+local function card_allowed()
+  if card_properties.code == "" then
+    return true
+  end
+
+  local restriction = player:card_select_restriction()
+
+  if not restriction.code and not restriction.package_id then
+    return true
+  end
+
+  return ((restriction.code and restriction.code == card_properties.code) or
+    (restriction.package_id and restriction.package_id == card_properties.package_id))
+end
+
 button.use_func = function()
-  if used then
+  if used or not card_allowed() then
     return false
   end
 
@@ -42,4 +57,12 @@ button.use_func = function()
   end)
 
   return true
+end
+
+button.on_selection_change_func = function()
+  if card_allowed() then
+    icon_node:set_shader_effect(SpriteShaderEffect.None)
+  else
+    icon_node:set_shader_effect(SpriteShaderEffect.Grayscale)
+  end
 end

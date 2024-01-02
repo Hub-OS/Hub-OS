@@ -1,6 +1,6 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{BattleLuaApi, ENTITY_TABLE};
-use crate::battle::{BattleCallback, Player, StagedItem, StagedItemData};
+use crate::battle::{BattleCallback, CardSelectRestriction, Player, StagedItem, StagedItemData};
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::absolute_path;
 use crate::packages::CardPackage;
@@ -161,6 +161,40 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             });
 
             lua.pack_multi(texture_path)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "card_select_restriction",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+            let id: EntityId = table.raw_get("#id")?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let table = lua.create_table()?;
+
+            match CardSelectRestriction::resolve(player) {
+                CardSelectRestriction::Code(code) => {
+                    table.set("code", code)?;
+                }
+                CardSelectRestriction::Package(package_id) => {
+                    table.set("package_id", package_id.as_str())?;
+                }
+                CardSelectRestriction::Mixed { package_id, code } => {
+                    table.set("package_id", package_id.as_str())?;
+                    table.set("code", code)?;
+                }
+                CardSelectRestriction::Any => {}
+            }
+
+            lua.pack_multi(table)
         },
     );
 
