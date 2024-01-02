@@ -239,8 +239,14 @@ impl State for CardSelectState {
                         self.ui.draw_special_cursor(sprite_queue);
                     }
                     SelectedItem::CardButton => {
-                        self.ui
-                            .draw_card_button_cursor(sprite_queue, selection.card_button_width);
+                        if card_button.is_some_and(|button| button.uses_fixed_card_cursor) {
+                            let col = (CARD_SELECT_CARD_COLS - 1) as i32;
+                            let row = (CARD_SELECT_ROWS - 1) as i32;
+                            self.ui.draw_card_cursor(sprite_queue, col, row);
+                        } else {
+                            let slot_width = selection.card_button_width;
+                            self.ui.draw_card_button_cursor(sprite_queue, slot_width);
+                        }
                     }
                     _ => {}
                 }

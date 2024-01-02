@@ -1,12 +1,16 @@
 use super::animation_api::create_animation_table;
-use super::errors::{button_already_exists, button_not_found};
+use super::errors::{
+    animator_not_found, button_already_exists, button_not_found, sprite_not_found,
+};
 use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN};
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
-use crate::bindable::EntityId;
+use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::inherit_metatable;
+use crate::render::ui::{FontStyle, TextStyle};
+use crate::resources::{ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use crate::structures::TreeIndex;
-use framework::prelude::GameIO;
+use framework::prelude::{GameIO, Vec2};
 
 pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(CARD_SELECT_BUTTON_TABLE, "sprite", move |_, lua, params| {
@@ -72,6 +76,82 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let animation_table = create_animation_table(lua, button.preview_animator_index)?;
 
             lua.pack_multi(animation_table)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "use_card_preview",
+        move |api_ctx, lua, params| {
+            let (table, card_props): (rollback_mlua::Table, CardProperties) =
+                lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let game_io = api_ctx.game_io;
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+
+            // get indices before mutating anything
+            let sprite_tree_index = button.preview_sprite_tree_index;
+            let animator_index = button.preview_animator_index;
+
+            // update sprite tree
+            let sprite_tree = simulation
+                .sprite_trees
+                .get_mut(sprite_tree_index)
+                .ok_or_else(sprite_not_found)?;
+
+            *sprite_tree = card_props.create_preview_tree(game_io);
+
+            // fix placement
+            let root_node = sprite_tree.root_mut();
+            root_node.set_origin(Vec2::ZERO);
+
+            let root_offset = Vec2::new(root_node.size().x * 0.5, 0.0);
+
+            for index in sprite_tree.root_node().children().to_vec() {
+                let node = &mut sprite_tree[index];
+                node.set_offset(node.offset() + root_offset);
+            }
+
+            // display card name
+            let mut name_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+            name_style.letter_spacing = 2.0;
+            name_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+            let name_index =
+                sprite_tree.insert_root_text_child(game_io, &name_style, &card_props.short_name);
+            let name_node = sprite_tree.get_mut(name_index).unwrap();
+            name_node.set_offset(Vec2::new(1.0, -name_style.line_height() - 1.0));
+
+            // update animator
+            let animator = simulation
+                .animators
+                .get_mut(animator_index)
+                .ok_or_else(animator_not_found)?;
+
+            let callbacks = animator.load(game_io, ResourcePaths::BLANK);
+            simulation.pending_callbacks.extend(callbacks);
+            simulation.call_pending_callbacks(game_io, api_ctx.resources);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "use_fixed_card_cursor",
+        move |api_ctx, lua, params| {
+            let (table, value): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+            button.uses_fixed_card_cursor = value;
+
+            lua.pack_multi(())
         },
     );
 

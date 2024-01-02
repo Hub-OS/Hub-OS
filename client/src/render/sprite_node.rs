@@ -257,6 +257,21 @@ impl Tree<SpriteNode> {
 
         let globals = game_io.resource::<Globals>().unwrap();
 
+        // add shadow
+        if text_style.shadow_color.a > 0.0 {
+            text_style.iterate(text, |frame, offset| {
+                let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+                char_node.set_color(text_style.shadow_color);
+                char_node.set_layer(1);
+
+                char_node.set_texture_direct(globals.font_texture.clone());
+                frame.apply(&mut char_node.sprite);
+                char_node.set_offset(offset + text_style.scale);
+
+                self.insert_child(text_node_index, char_node);
+            });
+        }
+
         // add characters
         text_style.iterate(text, |frame, offset| {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);

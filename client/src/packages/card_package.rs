@@ -175,4 +175,26 @@ impl CardPackage {
         let path = ResourcePaths::CARD_ICON_MISSING;
         (assets.texture(game_io, path), path)
     }
+
+    pub fn preview_texture<'a>(
+        game_io: &'a GameIO,
+        package_id: &PackageId,
+    ) -> (Arc<Texture>, &'a str) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+        let package_manager = &globals.card_packages;
+        let ns = PackageNamespace::Local;
+
+        if let Some(package) = package_manager.package_or_override(ns, package_id) {
+            let path = package.preview_texture_path.as_str();
+            let texture = assets.texture(game_io, path);
+
+            if texture.size() != UVec2::ONE {
+                return (texture, path);
+            }
+        }
+
+        let path = ResourcePaths::CARD_ICON_MISSING;
+        (assets.texture(game_io, path), path)
+    }
 }

@@ -1,4 +1,5 @@
-use crate::bindable::Element;
+use crate::bindable::{Element, SpriteColorMode};
+use crate::render::SpriteNode;
 use crate::resources::*;
 use framework::prelude::*;
 
@@ -15,5 +16,19 @@ impl ElementSprite {
         sprite.set_frame(Rect::new((element as u8 as f32) * 14.0, 0.0, 14.0, 14.0));
 
         sprite
+    }
+
+    pub fn new_node(game_io: &GameIO, element: Element) -> SpriteNode {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+
+        let texture = assets.texture(game_io, ResourcePaths::ELEMENTS);
+        sprite_node.set_texture_direct(texture);
+
+        sprite_node.set_frame(Rect::new((element as u8 as f32) * 14.0, 0.0, 14.0, 14.0));
+
+        sprite_node
     }
 }

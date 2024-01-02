@@ -1,0 +1,45 @@
+local table, card_properties = ...
+
+local button = table:create_card_button(1)
+local player = button:owner()
+
+button:use_card_preview(card_properties)
+button:use_fixed_card_cursor(true)
+
+-- create frame
+button:set_texture(Resources.game_folder() .. "resources/scenes/battle/card_select.png")
+local button_animation = button:animation()
+button_animation:load(Resources.game_folder() .. "resources/scenes/battle/card_select.animation")
+button_animation:set_state("ICON_FRAME")
+
+-- create icon
+player:stage_card(card_properties)
+local icon_texture = player:staged_item_texture(#player:staged_items())
+player:pop_staged_item()
+
+local button_sprite = button:sprite()
+local icon_node = button_sprite:create_node()
+icon_node:set_texture(icon_texture)
+
+local code_node = button_sprite:create_text_node("CODE", card_properties.code)
+code_node:set_color(Color.new(255, 255, 0))
+code_node:set_offset(4, 16)
+
+-- functionality
+local used = false
+
+button.use_func = function()
+  if used then
+    return false
+  end
+
+  icon_node:set_visible(false)
+  used = true
+
+  player:stage_card(card_properties, function()
+    used = false
+    icon_node:set_visible(true)
+  end)
+
+  return true
+end

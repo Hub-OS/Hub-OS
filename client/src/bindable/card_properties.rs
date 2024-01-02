@@ -1,8 +1,10 @@
 use super::{CardClass, Element, HitFlag, HitFlags};
 use crate::battle::StatusRegistry;
-use crate::packages::{PackageId, PackageNamespace};
-use crate::render::ui::{FontStyle, TextStyle};
-use crate::render::SpriteColorQueue;
+use crate::bindable::SpriteColorMode;
+use crate::packages::{CardPackage, PackageId, PackageNamespace};
+use crate::render::ui::{ElementSprite, FontStyle, TextStyle};
+use crate::render::{SpriteColorQueue, SpriteNode};
+use crate::structures::Tree;
 use framework::prelude::{Color, GameIO, Vec2};
 use std::borrow::Cow;
 
@@ -51,7 +53,7 @@ impl<H: Default> Default for CardProperties<H> {
     }
 }
 
-impl CardProperties {
+impl<H> CardProperties<H> {
     pub fn draw_summary(
         &self,
         game_io: &GameIO,
@@ -113,6 +115,60 @@ impl CardProperties {
         text_style.bounds.x += damage_width + text_style.letter_spacing;
 
         text_style
+    }
+
+    pub fn create_preview_tree(&self, game_io: &GameIO) -> Tree<SpriteNode> {
+        const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
+        const ELEMENT_OFFSET: Vec2 = Vec2::new(-23.0, 49.0);
+        const ELEMENT2_OFFSET: Vec2 = Vec2::new(-8.0, 49.0);
+        const CODE_OFFSET: Vec2 = Vec2::new(-31.0, 51.0);
+        const DAMAGE_OFFSET: Vec2 = Vec2::new(31.0, 51.0);
+
+        // preview
+        let (preview_texture, _) = CardPackage::preview_texture(game_io, &self.package_id);
+
+        let mut root_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+        root_node.set_origin(-PREVIEW_OFFSET + preview_texture.size().as_vec2() * 0.5);
+        root_node.set_texture_direct(preview_texture);
+
+        let mut sprite_tree = Tree::<SpriteNode>::new(root_node);
+
+        // secondary_element
+        if self.secondary_element != Element::None {
+            let mut element_node = ElementSprite::new_node(game_io, self.secondary_element);
+            element_node.set_origin(-ELEMENT2_OFFSET);
+            sprite_tree.insert_root_child(element_node);
+        }
+
+        // element
+        let mut element_node = ElementSprite::new_node(game_io, self.element);
+        element_node.set_origin(-ELEMENT_OFFSET);
+        sprite_tree.insert_root_child(element_node);
+
+        // code
+        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        text_style.letter_spacing = 2.0;
+
+        text_style.color = Color::YELLOW;
+
+        let code_index = sprite_tree.insert_root_text_child(game_io, &text_style, &self.code);
+        let code_node = sprite_tree.get_mut(code_index).unwrap();
+        code_node.set_offset(CODE_OFFSET);
+
+        // damage
+        if self.damage > 0 {
+            text_style.color = Color::WHITE;
+            let text = format!("{:>3}", self.damage);
+
+            let damage_width = text_style.measure(&text).size.x;
+            let damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
+
+            let damage_index = sprite_tree.insert_root_text_child(game_io, &text_style, &text);
+            let damage_node = sprite_tree.get_mut(damage_index).unwrap();
+            damage_node.set_offset(damage_offset);
+        }
+
+        sprite_tree
     }
 }
 

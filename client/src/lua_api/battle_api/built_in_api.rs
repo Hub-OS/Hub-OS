@@ -1,7 +1,9 @@
 use super::{BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, VIRUS_DEFENSE_TABLE};
 use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
 use crate::bindable::{ComponentLifetime, EntityId};
-use crate::lua_api::{create_entity_table, AUX_PROP_TABLE};
+use crate::lua_api::{
+    create_entity_table, AUGMENT_TABLE, AUX_PROP_TABLE, ENTITY_TABLE, PLAYER_FORM_TABLE,
+};
 use crate::render::FrameTime;
 
 // lazy loader for built in tables
@@ -59,11 +61,37 @@ macro_rules! built_in_table {
     }};
 }
 
+macro_rules! built_in_method {
+    ($lua_api:expr, $file_name:literal, $table_names:expr) => {{
+        $lua_api.add_static_injector(|lua| {
+            let function = lua
+                .load(include_str!(concat!("built_in/", $file_name, ".lua")))
+                .set_name(concat!("built_in/", $file_name, ".lua"))
+                .into_function()?;
+
+            let globals = lua.globals();
+
+            for name in $table_names {
+                let table: rollback_mlua::Table = globals.get(name)?;
+                table.raw_set($file_name, function.clone())?;
+            }
+
+            Ok(())
+        });
+    }};
+}
+
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
     built_in_table!(lua_api, "buster", BUSTER_TABLE);
     built_in_table!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE);
     built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
     built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
+
+    built_in_method!(
+        lua_api,
+        "set_fixed_card",
+        [ENTITY_TABLE, PLAYER_FORM_TABLE, AUGMENT_TABLE]
+    );
 
     lua_api.add_dynamic_function(SHARED_HITBOX_TABLE, "new", |api_ctx, lua, params| {
         let (entity_table, lifetime): (rollback_mlua::Table, Option<FrameTime>) =
