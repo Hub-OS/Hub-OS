@@ -1,7 +1,7 @@
 use super::{BattleCallback, BattleSimulation, Entity};
 use crate::battle::Artifact;
 use crate::bindable::{ComponentLifetime, EntityId};
-use crate::render::FrameTime;
+use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, Vec2};
 use rand::Rng;
@@ -94,7 +94,7 @@ impl Component {
                 {
                     let root_node = sprite_tree.root_mut();
                     root_node.set_color(Color::WHITE.multiply_alpha(alpha));
-                    root_node.set_pixelate_with_alpha(true);
+                    root_node.set_shader_effect(SpriteShaderEffect::Pixelate);
                 }
 
                 if elapsed_time >= TOTAL_DURATION {

@@ -34,6 +34,25 @@ fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @locat
     return out;
 }
 
+@fragment
+fn grayscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    let sample = sample_palette(uv);
+    let average = (sample.r + sample.g + sample.b) * 0.33333;
+    return color * vec4<f32>(vec3<f32>(average), sample.a);
+}
+
+@fragment
+fn grayscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+    let sample = sample_palette(uv);
+    let average = (sample.r + sample.g + sample.b) * 0.33333;
+
+    let grayscale = vec4<f32>(vec3<f32>(average), sample.a);
+    var out: vec4<f32> = clamp(color + grayscale, vec4<f32>(), vec4<f32>(1.0));
+    out.w = sample.w * color.w;
+
+    return out;
+}
+
 fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame_size: vec2<f32>) -> vec2<f32> {
     let pixelation = mix(frame_size * 0.5, vec2<f32>(0.0), color.a);
 

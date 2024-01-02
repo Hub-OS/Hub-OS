@@ -3,7 +3,7 @@ use super::{BattleLuaApi, SPRITE_TABLE};
 use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::render::ui::{FontStyle, TextStyle};
-use crate::render::SpriteNode;
+use crate::render::{SpriteNode, SpriteShaderEffect};
 use crate::structures::TreeIndex;
 use framework::prelude::Vec2;
 
@@ -310,6 +310,18 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         "set_never_flip",
         |node, _, never_flip: Option<bool>| {
             node.set_never_flip(never_flip.unwrap_or(true));
+            Ok(())
+        },
+    );
+
+    getter(lua_api, "shader_effect", |node, _, _: ()| {
+        Ok(node.shader_effect())
+    });
+    setter(
+        lua_api,
+        "set_shader_effect",
+        |node, _, effect: SpriteShaderEffect| {
+            node.set_shader_effect(effect);
             Ok(())
         },
     );

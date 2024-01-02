@@ -18,9 +18,9 @@ pub struct SpriteNode {
     texture_path: String,
     sprite: Sprite,
     color_mode: SpriteColorMode, // root node resets every frame
+    shader_effect: SpriteShaderEffect,
     using_root_shader: bool,
     using_parent_shader: bool,
-    pixelate_with_alpha: bool,
     never_flip: bool,
     visible: bool,
     inherited_visible: bool,
@@ -44,7 +44,7 @@ impl SpriteNode {
             color_mode,
             using_root_shader: false,
             using_parent_shader: false,
-            pixelate_with_alpha: false,
+            shader_effect: SpriteShaderEffect::Default,
             never_flip: false,
             visible: true,
             inherited_visible: true,
@@ -160,12 +160,12 @@ impl SpriteNode {
         self.color_mode = mode;
     }
 
-    pub fn pixelate_with_alpha(&self) -> bool {
-        self.pixelate_with_alpha
+    pub fn shader_effect(&self) -> SpriteShaderEffect {
+        self.shader_effect
     }
 
-    pub fn set_pixelate_with_alpha(&mut self, enabled: bool) {
-        self.pixelate_with_alpha = enabled;
+    pub fn set_shader_effect(&mut self, effect: SpriteShaderEffect) {
+        self.shader_effect = effect;
     }
 
     pub fn palette_path(&self) -> Option<&str> {
@@ -216,20 +216,6 @@ impl SpriteNode {
 
     pub fn sprite(&self) -> &Sprite {
         &self.sprite
-    }
-
-    fn shader_effect(&self) -> SpriteShaderEffect {
-        if self.palette.is_some() {
-            if self.pixelate_with_alpha {
-                SpriteShaderEffect::PixelatePalette
-            } else {
-                SpriteShaderEffect::Palette
-            }
-        } else if self.pixelate_with_alpha {
-            SpriteShaderEffect::Pixelate
-        } else {
-            SpriteShaderEffect::Default
-        }
     }
 }
 
@@ -326,7 +312,7 @@ impl Tree<SpriteNode> {
             color_mode: SpriteColorMode,
             color: Color,
             palette: Option<Arc<Texture>>,
-            pixelate_with_alpha: bool,
+            shader_effect: SpriteShaderEffect,
         }
 
         let mut initial_scale = Vec2::ONE;
@@ -347,7 +333,7 @@ impl Tree<SpriteNode> {
                 color_mode: root_node.color_mode,
                 color: root_node.color(),
                 palette: root_node.palette.clone(),
-                pixelate_with_alpha: root_node.pixelate_with_alpha,
+                shader_effect: root_node.shader_effect,
             },
             |node, inherited| {
                 // calculate scale
@@ -372,7 +358,7 @@ impl Tree<SpriteNode> {
                     node.color_mode = inherited.color_mode;
                     node.set_color(inherited.color);
                     node.palette = inherited.palette.clone();
-                    node.pixelate_with_alpha = inherited.pixelate_with_alpha;
+                    node.shader_effect = inherited.shader_effect;
                 }
 
                 InheritedProperties {
@@ -384,7 +370,7 @@ impl Tree<SpriteNode> {
                     color_mode: node.color_mode,
                     color: node.color(),
                     palette: node.palette.clone(),
-                    pixelate_with_alpha: node.pixelate_with_alpha,
+                    shader_effect: node.shader_effect,
                 }
             },
         );
@@ -440,7 +426,7 @@ impl Tree<SpriteNode> {
                 color_mode = root_color_mode;
                 color = root_color;
             } else {
-                shader_effect = node.shader_effect();
+                shader_effect = node.shader_effect;
                 palette = &node.palette;
                 color_mode = node.color_mode();
                 color = node.color();
@@ -449,7 +435,7 @@ impl Tree<SpriteNode> {
             sprite_queue.set_shader_effect(shader_effect);
 
             if let Some(texture) = palette.as_ref() {
-                sprite_queue.set_palette(texture.clone());
+                sprite_queue.set_palette(Some(texture.clone()));
             }
 
             sprite_queue.set_color_mode(color_mode);
@@ -459,6 +445,7 @@ impl Tree<SpriteNode> {
             sprite_queue.draw_sprite(node.sprite());
 
             node.set_color(original_color);
+            sprite_queue.set_palette(None);
         }
 
         sprite_queue.set_shader_effect(intial_shader_effect);

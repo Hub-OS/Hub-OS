@@ -1,7 +1,7 @@
 use super::State;
 use crate::battle::*;
 use crate::bindable::EntityId;
-use crate::render::FrameTime;
+use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::BATTLE_FADE_DURATION;
 use framework::prelude::*;
@@ -108,7 +108,12 @@ impl State for IntroState {
                 0.0
             };
 
-            root_node.set_pixelate_with_alpha(alpha < 1.0);
+            root_node.set_shader_effect(if alpha < 1.0 {
+                SpriteShaderEffect::Pixelate
+            } else {
+                SpriteShaderEffect::Default
+            });
+
             root_node.set_alpha(alpha);
         }
 

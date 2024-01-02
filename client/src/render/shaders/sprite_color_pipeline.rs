@@ -8,12 +8,14 @@ use std::sync::Arc;
 pub struct SpritePipelineCollection {
     add_pipeline: SpritePipeline<SpriteInstanceData>,
     multiply_pipeline: SpritePipeline<SpriteInstanceData>,
-    greyscale_add_pipeline: SpritePipeline<SpriteInstanceData>,
-    greyscale_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
-    pixelate_add_pipeline: SpritePipeline<SpriteInstanceData>,
-    pixelate_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
     palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
     palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_add_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
+    grayscale_palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
+    pixelate_add_pipeline: SpritePipeline<SpriteInstanceData>,
+    pixelate_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
     pixelate_palette_add_pipeline: SpritePipeline<SpriteInstanceData>,
     pixelate_palette_multiply_pipeline: SpritePipeline<SpriteInstanceData>,
 }
@@ -28,30 +30,6 @@ impl SpritePipelineCollection {
         Self {
             add_pipeline: create_pipeline(game_io, &shared_shader, "vs_main", "add_main"),
             multiply_pipeline: create_pipeline(game_io, &shared_shader, "vs_main", "multiply_main"),
-            greyscale_add_pipeline: create_pipeline(
-                game_io,
-                &shared_shader,
-                "vs_main",
-                "greyscale_add_main",
-            ),
-            greyscale_multiply_pipeline: create_pipeline(
-                game_io,
-                &shared_shader,
-                "vs_main",
-                "greyscale_multiply_main",
-            ),
-            pixelate_add_pipeline: create_pipeline(
-                game_io,
-                &shared_shader,
-                "pixelate_vs_main",
-                "pixelate_add_main",
-            ),
-            pixelate_multiply_pipeline: create_pipeline(
-                game_io,
-                &shared_shader,
-                "pixelate_vs_main",
-                "pixelate_multiply_main",
-            ),
             palette_add_pipeline: create_palette_pipeline(
                 game_io,
                 &shared_shader,
@@ -65,6 +43,44 @@ impl SpritePipelineCollection {
                 "vs_main",
                 &palette_shader,
                 "multiply_main",
+            ),
+            grayscale_add_pipeline: create_pipeline(
+                game_io,
+                &shared_shader,
+                "vs_main",
+                "grayscale_add_main",
+            ),
+            grayscale_multiply_pipeline: create_pipeline(
+                game_io,
+                &shared_shader,
+                "vs_main",
+                "grayscale_multiply_main",
+            ),
+            grayscale_palette_add_pipeline: create_palette_pipeline(
+                game_io,
+                &shared_shader,
+                "vs_main",
+                &palette_shader,
+                "grayscale_add_main",
+            ),
+            grayscale_palette_multiply_pipeline: create_palette_pipeline(
+                game_io,
+                &shared_shader,
+                "vs_main",
+                &palette_shader,
+                "grayscale_multiply_main",
+            ),
+            pixelate_add_pipeline: create_pipeline(
+                game_io,
+                &shared_shader,
+                "pixelate_vs_main",
+                "pixelate_add_main",
+            ),
+            pixelate_multiply_pipeline: create_pipeline(
+                game_io,
+                &shared_shader,
+                "pixelate_vs_main",
+                "pixelate_multiply_main",
             ),
             pixelate_palette_add_pipeline: create_palette_pipeline(
                 game_io,
@@ -86,29 +102,49 @@ impl SpritePipelineCollection {
     fn pipeline_for_config(
         &self,
         shader_effect: SpriteShaderEffect,
+        with_palette: bool,
         color_mode: SpriteColorMode,
     ) -> &SpritePipeline<SpriteInstanceData> {
         match shader_effect {
-            SpriteShaderEffect::Default => match color_mode {
-                SpriteColorMode::Add => &self.add_pipeline,
-                SpriteColorMode::Multiply => &self.multiply_pipeline,
-            },
-            SpriteShaderEffect::Greyscale => match color_mode {
-                SpriteColorMode::Add => &self.greyscale_add_pipeline,
-                SpriteColorMode::Multiply => &self.greyscale_multiply_pipeline,
-            },
-            SpriteShaderEffect::Pixelate => match color_mode {
-                SpriteColorMode::Add => &self.pixelate_add_pipeline,
-                SpriteColorMode::Multiply => &self.pixelate_multiply_pipeline,
-            },
-            SpriteShaderEffect::Palette => match color_mode {
-                SpriteColorMode::Add => &self.palette_add_pipeline,
-                SpriteColorMode::Multiply => &self.palette_multiply_pipeline,
-            },
-            SpriteShaderEffect::PixelatePalette => match color_mode {
-                SpriteColorMode::Add => &self.pixelate_palette_add_pipeline,
-                SpriteColorMode::Multiply => &self.pixelate_palette_multiply_pipeline,
-            },
+            SpriteShaderEffect::Default => {
+                if with_palette {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.palette_add_pipeline,
+                        SpriteColorMode::Multiply => &self.palette_multiply_pipeline,
+                    }
+                } else {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.add_pipeline,
+                        SpriteColorMode::Multiply => &self.multiply_pipeline,
+                    }
+                }
+            }
+            SpriteShaderEffect::Grayscale => {
+                if with_palette {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.grayscale_palette_add_pipeline,
+                        SpriteColorMode::Multiply => &self.grayscale_palette_multiply_pipeline,
+                    }
+                } else {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.grayscale_add_pipeline,
+                        SpriteColorMode::Multiply => &self.grayscale_multiply_pipeline,
+                    }
+                }
+            }
+            SpriteShaderEffect::Pixelate => {
+                if with_palette {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.pixelate_palette_add_pipeline,
+                        SpriteColorMode::Multiply => &self.pixelate_palette_multiply_pipeline,
+                    }
+                } else {
+                    match color_mode {
+                        SpriteColorMode::Add => &self.pixelate_add_pipeline,
+                        SpriteColorMode::Multiply => &self.pixelate_multiply_pipeline,
+                    }
+                }
+            }
         }
     }
 }
@@ -187,7 +223,7 @@ impl<'a> SpriteColorQueue<'a> {
 
         let globals = game_io.resource::<Globals>().unwrap();
         let pipeline_collection = &globals.sprite_pipeline_collection;
-        let pipeline = pipeline_collection.pipeline_for_config(shader_effect, color_mode);
+        let pipeline = pipeline_collection.pipeline_for_config(shader_effect, false, color_mode);
 
         Self {
             sprite_queue: SpriteQueue::new(game_io, pipeline, uniforms).with_inverted_y(true),
@@ -226,8 +262,8 @@ impl<'a> SpriteColorQueue<'a> {
         self.updated_camera = true;
     }
 
-    pub fn set_palette(&mut self, texture: Arc<Texture>) {
-        self.palette = Some(texture);
+    pub fn set_palette(&mut self, texture: Option<Arc<Texture>>) {
+        self.palette = texture;
     }
 
     pub fn set_scissor(&mut self, rect: Rect) {
@@ -244,7 +280,7 @@ impl<'a> SpriteColorQueue<'a> {
         let updated_uniforms = requires_shader_change || self.updated_camera || updated_palette;
 
         if updated_uniforms {
-            let uniforms = if self.shader_effect.requires_palette() {
+            let uniforms = if self.palette.is_some() {
                 vec![
                     self.camera.as_binding(),
                     self.palette.as_ref().unwrap().as_binding(),
@@ -257,8 +293,11 @@ impl<'a> SpriteColorQueue<'a> {
                 // need to swap render pipelines
                 let globals = self.game_io.resource::<Globals>().unwrap();
                 let pipeline_collection = &globals.sprite_pipeline_collection;
-                let pipeline =
-                    pipeline_collection.pipeline_for_config(self.shader_effect, self.color_mode);
+                let pipeline = pipeline_collection.pipeline_for_config(
+                    self.shader_effect,
+                    self.palette.is_some(),
+                    self.color_mode,
+                );
 
                 let new_queue =
                     SpriteQueue::new(self.game_io, pipeline, uniforms).with_inverted_y(true);

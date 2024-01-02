@@ -30,7 +30,7 @@ struct PixelateVertexOutput {
 };
 
 fn plain_vs_main(v_in: VertexInput) -> VertexOutput {
-    var v_out : VertexOutput;
+    var v_out: VertexOutput;
 
     let transform = mat3x3<f32>(
         v_in.transform0,
@@ -40,8 +40,7 @@ fn plain_vs_main(v_in: VertexInput) -> VertexOutput {
 
     let transformed_position = transform * vec3<f32>(v_in.vertex.x, v_in.vertex.y, 1.0);
 
-    v_out.position =
-        camera.view_proj * vec4<f32>(transformed_position.x, transformed_position.y, 0.0, 1.0);
+    v_out.position = camera.view_proj * vec4<f32>(transformed_position.x, transformed_position.y, 0.0, 1.0);
 
     v_out.uv = v_in.bounds.xy + v_in.uv.xy * v_in.bounds.zw;
     v_out.color = v_in.color;
@@ -50,7 +49,7 @@ fn plain_vs_main(v_in: VertexInput) -> VertexOutput {
 }
 
 @vertex
-fn vs_main(v_in: VertexInput) -> VertexOutput{
+fn vs_main(v_in: VertexInput) -> VertexOutput {
     return plain_vs_main(v_in);
 }
 
@@ -58,7 +57,7 @@ fn vs_main(v_in: VertexInput) -> VertexOutput{
 fn pixelate_vs_main(v_in: VertexInput) -> PixelateVertexOutput {
     let plain_v_out = plain_vs_main(v_in);
 
-    var v_out : PixelateVertexOutput;
+    var v_out: PixelateVertexOutput;
     v_out.position = plain_v_out.position;
     v_out.uv = plain_v_out.uv;
     v_out.color = plain_v_out.color;
@@ -87,19 +86,19 @@ fn add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @locat
 }
 
 @fragment
-fn greyscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+fn grayscale_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     let sample = textureSample(txture, smplr, uv);
     let average = (sample.r + sample.g + sample.b) * 0.33333;
     return color * vec4<f32>(vec3<f32>(average), sample.a);
 }
 
 @fragment
-fn greyscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
+fn grayscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>) -> @location(0) vec4<f32> {
     let sample = textureSample(txture, smplr, uv);
     let average = (sample.r + sample.g + sample.b) * 0.33333;
 
-    let greyscale = vec4<f32>(vec3<f32>(average), sample.a);
-    var out: vec4<f32> = clamp(color + greyscale, vec4<f32>(), vec4<f32>(1.0));
+    let grayscale = vec4<f32>(vec3<f32>(average), sample.a);
+    var out: vec4<f32> = clamp(color + grayscale, vec4<f32>(), vec4<f32>(1.0));
     out.w = sample.w * color.w;
 
     return out;

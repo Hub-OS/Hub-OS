@@ -124,6 +124,14 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     )?;
     globals.set("Color", color_table)?;
 
+    use crate::render::SpriteShaderEffect;
+
+    let sprite_shader_table = lua.create_table()?;
+    sprite_shader_table.set("None", SpriteShaderEffect::Default)?;
+    sprite_shader_table.set("Grayscale", SpriteShaderEffect::Grayscale)?;
+    sprite_shader_table.set("Pixelate", SpriteShaderEffect::Pixelate)?;
+    globals.set("SpriteShaderEffect", sprite_shader_table)?;
+
     use crate::bindable::SpriteColorMode;
 
     let color_mode_table = lua.create_table()?;

@@ -359,7 +359,7 @@ impl CardSelectUi {
             }
 
             if maxed_card_usage || !card_restriction.allows_card(card) {
-                sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
+                sprite_queue.set_shader_effect(SpriteShaderEffect::Grayscale);
             } else {
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
@@ -499,8 +499,8 @@ impl CardSelectUi {
         let mut offset = self.points[UiPoint::FormListStart];
 
         for (row, (index, form)) in player.available_forms().enumerate() {
-            // default to greyscale
-            sprite_queue.set_shader_effect(SpriteShaderEffect::Greyscale);
+            // default to grayscale
+            sprite_queue.set_shader_effect(SpriteShaderEffect::Grayscale);
 
             if player.staged_items.stored_form_index() == Some(index) {
                 // selected color
