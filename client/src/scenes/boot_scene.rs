@@ -56,7 +56,7 @@ impl BootScene {
         animator.apply(&mut progress_bar_sprite);
 
         // status text
-        let mut status_label = Text::new(game_io, FontStyle::Wide);
+        let mut status_label = Text::new(game_io, FontStyle::Code);
         status_label.style.color = Color::WHITE;
         status_label.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 

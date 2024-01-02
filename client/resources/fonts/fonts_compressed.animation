@@ -795,190 +795,190 @@ frame x="71" y="65" w="1" h="5"
 animation state="MICRO_U+003B"
 frame x="177" y="103" w="2" h="5"
 
-animation state="WIDE_U+0020"
+animation state="CODE_U+0020"
 frame w="7" h="5"
 
-animation state="WIDE_U+0041"
+animation state="CODE_U+0041"
 frame x="46" y="103" w="6" h="5"
 
-animation state="WIDE_U+0042"
+animation state="CODE_U+0042"
 frame x="159" y="109" w="6" h="5"
 
-animation state="WIDE_U+0043"
+animation state="CODE_U+0043"
 frame x="165" y="109" w="6" h="5"
 
-animation state="WIDE_U+0044"
+animation state="CODE_U+0044"
 frame x="171" y="109" w="6" h="5"
 
-animation state="WIDE_U+0045"
+animation state="CODE_U+0045"
 frame x="203" y="109" w="6" h="5"
 
-animation state="WIDE_U+0046"
+animation state="CODE_U+0046"
 frame x="83" y="109" w="6" h="5"
 
-animation state="WIDE_U+0047"
+animation state="CODE_U+0047"
 frame x="28" y="110" w="6" h="5"
 
-animation state="WIDE_U+0048"
+animation state="CODE_U+0048"
 frame x="34" y="110" w="6" h="5"
 
-animation state="WIDE_U+0049"
+animation state="CODE_U+0049"
 frame x="40" y="110" w="6" h="5"
 
-animation state="WIDE_U+004A"
+animation state="CODE_U+004A"
 frame x="72" y="111" w="6" h="5"
 
-animation state="WIDE_U+004B"
+animation state="CODE_U+004B"
 frame x="96" y="111" w="6" h="5"
 
-animation state="WIDE_U+004C"
+animation state="CODE_U+004C"
 frame x="191" y="111" w="6" h="5"
 
-animation state="WIDE_U+004D"
+animation state="CODE_U+004D"
 frame x="102" y="111" w="6" h="5"
 
-animation state="WIDE_U+004E"
+animation state="CODE_U+004E"
 frame x="118" y="111" w="6" h="5"
 
-animation state="WIDE_U+004F"
+animation state="CODE_U+004F"
 frame x="131" y="111" w="6" h="5"
 
-animation state="WIDE_U+0050"
+animation state="CODE_U+0050"
 frame x="137" y="111" w="6" h="5"
 
-animation state="WIDE_U+0051"
+animation state="CODE_U+0051"
 frame x="5" y="103" w="7" h="5"
 
-animation state="WIDE_U+0052"
+animation state="CODE_U+0052"
 frame x="167" y="114" w="6" h="5"
 
-animation state="WIDE_U+0053"
+animation state="CODE_U+0053"
 frame x="209" y="119" w="6" h="5"
 
-animation state="WIDE_U+0054"
+animation state="CODE_U+0054"
 frame x="173" y="119" w="6" h="5"
 
-animation state="WIDE_U+0055"
+animation state="CODE_U+0055"
 frame x="125" y="119" w="6" h="5"
 
-animation state="WIDE_U+0056"
+animation state="CODE_U+0056"
 frame x="83" y="119" w="6" h="5"
 
-animation state="WIDE_U+0057"
+animation state="CODE_U+0057"
 frame x="185" y="118" w="6" h="5"
 
-animation state="WIDE_U+0058"
+animation state="CODE_U+0058"
 frame x="191" y="116" w="6" h="5"
 
-animation state="WIDE_U+0059"
+animation state="CODE_U+0059"
 frame x="131" y="116" w="6" h="5"
 
-animation state="WIDE_U+005A"
+animation state="CODE_U+005A"
 frame x="137" y="116" w="6" h="5"
 
-animation state="WIDE_U+0030"
+animation state="CODE_U+0030"
 frame x="143" y="118" w="6" h="5"
 
-animation state="WIDE_U+0031"
+animation state="CODE_U+0031"
 frame x="149" y="118" w="6" h="5"
 
-animation state="WIDE_U+0032"
+animation state="CODE_U+0032"
 frame x="197" y="118" w="6" h="5"
 
-animation state="WIDE_U+0033"
+animation state="CODE_U+0033"
 frame x="118" y="116" w="6" h="5"
 
-animation state="WIDE_U+0034"
+animation state="CODE_U+0034"
 frame x="89" y="119" w="6" h="5"
 
-animation state="WIDE_U+0035"
+animation state="CODE_U+0035"
 frame x="155" y="119" w="6" h="5"
 
-animation state="WIDE_U+0036"
+animation state="CODE_U+0036"
 frame x="161" y="119" w="6" h="5"
 
-animation state="WIDE_U+0037"
+animation state="CODE_U+0037"
 frame x="167" y="119" w="6" h="5"
 
-animation state="WIDE_U+0038"
+animation state="CODE_U+0038"
 frame x="203" y="119" w="6" h="5"
 
-animation state="WIDE_U+0039"
+animation state="CODE_U+0039"
 frame x="179" y="118" w="6" h="5"
 
-animation state="WIDE_U+0028"
+animation state="CODE_U+0028"
 frame x="125" y="114" w="6" h="5"
 
-animation state="WIDE_U+0029"
+animation state="CODE_U+0029"
 frame x="242" y="108" w="6" h="5"
 
-animation state="WIDE_U+005F"
+animation state="CODE_U+005F"
 frame x="249" y="102" w="6" h="6"
 
-animation state="WIDE_U+002D"
+animation state="CODE_U+002D"
 frame x="155" y="114" w="6" h="5"
 
-animation state="WIDE_U+002B"
+animation state="CODE_U+002B"
 frame x="161" y="114" w="6" h="5"
 
-animation state="WIDE_U+003D"
+animation state="CODE_U+003D"
 frame x="12" y="115" w="6" h="5"
 
-animation state="WIDE_U+005C"
+animation state="CODE_U+005C"
 frame x="173" y="114" w="6" h="5"
 
-animation state="WIDE_U+002F"
+animation state="CODE_U+002F"
 frame x="203" y="114" w="6" h="5"
 
-animation state="WIDE_U+003C"
+animation state="CODE_U+003C"
 frame x="209" y="114" w="6" h="5"
 
-animation state="WIDE_U+003E"
+animation state="CODE_U+003E"
 frame x="215" y="114" w="6" h="5"
 
-animation state="WIDE_U+003F"
+animation state="CODE_U+003F"
 frame x="221" y="114" w="6" h="5"
 
-animation state="WIDE_U+002C"
+animation state="CODE_U+002C"
 frame x="248" y="114" w="6" h="5"
 
-animation state="WIDE_U+002E"
+animation state="CODE_U+002E"
 frame x="83" y="114" w="6" h="5"
 
-animation state="WIDE_U+0021"
+animation state="CODE_U+0021"
 frame x="18" y="115" w="6" h="5"
 
-animation state="WIDE_U+0040"
+animation state="CODE_U+0040"
 frame x="218" y="95" w="7" h="7"
 
-animation state="WIDE_U+0023"
+animation state="CODE_U+0023"
 frame x="243" y="102" w="6" h="6"
 
-animation state="WIDE_U+0024"
+animation state="CODE_U+0024"
 frame x="24" y="115" w="6" h="5"
 
-animation state="WIDE_U+0025"
+animation state="CODE_U+0025"
 frame x="30" y="115" w="6" h="5"
 
-animation state="WIDE_U+005E"
+animation state="CODE_U+005E"
 frame x="36" y="115" w="6" h="5"
 
-animation state="WIDE_U+0026"
+animation state="CODE_U+0026"
 frame x="53" y="115" w="6" h="5"
 
-animation state="WIDE_U+002A"
+animation state="CODE_U+002A"
 frame x="112" y="115" w="6" h="5"
 
-animation state="WIDE_U+0027"
+animation state="CODE_U+0027"
 frame x="72" y="116" w="6" h="5"
 
-animation state="WIDE_U+0022"
+animation state="CODE_U+0022"
 frame x="96" y="116" w="6" h="5"
 
-animation state="WIDE_U+003A"
+animation state="CODE_U+003A"
 frame x="102" y="116" w="6" h="5"
 
-animation state="WIDE_U+003B"
+animation state="CODE_U+003B"
 frame x="125" y="109" w="6" h="5"
 
 animation state="THIN_U+0041"

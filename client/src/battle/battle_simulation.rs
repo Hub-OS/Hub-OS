@@ -796,7 +796,7 @@ impl BattleSimulation {
 
         // draw player indices
         if draw_player_indices {
-            let mut index_text = Text::new(game_io, FontStyle::Wide);
+            let mut index_text = Text::new(game_io, FontStyle::Code);
             index_text.style.color = Color::GREEN;
             index_text.style.shadow_color = Color::BLACK;
 

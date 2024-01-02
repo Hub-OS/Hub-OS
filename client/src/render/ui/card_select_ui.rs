@@ -381,7 +381,7 @@ impl CardSelectUi {
         const CODE_HORIZONTAL_OFFSET: f32 = 4.0;
         const CODE_VERTICAL_OFFSET: f32 = 16.0;
 
-        let mut code_style = TextStyle::new(game_io, FontStyle::Wide);
+        let mut code_style = TextStyle::new(game_io, FontStyle::Code);
         code_style.color = Color::YELLOW;
 
         for (_, card, position) in self.card_icon_render_iter(player) {
