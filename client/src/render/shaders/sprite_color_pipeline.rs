@@ -273,7 +273,8 @@ impl<'a> SpriteColorQueue<'a> {
     pub fn draw_sprite(&mut self, sprite: &Sprite) {
         let updated_shader_effect = self.shader_effect != self.previous_shader_effect;
         let updated_color_mode = self.color_mode != self.previous_color_mode;
-        let requires_shader_change = updated_shader_effect || updated_color_mode;
+        let palette_toggled = self.palette.is_some() != self.previous_palette_ptr.is_some();
+        let requires_shader_change = updated_shader_effect || updated_color_mode || palette_toggled;
 
         let palette_ptr = self.palette.as_ref().map(Arc::as_ptr);
         let updated_palette = palette_ptr != self.previous_palette_ptr;
