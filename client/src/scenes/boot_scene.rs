@@ -158,10 +158,6 @@ impl BootScene {
             }
         }
 
-        if !self.status_label.style.font_style.has_lower_case() {
-            self.status_label.text = self.status_label.text.to_uppercase();
-        }
-
         let metrics = self.status_label.measure();
         let status_position = self.status_position - metrics.size * 0.5;
         self.status_label.style.bounds.set_position(status_position);

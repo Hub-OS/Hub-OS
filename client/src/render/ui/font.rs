@@ -67,13 +67,6 @@ impl FontStyle {
 
         Some(font_style)
     }
-
-    pub fn has_lower_case(&self) -> bool {
-        matches!(
-            self,
-            FontStyle::Thick | FontStyle::Thin | FontStyle::ThinSmall | FontStyle::Micro
-        )
-    }
 }
 
 pub struct GlyphMap {
@@ -111,6 +104,17 @@ impl GlyphMap {
 
             let frame = frames.frame(0).cloned().unwrap_or_default();
 
+            // attempt inserting frame for lowercase ascii
+            if let Some(char) = glyph_string.chars().next() {
+                if char.is_ascii_uppercase() && glyph_string.is_ascii() {
+                    let lowercase_glyph_string = char.to_ascii_lowercase().to_string().into();
+
+                    map.entry((font_style, lowercase_glyph_string))
+                        .or_insert_with(|| frame.clone());
+                }
+            }
+
+            // insert frame for unmodified character
             map.insert((font_style, glyph_string.into()), frame);
         }
 
