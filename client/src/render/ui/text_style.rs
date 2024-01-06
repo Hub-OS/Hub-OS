@@ -23,6 +23,7 @@ impl TextMetrics {
 pub struct TextStyle {
     pub glyph_map: Arc<GlyphMap>,
     pub font_style: FontStyle,
+    pub min_glyph_width: f32,
     pub letter_spacing: f32,
     pub line_spacing: f32,
     pub scale: Vec2,
@@ -41,6 +42,7 @@ impl TextStyle {
         Self {
             glyph_map: globals.glyph_map.clone(),
             font_style,
+            min_glyph_width: 0.0,
             letter_spacing: 1.0,
             line_spacing: 1.0,
             scale: Vec2::ONE,
@@ -70,6 +72,11 @@ impl TextStyle {
 
     pub fn with_shadow_color(mut self, color: Color) -> Self {
         self.shadow_color = color;
+        self
+    }
+
+    pub fn with_min_glyph_width(mut self, width: f32) -> Self {
+        self.min_glyph_width = width;
         self
     }
 
@@ -309,11 +316,13 @@ impl<'a> TextInsertTracker<'a> {
     }
 
     fn next_position(&mut self, index: usize, character_size: Vec2) -> Vec2 {
-        let width_used = if self.style.monospace {
+        let mut width_used = if self.style.monospace {
             self.whitespace.x
         } else {
             character_size.x
         };
+
+        width_used = width_used.max(self.style.min_glyph_width);
 
         if self.x + width_used > self.style.bounds.width / self.style.scale.x {
             // wrap text

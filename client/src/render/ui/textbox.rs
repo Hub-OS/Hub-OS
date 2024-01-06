@@ -113,6 +113,7 @@ impl Textbox {
             text_style: TextStyle::new(game_io, FontStyle::Thin)
                 .with_bounds(text_bounds)
                 .with_color(Color::BLACK)
+                .with_min_glyph_width(6.0)
                 .with_line_spacing(3.0),
             transition_animation_enabled: true,
             text_animation_enabled: true,
