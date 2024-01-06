@@ -170,7 +170,7 @@ impl Card {
         sprite_queue.draw_sprite(&sprite);
 
         // text style
-        let mut label = TextStyle::new(game_io, FontStyle::Thick);
+        let mut label = TextStyle::new_monospace(game_io, FontStyle::Thick);
         label.shadow_color = TEXT_DARK_SHADOW_COLOR;
         label.color = color;
 

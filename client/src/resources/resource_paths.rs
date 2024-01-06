@@ -58,8 +58,8 @@ impl ResourcePaths {
     // General
     pub const BLANK: &'static str = "";
     pub const WHITE_PIXEL: &'static str = "resources/scenes/shared/white_pixel.png";
-    pub const FONTS: &'static str = "resources/fonts/fonts_compressed.png";
-    pub const FONTS_ANIMATION: &'static str = "resources/fonts/fonts_compressed.animation";
+    pub const FONTS: &'static str = "resources/scenes/shared/fonts.png";
+    pub const FONTS_ANIMATION: &'static str = "resources/scenes/shared/fonts.animation";
     pub const SUB_SCENE: &'static str = "resources/scenes/shared/sub_scene.png";
     pub const SUB_SCENE_ANIMATION: &'static str = "resources/scenes/shared/sub_scene.animation";
     pub const PAGE_ARROW: &'static str = "resources/scenes/shared/page_arrow.png";

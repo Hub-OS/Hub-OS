@@ -79,7 +79,7 @@ impl DeckEditorScene {
         ui_animator.apply(&mut deck_total_sprite);
 
         // total text
-        let mut deck_total_text = Text::new(game_io, FontStyle::Code);
+        let mut deck_total_text = Text::new_monospace(game_io, FontStyle::Code);
         let deck_total_position =
             ui_animator.point("TEXT_START").unwrap_or_default() - ui_animator.origin();
 

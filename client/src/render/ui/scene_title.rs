@@ -13,7 +13,6 @@ impl<'a> SceneTitle<'a> {
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         let mut style = TextStyle::new_monospace(game_io, FontStyle::Code);
         style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-        style.letter_spacing = 0.0;
         style.bounds.set_position(Vec2::new(16.0, 6.0));
         style.draw(game_io, sprite_queue, self.title);
     }
