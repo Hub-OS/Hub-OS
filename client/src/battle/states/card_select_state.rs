@@ -36,6 +36,17 @@ enum SelectedItem {
     None,
 }
 
+impl SelectedItem {
+    fn button(self, player: &Player) -> Option<&CardSelectButton> {
+        PlayerOverridables::flat_map_for(player, move |overridables| match self {
+            SelectedItem::CardButton => overridables.card_button.as_deref(),
+            SelectedItem::SpecialButton => overridables.special_button.as_deref(),
+            _ => unreachable!(),
+        })
+        .next()
+    }
+}
+
 #[derive(Clone)]
 pub struct CardSelectState {
     ui: CardSelectUi,
@@ -458,8 +469,13 @@ impl CardSelectState {
         if selection.local && !simulation.is_resimulation {
             // dealing with signals
             if input.was_just_pressed(Input::Info) {
-                if let Some((_, form)) = player.available_forms().nth(selection.form_row) {
-                    let event = BattleEvent::Description((*form.description).clone());
+                let description = player
+                    .available_forms()
+                    .nth(selection.form_row)
+                    .and_then(|(_, form)| form.description.clone());
+
+                if let Some(description) = description {
+                    let event = BattleEvent::Description(description);
                     resources.event_sender.send(event).unwrap();
                 }
             }
@@ -602,14 +618,30 @@ impl CardSelectState {
             }
 
             if input.was_just_pressed(Input::Info) {
-                if let SelectedItem::Card(index) = selected_item {
-                    let entities = &mut simulation.entities;
-                    let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
+                match selected_item {
+                    SelectedItem::Card(index) => {
+                        let entities = &mut simulation.entities;
+                        let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
 
-                    let card = &player.deck[index];
+                        let card = &player.deck[index];
 
-                    let event = BattleEvent::DescribeCard(card.package_id.clone());
-                    resources.event_sender.send(event).unwrap();
+                        let event = BattleEvent::DescribeCard(card.package_id.clone());
+                        resources.event_sender.send(event).unwrap();
+                    }
+                    SelectedItem::CardButton | SelectedItem::SpecialButton => {
+                        let entities = &mut simulation.entities;
+                        let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
+
+                        let description = selected_item
+                            .button(player)
+                            .and_then(|button| button.description.clone());
+
+                        if let Some(description) = description {
+                            let event = BattleEvent::Description(description);
+                            resources.event_sender.send(event).unwrap();
+                        }
+                    }
+                    _ => {}
                 }
             }
         }
@@ -632,13 +664,7 @@ impl CardSelectState {
             return;
         };
 
-        let card_button =
-            PlayerOverridables::flat_map_for(player, move |overridables| match selected_item {
-                SelectedItem::CardButton => overridables.card_button.as_ref(),
-                SelectedItem::SpecialButton => overridables.special_button.as_ref(),
-                _ => unreachable!(),
-            })
-            .next();
+        let card_button = selected_item.button(player);
 
         let Some(button) = card_button else {
             return;

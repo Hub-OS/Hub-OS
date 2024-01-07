@@ -8,7 +8,6 @@ use crate::battle::{BattleCallback, CardSelectButtonPath, Player, PlayerForm};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
-use std::sync::Arc;
 
 pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(PLAYER_FORM_TABLE, "index", move |_, lua, params| {
@@ -48,7 +47,8 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         PLAYER_FORM_TABLE,
         "set_description",
         move |api_ctx, lua, params| {
-            let (table, description): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+            let (table, description): (rollback_mlua::Table, Option<String>) =
+                lua.unpack_multi(params)?;
 
             let entity_id: EntityId = table.raw_get("#entity_id")?;
             let index: usize = table.raw_get("#index")?;
@@ -60,7 +60,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
                 .map_err(|_| entity_not_found())?;
 
             let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
-            form.description = Arc::new(description);
+            form.description = description.map(|s| s.into());
 
             lua.pack_multi(())
         },

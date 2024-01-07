@@ -10,12 +10,13 @@ use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
 use std::collections::VecDeque;
+use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const BUFFER_TOLERANCE: usize = 3;
 
 pub enum BattleEvent {
-    Description(String),
+    Description(Arc<str>),
     DescribeCard(PackageId),
     RequestFlee,
     AttemptFlee,
@@ -194,11 +195,9 @@ impl BattleScene {
         while let Ok(event) = self.resources.event_receiver.try_recv() {
             match event {
                 BattleEvent::Description(description) => {
-                    if !description.is_empty() {
-                        let interface = TextboxMessage::new(description);
-                        self.textbox.push_interface(interface);
-                        self.textbox.open();
-                    }
+                    let interface = TextboxMessage::new(description.to_string());
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
                 }
                 BattleEvent::DescribeCard(package_id) => {
                     let globals = game_io.resource::<Globals>().unwrap();

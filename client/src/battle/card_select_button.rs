@@ -6,6 +6,7 @@ use crate::bindable::{EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
 use framework::prelude::{GameIO, Vec2};
+use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 pub struct CardSelectButtonPath {
@@ -22,6 +23,7 @@ pub struct CardSelectButton {
     pub animator_index: GenerationalIndex,
     pub preview_sprite_tree_index: TreeIndex,
     pub preview_animator_index: GenerationalIndex,
+    pub description: Option<Arc<str>>,
     pub uses_default_audio: bool,
     pub uses_fixed_card_cursor: bool,
     pub use_callback: Option<BattleCallback<(), bool>>,
@@ -59,6 +61,7 @@ impl CardSelectButton {
             animator_index,
             preview_sprite_tree_index,
             preview_animator_index,
+            description: None,
             uses_default_audio: true,
             uses_fixed_card_cursor: false,
             use_callback: None,
