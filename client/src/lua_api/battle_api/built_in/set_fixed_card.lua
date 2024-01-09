@@ -25,6 +25,9 @@ local code_node = button_sprite:create_text_node("CODE", card_properties.code)
 code_node:set_color(Color.new(255, 255, 0))
 code_node:set_offset(4, 16)
 
+-- set description
+button:use_card_description(card_properties)
+
 -- functionality
 local used = false
 

@@ -8,7 +8,7 @@ use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSele
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::ui::{FontStyle, TextStyle};
-use crate::resources::{ResourcePaths, TEXT_DARK_SHADOW_COLOR};
+use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use crate::structures::TreeIndex;
 use framework::prelude::{GameIO, Vec2};
 
@@ -183,6 +183,31 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
 
             let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
             button.description = description.map(|s| s.into());
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "use_card_description",
+        move |api_ctx, lua, params| {
+            let (table, card_props): (rollback_mlua::Table, CardProperties) =
+                lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+
+            let game_io = api_ctx.game_io;
+            let globals = game_io.resource::<Globals>().unwrap();
+            let packages = &globals.card_packages;
+
+            let namespace = card_props.namespace.unwrap_or_default();
+            button.description = packages
+                .package_or_override(namespace, &card_props.package_id)
+                .map(|package| package.description.clone().into());
 
             lua.pack_multi(())
         },
