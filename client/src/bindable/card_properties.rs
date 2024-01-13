@@ -2,7 +2,7 @@ use super::{CardClass, Element, HitFlag, HitFlags};
 use crate::battle::StatusRegistry;
 use crate::bindable::SpriteColorMode;
 use crate::packages::{CardPackage, PackageId, PackageNamespace};
-use crate::render::ui::{ElementSprite, FontStyle, TextStyle};
+use crate::render::ui::{ElementSprite, FontName, TextStyle};
 use crate::render::{SpriteColorQueue, SpriteNode};
 use crate::structures::Tree;
 use framework::prelude::{Color, GameIO, Vec2};
@@ -62,7 +62,7 @@ impl<H> CardProperties<H> {
         scale: Vec2,
         center: bool,
     ) -> TextStyle {
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.monospace = true;
         text_style.bounds.set_position(position);
 
@@ -93,7 +93,7 @@ impl<H> CardProperties<H> {
         // measure text
         let name_width = text_style.measure(name_text).size.x;
 
-        text_style.font_style = FontStyle::Damage;
+        text_style.font = FontName::Damage;
         let damage_width = text_style.measure(&damage_text).size.x;
 
         if center {
@@ -103,12 +103,12 @@ impl<H> CardProperties<H> {
 
         // draw name
         text_style.shadow_color = Color::BLACK;
-        text_style.font_style = FontStyle::Thick;
+        text_style.font = FontName::Thick;
         text_style.draw(game_io, sprite_queue, name_text);
 
         // draw damage
         text_style.shadow_color = Color::TRANSPARENT;
-        text_style.font_style = FontStyle::Damage;
+        text_style.font = FontName::Damage;
         text_style.bounds.x += name_width + text_style.letter_spacing;
         text_style.draw(game_io, sprite_queue, &damage_text);
 
@@ -146,7 +146,7 @@ impl<H> CardProperties<H> {
         sprite_tree.insert_root_child(element_node);
 
         // code
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.letter_spacing = 2.0;
 
         text_style.color = Color::YELLOW;

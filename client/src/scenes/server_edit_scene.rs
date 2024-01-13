@@ -93,13 +93,13 @@ impl ServerEditScene {
             vec![
                 // name input
                 UiLayoutNode::new(
-                    Text::new(game_io, FontStyle::Thick)
+                    Text::new(game_io, FontName::Thick)
                         .with_str("Name")
                         .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                 )
                 .with_style(label_style.clone()),
                 UiLayoutNode::new(
-                    TextInput::new(game_io, FontStyle::Thin)
+                    TextInput::new(game_io, FontName::Thin)
                         .with_str(&server_info.name)
                         .with_character_limit(20)
                         .on_change({
@@ -115,13 +115,13 @@ impl ServerEditScene {
                 .with_style(input_style.clone()),
                 // address input
                 UiLayoutNode::new(
-                    Text::new(game_io, FontStyle::Thick)
+                    Text::new(game_io, FontName::Thick)
                         .with_str("Address")
                         .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                 )
                 .with_style(label_style),
                 UiLayoutNode::new(
-                    TextInput::new(game_io, FontStyle::Thin)
+                    TextInput::new(game_io, FontName::Thin)
                         .with_str(&server_info.address)
                         .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                         .on_change({
@@ -145,7 +145,7 @@ impl ServerEditScene {
                     })
                     .with_children(vec![
                         UiLayoutNode::new(
-                            UiButton::new_text(game_io, FontStyle::Thick, "Save").on_activate({
+                            UiButton::new_text(game_io, FontName::Thick, "Save").on_activate({
                                 let sender = ui_sender.clone();
 
                                 move || sender.send(UiMessage::Save).unwrap()
@@ -154,7 +154,7 @@ impl ServerEditScene {
                         .with_style(button_style.clone())
                         .with_handle(&mut save_handle),
                         UiLayoutNode::new(
-                            UiButton::new_text(game_io, FontStyle::Thick, "Cancel").on_activate({
+                            UiButton::new_text(game_io, FontName::Thick, "Cancel").on_activate({
                                 let sender = ui_sender;
 
                                 move || sender.send(UiMessage::Cancel).unwrap()

@@ -1,10 +1,12 @@
 use crate::bindable::{AuxVariable, MathExpr};
 use crate::lua_api::BattleVmManager;
 use crate::packages::{PackageInfo, PackageNamespace};
+use crate::render::ui::GlyphAtlas;
 use crate::render::Animator;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::scenes::BattleEvent;
 use framework::prelude::{GameIO, Texture};
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -20,6 +22,7 @@ pub struct SharedBattleResources {
     pub alert_animator: RefCell<Animator>,
     pub math_expressions:
         RefCell<HashMap<String, rollback_mlua::Result<MathExpr<f32, AuxVariable>>>>,
+    pub glyph_atlases: RefCell<HashMap<(Cow<'static, str>, Cow<'static, str>), Arc<GlyphAtlas>>>,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
 }
@@ -46,6 +49,7 @@ impl SharedBattleResources {
                 Animator::load_new(assets, ResourcePaths::BATTLE_ALERT_ANIMATION).with_state("UI"),
             ),
             math_expressions: Default::default(),
+            glyph_atlases: Default::default(),
             event_sender,
             event_receiver,
         };

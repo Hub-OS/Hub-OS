@@ -79,7 +79,7 @@ impl DeckEditorScene {
         ui_animator.apply(&mut deck_total_sprite);
 
         // total text
-        let mut deck_total_text = Text::new_monospace(game_io, FontStyle::Code);
+        let mut deck_total_text = Text::new_monospace(game_io, FontName::Code);
         let deck_total_position =
             ui_animator.point("TEXT_START").unwrap_or_default() - ui_animator.origin();
 
@@ -1189,7 +1189,7 @@ impl CardListItem {
 
         const COUNT_OFFSET: Vec2 = Vec2::new(120.0, 3.0);
 
-        let mut label = Text::new(game_io, FontStyle::Thick);
+        let mut label = Text::new(game_io, FontName::Thick);
         label.style.color = color;
 
         label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;

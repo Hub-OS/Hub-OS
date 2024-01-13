@@ -24,7 +24,7 @@ pub struct TextInput {
 }
 
 impl TextInput {
-    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
+    pub fn new(game_io: &GameIO, font: FontName) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
         Self {
@@ -32,7 +32,7 @@ impl TextInput {
             caret_index: 0,
             character_limit: usize::MAX,
             text: String::new(),
-            text_style: TextStyle::new(game_io, font_style),
+            text_style: TextStyle::new(game_io, font),
             active: false,
             init_active: false,
             silent: false,

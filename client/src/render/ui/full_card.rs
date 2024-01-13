@@ -36,7 +36,7 @@ impl FullCard {
         let preview_point = card_animator.point("preview").unwrap_or_default();
 
         // description_style
-        let mut description_style = TextStyle::new(game_io, FontStyle::Thin);
+        let mut description_style = TextStyle::new(game_io, FontName::Thin);
         description_style.line_spacing = 4.0;
         description_style.color = Color::BLACK;
         description_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;

@@ -236,7 +236,7 @@ impl Dock {
             CardClass::Dark => "Dark",
         };
 
-        let mut label = Text::new(game_io, FontStyle::Thick)
+        let mut label = Text::new(game_io, FontName::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_str(label_text);
 

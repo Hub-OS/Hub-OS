@@ -1,4 +1,4 @@
-use super::{ElementSprite, FontStyle, TextStyle, UiNode};
+use super::{ElementSprite, FontName, TextStyle, UiNode};
 use crate::render::ui::PackagePreviewData;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
@@ -173,7 +173,7 @@ impl UiNode for PackageListing {
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.bounds = bounds + Vec2::ONE;
         text_style.draw(game_io, sprite_queue, &self.name);
 

@@ -1,4 +1,4 @@
-use super::{FontStyle, TextStyle, UiNode};
+use super::{FontName, TextStyle, UiNode};
 use crate::render::SpriteColorQueue;
 use crate::resources::*;
 use crate::saves::Config;
@@ -45,7 +45,7 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(bounds.position());
 

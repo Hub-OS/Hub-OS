@@ -449,7 +449,7 @@ impl Scene for ServerListScene {
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
         // render rows
-        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thin)
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thin)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
         const HEIGHT: f32 = 16.0;

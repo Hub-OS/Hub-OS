@@ -198,14 +198,14 @@ impl GameOverlay for MobileOverlay {
 
         #[cfg(debug_assertions)]
         {
-            use crate::render::ui::{FontStyle, TextStyle};
+            use crate::render::ui::{FontName, TextStyle};
 
             let window = game_io.window();
             let scale = window.render_scale();
             let render_offset = window.render_offset();
             let view_size = window.resolution().as_vec2() * scale;
 
-            let mut text_style = TextStyle::new(game_io, FontStyle::Small);
+            let mut text_style = TextStyle::new(game_io, FontName::Small);
             text_style.shadow_color = Color::BLACK;
             text_style.scale *= scale;
 

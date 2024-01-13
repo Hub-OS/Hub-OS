@@ -65,7 +65,7 @@ impl TextboxInterface for TextboxPrompt {
             if !layout.is_focus_locked() {}
         } else {
             let sender = self.text_sender.clone();
-            let mut text_input = TextInput::new(game_io, text_style.font_style)
+            let mut text_input = TextInput::new(game_io, text_style.font.clone())
                 .with_str(&self.initial_text)
                 .with_paged(text_style.bounds.size())
                 .with_color(Color::BLACK)

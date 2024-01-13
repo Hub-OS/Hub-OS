@@ -1,6 +1,6 @@
 use crate::overworld::components::*;
 use crate::overworld::*;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -289,7 +289,7 @@ impl OverworldArea {
         // render the entity's name
         let name = &name_label.0;
 
-        let mut text_style = TextStyle::new(game_io, FontStyle::Micro);
+        let mut text_style = TextStyle::new(game_io, FontName::Micro);
 
         // update bounds
         let text_size = text_style.measure(name).size;

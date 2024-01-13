@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
-    build_9patch, FontStyle, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
+    build_9patch, FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
     SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, UiButton,
     UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
@@ -143,12 +143,12 @@ impl PackageUpdatesScene {
         UiLayout::new_horizontal(
             bounds,
             [
-                UiButton::new_text(game_io, FontStyle::Thick, "View").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "View").on_activate({
                     let sender = event_sender.clone();
 
                     move || sender.send(Event::ViewList).unwrap()
                 }),
-                UiButton::new_text(game_io, FontStyle::Thick, "Update All").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Update All").on_activate({
                     let sender = event_sender.clone();
 
                     move || sender.send(Event::Update).unwrap()

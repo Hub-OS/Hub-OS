@@ -1,6 +1,6 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
-    FontStyle, SceneTitle, ScrollTracker, ScrollableFrame, SubSceneFrame, TextStyle, Textbox,
+    FontName, SceneTitle, ScrollTracker, ScrollableFrame, SubSceneFrame, TextStyle, Textbox,
     TextboxDoorstop, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
@@ -208,7 +208,7 @@ impl Scene for KeyItemsScene {
         self.items_frame.draw(game_io, &mut sprite_queue);
 
         // draw items
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thin);
+        let mut text_style = TextStyle::new(game_io, FontName::Thin);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
         if !self.key_items.is_empty() {

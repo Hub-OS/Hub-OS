@@ -7,7 +7,7 @@ use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN}
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::inherit_metatable;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use crate::structures::TreeIndex;
 use framework::prelude::{GameIO, Vec2};
@@ -116,7 +116,7 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             }
 
             // display card name
-            let mut name_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+            let mut name_style = TextStyle::new_monospace(game_io, FontName::Thick);
             name_style.letter_spacing = 2.0;
             name_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 

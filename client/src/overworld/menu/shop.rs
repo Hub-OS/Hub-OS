@@ -1,7 +1,7 @@
 use super::Menu;
 use crate::overworld::OverworldArea;
 use crate::render::ui::{
-    FontStyle, ScrollTracker, TextStyle, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
+    FontName, ScrollTracker, TextStyle, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
     TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, FrameTime, SpriteColorQueue};
@@ -310,7 +310,7 @@ impl Menu for Shop {
         sprite_queue.draw_sprite(&self.money_sprite);
 
         // draw items
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thin);
+        let mut text_style = TextStyle::new(game_io, FontName::Thin);
         text_style.color = Color::new(0.22, 0.45, 0.55, 1.0);
         text_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 

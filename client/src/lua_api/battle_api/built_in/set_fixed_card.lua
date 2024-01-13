@@ -21,7 +21,8 @@ local button_sprite = button:sprite()
 local icon_node = button_sprite:create_node()
 icon_node:set_texture(icon_texture)
 
-local code_node = button_sprite:create_text_node("CODE", card_properties.code)
+local text_style = TextStyle.new("CODE")
+local code_node = button_sprite:create_text_node(text_style, card_properties.code)
 code_node:set_color(Color.new(255, 255, 0))
 code_node:set_offset(4, 16)
 

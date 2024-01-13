@@ -2,7 +2,7 @@ use super::{BlocksScene, CharacterSelectScene, ManageSwitchDriveScene};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
-    ElementSprite, FontStyle, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
+    ElementSprite, FontName, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
     SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -300,7 +300,7 @@ impl StatusPage {
 
         for (label, prefix, value) in stat_text_associations {
             if let Some(point) = layout_animator.point(label) {
-                let mut text = Text::new(game_io, FontStyle::Thick);
+                let mut text = Text::new(game_io, FontName::Thick);
                 text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
                 text.style.letter_spacing = 2.0;
                 text.style.bounds.set_position(point);
@@ -312,7 +312,7 @@ impl StatusPage {
         }
 
         if let Some(point) = layout_animator.point("POWER_CHARGE_TEXT") {
-            let mut text = Text::new(game_io, FontStyle::Thick);
+            let mut text = Text::new(game_io, FontName::Thick);
             text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
             text.style.letter_spacing = 2.0;
             text.style.bounds.set_position(point);
@@ -331,7 +331,7 @@ impl StatusPage {
                 .with_focus(false)
                 .with_children(vec![
                     Box::new(
-                        Text::new_monospace(game_io, FontStyle::Thin)
+                        Text::new_monospace(game_io, FontName::Thin)
                             .with_string(format!(
                                 "MegaLim {:>2}",
                                 data.deck_restrictions.mega_limit
@@ -339,7 +339,7 @@ impl StatusPage {
                             .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                     ),
                     Box::new(
-                        Text::new_monospace(game_io, FontStyle::Thin)
+                        Text::new_monospace(game_io, FontName::Thin)
                             .with_string(format!(
                                 "GigaLim {:>2}",
                                 data.deck_restrictions.giga_limit
@@ -363,7 +363,7 @@ impl StatusPage {
                         .iter()
                         .map(|name| -> Box<dyn UiNode> {
                             Box::new(
-                                Text::new(game_io, FontStyle::Thin)
+                                Text::new(game_io, FontName::Thin)
                                     .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                                     .with_str(name),
                             )

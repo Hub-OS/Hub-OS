@@ -2,7 +2,7 @@ use super::Menu;
 use crate::overworld::OverworldArea;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, ElementSprite, FontStyle, NinePatch, PlayerHealthUi, SceneTitle, ScrollTracker,
+    build_9patch, ElementSprite, FontName, NinePatch, PlayerHealthUi, SceneTitle, ScrollTracker,
     SubSceneFrame, Text, TextStyle, Textbox, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, SpriteColorQueue};
@@ -86,7 +86,7 @@ impl ItemsMenu {
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 8);
-        let button_height = TextStyle::new(game_io, FontStyle::Thick).line_height()
+        let button_height = TextStyle::new(game_io, FontName::Thick).line_height()
             + button_nine_patch.top_height()
             + button_nine_patch.bottom_height();
         scroll_tracker.define_cursor(cursor_start, button_height);
@@ -97,7 +97,7 @@ impl ItemsMenu {
         background_sprites.push(description_bg_sprite);
 
         // description text
-        let mut description_text = Text::new(game_io, FontStyle::Thin);
+        let mut description_text = Text::new(game_io, FontName::Thin);
         description_text.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
         description_text.style.bounds = Rect::from_corners(description_start, description_end);
         description_text.text = String::from("You have no items.");
@@ -272,7 +272,7 @@ impl Menu for ItemsMenu {
             .take(range.end - range.start);
 
         let mut text_style =
-            TextStyle::new(game_io, FontStyle::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
+            TextStyle::new(game_io, FontName::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
         let mut patch_bounds = Rect::new(
             self.items_start.x,

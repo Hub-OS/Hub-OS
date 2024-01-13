@@ -1,5 +1,5 @@
-use super::FontStyle;
-use super::GlyphMap;
+use super::FontName;
+use super::GlyphAtlas;
 use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
@@ -21,8 +21,8 @@ impl TextMetrics {
 
 #[derive(Clone)]
 pub struct TextStyle {
-    pub glyph_map: Arc<GlyphMap>,
-    pub font_style: FontStyle,
+    pub glyph_atlas: Arc<GlyphAtlas>,
+    pub font: FontName,
     pub min_glyph_width: f32,
     pub letter_spacing: f32,
     pub line_spacing: f32,
@@ -36,12 +36,16 @@ pub struct TextStyle {
 }
 
 impl TextStyle {
-    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
+    pub fn new(game_io: &GameIO, font: FontName) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
+        Self::new_with_atlas(globals.glyph_atlas.clone(), font)
+    }
+
+    pub fn new_with_atlas(glyph_atlas: Arc<GlyphAtlas>, font: FontName) -> Self {
         Self {
-            glyph_map: globals.glyph_map.clone(),
-            font_style,
+            glyph_atlas,
+            font,
             min_glyph_width: 0.0,
             letter_spacing: 1.0,
             line_spacing: 1.0,
@@ -53,8 +57,8 @@ impl TextStyle {
         }
     }
 
-    pub fn new_monospace(game_io: &GameIO, font_style: FontStyle) -> Self {
-        let mut style = Self::new(game_io, font_style);
+    pub fn new_monospace(game_io: &GameIO, font: FontName) -> Self {
+        let mut style = Self::new(game_io, font);
         style.monospace = true;
 
         style
@@ -86,7 +90,7 @@ impl TextStyle {
     }
 
     pub fn line_height(&self) -> f32 {
-        let whitespace_size = self.glyph_map.resolve_whitespace_size(self.font_style);
+        let whitespace_size = self.glyph_atlas.resolve_whitespace_size(&self.font);
         whitespace_size.y * self.scale.y + self.line_spacing
     }
 
@@ -107,8 +111,7 @@ impl TextStyle {
     ) {
         let prev_color_mode = sprite_queue.color_mode();
 
-        let globals = game_io.resource::<Globals>().unwrap();
-        let mut sprite = Sprite::new(game_io, globals.font_texture.clone());
+        let mut sprite = Sprite::new(game_io, self.glyph_atlas.texture().clone());
 
         sprite.set_scale(self.scale);
 
@@ -258,7 +261,7 @@ impl TextStyle {
     }
 
     fn measure_word(&self, word: &str) -> f32 {
-        let whitespace_size = self.glyph_map.resolve_whitespace_size(self.font_style);
+        let whitespace_size = self.glyph_atlas.resolve_whitespace_size(&self.font);
 
         match word {
             " " => whitespace_size.x,
@@ -278,8 +281,8 @@ impl TextStyle {
     }
 
     pub fn supports_character(&self, character: &str) -> bool {
-        self.glyph_map
-            .character_frame(self.font_style, character)
+        self.glyph_atlas
+            .character_frame(&self.font, character)
             .is_some()
             || character == " "
             || character == "\t"
@@ -287,8 +290,8 @@ impl TextStyle {
     }
 
     fn character_frame(&self, character: &str) -> AnimationFrame {
-        self.glyph_map
-            .character_frame(self.font_style, character)
+        self.glyph_atlas
+            .character_frame(&self.font, character)
             .cloned()
             .unwrap_or_default()
     }
@@ -308,7 +311,7 @@ impl<'a> TextInsertTracker<'a> {
         Self {
             x: 0.0,
             y: 0.0,
-            whitespace: style.glyph_map.resolve_whitespace_size(style.font_style),
+            whitespace: style.glyph_atlas.resolve_whitespace_size(&style.font),
             style,
             line_start_index: 0,
             line_ranges: Vec::new(),

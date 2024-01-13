@@ -142,7 +142,7 @@ impl ConfigScene {
             Rect::new(start.x, start.y, f32::INFINITY, f32::INFINITY),
             ConfigCategory::iter()
                 .map(|option| {
-                    UiButton::new_text(game_io, FontStyle::Thick, option.into())
+                    UiButton::new_text(game_io, FontName::Thick, option.into())
                         .on_activate({
                             let event_sender = event_sender.clone();
 
@@ -421,7 +421,7 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
                     let config = config.clone();
 
                     move || {
@@ -478,7 +478,7 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, "Reset Binds").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
                     let config = config.clone();
 
                     move || {
@@ -515,7 +515,7 @@ impl ConfigScene {
             let event_sender = event_sender.clone();
 
             Box::new(
-                UiButton::new_text(game_io, FontStyle::Thick, name).on_activate(move || {
+                UiButton::new_text(game_io, FontName::Thick, name).on_activate(move || {
                     let _ = event_sender.send(event.clone());
                 }),
             )

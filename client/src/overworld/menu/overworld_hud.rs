@@ -1,5 +1,5 @@
 use crate::overworld::{Map, OverworldArea};
-use crate::render::ui::{draw_clock, FontStyle, PlayerHealthUi, Text};
+use crate::render::ui::{draw_clock, FontName, PlayerHealthUi, Text};
 use crate::render::SpriteColorQueue;
 use crate::resources::{RESOLUTION_F, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
@@ -54,7 +54,7 @@ const TEXT_SHADOW_COLOR: Color = Color::new(0.41, 0.41, 0.41, 1.0);
 fn draw_map_name(game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, map: &Map) {
     const MARGIN: Vec2 = Vec2::new(1.0, 3.0);
 
-    let mut label = Text::new(game_io, FontStyle::Thick);
+    let mut label = Text::new(game_io, FontName::Thick);
     label.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
     label.text = format!("{:_>12}", map.name());
 

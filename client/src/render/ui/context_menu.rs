@@ -67,7 +67,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         let ui_layout = UiLayout::new_vertical(
             bounds,
             vec![
-                UiLayoutNode::new(Text::new(game_io, FontStyle::Context).with_str(label))
+                UiLayoutNode::new(Text::new(game_io, FontName::Context).with_str(label))
                     .with_style(label_style),
                 UiLayoutNode::new_container()
                     .with_handle(&mut body_index)
@@ -142,7 +142,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
 
                 UiLayoutNode::new(
                     UiButton::new(
-                        Text::new(game_io, FontStyle::Thin)
+                        Text::new(game_io, FontName::Thin)
                             .with_str(label)
                             .with_shadow_color(CONTEXT_TEXT_SHADOW_COLOR),
                     )

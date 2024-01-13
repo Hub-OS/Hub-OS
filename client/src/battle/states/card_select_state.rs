@@ -313,7 +313,7 @@ impl State for CardSelectState {
             if (wait_time / 30) % 2 == 0 {
                 const TEXT: &str = "Waiting...";
 
-                let mut style = TextStyle::new(game_io, FontStyle::Thick);
+                let mut style = TextStyle::new(game_io, FontName::Thick);
                 style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
                 let metrics = style.measure(TEXT);

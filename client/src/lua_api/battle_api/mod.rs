@@ -40,6 +40,7 @@ pub const GLOBAL_TABLE: &str = "_G";
 pub const RESOURCES_TABLE: &str = "Resources";
 pub const TURN_GAUGE_TABLE: &str = "TurnGauge";
 pub const SPRITE_TABLE: &str = "SpriteNode";
+pub const TEXT_STYLE_TABLE: &str = "TextStyle";
 pub const SYNC_NODE_TABLE: &str = "SyncNode";
 pub const ANIMATION_TABLE: &str = "Animation";
 pub const BATTLE_TABLE: &str = "Battle";

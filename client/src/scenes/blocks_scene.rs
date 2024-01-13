@@ -2,7 +2,7 @@ use crate::bindable::{BlockColor, SpriteColorMode};
 use crate::ease::inverse_lerp;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    BlockPreview, ContextMenu, FontStyle, GridArrow, GridArrowStatus, GridCursor, SceneTitle,
+    BlockPreview, ContextMenu, FontName, GridArrow, GridArrowStatus, GridCursor, SceneTitle,
     ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxMessage, TextboxQuestion,
     UiInputTracker,
 };
@@ -151,7 +151,7 @@ impl BlocksScene {
             animator.point("TEXT_START").unwrap_or_default(),
             animator.point("TEXT_END").unwrap_or_default(),
         ) - animator.origin();
-        let information_text = Text::new(game_io, FontStyle::Thin)
+        let information_text = Text::new(game_io, FontName::Thin)
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
@@ -939,7 +939,7 @@ impl Scene for BlocksScene {
             self.animator.point("TEXT_START").unwrap_or_default(),
             self.animator.point("TEXT_END").unwrap_or_default(),
         );
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick)
+        let mut text_style = TextStyle::new(game_io, FontName::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(text_bounds);
 

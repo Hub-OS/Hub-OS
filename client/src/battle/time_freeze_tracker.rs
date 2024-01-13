@@ -4,7 +4,7 @@ use super::{
 };
 use crate::bindable::{CardProperties, EntityId, Team};
 use crate::ease::inverse_lerp;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
 use crate::structures::GenerationalIndex;
@@ -600,7 +600,7 @@ impl TimeFreezeTracker {
 
         // drawing bar
         if self.can_processing_action_counter() {
-            let text_style = TextStyle::new(game_io, FontStyle::Thick);
+            let text_style = TextStyle::new(game_io, FontName::Thick);
             position.x -= BAR_WIDTH * 0.5;
             position.y += text_style.line_height() + text_style.line_spacing;
 

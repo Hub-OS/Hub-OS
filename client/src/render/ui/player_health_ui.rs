@@ -1,4 +1,4 @@
-use super::{FontStyle, Text};
+use super::{FontName, Text};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::{GameIO, Rect, Sprite, Vec2};
@@ -29,7 +29,7 @@ impl PlayerHealthUi {
             current_health: 0,
             target_health: 0,
             style_change_cooldown: 0,
-            text: Text::new_monospace(game_io, FontStyle::PlayerHp),
+            text: Text::new_monospace(game_io, FontName::PlayerHp),
             text_offset,
             frame_sprite: assets.new_sprite(game_io, ResourcePaths::HEALTH_FRAME),
         };
@@ -86,9 +86,9 @@ impl PlayerHealthUi {
         }
 
         if self.is_low_hp() {
-            self.text.style.font_style = FontStyle::PlayerHpOrange;
+            self.text.style.font = FontName::PlayerHpOrange;
         } else if self.style_change_cooldown == 0 {
-            self.text.style.font_style = FontStyle::PlayerHp;
+            self.text.style.font = FontName::PlayerHp;
         }
 
         if self.current_health == self.target_health {
@@ -108,9 +108,9 @@ impl PlayerHealthUi {
 
         if diff < 0 {
             self.style_change_cooldown = 15; // quarter of a second
-            self.text.style.font_style = FontStyle::PlayerHpOrange;
+            self.text.style.font = FontName::PlayerHpOrange;
         } else {
-            self.text.style.font_style = FontStyle::PlayerHpGreen;
+            self.text.style.font = FontName::PlayerHpGreen;
         }
 
         self.text.text = format!("{:>4}", self.current_health);

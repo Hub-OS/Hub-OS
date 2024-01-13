@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
-    ElementSprite, FontStyle, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
+    ElementSprite, FontName, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
     Textbox, TextboxMessage, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -352,7 +352,7 @@ impl Scene for CharacterSelectScene {
         sprite_queue.draw_sprite(&self.cursor_sprite);
 
         // draw name
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(self.name_position);
 

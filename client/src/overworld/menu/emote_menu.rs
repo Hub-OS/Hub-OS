@@ -1,7 +1,7 @@
 use super::Menu;
 use crate::overworld::{idle_str, run_str, walk_str, OverworldArea, OverworldEvent};
 use crate::render::ui::{
-    build_9patch, FontStyle, NinePatch, ScrollTracker, TextInput, TextStyle, Textbox,
+    build_9patch, FontName, NinePatch, ScrollTracker, TextInput, TextStyle, Textbox,
     UiInputTracker, UiLayout, UiLayoutNode, UiStyle,
 };
 use crate::render::{Animator, SpriteColorQueue};
@@ -106,7 +106,7 @@ impl EmoteMenu {
         self.search_layout = Some(UiLayout::new_horizontal(
             self.search_box_bounds,
             vec![UiLayoutNode::new(
-                TextInput::new(game_io, FontStyle::ThinSmall)
+                TextInput::new(game_io, FontName::ThinSmall)
                     .with_color(Color::WHITE)
                     .with_silent(true)
                     .with_active(true)
@@ -300,7 +300,7 @@ impl Menu for EmoteMenu {
 
             let text_bounds = self.search_box_9patch.body_bounds(self.search_box_bounds);
 
-            TextStyle::new(game_io, FontStyle::ThinSmall)
+            TextStyle::new(game_io, FontName::ThinSmall)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                 .with_bounds(text_bounds)
                 .draw(game_io, sprite_queue, selection_name);

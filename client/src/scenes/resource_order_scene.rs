@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{Package, PackageNamespace, ResourcePackage};
 use crate::render::ui::{
-    ContextMenu, FontStyle, OptionTip, PackageListing, SceneTitle, ScrollTracker, ScrollableFrame,
+    ContextMenu, FontName, OptionTip, PackageListing, SceneTitle, ScrollTracker, ScrollableFrame,
     SubSceneFrame, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
@@ -325,7 +325,7 @@ impl Scene for ResourceOrderScene {
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
         // draw items
-        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
         let start_position = self.list_bounds.top_left();

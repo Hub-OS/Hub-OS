@@ -1,7 +1,7 @@
 use super::*;
 use crate::bindable::*;
 use crate::packages::CardPackage;
-use crate::render::ui::{FontStyle, PlayerHealthUi, Text};
+use crate::render::ui::{FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleEvent;
@@ -753,7 +753,7 @@ impl BattleSimulation {
 
         // draw hp on living entities
         if self.intro_complete {
-            let mut hp_text = Text::new(game_io, FontStyle::EntityHP);
+            let mut hp_text = Text::new(game_io, FontName::EntityHP);
             hp_text.style.letter_spacing = 0.0;
             let tile_size = self.field.tile_size();
 
@@ -796,7 +796,7 @@ impl BattleSimulation {
 
         // draw player indices
         if draw_player_indices {
-            let mut index_text = Text::new(game_io, FontStyle::Code);
+            let mut index_text = Text::new(game_io, FontName::Code);
             index_text.style.color = Color::GREEN;
             index_text.style.shadow_color = Color::BLACK;
 

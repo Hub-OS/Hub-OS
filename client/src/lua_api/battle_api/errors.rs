@@ -32,8 +32,8 @@ pub fn sprite_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("sprite deleted"))
 }
 
-pub fn invalid_font_name() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("invalid font name"))
+pub fn invalid_font_name(font_name: &str) -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(format!("no font named {font_name:?}"))
 }
 
 pub fn invalid_sync_node() -> rollback_mlua::Error {

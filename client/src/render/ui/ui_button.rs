@@ -11,9 +11,9 @@ pub struct UiButton<'a, T> {
 }
 
 impl<'a> UiButton<'a, Text> {
-    pub fn new_text(game_io: &GameIO, font_style: FontStyle, text: &str) -> Self {
+    pub fn new_text(game_io: &GameIO, font: FontName, text: &str) -> Self {
         Self::new(
-            Text::new(game_io, font_style)
+            Text::new(game_io, font)
                 .with_str(text)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
         )

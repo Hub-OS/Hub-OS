@@ -4,7 +4,7 @@ use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
 use crate::lua_api::{
     create_entity_table, BLOCK_FN, DEFENSE_JUDGE_TABLE, FILTER_STATUSES_FN, REPLACE_FN,
 };
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
 use crate::resources::{Globals, RESOLUTION_F};
 use framework::prelude::{Color, GameIO};
@@ -162,7 +162,7 @@ impl DefenseRule {
         sprite_queue: &mut SpriteColorQueue,
     ) {
         // draw ???? to indicate a trap exists for each side with a trap
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = Color::BLACK;
 
         let health_bounds = simulation.local_health_ui.bounds();

@@ -242,13 +242,13 @@ impl Menu for Bbs {
         self.unread_animator.apply(&mut self.unread_sprite);
 
         // draw topic
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.bounds.set_position(Vec2::new(8.0, 3.0));
         text_style.shadow_color = Color::lerp(Color::BLACK, self.color, 0.7);
         text_style.draw(game_io, sprite_queue, &self.topic);
 
         // draw posts
-        text_style.font_style = FontStyle::Thin;
+        text_style.font = FontName::Thin;
         text_style.monospace = true;
         text_style.color = Color::from((74, 65, 74));
         text_style.shadow_color = Color::from((0, 0, 0, 25));

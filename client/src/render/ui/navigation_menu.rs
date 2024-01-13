@@ -5,7 +5,7 @@ use crate::resources::*;
 use crate::scenes::*;
 use framework::prelude::*;
 
-use super::{FontStyle, TextStyle};
+use super::{FontName, TextStyle};
 
 #[derive(Clone, Copy)]
 pub enum SceneOption {
@@ -343,7 +343,7 @@ impl NavigationMenu {
             draw_clock(game_io, sprite_queue);
 
             if self.overlay {
-                let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thin);
+                let mut text_style = TextStyle::new_monospace(game_io, FontName::Thin);
 
                 text_style.bounds.set_position(self.hp_point);
                 text_style.draw(game_io, sprite_queue, &self.hp_text);

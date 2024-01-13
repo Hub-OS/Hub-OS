@@ -1,4 +1,4 @@
-use super::{build_9patch, FontStyle, NinePatch, TextStyle};
+use super::{build_9patch, FontName, NinePatch, TextStyle};
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::{GameIO, Rect, Sprite, Vec2};
@@ -100,7 +100,7 @@ impl ScrollableFrame {
 
             let label_position = self.label_sprite.position() + self.label_text_offset;
 
-            let mut text_style = TextStyle::new(game_io, FontStyle::Micro);
+            let mut text_style = TextStyle::new(game_io, FontName::Micro);
             text_style.bounds.set_position(label_position);
             text_style.draw(game_io, sprite_queue, text);
         }

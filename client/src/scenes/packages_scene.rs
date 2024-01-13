@@ -2,7 +2,7 @@ use super::PackageScene;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, FontStyle, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
+    build_9patch, FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
     SubSceneFrame, Textbox, TextboxMessage, TextboxPrompt, UiButton, UiInputTracker, UiLayout,
     UiLayoutNode, UiNode, UiStyle,
 };
@@ -183,7 +183,7 @@ impl PackagesScene {
         };
 
         let category_buttons = CategoryFilter::iter().map(|category_filter| {
-            UiButton::new_text(game_io, FontStyle::Thick, category_filter.name()).on_activate({
+            UiButton::new_text(game_io, FontName::Thick, category_filter.name()).on_activate({
                 let event_sender = event_sender.clone();
 
                 move || {
@@ -197,7 +197,7 @@ impl PackagesScene {
         UiLayout::new_vertical(
             sidebar_bounds,
             std::iter::once(
-                UiButton::new_text(game_io, FontStyle::Thick, "Search").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Search").on_activate({
                     let event_sender = event_sender.clone();
 
                     move || {

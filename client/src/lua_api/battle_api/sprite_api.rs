@@ -1,11 +1,14 @@
 use super::errors::{invalid_font_name, sprite_not_found};
 use super::{BattleLuaApi, SPRITE_TABLE};
+use crate::battle::SharedBattleResources;
 use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, GlyphAtlas, TextStyle};
 use crate::render::{SpriteNode, SpriteShaderEffect};
+use crate::resources::Globals;
 use crate::structures::TreeIndex;
-use framework::prelude::Vec2;
+use framework::prelude::{GameIO, Vec2};
+use std::sync::Arc;
 
 pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(SPRITE_TABLE, "create_node", |api_ctx, lua, params| {
@@ -35,30 +38,28 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(SPRITE_TABLE, "create_text_node", |api_ctx, lua, params| {
-        let (table, font_name, text): (
+        let (table, text_style_table, text): (
             rollback_mlua::Table,
-            rollback_mlua::String,
+            rollback_mlua::Table,
             rollback_mlua::String,
         ) = lua.unpack_multi(params)?;
 
-        let Some(font_style) = FontStyle::from_name(font_name.to_str()?) else {
-            return Err(invalid_font_name());
-        };
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+
+        let text_style = parse_text_style(game_io, resources, text_style_table)?;
         let text = &*text.to_string_lossy();
 
         let slot_index: GenerationalIndex = table.raw_get("#tree")?;
         let sprite_index: TreeIndex = table.raw_get("#sprite")?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let game_io = api_ctx.game_io;
-        let simulation = &mut api_ctx.simulation;
 
         let sprite_tree = simulation
             .sprite_trees
             .get_mut(slot_index)
             .ok_or_else(sprite_not_found)?;
 
-        let text_style = TextStyle::new(game_io, font_style);
         let child_index = sprite_tree
             .insert_text_child(game_io, sprite_index, &text_style, text)
             .ok_or_else(sprite_not_found)?;
@@ -343,6 +344,63 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+}
+
+fn parse_text_style(
+    game_io: &GameIO,
+    resources: &SharedBattleResources,
+    table: rollback_mlua::Table,
+) -> rollback_mlua::Result<TextStyle> {
+    let font_name: rollback_mlua::String = table.get("font")?;
+    let font_name = font_name.to_str()?;
+    let font = FontName::from_name(font_name);
+
+    let texture_path = table.get::<_, Option<rollback_mlua::String>>("texture_path")?;
+    let animation_path = table.get::<_, Option<rollback_mlua::String>>("animation_path")?;
+
+    let text_style =
+        if let (Some(texture_path), Some(animation_path)) = (texture_path, animation_path) {
+            // find or create glyph map
+            let texture_path = texture_path.to_str()?;
+            let animation_path = animation_path.to_str()?;
+
+            let mut glyph_atlases = resources.glyph_atlases.borrow_mut();
+
+            let glyph_atlas = glyph_atlases
+                .get(&(texture_path.into(), animation_path.into()))
+                .cloned()
+                .unwrap_or_else(|| {
+                    // create a new glyph map
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let assets = &globals.assets;
+
+                    let glyph_atlas = Arc::new(GlyphAtlas::new(
+                        game_io,
+                        assets,
+                        texture_path,
+                        animation_path,
+                    ));
+
+                    let key = (
+                        texture_path.to_string().into(),
+                        animation_path.to_string().into(),
+                    );
+                    glyph_atlases.insert(key, glyph_atlas.clone());
+
+                    glyph_atlas
+                });
+
+            TextStyle::new_with_atlas(glyph_atlas, font)
+        } else {
+            TextStyle::new(game_io, font)
+        };
+
+    // make sure the font name exists in the glyph map to reduce confusion
+    if !text_style.glyph_atlas.contains_font(&text_style.font) {
+        return Err(invalid_font_name(font_name));
+    }
+
+    Ok(text_style)
 }
 
 pub fn create_sprite_table(

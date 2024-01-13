@@ -1,4 +1,4 @@
-use super::{BlockPreview, ElementSprite, FontStyle, Text};
+use super::{BlockPreview, ElementSprite, FontName, Text};
 use crate::bindable::Element;
 use crate::render::ui::PackageListing;
 use crate::render::{Animator, SpriteColorQueue};
@@ -199,7 +199,7 @@ impl PackagePreview {
                 }
 
                 // damage
-                let mut text = Text::new(game_io, FontStyle::Thick);
+                let mut text = Text::new(game_io, FontName::Thick);
                 text.text = format!("{damage}");
 
                 let text_anchor = animator.point("DAMAGE_END").unwrap_or_default();
@@ -231,7 +231,7 @@ impl PackagePreview {
                 self.sprites.push(health_sprite);
 
                 // health
-                let mut text = Text::new(game_io, FontStyle::Thick);
+                let mut text = Text::new(game_io, FontName::Thick);
                 text.text = format!("{health}");
 
                 let text_anchor =

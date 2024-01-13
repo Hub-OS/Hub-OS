@@ -1,4 +1,4 @@
-use super::{FontStyle, TextStyle};
+use super::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
 use framework::logging::{LogLevel, LogRecord};
 use framework::prelude::*;
@@ -13,7 +13,7 @@ pub struct LogBox {
 
 impl LogBox {
     pub fn new(game_io: &GameIO, bounds: Rect) -> Self {
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thin);
+        let mut text_style = TextStyle::new(game_io, FontName::Thin);
         text_style.scale = Vec2::new(0.5, 0.5);
 
         Self {

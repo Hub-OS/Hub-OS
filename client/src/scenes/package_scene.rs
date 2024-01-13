@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
-    build_9patch, FontStyle, LengthPercentageAuto, PackageListing, PackagePreview,
+    build_9patch, FontName, LengthPercentageAuto, PackageListing, PackagePreview,
     PackagePreviewData, SceneTitle, ScrollableList, SubSceneFrame, Text, TextStyle, Textbox,
     TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, UiButton, UiInputTracker, UiLayout,
     UiLayoutNode, UiNode, UiStyle,
@@ -101,7 +101,7 @@ impl PackageScene {
         listing: &PackageListing,
         author: String,
     ) -> Vec<Box<dyn UiNode>> {
-        let mut style = TextStyle::new(game_io, FontStyle::Thin);
+        let mut style = TextStyle::new(game_io, FontName::Thin);
         style.bounds = list.list_bounds();
 
         let push_text = |children: &mut Vec<Box<dyn UiNode + 'static>>, text: &str| {
@@ -109,7 +109,7 @@ impl PackageScene {
 
             for range in ranges {
                 children.push(Box::new(
-                    Text::new(game_io, FontStyle::Thin).with_str(&text[range]),
+                    Text::new(game_io, FontName::Thin).with_str(&text[range]),
                 ));
             }
         };
@@ -158,12 +158,12 @@ impl PackageScene {
 
         let buttons = if installed {
             vec![
-                UiButton::new_text(game_io, FontStyle::Thick, "Update").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Update").on_activate({
                     let sender = event_sender.clone();
 
                     move || sender.send(Event::StartDownload).unwrap()
                 }),
-                UiButton::new_text(game_io, FontStyle::Thick, "Delete").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Delete").on_activate({
                     let sender = event_sender.clone();
 
                     move || sender.send(Event::Delete).unwrap()
@@ -171,7 +171,7 @@ impl PackageScene {
             ]
         } else {
             vec![
-                UiButton::new_text(game_io, FontStyle::Thick, "Install").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Install").on_activate({
                     let sender = event_sender.clone();
 
                     move || sender.send(Event::StartDownload).unwrap()

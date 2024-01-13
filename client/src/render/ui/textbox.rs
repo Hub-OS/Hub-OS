@@ -1,4 +1,4 @@
-use super::{FontStyle, TextStyle};
+use super::{FontName, TextStyle};
 use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
@@ -110,7 +110,7 @@ impl Textbox {
             text_index: 0,
             char_time: 0,
             text_offset: text_bounds.position(),
-            text_style: TextStyle::new(game_io, FontStyle::Thin)
+            text_style: TextStyle::new(game_io, FontName::Thin)
                 .with_bounds(text_bounds)
                 .with_color(Color::BLACK)
                 .with_min_glyph_width(6.0)

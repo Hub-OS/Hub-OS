@@ -9,15 +9,15 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(game_io: &GameIO, font_style: FontStyle) -> Self {
+    pub fn new(game_io: &GameIO, font: FontName) -> Self {
         Self {
             text: String::new(),
-            style: TextStyle::new(game_io, font_style),
+            style: TextStyle::new(game_io, font),
         }
     }
 
-    pub fn new_monospace(game_io: &GameIO, font_style: FontStyle) -> Self {
-        let mut text = Self::new(game_io, font_style);
+    pub fn new_monospace(game_io: &GameIO, font: FontName) -> Self {
+        let mut text = Self::new(game_io, font);
         text.style.monospace = true;
 
         text

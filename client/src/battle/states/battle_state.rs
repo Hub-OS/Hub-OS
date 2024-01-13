@@ -2,7 +2,7 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -116,7 +116,7 @@ impl State for BattleState {
         if let Some((text, start_time)) = self.message {
             const MESSAGE_INTRO_TIME: FrameTime = 10;
 
-            let mut style = TextStyle::new(game_io, FontStyle::Battle);
+            let mut style = TextStyle::new(game_io, FontName::Battle);
             style.letter_spacing = 0.0;
             style.scale.y = inverse_lerp!(0, MESSAGE_INTRO_TIME, simulation.time - start_time);
 

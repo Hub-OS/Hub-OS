@@ -1,4 +1,4 @@
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::*;
 use crate::resources::TEXT_DARK_SHADOW_COLOR;
 use framework::prelude::*;
@@ -19,7 +19,7 @@ impl OptionTip {
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         const LABEL: &str = "OPTION:";
 
-        let mut text_style = TextStyle::new(game_io, FontStyle::Context);
+        let mut text_style = TextStyle::new(game_io, FontName::Context);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(self.top_right);
 

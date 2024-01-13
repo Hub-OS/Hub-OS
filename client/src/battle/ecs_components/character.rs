@@ -5,7 +5,7 @@ use crate::battle::{
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::RESOLUTION_F;
 use framework::prelude::{Color, GameIO, Vec2};
@@ -351,7 +351,7 @@ impl Character {
         // render on the bottom left
         const MARGIN: Vec2 = Vec2::new(1.0, -1.0);
 
-        let line_height = TextStyle::new(game_io, FontStyle::Thick).line_height();
+        let line_height = TextStyle::new(game_io, FontName::Thick).line_height();
         let position = Vec2::new(0.0, RESOLUTION_F.y - line_height) + MARGIN;
 
         // apply aux damage
@@ -369,7 +369,7 @@ impl Character {
             let multiplier_string = format!("\u{00D7}{card_multiplier}");
 
             text_style.shadow_color = Color::BLACK;
-            text_style.font_style = FontStyle::Thick;
+            text_style.font = FontName::Thick;
             text_style.draw(game_io, sprite_queue, &multiplier_string);
         }
 

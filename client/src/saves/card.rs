@@ -27,7 +27,7 @@ impl Card {
             .map(|package| package.card_properties.short_name.as_ref())
             .unwrap_or("?????");
 
-        let mut text_style = TextStyle::new_monospace(game_io, FontStyle::Thick);
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick);
         text_style.letter_spacing = 2.0;
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(position);
@@ -102,7 +102,7 @@ impl Card {
         sprite_queue.draw_sprite(&element_sprite);
 
         // code
-        let mut label = TextStyle::new(game_io, FontStyle::Thick);
+        let mut label = TextStyle::new(game_io, FontName::Thick);
         label.letter_spacing = 2.0;
         label.scale = scale;
         label.bounds.set_position(CODE_OFFSET * scale + position);
@@ -170,7 +170,7 @@ impl Card {
         sprite_queue.draw_sprite(&sprite);
 
         // text style
-        let mut label = TextStyle::new_monospace(game_io, FontStyle::Thick);
+        let mut label = TextStyle::new_monospace(game_io, FontName::Thick);
         label.shadow_color = TEXT_DARK_SHADOW_COLOR;
         label.color = color;
 
@@ -189,7 +189,7 @@ impl Card {
         label.draw(game_io, sprite_queue, &self.code);
 
         // limit
-        label.font_style = FontStyle::Code;
+        label.font = FontName::Code;
         label.bounds.set_position(LIMIT_OFFSET + position);
         let text = format!("{limit:>2}");
         label.color = Color::from((247, 214, 99, 255));

@@ -1,6 +1,6 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
-use crate::render::ui::{FontStyle, LogBox, Text};
+use crate::render::ui::{FontName, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
 use framework::logging::{LogLevel, LogRecord};
@@ -56,7 +56,7 @@ impl BootScene {
         animator.apply(&mut progress_bar_sprite);
 
         // status text
-        let mut status_label = Text::new(game_io, FontStyle::Code);
+        let mut status_label = Text::new(game_io, FontName::Code);
         status_label.style.color = Color::WHITE;
         status_label.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 

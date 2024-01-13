@@ -1,7 +1,7 @@
 use super::{BattleState, State};
 use crate::battle::{BattleSimulation, SharedBattleResources};
 use crate::ease::inverse_lerp;
-use crate::render::ui::{FontStyle, TextStyle};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::RESOLUTION_F;
 use framework::prelude::GameIO;
@@ -131,7 +131,7 @@ impl State for TurnStartState {
         simulation.turn_gauge.draw(sprite_queue);
 
         // text
-        let mut style = TextStyle::new(game_io, FontStyle::Battle);
+        let mut style = TextStyle::new(game_io, FontName::Battle);
         style.letter_spacing = 0.0;
         style.scale.y = self.resolve_message_scale(simulation);
 

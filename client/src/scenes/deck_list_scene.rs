@@ -235,7 +235,7 @@ impl Scene for DeckListScene {
         const LABEL_OFFSET: Vec2 = Vec2::new(4.0, 11.0);
 
         let mut label =
-            TextStyle::new(game_io, FontStyle::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
+            TextStyle::new(game_io, FontName::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
         let selection_multiplier = self.deck_sprite.size().x + 1.0;
 

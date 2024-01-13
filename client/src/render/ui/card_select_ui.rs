@@ -1,4 +1,4 @@
-use super::{FontStyle, TextStyle};
+use super::{FontName, TextStyle};
 use crate::battle::{BattleSimulation, CardSelectRestriction, Character, Entity, Player};
 use crate::bindable::{CardClass, SpriteColorMode};
 use crate::packages::CardPackage;
@@ -254,7 +254,7 @@ impl CardSelectUi {
         self.animator.set_state("NAME_PLATE_EDGE");
         self.animator.apply(edge_sprite);
 
-        let mut style = TextStyle::new(game_io, FontStyle::Thick);
+        let mut style = TextStyle::new(game_io, FontName::Thick);
         let mut y = 3.0;
 
         // draw names
@@ -381,7 +381,7 @@ impl CardSelectUi {
         const CODE_HORIZONTAL_OFFSET: f32 = 4.0;
         const CODE_VERTICAL_OFFSET: f32 = 16.0;
 
-        let mut code_style = TextStyle::new(game_io, FontStyle::Code);
+        let mut code_style = TextStyle::new(game_io, FontName::Code);
         code_style.color = Color::YELLOW;
 
         for (_, card, position) in self.card_icon_render_iter(player) {

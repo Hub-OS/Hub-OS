@@ -241,7 +241,7 @@ impl Tree<SpriteNode> {
         text_node.set_color(text_style.color);
         let text_node_index = self.insert_child(parent, text_node)?;
 
-        let globals = game_io.resource::<Globals>().unwrap();
+        let atlas_texture = text_style.glyph_atlas.texture();
 
         // add shadow
         if text_style.shadow_color.a > 0.0 {
@@ -250,7 +250,7 @@ impl Tree<SpriteNode> {
                 char_node.set_color(text_style.shadow_color);
                 char_node.set_layer(1);
 
-                char_node.set_texture_direct(globals.font_texture.clone());
+                char_node.set_texture_direct(atlas_texture.clone());
                 frame.apply(&mut char_node.sprite);
                 char_node.set_offset(offset + text_style.scale);
 
@@ -263,7 +263,7 @@ impl Tree<SpriteNode> {
             let mut char_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
             char_node.set_using_parent_shader(true);
 
-            char_node.set_texture_direct(globals.font_texture.clone());
+            char_node.set_texture_direct(atlas_texture.clone());
             frame.apply(&mut char_node.sprite);
             char_node.set_offset(offset);
 

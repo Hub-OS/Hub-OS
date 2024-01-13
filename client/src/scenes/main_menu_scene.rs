@@ -1,6 +1,6 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{FontStyle, NavigationMenu, SceneOption, TextStyle};
+use crate::render::ui::{FontName, NavigationMenu, SceneOption, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -93,7 +93,7 @@ impl MainMenuScene {
         let scrolling_text_point = layout_animator.point("SCROLLING_TEXT").unwrap_or_default();
 
         // scrolling text
-        let mut scrolling_text_style = TextStyle::new(game_io, FontStyle::Context);
+        let mut scrolling_text_style = TextStyle::new(game_io, FontName::Context);
         scrolling_text_style.bounds.y = scrolling_text_point.y;
 
         // character data

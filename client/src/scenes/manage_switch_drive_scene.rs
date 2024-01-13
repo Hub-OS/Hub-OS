@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    FontStyle, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxQuestion,
+    FontName, SceneTitle, ScrollTracker, SubSceneFrame, Text, TextStyle, Textbox, TextboxQuestion,
     UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
@@ -98,7 +98,7 @@ impl ManageSwitchDriveScene {
             animator.point("HEAD_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut head_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
+        let mut head_text = Text::new_monospace(game_io, FontName::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(head_text_bounds);
 
@@ -107,7 +107,7 @@ impl ManageSwitchDriveScene {
             animator.point("BODY_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut body_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
+        let mut body_text = Text::new_monospace(game_io, FontName::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(body_text_bounds);
 
@@ -116,7 +116,7 @@ impl ManageSwitchDriveScene {
             animator.point("ARM_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut arm_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
+        let mut arm_text = Text::new_monospace(game_io, FontName::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(arm_text_bounds);
 
@@ -125,7 +125,7 @@ impl ManageSwitchDriveScene {
             animator.point("LEG_DRIVE_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let mut leg_text = Text::new_monospace(game_io, FontStyle::ThinSmall)
+        let mut leg_text = Text::new_monospace(game_io, FontName::ThinSmall)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(leg_text_bounds);
 
@@ -151,7 +151,7 @@ impl ManageSwitchDriveScene {
             animator.point("TEXT_END").unwrap_or_default(),
         ) - animator.origin();
 
-        let information_text = Text::new(game_io, FontStyle::Thin)
+        let information_text = Text::new(game_io, FontName::Thin)
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_color(Color::WHITE);
@@ -516,7 +516,7 @@ impl Scene for ManageSwitchDriveScene {
             self.animator.point("TEXT_END").unwrap_or_default(),
         );
 
-        let mut text_style = TextStyle::new(game_io, FontStyle::Thick)
+        let mut text_style = TextStyle::new(game_io, FontName::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_bounds(text_bounds);
 

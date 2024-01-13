@@ -2,7 +2,7 @@ use crate::args::Args;
 use crate::battle::BattleProps;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
-use crate::render::ui::{GlyphMap, PackageListing};
+use crate::render::ui::{GlyphAtlas, PackageListing};
 use crate::render::{
     BackgroundPipeline, MapPipeline, PostProcessAdjust, PostProcessAdjustConfig,
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
@@ -42,8 +42,7 @@ pub struct Globals {
 
     // assets
     pub assets: LocalAssetManager,
-    pub font_texture: Arc<Texture>,
-    pub glyph_map: Arc<GlyphMap>,
+    pub glyph_atlas: Arc<GlyphAtlas>,
 
     // shaders
     pub sprite_pipeline_collection: SpritePipelineCollection,
@@ -81,9 +80,6 @@ impl Globals {
             |_, _| {},
         );
         resource_packages.apply(game_io, &mut global_save, &assets);
-
-        // load font
-        let font_texture = assets.texture(game_io, ResourcePaths::FONTS);
 
         // load config
         let config = Config::load(&assets);
@@ -139,8 +135,7 @@ impl Globals {
             sfx: Box::default(),
 
             // assets
-            font_texture,
-            glyph_map: Arc::new(GlyphMap::new(&assets)),
+            glyph_atlas: Arc::new(GlyphAtlas::new_default(game_io, &assets)),
             assets,
 
             // shaders
