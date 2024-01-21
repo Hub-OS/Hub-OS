@@ -91,7 +91,7 @@ impl TextStyle {
 
     pub fn line_height(&self) -> f32 {
         let whitespace_size = self.glyph_atlas.resolve_whitespace_size(&self.font);
-        whitespace_size.y * self.scale.y + self.line_spacing
+        (whitespace_size.y + self.line_spacing) * self.scale.y
     }
 
     pub fn measure(&self, text: &str) -> TextMetrics {
