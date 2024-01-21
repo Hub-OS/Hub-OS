@@ -6,7 +6,7 @@ use crate::render::ui::{
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
 use crate::resources::{Globals, Input, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
-use packets::structures::{Inventory, ItemDefinition};
+use packets::structures::{Inventory, ItemDefinition, TextureAnimPathPair};
 use std::collections::HashMap;
 
 const LINE_HEIGHT: f32 = 16.0;
@@ -88,8 +88,10 @@ impl KeyItemsScene {
         textbox.set_next_avatar(
             game_io,
             assets,
-            ResourcePaths::KEY_ITEMS_MUG,
-            ResourcePaths::BLANK,
+            Some(&TextureAnimPathPair {
+                texture: ResourcePaths::KEY_ITEMS_MUG.into(),
+                animation: ResourcePaths::BLANK.into(),
+            }),
         );
 
         let (mut interface, _) = TextboxDoorstop::new();

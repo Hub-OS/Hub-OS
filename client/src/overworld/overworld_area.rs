@@ -38,8 +38,8 @@ impl OverworldArea {
         // build the player
         let player_package = globals.global_save.player_package(game_io).unwrap();
 
-        let texture = assets.texture(game_io, &player_package.overworld_texture_path);
-        let animator = Animator::load_new(assets, &player_package.overworld_animation_path);
+        let texture = assets.texture(game_io, &player_package.overworld_paths.texture);
+        let animator = Animator::load_new(assets, &player_package.overworld_paths.animation);
         let player_entity =
             Self::spawn_player_actor_direct(&mut entities, game_io, texture, animator, Vec3::ZERO);
 

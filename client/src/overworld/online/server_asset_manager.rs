@@ -1,7 +1,8 @@
+use crate::render::ui::GlyphAtlas;
 use crate::resources::*;
 use framework::prelude::*;
 use packets::address_parsing::{uri_decode, uri_encode};
-use packets::structures::AssetDataType;
+use packets::structures::{AssetDataType, TextureAnimPathPair};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Write;
@@ -63,6 +64,7 @@ pub struct ServerAssetManager {
     stored_assets: RefCell<HashMap<String, CachedServerAsset>>,
     textures: RefCell<HashMap<String, Arc<Texture>>>,
     sounds: RefCell<HashMap<String, SoundBuffer>>,
+    glyph_atlases: RefCell<HashMap<TextureAnimPathPair<'static>, Arc<GlyphAtlas>>>,
     current_download: Option<ServerAssetDownload>,
 }
 
@@ -95,6 +97,7 @@ impl ServerAssetManager {
             stored_assets: RefCell::new(assets),
             textures: RefCell::new(textures),
             sounds: RefCell::new(sounds),
+            glyph_atlases: Default::default(),
             current_download: None,
         }
     }
@@ -348,6 +351,33 @@ impl AssetManager for ServerAssetManager {
             let sound = SoundBuffer::decode(game_io, self.binary(path));
             sounds.insert(path.to_string(), sound.clone());
             sound
+        }
+    }
+
+    fn glyph_atlas(
+        &self,
+        game_io: &GameIO,
+        texture_path: &str,
+        animation_path: &str,
+    ) -> Arc<GlyphAtlas> {
+        let mut atlases = self.glyph_atlases.borrow_mut();
+
+        let key = TextureAnimPathPair {
+            texture: texture_path.into(),
+            animation: animation_path.into(),
+        };
+
+        if let Some(atlas) = atlases.get(&key) {
+            atlas.clone()
+        } else {
+            // note: self.glyph_atlases is still borrowed,
+            // should be fine as long as GlyphAtlas::new() doesn't try accessing it
+
+            let glyph_atlas =
+                Arc::new(GlyphAtlas::new(game_io, self, texture_path, animation_path));
+
+            atlases.insert(key.own(), glyph_atlas.clone());
+            glyph_atlas
         }
     }
 }

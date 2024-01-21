@@ -1,6 +1,8 @@
 use super::lua_helpers::*;
 use super::LuaApi;
 use crate::net::ShopItem;
+use packets::structures::TextStyleBlueprint;
+use packets::structures::{TextboxOptions, TextureAnimPathPair};
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -47,13 +49,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_message_player", |api_ctx, lua, params| {
-        let (player_id, message, mug_texture_path, mug_animation_path): (
-            mlua::String,
-            mlua::String,
-            Option<mlua::String>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
+        let (player_id, message, rest): (mlua::String, mlua::String, mlua::MultiValue) =
+            lua.unpack_multi(params)?;
         let (player_id_str, message_str) = (player_id.to_str()?, message.to_str()?);
+        let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -64,25 +63,17 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         {
             tracker.track_textbox(api_ctx.script_index);
 
-            net.message_player(
-                player_id_str,
-                message_str,
-                optional_lua_string_to_str(&mug_texture_path)?,
-                optional_lua_string_to_str(&mug_animation_path)?,
-            );
+            net.message_player(player_id_str, message_str, textbox_options);
         }
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_question_player", |api_ctx, lua, params| {
-        let (player_id, message, mug_texture_path, mug_animation_path): (
-            mlua::String,
-            mlua::String,
-            Option<mlua::String>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
+        let (player_id, message, rest): (mlua::String, mlua::String, mlua::MultiValue) =
+            lua.unpack_multi(params)?;
         let (player_id_str, message_str) = (player_id.to_str()?, message.to_str()?);
+        let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -93,27 +84,22 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         {
             tracker.track_textbox(api_ctx.script_index);
 
-            net.question_player(
-                player_id_str,
-                message_str,
-                optional_lua_string_to_str(&mug_texture_path)?,
-                optional_lua_string_to_str(&mug_animation_path)?,
-            );
+            net.question_player(player_id_str, message_str, textbox_options);
         }
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_quiz_player", |api_ctx, lua, params| {
-        let (player_id, option_a, option_b, option_c, mug_texture_path, mug_animation_path): (
+        let (player_id, option_a, option_b, option_c, rest): (
             mlua::String,
             Option<mlua::String>,
             Option<mlua::String>,
             Option<mlua::String>,
-            Option<mlua::String>,
-            Option<mlua::String>,
+            mlua::MultiValue,
         ) = lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
+        let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -129,8 +115,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 optional_lua_string_to_str(&option_a)?,
                 optional_lua_string_to_str(&option_b)?,
                 optional_lua_string_to_str(&option_c)?,
-                optional_lua_string_to_str(&mug_texture_path)?,
-                optional_lua_string_to_str(&mug_animation_path)?,
+                textbox_options,
             );
         }
 
@@ -185,11 +170,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         {
             tracker.track_board(api_ctx.script_index);
 
-            let color = (
-                color_table.get("r")?,
-                color_table.get("g")?,
-                color_table.get("b")?,
-            );
+            let color = parse_rgb_table(color_table)?;
 
             let mut posts = Vec::with_capacity(post_tables.len());
 
@@ -313,13 +294,10 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_open_shop", |api_ctx, lua, params| {
-        let (player_id, item_tables, mug_texture_path, mug_animation_path): (
-            mlua::String,
-            Vec<mlua::Table>,
-            Option<mlua::String>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
+        let (player_id, item_tables, rest): (mlua::String, Vec<mlua::Table>, mlua::MultiValue) =
+            lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
+        let textbox_options = parse_textbox_options(lua, rest)?;
 
         if let Some(tracker) = api_ctx
             .widget_tracker_ref
@@ -335,12 +313,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 items.push(table_to_shop_item(item_table)?);
             }
 
-            net.open_shop(
-                player_id_str,
-                items,
-                optional_lua_string_to_str(&mug_texture_path)?,
-                optional_lua_string_to_str(&mug_animation_path)?,
-            );
+            net.open_shop(player_id_str, items, textbox_options);
         }
 
         lua.pack_multi(())
@@ -375,6 +348,95 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         lua.pack_multi(())
     });
+}
+
+fn parse_textbox_options<'lua>(
+    lua: &'lua mlua::Lua,
+    mut rest: mlua::MultiValue<'lua>,
+) -> mlua::Result<TextboxOptions> {
+    let mut textbox_options = TextboxOptions::default();
+
+    let Some(first_value) = rest.pop_front() else {
+        // nil, return default
+        return Ok(textbox_options);
+    };
+
+    if let mlua::Value::String(mug_texture_path) = first_value {
+        // deprecation compatibility
+        let mug_animation_path: String = lua.unpack_multi(rest)?;
+
+        textbox_options.mug = Some(TextureAnimPathPair {
+            texture: mug_texture_path.to_str()?.to_string().into(),
+            animation: mug_animation_path.into(),
+        });
+
+        return Ok(textbox_options);
+    };
+
+    // parse passed options table
+    let table: mlua::Table = lua.unpack(first_value)?;
+
+    // parse mug
+    textbox_options.mug = table
+        .get::<_, Option<mlua::Table>>("mug")?
+        .map(parse_texture_animation_pair)
+        .transpose()?;
+
+    // parse text style
+    textbox_options.text_style = table
+        .get::<_, Option<mlua::Table>>("text_style")?
+        .map(parse_text_style)
+        .transpose()?;
+
+    Ok(textbox_options)
+}
+
+fn parse_texture_animation_pair(table: mlua::Table) -> mlua::Result<TextureAnimPathPair<'static>> {
+    Ok(TextureAnimPathPair {
+        texture: table.get::<_, String>("texture_path")?.into(),
+        animation: table.get::<_, String>("animation_path")?.into(),
+    })
+}
+
+fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> {
+    fn get_option<'lua, T: mlua::FromLua<'lua>>(
+        table: &mlua::Table<'lua>,
+        key: &str,
+    ) -> mlua::Result<Option<T>> {
+        table.get(key)
+    }
+
+    Ok(TextStyleBlueprint {
+        font_name: get_option::<String>(&table, "font")?.unwrap_or_default(),
+        monospace: get_option::<bool>(&table, "monospace")?.unwrap_or_default(),
+        min_glyph_width: get_option::<f32>(&table, "min_glyph_width")?.unwrap_or(6.0),
+        letter_spacing: get_option::<f32>(&table, "letter_spacing")?.unwrap_or(1.0),
+        line_spacing: get_option::<f32>(&table, "line_spacing")?.unwrap_or(3.0),
+        scale_x: get_option::<f32>(&table, "scale_x")?.unwrap_or(1.0),
+        scale_y: get_option::<f32>(&table, "scale_y")?.unwrap_or(1.0),
+        color: get_option::<mlua::Table>(&table, "color")?
+            .map(parse_rgb_table)
+            .transpose()?
+            .unwrap_or_default(),
+        shadow_color: get_option::<mlua::Table>(&table, "shadow_color")?
+            .map(parse_rgba_table)
+            .transpose()?
+            .unwrap_or_default(),
+        custom_atlas: parse_texture_animation_pair(table).ok(),
+    })
+}
+
+fn parse_rgb_table(table: mlua::Table) -> mlua::Result<(u8, u8, u8)> {
+    Ok((table.get("r")?, table.get("g")?, table.get("b")?))
+}
+
+fn parse_rgba_table(table: mlua::Table) -> mlua::Result<(u8, u8, u8, u8)> {
+    Ok((
+        table.get("r")?,
+        table.get("g")?,
+        table.get("b")?,
+        table.get::<_, Option<u8>>("a")?.unwrap_or(255),
+    ))
 }
 
 fn table_to_shop_item(item_table: mlua::Table) -> mlua::Result<ShopItem> {

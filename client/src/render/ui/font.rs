@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 const SPLIT_PATTERN: &str = "_U+";
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum FontName {
     Thick,
     Thin,
@@ -106,7 +106,7 @@ impl GlyphAtlas {
 
     pub fn new(
         game_io: &GameIO,
-        assets: &LocalAssetManager,
+        assets: &impl AssetManager,
         texture_path: &str,
         animation_path: &str,
     ) -> Self {

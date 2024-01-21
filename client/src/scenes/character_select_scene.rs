@@ -230,12 +230,8 @@ impl CharacterSelectScene {
                 .unwrap();
 
             // set avatar
-            self.textbox.set_next_avatar(
-                game_io,
-                &globals.assets,
-                &package.mugshot_texture_path,
-                &package.mugshot_animation_path,
-            );
+            self.textbox
+                .set_next_avatar(game_io, &globals.assets, Some(&package.mugshot_paths));
 
             // set description
             let interface = TextboxMessage::new(package.description.clone());
@@ -404,8 +400,8 @@ impl IconRow {
                 CompactPackageInfo {
                     package_id: package_id.clone(),
                     name: package.name.clone(),
-                    texture_path: package.mugshot_texture_path.clone(),
-                    animation_path: package.mugshot_animation_path.clone(),
+                    texture_path: package.mugshot_paths.texture.to_string(),
+                    animation_path: package.mugshot_paths.animation.to_string(),
                     valid,
                 }
             })

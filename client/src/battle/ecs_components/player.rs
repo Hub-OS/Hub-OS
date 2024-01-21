@@ -96,8 +96,8 @@ impl Player {
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion,
-                assets.new_sprite(game_io, &player_package.emotions_texture_path),
-                Animator::load_new(assets, &player_package.emotions_animation_path),
+                assets.new_sprite(game_io, &player_package.emotions_paths.texture),
+                Animator::load_new(assets, &player_package.emotions_paths.animation),
             ),
             forms: Vec::new(),
             active_form: None,

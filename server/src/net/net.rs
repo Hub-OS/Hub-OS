@@ -708,20 +708,14 @@ impl Net {
         );
     }
 
-    pub fn message_player(
-        &mut self,
-        id: &str,
-        message: &str,
-        mug_texture_path: &str,
-        mug_animation_path: &str,
-    ) {
+    pub fn message_player(&mut self, id: &str, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
-            [mug_texture_path, mug_animation_path].iter(),
+            textbox_options.dependencies(),
         );
 
         if let Some(client) = self.clients.get_mut(id) {
@@ -732,27 +726,20 @@ impl Net {
                 Reliability::ReliableOrdered,
                 ServerPacket::Message {
                     message: message.to_string(),
-                    mug_texture_path: mug_texture_path.to_string(),
-                    mug_animation_path: mug_animation_path.to_string(),
+                    textbox_options,
                 },
             );
         }
     }
 
-    pub fn question_player(
-        &mut self,
-        id: &str,
-        message: &str,
-        mug_texture_path: &str,
-        mug_animation_path: &str,
-    ) {
+    pub fn question_player(&mut self, id: &str, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
-            [mug_texture_path, mug_animation_path].iter(),
+            textbox_options.dependencies(),
         );
 
         if let Some(client) = self.clients.get_mut(id) {
@@ -763,8 +750,7 @@ impl Net {
                 Reliability::ReliableOrdered,
                 ServerPacket::Question {
                     message: message.to_string(),
-                    mug_texture_path: mug_texture_path.to_string(),
-                    mug_animation_path: mug_animation_path.to_string(),
+                    textbox_options,
                 },
             );
         }
@@ -776,8 +762,7 @@ impl Net {
         option_a: &str,
         option_b: &str,
         option_c: &str,
-        mug_texture_path: &str,
-        mug_animation_path: &str,
+        textbox_options: TextboxOptions,
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
@@ -785,7 +770,7 @@ impl Net {
             &self.asset_manager,
             &mut self.clients,
             &[id.to_string()],
-            [mug_texture_path, mug_animation_path].iter(),
+            textbox_options.dependencies(),
         );
 
         if let Some(client) = self.clients.get_mut(id) {
@@ -798,8 +783,7 @@ impl Net {
                     option_a: option_a.to_string(),
                     option_b: option_b.to_string(),
                     option_c: option_c.to_string(),
-                    mug_texture_path: mug_texture_path.to_string(),
-                    mug_animation_path: mug_animation_path.to_string(),
+                    textbox_options,
                 },
             );
         }
@@ -911,8 +895,7 @@ impl Net {
         &mut self,
         player_id: &str,
         items: Vec<ShopItem>,
-        mug_texture_path: &str,
-        mug_animation_path: &str,
+        textbox_options: TextboxOptions,
     ) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
@@ -920,7 +903,7 @@ impl Net {
             &self.asset_manager,
             &mut self.clients,
             &[player_id.to_string()],
-            [mug_texture_path, mug_animation_path].iter(),
+            textbox_options.dependencies(),
         );
 
         let Some(client) = self.clients.get_mut(player_id) else {
@@ -934,10 +917,7 @@ impl Net {
         packet_orchestrator.send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::OpenShop {
-                mug_texture_path: mug_texture_path.to_string(),
-                mug_animation_path: mug_animation_path.to_string(),
-            },
+            ServerPacket::OpenShop { textbox_options },
         );
 
         packet_orchestrator.send(

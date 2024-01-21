@@ -7,6 +7,7 @@ use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::Animator;
 use crate::resources::{Globals, ResourcePaths};
 use framework::prelude::GameIO;
+use packets::structures::TextureAnimPathPair;
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -35,12 +36,9 @@ pub struct PlayerPackage {
     pub description: String,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
-    pub overworld_animation_path: String,
-    pub overworld_texture_path: String,
-    pub mugshot_texture_path: String,
-    pub mugshot_animation_path: String,
-    pub emotions_texture_path: String,
-    pub emotions_animation_path: String,
+    pub overworld_paths: TextureAnimPathPair<'static>,
+    pub mugshot_paths: TextureAnimPathPair<'static>,
+    pub emotions_paths: TextureAnimPathPair<'static>,
 }
 
 impl PlayerPackage {
@@ -142,12 +140,14 @@ impl Package for PlayerPackage {
         package.health = meta.health;
         package.description = meta.description;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
-        package.overworld_animation_path = base_path.clone() + &meta.overworld_animation_path;
-        package.overworld_texture_path = base_path.clone() + &meta.overworld_texture_path;
-        package.mugshot_texture_path = base_path.clone() + &meta.mugshot_texture_path;
-        package.mugshot_animation_path = base_path.clone() + &meta.mugshot_animation_path;
-        package.emotions_texture_path = base_path.clone() + &meta.emotions_texture_path;
-        package.emotions_animation_path = base_path.clone() + &meta.emotions_animation_path;
+        package.overworld_paths.texture = (base_path.clone() + &meta.overworld_texture_path).into();
+        package.overworld_paths.animation =
+            (base_path.clone() + &meta.overworld_animation_path).into();
+        package.mugshot_paths.texture = (base_path.clone() + &meta.mugshot_texture_path).into();
+        package.mugshot_paths.animation = (base_path.clone() + &meta.mugshot_animation_path).into();
+        package.emotions_paths.texture = (base_path.clone() + &meta.emotions_texture_path).into();
+        package.emotions_paths.animation =
+            (base_path.clone() + &meta.emotions_animation_path).into();
 
         package
     }

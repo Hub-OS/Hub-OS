@@ -153,20 +153,17 @@ pub enum ServerPacket {
     ShowHud,
     Message {
         message: String,
-        mug_texture_path: String,
-        mug_animation_path: String,
+        textbox_options: TextboxOptions,
     },
     Question {
         message: String,
-        mug_texture_path: String,
-        mug_animation_path: String,
+        textbox_options: TextboxOptions,
     },
     Quiz {
         option_a: String,
         option_b: String,
         option_c: String,
-        mug_texture_path: String,
-        mug_animation_path: String,
+        textbox_options: TextboxOptions,
     },
     Prompt {
         character_limit: u16,
@@ -193,8 +190,7 @@ pub enum ServerPacket {
     SelectionAck,
     CloseBoard,
     OpenShop {
-        mug_texture_path: String,
-        mug_animation_path: String,
+        textbox_options: TextboxOptions,
     },
     ShopInventory {
         items: Vec<ShopItem>,

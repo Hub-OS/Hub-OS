@@ -76,8 +76,8 @@ impl ItemsMenu {
         background_sprites.push(element_sprite);
 
         // player
-        let mut player_sprite = assets.new_sprite(game_io, &player_package.overworld_texture_path);
-        let player_animator = Animator::load_new(assets, &player_package.overworld_animation_path)
+        let mut player_sprite = assets.new_sprite(game_io, &player_package.overworld_paths.texture);
+        let player_animator = Animator::load_new(assets, &player_package.overworld_paths.animation)
             .with_state("IDLE_D")
             .with_loop_mode(AnimatorLoopMode::Loop);
 
