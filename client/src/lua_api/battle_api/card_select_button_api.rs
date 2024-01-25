@@ -333,7 +333,6 @@ pub fn create_card_select_button_and_table<'lua>(
         .ok_or_else(button_not_found)?;
 
     if button_option.is_some() {
-        // delete the animators on failure
         return Err(button_already_exists());
     }
 
