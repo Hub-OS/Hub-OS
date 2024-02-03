@@ -31,27 +31,26 @@ impl BattleSelectScene {
         let assets = &globals.assets;
 
         // layout
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::BATTLE_SELECT_UI_ANIMATION);
-        layout_animator.set_state("DEFAULT");
-        let grid_start = layout_animator.point("GRID_START").unwrap_or_default();
-        let grid_step = layout_animator.point("GRID_STEP").unwrap_or_default();
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::BATTLE_SELECT_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
+        let grid_start = ui_animator.point("GRID_START").unwrap_or_default();
+        let grid_step = ui_animator.point("GRID_STEP").unwrap_or_default();
 
         // preview frame
         let mut preview_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_UI);
-        layout_animator.set_state("FRAME");
-        layout_animator.apply(&mut preview_frame_sprite);
+        ui_animator.set_state("FRAME");
+        ui_animator.apply(&mut preview_frame_sprite);
 
         // recorded frame
         let mut recording_frame_sprite = preview_frame_sprite.clone();
-        layout_animator.set_state("RECORDING_FRAME");
-        layout_animator.apply(&mut recording_frame_sprite);
+        ui_animator.set_state("RECORDING_FRAME");
+        ui_animator.apply(&mut recording_frame_sprite);
 
         // cursor sprite
         let mut cursor_sprite = preview_frame_sprite.clone();
-        layout_animator.set_state("CURSOR");
-        layout_animator.set_loop_mode(AnimatorLoopMode::Loop);
-        layout_animator.apply(&mut cursor_sprite);
+        ui_animator.set_state("CURSOR");
+        ui_animator.set_loop_mode(AnimatorLoopMode::Loop);
+        ui_animator.apply(&mut cursor_sprite);
 
         let mut scene = Box::new(Self {
             camera: Camera::new_ui(game_io),
@@ -60,7 +59,7 @@ impl BattleSelectScene {
             preview_frame_sprite,
             recording_frame_sprite,
             cursor_sprite,
-            cursor_animator: layout_animator,
+            cursor_animator: ui_animator,
             ui_input_tracker: UiInputTracker::new(),
             scroll_tracker: GridScrollTracker::new(game_io, 3, 2)
                 .with_position(grid_start)

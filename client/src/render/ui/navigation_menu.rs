@@ -101,13 +101,13 @@ impl NavigationMenu {
         let assets = &globals.assets;
 
         // menu assets
-        let menu_sprite = assets.new_sprite(game_io, ResourcePaths::MAIN_MENU_PARTS);
-        let mut animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_PARTS_ANIMATION);
+        let menu_sprite = assets.new_sprite(game_io, ResourcePaths::MAIN_MENU_UI);
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_UI_ANIMATION);
 
         // top bar
         let mut top_bar_sprite = menu_sprite.clone();
-        animator.set_state("TOP_BAR");
-        animator.apply(&mut top_bar_sprite);
+        ui_animator.set_state("TOP_BAR");
+        ui_animator.apply(&mut top_bar_sprite);
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7).with_wrap(true);
@@ -122,12 +122,12 @@ impl NavigationMenu {
 
                 if i == 0 {
                     // use selected sprite
-                    animator.set_state(target_scene.blink_state());
+                    ui_animator.set_state(target_scene.blink_state());
                 } else {
-                    animator.set_state(target_scene.state());
+                    ui_animator.set_state(target_scene.state());
                 }
 
-                animator.apply(&mut sprite);
+                ui_animator.apply(&mut sprite);
 
                 NavigationItem {
                     sprite,
@@ -138,11 +138,11 @@ impl NavigationMenu {
 
         // info sprite
         let mut info_sprite = menu_sprite;
-        animator.set_state("INFO");
-        animator.apply(&mut info_sprite);
+        ui_animator.set_state("INFO");
+        ui_animator.apply(&mut info_sprite);
 
-        let hp_point = animator.point("HP").unwrap_or_default() - animator.origin();
-        let money_point = animator.point("MONEY").unwrap_or_default() - animator.origin();
+        let hp_point = ui_animator.point("HP").unwrap_or_default() - ui_animator.origin();
+        let money_point = ui_animator.point("MONEY").unwrap_or_default() - ui_animator.origin();
 
         // backing fade sprite
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
@@ -150,11 +150,9 @@ impl NavigationMenu {
         fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
 
         // items
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::MAIN_MENU_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
-        let item_start = layout_animator.point("OPTION_START").unwrap_or_default();
-        let item_next = layout_animator.point("OPTION_NEXT").unwrap_or_default();
+        ui_animator.set_state("DEFAULT");
+        let item_start = ui_animator.point("OPTION_START").unwrap_or_default();
+        let item_next = ui_animator.point("OPTION_NEXT").unwrap_or_default();
 
         NavigationMenu {
             open_state: OpenState::Open,
@@ -166,7 +164,7 @@ impl NavigationMenu {
             money_point,
             hp_text: String::new(),
             money_text: String::new(),
-            animator,
+            animator: ui_animator,
             top_bar_sprite,
             info_sprite,
             fade_sprite,

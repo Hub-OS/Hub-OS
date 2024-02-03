@@ -85,31 +85,28 @@ impl CharacterSelectScene {
         cursor_animator.apply(&mut cursor_sprite);
 
         // layout
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator =
+            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         // offset
-        let icon_start_offset = layout_animator.point("LIST_START").unwrap_or_default();
+        let icon_start_offset = ui_animator.point("LIST_START").unwrap_or_default();
 
         // health_ui
         let mut health_ui = PlayerHealthUi::new(game_io);
-        health_ui.set_position(layout_animator.point("HP").unwrap_or_default());
+        health_ui.set_position(ui_animator.point("HP").unwrap_or_default());
         health_ui.snap_health(player_package.health);
 
         // element_sprite
         let mut element_sprite = ElementSprite::new(game_io, player_package.element);
-        element_sprite.set_position(layout_animator.point("ELEMENT").unwrap_or_default());
+        element_sprite.set_position(ui_animator.point("ELEMENT").unwrap_or_default());
 
         // name_position
-        let name_position = layout_animator.point("NAME").unwrap_or_default();
+        let name_position = ui_animator.point("NAME").unwrap_or_default();
 
         // invalid sprite
-        let mut invalid_sprite =
-            assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_INVALID);
-        let invalid_animator =
-            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_INVALID_ANIMATION)
-                .with_state("DEFAULT");
+        let mut invalid_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_UI);
+        let invalid_animator = ui_animator.clone().with_state("INVALID_BADGE");
 
         invalid_animator.apply(&mut invalid_sprite);
 

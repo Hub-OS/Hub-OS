@@ -4,3 +4,6 @@ point label="LIST_START" x="147" y="20"
 point label="HP" x="101" y="143"
 point label="ELEMENT" x="1" y="145"
 point label="NAME" x="17" y="147"
+
+animation state="INVALID_BADGE"
+frame duration="0f" x="0" y="0" w="12" h="13" originx="-4" originy="-6" flipx="0" flipy="0"

@@ -43,14 +43,13 @@ impl ServerListScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::SERVER_LIST_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::SERVER_LIST_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         // list box
         let frame_bounds = Rect::from_corners(
-            layout_animator.point("LIST_START").unwrap_or_default(),
-            layout_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point("LIST_START").unwrap_or_default(),
+            ui_animator.point("LIST_END").unwrap_or_default(),
         );
 
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);
@@ -66,13 +65,11 @@ impl ServerListScene {
         );
 
         // context menu
-        let context_position = layout_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_position = ui_animator.point("CONTEXT_MENU").unwrap_or_default();
         let context_menu = ContextMenu::new(game_io, "OPTIONS", context_position);
 
         // option tip
-        let option_tip_top_right = layout_animator
-            .point("MENU_TIP_TOP_RIGHT")
-            .unwrap_or_default();
+        let option_tip_top_right = ui_animator.point("MENU_TIP_TOP_RIGHT").unwrap_or_default();
         let option_tip = OptionTip::new(String::from("MENU"), option_tip_top_right);
 
         // events
@@ -83,11 +80,8 @@ impl ServerListScene {
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             scrollable_frame,
-            status_animator: Animator::load_new(
-                assets,
-                ResourcePaths::SERVER_LIST_STATUS_ANIMATION,
-            ),
-            status_sprite: assets.new_sprite(game_io, ResourcePaths::SERVER_LIST_STATUS),
+            status_animator: ui_animator,
+            status_sprite: assets.new_sprite(game_io, ResourcePaths::SERVER_LIST_UI),
             statuses: Vec::new(),
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
@@ -105,16 +99,16 @@ impl ServerListScene {
 
     fn status_state(status: Option<ServerStatus>) -> &'static str {
         let Some(status) = status else {
-            return "PENDING";
+            return "PENDING_BADGE";
         };
 
         match status {
-            ServerStatus::Online => "ONLINE",
-            ServerStatus::Offline => "OFFLINE",
+            ServerStatus::Online => "ONLINE_BADGE",
+            ServerStatus::Offline => "OFFLINE_BADGE",
             ServerStatus::TooOld
             | ServerStatus::TooNew
             | ServerStatus::Incompatible
-            | ServerStatus::InvalidAddress => "ERROR",
+            | ServerStatus::InvalidAddress => "ERROR_BADGE",
         }
     }
 

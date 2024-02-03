@@ -1,6 +1,0 @@
-animation state="DEFAULT"
-blank
-point label="SIDEBAR_START" x="7" y="21"
-point label="SIDEBAR_END" x="78" y="140"
-point label="LIST_START" x="80" y="21"
-point label="LIST_END" x="233" y="140"

@@ -1,4 +1,0 @@
-animation state="DEFAULT"
-blank
-point label="DECK_START" x="13" y="17"
-point label="CARD_LIST" x="74" y="48"

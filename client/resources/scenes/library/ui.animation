@@ -1,3 +1,8 @@
+animation state="DEFAULT"
+blank
+point label="CARD" x="8" y="21"
+point label="DOCK" x="86" y="20"
+
 animation state="DOCK"
 frame x="0" y="0" w="154" h="136"
 point label="LABEL" x="16" y="4"

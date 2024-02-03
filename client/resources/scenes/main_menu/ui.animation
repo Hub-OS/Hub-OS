@@ -1,4 +1,8 @@
-# @frame_rate 60
+animation state="DEFAULT"
+blank
+point label="OPTION_START" x="160" y="25"
+point label="OPTION_NEXT" x="0" y="18"
+point label="SCROLLING_TEXT" x="0" y="48"
 
 animation state="SERVERS_LABEL"
 frame duration="8f" x="3" y="19" w="72" h="14"

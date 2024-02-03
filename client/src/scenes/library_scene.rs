@@ -28,12 +28,11 @@ impl LibraryScene {
         camera.snap(RESOLUTION_F * 0.5);
 
         // background
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::LIBRARY_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::LIBRARY_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         // docks
-        let dock_offset = layout_animator.point("DOCK").unwrap_or_default();
+        let dock_offset = ui_animator.point("DOCK").unwrap_or_default();
         let mut package_ids: Vec<_> = globals
             .card_packages
             .package_ids_with_override(PackageNamespace::Local)
@@ -66,7 +65,7 @@ impl LibraryScene {
         }
 
         // card
-        let card_position = layout_animator.point("CARD").unwrap_or_default();
+        let card_position = ui_animator.point("CARD").unwrap_or_default();
 
         let mut scene = Box::new(Self {
             camera,

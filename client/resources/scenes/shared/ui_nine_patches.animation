@@ -135,7 +135,6 @@ animation state="LIST_LABEL"
 frame x="12" y="32" w="52" h="8" originx="6" originy="11"
 point label="TEXT_START" x="5" y="2"
 
-
 animation state="FRAME_TOP_LEFT"
 frame x="42" y="14" w="3" h="3" originx="3" originy="3"
 

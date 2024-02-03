@@ -1,6 +1,0 @@
-# @frame_rate 60
-
-imagePath="/home/konst/Documents/Projects/Real-PET/real_pet/client/resources/scenes/character_select/invalid.png"
-
-animation state="DEFAULT"
-frame duration="0f" x="0" y="0" w="12" h="13" originx="-4" originy="-6" flipx="0" flipy="0"

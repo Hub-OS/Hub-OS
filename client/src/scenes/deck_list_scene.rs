@@ -58,13 +58,14 @@ impl DeckListScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
-        // background
-        let mut layout_animator = Animator::load_new(assets, ResourcePaths::DECKS_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
-
         // ui
         let ui_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_UI);
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::DECKS_UI_ANIMATION);
+
+        // layout points
+        ui_animator.set_state("DEFAULT");
+        let deck_start_position = ui_animator.point("DECK_START").unwrap_or_default();
+        let frame_position = ui_animator.point("CARD_LIST").unwrap_or_default();
 
         // regular card sprite
         let mut regular_card_sprite = assets.new_sprite(game_io, ResourcePaths::REGULAR_CARD);
@@ -79,8 +80,6 @@ impl DeckListScene {
         ui_animator.set_state("DECK");
         ui_animator.apply(&mut deck_sprite);
 
-        let deck_start_position = layout_animator.point("DECK_START").unwrap_or_default();
-
         let deck_name_offset = ui_animator.point("NAME").unwrap_or_default();
 
         // card list
@@ -88,7 +87,6 @@ impl DeckListScene {
         ui_animator.set_state("CARD_LIST");
         ui_animator.apply(&mut deck_frame_sprite);
 
-        let frame_position = layout_animator.point("CARD_LIST").unwrap_or_default();
         deck_frame_sprite.set_position(frame_position);
 
         // card scroll tracker

@@ -42,19 +42,17 @@ impl ItemsMenu {
         let button_nine_patch = build_9patch!(game_io, patch_texture, &patch_animator, "BUTTON");
 
         // layout
-        let layout_animator =
-            Animator::load_new(assets, ResourcePaths::ITEMS_LAYOUT_ANIMATION).with_state("DEFAULT");
-        let health_position = layout_animator.point("HEALTH").unwrap_or_default();
-        let element_position = layout_animator.point("ELEMENT").unwrap_or_default();
-        let player_position = layout_animator.point("PLAYER").unwrap_or_default();
-        let cursor_start = layout_animator.point("CURSOR_START").unwrap_or_default();
-        let items_start = layout_animator.point("ITEMS_START").unwrap_or_default();
-        let item_width = layout_animator.point("ITEM_SIZE").unwrap_or_default().x;
-        let description_bg_start = layout_animator.point("DESCRIPTION_BG").unwrap_or_default();
-        let description_start = layout_animator
-            .point("DESCRIPTION_START")
-            .unwrap_or_default();
-        let description_end = layout_animator.point("DESCRIPTION_END").unwrap_or_default();
+        let ui_animator =
+            Animator::load_new(assets, ResourcePaths::ITEMS_UI_ANIMATION).with_state("DEFAULT");
+        let health_position = ui_animator.point("HEALTH").unwrap_or_default();
+        let element_position = ui_animator.point("ELEMENT").unwrap_or_default();
+        let player_position = ui_animator.point("PLAYER").unwrap_or_default();
+        let cursor_start = ui_animator.point("CURSOR_START").unwrap_or_default();
+        let items_start = ui_animator.point("ITEMS_START").unwrap_or_default();
+        let item_width = ui_animator.point("ITEM_SIZE").unwrap_or_default().x;
+        let description_bg_start = ui_animator.point("DESCRIPTION_BG").unwrap_or_default();
+        let description_start = ui_animator.point("DESCRIPTION_START").unwrap_or_default();
+        let description_end = ui_animator.point("DESCRIPTION_END").unwrap_or_default();
 
         // background sprites, items added after this
         let mut background_sprites = Vec::new();
