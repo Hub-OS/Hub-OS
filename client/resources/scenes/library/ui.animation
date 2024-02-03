@@ -1,5 +1,5 @@
-animation state="DEFAULT"
-frame x="0" y="0" w="154" h="136" originx="-86" originy="-20"
+animation state="DOCK"
+frame x="0" y="0" w="154" h="136"
 point label="LABEL" x="16" y="4"
 point label="LIST" x="17" y="16"
 point label="SCROLL_START" x="145" y="22"

@@ -162,13 +162,10 @@ impl ResourcePaths {
 
     // DeckListScene
     pub const DECKS_LAYOUT_ANIMATION: &'static str = "resources/scenes/deck_list/layout.animation";
-    pub const DECKS_ENABLED: &'static str = "resources/scenes/deck_list/enabled.png";
-    pub const DECKS_DISABLED: &'static str = "resources/scenes/deck_list/disabled.png";
-    pub const DECKS_FRAME: &'static str = "resources/scenes/deck_list/frame.png";
+    pub const DECKS_UI: &'static str = "resources/scenes/deck_list/ui.png";
+    pub const DECKS_UI_ANIMATION: &'static str = "resources/scenes/deck_list/ui.animation";
     pub const DECKS_CURSOR: &'static str = "resources/scenes/deck_list/cursor.png";
     pub const DECKS_CURSOR_ANIMATION: &'static str = "resources/scenes/deck_list/cursor.animation";
-    pub const DECKS_EQUIPPED: &'static str = "resources/scenes/deck_list/equip.png";
-    pub const DECKS_EQUIPPED_ANIMATION: &'static str = "resources/scenes/deck_list/equip.animation";
 
     // DeckEditorScene
     pub const DECK_UI: &'static str = "resources/scenes/deck_editor/ui.png";
@@ -176,8 +173,8 @@ impl ResourcePaths {
 
     // LibraryScene
     pub const LIBRARY_LAYOUT_ANIMATION: &'static str = "resources/scenes/library/layout.animation";
-    pub const LIBRARY_DOCK: &'static str = "resources/scenes/library/dock.png";
-    pub const LIBRARY_DOCK_ANIMATION: &'static str = "resources/scenes/library/dock.animation";
+    pub const LIBRARY_UI: &'static str = "resources/scenes/library/ui.png";
+    pub const LIBRARY_UI_ANIMATION: &'static str = "resources/scenes/library/ui.animation";
 
     // CharacterScene
     pub const CHARACTER_PAGES: &'static str = "resources/scenes/character_status/pages.png";

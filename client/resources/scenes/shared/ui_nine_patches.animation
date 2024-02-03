@@ -1,138 +1,191 @@
 # @frame_rate 60
 
-imagePath="/home/konst/Documents/Projects/Rust/real_pet/client/resources/scenes/shared/ui_nine_patches.png"
-
 animation state="CONTEXT_LABEL_TOP_LEFT"
-frame duration="0f" x="0" y="0" w="4" h="4" originx="4" originy="4" flipx="0" flipy="0"
+frame x="0" y="0" w="4" h="4" originx="4" originy="4"
 
 animation state="CONTEXT_LABEL_TOP"
-frame duration="0f" x="5" y="0" w="1" h="4" originx="0" originy="4" flipx="0" flipy="0"
+frame x="5" y="0" w="1" h="4" originy="4"
 
 animation state="CONTEXT_LABEL_TOP_RIGHT"
-frame duration="0f" x="7" y="0" w="4" h="4" originx="0" originy="4" flipx="0" flipy="0"
+frame x="7" y="0" w="4" h="4" originy="4"
 
 animation state="CONTEXT_LABEL_LEFT"
-frame duration="0f" x="0" y="5" w="4" h="1" originx="4" originy="0" flipx="0" flipy="0"
+frame x="0" y="5" w="4" h="1" originx="4"
 
 animation state="CONTEXT_LABEL_BODY"
-frame duration="0f" x="5" y="5" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="5" y="5" w="1" h="1"
 
 animation state="CONTEXT_LABEL_RIGHT"
-frame duration="0f" x="7" y="5" w="4" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="7" y="5" w="4" h="1"
 
 animation state="CONTEXT_LABEL_BOTTOM_LEFT"
-frame duration="0f" x="0" y="7" w="4" h="2" originx="4" originy="0" flipx="0" flipy="0"
+frame x="0" y="7" w="4" h="2" originx="4"
 
 animation state="CONTEXT_LABEL_BOTTOM"
-frame duration="0f" x="5" y="7" w="1" h="2" originx="0" originy="0" flipx="0" flipy="0"
+frame x="5" y="7" w="1" h="2"
 
 animation state="CONTEXT_LABEL_BOTTOM_RIGHT"
-frame duration="0f" x="7" y="7" w="4" h="2" originx="0" originy="0" flipx="0" flipy="0"
+frame x="7" y="7" w="4" h="2"
 
 animation state="CONTEXT_BODY_LEFT"
-frame duration="0f" x="0" y="10" w="8" h="1" originx="8" originy="0" flipx="0" flipy="0"
+frame x="0" y="10" w="8" h="1" originx="8"
 
 animation state="CONTEXT_BODY_BODY"
-frame duration="0f" x="9" y="10" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="9" y="10" w="1" h="1"
 
 animation state="CONTEXT_BODY_RIGHT"
-frame duration="0f" x="11" y="10" w="6" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="11" y="10" w="6" h="1"
 
 animation state="CONTEXT_BODY_BOTTOM_LEFT"
-frame duration="0f" x="0" y="12" w="8" h="6" originx="8" originy="0" flipx="0" flipy="0"
+frame x="0" y="12" w="8" h="6" originx="8"
 
 animation state="CONTEXT_BODY_BOTTOM"
-frame duration="0f" x="9" y="12" w="1" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="9" y="12" w="1" h="6"
 
 animation state="CONTEXT_BODY_BOTTOM_RIGHT"
-frame duration="0f" x="11" y="12" w="6" h="6" originx="0" originy="0" flipx="0" flipy="0"
+frame x="11" y="12" w="6" h="6"
 
 animation state="CONTEXT_RIGHT_ARROW"
-frame duration="0f" x="18" y="0" w="28" h="13" originx="19" originy="0" flipx="0" flipy="0"
+frame x="18" y="0" w="28" h="13" originx="19"
 
 animation state="BUTTON_TOP_LEFT"
-frame duration="0f" x="0" y="19" w="7" h="4" originx="7" originy="3" flipx="0" flipy="0"
+frame x="0" y="19" w="7" h="4" originx="7" originy="3"
 
 animation state="BUTTON_TOP"
-frame duration="0f" x="8" y="19" w="1" h="4" originx="0" originy="3" flipx="0" flipy="0"
+frame x="8" y="19" w="1" h="4" originy="3"
 
 animation state="BUTTON_TOP_RIGHT"
-frame duration="0f" x="10" y="19" w="9" h="4" originx="0" originy="3" flipx="0" flipy="0"
+frame x="10" y="19" w="9" h="4" originy="3"
 
 animation state="BUTTON_LEFT"
-frame duration="0f" x="0" y="24" w="7" h="1" originx="7" originy="0" flipx="0" flipy="0"
+frame x="0" y="24" w="7" h="1" originx="7"
 
 animation state="BUTTON_BODY"
-frame duration="0f" x="8" y="24" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="8" y="24" w="1" h="1"
 
 animation state="BUTTON_RIGHT"
-frame duration="50f" x="10" y="24" w="9" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="10" y="24" w="9" h="1"
 
 animation state="BUTTON_BOTTOM_LEFT"
-frame duration="0f" x="0" y="26" w="7" h="4" originx="7" originy="1" flipx="0" flipy="0"
+frame x="0" y="26" w="7" h="4" originx="7" originy="1"
 
 animation state="BUTTON_BOTTOM"
-frame duration="0f" x="8" y="26" w="1" h="4" originx="0" originy="1" flipx="0" flipy="0"
+frame x="8" y="26" w="1" h="4" originy="1"
 
 animation state="BUTTON_BOTTOM_RIGHT"
-frame duration="0f" x="10" y="26" w="9" h="4" originx="0" originy="1" flipx="0" flipy="0"
+frame x="10" y="26" w="9" h="4" originy="1"
 
 animation state="TEXT_INPUT_TOP_LEFT"
-frame duration="0f" x="1" y="31" w="3" h="2" originx="3" originy="2" flipx="0" flipy="0"
+frame x="1" y="31" w="3" h="2" originx="3" originy="2"
 
 animation state="TEXT_INPUT_TOP"
-frame duration="0f" x="5" y="31" w="1" h="2" originx="0" originy="2" flipx="0" flipy="0"
+frame x="5" y="31" w="1" h="2" originy="2"
 
 animation state="TEXT_INPUT_TOP_RIGHT"
-frame duration="0f" x="7" y="31" w="3" h="2" originx="0" originy="2" flipx="0" flipy="0"
+frame x="7" y="31" w="3" h="2" originy="2"
 
 animation state="TEXT_INPUT_LEFT"
-frame duration="0f" x="1" y="34" w="3" h="1" originx="3" originy="0" flipx="0" flipy="0"
+frame x="1" y="34" w="3" h="1" originx="3"
 
 animation state="TEXT_INPUT_BODY"
-frame duration="0f" x="5" y="34" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="5" y="34" w="1" h="1"
 
 animation state="TEXT_INPUT_RIGHT"
-frame duration="50f" x="7" y="34" w="4" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="7" y="34" w="4" h="1"
 
 animation state="TEXT_INPUT_BOTTOM_LEFT"
-frame duration="0f" x="1" y="36" w="3" h="3" originx="3" originy="0" flipx="0" flipy="0"
+frame x="1" y="36" w="3" h="3" originx="3"
 
 animation state="TEXT_INPUT_BOTTOM"
-frame duration="0f" x="5" y="36" w="1" h="3" originx="0" originy="0" flipx="0" flipy="0"
+frame x="5" y="36" w="1" h="3"
 
 animation state="TEXT_INPUT_BOTTOM_RIGHT"
-frame duration="0f" x="7" y="36" w="4" h="3" originx="0" originy="0" flipx="0" flipy="0"
+frame x="7" y="36" w="4" h="3"
 
 animation state="LIST_TOP_LEFT"
-frame duration="50f" x="20" y="14" w="6" h="7" originx="6" originy="7" flipx="0" flipy="0"
+frame x="20" y="14" w="6" h="7" originx="6" originy="7"
 
 animation state="LIST_TOP"
-frame duration="50f" x="27" y="14" w="1" h="7" originx="0" originy="7" flipx="0" flipy="0"
+frame x="27" y="14" w="1" h="7" originy="7"
 
 animation state="LIST_TOP_RIGHT"
-frame duration="50f" x="29" y="14" w="11" h="7" originx="0" originy="7" flipx="0" flipy="0"
+frame x="29" y="14" w="12" h="7" originy="7"
 
 animation state="LIST_LEFT"
-frame duration="50f" x="20" y="22" w="6" h="1" originx="6" originy="0" flipx="0" flipy="0"
+frame x="20" y="22" w="6" h="1" originx="6"
 
 animation state="LIST_BODY"
-frame duration="50f" x="27" y="22" w="1" h="1" originx="0" originy="0" flipx="0" flipy="0"
+frame x="27" y="22" w="1" h="1"
 
 animation state="LIST_RIGHT"
-frame duration="50f" x="29" y="22" w="11" h="1" originx="0" originy="0" flipx="0" flipy="0"
-point label="SCROLL_START" x="5" y="4"
-point label="SCROLL_END" x="5" y="-5"
+frame x="29" y="22" w="12" h="1"
+point label="SCROLL_START" x="6" y="4"
+point label="SCROLL_END" x="6" y="-4"
 
 animation state="LIST_BOTTOM_LEFT"
-frame duration="50f" x="20" y="24" w="6" h="7" originx="6" originy="0" flipx="0" flipy="0"
+frame x="20" y="24" w="6" h="7" originx="6"
 
 animation state="LIST_BOTTOM"
-frame duration="50f" x="27" y="24" w="1" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="27" y="24" w="1" h="7"
 
 animation state="LIST_BOTTOM_RIGHT"
-frame duration="50f" x="29" y="24" w="11" h="7" originx="0" originy="0" flipx="0" flipy="0"
+frame x="29" y="24" w="12" h="7"
 
 animation state="LIST_LABEL"
-frame duration="50f" x="12" y="32" w="52" h="8" originx="6" originy="11" flipx="0" flipy="0"
+frame x="12" y="32" w="52" h="8" originx="6" originy="11"
 point label="TEXT_START" x="5" y="2"
+
+
+animation state="FRAME_TOP_LEFT"
+frame x="42" y="14" w="3" h="3" originx="3" originy="3"
+
+animation state="FRAME_TOP"
+frame x="46" y="14" w="1" h="3" originy="3"
+
+animation state="FRAME_TOP_RIGHT"
+frame x="48" y="14" w="4" h="3" originy="3"
+
+animation state="FRAME_LEFT"
+frame x="42" y="18" w="3" h="1" originx="3"
+
+animation state="FRAME_BODY"
+frame x="46" y="18" w="1" h="1"
+
+animation state="FRAME_RIGHT"
+frame x="48" y="18" w="4" h="1"
+
+animation state="FRAME_BOTTOM_LEFT"
+frame x="42" y="20" w="3" h="4" originx="3"
+
+animation state="FRAME_BOTTOM"
+frame x="46" y="20" w="1" h="4"
+
+animation state="FRAME_BOTTOM_RIGHT"
+frame x="48" y="20" w="4" h="4"
+
+animation state="EMBEDDED_TOP_LEFT"
+frame x="42" y="25" w="1" h="1" originx="1" originy="1"
+
+animation state="EMBEDDED_TOP"
+frame x="43" y="25" w="1" h="1" originy="1"
+
+animation state="EMBEDDED_TOP_RIGHT"
+frame x="44" y="25" w="1" h="1" originy="1"
+
+animation state="EMBEDDED_LEFT"
+frame x="42" y="26" w="1" h="1" originx="1"
+
+animation state="EMBEDDED_BODY"
+frame x="43" y="26" w="1" h="1"
+
+animation state="EMBEDDED_RIGHT"
+frame x="44" y="26" w="1" h="1"
+
+animation state="EMBEDDED_BOTTOM_LEFT"
+frame x="42" y="27" w="1" h="1" originx="1"
+
+animation state="EMBEDDED_BOTTOM"
+frame x="43" y="27" w="1" h="1"
+
+animation state="EMBEDDED_BOTTOM_RIGHT"
+frame x="44" y="27" w="1" h="1"

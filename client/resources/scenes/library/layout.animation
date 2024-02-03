@@ -1,3 +1,4 @@
 animation state="DEFAULT"
 blank
 point label="CARD" x="8" y="21"
+point label="DOCK" x="86" y="20"

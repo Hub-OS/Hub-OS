@@ -33,6 +33,7 @@ pub struct DeckListScene {
     regular_card_sprite: Sprite,
     deck_scroll_offset: f32,
     deck_sprite: Sprite,
+    deck_name_offset: Vec2,
     deck_frame_sprite: Sprite,
     deck_start_position: Vec2,
     deck_restrictions: DeckRestrictions,
@@ -61,15 +62,9 @@ impl DeckListScene {
         let mut layout_animator = Animator::load_new(assets, ResourcePaths::DECKS_LAYOUT_ANIMATION);
         layout_animator.set_state("DEFAULT");
 
-        // card scroll tracker
-        let mut card_scroll_tracker = ScrollTracker::new(game_io, 5);
-
-        let card_list_position = layout_animator.point("LIST").unwrap_or_default();
-
-        let scroll_start = layout_animator.point("SCROLL_START").unwrap_or_default();
-        let scroll_end = layout_animator.point("SCROLL_END").unwrap_or_default();
-
-        card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
+        // ui
+        let ui_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_UI);
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::DECKS_UI_ANIMATION);
 
         // regular card sprite
         let mut regular_card_sprite = assets.new_sprite(game_io, ResourcePaths::REGULAR_CARD);
@@ -80,15 +75,31 @@ impl DeckListScene {
         regular_animator.apply(&mut regular_card_sprite);
 
         // deck sprites
-        let deck_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_ENABLED);
+        let mut deck_sprite = ui_sprite.clone();
+        ui_animator.set_state("DECK");
+        ui_animator.apply(&mut deck_sprite);
 
         let deck_start_position = layout_animator.point("DECK_START").unwrap_or_default();
 
-        // deck frame
-        let mut deck_frame_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_FRAME);
+        let deck_name_offset = ui_animator.point("NAME").unwrap_or_default();
 
-        let deck_frame_position = layout_animator.point("FRAME").unwrap_or_default();
-        deck_frame_sprite.set_position(deck_frame_position);
+        // card list
+        let mut deck_frame_sprite = ui_sprite.clone();
+        ui_animator.set_state("CARD_LIST");
+        ui_animator.apply(&mut deck_frame_sprite);
+
+        let frame_position = layout_animator.point("CARD_LIST").unwrap_or_default();
+        deck_frame_sprite.set_position(frame_position);
+
+        // card scroll tracker
+        let mut card_scroll_tracker = ScrollTracker::new(game_io, 5);
+
+        let card_list_position = ui_animator.point("LIST").unwrap_or_default() + frame_position;
+
+        let scroll_start = ui_animator.point("SCROLL_START").unwrap_or_default() + frame_position;
+        let scroll_end = ui_animator.point("SCROLL_END").unwrap_or_default() + frame_position;
+
+        card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
         // deck cursor sprite
         let mut deck_scroll_tracker = ScrollTracker::new(game_io, 3);
@@ -103,12 +114,10 @@ impl DeckListScene {
         deck_scroll_tracker.define_cursor(cursor_start, deck_sprite.size().x + 1.0);
 
         // equipped sprite
-        let mut equipped_animator =
-            Animator::load_new(assets, ResourcePaths::DECKS_EQUIPPED_ANIMATION);
-        equipped_animator.set_state("BLINK");
+        let equipped_sprite = ui_sprite.clone();
+        let mut equipped_animator = ui_animator.clone();
+        equipped_animator.set_state("EQUIPPED_BADGE");
         equipped_animator.set_loop_mode(AnimatorLoopMode::Loop);
-
-        let equipped_sprite = assets.new_sprite(game_io, ResourcePaths::DECKS_EQUIPPED);
 
         let (event_sender, event_receiver) = flume::unbounded();
 
@@ -133,6 +142,7 @@ impl DeckListScene {
             regular_card_sprite,
             deck_scroll_offset: 0.0,
             deck_sprite,
+            deck_name_offset,
             deck_frame_sprite,
             deck_start_position,
             deck_restrictions,
@@ -232,8 +242,6 @@ impl Scene for DeckListScene {
         self.deck_scroll_offset += (deck_top_index as f32 - self.deck_scroll_offset) * 0.2;
 
         // draw decks
-        const LABEL_OFFSET: Vec2 = Vec2::new(4.0, 11.0);
-
         let mut label =
             TextStyle::new(game_io, FontName::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
@@ -264,7 +272,7 @@ impl Scene for DeckListScene {
                 Color::ORANGE
             };
 
-            label.bounds.set_position(position + LABEL_OFFSET);
+            label.bounds.set_position(position + self.deck_name_offset);
             label.draw(game_io, &mut sprite_queue, &deck.name);
         }
 
