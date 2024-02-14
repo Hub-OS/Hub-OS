@@ -5,8 +5,8 @@ use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    PackageListing, TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface, TextboxMessage,
-    TextboxPrompt, TextboxQuestion, TextboxQuiz,
+    PackageListing, TextStyle, TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface,
+    TextboxMessage, TextboxPrompt, TextboxQuestion, TextboxQuiz,
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
@@ -15,7 +15,9 @@ use crate::scenes::BattleInitScene;
 use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
-use packets::structures::{ActorProperty, BattleStatistics, FileHash, SpriteParent};
+use packets::structures::{
+    ActorProperty, BattleStatistics, FileHash, SpriteParent, TextboxOptions,
+};
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
 };
@@ -187,19 +189,19 @@ impl OverworldOnlineScene {
         vec![
             ClientPacket::Asset {
                 asset_type: ClientAssetType::Texture,
-                data: assets.binary(&player_package.overworld_texture_path),
+                data: assets.binary(&player_package.overworld_paths.texture),
             },
             ClientPacket::Asset {
                 asset_type: ClientAssetType::Animation,
-                data: assets.binary(&player_package.overworld_animation_path),
+                data: assets.binary(&player_package.overworld_paths.animation),
             },
             ClientPacket::Asset {
                 asset_type: ClientAssetType::MugshotTexture,
-                data: assets.binary(&player_package.mugshot_texture_path),
+                data: assets.binary(&player_package.mugshot_paths.texture),
             },
             ClientPacket::Asset {
                 asset_type: ClientAssetType::MugshotAnimation,
-                data: assets.binary(&player_package.mugshot_animation_path),
+                data: assets.binary(&player_package.mugshot_paths.animation),
             },
         ]
         .into_iter()
@@ -670,70 +672,49 @@ impl OverworldOnlineScene {
             }
             ServerPacket::Message {
                 message,
-                mug_texture_path,
-                mug_animation_path,
+                textbox_options,
             } => {
-                self.menu_manager.set_next_avatar(
-                    game_io,
-                    &self.assets,
-                    &mug_texture_path,
-                    &mug_animation_path,
-                );
-
                 let event_sender = self.area.event_sender.clone();
-                let message_interface = TextboxMessage::new(message).with_callback(move || {
+                let interface = TextboxMessage::new(message).with_callback(move || {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(0))
                         .unwrap();
                 });
 
-                self.push_server_textbox_interface(message_interface);
+                self.push_textbox_interface_with_options(game_io, interface, textbox_options);
+                self.set_textbox_doorstop();
             }
             ServerPacket::Question {
                 message,
-                mug_texture_path,
-                mug_animation_path,
+                textbox_options,
             } => {
-                self.menu_manager.set_next_avatar(
-                    game_io,
-                    &self.assets,
-                    &mug_texture_path,
-                    &mug_animation_path,
-                );
-
                 let event_sender = self.area.event_sender.clone();
-                let question_interface = TextboxQuestion::new(message, move |response| {
+                let interface = TextboxQuestion::new(message, move |response| {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(response as u8))
                         .unwrap();
                 });
 
-                self.push_server_textbox_interface(question_interface);
+                self.push_textbox_interface_with_options(game_io, interface, textbox_options);
+                self.set_textbox_doorstop();
             }
             ServerPacket::Quiz {
                 option_a,
                 option_b,
                 option_c,
-                mug_texture_path,
-                mug_animation_path,
+                textbox_options,
             } => {
-                self.menu_manager.set_next_avatar(
-                    game_io,
-                    &self.assets,
-                    &mug_texture_path,
-                    &mug_animation_path,
-                );
-
                 let options: &[&str; 3] = &[&option_a, &option_b, &option_c];
 
                 let event_sender = self.area.event_sender.clone();
-                let quiz_interface = TextboxQuiz::new(options, move |response| {
+                let interface = TextboxQuiz::new(options, move |response| {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(response as u8))
                         .unwrap();
                 });
 
-                self.push_server_textbox_interface(quiz_interface);
+                self.push_textbox_interface_with_options(game_io, interface, textbox_options);
+                self.set_textbox_doorstop();
             }
             ServerPacket::Prompt {
                 character_limit,
@@ -746,7 +727,8 @@ impl OverworldOnlineScene {
                         .unwrap();
                 });
 
-                self.push_server_textbox_interface(prompt_interface);
+                self.menu_manager.push_textbox_interface(prompt_interface);
+                self.set_textbox_doorstop();
             }
             ServerPacket::TextBoxResponseAck => {
                 if self.menu_manager.remaining_textbox_interfaces() == 1 {
@@ -825,10 +807,7 @@ impl OverworldOnlineScene {
                     bbs.close();
                 }
             }
-            ServerPacket::OpenShop {
-                mug_texture_path,
-                mug_animation_path,
-            } => {
+            ServerPacket::OpenShop { textbox_options } => {
                 let send_packet = self.send_packet.clone();
 
                 // let the server know shop selections from now on are for this shop
@@ -886,12 +865,8 @@ impl OverworldOnlineScene {
 
                 let shop = self.menu_manager.shop_mut().unwrap();
 
-                shop.set_shop_avatar(
-                    game_io,
-                    &self.assets,
-                    &mug_texture_path,
-                    &mug_animation_path,
-                );
+                // todo: apply all relevant textbox options, missing font as of writing
+                shop.set_shop_avatar(game_io, &self.assets, textbox_options.mug.as_ref());
                 shop.set_money(self.area.player_data.money);
             }
             ServerPacket::ShopInventory { items } => {
@@ -1400,9 +1375,28 @@ impl OverworldOnlineScene {
         }
     }
 
-    fn push_server_textbox_interface(&mut self, interface: impl TextboxInterface + 'static) {
+    fn push_textbox_interface_with_options(
+        &mut self,
+        game_io: &GameIO,
+        interface: impl TextboxInterface + 'static,
+        textbox_options: TextboxOptions,
+    ) {
+        // set avatar for the next interface
+        self.menu_manager
+            .set_next_avatar(game_io, &self.assets, textbox_options.mug.as_ref());
+
+        // push interface
         self.menu_manager.push_textbox_interface(interface);
 
+        // text style
+        if let Some(blueprint) = textbox_options.text_style {
+            let text_style = TextStyle::from_blueprint(game_io, &self.assets, blueprint);
+
+            self.menu_manager.set_last_text_style(text_style);
+        }
+    }
+
+    fn set_textbox_doorstop(&mut self) {
         if let Some(remove) = self.doorstop_remover.take() {
             remove();
         }

@@ -93,7 +93,7 @@ impl PackagesScene {
         cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         // layout
-        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGES_LAYOUT_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGES_UI_ANIMATION);
         animator.set_state("DEFAULT");
 
         let sidebar_bounds = Rect::from_corners(

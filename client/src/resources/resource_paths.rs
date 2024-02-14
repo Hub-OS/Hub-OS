@@ -110,17 +110,12 @@ impl ResourcePaths {
     pub const MAIN_MENU_ROOT: &'static str = "resources/scenes/main_menu/";
     pub const MAIN_MENU_BG: &'static str = "resources/scenes/main_menu/bg.png";
     pub const MAIN_MENU_BG_ANIMATION: &'static str = "resources/scenes/main_menu/bg.animation";
-    pub const MAIN_MENU_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/main_menu/layout.animation";
-    pub const MAIN_MENU_PARTS: &'static str = "resources/scenes/main_menu/menu.png";
-    pub const MAIN_MENU_PARTS_ANIMATION: &'static str = "resources/scenes/main_menu/menu.animation";
+    pub const MAIN_MENU_UI: &'static str = "resources/scenes/main_menu/ui.png";
+    pub const MAIN_MENU_UI_ANIMATION: &'static str = "resources/scenes/main_menu/ui.animation";
 
     // ServerListScene
-    pub const SERVER_LIST_STATUS: &'static str = "resources/scenes/server_list/status.png";
-    pub const SERVER_LIST_STATUS_ANIMATION: &'static str =
-        "resources/scenes/server_list/status.animation";
-    pub const SERVER_LIST_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/server_list/layout.animation";
+    pub const SERVER_LIST_UI: &'static str = "resources/scenes/server_list/ui.png";
+    pub const SERVER_LIST_UI_ANIMATION: &'static str = "resources/scenes/server_list/ui.animation";
 
     // InitialConnectScene
     pub const INITIAL_CONNECT_BG: &'static str = "resources/scenes/initial_connection/bg.png";
@@ -157,33 +152,27 @@ impl ResourcePaths {
     pub const OVERWORLD_SHOP: &'static str = "resources/scenes/overworld/shop/ui.png";
     pub const OVERWORLD_SHOP_ANIMATION: &'static str =
         "resources/scenes/overworld/shop/ui.animation";
-    pub const ITEMS_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/overworld/items/layout.animation";
+    pub const ITEMS_UI_ANIMATION: &'static str = "resources/scenes/overworld/items/ui.animation";
     pub const ITEM_DESCRIPTION: &'static str = "resources/scenes/overworld/items/item_bg.png";
 
     // DeckListScene
-    pub const DECKS_LAYOUT_ANIMATION: &'static str = "resources/scenes/deck_list/layout.animation";
-    pub const DECKS_ENABLED: &'static str = "resources/scenes/deck_list/enabled.png";
-    pub const DECKS_DISABLED: &'static str = "resources/scenes/deck_list/disabled.png";
-    pub const DECKS_FRAME: &'static str = "resources/scenes/deck_list/frame.png";
+    pub const DECKS_UI: &'static str = "resources/scenes/deck_list/ui.png";
+    pub const DECKS_UI_ANIMATION: &'static str = "resources/scenes/deck_list/ui.animation";
     pub const DECKS_CURSOR: &'static str = "resources/scenes/deck_list/cursor.png";
     pub const DECKS_CURSOR_ANIMATION: &'static str = "resources/scenes/deck_list/cursor.animation";
-    pub const DECKS_EQUIPPED: &'static str = "resources/scenes/deck_list/equip.png";
-    pub const DECKS_EQUIPPED_ANIMATION: &'static str = "resources/scenes/deck_list/equip.animation";
 
     // DeckEditorScene
     pub const DECK_UI: &'static str = "resources/scenes/deck_editor/ui.png";
     pub const DECK_UI_ANIMATION: &'static str = "resources/scenes/deck_editor/ui.animation";
 
     // LibraryScene
-    pub const LIBRARY_LAYOUT_ANIMATION: &'static str = "resources/scenes/library/layout.animation";
-    pub const LIBRARY_DOCK: &'static str = "resources/scenes/library/dock.png";
-    pub const LIBRARY_DOCK_ANIMATION: &'static str = "resources/scenes/library/dock.animation";
+    pub const LIBRARY_UI: &'static str = "resources/scenes/library/ui.png";
+    pub const LIBRARY_UI_ANIMATION: &'static str = "resources/scenes/library/ui.animation";
 
     // CharacterScene
-    pub const CHARACTER_PAGES: &'static str = "resources/scenes/character_status/pages.png";
-    pub const CHARACTER_PAGES_ANIMATION: &'static str =
-        "resources/scenes/character_status/pages.animation";
+    pub const CHARACTER_UI: &'static str = "resources/scenes/character_status/ui.png";
+    pub const CHARACTER_UI_ANIMATION: &'static str =
+        "resources/scenes/character_status/ui.animation";
 
     // BlocksScene
     pub const BLOCKS_BG: &'static str = "resources/scenes/blocks/bg.png";
@@ -193,16 +182,13 @@ impl ResourcePaths {
     pub const BLOCKS_PREVIEW_ANIMATION: &'static str = "resources/scenes/blocks/preview.animation";
 
     // CharacterSelectScene
-    pub const CHARACTER_SELECT_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/character_select/layout.animation";
+    pub const CHARACTER_SELECT_UI: &'static str = "resources/scenes/character_select/ui.png";
+    pub const CHARACTER_SELECT_UI_ANIMATION: &'static str =
+        "resources/scenes/character_select/ui.animation";
     pub const CHARACTER_SELECT_CURSOR: &'static str =
         "resources/scenes/character_select/cursor.png";
     pub const CHARACTER_SELECT_CURSOR_ANIMATION: &'static str =
         "resources/scenes/character_select/cursor.animation";
-    pub const CHARACTER_SELECT_INVALID: &'static str =
-        "resources/scenes/character_select/invalid.png";
-    pub const CHARACTER_SELECT_INVALID_ANIMATION: &'static str =
-        "resources/scenes/character_select/invalid.animation";
 
     // ManageSwitchDriveScene
     pub const SWITCH_DRIVE_UI: &'static str = "resources/scenes/switch_drives/ui.png";
@@ -210,8 +196,7 @@ impl ResourcePaths {
         "resources/scenes/switch_drives/ui.animation";
 
     // KeyItemsScene
-    pub const KEY_ITEMS_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/key_items/layout.animation";
+    pub const KEY_ITEMS_UI_ANIMATION: &'static str = "resources/scenes/key_items/ui.animation";
     pub const KEY_ITEMS_MUG: &'static str = "resources/scenes/key_items/mug.png";
 
     // BattleSelectScene
@@ -262,25 +247,24 @@ impl ResourcePaths {
         "resources/scenes/battle/trap_alert.animation";
 
     // ConfigScene
-    pub const CONFIG_LAYOUT_ANIMATION: &'static str = "resources/scenes/config/layout.animation";
+    pub const CONFIG_UI_ANIMATION: &'static str = "resources/scenes/config/ui.animation";
 
     // PackagesScene
-    pub const PACKAGES_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/packages/layout.animation";
+    pub const PACKAGES_UI_ANIMATION: &'static str = "resources/scenes/packages/ui.animation";
     pub const PACKAGES_PREVIEW: &'static str = "resources/scenes/packages/preview.png";
     pub const PACKAGES_PREVIEW_ANIMATION: &'static str =
         "resources/scenes/packages/preview.animation";
 
     // PackageScene
-    pub const PACKAGE_LAYOUT_ANIMATION: &'static str = "resources/scenes/package/layout.animation";
+    pub const PACKAGE_UI_ANIMATION: &'static str = "resources/scenes/package/ui.animation";
 
     // PackageUpdatesScene
-    pub const PACKAGE_UPDATES_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/package_updates/layout.animation";
+    pub const PACKAGE_UPDATES_UI_ANIMATION: &'static str =
+        "resources/scenes/package_updates/ui.animation";
 
     // ResourceOrderScene
-    pub const RESOURCE_ORDER_LAYOUT_ANIMATION: &'static str =
-        "resources/scenes/resource_order/layout.animation";
+    pub const RESOURCE_ORDER_UI_ANIMATION: &'static str =
+        "resources/scenes/resource_order/ui.animation";
 
     #[allow(unused_variables)]
     pub fn init_game_folder(app: &WinitPlatformApp) {

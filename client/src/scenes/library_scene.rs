@@ -28,24 +28,24 @@ impl LibraryScene {
         camera.snap(RESOLUTION_F * 0.5);
 
         // background
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::LIBRARY_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::LIBRARY_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         // docks
-        let mut available_packages: Vec<_> = globals
+        let dock_offset = ui_animator.point("DOCK").unwrap_or_default();
+        let mut package_ids: Vec<_> = globals
             .card_packages
             .package_ids_with_override(PackageNamespace::Local)
             .cloned()
             .collect();
 
-        available_packages.sort();
+        package_ids.sort();
 
         let docks = vec![
-            Dock::new(game_io, CardClass::Standard, &available_packages),
-            Dock::new(game_io, CardClass::Mega, &available_packages),
-            Dock::new(game_io, CardClass::Giga, &available_packages),
-            Dock::new(game_io, CardClass::Dark, &available_packages),
+            Dock::new(game_io, dock_offset, &package_ids, CardClass::Standard),
+            Dock::new(game_io, dock_offset, &package_ids, CardClass::Mega),
+            Dock::new(game_io, dock_offset, &package_ids, CardClass::Giga),
+            Dock::new(game_io, dock_offset, &package_ids, CardClass::Dark),
         ];
 
         // page tracker
@@ -65,7 +65,7 @@ impl LibraryScene {
         }
 
         // card
-        let card_position = layout_animator.point("CARD").unwrap_or_default();
+        let card_position = ui_animator.point("CARD").unwrap_or_default();
 
         let mut scene = Box::new(Self {
             camera,
@@ -194,7 +194,12 @@ struct Dock {
 }
 
 impl Dock {
-    fn new(game_io: &GameIO, card_class: CardClass, available_packages: &[PackageId]) -> Self {
+    fn new(
+        game_io: &GameIO,
+        dock_offset: Vec2,
+        available_packages: &[PackageId],
+        card_class: CardClass,
+    ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -214,13 +219,13 @@ impl Dock {
             .collect();
 
         // dock
-        let mut dock_sprite = assets.new_sprite(game_io, ResourcePaths::LIBRARY_DOCK);
-        let mut dock_animator = Animator::load_new(assets, ResourcePaths::LIBRARY_DOCK_ANIMATION);
-        dock_animator.set_state("DEFAULT");
+        let mut dock_sprite = assets.new_sprite(game_io, ResourcePaths::LIBRARY_UI);
+        let mut dock_animator = Animator::load_new(assets, ResourcePaths::LIBRARY_UI_ANIMATION);
+        dock_animator.set_state("DOCK");
         dock_animator.set_loop_mode(AnimatorLoopMode::Loop);
         dock_animator.apply(&mut dock_sprite);
 
-        let dock_offset = -dock_sprite.origin();
+        dock_sprite.set_position(dock_offset);
 
         let list_point = dock_animator.point("LIST").unwrap_or_default();
         let list_position = dock_offset + list_point;

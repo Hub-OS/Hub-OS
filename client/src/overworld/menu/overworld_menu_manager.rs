@@ -9,6 +9,7 @@ use crate::scenes::KeyItemsScene;
 use crate::structures::{GenerationalIndex, SlotMap};
 use crate::transitions::DEFAULT_FADE_DURATION;
 use framework::prelude::*;
+use packets::structures::TextureAnimPathPair;
 
 enum Event {
     SelectionMade,
@@ -329,11 +330,13 @@ impl OverworldMenuManager {
         &mut self,
         game_io: &GameIO,
         assets: &impl AssetManager,
-        texture_path: &str,
-        animation_path: &str,
+        path_pair: Option<&TextureAnimPathPair>,
     ) {
-        self.textbox
-            .set_next_avatar(game_io, assets, texture_path, animation_path);
+        self.textbox.set_next_avatar(game_io, assets, path_pair);
+    }
+
+    pub fn set_last_text_style(&mut self, text_style: TextStyle) {
+        self.textbox.set_last_text_style(text_style);
     }
 
     pub fn use_player_avatar(&mut self, game_io: &GameIO) {

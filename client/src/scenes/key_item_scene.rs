@@ -6,7 +6,7 @@ use crate::render::ui::{
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
 use crate::resources::{Globals, Input, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
-use packets::structures::{Inventory, ItemDefinition};
+use packets::structures::{Inventory, ItemDefinition, TextureAnimPathPair};
 use std::collections::HashMap;
 
 const LINE_HEIGHT: f32 = 16.0;
@@ -45,19 +45,18 @@ impl KeyItemsScene {
         // layout
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::KEY_ITEMS_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::KEY_ITEMS_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         // cursors
-        let cursor_left_start = layout_animator.point("CURSOR_LEFT").unwrap_or_default();
-        let cursor_right_start = layout_animator.point("CURSOR_RIGHT").unwrap_or_default();
-        let text_offset = layout_animator.point("TEXT_OFFSET").unwrap_or_default();
+        let cursor_left_start = ui_animator.point("CURSOR_LEFT").unwrap_or_default();
+        let cursor_right_start = ui_animator.point("CURSOR_RIGHT").unwrap_or_default();
+        let text_offset = ui_animator.point("TEXT_OFFSET").unwrap_or_default();
 
         // scrollable frame
         let frame_bounds = Rect::from_corners(
-            layout_animator.point("FRAME_START").unwrap_or_default(),
-            layout_animator.point("FRAME_END").unwrap_or_default(),
+            ui_animator.point("FRAME_START").unwrap_or_default(),
+            ui_animator.point("FRAME_END").unwrap_or_default(),
         );
 
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);
@@ -88,8 +87,10 @@ impl KeyItemsScene {
         textbox.set_next_avatar(
             game_io,
             assets,
-            ResourcePaths::KEY_ITEMS_MUG,
-            ResourcePaths::BLANK,
+            Some(&TextureAnimPathPair {
+                texture: ResourcePaths::KEY_ITEMS_MUG.into(),
+                animation: ResourcePaths::BLANK.into(),
+            }),
         );
 
         let (mut interface, _) = TextboxDoorstop::new();

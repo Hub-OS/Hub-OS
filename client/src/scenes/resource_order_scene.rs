@@ -46,21 +46,18 @@ impl ResourceOrderScene {
         let assets = &globals.assets;
 
         // load layout
-        let layout_animator =
-            Animator::load_new(assets, ResourcePaths::RESOURCE_ORDER_LAYOUT_ANIMATION)
-                .with_state("DEFAULT");
+        let ui_animator = Animator::load_new(assets, ResourcePaths::RESOURCE_ORDER_UI_ANIMATION)
+            .with_state("DEFAULT");
 
-        let option_tip_top_right = layout_animator
-            .point("MENU_TIP_TOP_RIGHT")
-            .unwrap_or_default();
+        let option_tip_top_right = ui_animator.point("MENU_TIP_TOP_RIGHT").unwrap_or_default();
 
         let frame_bounds = Rect::from_corners(
-            layout_animator.point("LIST_START").unwrap_or_default(),
-            layout_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point("LIST_START").unwrap_or_default(),
+            ui_animator.point("LIST_END").unwrap_or_default(),
         );
 
-        let list_padding = layout_animator.point("LIST_PADDING").unwrap_or_default();
-        let context_position = layout_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let list_padding = ui_animator.point("LIST_PADDING").unwrap_or_default();
+        let context_position = ui_animator.point("CONTEXT_MENU").unwrap_or_default();
 
         // define frame region
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);

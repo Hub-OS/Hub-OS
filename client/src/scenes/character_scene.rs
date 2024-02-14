@@ -50,24 +50,23 @@ impl CharacterScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let mut page_animator =
-            Animator::load_new(assets, ResourcePaths::CHARACTER_PAGES_ANIMATION);
-        let page_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_PAGES);
+        let mut ui_animator = Animator::load_new(assets, ResourcePaths::CHARACTER_UI_ANIMATION);
+        let page_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_UI);
 
         self.pages.clear();
 
         let data = StatusData::new(game_io);
 
         for (i, state) in ["PAGE_1", "PAGE_2"].into_iter().enumerate() {
-            page_animator.set_state(state);
+            ui_animator.set_state(state);
             self.pages.push(StatusPage::new(
                 game_io,
-                &page_animator,
+                &ui_animator,
                 page_sprite.clone(),
                 &data,
             ));
 
-            if let Some(point) = page_animator.point("PAGE_ARROWS") {
+            if let Some(point) = ui_animator.point("PAGE_ARROWS") {
                 self.page_tracker.set_page_arrow_offset(i - 1, point)
             }
         }
@@ -245,7 +244,7 @@ struct StatusPage {
 impl StatusPage {
     fn new(
         game_io: &GameIO,
-        layout_animator: &Animator,
+        ui_animator: &Animator,
         mut page_sprite: Sprite,
         data: &StatusData,
     ) -> Self {
@@ -257,16 +256,16 @@ impl StatusPage {
             player_health_ui: Vec::new(),
         };
 
-        layout_animator.apply(&mut page_sprite);
+        ui_animator.apply(&mut page_sprite);
         page.sprites.push(page_sprite);
 
-        if let Some(point) = layout_animator.point("ELEMENT") {
+        if let Some(point) = ui_animator.point("ELEMENT") {
             let mut sprite = ElementSprite::new(game_io, data.player_package.element);
             sprite.set_position(point);
             page.sprites.push(sprite);
         }
 
-        if let Some(point) = layout_animator.point("HEALTH") {
+        if let Some(point) = ui_animator.point("HEALTH") {
             let mut player_health_ui = PlayerHealthUi::new(game_io);
             player_health_ui.snap_health(data.health);
             player_health_ui.set_position(point);
@@ -274,7 +273,7 @@ impl StatusPage {
             page.player_health_ui.push(player_health_ui);
         }
 
-        if let Some(point) = layout_animator.point("PLAYER") {
+        if let Some(point) = ui_animator.point("PLAYER") {
             let (texture_path, mut animator) = data.player_package.resolve_battle_sprite(game_io);
 
             let globals = game_io.resource::<Globals>().unwrap();
@@ -299,7 +298,7 @@ impl StatusPage {
         ];
 
         for (label, prefix, value) in stat_text_associations {
-            if let Some(point) = layout_animator.point(label) {
+            if let Some(point) = ui_animator.point(label) {
                 let mut text = Text::new(game_io, FontName::Thick);
                 text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
                 text.style.letter_spacing = 2.0;
@@ -311,7 +310,7 @@ impl StatusPage {
             }
         }
 
-        if let Some(point) = layout_animator.point("POWER_CHARGE_TEXT") {
+        if let Some(point) = ui_animator.point("POWER_CHARGE_TEXT") {
             let mut text = Text::new(game_io, FontName::Thick);
             text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
             text.style.letter_spacing = 2.0;
@@ -322,8 +321,8 @@ impl StatusPage {
             page.text.push(text);
         }
 
-        if let Some(start_point) = layout_animator.point("DECK_START") {
-            let end_point = layout_animator.point("DECK_END").unwrap_or_default();
+        if let Some(start_point) = ui_animator.point("DECK_START") {
+            let end_point = ui_animator.point("DECK_END").unwrap_or_default();
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)
@@ -351,8 +350,8 @@ impl StatusPage {
             page.lists.push(list);
         }
 
-        if let Some(start_point) = layout_animator.point("BLOCKS_START") {
-            let end_point = layout_animator.point("BLOCKS_END").unwrap_or_default();
+        if let Some(start_point) = ui_animator.point("BLOCKS_START") {
+            let end_point = ui_animator.point("BLOCKS_END").unwrap_or_default();
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)

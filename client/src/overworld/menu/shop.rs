@@ -9,7 +9,7 @@ use crate::resources::{
     AssetManager, Globals, Input, ResourcePaths, TEXT_TRANSPARENT_SHADOW_COLOR,
 };
 use framework::prelude::*;
-use packets::structures::ShopItem;
+use packets::structures::{ShopItem, TextureAnimPathPair};
 use std::cell::Cell;
 use std::rc::Rc;
 
@@ -126,11 +126,10 @@ impl Shop {
         &mut self,
         game_io: &GameIO,
         assets: &impl AssetManager,
-        texture_path: &str,
-        animation_path: &str,
+        path_pair: Option<&TextureAnimPathPair>,
     ) {
         self.base_textbox
-            .set_next_avatar(game_io, assets, texture_path, animation_path);
+            .set_next_avatar(game_io, assets, path_pair);
     }
 
     pub fn set_message(&mut self, message: String) {

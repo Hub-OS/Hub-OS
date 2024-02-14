@@ -48,18 +48,18 @@ impl PackageUpdatesScene {
         let assets = &globals.assets;
 
         // layout
-        let mut layout_animator =
-            Animator::load_new(assets, ResourcePaths::PACKAGE_UPDATES_LAYOUT_ANIMATION);
-        layout_animator.set_state("DEFAULT");
+        let mut ui_animator =
+            Animator::load_new(assets, ResourcePaths::PACKAGE_UPDATES_UI_ANIMATION);
+        ui_animator.set_state("DEFAULT");
 
         let list_bounds = Rect::from_corners(
-            layout_animator.point("LIST_START").unwrap_or_default(),
-            layout_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point("LIST_START").unwrap_or_default(),
+            ui_animator.point("LIST_END").unwrap_or_default(),
         );
 
         let button_bounds = Rect::from_corners(
-            layout_animator.point("BUTTONS_START").unwrap_or_default(),
-            layout_animator.point("BUTTONS_END").unwrap_or_default(),
+            ui_animator.point("BUTTONS_START").unwrap_or_default(),
+            ui_animator.point("BUTTONS_END").unwrap_or_default(),
         );
 
         // cursor

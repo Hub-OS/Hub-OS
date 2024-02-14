@@ -1,6 +1,8 @@
+use crate::render::ui::GlyphAtlas;
+
 use super::*;
 use framework::prelude::*;
-use packets::structures::{AssetDataType, FileHash};
+use packets::structures::{AssetDataType, FileHash, TextureAnimPathPair};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fs;
@@ -25,6 +27,7 @@ pub struct LocalAssetManager {
     text_cache: RefCell<HashMap<String, String>>,
     texture_cache: RefCell<HashMap<String, Arc<Texture>>>,
     sound_cache: RefCell<HashMap<String, SoundBuffer>>,
+    glyph_atlases: RefCell<HashMap<TextureAnimPathPair<'static>, Arc<GlyphAtlas>>>,
 }
 
 impl LocalAssetManager {
@@ -45,6 +48,7 @@ impl LocalAssetManager {
             text_cache: RefCell::new(text),
             texture_cache: RefCell::new(textures),
             sound_cache: RefCell::new(sounds),
+            glyph_atlases: Default::default(),
         }
     }
 
@@ -349,6 +353,33 @@ impl AssetManager for LocalAssetManager {
             let sound = SoundBuffer::decode(game_io, bytes);
             sound_cache.insert(path.to_string(), sound.clone());
             sound
+        }
+    }
+
+    fn glyph_atlas(
+        &self,
+        game_io: &GameIO,
+        texture_path: &str,
+        animation_path: &str,
+    ) -> Arc<GlyphAtlas> {
+        let mut atlases = self.glyph_atlases.borrow_mut();
+
+        let key = TextureAnimPathPair {
+            texture: texture_path.into(),
+            animation: animation_path.into(),
+        };
+
+        if let Some(atlas) = atlases.get(&key) {
+            atlas.clone()
+        } else {
+            // note: self.glyph_atlases is still borrowed,
+            // should be fine as long as GlyphAtlas::new() doesn't try accessing it
+
+            let glyph_atlas =
+                Arc::new(GlyphAtlas::new(game_io, self, texture_path, animation_path));
+
+            atlases.insert(key.own(), glyph_atlas.clone());
+            glyph_atlas
         }
     }
 }

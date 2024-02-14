@@ -3,6 +3,7 @@ use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use packets::structures::TextureAnimPathPair;
 use std::collections::VecDeque;
 use std::ops::Range;
 use unicode_categories::UnicodeCategories;
@@ -58,7 +59,7 @@ pub struct Textbox {
     next_animator: Animator,
     next_sprite: Sprite,
     next_sprite_offset: Vec2,
-    interface_queue: VecDeque<Box<dyn TextboxInterface>>,
+    interface_queue: VecDeque<(Box<dyn TextboxInterface>, Option<Box<TextStyle>>)>,
     page_queue: VecDeque<Page>,
     text_index: usize,
     char_time: FrameTime,
@@ -207,7 +208,7 @@ impl Textbox {
             *count += 1;
         }
 
-        self.interface_queue.push_back(Box::new(interface));
+        self.interface_queue.push_back((Box::new(interface), None));
 
         if self.interface_queue.len() == 1 {
             self.create_pages();
@@ -255,12 +256,7 @@ impl Textbox {
     pub fn use_blank_avatar(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        self.set_next_avatar(
-            game_io,
-            &globals.assets,
-            ResourcePaths::BLANK,
-            ResourcePaths::BLANK,
-        );
+        self.set_next_avatar(game_io, &globals.assets, Default::default());
     }
 
     pub fn use_player_avatar(&mut self, game_io: &GameIO) {
@@ -274,8 +270,7 @@ impl Textbox {
         self.set_next_avatar(
             game_io,
             &globals.assets,
-            &player_package.mugshot_texture_path,
-            &player_package.mugshot_animation_path,
+            Some(&player_package.mugshot_paths),
         );
     }
 
@@ -283,9 +278,12 @@ impl Textbox {
         &mut self,
         game_io: &GameIO,
         assets: &impl AssetManager,
-        texture_path: &str,
-        animation_path: &str,
+        path_pair: Option<&TextureAnimPathPair>,
     ) {
+        let (texture_path, animation_path) = path_pair
+            .map(|pair| (&*pair.texture, &*pair.animation))
+            .unwrap_or_default();
+
         let mut animator = Animator::load_new(assets, animation_path);
         animator.set_state("IDLE");
         animator.set_loop_mode(AnimatorLoopMode::Loop);
@@ -298,6 +296,18 @@ impl Textbox {
         }
 
         self.avatar_queue.push_back((animator, sprite, 0));
+    }
+
+    /// A bit weird with set_next_avatar, maybe this or set_next_avatar should be refactored?
+    pub fn set_last_text_style(&mut self, text_style: TextStyle) {
+        let Some((_, optional_text_style)) = self.interface_queue.back_mut() else {
+            return;
+        };
+
+        *optional_text_style = Some(Box::new(text_style));
+
+        // recreate pages, maybe another reason to have this applied before setting the interface?
+        self.create_pages();
     }
 
     pub fn update(&mut self, game_io: &mut GameIO) {
@@ -338,7 +348,7 @@ impl Textbox {
             self.accept_input && (pressed_advance || input_util.was_just_pressed(Input::Cancel));
 
         let (auto_advance, completes_with_input) = (self.interface_queue.front())
-            .map(|interface| {
+            .map(|(interface, _)| {
                 (
                     interface.auto_advance(),
                     interface.completes_with_indicator(),
@@ -358,7 +368,7 @@ impl Textbox {
 
             if self.char_time >= self.effect_processor.char_delay {
                 let text = match self.interface_queue.front() {
-                    Some(interface) => interface.text(),
+                    Some((interface, _)) => interface.text(),
                     None => "",
                 };
 
@@ -383,12 +393,13 @@ impl Textbox {
             }
         }
 
-        if let Some(interface) = self.interface_queue.front_mut() {
+        if let Some((interface, custom_style)) = self.interface_queue.front_mut() {
             let prev_completed = page_completed;
             let page_completed = self.text_index == page.range.end;
 
             if is_last_page && page_completed && prev_completed {
-                interface.update(game_io, &self.text_style, page.lines);
+                let style = resolve_text_style(custom_style, &mut self.text_style);
+                interface.update(game_io, style, page.lines);
             }
 
             self.hide_avatar = interface.hides_avatar();
@@ -401,7 +412,7 @@ impl Textbox {
 
     fn process_effects(&mut self) {
         let text = match self.interface_queue.front() {
-            Some(interface) => interface.text(),
+            Some((interface, _)) => interface.text(),
             None => "",
         };
 
@@ -422,7 +433,7 @@ impl Textbox {
 
     fn update_avatar(&mut self, game_io: &GameIO) {
         let text = match self.interface_queue.front() {
-            Some(interface) => interface.text(),
+            Some((interface, _)) => interface.text(),
             None => "",
         };
 
@@ -459,7 +470,7 @@ impl Textbox {
 
         // process remaining effects
         let text = match self.interface_queue.front() {
-            Some(interface) => interface.text(),
+            Some((interface, _)) => interface.text(),
             None => "",
         };
 
@@ -485,7 +496,7 @@ impl Textbox {
     }
 
     pub fn advance_interface(&mut self, game_io: &GameIO) {
-        if let Some(mut interface) = self.interface_queue.pop_front() {
+        if let Some((mut interface, _)) = self.interface_queue.pop_front() {
             interface.handle_completed();
 
             if let Some((_, _, count)) = self.avatar_queue.front_mut() {
@@ -503,16 +514,23 @@ impl Textbox {
     }
 
     fn create_pages(&mut self) {
-        let lines_per_page =
-            (self.text_style.bounds.height / self.text_style.line_height()).max(1.0) as usize;
+        let page_height = self.text_style.bounds.height;
 
-        let mut temp_style = self.text_style.clone();
+        let (text, style) = match self.interface_queue.front_mut() {
+            Some((interface, custom_style)) => (
+                interface.text(),
+                &*resolve_text_style(custom_style, &mut self.text_style),
+            ),
+            None => ("", &self.text_style),
+        };
+
+        let mut temp_style = style.clone();
         temp_style.bounds.height = f32::INFINITY;
 
-        let text = match self.interface_queue.front() {
-            Some(interface) => interface.text(),
-            None => "",
-        };
+        // todo: account for negative line spacing
+
+        let lines_per_page = (page_height / style.line_height()).max(1.0) as usize;
+
         let metrics = temp_style.measure(text);
 
         let page_iter = metrics.line_ranges.chunks(lines_per_page).map(|lines| {
@@ -565,14 +583,15 @@ impl Textbox {
             }
         }
 
-        if let Some(interface) = self.interface_queue.front_mut() {
+        if let Some((interface, custom_style)) = self.interface_queue.front_mut() {
             // render text
             if let Some(page) = self.page_queue.front() {
                 let text = interface.text();
                 let range = page.range.start..self.text_index;
 
-                self.text_style
-                    .draw_slice(game_io, sprite_queue, text, range)
+                let style = resolve_text_style(custom_style, &mut self.text_style);
+
+                style.draw_slice(game_io, sprite_queue, text, range)
             }
 
             // render extra
@@ -648,5 +667,17 @@ fn grapheme_at(text: &str, index: usize) -> &str {
         text[index..].graphemes(true).next().unwrap_or_default()
     } else {
         ""
+    }
+}
+
+fn resolve_text_style<'a>(
+    custom_style: &'a mut Option<Box<TextStyle>>,
+    default_style: &'a mut TextStyle,
+) -> &'a mut TextStyle {
+    if let Some(style) = custom_style {
+        style.bounds = default_style.bounds;
+        &mut *style
+    } else {
+        default_style
     }
 }

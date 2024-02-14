@@ -1,0 +1,18 @@
+animation state="DEFAULT"
+blank
+point label="DECK_START" x="13" y="17"
+point label="CARD_LIST" x="74" y="48"
+
+animation state="DECK"
+frame x="1" y="1" w="71" h="28"
+point label="NAME" x="4" y="11"
+
+animation state="EQUIPPED_BADGE"
+frame duration="6f" x="73" y="5" w="38" h="9" originx="-15" originy="0"
+frame duration="6f" x="73" y="15" w="38" h="9" originx="-15" originy="0"
+
+animation state="CARD_LIST"
+frame x="1" y="30" w="159" h="104"
+point label="SCROLL_START" x="149" y="22"
+point label="SCROLL_END" x="149" y="92"
+point label="LIST" x="22" y="16"

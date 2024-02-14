@@ -1,11 +1,6 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
-use crate::render::ui::{
-    build_9patch, FontName, LengthPercentageAuto, PackageListing, PackagePreview,
-    PackagePreviewData, SceneTitle, ScrollableList, SubSceneFrame, Text, TextStyle, Textbox,
-    TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, UiButton, UiInputTracker, UiLayout,
-    UiLayoutNode, UiNode, UiStyle,
-};
+use crate::render::ui::*;
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
 use framework::prelude::*;
@@ -44,7 +39,7 @@ impl PackageScene {
         let assets = &globals.assets;
 
         // layout
-        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_LAYOUT_ANIMATION);
+        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_UI_ANIMATION);
         animator.set_state("DEFAULT");
 
         let preview_position = animator.point("PREVIEW").unwrap_or_default();

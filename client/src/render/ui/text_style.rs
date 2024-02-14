@@ -4,6 +4,7 @@ use crate::bindable::SpriteColorMode;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use packets::structures::TextStyleBlueprint;
 use std::ops::Range;
 use std::sync::Arc;
 use unicode_segmentation::UnicodeSegmentation;
@@ -52,7 +53,7 @@ impl TextStyle {
             scale: Vec2::ONE,
             color: Color::WHITE,
             shadow_color: Color::TRANSPARENT,
-            bounds: Rect::new(0.0, 0.0, std::f32::INFINITY, std::f32::INFINITY),
+            bounds: Rect::new(0.0, 0.0, f32::INFINITY, f32::INFINITY),
             monospace: false,
         }
     }
@@ -62,6 +63,32 @@ impl TextStyle {
         style.monospace = true;
 
         style
+    }
+
+    pub fn from_blueprint(
+        game_io: &GameIO,
+        assets: &impl AssetManager,
+        blueprint: TextStyleBlueprint,
+    ) -> Self {
+        let glyph_atlas = if let Some(paths) = blueprint.custom_atlas {
+            assets.glyph_atlas(game_io, &paths.texture, &paths.animation)
+        } else {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.glyph_atlas.clone()
+        };
+
+        Self {
+            glyph_atlas,
+            font: FontName::from_name(&blueprint.font_name),
+            min_glyph_width: blueprint.min_glyph_width,
+            letter_spacing: blueprint.letter_spacing,
+            line_spacing: blueprint.line_spacing,
+            scale: Vec2::new(blueprint.scale_x, blueprint.scale_y),
+            color: blueprint.color.into(),
+            shadow_color: blueprint.shadow_color.into(),
+            bounds: Rect::new(0.0, 0.0, f32::INFINITY, f32::INFINITY), // todo: ? not used currently
+            monospace: blueprint.monospace,
+        }
     }
 
     pub fn with_bounds(mut self, bounds: Rect) -> Self {
@@ -91,7 +118,7 @@ impl TextStyle {
 
     pub fn line_height(&self) -> f32 {
         let whitespace_size = self.glyph_atlas.resolve_whitespace_size(&self.font);
-        whitespace_size.y * self.scale.y + self.line_spacing
+        (whitespace_size.y + self.line_spacing) * self.scale.y
     }
 
     pub fn measure(&self, text: &str) -> TextMetrics {

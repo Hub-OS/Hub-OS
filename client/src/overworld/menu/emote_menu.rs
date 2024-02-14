@@ -41,40 +41,38 @@ impl EmoteMenu {
         let assets = &globals.assets;
 
         // layout
-        let mut layout_animator =
+        let mut ui_animator =
             Animator::load_new(assets, ResourcePaths::OVERWORLD_EMOTE_UI_ANIMATION);
-        layout_animator.set_state("DEFAULT");
-        let start_point = layout_animator.point("START").unwrap_or_default();
+        ui_animator.set_state("DEFAULT");
+        let start_point = ui_animator.point("START").unwrap_or_default();
         let search_box_bounds = Rect::from_corners(
-            layout_animator
-                .point("SEARCH_BOX_START")
-                .unwrap_or_default(),
-            layout_animator.point("SEARCH_BOX_END").unwrap_or_default(),
+            ui_animator.point("SEARCH_BOX_START").unwrap_or_default(),
+            ui_animator.point("SEARCH_BOX_END").unwrap_or_default(),
         );
-        let next_point = layout_animator.point("NEXT").unwrap_or_default();
-        let view_size = layout_animator.point("VIEW_SIZE").unwrap_or_default().x as usize;
+        let next_point = ui_animator.point("NEXT").unwrap_or_default();
+        let view_size = ui_animator.point("VIEW_SIZE").unwrap_or_default().x as usize;
 
         // search sprite
         let mut search_sprite = assets.new_sprite(game_io, ResourcePaths::OVERWORLD_EMOTE_UI);
-        layout_animator.set_state("SEARCH");
-        layout_animator.apply(&mut search_sprite);
+        ui_animator.set_state("SEARCH");
+        ui_animator.apply(&mut search_sprite);
 
         // search box 9patch
         let search_box_9patch = build_9patch!(
             game_io,
             search_sprite.texture().clone(),
-            &layout_animator,
+            &ui_animator,
             "SEARCH_BOX"
         );
 
         // highlight sprite
         let mut highlight_sprite = search_sprite.clone();
-        layout_animator.set_state("HIGHLIGHT");
-        layout_animator.apply(&mut highlight_sprite);
+        ui_animator.set_state("HIGHLIGHT");
+        ui_animator.apply(&mut highlight_sprite);
 
         let mut actor_animation_sprite = search_sprite.clone();
-        layout_animator.set_state("ACTOR_ANIMATION");
-        layout_animator.apply(&mut actor_animation_sprite);
+        ui_animator.set_state("ACTOR_ANIMATION");
+        ui_animator.apply(&mut actor_animation_sprite);
 
         // events
         let (event_sender, event_receiver) = flume::unbounded();

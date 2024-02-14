@@ -1,7 +1,0 @@
-animation state="DEFAULT"
-blank
-point label="LIST_START" x="7" y="17"
-point label="LIST_END" x="234" y="143"
-point label="CONTEXT_MENU" x="147" y="27"
-point label="CONTEXT_MENU" x="147" y="27"
-point label="MENU_TIP_TOP_RIGHT" x="228" y="145"

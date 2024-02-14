@@ -53,8 +53,17 @@ impl ServerEditScene {
         // define styles
         let ui_texture = assets.texture(game_io, ResourcePaths::UI_NINE_PATCHES);
         let ui_animator = Animator::load_new(assets, ResourcePaths::UI_NINE_PATCHES_ANIMATION);
+        let frame_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "FRAME");
         let button_9patch = build_9patch!(game_io, ui_texture.clone(), &ui_animator, "BUTTON");
-        let input_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "TEXT_INPUT");
+        let input_9patch = build_9patch!(game_io, ui_texture, &ui_animator, "EMBEDDED");
+
+        let frame_style = UiStyle {
+            nine_patch: Some(frame_9patch),
+            flex_direction: FlexDirection::Column,
+            max_width: Dimension::Percent(1.0),
+            margin_bottom: LengthPercentageAuto::Points(3.0),
+            ..Default::default()
+        };
 
         let label_style = UiStyle {
             align_self: Some(AlignSelf::FlexStart),
@@ -72,7 +81,6 @@ impl ServerEditScene {
 
         let input_height = 16.0 + input_9patch.top_height() + input_9patch.bottom_height();
         let input_style = UiStyle {
-            margin_bottom: LengthPercentageAuto::Points(2.0),
             padding_top: 1.0,
             padding_left: 3.0,
             padding_right: 3.0,
@@ -91,50 +99,61 @@ impl ServerEditScene {
         let ui_layout = UiLayout::new_vertical(
             Rect::new(8.0, 20.0, RESOLUTION_F.x - 16.0, RESOLUTION_F.y - 28.0),
             vec![
-                // name input
-                UiLayoutNode::new(
-                    Text::new(game_io, FontName::Thick)
-                        .with_str("Name")
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
-                )
-                .with_style(label_style.clone()),
-                UiLayoutNode::new(
-                    TextInput::new(game_io, FontName::Thin)
-                        .with_str(&server_info.name)
-                        .with_character_limit(20)
-                        .on_change({
-                            let sender = ui_sender.clone();
+                UiLayoutNode::new_container()
+                    .with_style(frame_style.clone())
+                    .with_children(vec![
+                        // name label
+                        UiLayoutNode::new(
+                            Text::new(game_io, FontName::Code)
+                                .with_str("NAME")
+                                .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
+                        )
+                        .with_style(label_style.clone()),
+                        // name input
+                        UiLayoutNode::new(
+                            TextInput::new(game_io, FontName::Thin)
+                                .with_str(&server_info.name)
+                                .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+                                .with_character_limit(20)
+                                .on_change({
+                                    let sender = ui_sender.clone();
 
-                            move |text| {
-                                sender
-                                    .send(UiMessage::NameUpdated(text.to_string()))
-                                    .unwrap();
-                            }
-                        }),
-                )
-                .with_style(input_style.clone()),
-                // address input
-                UiLayoutNode::new(
-                    Text::new(game_io, FontName::Thick)
-                        .with_str("Address")
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
-                )
-                .with_style(label_style),
-                UiLayoutNode::new(
-                    TextInput::new(game_io, FontName::Thin)
-                        .with_str(&server_info.address)
-                        .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
-                        .on_change({
-                            let sender = ui_sender.clone();
+                                    move |text| {
+                                        sender
+                                            .send(UiMessage::NameUpdated(text.to_string()))
+                                            .unwrap();
+                                    }
+                                }),
+                        )
+                        .with_style(input_style.clone()),
+                    ]),
+                UiLayoutNode::new_container()
+                    .with_style(frame_style)
+                    .with_children(vec![
+                        // address label
+                        UiLayoutNode::new(
+                            Text::new(game_io, FontName::Code)
+                                .with_str("ADDRESS")
+                                .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
+                        )
+                        .with_style(label_style),
+                        // address input
+                        UiLayoutNode::new(
+                            TextInput::new(game_io, FontName::Thin)
+                                .with_str(&server_info.address)
+                                .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
+                                .on_change({
+                                    let sender = ui_sender.clone();
 
-                            move |text| {
-                                sender
-                                    .send(UiMessage::AddressUpdated(text.to_string()))
-                                    .unwrap();
-                            }
-                        }),
-                )
-                .with_style(input_style),
+                                    move |text| {
+                                        sender
+                                            .send(UiMessage::AddressUpdated(text.to_string()))
+                                            .unwrap();
+                                    }
+                                }),
+                        )
+                        .with_style(input_style),
+                    ]),
                 // buttons
                 UiLayoutNode::new_container()
                     .with_style(UiStyle {
