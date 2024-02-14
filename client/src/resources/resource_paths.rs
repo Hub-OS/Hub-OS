@@ -54,6 +54,7 @@ impl ResourcePaths {
     pub const PLAYER_DELETED_SFX: &'static str = "resources/sfx/player_deleted.ogg";
     pub const HURT_SFX: &'static str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &'static str = "resources/sfx/explode.ogg";
+    pub const DARK_CARD_SFX: &'static str = "resources/sfx/dark_card.ogg";
 
     // General
     pub const BLANK: &'static str = "";

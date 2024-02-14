@@ -27,6 +27,24 @@ struct Selection {
     local: bool,
 }
 
+impl Selection {
+    fn new() -> Self {
+        Self {
+            col: 0 as i32,
+            row: 0 as i32,
+            form_row: todo!(),
+            card_button_width: todo!(),
+            has_special_button: todo!(),
+            form_select_time: todo!(),
+            form_open_time: todo!(),
+            confirm_time: todo!(),
+            animating_slide: todo!(),
+            erased: todo!(),
+            local: todo!(),
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SelectedItem {
     Card(usize),
@@ -81,6 +99,63 @@ impl State for CardSelectState {
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.sfx.card_select_open);
+
+            let entity_id = simulation.local_player_id;
+
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(entity_id.into())
+                .unwrap();
+
+            let card_view_size = player.deck.len().min(player.hand_size());
+
+            for index in 0..card_view_size {
+                let card = &player.deck[index];
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                let card_packages = &globals.card_packages;
+
+                let namespace = player.namespace();
+
+                let Some(package) = card_packages.package_or_override(namespace, &card.package_id)
+                else {
+                    continue;
+                };
+
+                let status_registry = &resources.status_registry;
+                package.card_properties.to_bindable(status_registry);
+
+                if package.card_properties.card_class != CardClass::Dark {
+                    continue;
+                };
+
+                // I can't figure this one out because of the borrow checker and I'm too stressed to fucking care
+                // simulation.play_sound(game_io, &globals.sfx.dark_card);
+
+                if player.index >= self.player_selections.len() {
+                    self.player_selections
+                        .resize_with(player.index + 1, Selection::default);
+                }
+
+                // initialize selection
+                let selection = &mut self.player_selections[player.index];
+                selection.local = player.local;
+                selection.animating_slide = true;
+
+                let x = if index > CARD_COLS {
+                    index - CARD_COLS
+                } else {
+                    index
+                } as i32;
+
+                let y = if index > CARD_COLS { 1 } else { 2 } as i32;
+
+                let x_difference = x - selection.col;
+                let y_difference = y - selection.row;
+                move_card_selection(player, selection, x_difference, y_difference);
+                break;
+            }
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
         }
@@ -168,7 +243,7 @@ impl State for CardSelectState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
-        _resources: &SharedBattleResources,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -190,6 +265,28 @@ impl State for CardSelectState {
         // update frame
         if let SelectedItem::Card(i) = selected_item {
             self.ui.update_card_frame(game_io, player, i);
+
+            let card = &player.deck[i];
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            let card_packages = &globals.card_packages;
+
+            let namespace = player.namespace();
+
+            let Some(package) = card_packages.package_or_override(namespace, &card.package_id)
+            else {
+                return;
+            };
+
+            let status_registry = &resources.status_registry;
+            package.card_properties.to_bindable(status_registry);
+
+            if package.card_properties.card_class == CardClass::Dark {
+                let fade_sprite = &mut resources.fade_sprite.clone();
+                fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
+                fade_sprite.set_color(resources.ui_fade_color.clone());
+                sprite_queue.draw_sprite(&fade_sprite);
+            };
         }
 
         // draw sprite tree
