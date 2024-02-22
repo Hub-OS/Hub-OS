@@ -229,9 +229,7 @@ impl Asset {
     }
 
     fn resolve_package_info(meta_table: &toml::Table) -> Option<PackageInfo> {
-        let Some(package) = meta_table.get("package") else {
-            return None;
-        };
+        let package = meta_table.get("package")?;
 
         let id = get_str(package, "id");
         let name = get_str(package, "name");

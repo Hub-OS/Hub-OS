@@ -117,7 +117,7 @@ impl StagedItems {
         resources: &'a SharedBattleResources,
         namespace: PackageNamespace,
         deck: &'a [Card],
-    ) -> impl Iterator<Item = CardProperties> + DoubleEndedIterator + 'a {
+    ) -> impl DoubleEndedIterator<Item = CardProperties> + 'a {
         let globals = game_io.resource::<Globals>().unwrap();
         let card_packages = &globals.card_packages;
         let status_registry = &resources.status_registry;
@@ -142,7 +142,7 @@ impl StagedItems {
     pub fn resolve_card_ids_and_codes<'a>(
         &'a self,
         deck: &'a [Card],
-    ) -> impl Iterator<Item = (&'a PackageId, &'a str)> + DoubleEndedIterator {
+    ) -> impl DoubleEndedIterator<Item = (&PackageId, &str)> {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
                 let card = deck.get(*i)?;

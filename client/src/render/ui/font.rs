@@ -68,11 +68,9 @@ impl FontName {
             "BATTLE_U+" => FontName::Battle,
             "ENTITY_HP_U+" => FontName::EntityHP,
             _ => {
-                let Some(name_end) = state_prefix.rfind(SPLIT_PATTERN) else {
-                    return None;
-                };
-
+                let name_end = state_prefix.rfind(SPLIT_PATTERN)?;
                 let name = &state_prefix[0..name_end];
+
                 FontName::External(name.to_uppercase().into())
             }
         };

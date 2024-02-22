@@ -1807,7 +1807,7 @@ impl Net {
         let packets: Vec<Vec<u8>> = packets.iter().map(serialize).collect();
 
         // send asset_packets before anything else
-        let asset_recievers = vec![player_id.to_string()];
+        let asset_recievers = [player_id.to_string()];
 
         for asset_path in asset_paths {
             ensure_asset(
