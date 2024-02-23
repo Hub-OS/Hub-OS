@@ -86,17 +86,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "staged_items", move |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-        let id: EntityId = table.raw_get("#id")?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
-            .map_err(|_| entity_not_found())?;
-
+    generate_player_mut_fn(lua_api, "staged_items", move |player, lua, _, _| {
         let iter = player
             .staged_items
             .iter()
@@ -107,16 +97,8 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    lua_api.add_dynamic_function(ENTITY_TABLE, "staged_item", move |api_ctx, lua, params| {
-        let (table, index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
-        let id: EntityId = table.raw_get("#id")?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
-
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
-            .map_err(|_| entity_not_found())?;
+    generate_player_mut_fn(lua_api, "staged_item", move |player, lua, _, params| {
+        let index: usize = lua.unpack_multi(params)?;
 
         let index = index.saturating_sub(1);
         let item = player.staged_items.iter().nth(index);
@@ -124,20 +106,11 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(item)
     });
 
-    lua_api.add_dynamic_function(
-        ENTITY_TABLE,
+    generate_player_mut_fn(
+        lua_api,
         "staged_item_texture",
-        move |api_ctx, lua, params| {
-            let (table, index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
-            let id: EntityId = table.raw_get("#id")?;
-
-            let mut api_ctx = api_ctx.borrow_mut();
-            let game_io = api_ctx.game_io;
-            let entities = &mut api_ctx.simulation.entities;
-
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
-                .map_err(|_| entity_not_found())?;
+        move |player, lua, game_io, params| {
+            let index: usize = lua.unpack_multi(params)?;
 
             let index = index.saturating_sub(1);
             let item = player.staged_items.iter().nth(index);
@@ -164,20 +137,10 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(
-        ENTITY_TABLE,
+    generate_player_mut_fn(
+        lua_api,
         "card_select_restriction",
-        move |api_ctx, lua, params| {
-            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
-            let id: EntityId = table.raw_get("#id")?;
-
-            let mut api_ctx = api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
-                .map_err(|_| entity_not_found())?;
-
+        move |player, lua, _, _| {
             let table = lua.create_table()?;
 
             match CardSelectRestriction::resolve(player) {
@@ -198,21 +161,11 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(
-        ENTITY_TABLE,
+    generate_player_mut_fn(
+        lua_api,
         "set_card_selection_blocked",
-        move |api_ctx, lua, params| {
-            let (table, blocked): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
-            let id: EntityId = table.raw_get("#id")?;
-
-            let mut api_ctx = api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
-                .map_err(|_| entity_not_found())?;
-
-            player.card_select_blocked = blocked;
+        move |player, lua, _, params| {
+            player.card_select_blocked = lua.unpack_multi(params)?;
 
             lua.pack_multi(())
         },
@@ -266,5 +219,37 @@ where
         player.staged_items.stage_item(item);
 
         lua.pack_multi(())
+    });
+}
+
+fn generate_player_mut_fn<F>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
+where
+    F: for<'lua> Fn(
+            &mut Player,
+            &'lua rollback_mlua::Lua,
+            &GameIO,
+            rollback_mlua::MultiValue<'lua>,
+        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
+        + 'static,
+{
+    lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
+        // todo: could we produce a better error for Nil entity tables?
+        let player_value = params.pop_front();
+        let player_table = player_value
+            .as_ref()
+            .and_then(|value| value.as_table())
+            .ok_or_else(entity_not_found)?;
+
+        let id: EntityId = player_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let entities = &mut api_ctx.simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        callback(player, lua, game_io, params)
     });
 }
