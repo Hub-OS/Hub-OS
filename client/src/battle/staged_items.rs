@@ -26,11 +26,20 @@ pub struct StagedItem {
 
 #[derive(Default, Clone)]
 pub struct StagedItems {
+    confirmed: bool,
     updated: bool,
     items: VecDeque<StagedItem>,
 }
 
 impl StagedItems {
+    pub fn confirmed(&self) -> bool {
+        self.confirmed
+    }
+
+    pub fn set_confirmed(&mut self, confirmed: bool) {
+        self.confirmed = confirmed
+    }
+
     pub fn take_updated(&mut self) -> bool {
         let updated = self.updated;
         self.updated = false;

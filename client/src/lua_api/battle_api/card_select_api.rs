@@ -8,6 +8,15 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 
 pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
+    generate_player_mut_fn(lua_api, "staged_items_confirmed", |player, lua, _, _| {
+        lua.pack_multi(player.staged_items.confirmed())
+    });
+
+    generate_player_mut_fn(lua_api, "confirm_staged_items", |player, lua, _, _| {
+        player.staged_items.set_confirmed(true);
+        lua.pack_multi(())
+    });
+
     generate_stage_item_fn(lua_api, "stage_card", |_, lua, _, params| {
         let properties: CardProperties = lua.unpack_multi(params)?;
         Ok(StagedItemData::Card(properties))
