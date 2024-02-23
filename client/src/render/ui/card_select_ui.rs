@@ -445,7 +445,7 @@ impl CardSelectUi {
         self.draw_state_at(
             sprite_queue,
             "SPECIAL_CURSOR",
-            self.points[UiPoint::Confirm] + self.root_offset(),
+            self.points[UiPoint::SpecialButton] + self.root_offset(),
         );
     }
 
