@@ -100,8 +100,6 @@ impl ResourcePaths {
         "resources/scenes/shared/navigation_textbox.animation";
 
     // BootScene
-    pub const BOOT_BG: &'static str = "resources/scenes/boot/bg.png";
-    pub const BOOT_BG_ANIMATION: &'static str = "resources/scenes/boot/bg.animation";
     pub const BOOT_UI: &'static str = "resources/scenes/boot/ui.png";
     pub const BOOT_UI_ANIMATION: &'static str = "resources/scenes/boot/ui.animation";
 

@@ -74,6 +74,7 @@ impl CharacterData {
 pub struct MainMenuScene {
     camera: Camera,
     background: Background,
+    update_bg_on_enter: bool,
     scrolling_text_style: TextStyle,
     scrolling_text_offset: f32,
     character_data: CharacterData,
@@ -101,6 +102,7 @@ impl MainMenuScene {
         MainMenuScene {
             camera: Camera::new_ui(game_io),
             background: Background::new_blank(game_io),
+            update_bg_on_enter: true,
             scrolling_text_style,
             scrolling_text_offset: 0.0,
             character_data,
@@ -118,6 +120,11 @@ impl MainMenuScene {
             next_scene: NextScene::None,
         }
     }
+
+    pub fn set_background(&mut self, background: Background) {
+        self.background = background;
+        self.update_bg_on_enter = false;
+    }
 }
 
 impl Scene for MainMenuScene {
@@ -133,7 +140,13 @@ impl Scene for MainMenuScene {
         let globals = game_io.resource_mut::<Globals>().unwrap();
         globals.connected_to_server = false;
 
-        self.background = Background::new_main_menu(game_io);
+        // update the background if it's necessary
+        if self.update_bg_on_enter {
+            self.background = Background::new_main_menu(game_io);
+        }
+
+        // queue the background to update when we enter again
+        self.update_bg_on_enter = true;
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

@@ -14,7 +14,7 @@ pub struct BootScene {
     camera: Camera,
     background: Background,
     status_label: Text,
-    progress_frame_sprite: Sprite,
+    log_frame_sprite: Sprite,
     progress_bar_sprite: Sprite,
     progress_bar_bounds: Rect,
     status_position: Vec2,
@@ -32,26 +32,22 @@ impl BootScene {
 
         // ui
         let mut animator = Animator::load_new(assets, ResourcePaths::BOOT_UI_ANIMATION);
-
-        // frame
-        let mut progress_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);
-        animator.set_state("PROGRESS_FRAME");
-        animator.apply(&mut progress_frame_sprite);
+        animator.set_state("DEFAULT");
 
         let progress_bar_bounds = Rect::from_corners(
             animator.point("BAR_START").unwrap_or_default(),
             animator.point("BAR_END").unwrap_or_default(),
-        ) - animator.origin();
+        );
 
         let log_bounds = Rect::from_corners(
             animator.point("LOG_START").unwrap_or_default(),
             animator.point("LOG_END").unwrap_or_default(),
-        ) - animator.origin();
+        );
 
-        let status_position = progress_bar_bounds.center();
+        let status_position = animator.point("STATUS_CENTER").unwrap_or_default();
 
         // progress bar
-        let mut progress_bar_sprite = progress_frame_sprite.clone();
+        let mut progress_bar_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);
         animator.set_state("PROGRESS_BAR");
         animator.apply(&mut progress_bar_sprite);
 
@@ -63,14 +59,18 @@ impl BootScene {
         // logs
         let log_box = LogBox::new(game_io, log_bounds);
 
+        let mut log_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);
+        animator.set_state("LOG_FRAME");
+        animator.apply(&mut log_frame_sprite);
+
         // work thread
         let receiver = BootThread::spawn(game_io);
 
         BootScene {
             camera: Camera::new_ui(game_io),
-            background: Background::new_boot(game_io),
+            background: Background::new_main_menu(game_io),
             status_label,
-            progress_frame_sprite,
+            log_frame_sprite,
             progress_bar_sprite,
             progress_bar_bounds,
             status_position,
@@ -180,7 +180,8 @@ impl BootScene {
         };
 
         if has_playable_character {
-            let scene = MainMenuScene::new(game_io);
+            let mut scene = MainMenuScene::new(game_io);
+            scene.set_background(self.background.clone());
             let transition = crate::transitions::new_boot(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         } else {
@@ -232,7 +233,7 @@ impl Scene for BootScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         // draw progress bar
-        sprite_queue.draw_sprite(&self.progress_frame_sprite);
+        sprite_queue.draw_sprite(&self.log_frame_sprite);
         sprite_queue.draw_sprite(&self.progress_bar_sprite);
 
         // draw logs

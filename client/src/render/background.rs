@@ -112,16 +112,6 @@ impl Background {
         Self::new(animator, sprite)
     }
 
-    pub fn new_boot(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let assets = &globals.assets;
-
-        let animator = Animator::load_new(assets, ResourcePaths::BOOT_BG_ANIMATION);
-        let sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_BG);
-
-        Self::new(animator, sprite)
-    }
-
     pub fn new_sub_scene(game_io: &GameIO) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
