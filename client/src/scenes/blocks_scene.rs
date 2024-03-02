@@ -82,7 +82,7 @@ impl BlocksScene {
         // installed blocks
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
-        let blocks = global_save.active_blocks().cloned().unwrap_or_default();
+        let blocks = global_save.active_blocks().to_vec();
 
         // track count
         let mut block_counts = HashMap::new();
