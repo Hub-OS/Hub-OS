@@ -486,6 +486,7 @@ impl ManageSwitchDriveScene {
                         if self.filtered_packages {
                             // remove filter if there's no packages to return to
                             self.event_sender.send(Event::ApplyFilter(None)).unwrap();
+                            globals.audio.play_sound(&globals.sfx.cursor_cancel);
                         } else {
                             self.request_leave();
                         }
