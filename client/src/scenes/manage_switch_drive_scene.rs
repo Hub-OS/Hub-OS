@@ -418,22 +418,12 @@ impl ManageSwitchDriveScene {
                     }
                 } else {
                     // handle scrolling
-                    let prev_index = self.list_scroll_tracker.selected_index();
-
                     self.list_scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
                     if self.input_tracker.is_active(Input::End) {
                         let last_index = self.list_scroll_tracker.total_items() - 1;
                         self.list_scroll_tracker.set_selected_index(last_index);
-                    }
-
-                    // sfx
-                    let selected_index = self.list_scroll_tracker.selected_index();
-
-                    if prev_index != selected_index {
-                        let globals = game_io.resource::<Globals>().unwrap();
-                        globals.audio.play_sound(&globals.sfx.cursor_move);
                     }
                 }
             }
@@ -459,6 +449,7 @@ impl ManageSwitchDriveScene {
 
                     if selected_index > 1 {
                         self.state = State::ListSelection;
+                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
                     } else {
                         self.equipment_scroll_tracker
                             .set_selected_index(selected_index + 2);
@@ -491,7 +482,8 @@ impl ManageSwitchDriveScene {
         let selected_slot_index = self.equipment_scroll_tracker.selected_index();
         let list_index = self.list_scroll_tracker.selected_index();
 
-        let selection_changed = prev_state != self.state
+        let state_changed = prev_state != self.state;
+        let selection_changed = state_changed
             || prev_slot_index != selected_slot_index
             || prev_list_index != list_index;
 
@@ -513,8 +505,11 @@ impl ManageSwitchDriveScene {
                 slot_ui.set_selected(selected_slot == Some(slot));
             }
 
-            let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.cursor_move);
+            if !state_changed {
+                // changing state already plays sfx
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_move);
+            }
         }
     }
 
