@@ -27,38 +27,37 @@ enum State {
 
 struct SlotUi {
     name_text: Text,
+    body_part_sprite: Sprite,
     sprite: Sprite,
     base_state: &'static str,
     selected_state: &'static str,
+    highlighted_state: &'static str,
     selected: bool,
     time: FrameTime,
     package_id: Option<PackageId>,
 }
 
 impl SlotUi {
-    fn new_left(game_io: &GameIO, animator: &mut Animator, point_name: &str, offset: Vec2) -> Self {
+    fn new_left(game_io: &GameIO, animator: &mut Animator, part_name: &str, offset: Vec2) -> Self {
         Self::new(
             game_io,
             animator,
             "LEFT_SLOT",
             "LEFT_SLOT_SELECTED",
-            point_name,
+            "LEFT_SLOT_HIGHLIGHTED",
+            part_name,
             offset,
         )
     }
 
-    fn new_right(
-        game_io: &GameIO,
-        animator: &mut Animator,
-        point_name: &str,
-        offset: Vec2,
-    ) -> Self {
+    fn new_right(game_io: &GameIO, animator: &mut Animator, part_name: &str, offset: Vec2) -> Self {
         Self::new(
             game_io,
             animator,
             "RIGHT_SLOT",
             "RIGHT_SLOT_SELECTED",
-            point_name,
+            "RIGHT_SLOT_HIGHLIGHTED",
+            part_name,
             offset,
         )
     }
@@ -68,7 +67,8 @@ impl SlotUi {
         animator: &mut Animator,
         base_state: &'static str,
         selected_state: &'static str,
-        point_name: &str,
+        highlighted_state: &'static str,
+        part_name: &str,
         offset: Vec2,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
@@ -76,10 +76,16 @@ impl SlotUi {
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::SWITCH_DRIVE_UI);
 
-        let point = animator.point(point_name).unwrap_or_default() + offset;
+        let point = animator.point(part_name).unwrap_or_default() + offset;
 
         // save state
         let old_state = animator.current_state().unwrap_or_default().to_string();
+
+        // body sprite
+        let mut body_part_sprite = sprite.clone();
+        body_part_sprite.set_position(point);
+        animator.set_state(part_name);
+        animator.apply(&mut body_part_sprite);
 
         // apply base state
         animator.set_state(base_state);
@@ -101,9 +107,11 @@ impl SlotUi {
 
         Self {
             name_text,
+            body_part_sprite,
             sprite,
             base_state,
             selected_state,
+            highlighted_state,
             selected: false,
             time: 0,
             package_id: None,
@@ -115,8 +123,10 @@ impl SlotUi {
     }
 
     fn set_selected(&mut self, selected: bool) {
-        self.selected = selected;
-        self.time = 0;
+        if self.selected != selected {
+            self.selected = selected;
+            self.time = 0;
+        }
     }
 
     fn set_package(&mut self, package: Option<&AugmentPackage>) {
@@ -129,9 +139,13 @@ impl SlotUi {
         }
     }
 
-    fn update(&mut self, animator: &mut Animator) {
+    fn update(&mut self, scene_state: State, animator: &mut Animator) {
         let state = if self.selected {
-            self.selected_state
+            if scene_state == State::EquipmentSelection {
+                self.selected_state
+            } else {
+                self.highlighted_state
+            }
         } else {
             self.base_state
         };
@@ -139,6 +153,17 @@ impl SlotUi {
         animator.set_state(state);
         animator.sync_time(self.time);
         animator.apply(&mut self.sprite);
+
+        let color = Color::WHITE.multiply_alpha((self.time as f32 * 0.08).sin() * 0.5 + 0.5);
+        self.body_part_sprite.set_color(color);
+
+        self.time += 1;
+    }
+
+    fn draw_body_part(&self, sprite_queue: &mut SpriteColorQueue) {
+        if self.selected {
+            sprite_queue.draw_sprite(&self.body_part_sprite);
+        }
     }
 
     fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
@@ -564,7 +589,7 @@ impl Scene for ManageSwitchDriveScene {
 
         // update slot ui
         for (_, slot_ui) in &mut self.equipment_map {
-            slot_ui.update(&mut self.animator);
+            slot_ui.update(self.state, &mut self.animator);
         }
 
         // update cursor animation
@@ -659,6 +684,12 @@ impl Scene for ManageSwitchDriveScene {
         // main UI sprite
         sprite_queue.draw_sprite(&self.equipment_sprite);
 
+        // body part preview
+        for (_, slot_ui) in &self.equipment_map {
+            slot_ui.draw_body_part(&mut sprite_queue);
+        }
+
+        // slots
         for (_, slot_ui) in &self.equipment_map {
             slot_ui.draw(game_io, &mut sprite_queue);
         }
