@@ -18,7 +18,7 @@ point label="NAME_END" x="50" y="15"
 animation state="LEFT_SLOT_SELECTED"
 frame x="174" y="120" w="52" h="17" originx="50" originy="3"
 
-animation state="LEFT_SLOT_HIGHLIGHT"
+animation state="LEFT_SLOT_HIGHLIGHTED"
 frame x="174" y="138" w="52" h="17" originx="50" originy="3"
 
 animation state="RIGHT_SLOT"
@@ -29,20 +29,20 @@ point label="NAME_END" x="50" y="12"
 animation state="RIGHT_SLOT_SELECTED"
 frame x="227" y="122" w="52" h="17" originy="12"
 
-animation state="RIGHT_SLOT_HIGHLIGHT"
-frame x="227" y="141" w="52" h="17" originy="12"
+animation state="RIGHT_SLOT_HIGHLIGHTED"
+frame x="227" y="140" w="52" h="17" originy="12"
 
 animation state="HEAD"
-frame x="144" y="1" w="14" h="14"
+frame x="144" y="1" w="14" h="14" originx="-4" originy="7"
 
 animation state="BODY"
-frame x="144" y="42" w="14" h="29"
+frame x="144" y="42" w="14" h="29" originx="-3" originy="22"
 
 animation state="ARMS"
-frame x="134" y="16" w="34" h="25"
+frame x="134" y="16" w="34" h="25" originx="31" originy="9"
 
 animation state="LEGS"
-frame x="136" y="72" w="30" h="33"
+frame x="136" y="72" w="30" h="33" originx="28" originy="17"
 
 animation state="OPTION_CURSOR"
 frame x="248" y="62" w="9" h="14" originx="9" originy="-2" duration="6f"
