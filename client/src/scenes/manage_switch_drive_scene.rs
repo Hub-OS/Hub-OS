@@ -434,7 +434,7 @@ impl ManageSwitchDriveScene {
                 if self.input_tracker.is_active(Input::Confirm) {
                     let event_sender = self.event_sender.clone();
 
-                    let slot = SwitchDriveSlot::from_usize(prev_list_index);
+                    let slot = SwitchDriveSlot::from_usize(prev_slot_index);
                     let slot_ui = &self.equipment_map[slot];
 
                     let question_string = format!("Unequip {}?", slot_ui.package_name());
