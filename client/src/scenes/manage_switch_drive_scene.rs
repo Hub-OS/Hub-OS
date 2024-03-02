@@ -17,6 +17,7 @@ enum Event {
     Leave,
     AddSwitchDrive,
     RemoveSwitchDrive,
+    ApplyFilter(Option<SwitchDriveSlot>),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -191,6 +192,7 @@ pub struct ManageSwitchDriveScene {
     textbox: Textbox,
     time: FrameTime,
     package_ids: Vec<PackageId>,
+    filtered_packages: bool,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     next_scene: NextScene,
@@ -202,27 +204,8 @@ impl ManageSwitchDriveScene {
         let assets = &globals.assets;
         let global_save = &globals.global_save;
 
-        let restrictions = &globals.restrictions;
-
-        let active_drive_parts = global_save.active_drive_parts().to_vec();
-
         // load drive part packages
-        let mut package_ids: Vec<_> = globals
-            .augment_packages
-            .packages_with_override(PackageNamespace::Local)
-            .filter(|package| package.slot.is_some())
-            .filter(|package| {
-                restrictions.validate_package_tree(game_io, package.package_info.triplet())
-            })
-            .filter(|package| {
-                !active_drive_parts
-                    .iter()
-                    .any(|drive| package.package_info.id == drive.package_id)
-            })
-            .map(|package| package.package_info.id.clone())
-            .collect();
-
-        package_ids.sort();
+        let package_ids = collect_drive_package_ids(game_io, globals, None);
 
         let mut animator = Animator::load_new(assets, ResourcePaths::SWITCH_DRIVE_UI_ANIMATION);
 
@@ -244,7 +227,7 @@ impl ManageSwitchDriveScene {
             SwitchDriveSlot::Legs => SlotUi::new_right(game_io, &mut animator, "LEGS", equipment_position),
         };
 
-        for drive_part in active_drive_parts {
+        for drive_part in global_save.active_drive_parts() {
             let package = get_package(globals, &drive_part.package_id);
             slot_map[drive_part.get_slot()].set_package(package);
         }
@@ -308,6 +291,7 @@ impl ManageSwitchDriveScene {
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
             package_ids,
+            filtered_packages: false,
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
@@ -386,19 +370,24 @@ impl ManageSwitchDriveScene {
         match self.state {
             State::ListSelection => {
                 if self.input_tracker.is_active(Input::Cancel) {
-                    let event_sender = self.event_sender.clone();
+                    if self.filtered_packages {
+                        self.event_sender.send(Event::ApplyFilter(None)).unwrap();
+                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                    } else {
+                        let event_sender = self.event_sender.clone();
 
-                    let question = TextboxQuestion::new(
-                        String::from("Quit customizing and return to menu?"),
-                        move |yes| {
-                            if yes {
-                                event_sender.send(Event::Leave).unwrap();
-                            }
-                        },
-                    );
+                        let question = TextboxQuestion::new(
+                            String::from("Quit customizing and return to menu?"),
+                            move |yes| {
+                                if yes {
+                                    event_sender.send(Event::Leave).unwrap();
+                                }
+                            },
+                        );
 
-                    self.textbox.push_interface(question);
-                    self.textbox.open();
+                        self.textbox.push_interface(question);
+                        self.textbox.open();
+                    }
                 } else if self.input_tracker.is_active(Input::Left) {
                     self.state = State::EquipmentSelection;
 
@@ -437,12 +426,26 @@ impl ManageSwitchDriveScene {
                     let slot = SwitchDriveSlot::from_usize(prev_slot_index);
                     let slot_ui = &self.equipment_map[slot];
 
-                    let question_string = format!("Unequip {}?", slot_ui.package_name());
+                    let package_selected = slot_ui.package_id.is_some();
+
+                    let question_string = if package_selected {
+                        format!("Unequip {}?", slot_ui.package_name())
+                    } else {
+                        format!("Filter for {} drives?", slot.name())
+                    };
 
                     let question = TextboxQuestion::new(question_string, move |yes| {
-                        if yes {
-                            event_sender.send(Event::RemoveSwitchDrive).unwrap();
+                        if !yes {
+                            return;
                         }
+
+                        let event = if package_selected {
+                            Event::RemoveSwitchDrive
+                        } else {
+                            Event::ApplyFilter(Some(slot))
+                        };
+
+                        event_sender.send(event).unwrap();
                     });
 
                     self.textbox.push_interface(question);
@@ -557,6 +560,17 @@ impl ManageSwitchDriveScene {
                                 self.list_scroll_tracker.set_total_items(list_size);
                             }
                         });
+                }
+                Event::ApplyFilter(filter) => {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    self.package_ids = collect_drive_package_ids(game_io, globals, filter);
+
+                    self.state = State::ListSelection;
+                    self.list_scroll_tracker
+                        .set_total_items(self.package_ids.len());
+                    self.list_scroll_tracker.set_selected_index(0);
+
+                    self.filtered_packages = filter.is_some();
                 }
             }
         }
@@ -706,4 +720,38 @@ impl Scene for ManageSwitchDriveScene {
 fn get_package<'a>(globals: &'a Globals, id: &PackageId) -> Option<&'a AugmentPackage> {
     let ns = PackageNamespace::Local;
     globals.augment_packages.package_or_override(ns, id)
+}
+
+fn collect_drive_package_ids(
+    game_io: &GameIO,
+    globals: &Globals,
+    filter: Option<SwitchDriveSlot>,
+) -> Vec<PackageId> {
+    let restrictions = &globals.restrictions;
+    let active_drive_parts = globals.global_save.active_drive_parts();
+
+    let mut package_ids: Vec<_> = globals
+        .augment_packages
+        .packages_with_override(PackageNamespace::Local)
+        .filter(|package| {
+            let Some(slot) = package.slot else {
+                return false;
+            };
+
+            filter.is_none() || filter == Some(slot)
+        })
+        .filter(|package| {
+            restrictions.validate_package_tree(game_io, package.package_info.triplet())
+        })
+        .filter(|package| {
+            !active_drive_parts
+                .iter()
+                .any(|drive| package.package_info.id == drive.package_id)
+        })
+        .map(|package| package.package_info.id.clone())
+        .collect();
+
+    package_ids.sort();
+
+    package_ids
 }

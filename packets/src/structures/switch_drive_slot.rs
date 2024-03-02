@@ -15,12 +15,12 @@ pub enum SwitchDriveSlot {
 }
 
 impl SwitchDriveSlot {
-    pub fn state(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
-            SwitchDriveSlot::Head => "HeadSlotIndicator",
-            SwitchDriveSlot::Body => "BodySlotIndicator",
-            SwitchDriveSlot::Arms => "ArmSlotIndicator",
-            SwitchDriveSlot::Legs => "LegSlotIndicator",
+            SwitchDriveSlot::Head => "Head",
+            SwitchDriveSlot::Body => "Body",
+            SwitchDriveSlot::Arms => "Arm",
+            SwitchDriveSlot::Legs => "Leg",
         }
     }
 }
