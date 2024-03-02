@@ -252,7 +252,7 @@ impl ManageSwitchDriveScene {
         let cursor_sprite = equipment_sprite.clone();
 
         // scroll tracker
-        let scroll_tracker = ScrollTracker::new(game_io, 4)
+        let list_scroll_tracker = ScrollTracker::new(game_io, 4)
             .with_view_margin(1)
             .with_total_items(package_ids.len())
             .with_custom_cursor(
@@ -272,7 +272,7 @@ impl ManageSwitchDriveScene {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
-        Self {
+        let mut scene = Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_everything(true),
@@ -284,10 +284,14 @@ impl ManageSwitchDriveScene {
             info_text_style,
             equipment_map: slot_map,
             input_tracker: UiInputTracker::new(),
-            list_scroll_tracker: scroll_tracker,
+            list_scroll_tracker,
             equipment_scroll_tracker,
             tracked_invalid: HashSet::new(),
-            state: State::ListSelection,
+            state: if package_ids.is_empty() {
+                State::EquipmentSelection
+            } else {
+                State::ListSelection
+            },
             textbox: Textbox::new_navigation(game_io).with_position(RESOLUTION_F * 0.5),
             time: 0,
             package_ids,
@@ -295,7 +299,11 @@ impl ManageSwitchDriveScene {
             event_sender,
             event_receiver,
             next_scene: NextScene::None,
-        }
+        };
+
+        scene.update_selection_ui(game_io);
+
+        scene
     }
 
     fn add_drive_part(&mut self, game_io: &mut GameIO, index: usize) -> bool {
@@ -360,6 +368,22 @@ impl ManageSwitchDriveScene {
         true
     }
 
+    fn request_leave(&mut self) {
+        let event_sender = self.event_sender.clone();
+
+        let question = TextboxQuestion::new(
+            String::from("Quit customizing and return to menu?"),
+            move |yes| {
+                if yes {
+                    event_sender.send(Event::Leave).unwrap();
+                }
+            },
+        );
+
+        self.textbox.push_interface(question);
+        self.textbox.open();
+    }
+
     fn handle_input(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
@@ -374,19 +398,7 @@ impl ManageSwitchDriveScene {
                         self.event_sender.send(Event::ApplyFilter(None)).unwrap();
                         globals.audio.play_sound(&globals.sfx.cursor_cancel);
                     } else {
-                        let event_sender = self.event_sender.clone();
-
-                        let question = TextboxQuestion::new(
-                            String::from("Quit customizing and return to menu?"),
-                            move |yes| {
-                                if yes {
-                                    event_sender.send(Event::Leave).unwrap();
-                                }
-                            },
-                        );
-
-                        self.textbox.push_interface(question);
-                        self.textbox.open();
+                        self.request_leave();
                     }
                 } else if self.input_tracker.is_active(Input::Left) {
                     self.state = State::EquipmentSelection;
@@ -454,8 +466,10 @@ impl ManageSwitchDriveScene {
                     let selected_index = self.equipment_scroll_tracker.selected_index();
 
                     if selected_index > 1 {
-                        self.state = State::ListSelection;
-                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                        if !self.package_ids.is_empty() {
+                            self.state = State::ListSelection;
+                            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                        }
                     } else {
                         self.equipment_scroll_tracker
                             .set_selected_index(selected_index + 2);
@@ -468,9 +482,17 @@ impl ManageSwitchDriveScene {
                             .set_selected_index(selected_index - 2);
                     }
                 } else if self.input_tracker.is_active(Input::Cancel) {
-                    globals.audio.play_sound(&globals.sfx.cursor_cancel);
-
-                    self.state = State::ListSelection;
+                    if self.package_ids.is_empty() {
+                        if self.filtered_packages {
+                            // remove filter if there's no packages to return to
+                            self.event_sender.send(Event::ApplyFilter(None)).unwrap();
+                        } else {
+                            self.request_leave();
+                        }
+                    } else {
+                        self.state = State::ListSelection;
+                        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+                    }
                 } else {
                     // handle scrolling
                     self.equipment_scroll_tracker
@@ -484,6 +506,11 @@ impl ManageSwitchDriveScene {
             }
         }
 
+        if self.state == State::ListSelection && self.package_ids.is_empty() {
+            // return to equipment selection
+            self.state = State::EquipmentSelection;
+        }
+
         // sfx + updating selected slot ui
         let selected_slot_index = self.equipment_scroll_tracker.selected_index();
         let list_index = self.list_scroll_tracker.selected_index();
@@ -494,28 +521,38 @@ impl ManageSwitchDriveScene {
             || prev_list_index != list_index;
 
         if selection_changed {
-            let globals = game_io.resource::<Globals>().unwrap();
-
-            let selected_slot = match self.state {
-                State::ListSelection => {
-                    let index = self.list_scroll_tracker.selected_index();
-                    self.package_ids
-                        .get(index)
-                        .and_then(|id| get_package(globals, id))
-                        .and_then(|package| package.slot)
-                }
-                State::EquipmentSelection => Some(SwitchDriveSlot::from_usize(selected_slot_index)),
-            };
-
-            for (slot, slot_ui) in &mut self.equipment_map {
-                slot_ui.set_selected(selected_slot == Some(slot));
-            }
+            self.update_selection_ui(game_io);
 
             if !state_changed {
                 // changing state already plays sfx
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
+        }
+    }
+
+    fn update_selection_ui(&mut self, game_io: &GameIO) {
+        let selected_slot_index = self.equipment_scroll_tracker.selected_index();
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let selected_slot = match self.state {
+            State::ListSelection => {
+                let index = self.list_scroll_tracker.selected_index();
+                self.package_ids
+                    .get(index)
+                    .and_then(|id| get_package(globals, id))
+                    .and_then(|package| package.slot)
+            }
+            State::EquipmentSelection => Some(SwitchDriveSlot::from_usize(selected_slot_index)),
+        };
+
+        if let Some(slot) = selected_slot {
+            let index = slot as usize;
+            self.equipment_scroll_tracker.set_selected_index(index);
+        }
+
+        for (slot, slot_ui) in &mut self.equipment_map {
+            slot_ui.set_selected(selected_slot == Some(slot));
         }
     }
 
