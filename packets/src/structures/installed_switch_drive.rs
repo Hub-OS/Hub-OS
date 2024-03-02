@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct InstalledSwitchDrive {
     pub package_id: PackageId,
     pub slot: SwitchDriveSlot,
-    pub name: String,
 }
 
 impl InstalledSwitchDrive {

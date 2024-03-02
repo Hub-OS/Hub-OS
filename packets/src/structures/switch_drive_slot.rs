@@ -1,9 +1,10 @@
+use enum_map::Enum;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
 #[derive(
-    Default, Debug, Clone, Copy, Hash, PartialEq, Eq, FromPrimitive, Serialize, Deserialize,
+    Enum, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, FromPrimitive, Serialize, Deserialize,
 )]
 pub enum SwitchDriveSlot {
     #[default]
