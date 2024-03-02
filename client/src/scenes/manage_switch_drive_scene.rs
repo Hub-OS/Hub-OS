@@ -365,6 +365,9 @@ impl ManageSwitchDriveScene {
 
         // update ui
         self.equipment_map[slot].set_package(Some(package));
+        self.state = State::EquipmentSelection;
+        self.equipment_scroll_tracker
+            .set_selected_index(slot as usize);
 
         // update list tracking
         let list_size = self.package_ids.len();
