@@ -81,8 +81,11 @@ impl GlobalSave {
         self.installed_blocks.get(&self.selected_character)
     }
 
-    pub fn active_drive_parts(&self) -> Option<&Vec<InstalledSwitchDrive>> {
-        self.installed_drive_parts.get(&self.selected_character)
+    pub fn active_drive_parts(&self) -> &[InstalledSwitchDrive] {
+        self.installed_drive_parts
+            .get(&self.selected_character)
+            .map(|parts| parts.as_slice())
+            .unwrap_or(&[])
     }
 
     pub fn valid_augments<'a>(

@@ -179,6 +179,8 @@ impl ManageSwitchDriveScene {
 
         let restrictions = &globals.restrictions;
 
+        let active_drive_parts = global_save.active_drive_parts().to_vec();
+
         // load drive part packages
         let mut package_ids: Vec<_> = globals
             .augment_packages
@@ -186,6 +188,11 @@ impl ManageSwitchDriveScene {
             .filter(|package| package.slot.is_some())
             .filter(|package| {
                 restrictions.validate_package_tree(game_io, package.package_info.triplet())
+            })
+            .filter(|package| {
+                !active_drive_parts
+                    .iter()
+                    .any(|drive| package.package_info.id == drive.package_id)
             })
             .map(|package| package.package_info.id.clone())
             .collect();
@@ -212,12 +219,10 @@ impl ManageSwitchDriveScene {
             SwitchDriveSlot::Legs => SlotUi::new_right(game_io, &mut animator, "LEGS", equipment_position),
         };
 
-        if let Some(drive_parts_iter) = global_save.active_drive_parts() {
-            for drive_part in drive_parts_iter {
-                let package = get_package(globals, &drive_part.package_id);
-                slot_map[drive_part.get_slot()].set_package(package);
-            }
-        };
+        for drive_part in active_drive_parts {
+            let package = get_package(globals, &drive_part.package_id);
+            slot_map[drive_part.get_slot()].set_package(package);
+        }
 
         let mut info_box_sprite = equipment_sprite.clone();
         animator.set_state("TEXTBOX");
@@ -284,7 +289,13 @@ impl ManageSwitchDriveScene {
         }
     }
 
-    fn add_drive_part(&mut self, game_io: &mut GameIO, package_id: PackageId) -> bool {
+    fn add_drive_part(&mut self, game_io: &mut GameIO, index: usize) -> bool {
+        if index >= self.package_ids.len() {
+            return false;
+        }
+
+        let package_id = self.package_ids.remove(index);
+
         // TODO: validate the drive slot
         // let mut conflicts = Vec::new();
 
@@ -302,22 +313,37 @@ impl ManageSwitchDriveScene {
             .package_or_override(PackageNamespace::Local, &package_id)
             .unwrap();
 
-        let installed_drive = InstalledSwitchDrive {
-            package_id,
-            slot: package.slot.unwrap(),
-        };
+        let slot = package.slot.unwrap();
+
+        // save drive
+        let installed_drive = InstalledSwitchDrive { package_id, slot };
 
         global_save
             .installed_drive_parts
             .entry(global_save.selected_character.clone())
             .and_modify(|list| {
                 // remove part installed in the same slot
-                list.retain(|equipped_slot| equipped_slot.slot != package.slot.unwrap());
+                if let Some(index) = list.iter().position(|drive| drive.slot == slot) {
+                    let drive = list.remove(index);
+
+                    // move drive into package_ids list
+                    if let Err(index) = self.package_ids.binary_search(&drive.package_id) {
+                        self.package_ids.insert(index, drive.package_id);
+                    }
+                }
+
                 list.push(installed_drive.clone());
             })
             .or_insert_with(|| vec![installed_drive.clone()]);
 
         global_save.save();
+
+        // update ui
+        self.equipment_map[slot].set_package(Some(package));
+
+        // update list tracking
+        let list_size = self.package_ids.len();
+        self.list_scroll_tracker.set_total_items(list_size);
 
         true
     }
@@ -357,24 +383,13 @@ impl ManageSwitchDriveScene {
                     globals.audio.play_sound(&globals.sfx.cursor_select);
                 } else if self.input_tracker.is_active(Input::Confirm) {
                     // handle confirm
-                    if let Some(package_id) = self.package_ids.get(prev_list_index).cloned() {
-                        let success = self.add_drive_part(game_io, package_id.clone());
+                    let success = self.add_drive_part(game_io, prev_list_index);
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-                        let globals = game_io.resource::<Globals>().unwrap();
-
-                        if success {
-                            self.list_scroll_tracker
-                                .set_total_items(self.package_ids.len());
-
-                            globals.audio.play_sound(&globals.sfx.cursor_select);
-
-                            let package = get_package(globals, &package_id).unwrap();
-                            let slot = package.slot.unwrap();
-
-                            self.equipment_map[slot].set_package(Some(package));
-                        } else {
-                            globals.audio.play_sound(&globals.sfx.cursor_error);
-                        }
+                    if success {
+                        globals.audio.play_sound(&globals.sfx.cursor_select);
+                    } else {
+                        globals.audio.play_sound(&globals.sfx.cursor_error);
                     }
                 } else {
                     // handle scrolling
@@ -404,7 +419,7 @@ impl ManageSwitchDriveScene {
                     let slot = SwitchDriveSlot::from_usize(prev_list_index);
                     let slot_ui = &self.equipment_map[slot];
 
-                    let question_string = format!("Unequip {} ?", slot_ui.package_name());
+                    let question_string = format!("Unequip {}?", slot_ui.package_name());
 
                     let question = TextboxQuestion::new(question_string, move |yes| {
                         if yes {
@@ -502,11 +517,21 @@ impl ManageSwitchDriveScene {
                         .and_modify(|list| {
                             if let Some(index) = list.iter().position(|drive| drive.slot == slot) {
                                 // remove drive
-                                list.remove(index);
+                                let drive = list.remove(index);
 
                                 // update ui
                                 let slot_ui = &mut self.equipment_map[slot];
                                 slot_ui.set_package(None);
+
+                                // move drive into package_ids list
+                                if let Err(index) =
+                                    self.package_ids.binary_search(&drive.package_id)
+                                {
+                                    self.package_ids.insert(index, drive.package_id);
+                                }
+
+                                let list_size = self.package_ids.len();
+                                self.list_scroll_tracker.set_total_items(list_size);
                             }
                         });
                 }

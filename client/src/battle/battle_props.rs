@@ -86,11 +86,7 @@ impl PlayerSetup {
             Vec::new()
         };
 
-        let drives: Vec<_> = if let Some(drives) = global_save.active_drive_parts() {
-            drives.clone()
-        } else {
-            Vec::new()
-        };
+        let drives = global_save.active_drive_parts().to_vec();
 
         let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
 
