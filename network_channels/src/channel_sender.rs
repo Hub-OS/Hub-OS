@@ -1,13 +1,13 @@
-use std::sync::Arc;
-
 use crate::packet::PacketBuilder;
 use crate::{serialize, Label, Reliability};
+use std::sync::mpsc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ChannelSender<ChannelLabel: Label> {
     pub(crate) channel: ChannelLabel,
     pub(crate) mtu: usize,
-    pub(crate) sender: flume::Sender<PacketBuilder<ChannelLabel>>,
+    pub(crate) sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
 }
 
 impl<ChannelLabel: Label> ChannelSender<ChannelLabel> {

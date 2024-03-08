@@ -2,21 +2,22 @@ use crate::channel_receiver::ChannelReceiver;
 use crate::deserialize;
 use crate::packet::{Ack, Packet, PacketBuilder};
 use crate::{DecodeError, Instant, Label};
+use std::sync::mpsc;
 
 pub type ReceiveResult<T> = std::result::Result<T, DecodeError>;
 
 pub struct PacketReceiver<ChannelLabel> {
     channel_receivers: Vec<ChannelReceiver<ChannelLabel>>,
-    packet_sender: flume::Sender<PacketBuilder<ChannelLabel>>,
-    ack_sender: flume::Sender<Ack<ChannelLabel>>,
+    packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
+    ack_sender: mpsc::Sender<Ack<ChannelLabel>>,
     last_receive_time: Instant,
 }
 
 impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
     pub(crate) fn new(
         channels: &[ChannelLabel],
-        packet_sender: flume::Sender<PacketBuilder<ChannelLabel>>,
-        ack_sender: flume::Sender<Ack<ChannelLabel>>,
+        packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
+        ack_sender: mpsc::Sender<Ack<ChannelLabel>>,
     ) -> Self {
         let channel_receivers: Vec<_> = channels
             .iter()
