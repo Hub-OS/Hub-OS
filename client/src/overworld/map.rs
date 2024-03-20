@@ -737,7 +737,7 @@ impl Map {
             for (_, (sprite, &position)) in query.iter() {
                 // sprites with a fractional z are bumped up to the next layer
                 // this pushes actors on stairs to the next layer
-                let mut layer_index = position.z.ceil() as usize;
+                let mut layer_index = position.z.ceil() as usize + 1;
                 layer_index = layer_index.min(sprite_layers.len() - 1);
 
                 let sprite_layer = &mut sprite_layers[layer_index];
