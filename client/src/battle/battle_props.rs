@@ -77,20 +77,12 @@ impl PlayerSetup {
         let ns = PackageNamespace::Local;
 
         // blocks
-        let blocks: Vec<_> = if let Some(blocks) = global_save.active_blocks() {
-            restrictions
-                .filter_blocks(game_io, ns, blocks.iter())
-                .cloned()
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let blocks: Vec<_> = restrictions
+            .filter_blocks(game_io, ns, global_save.active_blocks().iter())
+            .cloned()
+            .collect();
 
-        let drives: Vec<_> = if let Some(drives) = global_save.active_drive_parts() {
-            drives.clone()
-        } else {
-            Vec::new()
-        };
+        let drives = global_save.active_drive_parts().to_vec();
 
         let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
 

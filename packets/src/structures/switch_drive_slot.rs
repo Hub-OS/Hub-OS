@@ -1,9 +1,10 @@
+use enum_map::Enum;
 use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
 #[derive(
-    Default, Debug, Clone, Copy, Hash, PartialEq, Eq, FromPrimitive, Serialize, Deserialize,
+    Enum, Default, Debug, Clone, Copy, Hash, PartialEq, Eq, FromPrimitive, Serialize, Deserialize,
 )]
 pub enum SwitchDriveSlot {
     #[default]
@@ -14,12 +15,12 @@ pub enum SwitchDriveSlot {
 }
 
 impl SwitchDriveSlot {
-    pub fn state(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
-            SwitchDriveSlot::Head => "HeadSlotIndicator",
-            SwitchDriveSlot::Body => "BodySlotIndicator",
-            SwitchDriveSlot::Arms => "ArmSlotIndicator",
-            SwitchDriveSlot::Legs => "LegSlotIndicator",
+            SwitchDriveSlot::Head => "Head",
+            SwitchDriveSlot::Body => "Body",
+            SwitchDriveSlot::Arms => "Arm",
+            SwitchDriveSlot::Legs => "Leg",
         }
     }
 }

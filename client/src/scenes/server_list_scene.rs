@@ -113,9 +113,7 @@ impl ServerListScene {
     }
 
     fn create_message(status: Option<ServerStatus>, server_name: &str) -> Option<String> {
-        let Some(status) = status else {
-            return None;
-        };
+        let status = status?;
 
         let message = match status {
             ServerStatus::Online => {

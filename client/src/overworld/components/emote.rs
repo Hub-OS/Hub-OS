@@ -121,9 +121,7 @@ impl Emote {
             return None;
         };
 
-        let Some(parent_animator) = parent_query.get() else {
-            return None;
-        };
+        let parent_animator = parent_query.get()?;
 
         parent_animator
             .point("EMOTE")

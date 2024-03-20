@@ -77,12 +77,18 @@ impl GlobalSave {
         self.decks.get(self.selected_deck)
     }
 
-    pub fn active_blocks(&self) -> Option<&Vec<InstalledBlock>> {
-        self.installed_blocks.get(&self.selected_character)
+    pub fn active_blocks(&self) -> &[InstalledBlock] {
+        self.installed_blocks
+            .get(&self.selected_character)
+            .map(|blocks| blocks.as_slice())
+            .unwrap_or(&[])
     }
 
-    pub fn active_drive_parts(&self) -> Option<&Vec<InstalledSwitchDrive>> {
-        self.installed_drive_parts.get(&self.selected_character)
+    pub fn active_drive_parts(&self) -> &[InstalledSwitchDrive] {
+        self.installed_drive_parts
+            .get(&self.selected_character)
+            .map(|parts| parts.as_slice())
+            .unwrap_or(&[])
     }
 
     pub fn valid_augments<'a>(
@@ -95,14 +101,10 @@ impl GlobalSave {
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
 
-        let blocks: Vec<_> = if let Some(blocks) = global_save.active_blocks() {
-            restrictions
-                .filter_blocks(game_io, NAMESPACE, blocks.iter())
-                .cloned()
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let blocks: Vec<_> = restrictions
+            .filter_blocks(game_io, NAMESPACE, global_save.active_blocks().iter())
+            .cloned()
+            .collect();
 
         let block_grid = BlockGrid::new(NAMESPACE).with_blocks(game_io, blocks);
 

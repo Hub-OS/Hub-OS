@@ -147,9 +147,7 @@ impl Action {
             Ok(())
         });
 
-        let Some(index) = id else {
-            return None;
-        };
+        let index = id?;
 
         if let Some(action) = simulation.actions.get_mut(index) {
             // set card properties on the card action

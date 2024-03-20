@@ -96,6 +96,11 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_gauge.set_time(0);
 
+            // reset staged items confirmation
+            for (_, player) in simulation.entities.query_mut::<&mut Player>() {
+                player.staged_items.set_confirmed(false);
+            }
+
             // sfx
             let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.sfx.card_select_open);
@@ -606,6 +611,14 @@ impl CardSelectState {
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
+        // see if a script confirmed our selection for us
+        if player.staged_items.confirmed() {
+            selection.confirm_time = self.time;
+
+            // ignore input
+            return;
+        }
+
         let previous_item = resolve_selected_item(player, selection);
 
         if input.is_active(Input::End) || previous_item == SelectedItem::None {
@@ -652,6 +665,7 @@ impl CardSelectState {
             match selected_item {
                 SelectedItem::Confirm => {
                     selection.confirm_time = self.time;
+                    player.staged_items.set_confirmed(true);
 
                     // sfx
                     if selection.local {

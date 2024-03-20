@@ -264,6 +264,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("short_name", self.short_name.as_ref())?;
         table.set("damage", self.damage)?;
         table.set("boosted_damage", self.boosted_damage)?;
+        table.set("recover", self.recover)?;
         table.set("element", self.element)?;
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;

@@ -2,18 +2,19 @@ use crate::config::Config;
 use crate::packet::{Packet, PacketBuilder};
 use crate::packet_sender::PacketSender;
 use crate::{ChannelSender, Connection, Label, PacketReceiver};
+use std::sync::mpsc;
 
 pub struct ConnectionBuilder<ChannelLabel: Label> {
     config: Config,
     sending_channels: Vec<ChannelLabel>,
     receiving_channels: Vec<ChannelLabel>,
-    packet_sender: flume::Sender<PacketBuilder<ChannelLabel>>,
-    packet_receiver: flume::Receiver<PacketBuilder<ChannelLabel>>,
+    packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
+    packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
 }
 
 impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
     pub fn new(config: &Config) -> Self {
-        let (packet_sender, packet_receiver) = flume::unbounded();
+        let (packet_sender, packet_receiver) = mpsc::channel();
 
         Self {
             config: config.clone(),
@@ -48,7 +49,7 @@ impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
     }
 
     pub fn build(self) -> Connection<ChannelLabel> {
-        let (ack_sender, ack_receiver) = flume::unbounded();
+        let (ack_sender, ack_receiver) = mpsc::channel();
 
         let packet_sender = PacketSender::new(
             &self.config,

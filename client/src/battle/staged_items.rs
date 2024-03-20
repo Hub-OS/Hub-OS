@@ -26,11 +26,20 @@ pub struct StagedItem {
 
 #[derive(Default, Clone)]
 pub struct StagedItems {
+    confirmed: bool,
     updated: bool,
     items: VecDeque<StagedItem>,
 }
 
 impl StagedItems {
+    pub fn confirmed(&self) -> bool {
+        self.confirmed
+    }
+
+    pub fn set_confirmed(&mut self, confirmed: bool) {
+        self.confirmed = confirmed
+    }
+
     pub fn take_updated(&mut self) -> bool {
         let updated = self.updated;
         self.updated = false;
@@ -117,7 +126,7 @@ impl StagedItems {
         resources: &'a SharedBattleResources,
         namespace: PackageNamespace,
         deck: &'a [Card],
-    ) -> impl Iterator<Item = CardProperties> + DoubleEndedIterator + 'a {
+    ) -> impl DoubleEndedIterator<Item = CardProperties> + 'a {
         let globals = game_io.resource::<Globals>().unwrap();
         let card_packages = &globals.card_packages;
         let status_registry = &resources.status_registry;
@@ -142,7 +151,7 @@ impl StagedItems {
     pub fn resolve_card_ids_and_codes<'a>(
         &'a self,
         deck: &'a [Card],
-    ) -> impl Iterator<Item = (&'a PackageId, &'a str)> + DoubleEndedIterator {
+    ) -> impl DoubleEndedIterator<Item = (&PackageId, &str)> {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
                 let card = deck.get(*i)?;

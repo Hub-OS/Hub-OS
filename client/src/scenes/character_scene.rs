@@ -299,7 +299,7 @@ impl StatusPage {
 
         for (label, prefix, value) in stat_text_associations {
             if let Some(point) = ui_animator.point(label) {
-                let mut text = Text::new(game_io, FontName::Thick);
+                let mut text = Text::new_monospace(game_io, FontName::Thick);
                 text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
                 text.style.letter_spacing = 2.0;
                 text.style.bounds.set_position(point);

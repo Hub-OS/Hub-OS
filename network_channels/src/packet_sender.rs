@@ -3,6 +3,7 @@ use crate::config::Config;
 use crate::packet::{Ack, FragmentType, Packet, PacketBuilder, PacketHeader};
 use crate::{serialize, Label};
 use instant::{Duration, Instant};
+use std::sync::mpsc;
 
 pub struct StoredPacket<ChannelLabel> {
     header: PacketHeader<ChannelLabel>,
@@ -14,8 +15,8 @@ pub struct StoredPacket<ChannelLabel> {
 pub struct PacketSender<ChannelLabel: Label> {
     bytes_per_tick: usize,
     send_trackers: Vec<ChannelSendTracking<ChannelLabel>>,
-    packet_receiver: flume::Receiver<PacketBuilder<ChannelLabel>>,
-    ack_receiver: flume::Receiver<Ack<ChannelLabel>>,
+    packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
+    ack_receiver: mpsc::Receiver<Ack<ChannelLabel>>,
     stored_packets: Vec<StoredPacket<ChannelLabel>>,
     last_receive_time: Instant,
     rtt_resend_factor: f32,
@@ -26,8 +27,8 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
     pub(crate) fn new(
         config: &Config,
         channels: &[ChannelLabel],
-        packet_receiver: flume::Receiver<PacketBuilder<ChannelLabel>>,
-        ack_receiver: flume::Receiver<Ack<ChannelLabel>>,
+        packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
+        ack_receiver: mpsc::Receiver<Ack<ChannelLabel>>,
     ) -> Self {
         let send_trackers: Vec<_> = channels
             .iter()

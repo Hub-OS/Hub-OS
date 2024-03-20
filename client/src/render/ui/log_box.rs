@@ -62,11 +62,7 @@ impl LogBox {
         let line_height = self.text_style.line_height();
         let max_lines = (self.bounds.height / line_height) as usize;
 
-        let bottom = if self.records.len() < max_lines {
-            self.bounds.top() + line_height * self.records.len() as f32
-        } else {
-            self.bounds.bottom()
-        };
+        let bottom = self.bounds.top() + line_height * self.records.len().min(max_lines) as f32;
 
         for (i, record) in self.records.iter().rev().enumerate() {
             if i >= max_lines {
@@ -74,8 +70,8 @@ impl LogBox {
             }
 
             let color = match record.level {
-                LogLevel::Error => Color::new(0.9, 0.1, 0.0, 1.0),
-                LogLevel::Warn => Color::new(0.9, 0.8, 0.3, 1.0),
+                LogLevel::Error => Color::RED,
+                LogLevel::Warn => Color::YELLOW,
                 LogLevel::Trace | LogLevel::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
                 _ => Color::WHITE,
             };

@@ -26,6 +26,18 @@ pub fn inject_static(lua_api: &mut LuaApi) {
             })?,
         )?;
 
+        net_table.set(
+            "system_random",
+            lua.create_function(|lua, _: ()| {
+                let mut bytes = [0u8; 8];
+                getrandom::getrandom(&mut bytes).unwrap();
+
+                let integer = mlua::Integer::from_le_bytes(bytes);
+
+                lua.pack_multi(integer)
+            })?,
+        )?;
+
         Ok(())
     });
 }

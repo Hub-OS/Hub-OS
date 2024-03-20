@@ -9,10 +9,11 @@ use crate::resources::*;
 use framework::prelude::*;
 use itertools::Itertools;
 
-const ICONS_PER_ROW: usize = 4;
-const ROW_VIEW_SIZE: usize = 5;
-const ICON_X_OFFSET: f32 = 22.0;
-const ICON_Y_OFFSET: f32 = 26.0;
+const ICON_WIDTH: f32 = 20.0;
+const ICON_HEIGHT: f32 = 24.0;
+const ICON_MARGIN: f32 = 1.0;
+const ICON_X_OFFSET: f32 = ICON_WIDTH + ICON_MARGIN * 2.0;
+const ICON_Y_OFFSET: f32 = ICON_HEIGHT + ICON_MARGIN * 2.0;
 const SCROLL_STEP: f32 = 0.2;
 
 pub struct CharacterSelectScene {
@@ -41,6 +42,7 @@ impl CharacterSelectScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let character_id = &globals.global_save.selected_character;
+        let player_package = Self::get_player_package(game_io, character_id);
 
         let mut package_ids: Vec<_> = globals
             .player_packages
@@ -49,48 +51,10 @@ impl CharacterSelectScene {
 
         package_ids.sort();
 
-        // selection
-        let selected_index = package_ids
-            .iter()
-            .position(|id| *id == character_id)
-            .unwrap_or_default();
-        let v_index = selected_index / ICONS_PER_ROW;
-        let h_index = selected_index % ICONS_PER_ROW;
-
-        // icons
-        let icon_rows: Vec<_> = package_ids
-            .into_iter()
-            .chunks(ICONS_PER_ROW)
-            .into_iter()
-            .map(|package_ids| IconRow::new(game_io, package_ids))
-            .collect();
-
-        let row_count = icon_rows.len();
-        let col_count = icon_rows
-            .get(v_index)
-            .map(|row| row.package_count())
-            .unwrap_or_default();
-
-        // preview_sprite
-        let player_package = Self::get_player_package(game_io, character_id);
-        let preview_sprite = Self::load_character_sprite(game_io, player_package);
-
-        // cursor_sprite
-        let mut cursor_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_CURSOR);
-        let cursor_animator =
-            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_CURSOR_ANIMATION)
-                .with_state("DEFAULT")
-                .with_loop_mode(AnimatorLoopMode::Loop);
-
-        cursor_animator.apply(&mut cursor_sprite);
-
         // layout
         let mut ui_animator =
             Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_UI_ANIMATION);
         ui_animator.set_state("DEFAULT");
-
-        // offset
-        let icon_start_offset = ui_animator.point("LIST_START").unwrap_or_default();
 
         // health_ui
         let mut health_ui = PlayerHealthUi::new(game_io);
@@ -110,6 +74,49 @@ impl CharacterSelectScene {
 
         invalid_animator.apply(&mut invalid_sprite);
 
+        // list bounds
+        let list_bounds = Rect::from_corners(
+            ui_animator.point("LIST_START").unwrap_or_default(),
+            ui_animator.point("LIST_END").unwrap_or_default(),
+        );
+
+        let icons_per_row = ((list_bounds.width + ICON_MARGIN * 2.0) / ICON_X_OFFSET) as usize;
+        let row_view_size = ((list_bounds.height + ICON_MARGIN * 2.0) / ICON_Y_OFFSET) as usize;
+
+        // selection
+        let selected_index = package_ids
+            .iter()
+            .position(|id| *id == character_id)
+            .unwrap_or_default();
+        let v_index = selected_index / icons_per_row;
+        let h_index = selected_index % icons_per_row;
+
+        // icons
+        let icon_rows: Vec<_> = package_ids
+            .into_iter()
+            .chunks(icons_per_row)
+            .into_iter()
+            .map(|package_ids| IconRow::new(game_io, package_ids))
+            .collect();
+
+        let row_count = icon_rows.len();
+        let col_count = icon_rows
+            .get(v_index)
+            .map(|row| row.package_count())
+            .unwrap_or_default();
+
+        // preview_sprite
+        let preview_sprite = Self::load_character_sprite(game_io, player_package);
+
+        // cursor_sprite
+        let mut cursor_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_CURSOR);
+        let cursor_animator =
+            Animator::load_new(assets, ResourcePaths::CHARACTER_SELECT_CURSOR_ANIMATION)
+                .with_state("DEFAULT")
+                .with_loop_mode(AnimatorLoopMode::Loop);
+
+        cursor_animator.apply(&mut cursor_sprite);
+
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
@@ -121,13 +128,13 @@ impl CharacterSelectScene {
             cursor_sprite,
             cursor_animator,
             invalid_sprite,
-            icon_start_offset,
+            icon_start_offset: list_bounds.top_left(),
             icon_rows,
             scroll_offset: Vec2::ZERO,
-            v_scroll_tracker: ScrollTracker::new(game_io, ROW_VIEW_SIZE)
+            v_scroll_tracker: ScrollTracker::new(game_io, row_view_size)
                 .with_total_items(row_count)
                 .with_selected_index(v_index),
-            h_scroll_tracker: ScrollTracker::new(game_io, ICONS_PER_ROW)
+            h_scroll_tracker: ScrollTracker::new(game_io, icons_per_row)
                 .with_total_items(col_count)
                 .with_wrap(true)
                 .with_selected_index(h_index),
@@ -316,10 +323,10 @@ impl Scene for CharacterSelectScene {
             offset.y -= ICON_Y_OFFSET;
         }
 
-        let page_end = top_index + self.v_scroll_tracker.view_size();
+        let page_end = top_index + self.v_scroll_tracker.view_size() + 2;
 
         let range_start = top_index.max(1) - 1;
-        let range_end = self.v_scroll_tracker.total_items().min(page_end + 1);
+        let range_end = self.icon_rows.len().min(page_end);
 
         for i in range_start..range_end {
             let row = &mut self.icon_rows[i];
