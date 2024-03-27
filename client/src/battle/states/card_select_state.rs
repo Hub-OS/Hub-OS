@@ -120,18 +120,13 @@ impl State for CardSelectState {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 let card_packages = &globals.card_packages;
-
                 let namespace = player.namespace();
 
-                let Some(package) = card_packages.package_or_override(namespace, &card.package_id)
-                else {
-                    continue;
-                };
+                let is_dark = card_packages
+                    .package_or_override(namespace, &card.package_id)
+                    .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
-                let status_registry = &resources.status_registry;
-                package.card_properties.to_bindable(status_registry);
-
-                if package.card_properties.card_class != CardClass::Dark {
+                if !is_dark {
                     continue;
                 };
 
@@ -273,23 +268,19 @@ impl State for CardSelectState {
             let globals = game_io.resource::<Globals>().unwrap();
 
             let card_packages = &globals.card_packages;
-
             let namespace = player.namespace();
 
-            let Some(package) = card_packages.package_or_override(namespace, &card.package_id)
-            else {
-                return;
-            };
+            let is_dark = card_packages
+                .package_or_override(namespace, &card.package_id)
+                .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
-            let status_registry = &resources.status_registry;
-            package.card_properties.to_bindable(status_registry);
-
-            if package.card_properties.card_class == CardClass::Dark {
+            if is_dark {
                 let fade_sprite = &mut resources.fade_sprite.clone();
                 fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
                 fade_sprite.set_color(resources.ui_fade_color.clone());
                 sprite_queue.draw_sprite(&fade_sprite);
 
+                let globals = game_io.resource::<Globals>().unwrap();
                 pending_sfx.push(&globals.sfx.dark_card);
             };
         }
