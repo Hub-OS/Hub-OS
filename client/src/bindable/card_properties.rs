@@ -181,7 +181,7 @@ impl CardProperties<Vec<String>> {
             short_name: self.short_name.clone(),
             damage: self.damage,
             boosted_damage: self.boosted_damage,
-            recover: 0,
+            recover: self.recover,
             element: self.element,
             secondary_element: self.secondary_element,
             card_class: self.card_class,
