@@ -148,13 +148,8 @@ impl State for CardSelectState {
                 selection.local = player.local;
                 selection.animating_slide = true;
 
-                let x = if index > CARD_COLS {
-                    index - CARD_COLS
-                } else {
-                    index
-                } as i32;
-
-                let y = if index > CARD_COLS { 1 } else { 2 } as i32;
+                let x = (index % CARD_COLS) as i32;
+                let y = (index / CARD_COLS) as i32;
 
                 let x_difference = x - selection.col;
                 let y_difference = y - selection.row;
@@ -263,6 +258,9 @@ impl State for CardSelectState {
             return;
         };
 
+        // let globals = game_io.resource::<Globals>().unwrap();
+        let mut pending_sfx = Vec::new();
+
         let globals = game_io.resource::<Globals>().unwrap();
         let selection = &self.player_selections[player.index];
         let selected_item = resolve_selected_item(player, selection);
@@ -291,6 +289,8 @@ impl State for CardSelectState {
                 fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
                 fade_sprite.set_color(resources.ui_fade_color.clone());
                 sprite_queue.draw_sprite(&fade_sprite);
+
+                pending_sfx.push(&globals.sfx.dark_card);
             };
         }
 
@@ -424,6 +424,12 @@ impl State for CardSelectState {
                 style.bounds.set_position(position);
                 style.draw(game_io, sprite_queue, TEXT);
             }
+        }
+
+        // ask Konst for help later, this shit confuses me
+        for sfx in pending_sfx {
+            let audio = &globals.audio;
+            audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
         }
 
         // draw fade sprite
