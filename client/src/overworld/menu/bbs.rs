@@ -165,6 +165,7 @@ impl Bbs {
     pub fn remove_post(&mut self, id: &str) {
         if let Some(index) = self.posts.iter().position(|post| post.id == id) {
             self.posts.remove(index);
+            self.scroll_tracker.set_total_items(self.posts.len());
         }
     }
 }
