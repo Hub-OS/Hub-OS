@@ -38,6 +38,7 @@ pub struct GlobalSfx {
     pub player_deleted: SoundBuffer,
     pub hurt: SoundBuffer,
     pub explode: SoundBuffer,
+    pub dark_card: SoundBuffer,
 }
 
 impl GlobalSfx {
@@ -78,6 +79,7 @@ impl GlobalSfx {
             player_deleted: load(ResourcePaths::PLAYER_DELETED_SFX),
             hurt: load(ResourcePaths::HURT_SFX),
             explode: load(ResourcePaths::EXPLODE_SFX),
+            dark_card: load(ResourcePaths::DARK_CARD_SFX),
         }
     }
 
