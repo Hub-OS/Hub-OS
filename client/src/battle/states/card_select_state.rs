@@ -32,15 +32,15 @@ impl Selection {
         Self {
             col: 0 as i32,
             row: 0 as i32,
-            form_row: todo!(),
-            card_button_width: todo!(),
-            has_special_button: todo!(),
-            form_select_time: todo!(),
-            form_open_time: todo!(),
-            confirm_time: todo!(),
-            animating_slide: todo!(),
-            erased: todo!(),
-            local: todo!(),
+            form_row: 0,
+            card_button_width: 0,
+            has_special_button: false,
+            form_select_time: Some(0),
+            form_open_time: Some(0),
+            confirm_time: 0 as i64,
+            animating_slide: false,
+            erased: false,
+            local: true,
         }
     }
 }
@@ -129,9 +129,6 @@ impl State for CardSelectState {
                 if !is_dark {
                     continue;
                 };
-
-                // I can't figure this one out because of the borrow checker and I'm too stressed to fucking care
-                // simulation.play_sound(game_io, &globals.sfx.dark_card);
 
                 if player.index >= self.player_selections.len() {
                     self.player_selections
@@ -417,7 +414,6 @@ impl State for CardSelectState {
             }
         }
 
-        // ask Konst for help later, this shit confuses me
         for sfx in pending_sfx {
             let audio = &globals.audio;
             audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
