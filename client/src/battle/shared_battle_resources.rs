@@ -56,7 +56,7 @@ impl SharedBattleResources {
             math_expressions: Default::default(),
             glyph_atlases: Default::default(),
             battle_fade_color: Color::new(0.0, 0.0, 0.0, 0.3),
-            ui_fade_color: Color::new(0.0, 0.0, 0.0, 0.3),
+            ui_fade_color: Color::new(0.0, 0.0, 0.0, 0.5),
             fade_sprite: Sprite::new(game_io, fade_sprite_texture),
             event_sender,
             event_receiver,
