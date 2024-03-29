@@ -1175,7 +1175,12 @@ impl Net {
         }
     }
 
-    pub fn initiate_encounter(&mut self, player_id: &str, package_path: &str, data: Option<&str>) {
+    pub fn initiate_encounter(
+        &mut self,
+        player_id: &str,
+        package_path: &str,
+        data: Option<String>,
+    ) {
         self.preload_package(&[player_id.to_string()], package_path);
 
         let client = if let Some(client) = self.clients.get_mut(player_id) {
@@ -1197,7 +1202,7 @@ impl Net {
             Reliability::ReliableOrdered,
             ServerPacket::InitiateEncounter {
                 package_path: package_path.to_string(),
-                data: data.map(|s| s.to_string()),
+                data,
             },
         );
     }

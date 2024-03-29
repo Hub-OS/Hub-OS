@@ -486,7 +486,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             mlua::String,
             mlua::String,
             Option<String>,
-            Option<String>,
+            Option<mlua::Value>,
         ) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
@@ -500,14 +500,19 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             }
         }
 
-        net.initiate_netplay(&player_ids, package_path, data);
+        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
+
+        net.initiate_netplay(&player_ids, package_path, data_string);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_initiate_netplay", |api_ctx, lua, params| {
-        let (player_ids, package_path, data): (Vec<mlua::String>, Option<String>, Option<String>) =
-            lua.unpack_multi(params)?;
+        let (player_ids, package_path, data): (
+            Vec<mlua::String>,
+            Option<String>,
+            Option<mlua::Value>,
+        ) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
         let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
@@ -521,7 +526,9 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             }
         }
 
-        net.initiate_netplay(&player_ids, package_path, data);
+        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
+
+        net.initiate_netplay(&player_ids, package_path, data_string);
 
         lua.pack_multi(())
     });
@@ -568,13 +575,12 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_initiate_encounter", |api_ctx, lua, params| {
-        let (player_id, package_id, data_value): (mlua::String, mlua::String, Option<mlua::Value>) =
+        let (player_id, package_id, data): (mlua::String, mlua::String, Option<mlua::Value>) =
             lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
         let package_id_str = package_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        let data = data_value.map(|v| lua_value_to_string(v, "", 0));
 
         if let Some(tracker) = api_ctx
             .battle_tracker_ref
@@ -583,7 +589,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         {
             tracker.push_back(api_ctx.script_index);
 
-            net.initiate_encounter(player_id_str, package_id_str, data.as_deref());
+            let data_string = data.map(|v| lua_value_to_string(v, "", 0));
+            net.initiate_encounter(player_id_str, package_id_str, data_string);
         }
 
         lua.pack_multi(())
