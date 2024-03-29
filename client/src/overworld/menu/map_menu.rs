@@ -107,7 +107,11 @@ impl MapMenu {
             let progress = i as f32 / max_layer_count as f32;
             let color = Color::lerp(LAYER_START_COLOR, LAYER_MAX_COLOR, progress);
 
-            map.iterate_visible_tiles(game_io, &camera, i, |sprite, tile_meta, _, _| {
+            map.iterate_visible_tiles(game_io, &camera, i, |sprite, tile_meta, _, tile_pos| {
+                if i > 0 && map.ignore_tile_above(tile_pos.into(), (i - 1) as _) {
+                    return;
+                }
+
                 let frame = sprite.frame();
 
                 let mut center = frame.top_left();
