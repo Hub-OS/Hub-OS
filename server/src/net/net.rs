@@ -388,7 +388,6 @@ impl Net {
                     ActorProperty::ScaleX(value) => client.actor.scale_x = *value,
                     ActorProperty::ScaleY(value) => client.actor.scale_y = *value,
                     ActorProperty::Rotation(value) => client.actor.rotation = *value,
-                    ActorProperty::Direction(value) => client.actor.direction = *value,
                     ActorProperty::SoundEffect(value) | ActorProperty::SoundEffectLoop(value) => {
                         if value.starts_with("/server/") {
                             asset_paths.insert(value);
