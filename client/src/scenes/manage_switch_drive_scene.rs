@@ -353,8 +353,6 @@ impl ManageSwitchDriveScene {
             })
             .or_insert_with(|| vec![installed_drive.clone()]);
 
-        global_save.save();
-
         // update ui
         self.equipment_map[slot].set_package(Some(package));
         self.state = State::EquipmentSelection;
@@ -618,6 +616,12 @@ impl ManageSwitchDriveScene {
 impl Scene for ManageSwitchDriveScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn destroy(&mut self, game_io: &mut GameIO) {
+        // save on exit
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.global_save.save();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
