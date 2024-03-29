@@ -254,7 +254,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn handle_packet(&mut self, game_io: &mut GameIO, packet: ServerPacket) {
-        if self.synchronizing_packets {
+        if self.synchronizing_packets && packet != ServerPacket::EndSynchronization {
             self.stored_packets.push(packet);
             return;
         }
@@ -1366,6 +1366,8 @@ impl OverworldOnlineScene {
                 self.synchronizing_packets = true;
             }
             ServerPacket::EndSynchronization => {
+                self.synchronizing_packets = false;
+
                 let packets = std::mem::take(&mut self.stored_packets);
 
                 for packet in packets {
