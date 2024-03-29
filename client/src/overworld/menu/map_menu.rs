@@ -227,7 +227,6 @@ impl MapMenu {
 
                     let state = match tile_meta.tile_class {
                         TileClass::Conveyor => "CONVEYOR",
-                        TileClass::Stairs => "STAIRS",
                         TileClass::Ice => "ICE",
                         TileClass::Treadmill => "TREADMILL",
                         TileClass::Arrow => "ARROW",
