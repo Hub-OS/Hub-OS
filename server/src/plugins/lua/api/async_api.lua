@@ -308,8 +308,11 @@ end)
 -- asyncified battles
 
 create_asyncified_api("initiate_encounter", battle_trackers)
-create_asyncified_api("initiate_pvp", battle_trackers)
 create_asyncified_netplay_api("initiate_netplay", battle_trackers)
+
+function Async.initiate_pvp(player1_id, player2_id, ...)
+  return Async.initiate_netplay({ player1_id, player2_id }, ...)
+end
 
 Net:on("battle_results", function(event)
   local player_id = event.player_id
