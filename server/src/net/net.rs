@@ -816,9 +816,7 @@ impl Net {
         posts: Vec<BbsPost>,
         open_instantly: bool,
     ) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -839,9 +837,7 @@ impl Net {
     }
 
     pub fn prepend_posts(&mut self, player_id: &str, reference: Option<&str>, posts: Vec<BbsPost>) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -855,9 +851,7 @@ impl Net {
     }
 
     pub fn append_posts(&mut self, player_id: &str, reference: Option<&str>, posts: Vec<BbsPost>) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1060,9 +1054,7 @@ impl Net {
     }
 
     pub fn refer_package(&mut self, player_id: &str, package_id: PackageId) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1083,9 +1075,7 @@ impl Net {
             package_path,
         );
 
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1098,16 +1088,12 @@ impl Net {
         packets.reserve_exact(dependency_chain.len());
 
         for asset_path in dependency_chain {
-            let asset = if let Some(asset) = self.asset_manager.get_asset(asset_path) {
-                asset
-            } else {
+            let Some(asset) = self.asset_manager.get_asset(asset_path) else {
                 log::warn!("No asset found with path {:?}", asset_path);
                 continue;
             };
 
-            let package_info = if let Some(package_info) = asset.package_info() {
-                package_info
-            } else {
+            let Some(package_info) = asset.package_info() else {
                 log::warn!("{:?} is not a package", asset_path);
                 continue;
             };
@@ -1146,23 +1132,19 @@ impl Net {
         packets.reserve_exact(dependency_chain.len());
 
         for asset_path in dependency_chain {
-            let asset = if let Some(asset) = self.asset_manager.get_asset(asset_path) {
-                asset
-            } else {
+            let Some(asset) = self.asset_manager.get_asset(asset_path) else {
                 log::warn!("No asset found with path {:?}", asset_path);
                 continue;
             };
 
-            let package_category = if let Some(package_info) = asset.package_info() {
-                package_info.category
-            } else {
+            let Some(package_info) = asset.package_info() else {
                 log::warn!("{:?} is not a package", asset_path);
                 continue;
             };
 
             packets.push(ServerPacket::LoadPackage {
                 package_path: asset_path.to_string(),
-                category: package_category,
+                category: package_info.category,
             });
         }
 
@@ -1183,9 +1165,7 @@ impl Net {
     ) {
         self.preload_package(&[player_id.to_string()], package_path);
 
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1294,9 +1274,7 @@ impl Net {
     }
 
     pub fn give_player_item(&mut self, player_id: &str, item_id: String, count: isize) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1465,9 +1443,7 @@ impl Net {
     }
 
     pub(super) fn complete_transfer(&mut self, player_id: &str) {
-        let client = if let Some(client) = self.clients.get_mut(player_id) {
-            client
-        } else {
+        let Some(client) = self.clients.get_mut(player_id) else {
             return;
         };
 
@@ -1478,9 +1454,7 @@ impl Net {
         );
 
         let area_id = client.warp_area.clone();
-        let area = if let Some(area) = self.areas.get_mut(&area_id) {
-            area
-        } else {
+        let Some(area) = self.areas.get_mut(&area_id) else {
             self.kick_player(player_id, "Area destroyed", true);
             return;
         };
@@ -2736,9 +2710,7 @@ fn ensure_asset<I, P>(
     }
 
     for asset_path in assets_to_send {
-        let asset = if let Some(asset) = asset_manager.get_asset(asset_path) {
-            asset
-        } else {
+        let Some(asset) = asset_manager.get_asset(asset_path) else {
             log::warn!("No asset found with path {:?}", asset_path);
             continue;
         };

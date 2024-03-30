@@ -491,9 +491,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_textbox_response(&mut self, net: &mut Net, player_id: &str, response: u8) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.pop_textbox() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.pop_textbox() else {
             // protect against attackers
             return;
         };
@@ -519,9 +517,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_prompt_response(&mut self, net: &mut Net, player_id: &str, response: String) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.pop_textbox() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.pop_textbox() else {
             // protect against attackers
             return;
         };
@@ -549,9 +545,7 @@ impl PluginInterface for LuaPluginInterface {
 
         tracker.open_board();
 
-        let script_index = if let Some(script_index) = tracker.current_board() {
-            *script_index
-        } else {
+        let Some(&script_index) = tracker.current_board() else {
             // protect against attackers
             return;
         };
@@ -576,9 +570,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_board_close(&mut self, net: &mut Net, player_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.close_board() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.close_board() else {
             // protect against attackers
             return;
         };
@@ -603,9 +595,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_post_request(&mut self, net: &mut Net, player_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.current_board() {
-            *script_index
-        } else {
+        let Some(&script_index) = tracker.current_board() else {
             // protect against attackers
             return;
         };
@@ -630,9 +620,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_post_selection(&mut self, net: &mut Net, player_id: &str, post_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.current_board() {
-            *script_index
-        } else {
+        let Some(&script_index) = tracker.current_board() else {
             // protect against attackers
             return;
         };
@@ -664,9 +652,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.close_shop() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.close_shop() else {
             // protect against attackers
             return;
         };
@@ -691,9 +677,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_shop_close(&mut self, net: &mut Net, player_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.close_shop() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.close_shop() else {
             // protect against attackers
             return;
         };
@@ -718,9 +702,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.current_shop() {
-            *script_index
-        } else {
+        let Some(&script_index) = tracker.current_shop() else {
             // protect against attackers
             return;
         };
@@ -746,9 +728,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
         let tracker = self.widget_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.current_shop() {
-            *script_index
-        } else {
+        let Some(&script_index) = tracker.current_shop() else {
             // protect against attackers
             return;
         };
@@ -798,9 +778,7 @@ impl PluginInterface for LuaPluginInterface {
     ) {
         let tracker = self.battle_trackers.get_mut(player_id).unwrap();
 
-        let script_index = if let Some(script_index) = tracker.pop_front() {
-            script_index
-        } else {
+        let Some(script_index) = tracker.pop_front() else {
             // protect against attackers
             return;
         };

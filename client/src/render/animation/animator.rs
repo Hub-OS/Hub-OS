@@ -293,9 +293,7 @@ impl Animator {
                 break;
             }
 
-            let eq_index = if let Some(index) = view.find('=') {
-                index
-            } else {
+            let Some(eq_index) = view.find('=') else {
                 log::warn!("Line {}: expecting \"=\"", line_index + 1);
                 break;
             };

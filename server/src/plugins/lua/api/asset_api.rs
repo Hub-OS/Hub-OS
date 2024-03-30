@@ -40,17 +40,13 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let path_str = path.to_str()?;
         let net = api_ctx.net_ref.borrow();
 
-        let asset_type = if let Some(asset) = net.get_asset(path_str) {
-            match asset.data {
-                AssetData::Text(_) => Some("text"),
-                AssetData::CompressedText(_) => Some("text"),
-                AssetData::Texture(_) => Some("texture"),
-                AssetData::Audio(_) => Some("audio"),
-                AssetData::Data(_) => Some("data"),
-            }
-        } else {
-            None
-        };
+        let asset_type = net.get_asset(path_str).map(|asset| match asset.data {
+            AssetData::Text(_) => Some("text"),
+            AssetData::CompressedText(_) => Some("text"),
+            AssetData::Texture(_) => Some("texture"),
+            AssetData::Audio(_) => Some("audio"),
+            AssetData::Data(_) => Some("data"),
+        });
 
         lua.pack_multi(asset_type)
     });
