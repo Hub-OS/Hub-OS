@@ -2,7 +2,6 @@ use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
 use super::LuaApi;
 use crate::net::Direction;
-use packets::structures::PackageId;
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -544,32 +543,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         net.set_player_restrictions(player_id_str, restrictions_path_str);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "refer_package", |api_ctx, lua, params| {
-        let (player_id, package_id_string): (mlua::String, mlua::String) =
-            lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
-        let package_id_str = package_id_string.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        let package_id = PackageId::from(package_id_str);
-        net.refer_package(player_id_str, package_id);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "offer_package", |api_ctx, lua, params| {
-        let (player_id, package_id): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
-        let package_id_str = package_id.to_str()?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-
-        net.offer_package(player_id_str, package_id_str);
 
         lua.pack_multi(())
     });
