@@ -500,7 +500,7 @@ impl Textbox {
             interface.handle_completed();
 
             if let Some((_, _, count)) = self.avatar_queue.front_mut() {
-                *count -= 1;
+                *count = count.saturating_sub(1);
 
                 if *count == 0 && self.avatar_queue.len() > 1 {
                     // drop the avatar if there's another waiting
