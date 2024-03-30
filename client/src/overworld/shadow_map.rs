@@ -53,7 +53,9 @@ impl ShadowMap {
                         }
                     }
 
-                    self.shadows[shadow_index] = index as i32;
+                    // subtract 1 to prevent lighting issues on remote players reaching the top of stairs
+                    // will cause lighting issues with anything directly under this tile
+                    self.shadows[shadow_index] = index as i32 - 1;
                     break;
                 }
             }
