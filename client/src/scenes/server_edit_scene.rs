@@ -8,7 +8,11 @@ use framework::prelude::*;
 
 pub enum ServerEditProp {
     Edit(usize),
-    InsertAfter(usize),
+    Insert {
+        index: usize,
+        name: Option<String>,
+        address: Option<String>,
+    },
 }
 
 enum UiMessage {
@@ -39,11 +43,13 @@ impl ServerEditScene {
     pub fn new(game_io: &GameIO, edit_prop: ServerEditProp) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let server_info = match edit_prop {
-            ServerEditProp::Edit(index) => globals.global_save.server_list[index].clone(),
-            _ => ServerInfo {
-                name: String::from("New Server"),
-                address: String::from("localhost:8765"),
+        let server_info = match &edit_prop {
+            ServerEditProp::Edit(index) => globals.global_save.server_list[*index].clone(),
+            ServerEditProp::Insert { name, address, .. } => ServerInfo {
+                name: name.clone().unwrap_or_else(|| String::from("New Server")),
+                address: address
+                    .clone()
+                    .unwrap_or_else(|| String::from("localhost:8765")),
             },
         };
 
@@ -274,13 +280,11 @@ impl Scene for ServerEditScene {
                         ServerEditProp::Edit(index) => {
                             global_save.server_list[index] = self.server_info.clone();
                         }
-                        ServerEditProp::InsertAfter(index) => {
-                            let insert_index = index + 1;
-                            let insert_index = insert_index.min(global_save.server_list.len());
+                        ServerEditProp::Insert { index, .. } => {
+                            let index = index.min(global_save.server_list.len());
 
-                            global_save
-                                .server_list
-                                .insert(insert_index, self.server_info.clone());
+                            let server_info = self.server_info.clone();
+                            global_save.server_list.insert(index, server_info);
                         }
                     }
 

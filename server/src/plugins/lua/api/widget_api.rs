@@ -348,6 +348,18 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "refer_server", |api_ctx, lua, params| {
+        let (player_id, name, address): (mlua::String, String, String) =
+            lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.refer_server(player_id_str, name, address);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "refer_package", |api_ctx, lua, params| {
         let (player_id, package_id_string): (mlua::String, mlua::String) =
             lua.unpack_multi(params)?;

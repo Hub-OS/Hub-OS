@@ -1,4 +1,7 @@
-use super::{InitialConnectScene, NetplayInitScene, NetplayProps, PackageScene};
+use super::{
+    InitialConnectScene, NetplayInitScene, NetplayProps, PackageScene, ServerEditProp,
+    ServerEditScene,
+};
 use crate::battle::BattleProps;
 use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
@@ -888,6 +891,25 @@ impl OverworldOnlineScene {
                 if let Some(shop) = self.menu_manager.shop_mut() {
                     shop.remove_item(&id);
                 }
+            }
+            ServerPacket::ReferServer { name, address } => {
+                let globals = game_io.resource::<Globals>().unwrap();
+                let index = globals.global_save.server_list.len() + 1;
+                let name = Some(name);
+                let address = Some(address);
+
+                let scene = ServerEditScene::new(
+                    game_io,
+                    ServerEditProp::Insert {
+                        index,
+                        name,
+                        address,
+                    },
+                );
+
+                let transition = crate::transitions::new_sub_scene(game_io);
+                let next_scene = NextScene::new_push(scene).with_transition(transition);
+                self.next_scene_queue.push_back(next_scene);
             }
             ServerPacket::ReferPackage { package_id } => {
                 let globals = game_io.resource::<Globals>().unwrap();
