@@ -392,7 +392,8 @@ impl Menu for MapMenu {
         }
 
         // draw objects
-        type ObjectQuery<'a> = hecs::Without<(&'a Vec3, &'a Tile, &'a ObjectData), &'a Excluded>;
+        type ObjectQuery<'a> =
+            hecs::Without<(&'a Vec3, Option<&'a Tile>, &'a ObjectData), &'a Excluded>;
         let object_entities = area.map.object_entities();
 
         for (_, (&position, tile, object)) in object_entities.query::<ObjectQuery>().into_iter() {
@@ -405,34 +406,39 @@ impl Menu for MapMenu {
                 ObjectType::HomeWarp => "HOME",
                 ObjectType::Board => "BOARD",
                 ObjectType::Shop => "SHOP",
+                ObjectType::Bookmark => "BOOKMARK",
                 _ => {
                     continue;
                 }
             };
 
-            let Some(tile_meta) = area.map.tile_meta_for_tile(tile.gid) else {
-                continue;
-            };
-
             self.marker_animator.set_state(state);
             self.marker_animator.apply(&mut self.marker_sprite);
 
-            // resolve scale
-            let flip = object.object_type == ObjectType::Board && tile.flipped_horizontal;
-            let marker_scale = if flip {
-                Vec2::new(-1.0, 1.0)
-            } else {
-                Vec2::ONE
-            };
-
-            self.marker_sprite.set_scale(marker_scale);
-
-            // resolve position
             let mut screen_position = area.map.world_3d_to_screen(position);
+            let mut center_offset = Vec2::ZERO;
 
-            let center_offset =
-                tile_meta.alignment_offset + tile_meta.drawing_offset + object.size * 0.5;
+            if let Some(tile) = tile {
+                let Some(tile_meta) = area.map.tile_meta_for_tile(tile.gid) else {
+                    continue;
+                };
 
+                // resolve scale
+                let flip = object.object_type == ObjectType::Board && tile.flipped_horizontal;
+                let marker_scale = if flip {
+                    Vec2::new(-1.0, 1.0)
+                } else {
+                    Vec2::ONE
+                };
+
+                self.marker_sprite.set_scale(marker_scale);
+
+                // resolve offset
+                center_offset =
+                    tile_meta.alignment_offset + tile_meta.drawing_offset + object.size * 0.5;
+            }
+
+            // finish resolving position
             if object.object_type.is_warp() {
                 screen_position += center_offset;
             } else if object.object_type == ObjectType::Board {

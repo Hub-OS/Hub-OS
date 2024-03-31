@@ -189,12 +189,17 @@ impl Map {
         self.object_entity_map.insert(id, entity);
     }
 
-    pub fn insert_shape_object(&mut self, shape_object: ShapeObject) {
+    pub fn insert_shape_object(&mut self, shape_object: ShapeObject, layer_index: usize) {
         let id = shape_object.data.id;
+        let position = shape_object.data.position;
+        let tile_position = self.world_to_tile_space(position);
+        let elevation = self.elevation_at(tile_position, layer_index as i32);
 
-        let entity = self
-            .object_entities
-            .spawn((shape_object.data, shape_object.shape));
+        let entity = self.object_entities.spawn((
+            shape_object.data,
+            shape_object.shape,
+            position.extend(elevation),
+        ));
 
         self.object_entity_map.insert(id, entity);
     }
