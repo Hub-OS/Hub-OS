@@ -297,7 +297,7 @@ impl BattleSimulation {
         // remove dead entities
         self.cleanup_erased_entities();
 
-        self.update_ui(game_io);
+        self.update_ui();
 
         self.field.update_animations();
 
@@ -537,7 +537,7 @@ impl BattleSimulation {
         }
     }
 
-    fn update_ui(&mut self, game_io: &GameIO) {
+    fn update_ui(&mut self) {
         let entities = &mut self.entities;
 
         if let Ok((player, living)) =
@@ -546,15 +546,6 @@ impl BattleSimulation {
             self.local_health_ui.set_health(living.health);
             self.local_health_ui.set_max_health(living.max_health);
             player.emotion_window.update();
-
-            // play sfx
-            if self.local_health_ui.is_low_hp() {
-                let globals = game_io.resource::<Globals>().unwrap();
-                let audio = &globals.audio;
-                let sfx = &globals.sfx.low_hp;
-
-                audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
-            }
         } else {
             self.local_health_ui.set_health(0);
         }
