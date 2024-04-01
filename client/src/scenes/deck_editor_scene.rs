@@ -97,9 +97,15 @@ impl DeckEditorScene {
         deck_dock.validate(game_io, &deck_restrictions);
 
         // pack_dock
+        let mut pack_slots = CardListItem::vec_from_deck(&deck_restrictions, deck);
+
+        sort_card_items(&mut pack_slots, |item: &CardListItem| {
+            item.card.package_id.clone()
+        });
+
         let pack_dock = Dock::new(
             game_io,
-            CardListItem::pack_vec_from_packages(game_io, deck),
+            pack_slots,
             ui_sprite.clone(),
             ui_animator.with_state("PACK_DOCK"),
         );
@@ -191,12 +197,6 @@ impl DeckEditorScene {
 impl Scene for DeckEditorScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
-    }
-
-    fn enter(&mut self, _game_io: &mut GameIO) {
-        sort_card_items(&mut self.pack_dock.card_slots, |item: &CardListItem| {
-            item.card.package_id.clone()
-        });
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -453,11 +453,13 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
     };
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
-    let card_slots = match scene.page_tracker.active_page() {
-        0 => &mut scene.deck_dock.card_slots,
-        1 => &mut scene.pack_dock.card_slots,
+    let dock = match scene.page_tracker.active_page() {
+        0 => &mut scene.deck_dock,
+        1 => &mut scene.pack_dock,
         _ => unreachable!(),
     };
+
+    let card_slots = &mut dock.card_slots;
 
     match selected_option {
         Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
@@ -503,6 +505,8 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
 
     // blanks should always be at the bottom
     card_slots.sort_by_key(|item| !item.is_some());
+
+    dock.update_preview();
 }
 
 fn sort_card_items<F, K>(card_slots: &mut [Option<CardListItem>], key_function: F)
