@@ -32,7 +32,6 @@ pub struct OverworldOnlineScene {
     hud: OverworldHud,
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
-    active_music_path: String,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -93,7 +92,6 @@ impl OverworldOnlineScene {
             hud,
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
-            active_music_path: String::new(),
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -1692,20 +1690,19 @@ impl OverworldOnlineScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
 
-        if !self.active_music_path.is_empty() && !globals.audio.is_music_playing() {
+        if !globals.audio.is_music_playing() {
             globals.audio.restart_music();
         }
 
-        if self.active_music_path == self.area.map.music_path() {
-            return;
-        }
+        let music_path = self.area.map.music_path();
 
-        self.active_music_path = self.area.map.music_path().to_string();
-
-        if self.active_music_path.is_empty() {
-            globals.audio.stop_music();
+        let sound_buffer = if music_path.is_empty() {
+            globals.music.overworld.clone()
         } else {
-            let sound_buffer = self.assets.audio(game_io, &self.active_music_path);
+            self.assets.audio(game_io, music_path)
+        };
+
+        if globals.audio.current_music().as_ref() != Some(&sound_buffer) {
             globals.audio.play_music(&sound_buffer, true);
         }
     }

@@ -98,6 +98,11 @@ impl AudioManager {
         matches!(&*self.music_sink.borrow(), Some(sink) if !sink.empty())
     }
 
+    pub fn current_music(&self) -> Option<SoundBuffer> {
+        let stack = self.music_stack.borrow();
+        stack.last().map(|(buffer, _)| buffer).cloned()
+    }
+
     pub fn music_stack_len(&self) -> usize {
         self.music_stack.borrow().len()
     }
