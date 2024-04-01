@@ -16,7 +16,7 @@ pub struct VirtualZipMeta {
 #[derive(Clone)]
 struct VirtualZipTracking {
     meta: VirtualZipMeta,
-    virtual_files: Vec<String>,
+    virtual_files: Vec<Arc<str>>,
     use_count: isize,
     bytes: Vec<u8>,
 }
@@ -24,24 +24,26 @@ struct VirtualZipTracking {
 #[derive(Clone)]
 pub struct LocalAssetManager {
     loaded_zips: RefCell<HashMap<FileHash, VirtualZipTracking>>,
-    text_cache: RefCell<HashMap<String, String>>,
-    texture_cache: RefCell<HashMap<String, Arc<Texture>>>,
-    sound_cache: RefCell<HashMap<String, SoundBuffer>>,
+    text_cache: RefCell<HashMap<Arc<str>, Arc<str>>>,
+    texture_cache: RefCell<HashMap<Arc<str>, Arc<Texture>>>,
+    sound_cache: RefCell<HashMap<Arc<str>, SoundBuffer>>,
     glyph_atlases: RefCell<HashMap<TextureAnimPathPair<'static>, Arc<GlyphAtlas>>>,
 }
 
 impl LocalAssetManager {
     pub fn new(game_io: &GameIO) -> Self {
-        let text = HashMap::from([(ResourcePaths::BLANK.to_string(), String::new())]);
+        let text: HashMap<Arc<str>, Arc<str>> =
+            HashMap::from([(Arc::from(ResourcePaths::BLANK), Arc::from(""))]);
 
-        let textures = HashMap::from([(
-            ResourcePaths::BLANK.to_string(),
+        let textures: HashMap<Arc<str>, Arc<Texture>> = HashMap::from([(
+            ResourcePaths::BLANK.into(),
             RenderTarget::new(game_io, UVec2::new(1, 1))
                 .texture()
                 .clone(),
         )]);
 
-        let sounds = HashMap::from([(ResourcePaths::BLANK.to_string(), SoundBuffer::new_empty())]);
+        let sounds: HashMap<Arc<str>, SoundBuffer> =
+            HashMap::from([(ResourcePaths::BLANK.into(), SoundBuffer::new_empty())]);
 
         Self {
             loaded_zips: RefCell::new(HashMap::new()),
@@ -148,6 +150,7 @@ impl LocalAssetManager {
 
         crate::zip::extract(&bytes, |path, mut file| {
             let virtual_path = meta.virtual_prefix.clone() + path.as_str();
+            let virtual_path = Arc::<str>::from(virtual_path);
 
             let data_type = AssetDataType::from_path_str(&virtual_path);
 
@@ -156,7 +159,7 @@ impl LocalAssetManager {
                     let mut text = String::new();
                     let read_result = file.read_to_string(&mut text);
 
-                    text_cache.insert(virtual_path.clone(), text);
+                    text_cache.insert(virtual_path.clone(), text.into());
                     virtual_files.push(virtual_path);
 
                     read_result
@@ -217,7 +220,7 @@ impl LocalAssetManager {
         } else {
             let bytes = fs::read(path).unwrap_or_default();
             let sound = SoundBuffer::decode_non_midi(bytes);
-            sound_cache.insert(path.to_string(), sound.clone());
+            sound_cache.insert(path.into(), sound.clone());
             sound
         }
     }
@@ -244,11 +247,13 @@ impl LocalAssetManager {
             AssetDataType::Text => {
                 let mut text_cache = self.text_cache.borrow_mut();
 
-                let text = String::from_utf8_lossy(&bytes).to_string();
-                text_cache.insert(path.to_string(), text.clone());
+                let text = String::from_utf8_lossy(&bytes);
+                let text = Arc::<str>::from(text);
+
+                text_cache.insert(path.into(), text.clone());
 
                 let absolute_path = ResourcePaths::game_folder().to_owned() + path;
-                text_cache.insert(absolute_path, text);
+                text_cache.insert(absolute_path.into(), text);
             }
             AssetDataType::CompressedText => {
                 // only used for server sent data
@@ -258,10 +263,10 @@ impl LocalAssetManager {
                 let mut texture_cache = self.texture_cache.borrow_mut();
 
                 if let Ok(texture) = Texture::load_from_memory(game_io, &bytes) {
-                    texture_cache.insert(path.to_string(), texture.clone());
+                    texture_cache.insert(path.into(), texture.clone());
 
                     let absolute_path = ResourcePaths::game_folder().to_owned() + path;
-                    texture_cache.insert(absolute_path, texture);
+                    texture_cache.insert(absolute_path.into(), texture);
                 } else {
                     log::error!("Failed to load texture: {file_path}");
                 }
@@ -270,10 +275,10 @@ impl LocalAssetManager {
                 let mut sound_cache = self.sound_cache.borrow_mut();
 
                 let sound = SoundBuffer::decode(game_io, bytes);
-                sound_cache.insert(path.to_string(), sound.clone());
+                sound_cache.insert(path.into(), sound.clone());
 
                 let absolute_path = ResourcePaths::game_folder().to_owned() + path;
-                sound_cache.insert(absolute_path, sound);
+                sound_cache.insert(absolute_path.into(), sound);
             }
             AssetDataType::Data => {
                 // used for zips, ignore
@@ -308,7 +313,7 @@ impl AssetManager for LocalAssetManager {
         let mut text_cache = self.text_cache.borrow_mut();
 
         if let Some(text) = text_cache.get(path) {
-            text.clone()
+            text.to_string()
         } else {
             let res = fs::read_to_string(path);
 
@@ -318,7 +323,7 @@ impl AssetManager for LocalAssetManager {
 
             let text = res.unwrap_or_default();
 
-            text_cache.insert(path.to_string(), text.clone());
+            text_cache.insert(path.into(), text.clone().into());
             text
         }
     }
@@ -338,7 +343,7 @@ impl AssetManager for LocalAssetManager {
                 }
             };
 
-            texture_cache.insert(path.to_string(), texture.clone());
+            texture_cache.insert(path.into(), texture.clone());
             texture
         }
     }
@@ -351,7 +356,7 @@ impl AssetManager for LocalAssetManager {
         } else {
             let bytes = fs::read(path).unwrap_or_default();
             let sound = SoundBuffer::decode(game_io, bytes);
-            sound_cache.insert(path.to_string(), sound.clone());
+            sound_cache.insert(path.into(), sound.clone());
             sound
         }
     }
