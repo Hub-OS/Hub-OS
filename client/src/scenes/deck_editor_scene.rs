@@ -448,6 +448,18 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 }
 
 fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
+    let input_util = InputUtil::new(game_io);
+
+    // closing menu
+    if input_util.was_just_pressed(Input::Option) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+        scene.context_menu.close();
+
+        return;
+    }
+
     let Some(selected_option) = scene.context_menu.update(game_io, &scene.ui_input_tracker) else {
         return;
     };
