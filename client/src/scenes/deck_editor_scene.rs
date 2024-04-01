@@ -448,9 +448,8 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 }
 
 fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
-    let selected_option = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
-        Some(option) => option,
-        None => return,
+    let Some(selected_option) = scene.context_menu.update(game_io, &scene.ui_input_tracker) else {
+        return;
     };
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;

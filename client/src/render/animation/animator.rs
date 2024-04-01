@@ -586,9 +586,8 @@ impl Animator {
     }
 
     pub fn sync_time(&mut self, mut time: FrameTime) {
-        let frame_list = match self.current_frame_list() {
-            Some(frame_list) => frame_list,
-            None => return,
+        let Some(frame_list) = self.current_frame_list() else {
+            return;
         };
 
         if frame_list.duration() == 0 {

@@ -713,9 +713,8 @@ impl ActionAttachment {
         sprite_tree: &mut Tree<SpriteNode>,
         animators: &mut SlotMap<BattleAnimator>,
     ) {
-        let sprite_node = match sprite_tree.get_mut(self.sprite_index) {
-            Some(sprite_node) => sprite_node,
-            None => return,
+        let Some(sprite_node) = sprite_tree.get_mut(self.sprite_index) else {
+            return;
         };
 
         let animator = &mut animators[self.animator_index];

@@ -279,14 +279,12 @@ impl NetplayInitScene {
     fn handle_packet(&mut self, game_io: &mut GameIO, packet: NetplayPacket) {
         let index = packet.index();
 
-        let connection = self
+        let Some(connection) = self
             .player_connections
             .iter_mut()
-            .find(|connection| connection.index == index);
-
-        let connection = match connection {
-            Some(connection) => connection,
-            None => return,
+            .find(|connection| connection.index == index)
+        else {
+            return;
         };
 
         if !matches!(

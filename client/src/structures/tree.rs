@@ -218,9 +218,8 @@ impl<T> Tree<T> {
     ) where
         F: FnMut(&mut T, &V) -> V,
     {
-        let start_value = match self.get_mut(start_index) {
-            Some(value) => value,
-            None => return,
+        let Some(start_value) = self.get_mut(start_index) else {
+            return;
         };
 
         let root_value = callback(start_value, &initial_value);
@@ -253,9 +252,8 @@ impl<T> Tree<T> {
     ) where
         F: FnMut(&mut TreeNode<T>, &V) -> V,
     {
-        let start_node = match self.get_node_mut(start_index) {
-            Some(node) => node,
-            None => return,
+        let Some(start_node) = self.get_node_mut(start_index) else {
+            return;
         };
 
         let root_value = callback(start_node, &initial_value);

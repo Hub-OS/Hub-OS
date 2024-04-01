@@ -155,9 +155,8 @@ impl ServerAssetManager {
     }
 
     pub fn delete_asset(&self, remote_path: &str) {
-        let asset = match self.stored_assets.borrow_mut().remove(remote_path) {
-            Some(asset) => asset,
-            None => return,
+        let Some(asset) = self.stored_assets.borrow_mut().remove(remote_path) else {
+            return;
         };
 
         let _ = fs::remove_file(asset.local_path);

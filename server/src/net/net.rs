@@ -210,9 +210,8 @@ impl Net {
     }
 
     pub fn set_player_name(&mut self, id: &str, name: &str) {
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
         client.actor.name = name.to_string();
@@ -222,9 +221,9 @@ impl Net {
             return;
         }
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         let packet = ServerPacket::ActorSetName {
@@ -241,14 +240,13 @@ impl Net {
     }
 
     pub fn set_player_avatar(&mut self, id: &str, texture_path: &str, animation_path: &str) {
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         client.actor.texture_path = texture_path.to_string();
@@ -282,14 +280,13 @@ impl Net {
     }
 
     pub fn set_player_emote(&mut self, id: &str, emote_id: String) {
-        let client = match self.clients.get(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         let packet = ServerPacket::ActorEmote {
@@ -317,16 +314,15 @@ impl Net {
     }
 
     pub fn set_player_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
         client.actor.map_color = color;
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         broadcast_to_area(
@@ -341,14 +337,13 @@ impl Net {
     }
 
     pub fn animate_player(&mut self, id: &str, state: &str, loop_animation: bool) {
-        let client = match self.clients.get(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         broadcast_to_area(
@@ -366,14 +361,13 @@ impl Net {
     pub fn animate_player_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
         use std::collections::HashSet;
 
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         let mut asset_paths = HashSet::<&str>::new();
@@ -432,9 +426,8 @@ impl Net {
     }
 
     pub fn preload_asset_for_player(&mut self, id: &str, asset_path: &str) {
-        let asset = match self.asset_manager.get_asset(asset_path) {
-            Some(asset) => asset,
-            None => return,
+        let Some(asset) = self.asset_manager.get_asset(asset_path) else {
+            return;
         };
 
         ensure_asset(
@@ -668,9 +661,9 @@ impl Net {
             return;
         }
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         let packet = ServerPacket::ActorMove {
@@ -1402,14 +1395,13 @@ impl Net {
             return;
         }
 
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
-        let previous_area = match self.areas.get_mut(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(previous_area) = self.areas.get_mut(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         client.warp_in = warp_in;
@@ -1668,9 +1660,9 @@ impl Net {
         let texture_path = client.actor.texture_path.clone();
         let animation_path = client.actor.animation_path.clone();
 
-        let area = match self.areas.get_mut(&area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get_mut(&area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         area.add_player(client.actor.id.clone());
@@ -1817,14 +1809,13 @@ impl Net {
 
     // handles first join and completed transfer
     pub(super) fn mark_client_ready(&mut self, id: &str) {
-        let client = match self.clients.get_mut(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.get_mut(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&client.actor.area_id) {
-            Some(area) => area,
-            None => return, // area deleted, should be getting kicked
+        let Some(area) = self.areas.get(&client.actor.area_id) else {
+            // area deleted, should be getting kicked
+            return;
         };
 
         client.ready = true;
@@ -1855,9 +1846,8 @@ impl Net {
     }
 
     pub(super) fn remove_player(&mut self, id: &str, warp_out: bool) {
-        let client = match self.clients.remove(id) {
-            Some(client) => client,
-            None => return,
+        let Some(client) = self.clients.remove(id) else {
+            return;
         };
 
         // remove assets
@@ -1889,9 +1879,8 @@ impl Net {
         packet_orchestrator.unregister_client(client.socket_address);
 
         // remove player from the area
-        let area = match self.areas.get_mut(&client.actor.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get_mut(&client.actor.area_id) else {
+            return;
         };
 
         area.remove_player(&client.actor.id);
@@ -1950,9 +1939,8 @@ impl Net {
     }
 
     pub fn remove_bot(&mut self, id: &str, warp_out: bool) {
-        let bot = match self.bots.remove(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.remove(id) else {
+            return;
         };
 
         // delete sprites
@@ -1967,9 +1955,8 @@ impl Net {
         }
 
         // remove bot from the area
-        let area = match self.areas.get_mut(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get_mut(&bot.area_id) else {
+            return;
         };
 
         area.remove_bot(&bot.id);
@@ -1988,16 +1975,14 @@ impl Net {
     }
 
     pub fn set_bot_name(&mut self, id: &str, name: &str) {
-        let bot = match self.bots.get_mut(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.get_mut(id) else {
+            return;
         };
 
         bot.name = name.to_string();
 
-        let area = match self.areas.get(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get(&bot.area_id) else {
+            return;
         };
 
         let packet = ServerPacket::ActorSetName {
@@ -2032,9 +2017,8 @@ impl Net {
     }
 
     pub fn set_bot_avatar(&mut self, id: &str, texture_path: &str, animation_path: &str) {
-        let bot = match self.bots.get_mut(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.get_mut(id) else {
+            return;
         };
 
         bot.texture_path = texture_path.to_string();
@@ -2056,9 +2040,8 @@ impl Net {
             animation_path,
         );
 
-        let area = match self.areas.get(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get(&bot.area_id) else {
+            return;
         };
 
         let packet = ServerPacket::ActorSetAvatar {
@@ -2076,14 +2059,12 @@ impl Net {
     }
 
     pub fn set_bot_emote(&mut self, id: &str, emote_id: String) {
-        let bot = match self.bots.get(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.get(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get(&bot.area_id) else {
+            return;
         };
 
         let packet = ServerPacket::ActorEmote {
@@ -2100,16 +2081,14 @@ impl Net {
     }
 
     pub fn set_bot_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
-        let bot = match self.bots.get_mut(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.get_mut(id) else {
+            return;
         };
 
         bot.map_color = color;
 
-        let area = match self.areas.get(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get(&bot.area_id) else {
+            return;
         };
 
         broadcast_to_area(
@@ -2124,14 +2103,12 @@ impl Net {
     }
 
     pub fn animate_bot(&mut self, id: &str, name: &str, loop_animation: bool) {
-        let bot = match self.bots.get(id) {
-            Some(bot) => bot,
-            None => return,
+        let Some(bot) = self.bots.get(id) else {
+            return;
         };
 
-        let area = match self.areas.get(&bot.area_id) {
-            Some(area) => area,
-            None => return,
+        let Some(area) = self.areas.get(&bot.area_id) else {
+            return;
         };
 
         broadcast_to_area(
@@ -2149,9 +2126,8 @@ impl Net {
     pub fn animate_bot_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
         if let Some(bot) = self.bots.get_mut(id) {
             // store final values for new players
-            let area = match self.areas.get(&bot.area_id) {
-                Some(area) => area,
-                None => return,
+            let Some(area) = self.areas.get(&bot.area_id) else {
+                return;
             };
 
             let mut final_x = bot.x;
@@ -2535,9 +2511,8 @@ impl Net {
                 continue;
             }
 
-            let area = match self.areas.get(&bot.area_id) {
-                Some(area) => area,
-                None => continue,
+            let Some(area) = self.areas.get(&bot.area_id) else {
+                continue;
             };
 
             let packet = ServerPacket::ActorMove {

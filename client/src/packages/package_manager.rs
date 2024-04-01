@@ -374,9 +374,8 @@ impl<T: Package> PackageManager<T> {
     }
 
     pub fn remove_namespace(&mut self, assets: &LocalAssetManager, namespace: PackageNamespace) {
-        let packages = match self.package_maps.remove(&namespace) {
-            Some(packages) => packages,
-            None => return,
+        let Some(packages) = self.package_maps.remove(&namespace) else {
+            return;
         };
 
         for (_, package) in packages {

@@ -105,9 +105,8 @@ impl TextboxInterface for TextboxQuestion {
     }
 
     fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
-        let render_data = match &mut self.render_data {
-            Some(render_data) => render_data,
-            None => return,
+        let Some(render_data) = &mut self.render_data else {
+            return;
         };
 
         let position = if self.selection {

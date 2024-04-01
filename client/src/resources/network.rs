@@ -304,10 +304,10 @@ impl EventListener {
     }
 
     fn send_client_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
-        let connection = match self.connection_map.get_mut(&addr) {
-            Some(index) => &mut self.connections[*index],
-            None => return,
+        let Some(index) = self.connection_map.get_mut(&addr) else {
+            return;
         };
+        let connection = &mut self.connections[*index];
 
         connection
             .client_channel
@@ -320,10 +320,10 @@ impl EventListener {
     }
 
     fn send_netplay_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
-        let connection = match self.connection_map.get_mut(&addr) {
-            Some(index) => &mut self.connections[*index],
-            None => return,
+        let Some(index) = self.connection_map.get_mut(&addr) else {
+            return;
         };
+        let connection = &mut self.connections[*index];
 
         connection
             .netplay_channel
@@ -336,10 +336,10 @@ impl EventListener {
     }
 
     fn sort_packet(&mut self, addr: SocketAddr, time: Instant, bytes: Vec<u8>) {
-        let connection = match self.connection_map.get_mut(&addr) {
-            Some(index) => &mut self.connections[*index],
-            None => return,
+        let Some(index) = self.connection_map.get_mut(&addr) else {
+            return;
         };
+        let connection = &mut self.connections[*index];
 
         let (channel, messages) = match connection.packet_receiver.receive_packet(time, &bytes) {
             Ok(Some((channel, messages))) => (channel, messages),

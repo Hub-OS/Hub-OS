@@ -94,9 +94,8 @@ impl TextboxInterface for TextboxCharacterNavigation {
             return;
         }
 
-        let cursor = match &mut self.cursor {
-            Some(cursor) => cursor,
-            None => return,
+        let Some(cursor) = &mut self.cursor else {
+            return;
         };
 
         cursor.draw(sprite_queue);

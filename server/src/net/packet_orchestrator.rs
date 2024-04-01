@@ -156,10 +156,11 @@ impl PacketOrchestrator {
         if let Some(index) = self.connection_map.get(&socket_address) {
             let connection = &mut self.connections[*index];
 
-            match &connection.client_id {
-                Some(id) => self.client_id_map.remove(id),
-                None => return,
+            let Some(id) = &connection.client_id else {
+                return;
             };
+
+            self.client_id_map.remove(id);
 
             let index = connection.netplay_index;
             self.forward_netplay_packet(
