@@ -185,15 +185,7 @@ impl BattleSimulation {
         }
     }
 
-    pub fn play_music(
-        &self,
-        game_io: &GameIO,
-        sound_buffer: &SoundBuffer,
-        loops: bool,
-        // todo:
-        _start_ms: Option<u64>,
-        _end_ms: Option<u64>,
-    ) {
+    pub fn play_music(&self, game_io: &GameIO, sound_buffer: &SoundBuffer, loops: bool) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         if globals.audio.music_stack_len() != self.music_stack_depth {

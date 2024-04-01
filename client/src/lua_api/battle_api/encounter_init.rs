@@ -110,13 +110,8 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_music", |api_ctx, lua, params| {
-        let (_, path, loops, start_ms, end_ms): (
-            rollback_mlua::Table,
-            String,
-            Option<bool>,
-            Option<u64>,
-            Option<u64>,
-        ) = lua.unpack_multi(params)?;
+        let (_, path, loops): (rollback_mlua::Table, String, Option<bool>) =
+            lua.unpack_multi(params)?;
 
         let path = absolute_path(lua, path)?;
         let loops = loops.unwrap_or(true);
@@ -129,8 +124,6 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         simulation.config.battle_init_music = Some(BattleInitMusic {
             buffer: globals.assets.audio(game_io, &path),
             loops,
-            start_ms,
-            end_ms,
         });
 
         lua.pack_multi(())

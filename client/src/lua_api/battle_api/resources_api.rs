@@ -77,8 +77,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(RESOURCES_TABLE, "play_music", |api_ctx, lua, params| {
-        let (path, loops, start_ms, end_ms): (String, Option<bool>, Option<u64>, Option<u64>) =
-            lua.unpack_multi(params)?;
+        let (path, loops): (String, Option<bool>) = lua.unpack_multi(params)?;
 
         let path = absolute_path(lua, path)?;
         let loops = loops.unwrap_or(true);
@@ -89,7 +88,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let sound_buffer = globals.assets.audio(game_io, &path);
-        simulation.play_music(game_io, &sound_buffer, loops, start_ms, end_ms);
+        simulation.play_music(game_io, &sound_buffer, loops);
 
         lua.pack_multi(())
     });

@@ -11,8 +11,6 @@ use std::collections::VecDeque;
 pub struct BattleInitMusic {
     pub buffer: SoundBuffer,
     pub loops: bool,
-    pub start_ms: Option<u64>,
-    pub end_ms: Option<u64>,
 }
 
 // max time per entity
@@ -76,13 +74,7 @@ impl State for IntroState {
 
         // start music
         if let Some(init_music) = simulation.config.battle_init_music.take() {
-            simulation.play_music(
-                game_io,
-                &init_music.buffer,
-                init_music.loops,
-                init_music.start_ms,
-                init_music.end_ms,
-            );
+            simulation.play_music(game_io, &init_music.buffer, init_music.loops);
         }
 
         let entities = &mut simulation.entities;
