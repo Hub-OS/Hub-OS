@@ -97,7 +97,7 @@ impl DeckEditorScene {
         deck_dock.validate(game_io, &deck_restrictions);
 
         // pack_dock
-        let mut pack_slots = CardListItem::vec_from_deck(&deck_restrictions, deck);
+        let mut pack_slots = CardListItem::pack_vec_from_packages(game_io, deck);
 
         sort_card_items(&mut pack_slots, |item: &CardListItem| {
             item.card.package_id.clone()
