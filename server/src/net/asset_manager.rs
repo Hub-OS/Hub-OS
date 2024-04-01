@@ -59,9 +59,7 @@ impl AssetManager {
     }
 
     pub fn remove_asset(&mut self, path: &str) {
-        let asset = if let Some(asset) = self.assets.remove(path) {
-            asset
-        } else {
+        let Some(asset) = self.assets.remove(path) else {
             return;
         };
 
@@ -100,9 +98,7 @@ impl AssetManager {
     ) {
         if let Some(asset) = self.assets.get(asset_path) {
             for dependency in &asset.dependencies {
-                let dependency_path = if let Some(path) = self.resolve_dependency_path(dependency) {
-                    path
-                } else {
+                let Some(dependency_path) = self.resolve_dependency_path(dependency) else {
                     continue;
                 };
 

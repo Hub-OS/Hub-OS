@@ -59,9 +59,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        let area = if let Some(area) = net.get_area_mut(area_id_str) {
-            area
-        } else {
+        let Some(area) = net.get_area_mut(area_id_str) else {
             return Err(create_area_error(area_id_str));
         };
 

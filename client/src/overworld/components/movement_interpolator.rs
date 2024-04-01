@@ -99,7 +99,11 @@ impl MovementInterpolator {
             } else {
                 // interpolate
                 let world_delta = self.target_position - self.last_position;
-                self.current_position = (self.last_position + world_delta * progress).round();
+                self.current_position = self.last_position + world_delta * progress;
+
+                // round only the x any y dimensions as those are in pixels
+                self.current_position.x = self.current_position.x.round();
+                self.current_position.y = self.current_position.y.round();
             }
         }
 

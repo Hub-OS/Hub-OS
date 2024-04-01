@@ -8,7 +8,9 @@ use crate::saves::{Card, Deck, PlayerInputBuffer};
 use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{Emotion, FileHash, InstalledBlock, PackageCategory, RemotePlayerInfo, InstalledSwitchDrive};
+use packets::structures::{
+    Emotion, FileHash, InstalledBlock, InstalledSwitchDrive, PackageCategory, RemotePlayerInfo,
+};
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -277,14 +279,12 @@ impl NetplayInitScene {
     fn handle_packet(&mut self, game_io: &mut GameIO, packet: NetplayPacket) {
         let index = packet.index();
 
-        let connection = self
+        let Some(connection) = self
             .player_connections
             .iter_mut()
-            .find(|connection| connection.index == index);
-
-        let connection = match connection {
-            Some(connection) => connection,
-            None => return,
+            .find(|connection| connection.index == index)
+        else {
+            return;
         };
 
         if !matches!(
@@ -539,13 +539,11 @@ impl NetplayInitScene {
             for hash in pending_upload {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-                let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
-                    bytes
-                } else {
+                let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
                     let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
 
                     assets.binary(&path)
-                };
+                });
 
                 self.broadcast(NetplayPacket::PackageZip {
                     index: self.local_index,
@@ -564,13 +562,11 @@ impl NetplayInitScene {
             for hash in connection.requested_packages.take().unwrap() {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-                let data = if let Some(bytes) = assets.virtual_zip_bytes(&hash) {
-                    bytes
-                } else {
+                let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
                     let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
 
                     assets.binary(&path)
-                };
+                });
 
                 self.send(
                     connection_index,

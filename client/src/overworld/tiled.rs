@@ -181,7 +181,7 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
                     map.insert_tile_object(game_io, tile_object, i);
                 } else {
                     let shape_object = ShapeObject::from(child);
-                    map.insert_shape_object(shape_object);
+                    map.insert_shape_object(shape_object, i);
                 }
             }
         }

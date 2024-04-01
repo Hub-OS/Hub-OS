@@ -141,6 +141,12 @@ impl Default for SoundBuffer {
     }
 }
 
+impl PartialEq for SoundBuffer {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.data, &other.data)
+    }
+}
+
 pub struct SoundBufferSampler {
     looped: bool,
     index: usize,

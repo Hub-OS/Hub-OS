@@ -448,9 +448,8 @@ impl Textbox {
             globals.audio.play_sound(&globals.sfx.text_blip);
         }
 
-        let animator = match self.avatar_queue.front_mut() {
-            Some((animator, _, _)) => animator,
-            None => return,
+        let Some((animator, _, _)) = self.avatar_queue.front_mut() else {
+            return;
         };
 
         let idle = !self.effect_processor.animate_avatar || silent_char;
@@ -500,7 +499,7 @@ impl Textbox {
             interface.handle_completed();
 
             if let Some((_, _, count)) = self.avatar_queue.front_mut() {
-                *count -= 1;
+                *count = count.saturating_sub(1);
 
                 if *count == 0 && self.avatar_queue.len() > 1 {
                     // drop the avatar if there's another waiting

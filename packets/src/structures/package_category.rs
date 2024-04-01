@@ -45,6 +45,10 @@ impl PackageCategory {
     pub fn requires_vm(self) -> bool {
         self != PackageCategory::Library
     }
+
+    pub fn local_only(self) -> bool {
+        matches!(self, PackageCategory::Resource)
+    }
 }
 
 impl From<&str> for PackageCategory {

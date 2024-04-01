@@ -1,8 +1,7 @@
 use super::lua_helpers::*;
 use super::LuaApi;
 use crate::net::ShopItem;
-use packets::structures::TextStyleBlueprint;
-use packets::structures::{TextboxOptions, TextureAnimPathPair};
+use packets::structures::{PackageId, TextStyleBlueprint, TextboxOptions, TextureAnimPathPair};
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
@@ -345,6 +344,44 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         let mut net = api_ctx.net_ref.borrow_mut();
         net.remove_shop_item(player_id_str, id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "refer_server", |api_ctx, lua, params| {
+        let (player_id, name, address): (mlua::String, String, String) =
+            lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.refer_server(player_id_str, name, address);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "refer_package", |api_ctx, lua, params| {
+        let (player_id, package_id_string): (mlua::String, mlua::String) =
+            lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+        let package_id_str = package_id_string.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        let package_id = PackageId::from(package_id_str);
+        net.refer_package(player_id_str, package_id);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "offer_package", |api_ctx, lua, params| {
+        let (player_id, package_id): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
+        let player_id_str = player_id.to_str()?;
+        let package_id_str = package_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.offer_package(player_id_str, package_id_str);
 
         lua.pack_multi(())
     });

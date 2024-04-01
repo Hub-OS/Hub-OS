@@ -104,9 +104,8 @@ impl TextboxInterface for TextboxQuiz {
     }
 
     fn draw(&mut self, _game_io: &framework::prelude::GameIO, sprite_queue: &mut SpriteColorQueue) {
-        let cursor = match &mut self.cursor {
-            Some(cursor) => cursor,
-            None => return,
+        let Some(cursor) = &mut self.cursor else {
+            return;
         };
 
         cursor.draw(sprite_queue);

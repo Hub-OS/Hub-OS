@@ -9,6 +9,9 @@ frame x="9" y="2" w="6" h="6" originx="4" originy="4"
 animation state="SHOP"
 frame x="17" y="1" w="6" h="7" originx="3" originy="7"
 
+animation state="BOOKMARK"
+frame x="25" y="1" w="6" h="7" originx="3" originy="6"
+
 animation state="WARP"
 frame x="1" y="11" w="8" h="6" originx="4" originy="3"
 

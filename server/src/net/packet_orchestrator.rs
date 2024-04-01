@@ -156,10 +156,11 @@ impl PacketOrchestrator {
         if let Some(index) = self.connection_map.get(&socket_address) {
             let connection = &mut self.connections[*index];
 
-            match &connection.client_id {
-                Some(id) => self.client_id_map.remove(id),
-                None => return,
+            let Some(id) = &connection.client_id else {
+                return;
             };
+
+            self.client_id_map.remove(id);
 
             let index = connection.netplay_index;
             self.forward_netplay_packet(
@@ -239,9 +240,7 @@ impl PacketOrchestrator {
     }
 
     pub fn join_room(&mut self, socket_address: SocketAddr, room_id: String) {
-        let connection = if let Some(connection) = self.connection_map.get(&socket_address) {
-            *connection
-        } else {
+        let Some(&connection) = self.connection_map.get(&socket_address) else {
             return;
         };
 
@@ -265,9 +264,7 @@ impl PacketOrchestrator {
     }
 
     pub fn leave_room(&mut self, socket_address: SocketAddr, room_id: &str) {
-        let connection = if let Some(connection) = self.connection_map.get(&socket_address) {
-            connection
-        } else {
+        let Some(connection) = self.connection_map.get(&socket_address) else {
             // connection shouldn't be in any rooms anyway if it doesn't exist
             return;
         };
@@ -282,9 +279,7 @@ impl PacketOrchestrator {
             return;
         }
 
-        let room = if let Some(room) = self.rooms.get_mut(room_id) {
-            room
-        } else {
+        let Some(room) = self.rooms.get_mut(room_id) else {
             // room doesn't exist
             return;
         };
@@ -430,9 +425,7 @@ impl PacketOrchestrator {
         reliability: Reliability,
         packet: ServerPacket,
     ) {
-        let room = if let Some(room) = self.rooms.get_mut(room_id) {
-            room
-        } else {
+        let Some(room) = self.rooms.get_mut(room_id) else {
             return;
         };
 
@@ -469,9 +462,7 @@ impl PacketOrchestrator {
         reliability: Reliability,
         packets: &[Vec<u8>],
     ) {
-        let room = if let Some(room) = self.rooms.get_mut(room_id) {
-            room
-        } else {
+        let Some(room) = self.rooms.get_mut(room_id) else {
             return;
         };
 

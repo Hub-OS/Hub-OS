@@ -285,6 +285,12 @@ impl<T: Package> PackageManager<T> {
         };
 
         let hash = FileHash::hash(&data);
+
+        if package_info.package_category.local_only() {
+            // file won't be sent, no need to save a zipped copy
+            return Some(hash);
+        }
+
         let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
 
         if std::path::Path::new(&path).exists() {
@@ -368,9 +374,8 @@ impl<T: Package> PackageManager<T> {
     }
 
     pub fn remove_namespace(&mut self, assets: &LocalAssetManager, namespace: PackageNamespace) {
-        let packages = match self.package_maps.remove(&namespace) {
-            Some(packages) => packages,
-            None => return,
+        let Some(packages) = self.package_maps.remove(&namespace) else {
+            return;
         };
 
         for (_, package) in packages {

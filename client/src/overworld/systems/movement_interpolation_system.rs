@@ -16,9 +16,9 @@ pub fn system_movement_interpolation(game_io: &GameIO, area: &mut OverworldArea)
         &'a ActorPropertyAnimator,
     >;
 
-    for (_, (position, direction, interpolater, movement_animator)) in entities.query_mut::<Query>()
+    for (_, (position, direction, interpolator, movement_animator)) in entities.query_mut::<Query>()
     {
-        let (new_position, new_direction, new_state) = interpolater.update(game_io);
+        let (new_position, new_direction, new_state) = interpolator.update(game_io);
 
         if *position != new_position {
             *position = new_position;

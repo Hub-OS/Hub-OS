@@ -300,9 +300,15 @@ impl TextStyle {
             _ => {
                 let mut width = 0.0;
 
-                for character in word.graphemes(true) {
-                    let frame = self.character_frame(character);
-                    width += frame.size().x + self.letter_spacing;
+                if self.monospace {
+                    let total_chars = word.graphemes(true).count() as f32;
+                    width += total_chars * (whitespace_size.x + self.letter_spacing);
+                } else {
+                    for character in word.graphemes(true) {
+                        let frame = self.character_frame(character);
+                        let glyph_width = frame.size().x;
+                        width += glyph_width.max(self.min_glyph_width) + self.letter_spacing;
+                    }
                 }
 
                 width - self.letter_spacing
@@ -357,7 +363,7 @@ impl<'a> TextInsertTracker<'a> {
 
         width_used = width_used.max(self.style.min_glyph_width);
 
-        if self.x + width_used > self.style.bounds.width / self.style.scale.x {
+        if (self.x + width_used) * self.style.scale.x > self.style.bounds.width {
             // wrap text
             self.new_line(index, 0);
         }
@@ -414,4 +420,27 @@ fn word_indices(text: &str) -> impl Iterator<Item = (usize, &str)> {
 
         Some((first_index, &text[first_index..last_index + grapheme.len()]))
     })
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn word_indices() {
+        use super::word_indices;
+
+        let expected = [
+            (0, "A"),
+            (1, " "),
+            (2, "BC"),
+            (4, " "),
+            (5, " "),
+            (6, "DEF"),
+            (9, " "),
+            (10, "G"),
+        ];
+
+        for (output, expected) in word_indices("A BC  DEF G").zip(expected) {
+            assert_eq!(output, expected);
+        }
+    }
 }

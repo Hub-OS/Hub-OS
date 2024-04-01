@@ -106,9 +106,8 @@ impl CameraController {
         self.remaining_time = 0.0;
 
         while self.remaining_time == 0.0 {
-            let action = match self.queue.pop_front() {
-                Some(action) => action,
-                None => return,
+            let Some(action) = self.queue.pop_front() else {
+                return;
             };
 
             self.remaining_time = action.block_duration();

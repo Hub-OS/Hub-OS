@@ -460,9 +460,8 @@ impl BattleScene {
 
         let input_util = InputUtil::new(game_io);
 
-        let local_controller = match self.player_controllers.get_mut(local_index) {
-            Some(local_controller) => local_controller,
-            None => return,
+        let Some(local_controller) = self.player_controllers.get_mut(local_index) else {
+            return;
         };
 
         // gather input

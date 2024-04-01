@@ -103,6 +103,7 @@ impl State for BattleState {
 
         self.detect_success_or_failure(simulation);
         self.update_turn_gauge(game_io, simulation);
+        self.play_low_hp_sfx(game_io, simulation);
     }
 
     fn draw_ui<'a>(
@@ -154,6 +155,16 @@ impl BattleState {
             time: 0,
             complete: false,
             message: None,
+        }
+    }
+
+    fn play_low_hp_sfx(&self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+        if simulation.local_health_ui.is_low_hp() && self.time % LOW_HP_SFX_RATE == 0 {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let audio = &globals.audio;
+            let sfx = &globals.sfx.low_hp;
+
+            audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
         }
     }
 

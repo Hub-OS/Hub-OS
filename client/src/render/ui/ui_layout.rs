@@ -237,9 +237,8 @@ impl UiLayout {
     pub fn set_children(&mut self, index: GenerationalIndex, mut children: Vec<UiLayoutNode>) {
         self.clear_children(index);
 
-        let element = match self.tree.get(index) {
-            Some(element) => element,
-            None => return,
+        let Some(element) = self.tree.get(index) else {
+            return;
         };
 
         let taffy_node = element.taffy_node;
@@ -298,9 +297,8 @@ impl UiLayout {
         });
 
         // removal of children from the tree
-        let node = match self.tree.get_node(index) {
-            Some(node) => node,
-            None => return,
+        let Some(node) = self.tree.get_node(index) else {
+            return;
         };
 
         for child_index in node.children().to_vec() {
@@ -419,9 +417,8 @@ impl UiLayout {
     }
 
     fn update_focus(&mut self, ui_input_tracker: &UiInputTracker) {
-        let focused_index = match self.focused_index {
-            Some(index) => index,
-            None => return,
+        let Some(focused_index) = self.focused_index else {
+            return;
         };
 
         let focused_node = self.tree.get_node(focused_index).unwrap();

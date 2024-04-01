@@ -250,10 +250,17 @@ impl ServerListScene {
                 self.next_scene = NextScene::new_push(scene).with_transition(transition);
             }
             MenuOption::New => {
-                let index = self.scroll_tracker.selected_index();
-                let scene = ServerEditScene::new(game_io, ServerEditProp::InsertAfter(index));
-                let transition = crate::transitions::new_sub_scene(game_io);
+                let index = self.scroll_tracker.selected_index() + 1;
+                let scene = ServerEditScene::new(
+                    game_io,
+                    ServerEditProp::Insert {
+                        index,
+                        name: None,
+                        address: None,
+                    },
+                );
 
+                let transition = crate::transitions::new_sub_scene(game_io);
                 self.next_scene = NextScene::new_push(scene).with_transition(transition);
             }
             MenuOption::Move => {

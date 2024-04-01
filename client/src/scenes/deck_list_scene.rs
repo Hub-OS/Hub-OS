@@ -461,9 +461,8 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 }
 
 fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
-    let selection = match scene.context_menu.update(game_io, &scene.ui_input_tracker) {
-        Some(selection) => selection,
-        None => return,
+    let Some(selection) = scene.context_menu.update(game_io, &scene.ui_input_tracker) else {
+        return;
     };
 
     let globals = game_io.resource_mut::<Globals>().unwrap();

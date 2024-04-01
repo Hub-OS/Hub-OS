@@ -7,6 +7,7 @@ pub enum ObjectType {
     HomeWarp,
     Board,
     Shop,
+    Bookmark,
     Undefined,
 }
 
@@ -41,6 +42,7 @@ impl From<&str> for ObjectType {
             "home warp" => ObjectType::HomeWarp,
             "board" => ObjectType::Board,
             "shop" => ObjectType::Shop,
+            "bookmark" => ObjectType::Bookmark,
             _ => ObjectType::Undefined,
         }
     }

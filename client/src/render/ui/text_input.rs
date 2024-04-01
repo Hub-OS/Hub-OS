@@ -262,7 +262,7 @@ impl TextInput {
             .filter(|(_, range)| range.start <= self.caret_index)
             .last()
             .map(|(i, range)| (i, range.clone()))
-            .unwrap();
+            .unwrap_or_default();
 
         let before_caret_metrics = self
             .text_style

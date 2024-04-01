@@ -10,6 +10,7 @@ pub struct GlobalMusic {
     pub main_menu: SoundBuffer,
     pub customize: SoundBuffer,
     pub battle: SoundBuffer,
+    pub overworld: SoundBuffer,
 }
 
 impl GlobalMusic {
@@ -19,6 +20,7 @@ impl GlobalMusic {
             main_menu: load(ResourcePaths::MAIN_MENU_MUSIC),
             customize: load(ResourcePaths::CUSTOMIZE_MUSIC),
             battle: load(ResourcePaths::BATTLE_MUSIC),
+            overworld: load(ResourcePaths::OVERWORLD_MUSIC),
         }
     }
 

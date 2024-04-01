@@ -1,4 +1,7 @@
-use super::{InitialConnectScene, NetplayInitScene, NetplayProps, PackageScene};
+use super::{
+    InitialConnectScene, NetplayInitScene, NetplayProps, PackageScene, ServerEditProp,
+    ServerEditScene,
+};
 use crate::battle::BattleProps;
 use crate::bindable::SpriteColorMode;
 use crate::overworld::components::*;
@@ -29,7 +32,6 @@ pub struct OverworldOnlineScene {
     hud: OverworldHud,
     next_scene: NextScene,
     next_scene_queue: VecDeque<NextScene>,
-    active_music_path: String,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -90,7 +92,6 @@ impl OverworldOnlineScene {
             hud,
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
-            active_music_path: String::new(),
             connected: true,
             transferring: false,
             identity: Identity::for_address(&address),
@@ -254,7 +255,7 @@ impl OverworldOnlineScene {
     }
 
     pub fn handle_packet(&mut self, game_io: &mut GameIO, packet: ServerPacket) {
-        if self.synchronizing_packets {
+        if self.synchronizing_packets && packet != ServerPacket::EndSynchronization {
             self.stored_packets.push(packet);
             return;
         }
@@ -889,6 +890,25 @@ impl OverworldOnlineScene {
                     shop.remove_item(&id);
                 }
             }
+            ServerPacket::ReferServer { name, address } => {
+                let globals = game_io.resource::<Globals>().unwrap();
+                let index = globals.global_save.server_list.len() + 1;
+                let name = Some(name);
+                let address = Some(address);
+
+                let scene = ServerEditScene::new(
+                    game_io,
+                    ServerEditProp::Insert {
+                        index,
+                        name,
+                        address,
+                    },
+                );
+
+                let transition = crate::transitions::new_sub_scene(game_io);
+                let next_scene = NextScene::new_push(scene).with_transition(transition);
+                self.next_scene_queue.push_back(next_scene);
+            }
             ServerPacket::ReferPackage { package_id } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
@@ -1366,6 +1386,8 @@ impl OverworldOnlineScene {
                 self.synchronizing_packets = true;
             }
             ServerPacket::EndSynchronization => {
+                self.synchronizing_packets = false;
+
                 let packets = std::mem::take(&mut self.stored_packets);
 
                 for packet in packets {
@@ -1668,20 +1690,19 @@ impl OverworldOnlineScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
 
-        if !self.active_music_path.is_empty() && !globals.audio.is_music_playing() {
+        if !globals.audio.is_music_playing() {
             globals.audio.restart_music();
         }
 
-        if self.active_music_path == self.area.map.music_path() {
-            return;
-        }
+        let music_path = self.area.map.music_path();
 
-        self.active_music_path = self.area.map.music_path().to_string();
-
-        if self.active_music_path.is_empty() {
-            globals.audio.stop_music();
+        let sound_buffer = if music_path.is_empty() {
+            globals.music.overworld.clone()
         } else {
-            let sound_buffer = self.assets.audio(game_io, &self.active_music_path);
+            self.assets.audio(game_io, music_path)
+        };
+
+        if globals.audio.current_music().as_ref() != Some(&sound_buffer) {
             globals.audio.play_music(&sound_buffer, true);
         }
     }
