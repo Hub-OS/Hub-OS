@@ -2128,7 +2128,7 @@ checksum = "d897f394bad6a705d5f4104762e116a75639e470d80901eed05a860a95cb1904"
 
 [[package]]
 name = "hub_os"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "bimap",
