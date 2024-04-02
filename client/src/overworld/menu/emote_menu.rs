@@ -222,7 +222,9 @@ impl Menu for EmoteMenu {
             return;
         }
 
-        if self.ui_input_tracker.is_active(Input::Cancel) {
+        if self.ui_input_tracker.is_active(Input::Cancel)
+            || self.ui_input_tracker.is_active(Input::Option2)
+        {
             self.open = false;
             return;
         }
