@@ -96,8 +96,8 @@ impl WarpEffect {
         // play sfx
         let screen_position = area.map.world_3d_to_screen(position);
 
-        if area.visible && area.ui_camera.bounds().contains(screen_position) {
-            globals.audio.play_sound(&globals.sfx.appear);
+        if area.visible && area.world_camera.bounds().contains(screen_position) {
+            globals.audio.play_sound(&globals.sfx.warp);
         }
 
         // create warp effect entity
