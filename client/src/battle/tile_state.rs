@@ -251,6 +251,10 @@ impl TileState {
         broken_state.hide_body = true;
         broken_state.is_hole = true;
         broken_state.max_lifetime = Some(BROKEN_LIFETIME);
+
+        broken_state.change_request_callback =
+            BattleCallback::new(|_, _, _, (_, _, state_index)| state_index != TileState::CRACKED);
+
         registry.push(broken_state);
 
         registry
