@@ -813,6 +813,12 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        // Set to transparent at start of update loop
+        self.resources
+            .fade_sprite
+            .borrow_mut()
+            .set_color(Color::TRANSPARENT);
+
         self.update_textbox(game_io);
         self.handle_packets(game_io);
         self.core_update(game_io);
@@ -837,6 +843,12 @@ impl Scene for BattleScene {
             &mut self.simulation,
             &mut sprite_queue,
         );
+
+        let fade_sprite = self.resources.fade_sprite.borrow();
+
+        if fade_sprite.color() != Color::TRANSPARENT {
+            sprite_queue.draw_sprite(&fade_sprite);
+        }
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);

@@ -25,7 +25,7 @@ pub struct SharedBattleResources {
     pub glyph_atlases: RefCell<HashMap<(Cow<'static, str>, Cow<'static, str>), Arc<GlyphAtlas>>>,
     pub battle_fade_color: Color,
     pub ui_fade_color: Color,
-    pub fade_sprite: Sprite,
+    pub fade_sprite: RefCell<Sprite>,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
 }
@@ -57,7 +57,7 @@ impl SharedBattleResources {
             glyph_atlases: Default::default(),
             battle_fade_color: Color::new(0.0, 0.0, 0.0, 0.3),
             ui_fade_color: Color::new(0.0, 0.0, 0.0, 0.5),
-            fade_sprite: Sprite::new(game_io, fade_sprite_texture),
+            fade_sprite: RefCell::new(Sprite::new(game_io, fade_sprite_texture)),
             event_sender,
             event_receiver,
         };

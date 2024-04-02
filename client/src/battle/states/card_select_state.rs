@@ -105,49 +105,7 @@ impl State for CardSelectState {
             let globals = game_io.resource::<Globals>().unwrap();
             simulation.play_sound(game_io, &globals.sfx.card_select_open);
 
-            let entity_id = simulation.local_player_id;
-
-            let entities = &mut simulation.entities;
-
-            let player = entities
-                .query_one_mut::<&mut Player>(entity_id.into())
-                .unwrap();
-
-            let card_view_size = player.deck.len().min(player.hand_size());
-
-            for index in 0..card_view_size {
-                let card = &player.deck[index];
-                let globals = game_io.resource::<Globals>().unwrap();
-
-                let card_packages = &globals.card_packages;
-                let namespace = player.namespace();
-
-                let is_dark = card_packages
-                    .package_or_override(namespace, &card.package_id)
-                    .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
-
-                if !is_dark {
-                    continue;
-                };
-
-                if player.index >= self.player_selections.len() {
-                    self.player_selections
-                        .resize_with(player.index + 1, Selection::default);
-                }
-
-                // initialize selection
-                let selection = &mut self.player_selections[player.index];
-                selection.local = player.local;
-                selection.animating_slide = true;
-
-                let x = (index % CARD_COLS) as i32;
-                let y = (index / CARD_COLS) as i32;
-
-                let x_difference = x - selection.col;
-                let y_difference = y - selection.row;
-                move_card_selection(player, selection, x_difference, y_difference);
-                break;
-            }
+            self.dark_card_check(simulation, game_io);
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
         }
@@ -228,6 +186,8 @@ impl State for CardSelectState {
             self.complete(game_io, resources, simulation);
         }
 
+        self.dark_card_effects(game_io, resources, simulation);
+
         self.time += 1;
         self.ui.advance_time();
     }
@@ -235,7 +195,7 @@ impl State for CardSelectState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
-        resources: &SharedBattleResources,
+        _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -250,9 +210,6 @@ impl State for CardSelectState {
             return;
         };
 
-        // let globals = game_io.resource::<Globals>().unwrap();
-        let mut pending_sfx = Vec::new();
-
         let globals = game_io.resource::<Globals>().unwrap();
         let selection = &self.player_selections[player.index];
         let selected_item = resolve_selected_item(player, selection);
@@ -260,26 +217,6 @@ impl State for CardSelectState {
         // update frame
         if let SelectedItem::Card(i) = selected_item {
             self.ui.update_card_frame(game_io, player, i);
-
-            let card = &player.deck[i];
-            let globals = game_io.resource::<Globals>().unwrap();
-
-            let card_packages = &globals.card_packages;
-            let namespace = player.namespace();
-
-            let is_dark = card_packages
-                .package_or_override(namespace, &card.package_id)
-                .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
-
-            if is_dark {
-                let fade_sprite = &mut resources.fade_sprite.clone();
-                fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
-                fade_sprite.set_color(resources.ui_fade_color.clone());
-                sprite_queue.draw_sprite(&fade_sprite);
-
-                let globals = game_io.resource::<Globals>().unwrap();
-                pending_sfx.push(&globals.sfx.dark_card);
-            };
         }
 
         // draw sprite tree
@@ -412,11 +349,6 @@ impl State for CardSelectState {
                 style.bounds.set_position(position);
                 style.draw(game_io, sprite_queue, TEXT);
             }
-        }
-
-        for sfx in pending_sfx {
-            let audio = &globals.audio;
-            audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
         }
 
         // draw fade sprite
@@ -946,6 +878,107 @@ impl CardSelectState {
                         preview_position,
                     );
                 }
+            }
+        }
+    }
+
+    fn dark_card_check(&mut self, simulation: &mut BattleSimulation, game_io: &GameIO) {
+        let player_id_vec = simulation
+            .entities
+            .query_mut::<&Player>()
+            .into_iter()
+            .map(|(id, _player)| (id.into()))
+            .collect::<Vec<EntityId>>();
+
+        let entities = &mut simulation.entities;
+
+        for id in player_id_vec {
+            let player = entities.query_one_mut::<&mut Player>(id.into()).unwrap();
+
+            let card_view_size = player.deck.len().min(player.hand_size());
+
+            for index in 0..card_view_size {
+                let card = &player.deck[index];
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                let card_packages = &globals.card_packages;
+                let namespace = player.namespace();
+
+                let is_dark = card_packages
+                    .package_or_override(namespace, &card.package_id)
+                    .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
+
+                if !is_dark {
+                    continue;
+                };
+
+                if player.index >= self.player_selections.len() {
+                    self.player_selections
+                        .resize_with(player.index + 1, Selection::default);
+                }
+
+                // initialize selection
+                let selection = &mut self.player_selections[player.index];
+                selection.local = player.local;
+                selection.animating_slide = true;
+
+                let x = (index % CARD_COLS) as i32;
+                let y = (index / CARD_COLS) as i32;
+
+                let x_difference = x - selection.col;
+                let y_difference = y - selection.row;
+
+                move_card_selection(player, selection, x_difference, y_difference);
+
+                break;
+            }
+        }
+    }
+
+    fn dark_card_effects(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let entities = &mut simulation.entities;
+
+        let Ok(player) = entities.query_one_mut::<&mut Player>(simulation.local_player_id.into())
+        else {
+            return;
+        };
+
+        let selection = &mut self.player_selections[player.index];
+        let SelectedItem::Card(deck_index) = resolve_selected_item(player, &selection) else {
+            return;
+        };
+
+        let card = &player.deck[deck_index];
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let card_packages = &globals.card_packages;
+        let namespace = player.namespace();
+
+        let is_dark = card_packages
+            .package_or_override(namespace, &card.package_id)
+            .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
+
+        if is_dark {
+            let mut pending_sfx = Vec::new();
+
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            pending_sfx.push(&globals.sfx.dark_card);
+
+            let mut fade_sprite = resources.fade_sprite.borrow_mut();
+
+            fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
+            fade_sprite.set_color(resources.ui_fade_color.clone());
+
+            for sfx in pending_sfx {
+                let audio = &globals.audio;
+                audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
             }
         }
     }
