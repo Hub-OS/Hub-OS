@@ -278,15 +278,9 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let x: i32 = table.raw_get("#x")?;
         let y: i32 = table.raw_get("#y")?;
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let field = &mut api_ctx.simulation.field;
         let entities = &mut api_ctx.simulation.entities;
 
-        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
         let entity_id: EntityId = entity_table.raw_get("#id")?;
-
-        if tile.ignoring_attacker(entity_id) {
-            return lua.pack_multi(());
-        }
 
         let (entity, spell) = entities
             .query_one_mut::<(&Entity, &Spell)>(entity_id.into())

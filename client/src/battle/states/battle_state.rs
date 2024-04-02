@@ -366,7 +366,7 @@ impl BattleState {
             }
         }
 
-        let queued_attacks = std::mem::take(&mut simulation.queued_attacks);
+        let mut queued_attacks = std::mem::take(&mut simulation.queued_attacks);
         let mut washed_tiles = Vec::new();
 
         // interactions between attack boxes and tiles
@@ -397,6 +397,19 @@ impl BattleState {
             }
 
             tile.acknowledge_attacker(attack_box.attacker_id);
+        }
+
+        // remove ignored attacks
+        for i in (0..queued_attacks.len()).rev() {
+            let attack_box = &queued_attacks[i];
+
+            let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) else {
+                continue;
+            };
+
+            if tile.ignoring_attacker(attack_box.attacker_id) {
+                queued_attacks.swap_remove(i);
+            }
         }
 
         // interactions between attack boxes and entities

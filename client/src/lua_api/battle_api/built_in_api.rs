@@ -157,14 +157,8 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
                 // attack the current tile
                 let (x, y) = (entity.x, entity.y);
 
-                let Some(tile) = simulation.field.tile_at_mut((x, y)) else {
-                    return;
-                };
-
-                if !tile.ignoring_attacker(hitbox_id) {
-                    let attack_box = AttackBox::new_from((x, y), entity, spell);
-                    simulation.queued_attacks.push(attack_box);
-                }
+                let attack_box = AttackBox::new_from((x, y), entity, spell);
+                simulation.queued_attacks.push(attack_box);
             });
 
         // forward attack callback
