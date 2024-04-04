@@ -556,22 +556,16 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
         let id: EntityId = table.raw_get("#id")?;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
         let dest = (tile_table.raw_get("#x")?, tile_table.raw_get("#y")?);
 
         if !simulation.field.in_bounds(dest) {
             return lua.pack_multi(false);
         }
 
-        let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
         let can_move =
-            can_move_to_callback.call(api_ctx.game_io, api_ctx.resources, simulation, dest);
+            Entity::can_move_to(api_ctx.game_io, api_ctx.resources, simulation, id, dest);
 
         lua.pack_multi(can_move)
     });
@@ -2114,10 +2108,11 @@ fn attempt_movement<'lua>(
         return lua.pack_multi(false);
     }
 
-    if !entity.can_move_to_callback.clone().call(
+    if !Entity::can_move_to(
         api_ctx.game_io,
         api_ctx.resources,
         simulation,
+        id,
         movement.dest,
     ) {
         return lua.pack_multi(false);

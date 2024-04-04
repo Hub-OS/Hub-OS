@@ -864,10 +864,9 @@ impl BattleState {
             if animation_progress >= 0.5 && !movement.success {
                 // test to see if the movement is valid
                 let dest = movement.dest;
-                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if simulation.field.tile_at_mut(dest).is_none()
-                    || !can_move_to_callback.call(game_io, resources, simulation, dest)
+                    || !Entity::can_move_to(game_io, resources, simulation, id.into(), dest)
                 {
                     let entity = simulation
                         .entities

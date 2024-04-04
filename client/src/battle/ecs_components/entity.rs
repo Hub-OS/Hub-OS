@@ -1,7 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
-use crate::structures::DenseSlotMap;
 use crate::structures::SlotMap;
 use framework::prelude::*;
 use std::collections::VecDeque;
@@ -144,6 +143,32 @@ impl Entity {
         id.into()
     }
 
+    pub fn can_move_to(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        position: (i32, i32),
+    ) -> bool {
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+            return false;
+        };
+
+        let entity_callback = entity.can_move_to_callback.clone();
+        let Some(index) = entity.action_index else {
+            return entity_callback.call(game_io, resources, simulation, position);
+        };
+
+        let action = &simulation.actions[index];
+
+        let Some(action_callback) = action.can_move_to_callback.clone() else {
+            return entity_callback.call(game_io, resources, simulation, position);
+        };
+
+        action_callback.call(game_io, resources, simulation, position)
+    }
+
     pub fn full_position(&self) -> FullEntityPosition {
         FullEntityPosition {
             tile_position: IVec2::new(self.x, self.y),
@@ -173,20 +198,6 @@ impl Entity {
                 sprite_node.set_origin(shadow_size * 0.5);
             }
         }
-    }
-
-    pub fn current_can_move_to_callback(
-        &self,
-        actions: &DenseSlotMap<Action>,
-    ) -> BattleCallback<(i32, i32), bool> {
-        if let Some(index) = self.action_index {
-            // does the card action have a special can_move_to_callback?
-            if let Some(callback) = actions[index].can_move_to_callback.clone() {
-                return callback;
-            }
-        }
-
-        self.can_move_to_callback.clone()
     }
 
     pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {

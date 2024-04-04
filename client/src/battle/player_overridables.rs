@@ -53,9 +53,7 @@ impl PlayerOverridables {
             dest.0 += offset.0;
         }
 
-        let can_move_to_callback = entity.can_move_to_callback.clone();
-
-        if can_move_to_callback.call(game_io, resources, simulation, dest) {
+        if Entity::can_move_to(game_io, resources, simulation, entity_id, dest) {
             Player::queue_default_movement(simulation, entity_id, dest);
         }
     }
