@@ -105,9 +105,9 @@ fn callback_setter<G, P, F, R>(
             .get_mut(id)
             .ok_or_else(component_not_found)?;
 
-        let key = lua.create_registry_value(table)?;
-
         if let Some(callback) = callback {
+            let key = lua.create_registry_value(table)?;
+
             *callback_getter(component) = BattleCallback::new_transformed_lua_callback(
                 lua,
                 api_ctx.vm_index,

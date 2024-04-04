@@ -1974,9 +1974,9 @@ fn callback_setter<C, G, P, F, R>(
             .query_one_mut::<&mut C>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        let key = lua.create_registry_value(table)?;
-
         if let Some(callback) = callback {
+            let key = lua.create_registry_value(table)?;
+
             *callback_getter(entity) = BattleCallback::new_transformed_lua_callback(
                 lua,
                 api_ctx.vm_index,

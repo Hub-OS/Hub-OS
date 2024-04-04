@@ -279,7 +279,7 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_setter(ACTION_STEP_TABLE, UPDATE_FN, |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
         let id: GenerationalIndex = table.raw_get("#id")?;
@@ -293,16 +293,21 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
             .get_mut(index)
             .ok_or_else(action_step_not_found)?;
 
-        let key = lua.create_registry_value(table)?;
-        step.callback = BattleCallback::new_transformed_lua_callback(
-            lua,
-            api_ctx.vm_index,
-            callback,
-            move |_, lua, _| {
-                let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                lua.pack_multi(table)
-            },
-        )?;
+        step.callback = if let Some(callback) = callback {
+            let key = lua.create_registry_value(table)?;
+
+            BattleCallback::new_transformed_lua_callback(
+                lua,
+                api_ctx.vm_index,
+                callback,
+                move |_, lua, _| {
+                    let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                    lua.pack_multi(table)
+                },
+            )?
+        } else {
+            BattleCallback::default()
+        };
 
         lua.pack_multi(())
     });
