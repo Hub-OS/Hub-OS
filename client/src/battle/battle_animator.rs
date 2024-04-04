@@ -292,6 +292,17 @@ impl BattleAnimator {
     #[must_use]
     pub fn set_state(&mut self, state: &str) -> Vec<BattleCallback> {
         self.animator.set_state(state);
+        self.interrupt()
+    }
+
+    #[must_use]
+    pub fn remove_state(&mut self, state: &str) -> Vec<BattleCallback> {
+        self.animator.remove_state(state);
+        self.interrupt()
+    }
+
+    #[must_use]
+    fn interrupt(&mut self) -> Vec<BattleCallback> {
         self.time = 0;
 
         self.complete_callbacks.clear();

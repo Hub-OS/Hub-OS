@@ -24,8 +24,7 @@ function Buster.new(user, charged, damage)
 
     local buster_animation = buster_attachment:animation()
     buster_animation:copy_from(user:animation())
-    local derived_state = buster_animation:derive_state("BUSTER", frame_data)
-    buster_animation:set_state(derived_state)
+    buster_animation:set_state("BUSTER", frame_data)
 
     -- spell
     local cooldown_table = {

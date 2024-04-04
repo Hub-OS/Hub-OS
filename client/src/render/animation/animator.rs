@@ -429,6 +429,12 @@ impl Animator {
         self.states.insert(state, frame_list);
     }
 
+    pub fn remove_state<'a>(&mut self, state: &str) {
+        // todo: avoid clone
+        let q = Uncased::from_owned(state.to_string());
+        self.states.shift_remove(&q);
+    }
+
     pub fn loop_mode(&self) -> AnimatorLoopMode {
         self.loop_mode
     }
@@ -677,10 +683,9 @@ impl Animator {
             return;
         }
 
-        let frame_list = match self.current_frame_list() {
-            Some(frame_list) => frame_list,
+        let Some(frame_list) = self.current_frame_list() else {
             // no active animation
-            _ => return,
+            return;
         };
 
         if frame_list.duration() == 0 {
