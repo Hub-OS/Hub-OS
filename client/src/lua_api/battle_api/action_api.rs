@@ -273,12 +273,12 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
         let step_table = lua.create_table()?;
         step_table.raw_set("#id", id)?;
         step_table.raw_set("#index", index)?;
-        inherit_metatable(lua, STEP_TABLE, &step_table)?;
+        inherit_metatable(lua, ACTION_STEP_TABLE, &step_table)?;
 
         lua.pack_multi(step_table)
     });
 
-    lua_api.add_dynamic_setter(STEP_TABLE, UPDATE_FN, |api_ctx, lua, params| {
+    lua_api.add_dynamic_setter(ACTION_STEP_TABLE, UPDATE_FN, |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
             lua.unpack_multi(params)?;
 
@@ -307,24 +307,28 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(STEP_TABLE, "complete_step", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(
+        ACTION_STEP_TABLE,
+        "complete_step",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: GenerationalIndex = table.raw_get("#id")?;
-        let index: usize = table.raw_get("#index")?;
+            let id: GenerationalIndex = table.raw_get("#id")?;
+            let index: usize = table.raw_get("#index")?;
 
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let actions = &mut api_ctx.simulation.actions;
+            let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
-        let step = (action.steps)
-            .get_mut(index)
-            .ok_or_else(action_step_not_found)?;
+            let step = (action.steps)
+                .get_mut(index)
+                .ok_or_else(action_step_not_found)?;
 
-        step.completed = true;
+            step.completed = true;
 
-        lua.pack_multi(())
-    });
+            lua.pack_multi(())
+        },
+    );
 }
 
 pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {
