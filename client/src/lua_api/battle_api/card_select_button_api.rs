@@ -1,6 +1,7 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
-    animator_not_found, button_already_exists, button_not_found, sprite_not_found,
+    animator_not_found, button_already_exists, button_not_found, component_not_found,
+    sprite_not_found,
 };
 use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN};
@@ -15,6 +16,9 @@ use framework::prelude::{GameIO, Vec2};
 pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(CARD_SELECT_BUTTON_TABLE, "sprite", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        deleted_test(&table)?;
+
         let sprite_table: rollback_mlua::Table = table.raw_get("#sprite")?;
 
         lua.pack_multi(sprite_table)
@@ -28,6 +32,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         "animation",
         move |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -44,6 +50,9 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         "preview_sprite",
         move |_, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
+
             let sprite_table: rollback_mlua::Table = table.raw_get("#preview_sprite")?;
 
             lua.pack_multi(sprite_table)
@@ -69,6 +78,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         move |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
+            deleted_test(&table)?;
+
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
 
@@ -85,6 +96,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         move |api_ctx, lua, params| {
             let (table, card_props): (rollback_mlua::Table, CardProperties) =
                 lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let game_io = api_ctx.game_io;
@@ -145,6 +158,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         move |api_ctx, lua, params| {
             let (table, value): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
 
+            deleted_test(&table)?;
+
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
 
@@ -160,6 +175,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         "use_default_audio",
         move |api_ctx, lua, params| {
             let (table, value): (rollback_mlua::Table, bool) = lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -178,6 +195,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let (table, description): (rollback_mlua::Table, Option<String>) =
                 lua.unpack_multi(params)?;
 
+            deleted_test(&table)?;
+
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
 
@@ -194,6 +213,8 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
         move |api_ctx, lua, params| {
             let (table, card_props): (rollback_mlua::Table, CardProperties) =
                 lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
@@ -216,8 +237,59 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(CARD_SELECT_BUTTON_TABLE, "owner", move |_, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
+        deleted_test(&table)?;
+
         lua.pack_multi(table.raw_get::<_, rollback_mlua::Table>("#entity")?)
     });
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "delete",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
+
+            table.set("#deleted", true)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            let entity_id = table.raw_get("#entity_id")?;
+            let form_index = table.raw_get("#form_index")?;
+            let augment_index = table.raw_get("#aug_index")?;
+            let uses_card_slots = table.raw_get("#card_slots")?;
+
+            let button_path = CardSelectButtonPath {
+                entity_id,
+                form_index,
+                augment_index,
+                uses_card_slots,
+            };
+
+            let entities = &mut simulation.entities;
+            let button = CardSelectButton::resolve_button_option_mut(entities, button_path)
+                .ok_or_else(button_not_found)?
+                .take()
+                .ok_or_else(button_not_found)?;
+
+            button.delete_self(&mut simulation.sprite_trees, &mut simulation.animators);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_SELECT_BUTTON_TABLE,
+        "deleted",
+        move |_, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let deleted = table.contains_key("#deleted")?;
+
+            lua.pack_multi(deleted)
+        },
+    );
 
     callback_setter(
         lua_api,
@@ -238,6 +310,14 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi((button_table, player_table))
         },
     );
+}
+
+fn deleted_test(table: &rollback_mlua::Table) -> rollback_mlua::Result<()> {
+    if table.contains_key("#deleted")? {
+        return Err(component_not_found());
+    }
+
+    Ok(())
 }
 
 fn callback_setter<G, P, F, R>(
@@ -268,6 +348,8 @@ fn callback_setter<G, P, F, R>(
         move |api_ctx, lua, params| {
             let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
                 lua.unpack_multi(params)?;
+
+            deleted_test(&table)?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
