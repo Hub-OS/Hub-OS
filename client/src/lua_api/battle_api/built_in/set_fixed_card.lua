@@ -32,6 +32,15 @@ button:use_card_description(card_properties)
 -- functionality
 local used = false
 
+local component = player:create_component(Lifetime.CardSelectClose)
+
+component.on_update_func = function()
+  if used then
+    button:delete()
+    component:eject()
+  end
+end
+
 local function card_allowed()
   if card_properties.code == "" then
     return true
@@ -70,3 +79,5 @@ button.on_selection_change_func = function()
     icon_node:set_shader_effect(SpriteShaderEffect.Grayscale)
   end
 end
+
+return button
