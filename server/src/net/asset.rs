@@ -273,7 +273,13 @@ impl Asset {
         );
 
         let aug_iter =
-            Self::resolve_dependency_category(dependencies, "augment", PackageCategory::Augment);
+            Self::resolve_dependency_category(dependencies, "augments", PackageCategory::Augment);
+
+        let battles_iter = Self::resolve_dependency_category(
+            dependencies,
+            "encounters",
+            PackageCategory::Encounter,
+        );
 
         let card_iter =
             Self::resolve_dependency_category(dependencies, "cards", PackageCategory::Card);
@@ -284,12 +290,20 @@ impl Asset {
         let status_iter =
             Self::resolve_dependency_category(dependencies, "statuses", PackageCategory::Status);
 
+        let tile_state_iter = Self::resolve_dependency_category(
+            dependencies,
+            "tile_states",
+            PackageCategory::TileState,
+        );
+
         Some(
             char_iter
                 .chain(aug_iter)
+                .chain(battles_iter)
                 .chain(card_iter)
                 .chain(lib_iter)
-                .chain(status_iter),
+                .chain(status_iter)
+                .chain(tile_state_iter),
         )
     }
 

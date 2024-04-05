@@ -91,7 +91,7 @@ impl From<&json::Value> for PackageListing {
             dependencies.extend(map_array_values(dependencies_table, "augments", |id| {
                 (PackageCategory::Augment, into_id(id))
             }));
-            dependencies.extend(map_array_values(dependencies_table, "battles", |id| {
+            dependencies.extend(map_array_values(dependencies_table, "encounters", |id| {
                 (PackageCategory::Encounter, into_id(id))
             }));
             dependencies.extend(map_array_values(dependencies_table, "cards", |id| {
