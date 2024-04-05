@@ -29,13 +29,11 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
             }
         };
 
-        let path = match file.enclosed_name().and_then(|path| path.to_str()) {
-            Some(path) => ResourcePaths::clean(path),
-            None => {
-                log::error!("Invalid file name within zip {:?}", file.name());
-                continue;
-            }
+        let Some(path) = file.enclosed_name().and_then(|path| path.to_str()) else {
+            log::error!("Invalid file name within zip {:?}", file.name());
+            continue;
         };
+        let path = ResourcePaths::clean(path);
 
         file_callback(path, file);
     }

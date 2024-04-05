@@ -82,15 +82,12 @@ impl PackageInfo {
             .get("package")
             .and_then(|table| table.as_table().cloned());
 
-        let package_table = match package_table {
-            Some(table) => table,
-            None => {
-                log::error!(
-                    "Missing [package] section in {:?}",
-                    ResourcePaths::shorten(&self.toml_path)
-                );
-                return None;
-            }
+        let Some(package_table) = package_table else {
+            log::error!(
+                "Missing [package] section in {:?}",
+                ResourcePaths::shorten(&self.toml_path)
+            );
+            return None;
         };
 
         self.id = package_table.get("id")?.as_str()?.to_string().into();

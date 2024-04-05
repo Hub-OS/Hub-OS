@@ -151,10 +151,10 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         child_package_info: &ChildPackageInfo,
     ) -> bool {
-        let mut package_info = match self.generate_package_info(namespace, &child_package_info.path)
-        {
-            Some(package_info) => package_info,
-            None => return false,
+        let Some(mut package_info) =
+            self.generate_package_info(namespace, &child_package_info.path)
+        else {
+            return false;
         };
 
         let parent_tuple = (
@@ -191,12 +191,9 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         hash: FileHash,
     ) -> Option<&PackageInfo> {
-        let zip_meta = match assets.virtual_zip_meta(&hash) {
-            Some(zip_meta) => zip_meta,
-            None => {
-                log::error!("Package {hash} has not been loaded as a virtual zip");
-                return None;
-            }
+        let Some(zip_meta) = assets.virtual_zip_meta(&hash) else {
+            log::error!("Package {hash} has not been loaded as a virtual zip");
+            return None;
         };
 
         let mut package_info = self.generate_package_info(namespace, &zip_meta.virtual_prefix)?;
@@ -216,15 +213,12 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         path: &str,
     ) -> Option<PackageInfo> {
-        let (base_path, script_path) = match Self::resolve_package_paths(path) {
-            Some(result) => result,
-            None => {
-                log::error!(
-                    "Failed to resolve parent folder for {:?}?",
-                    ResourcePaths::shorten(path)
-                );
-                return None;
-            }
+        let Some((base_path, script_path)) = Self::resolve_package_paths(path) else {
+            log::error!(
+                "Failed to resolve parent folder for {:?}?",
+                ResourcePaths::shorten(path)
+            );
+            return None;
         };
 
         Some(PackageInfo {

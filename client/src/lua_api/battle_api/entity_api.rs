@@ -549,9 +549,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
             lua.unpack_multi(params)?;
 
-        let tile_table = match tile_table {
-            Some(tile_table) => tile_table,
-            None => return lua.pack_multi(false),
+        let Some(tile_table) = tile_table else {
+            return lua.pack_multi(false);
         };
 
         let api_ctx = &mut *api_ctx.borrow_mut();

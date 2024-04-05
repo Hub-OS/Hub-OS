@@ -429,7 +429,7 @@ impl Animator {
         self.states.insert(state, frame_list);
     }
 
-    pub fn remove_state<'a>(&mut self, state: &str) {
+    pub fn remove_state(&mut self, state: &str) {
         // todo: avoid clone
         let q = Uncased::from_owned(state.to_string());
         self.states.shift_remove(&q);

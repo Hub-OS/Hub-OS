@@ -328,12 +328,9 @@ impl UiLayout {
     }
 
     pub fn set_focused_index(&mut self, index: Option<GenerationalIndex>) {
-        let index = match index {
-            Some(index) => index,
-            None => {
-                self.focused_index = None;
-                return;
-            }
+        let Some(index) = index else {
+            self.focused_index = None;
+            return;
         };
 
         if self.tree.get(index).is_some() {

@@ -56,18 +56,15 @@ impl<ChannelLabel: Copy> ChannelReceiver<ChannelLabel> {
             .iter()
             .position(|collector| collector.id_range == id_range);
 
-        let collector_index = match collector_index {
-            Some(index) => index,
-            None => {
-                // create a new collector
-                let collector = FragmentCollector {
-                    id_range,
-                    fragments: vec![(header.id, body)],
-                };
+        let Some(collector_index) = collector_index else {
+            // create a new collector
+            let collector = FragmentCollector {
+                id_range,
+                fragments: vec![(header.id, body)],
+            };
 
-                self.fragment_collectors.push(collector);
-                return None;
-            }
+            self.fragment_collectors.push(collector);
+            return None;
         };
 
         let collector = &mut self.fragment_collectors[collector_index];

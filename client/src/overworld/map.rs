@@ -653,9 +653,8 @@ impl Map {
                 let tile = layer.tile_at((col, row).into());
 
                 // skip tiles with missing meta information
-                let tile_meta = match self.tile_meta_for_tile(tile.gid) {
-                    Some(tile_meta) => tile_meta,
-                    None => continue,
+                let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+                    continue;
                 };
 
                 // skip invisible tiles

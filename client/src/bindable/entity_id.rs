@@ -39,13 +39,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for EntityId {
             }
         };
 
-        let id = match hecs::Entity::from_bits(number as u64) {
-            Some(id) => id,
-            None => {
-                return Err(rollback_mlua::Error::RuntimeError(String::from(
-                    "invalid entity id",
-                )))
-            }
+        let Some(id) = hecs::Entity::from_bits(number as u64) else {
+            return Err(rollback_mlua::Error::RuntimeError(String::from(
+                "invalid entity id",
+            )));
         };
 
         Ok(EntityId(id))

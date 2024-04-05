@@ -648,16 +648,13 @@ impl NetplayInitScene {
                     .player_packages
                     .package_or_override(namespace, &connection.player_package);
 
-                let player_package = match package {
-                    Some(package) => package,
-                    None => {
-                        log::error!(
-                            "Never received player package for player {}",
-                            connection.index
-                        );
-                        self.failed = true;
-                        return;
-                    }
+                let Some(player_package) = package else {
+                    log::error!(
+                        "Never received player package for player {}",
+                        connection.index
+                    );
+                    self.failed = true;
+                    return;
                 };
 
                 props.player_setups.push(PlayerSetup {

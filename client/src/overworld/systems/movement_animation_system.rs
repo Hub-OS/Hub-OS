@@ -12,10 +12,9 @@ pub fn system_movement_animation(area: &mut OverworldArea) {
             continue;
         }
 
-        let state = match find_state_from_movement(animator, movement_animator.state(), *direction)
-        {
-            Some(state) => state,
-            None => continue,
+        let Some(state) = find_state_from_movement(animator, movement_animator.state(), *direction)
+        else {
+            continue;
         };
 
         if animator.current_state() != Some(state) {
