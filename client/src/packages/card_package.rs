@@ -29,6 +29,7 @@ struct CardMeta {
     limit: Option<usize>,
     hit_flags: Option<Vec<String>>,
     can_boost: Option<bool>,
+    can_charge: Option<bool>,
     time_freeze: bool,
     skip_time_freeze_intro: bool,
     prevent_time_freeze_counter: bool,
@@ -120,8 +121,12 @@ impl Package for CardPackage {
             package.card_properties.hit_flags = hit_flags;
         }
 
-        if let Some(can_boost) = meta.can_boost {
+        if let Some(can_boost) = meta.can_charge {
             package.card_properties.can_boost = can_boost;
+        }
+
+        if let Some(can_charge) = meta.can_charge {
+            package.card_properties.can_charge = can_charge;
         }
 
         package.card_properties.time_freeze = meta.time_freeze;
