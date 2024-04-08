@@ -764,6 +764,10 @@ impl BlocksScene {
     }
 
     fn resolve_flashing_blocks(&self) -> Vec<(usize, usize)> {
+        if self.state != State::Applying {
+            return Vec::new();
+        }
+
         let (end_x, y) = self.arrow.current_block();
 
         (0..=end_x)
