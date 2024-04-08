@@ -321,7 +321,7 @@ impl Player {
             })?;
         } else {
             // default init, sprites + animation only
-            let (texture_path, animator) = player_package.resolve_battle_sprite(game_io);
+            let player_resources = PlayerFallbackResources::resolve(game_io, player_package);
 
             // regrab entity
             let entity = simulation
@@ -331,11 +331,12 @@ impl Player {
 
             // adopt texture
             let sprite_node = sprite_tree.root_mut();
-            sprite_node.set_texture(game_io, texture_path);
+            sprite_node.set_texture(game_io, player_resources.texture_path);
+            sprite_node.set_palette(game_io, player_resources.palette_path);
 
             // adopt animator
             let battle_animator = &mut simulation.animators[entity.animator_index];
-            let callbacks = battle_animator.copy_from_animator(&animator);
+            let callbacks = battle_animator.copy_from_animator(&player_resources.animator);
             battle_animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
             // callbacks
