@@ -234,8 +234,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
-            can_boost: table.get("can_boost").unwrap_or(true),
-            can_charge: table.get("can_charge").unwrap_or(true),
+            can_boost: table.get("can_boost").unwrap_or_default(),
+            can_charge: table.get("can_charge").unwrap_or_default(),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
             skip_time_freeze_intro: table.get("skip_time_freeze_intro").unwrap_or_default(),
             prevent_time_freeze_counter: table
