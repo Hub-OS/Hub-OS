@@ -512,13 +512,6 @@ impl BattleScene {
         }
 
         if self.input_synced() && !self.is_playing_back_recording {
-            // log inputs if we're in multiplayer to help track desyncs
-            if self.player_controllers.len() > 1 {
-                if let Err(e) = self.log_input_to_file() {
-                    log::error!("{e:?}");
-                }
-            }
-
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
                 let Some(buffer_item) = controller.buffer.pop_next() else {
@@ -533,37 +526,6 @@ impl BattleScene {
 
             self.synced_time += 1;
         }
-    }
-
-    fn log_input_to_file(&self) -> std::io::Result<()> {
-        use std::io::Write;
-
-        let mut file = std::fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open("_input_buffers.txt")?;
-
-        writeln!(&mut file, "F: {}", self.synced_time)?;
-
-        for controller in &self.player_controllers {
-            writeln!(&mut file, "  {:?}", controller.buffer.peek_next())?;
-        }
-
-        writeln!(&mut file, "Archetypes: [")?;
-
-        for archetype in self.simulation.entities.archetypes() {
-            write!(&mut file, "(")?;
-
-            for t in archetype.component_types() {
-                write!(&mut file, "{t:?}, ")?;
-            }
-
-            write!(&mut file, "), ")?;
-        }
-
-        writeln!(&mut file, "]")?;
-
-        Ok(())
     }
 
     fn resimulate(&mut self, game_io: &GameIO, start_time: FrameTime) {
