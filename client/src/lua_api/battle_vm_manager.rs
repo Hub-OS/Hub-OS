@@ -1,13 +1,12 @@
 use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources};
 use crate::packages::{PackageInfo, PackageNamespace};
-use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
+use crate::resources::{
+    AssetManager, Globals, ResourcePaths, BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT,
+};
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::cell::RefCell;
-
-// 1 MiB
-const VM_MEMORY: usize = 1024 * 1024;
 
 pub struct BattleVmManager {
     vms: Vec<RollbackVM>,
@@ -66,7 +65,7 @@ impl BattleVmManager {
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let lua = rollback_mlua::Lua::new_rollback(VM_MEMORY, INPUT_BUFFER_LIMIT);
+        let lua = rollback_mlua::Lua::new_rollback(BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT);
         lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)
             .unwrap();
 
