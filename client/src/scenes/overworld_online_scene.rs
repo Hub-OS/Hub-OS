@@ -1199,8 +1199,10 @@ impl OverworldOnlineScene {
                         let tile_position = Vec3::new(x, y, z);
                         let position = self.area.map.tile_3d_to_world(tile_position);
 
-                        if interpolator.is_movement_impossible(&self.area.map, position) {
-                            if !animating_properties && !self.excluded_actors.contains(&actor_id) {
+                        if animating_properties {
+                            interpolator.force_position(position)
+                        } else if interpolator.is_movement_impossible(&self.area.map, position) {
+                            if !self.excluded_actors.contains(&actor_id) {
                                 interpolator.force_position(position);
 
                                 WarpEffect::warp_full(
