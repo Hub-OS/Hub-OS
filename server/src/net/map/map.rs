@@ -102,6 +102,10 @@ impl Map {
             match child.tag_name().name() {
                 "properties" => {
                     for property in child.children() {
+                        if child.tag_name().name() != "property" {
+                            continue;
+                        }
+
                         let name = property.attribute("name").unwrap_or_default();
                         let value = property
                             .attribute("value")
@@ -173,6 +177,10 @@ impl Map {
                     }
 
                     for object_element in child.children() {
+                        if !object_element.is_element() {
+                            continue;
+                        }
+
                         let map_object =
                             MapObject::from(object_element, object_layers, scale_x, scale_y);
 
