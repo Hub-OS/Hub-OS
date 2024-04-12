@@ -485,16 +485,15 @@ impl Map {
                 continue;
             }
 
-            let tile_meta = match self.tile_meta_for_tile(tile.gid) {
-                Some(tileset) => tileset,
-                _ => continue,
+            let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+                continue;
             };
+
             let tileset = &tile_meta.tileset;
 
-            let active_frame = match tile_meta.animator.current_frame() {
-                Some(frame) => frame,
+            let Some(active_frame) = tile_meta.animator.current_frame() else {
                 // should almost never occur, will update next frame
-                _ => continue,
+                continue;
             };
 
             let tile_size = self.tile_size;
@@ -534,29 +533,21 @@ impl Map {
                 // starting from the right side of the image during a horizontal flip
                 screen_offset.x -=
                     sprite_size.x + tileset.alignment_offset.x + tileset.drawing_offset.x;
-
-                // account for being incorrect?
-                screen_offset.x -= ((tile_size.x / 2
-                    - (sprite_size.x + tileset.drawing_offset.x) as i32)
-                    / 2) as f32;
-
-                // what??
-                screen_offset.x -=
-                    (tile_size.x / 2) as f32 * (tileset.alignment_offset.x / sprite_size.x);
             }
 
             if tile.flipped_vertical {
                 screen_offset.y *= -1.0;
 
-                // might be similar to the flip above, but not sure
-                screen_offset.y -=
-                    (tile_size.y * 2 - (sprite_size.y + tileset.drawing_offset.y) as i32) as f32;
+                screen_offset.y -= tileset.alignment_offset.y + tileset.drawing_offset.y;
+
+                // related to alignment in the else branch
+                screen_offset.y += tile_size.y as f32 * 2.0;
+            } else {
+                // adjust for the sprite being aligned at the bottom of the tile
+                screen_offset.y -= sprite_size.y - tile_size.y as f32;
             }
 
             // skipping tile rotation, editor doesn't allow this
-
-            // adjust for the sprite being aligned at the bottom of the tile
-            screen_offset.y -= sprite_size.y - tile_size.y as f32;
 
             screen_position.x += screen_offset.x;
             screen_position.y += screen_offset.y;
