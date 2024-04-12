@@ -102,7 +102,7 @@ impl Map {
             match child.tag_name().name() {
                 "properties" => {
                     for property in child.children() {
-                        if child.tag_name().name() != "property" {
+                        if property.tag_name().name() != "property" {
                             continue;
                         }
 
