@@ -99,7 +99,13 @@ end
 function Async.create_scope(callback)
   return Async.create_promise(function(resolve)
     local co = coroutine.create(function()
-      resolve(callback())
+      local result = table.pack(pcall(callback))
+
+      if result[1] then
+        resolve(table.unpack(result, 2))
+      else
+        printerr(result[2])
+      end
     end)
 
     coroutine.resume(co)
