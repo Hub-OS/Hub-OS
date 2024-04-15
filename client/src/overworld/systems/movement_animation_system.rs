@@ -29,7 +29,18 @@ pub fn find_state_from_movement(
     movement_state: MovementState,
     direction: Direction,
 ) -> Option<&'static str> {
-    let direction_tests = [direction, direction.rotate_c(), direction.rotate_cc()];
+    // hand picked fallback directions
+    let direction_tests = match direction {
+        Direction::Left => [direction, Direction::DownLeft, Direction::UpLeft],
+        Direction::Right => [direction, Direction::DownRight, Direction::UpRight],
+        Direction::Up => [direction, Direction::UpRight, Direction::UpLeft],
+        Direction::Down => [direction, Direction::DownLeft, Direction::DownRight],
+        Direction::UpLeft => [direction, Direction::Left, Direction::Up],
+        Direction::UpRight => [direction, Direction::Right, Direction::Up],
+        Direction::DownLeft => [direction, Direction::Left, Direction::Down],
+        Direction::DownRight => [direction, Direction::Right, Direction::Down],
+        Direction::None => [Direction::Down, Direction::DownLeft, Direction::DownRight],
+    };
 
     for direction in direction_tests {
         if movement_state == MovementState::Running {
@@ -40,7 +51,10 @@ pub fn find_state_from_movement(
             }
         }
 
-        if movement_state == MovementState::Walking {
+        if matches!(
+            movement_state,
+            MovementState::Walking | MovementState::Running
+        ) {
             let state = walk_str(direction);
 
             if animator.has_state(state) {
