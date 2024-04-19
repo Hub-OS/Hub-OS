@@ -26,7 +26,7 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
         };
 
         let Some(mut m) = m else {
-            if n < 0 {
+            if n <= 0 {
                 return Err(LuaError::RuntimeError(String::from(
                     "n must be larger than 0",
                 )));
