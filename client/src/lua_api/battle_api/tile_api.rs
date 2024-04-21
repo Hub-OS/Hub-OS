@@ -133,8 +133,10 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
-        let (table, exclude_list): (rollback_mlua::Table, Vec<EntityId>) =
+        let (table, exclude_list): (rollback_mlua::Table, Option<Vec<EntityId>>) =
             lua.unpack_multi(params)?;
+
+        let exclude_list = exclude_list.unwrap_or_default();
 
         let mut api_ctx = api_ctx.borrow_mut();
         let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
