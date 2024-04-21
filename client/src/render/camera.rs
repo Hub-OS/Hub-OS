@@ -149,7 +149,7 @@ impl Camera {
     }
 
     pub fn shake(&mut self, stress: f32, duration: f32) {
-        if self.shaking {
+        if self.shaking && duration < self.shake_duration - self.shake_progress {
             return;
         }
 
