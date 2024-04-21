@@ -57,6 +57,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     generate_cast_fn::<&Artifact>(lua_api, ARTIFACT_TABLE);
     generate_cast_fn::<hecs::Without<&Spell, &Obstacle>>(lua_api, SPELL_TABLE);
     generate_cast_fn::<&Obstacle>(lua_api, OBSTACLE_TABLE);
+    generate_cast_fn::<&Living>(lua_api, LIVING_TABLE);
     generate_cast_fn::<&Player>(lua_api, PLAYER_TABLE);
     generate_cast_fn::<&Character>(lua_api, CHARACTER_TABLE);
 
@@ -1205,6 +1206,38 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "is_inactionable", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let status_registry = &api_ctx.resources.status_registry;
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(living.status_director.is_inactionable(status_registry))
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "is_immobile", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let status_registry = &api_ctx.resources.status_registry;
+        let entities = &mut api_ctx.simulation.entities;
+
+        let living = entities
+            .query_one_mut::<&mut Living>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(living.status_director.is_immobile(status_registry))
+    });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "add_aux_prop", |api_ctx, lua, params| {
         let (table, value): (rollback_mlua::Table, rollback_mlua::Value) =

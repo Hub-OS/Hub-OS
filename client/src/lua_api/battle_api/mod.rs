@@ -64,6 +64,7 @@ pub const TILE_TABLE: &str = "Tile";
 pub const TILE_STATE_TABLE: &str = "TileState";
 pub const CUSTOM_TILE_STATE_TABLE: &str = "CustomTileState";
 pub const ENTITY_TABLE: &str = "Entity";
+pub const LIVING_TABLE: &str = "Living";
 pub const PLAYER_TABLE: &str = "Player";
 pub const PLAYER_FORM_TABLE: &str = "PlayerForm";
 pub const CHARACTER_TABLE: &str = "Character";
