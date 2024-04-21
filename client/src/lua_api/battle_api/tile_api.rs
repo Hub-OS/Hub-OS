@@ -150,6 +150,23 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(tile.reservations().len() > excluded_count)
     });
 
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_count_for", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+
+        lua.pack_multi(
+            tile.reservations()
+                .iter()
+                .filter(|id| **id == entity_id)
+                .count(),
+        )
+    });
+
     lua_api.add_dynamic_function(TILE_TABLE, "reserve_for_id", |api_ctx, lua, params| {
         let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
