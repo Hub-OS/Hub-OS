@@ -98,7 +98,7 @@ jobs:
           cp target/aarch64-apple-darwin/release/hub_os target/release/hub_os-aarch64
           cp target/aarch64-apple-darwin/release/hub_os_server target/release/hub_os_server-aarch64
 
-      - name: Build Linux Executables and Create Dist
+      - name: Build x86 Executables and Create Dist
         run: cargo run --bin dist
 
       - name: Zip Dist
