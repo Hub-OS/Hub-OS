@@ -249,7 +249,7 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
             let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
 
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
-                if entity.spawned {
+                if entity.on_field && !entity.deleted {
                     tables.push(create_entity_table(lua, id.into())?);
                 }
             }
@@ -297,7 +297,7 @@ fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &s
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
                 let pos = IVec2::new(entity.x, entity.y);
 
-                if entity.spawned {
+                if entity.on_field && !entity.deleted {
                     tables.push((create_entity_table(lua, id.into())?, pos));
                 }
             }
