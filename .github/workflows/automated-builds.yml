@@ -59,7 +59,7 @@ jobs:
         run: (cd dist; zip -r ../hub-os-windows-and-linux.zip *)
 
       - name: Upload
-        uses: actions/action-gh-release@v2
+        uses: softprops/action-gh-release@v2
         with:
           upload_url: ${{ github.event.release.upload_url }}
           files: hub-os-windows-and-linux.zip
@@ -105,7 +105,7 @@ jobs:
         run: (cd dist; zip -r ../hub-os-mac-os.zip *)
 
       - name: Upload
-        uses: actions/action-gh-release@v2
+        uses: softprops/action-gh-release@v2
         with:
           upload_url: ${{ github.event.release.upload_url }}
           files: hub-os-mac-os.zip
