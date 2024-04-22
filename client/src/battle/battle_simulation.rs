@@ -138,6 +138,14 @@ impl BattleSimulation {
             let _ = entities.insert_one(id, component.clone());
         }
 
+        for (id, component) in self.entities.query_mut::<&EntityShadow>() {
+            let _ = entities.insert_one(id, component.clone());
+        }
+
+        for (id, component) in self.entities.query_mut::<&EntityShadowVisible>() {
+            let _ = entities.insert_one(id, component.clone());
+        }
+
         Self {
             config: self.config.clone(),
             statistics: self.statistics.clone(),
@@ -516,6 +524,10 @@ impl BattleSimulation {
         }
 
         for id in pending_removal {
+            // delete shadow
+            EntityShadow::delete(self, id.into());
+
+            // delete entity
             self.entities.despawn(id).unwrap();
         }
 
@@ -696,40 +708,55 @@ impl BattleSimulation {
 
         sorted_entities.sort_by_key(|(_, key)| *key);
 
+        // calculations and shadow rendering
+        let mut entity_tree_render_params = Vec::with_capacity(sorted_entities.len());
+
         for (id, _) in sorted_entities {
-            let entity = self.entities.query_one_mut::<&mut Entity>(id).unwrap();
+            let (entity, shadow, shadow_visible) = self
+                .entities
+                .query_one_mut::<(
+                    &mut Entity,
+                    Option<&EntityShadow>,
+                    Option<&EntityShadowVisible>,
+                )>(id)
+                .unwrap();
 
-            // offset for calculating initial placement position
-            let mut offset: Vec2 = entity.corrected_offset(perspective_flipped);
-
-            // elevation
-            offset.y -= entity.elevation;
-
-            // shadow offset
-            let mut shadow_y = entity.elevation;
-
-            if let Some(movement) = &entity.movement {
-                let progress = movement.animation_progress_percent();
-                shadow_y += movement.interpolate_jump_height(progress);
-            }
-
-            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
-                continue;
-            };
-
-            if let Some(shadow_node) = &mut sprite_tree.get_mut(entity.shadow_index) {
-                shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
-            }
-
-            let tile_center =
+            // start at tile center
+            let mut position =
                 (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
-            let initial_position = tile_center + offset;
+
+            // apply the entity offset
+            position += entity.corrected_offset(perspective_flipped);
+
+            // apply elevation
+            position.y -= entity.elevation;
 
             // true if only one is true, since flipping twice causes us to no longer be flipped
             let flipped = perspective_flipped ^ entity.flipped();
 
-            // offset each child by parent node accounting for perspective, and draw
-            sprite_tree.draw_with_offset(&mut sprite_queue, initial_position, flipped);
+            // render shadow
+            if let (Some(shadow), Some(_)) = (shadow, shadow_visible) {
+                let mut shadow_y = entity.elevation;
+
+                if let Some(movement) = &entity.movement {
+                    let progress = movement.animation_progress_percent();
+                    shadow_y += movement.interpolate_jump_height(progress);
+                }
+
+                let shadow_tree = self.sprite_trees.get_mut(shadow.sprite_tree_index).unwrap();
+                let mut position = position;
+                position.y += shadow_y;
+                shadow_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+            }
+
+            entity_tree_render_params.push((entity.sprite_tree_index, position, flipped));
+        }
+
+        // rendering the entity sprite trees after shadows are drawn
+        for (tree_index, position, flipped) in entity_tree_render_params {
+            if let Some(sprite_tree) = self.sprite_trees.get_mut(tree_index) {
+                sprite_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+            }
         }
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);

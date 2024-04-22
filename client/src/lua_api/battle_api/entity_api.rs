@@ -394,13 +394,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        entity.set_shadow(api_ctx.game_io, &mut simulation.sprite_trees, path);
+        EntityShadow::set(api_ctx.game_io, simulation, id, path);
 
         lua.pack_multi(())
     });
@@ -412,17 +407,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
-        let entities = &mut simulation.entities;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
-            if let Some(sprite_node) = sprite_tree.get_mut(entity.shadow_index) {
-                sprite_node.set_visible(visible.unwrap_or(true));
-            }
-        }
+        EntityShadow::set_visible(simulation, id, visible.unwrap_or(true));
 
         lua.pack_multi(())
     });

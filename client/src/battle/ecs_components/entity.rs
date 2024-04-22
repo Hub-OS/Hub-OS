@@ -33,7 +33,6 @@ pub struct Entity {
     pub elevation: f32,
     pub animator_index: GenerationalIndex,
     pub sprite_tree_index: GenerationalIndex,
-    pub shadow_index: TreeIndex,
     pub offset: Vec2,      // does not flip with teams, only perspective
     pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
@@ -60,13 +59,7 @@ impl Entity {
         let id: EntityId = Self::reserve(simulation);
 
         // create sprite tree
-        let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
-
-        let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
-        shadow_node.set_visible(false);
-        shadow_node.set_layer(i32::MAX);
-        let shadow_index = sprite_tree.insert_root_child(shadow_node);
-
+        let sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
         let sprite_tree_index = simulation.sprite_trees.insert(sprite_tree);
 
         // create animator
@@ -96,7 +89,6 @@ impl Entity {
             elevation: 0.0,
             animator_index,
             sprite_tree_index,
-            shadow_index,
             offset: Vec2::ZERO,
             tile_offset: Vec2::ZERO,
             hit_context: HitContext {
@@ -182,22 +174,6 @@ impl Entity {
         self.y = full_position.tile_position.y;
         self.offset = full_position.offset;
         self.tile_offset = full_position.tile_offset;
-    }
-
-    pub fn set_shadow(
-        &mut self,
-        game_io: &GameIO,
-        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
-        path: String,
-    ) {
-        if let Some(sprite_tree) = sprite_trees.get_mut(self.sprite_tree_index) {
-            if let Some(sprite_node) = sprite_tree.get_mut(self.shadow_index) {
-                sprite_node.set_texture(game_io, path);
-
-                let shadow_size = sprite_node.size();
-                sprite_node.set_origin(shadow_size * 0.5);
-            }
-        }
     }
 
     pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
