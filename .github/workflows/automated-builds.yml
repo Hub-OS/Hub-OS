@@ -1,26 +1,15 @@
 name: Automated Builds
 
 on:
-  push:
+  release:
     branches:
       - master
 
 jobs:
-  build:
-    name: HubOS
+  windows_and_linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -66,8 +55,57 @@ jobs:
       - name: Build Linux Executables and Create Dist
         run: cargo run --bin dist
 
-      - name: Archive
-        uses: actions/upload-artifact@v3
+      - name: Zip Dist
+        run: (cd dist; zip -r ../hub-os-windows-and-linux.zip *)
+
+      - name: Upload
+        uses: actions/action-gh-release@v2
         with:
-          name: dist
-          path: dist
+          upload_url: ${{ github.event.release.upload_url }}
+          files: hub-os-windows-and-linux.zip
+
+    mac-os:
+      runs-on: macos-12
+
+      steps:
+        - uses: actions/checkout@v2
+
+        - uses: actions/cache@v3
+          with:
+            path: |
+              ~/.cargo/bin/
+              ~/.cargo/registry/index/
+              ~/.cargo/registry/cache/
+              ~/.cargo/git/db/
+              ~/.cargo/.crates.toml
+              ~/.cargo/.crates2.json
+              target/
+            key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+            restore-keys: ${{ runner.os }}-cargo
+
+        - uses: dtolnay/rust-toolchain@stable
+          with:
+            targets: x86_64-apple-darwin, aarch64-apple-darwin
+
+        - name: Build ARM Client
+          run: cargo build --bin hub_os --target=aarch64-apple-darwin --release
+
+        - name: Build ARM Server
+          run: cargo build --bin hub_os_server --target=aarch64-apple-darwin --release
+
+        - name: Copy ARM Executables
+          run: |
+            cp target/aarch64-apple-darwin/release/hub_os target/release/hub_os-aarch64
+            cp target/aarch64-apple-darwin/release/hub_os_server target/release/hub_os_server-aarch64
+
+        - name: Build Linux Executables and Create Dist
+          run: cargo run --bin dist
+
+        - name: Zip Dist
+          run: (cd dist; zip -r ../hub-os-mac-os.zip *)
+
+        - name: Upload
+          uses: actions/action-gh-release@v2
+          with:
+            upload_url: ${{ github.event.release.upload_url }}
+            files: hub-os-mac-os.zip
