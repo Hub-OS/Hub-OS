@@ -159,13 +159,25 @@ impl BattleState {
     }
 
     fn play_low_hp_sfx(&self, game_io: &GameIO, simulation: &mut BattleSimulation) {
-        if simulation.local_health_ui.is_low_hp() && self.time % LOW_HP_SFX_RATE == 0 {
-            let globals = game_io.resource::<Globals>().unwrap();
-            let audio = &globals.audio;
-            let sfx = &globals.sfx.low_hp;
+        if !simulation.local_health_ui.is_low_hp() || self.time % LOW_HP_SFX_RATE != 0 {
+            return;
+        };
 
-            audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&Entity>(simulation.local_player_id.into())
+        else {
+            return;
+        };
+
+        if entity.deleted {
+            return;
         }
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let audio = &globals.audio;
+        let sfx = &globals.sfx.low_hp;
+
+        audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
     }
 
     fn update_turn_gauge(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
