@@ -36,7 +36,7 @@ struct Backup {
 }
 
 pub struct BattleScene {
-    battle_duration: FrameTime,
+    props: BattleProps,
     recording: Option<BattleRecording>,
     ui_camera: Camera,
     textbox: Textbox,
@@ -49,15 +49,12 @@ pub struct BattleScene {
     backups: VecDeque<Backup>,
     player_controllers: Vec<PlayerController>,
     local_index: Option<usize>,
-    senders: Vec<NetplayPacketSender>,
-    receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
     exiting: bool,
-    statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
 }
 
@@ -87,7 +84,7 @@ impl BattleScene {
 
         // init recording struct
         let recording = if props.recording_enabled {
-            Some(BattleRecording::new(game_io, &props))
+            Some(BattleRecording::new(&props))
         } else {
             None
         };
@@ -125,11 +122,11 @@ impl BattleScene {
                 simulation: &mut simulation,
             };
 
-            encounter_init(context, props.data);
+            encounter_init(context, props.data.as_deref());
         }
 
         // load the players in the correct order
-        let player_setups = props.player_setups;
+        let player_setups = &props.player_setups;
         let mut player_controllers = vec![PlayerController::default(); player_setups.len()];
         let local_index = if is_playing_back_recording {
             None
@@ -140,15 +137,11 @@ impl BattleScene {
                 .map(|setup| setup.index)
         };
 
-        for mut setup in player_setups {
+        for setup in player_setups {
             if let Some(remote_controller) = player_controllers.get_mut(setup.index) {
-                remote_controller.buffer = std::mem::take(&mut setup.buffer);
+                remote_controller.buffer = setup.buffer.clone();
                 remote_controller.connected = true;
             }
-
-            // shuffle cards
-            let rng = &mut simulation.rng;
-            setup.deck.shuffle(game_io, rng, setup.namespace());
 
             let result = Player::load(game_io, &resources, &mut simulation, setup);
 
@@ -160,7 +153,7 @@ impl BattleScene {
         simulation.initialize_uninitialized();
 
         Self {
-            battle_duration: 0,
+            props,
             recording,
             ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io)
@@ -174,15 +167,12 @@ impl BattleScene {
             backups: VecDeque::new(),
             player_controllers,
             local_index,
-            senders: std::mem::take(&mut props.senders),
-            receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
             exiting: false,
-            statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
         }
     }
@@ -323,7 +313,7 @@ impl BattleScene {
 
         let mut connected_count = self.count_connected_players();
 
-        'main_loop: for (i, (index, receiver)) in self.receivers.iter().enumerate() {
+        'main_loop: for (i, (index, receiver)) in self.props.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
                 if index.is_some() && Some(packet.index()) != *index {
                     // ignore obvious impersonation cheat
@@ -355,7 +345,7 @@ impl BattleScene {
 
         // remove disconnected receivers
         for i in pending_removal.into_iter().rev() {
-            let (player_index, _) = self.receivers.remove(i);
+            let (player_index, _) = self.props.receivers.remove(i);
 
             let Some(index) = player_index else {
                 continue;
@@ -375,7 +365,7 @@ impl BattleScene {
 
         if connected_count == 0 {
             // no need to store these, helps prevent reading too many packets from the fallback receiver
-            self.receivers.clear();
+            self.props.receivers.clear();
         }
 
         for packet in packets {
@@ -442,7 +432,7 @@ impl BattleScene {
     }
 
     fn broadcast(&self, packet: NetplayPacket) {
-        for send in &self.senders {
+        for send in &self.props.senders {
             send(packet.clone());
         }
     }
@@ -649,8 +639,8 @@ impl BattleScene {
 
         // save recording
         if game_io.input().was_key_just_pressed(Key::S) {
-            if let Some(recording) = &self.recording {
-                recording.save(game_io);
+            if let Some(recording) = &mut self.recording {
+                recording.save(game_io, &self.props);
             } else {
                 log::error!("Recording is disabled");
             }
@@ -668,7 +658,7 @@ impl BattleScene {
             self.pending_signals.push(NetplaySignal::Disconnect);
         }
 
-        if let Some(statistics_callback) = self.statistics_callback.take() {
+        if let Some(statistics_callback) = self.props.statistics_callback.take() {
             self.simulation.wrap_up_statistics();
             let mut statistics = self.simulation.statistics.clone();
             statistics.ran = fleeing;

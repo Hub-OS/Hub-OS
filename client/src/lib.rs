@@ -74,7 +74,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
             let globals = Globals::new(game_io, args);
             game_io.set_resource(globals);
         })
-        .with_service(|_| SupportingService::new())
+        .with_service(SupportingService::new)
         .with_post_process(|game_io| PostProcessGhosting::new(game_io))
         .with_post_process(|game_io| PostProcessAdjust::new(game_io))
         .with_post_process(|game_io| PostProcessColorBlindness::new(game_io))

@@ -9,7 +9,7 @@ use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
-pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<String>) {
+pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
     let globals = api_ctx.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
@@ -26,7 +26,7 @@ pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<String>) {
     };
 
     let chunk = data.and_then(|data| {
-        let chunk: Option<rollback_mlua::Value> = lua.load(&data).eval().ok();
+        let chunk: Option<rollback_mlua::Value> = lua.load(data).eval().ok();
 
         if chunk.is_none() {
             log::error!("Failed to read data from server:\n{data}");

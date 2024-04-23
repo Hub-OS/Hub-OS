@@ -4,6 +4,7 @@ use crate::memoize::ResultCacheSingle;
 use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::Deck;
 use crate::saves::{BlockGrid, Card};
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
@@ -52,14 +53,13 @@ impl Player {
 
     fn new(
         game_io: &GameIO,
-        setup: PlayerSetup,
+        setup: &PlayerSetup,
+        mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         let player_package = setup.player_package(game_io);
-
-        let mut deck = setup.deck;
 
         if let Some(index) = deck.regular_index {
             // move the regular card to the front
@@ -95,7 +95,7 @@ impl Player {
             movement_animation_state: String::new(),
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
-                setup.emotion,
+                setup.emotion.clone(),
                 assets.new_sprite(game_io, &player_package.emotions_paths.texture),
                 Animator::load_new(assets, &player_package.emotions_paths.animation),
             ),
@@ -110,11 +110,11 @@ impl Player {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        mut setup: PlayerSetup,
+        setup: &PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
         let player_package = setup.player_package(game_io);
-        let blocks = std::mem::take(&mut setup.blocks);
+        let blocks = setup.blocks.clone();
 
         // namespace for using cards / attacks
         let namespace = setup.namespace();
@@ -285,9 +285,13 @@ impl Player {
         let buster_charge_sprite_index =
             AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CHARGE);
 
+        let mut deck = setup.deck.clone();
+        deck.shuffle(game_io, &mut simulation.rng, setup.namespace());
+
         let mut player = Player::new(
             game_io,
             setup,
+            deck,
             card_charge_sprite_index,
             buster_charge_sprite_index,
         );

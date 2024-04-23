@@ -38,9 +38,8 @@ impl PlayerFallbackResources {
         let resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
         // load player into the simulation
-
         let setup = props.player_setups.pop().unwrap();
-        let Ok(entity_id) = Player::load(game_io, &resources, &mut simulation, setup) else {
+        let Ok(entity_id) = Player::load(game_io, &resources, &mut simulation, &setup) else {
             return Default::default();
         };
 
