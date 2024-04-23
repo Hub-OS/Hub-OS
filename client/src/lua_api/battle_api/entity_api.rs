@@ -502,7 +502,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(false);
         };
 
-        lua.pack_multi(entity.action_index.is_none() && entity.action_queue.is_empty())
+        lua.pack_multi(entity.action_index.is_some() || !entity.action_queue.is_empty())
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {
@@ -1185,8 +1185,6 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
             lua.pack_multi(())
         },
     );
-
-    // todo: has_status? status_duration?
 
     getter(
         lua_api,
