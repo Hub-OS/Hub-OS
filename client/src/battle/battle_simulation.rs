@@ -501,9 +501,7 @@ impl BattleSimulation {
                 continue;
             }
 
-            if entity.spawned {
-                self.field.drop_entity(entity.id);
-            }
+            self.field.drop_entity(entity.id);
 
             for (index, component) in &mut self.components {
                 if component.entity == entity.id {
