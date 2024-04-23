@@ -546,6 +546,33 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "cancel_movement",
+        move |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
+
+            let (entity, living) = entities
+                .query_one_mut::<(&mut Entity, Option<&Living>)>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let dragged = living
+                .map(|living| living.status_director.is_dragged())
+                .unwrap_or_default();
+
+            if !dragged {
+                entity.movement = None;
+            }
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "can_move_to", move |api_ctx, lua, params| {
         let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
             lua.unpack_multi(params)?;
