@@ -32,7 +32,7 @@ pub struct PlayerPackage {
     pub preview_texture_path: String,
     pub overworld_paths: TextureAnimPathPair<'static>,
     pub mugshot_paths: TextureAnimPathPair<'static>,
-    pub emotions_paths: TextureAnimPathPair<'static>,
+    pub emotions_paths: Option<TextureAnimPathPair<'static>>,
 }
 
 impl Package for PlayerPackage {
@@ -87,9 +87,13 @@ impl Package for PlayerPackage {
             (base_path.clone() + &meta.overworld_animation_path).into();
         package.mugshot_paths.texture = (base_path.clone() + &meta.mugshot_texture_path).into();
         package.mugshot_paths.animation = (base_path.clone() + &meta.mugshot_animation_path).into();
-        package.emotions_paths.texture = (base_path.clone() + &meta.emotions_texture_path).into();
-        package.emotions_paths.animation =
-            (base_path.clone() + &meta.emotions_animation_path).into();
+
+        if !meta.emotions_texture_path.is_empty() || !meta.emotions_animation_path.is_empty() {
+            package.emotions_paths = Some(TextureAnimPathPair {
+                texture: (base_path.clone() + &meta.emotions_texture_path).into(),
+                animation: (base_path.clone() + &meta.emotions_animation_path).into(),
+            });
+        }
 
         package
     }

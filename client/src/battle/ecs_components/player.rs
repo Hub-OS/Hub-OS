@@ -58,13 +58,26 @@ impl Player {
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
         let player_package = setup.player_package(game_io);
 
         if let Some(index) = deck.regular_index {
             // move the regular card to the front
             deck.cards.swap(0, index);
         }
+
+        // load emotions assets with defaults to prevent warnings
+        let emotion_sprite;
+        let emotion_animation;
+
+        if let Some(pair) = player_package.emotions_paths.as_ref() {
+            emotion_sprite = assets.new_sprite(game_io, &pair.texture);
+            emotion_animation = Animator::load_new(assets, &pair.animation);
+        } else {
+            emotion_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
+            emotion_animation = Default::default();
+        };
 
         Self {
             index: setup.index,
@@ -96,8 +109,8 @@ impl Player {
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
                 setup.emotion.clone(),
-                assets.new_sprite(game_io, &player_package.emotions_paths.texture),
-                Animator::load_new(assets, &player_package.emotions_paths.animation),
+                emotion_sprite,
+                emotion_animation,
             ),
             forms: Vec::new(),
             active_form: None,
