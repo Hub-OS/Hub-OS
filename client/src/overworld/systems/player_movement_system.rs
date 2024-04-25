@@ -53,8 +53,8 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
         return;
     }
 
-    let (animator, position, &direction) = entities
-        .query_one_mut::<(&Animator, &mut Vec3, &Direction)>(player_data.entity)
+    let (movement_animator, animator, position, &direction) = entities
+        .query_one_mut::<(&MovementAnimator, &Animator, &mut Vec3, &Direction)>(player_data.entity)
         .unwrap();
 
     if position.z < 0.0 {
@@ -150,9 +150,12 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
                 (ActorProperty::Direction(screen_direction), Ease::Floor),
             ];
 
-            if let Some(animation_state) =
-                find_state_from_movement(animator, MovementState::Idle, screen_direction)
-            {
+            if let Some(animation_state) = find_state_from_movement(
+                movement_animator,
+                animator,
+                MovementState::Idle,
+                screen_direction,
+            ) {
                 first_steps.push((
                     ActorProperty::Animation(animation_state.to_string()),
                     Ease::Floor,

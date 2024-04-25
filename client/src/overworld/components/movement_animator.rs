@@ -14,6 +14,7 @@ pub struct MovementAnimator {
     movement_enabled: bool,
     state: MovementState,
     direction_queue: VecDeque<Direction>,
+    last_horizontal: Direction,
 }
 
 impl MovementAnimator {
@@ -27,6 +28,7 @@ impl MovementAnimator {
             movement_enabled: false,
             state: MovementState::Idle,
             direction_queue,
+            last_horizontal: Direction::Right,
         }
     }
 
@@ -69,5 +71,17 @@ impl MovementAnimator {
     pub fn advance_direction(&mut self) -> Direction {
         self.direction_queue.push_back(Direction::None);
         self.direction_queue.pop_front().unwrap()
+    }
+
+    pub fn set_latest_direction(&mut self, direction: Direction) {
+        let horizontal = direction.split().0;
+
+        if !horizontal.is_none() {
+            self.last_horizontal = horizontal;
+        }
+    }
+
+    pub fn last_horizontal(&self) -> Direction {
+        self.last_horizontal
     }
 }

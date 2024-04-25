@@ -8,12 +8,18 @@ pub fn system_movement_animation(area: &mut OverworldArea) {
     let query = entities.query_mut::<(&mut MovementAnimator, &mut Animator, &mut Direction)>();
 
     for (_, (movement_animator, animator, direction)) in query {
+        movement_animator.set_latest_direction(*direction);
+
         if !movement_animator.animation_enabled() {
             continue;
         }
 
-        let Some(state) = find_state_from_movement(animator, movement_animator.state(), *direction)
-        else {
+        let Some(state) = find_state_from_movement(
+            movement_animator,
+            animator,
+            movement_animator.state(),
+            *direction,
+        ) else {
             continue;
         };
 
@@ -25,6 +31,7 @@ pub fn system_movement_animation(area: &mut OverworldArea) {
 }
 
 pub fn find_state_from_movement(
+    movement_animator: &MovementAnimator,
     animator: &Animator,
     movement_state: MovementState,
     direction: Direction,
@@ -33,8 +40,24 @@ pub fn find_state_from_movement(
     let direction_tests = match direction {
         Direction::Left => [direction, Direction::DownLeft, Direction::UpLeft],
         Direction::Right => [direction, Direction::DownRight, Direction::UpRight],
-        Direction::Up => [direction, Direction::UpRight, Direction::UpLeft],
-        Direction::Down => [direction, Direction::DownLeft, Direction::DownRight],
+        Direction::Up => {
+            let last_horizontal = movement_animator.last_horizontal();
+
+            [
+                direction,
+                last_horizontal.join(Direction::Up),
+                last_horizontal.horizontal_mirror().join(Direction::Up),
+            ]
+        }
+        Direction::Down => {
+            let last_horizontal = movement_animator.last_horizontal();
+
+            [
+                direction,
+                last_horizontal.horizontal_mirror().join(Direction::Down),
+                last_horizontal.join(Direction::Down),
+            ]
+        }
         Direction::UpLeft => [direction, Direction::Left, Direction::Up],
         Direction::UpRight => [direction, Direction::Right, Direction::Up],
         Direction::DownLeft => [direction, Direction::Left, Direction::Down],
