@@ -520,31 +520,22 @@ impl Map {
             screen_position /= scale;
 
             // calculate offset separately as we need to transform it separately
+            // we only need to manipulate object specific properties,
+            // as tile.intersects() will handle tile properties
             let mut screen_offset = -tileset.alignment_offset;
 
-            // not sure why this is needed
-            // something to do with being centered at tile_size.x / 2
-            screen_offset.x -= (tile_size.x / 2) as f32;
+            // tiled starts (0, 0) at the top left of a tile sitting at the bottom of the sprite
+            // view in editor to see what I mean (the square + diamond at the bottom)
+            screen_offset.x -= tile_size.x as f32 * 0.5;
+            screen_offset.y -= sprite_size.y - tile_size.y as f32;
 
             // flip
             if tile.flipped_horizontal {
                 screen_offset.x *= -1.0;
-
-                // starting from the right side of the image during a horizontal flip
-                screen_offset.x -=
-                    sprite_size.x + tileset.alignment_offset.x + tileset.drawing_offset.x;
             }
 
             if tile.flipped_vertical {
                 screen_offset.y *= -1.0;
-
-                screen_offset.y -= tileset.alignment_offset.y + tileset.drawing_offset.y;
-
-                // related to alignment in the else branch
-                screen_offset.y += tile_size.y as f32 * 2.0;
-            } else {
-                // adjust for the sprite being aligned at the bottom of the tile
-                screen_offset.y -= sprite_size.y - tile_size.y as f32;
             }
 
             // skipping tile rotation, editor doesn't allow this

@@ -81,6 +81,8 @@ impl Tile {
             test_position += tile_center;
         }
 
+        test_position -= tile_meta.drawing_offset;
+
         if self.flipped_horizontal {
             test_position.x *= -1.0;
         }
@@ -88,8 +90,6 @@ impl Tile {
         if self.flipped_vertical {
             test_position.y = sprite_size.y - test_position.y;
         }
-
-        test_position -= tile_meta.drawing_offset;
 
         if matches!(tile_meta.tileset.orientation, Projection::Orthographic) {
             // tiled uses position on sprite with orthographic projection
