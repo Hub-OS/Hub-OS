@@ -114,13 +114,12 @@ impl PlayerSetup {
         }
     }
 
-    pub fn player_package<'a>(&self, game_io: &'a GameIO) -> &'a PlayerPackage {
+    pub fn player_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a PlayerPackage> {
         let globals = game_io.resource::<Globals>().unwrap();
 
         globals
             .player_packages
             .package(self.package_pair.0, &self.package_pair.1)
-            .unwrap()
     }
 }
 

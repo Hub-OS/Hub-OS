@@ -1,11 +1,10 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::memoize::ResultCacheSingle;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Deck;
-use crate::saves::{BlockGrid, Card};
+use crate::saves::{BlockGrid, Card, Deck};
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
 
@@ -54,13 +53,13 @@ impl Player {
     fn new(
         game_io: &GameIO,
         setup: &PlayerSetup,
+        player_package: &PlayerPackage,
         mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
-        let player_package = setup.player_package(game_io);
 
         if let Some(index) = deck.regular_index {
             // move the regular card to the front
@@ -126,7 +125,12 @@ impl Player {
         setup: &PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
-        let player_package = setup.player_package(game_io);
+        let Some(player_package) = setup.player_package(game_io) else {
+            return Err(rollback_mlua::Error::runtime(
+                "Failed to load player package",
+            ));
+        };
+
         let blocks = setup.blocks.clone();
 
         // namespace for using cards / attacks
@@ -304,6 +308,7 @@ impl Player {
         let mut player = Player::new(
             game_io,
             setup,
+            player_package,
             deck,
             card_charge_sprite_index,
             buster_charge_sprite_index,
