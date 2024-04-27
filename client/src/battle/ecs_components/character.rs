@@ -79,7 +79,7 @@ impl Character {
 
         living.add_aux_prop(elemental_weakness_aux_prop);
 
-        entity.can_move_to_callback = BattleCallback::new(move |_, _, simulation, dest| {
+        entity.can_move_to_callback = BattleCallback::new(move |_, resources, simulation, dest| {
             let Some(tile) = simulation.field.tile_at_mut(dest) else {
                 return false;
             };
@@ -89,10 +89,11 @@ impl Character {
                 return false;
             }
 
-            let entity = simulation
-                .entities
-                .query_one_mut::<&Entity>(id.into())
-                .unwrap();
+            let entities = &mut simulation.entities;
+            let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &Living)>(id.into())
+            else {
+                return false;
+            };
 
             if !entity.ignore_hole_tiles && simulation.tile_states[tile.state_index()].is_hole {
                 // can't walk on holes
@@ -101,6 +102,13 @@ impl Character {
 
             if tile.team() != entity.team && tile.team() != Team::Other {
                 // tile can't belong to the opponent team
+                return false;
+            }
+
+            let status_registry = &resources.status_registry;
+
+            if living.status_director.is_immobile(status_registry) {
+                // can't move while immobilized, useful feedback for scripts
                 return false;
             }
 
