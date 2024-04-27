@@ -34,7 +34,11 @@ fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
         .unwrap();
 
     if input_direction == Direction::None {
-        // a little inaccurate, immediate stop, allows for better diagonal stops on keyboard
+        // clear direction queue on stop, allows for better diagonal stops on keyboard
+        if movement_animator.state() != MovementState::Idle {
+            movement_animator.clear_direction_queue();
+        }
+
         movement_animator.set_state(MovementState::Idle);
     } else if input_util.is_down(Input::Sprint) {
         movement_animator.set_state(MovementState::Running);

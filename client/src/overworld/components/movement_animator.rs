@@ -56,10 +56,14 @@ impl MovementAnimator {
         self.state = state;
     }
 
-    pub fn clear_queue(&mut self) {
-        for direction in &mut self.direction_queue {
-            *direction = Direction::None;
+    pub fn fill_direction_queue(&mut self, direction: Direction) {
+        for dir in &mut self.direction_queue {
+            *dir = direction;
         }
+    }
+
+    pub fn clear_direction_queue(&mut self) {
+        self.fill_direction_queue(Direction::None);
     }
 
     pub fn queue_direction(&mut self, direction: Direction) {
