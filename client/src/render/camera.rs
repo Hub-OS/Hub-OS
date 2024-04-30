@@ -103,7 +103,7 @@ impl Camera {
                 (self.destination - self.origin) * progress_percent + self.origin
             };
 
-            self.internal_camera.set_position(delta.extend(0.0));
+            self.internal_camera.set_position(delta.floor().extend(0.0));
         }
 
         if self.shaking {
@@ -137,7 +137,9 @@ impl Camera {
         self.wane_factor = factor;
     }
 
-    pub fn snap(&mut self, destination: Vec2) {
+    pub fn snap(&mut self, mut destination: Vec2) {
+        destination = destination.floor();
+
         self.internal_camera.set_position(destination.extend(0.0));
 
         self.slide(destination, 0.0);
@@ -145,7 +147,7 @@ impl Camera {
 
     fn offset(&mut self, offset: Vec2) {
         let position = self.internal_camera.position() + offset.extend(0.0);
-        self.internal_camera.set_position(position);
+        self.internal_camera.set_position(position.floor());
     }
 
     pub fn shake(&mut self, stress: f32, duration: f32) {
