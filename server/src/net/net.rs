@@ -1521,7 +1521,14 @@ impl Net {
             },
         );
 
-        self.kick_player(id, "Transferred", warp_out);
+        if let Some(client) = self.clients.get(id) {
+            self.kick_list.push(Boot {
+                socket_address: client.socket_address,
+                reason: String::from("Transferred"),
+                notify_client: false,
+                warp_out,
+            });
+        }
     }
 
     pub fn request_authorization(&mut self, id: &str, address: &str, data: &[u8]) {
@@ -1540,6 +1547,7 @@ impl Net {
             self.kick_list.push(Boot {
                 socket_address: client.socket_address,
                 reason: reason.to_string(),
+                notify_client: true,
                 warp_out,
             });
         }

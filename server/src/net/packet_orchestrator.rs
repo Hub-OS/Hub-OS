@@ -510,6 +510,7 @@ impl PacketOrchestrator {
                 kick_list.push(Boot {
                     socket_address: connection.socket_address,
                     reason: String::from("packet silence"),
+                    notify_client: true,
                     warp_out: true,
                 });
             }

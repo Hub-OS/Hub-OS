@@ -171,14 +171,16 @@ impl Server {
         for boot in kick_list {
             self.disconnect_client(boot.socket_address, &boot.reason, boot.warp_out);
 
-            // send reason
-            self.packet_orchestrator.borrow_mut().send(
-                boot.socket_address,
-                Reliability::ReliableOrdered,
-                ServerPacket::Kick {
-                    reason: boot.reason,
-                },
-            );
+            if boot.notify_client {
+                // send reason
+                self.packet_orchestrator.borrow_mut().send(
+                    boot.socket_address,
+                    Reliability::ReliableOrdered,
+                    ServerPacket::Kick {
+                        reason: boot.reason,
+                    },
+                );
+            }
         }
 
         self.net.tick();
