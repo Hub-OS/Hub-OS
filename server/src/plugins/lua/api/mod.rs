@@ -132,7 +132,7 @@ impl LuaApi {
                     let net_table: mlua::Table = globals.get("Net")?;
                     let func: mlua::Function = net_table.get("_delegate")?;
 
-                    let value: mlua::Value = func.call((function_id.as_str(), values))?;
+                    let value: mlua::MultiValue = func.call((function_id.as_str(), values))?;
 
                     Ok(value)
                 })?,

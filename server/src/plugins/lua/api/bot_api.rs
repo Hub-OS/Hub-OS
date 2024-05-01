@@ -201,6 +201,19 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function("Net", "get_bot_position_multi", |api_ctx, lua, params| {
+        let bot_id: mlua::String = lua.unpack_multi(params)?;
+        let bot_id_str = bot_id.to_str()?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(bot) = net.get_bot(bot_id_str) {
+            lua.pack_multi((bot.x, bot.y, bot.z))
+        } else {
+            Err(create_bot_error(bot_id_str))
+        }
+    });
+
     lua_api.add_dynamic_function("Net", "move_bot", |api_ctx, lua, params| {
         let (bot_id, x, y, z): (mlua::String, f32, f32, f32) = lua.unpack_multi(params)?;
         let bot_id_str = bot_id.to_str()?;

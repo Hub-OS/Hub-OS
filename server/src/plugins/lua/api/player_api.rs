@@ -117,6 +117,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function(
+        "Net",
+        "get_player_position_multi",
+        |api_ctx, lua, params| {
+            let player_id: mlua::String = lua.unpack_multi(params)?;
+            let player_id_str = player_id.to_str()?;
+
+            let net = api_ctx.net_ref.borrow();
+
+            if let Some(player) = net.get_player(player_id_str) {
+                lua.pack_multi((player.x, player.y, player.z))
+            } else {
+                Err(create_player_error(player_id_str))
+            }
+        },
+    );
+
     lua_api.add_dynamic_function("Net", "get_player_mugshot", |api_ctx, lua, params| {
         let player_id: mlua::String = lua.unpack_multi(params)?;
         let player_id_str = player_id.to_str()?;
