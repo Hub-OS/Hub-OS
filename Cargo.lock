@@ -3110,11 +3110,13 @@ dependencies = [
  "hex",
  "hmac-sha256",
  "log",
+ "mlua",
  "network_channels",
  "num-derive",
  "num-traits",
  "rollback_mlua",
  "serde",
+ "slotmap",
  "strum",
 ]
 

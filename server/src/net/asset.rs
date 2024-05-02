@@ -1,4 +1,4 @@
-use packets::structures::{AssetData, PackageCategory};
+use packets::structures::{ActorId, AssetData, PackageCategory};
 
 #[derive(Clone, Debug)]
 pub struct PackageInfo {
@@ -344,20 +344,20 @@ fn get_str<'a>(table: &'a toml::Value, key: &str) -> &'a str {
         .unwrap_or_default()
 }
 
-pub fn get_player_texture_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + ".texture"
+pub fn get_player_texture_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}.texture")
 }
 
-pub fn get_player_animation_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + ".animation"
+pub fn get_player_animation_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}.animation")
 }
 
-pub fn get_player_mugshot_texture_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + "_mug.texture"
+pub fn get_player_mugshot_texture_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}_mug.texture")
 }
 
-pub fn get_player_mugshot_animation_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + "_mug.animation"
+pub fn get_player_mugshot_animation_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}_mug.animation")
 }
 
 pub fn get_map_path(map_id: &str) -> String {

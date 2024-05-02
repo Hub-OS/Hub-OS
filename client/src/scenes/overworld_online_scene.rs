@@ -19,7 +19,7 @@ use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{
-    ActorProperty, BattleStatistics, FileHash, SpriteParent, TextboxOptions,
+    ActorId, ActorProperty, BattleStatistics, FileHash, SpriteId, SpriteParent, TextboxOptions,
 };
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -43,9 +43,9 @@ pub struct OverworldOnlineScene {
     previous_boost_packet: Option<ClientPacket>,
     last_position_send: Instant,
     assets: ServerAssetManager,
-    actor_id_map: BiMap<String, hecs::Entity>,
-    sprite_id_map: HashMap<String, hecs::Entity>,
-    excluded_actors: Vec<String>,
+    actor_id_map: BiMap<ActorId, hecs::Entity>,
+    sprite_id_map: HashMap<SpriteId, hecs::Entity>,
+    excluded_actors: Vec<ActorId>,
     excluded_objects: Vec<u32>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
@@ -1124,7 +1124,7 @@ impl OverworldOnlineScene {
                     let _ = entities.insert(
                         entity,
                         (
-                            InteractableActor(actor_id.clone()),
+                            InteractableActor(actor_id),
                             MovementInterpolator::new(game_io, position, initial_direction),
                             NameLabel(name),
                         ),
@@ -1607,7 +1607,7 @@ impl OverworldOnlineScene {
         }
 
         // then actors
-        if let Some(actor_id) = player_data.actor_interaction.clone() {
+        if let Some(actor_id) = player_data.actor_interaction {
             send_packet(
                 Reliability::Reliable,
                 ClientPacket::ActorInteraction { actor_id, button },

@@ -1,7 +1,7 @@
 // Increment VERSION_ITERATION packets/src/lib.rs if packets are added or modified
 
 use super::structures::{BattleStatistics, Direction};
-use crate::structures::PackageId;
+use crate::structures::{ActorId, PackageId};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -68,7 +68,7 @@ pub enum ClientPacket {
         button: u8,
     },
     ActorInteraction {
-        actor_id: String,
+        actor_id: ActorId,
         button: u8,
     },
     TileInteraction {

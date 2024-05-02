@@ -1,3 +1,4 @@
+use packets::structures::ActorId;
 use packets::{
     serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
     PacketSender, Reliability, ServerCommPacket, ServerPacket,
@@ -14,7 +15,7 @@ use super::ServerConfig;
 
 struct Connection {
     pub socket_address: SocketAddr,
-    pub client_id: Option<String>,
+    pub client_id: Option<ActorId>,
     pub netplay_index: usize,
     pub packet_sender: PacketSender<PacketChannels>,
     pub server_comm_channel: ChannelSender<PacketChannels>,
@@ -56,7 +57,7 @@ pub struct PacketOrchestrator {
     connection_config: packets::Config,
     connections: DenseSlotMap<slotmap::DefaultKey, Connection>,
     connection_map: HashMap<SocketAddr, slotmap::DefaultKey>,
-    client_id_map: HashMap<String, slotmap::DefaultKey>,
+    client_id_map: HashMap<ActorId, slotmap::DefaultKey>,
     client_room_map: HashMap<SocketAddr, Vec<String>>,
     rooms: HashMap<String, Vec<slotmap::DefaultKey>>,
     netplay_route_map: HashMap<SocketAddr, Vec<SocketAddr>>,
@@ -140,11 +141,11 @@ impl PacketOrchestrator {
         std::mem::take(&mut self.pending_receivers)
     }
 
-    pub fn register_client(&mut self, socket_address: SocketAddr, id: String) {
+    pub fn register_client(&mut self, socket_address: SocketAddr, id: ActorId) {
         self.unregister_client(socket_address);
 
         if let Some(index) = self.connection_map.get(&socket_address) {
-            self.connections[*index].client_id = Some(id.clone());
+            self.connections[*index].client_id = Some(id);
             self.client_id_map.insert(id, *index);
             self.client_room_map.insert(socket_address, Vec::new());
         } else {
@@ -366,8 +367,8 @@ impl PacketOrchestrator {
         }
     }
 
-    pub fn send_by_id(&mut self, id: &str, reliability: Reliability, packet: ServerPacket) {
-        if let Some(index) = self.client_id_map.get_mut(id) {
+    pub fn send_by_id(&mut self, id: ActorId, reliability: Reliability, packet: ServerPacket) {
+        if let Some(index) = self.client_id_map.get_mut(&id) {
             let connection = &mut self.connections[*index];
 
             internal_send_packet(
@@ -383,11 +384,11 @@ impl PacketOrchestrator {
     #[allow(dead_code)]
     pub fn send_packets_by_id(
         &mut self,
-        id: &str,
+        id: ActorId,
         reliability: Reliability,
         packets: Vec<ServerPacket>,
     ) {
-        if let Some(index) = self.client_id_map.get_mut(id) {
+        if let Some(index) = self.client_id_map.get_mut(&id) {
             let connection = &mut self.connections[*index];
 
             internal_send_packets(
@@ -402,11 +403,11 @@ impl PacketOrchestrator {
 
     pub fn send_byte_packets_by_id(
         &mut self,
-        id: &str,
+        id: ActorId,
         reliability: Reliability,
         packets: &[Vec<u8>],
     ) {
-        if let Some(index) = self.client_id_map.get_mut(id) {
+        if let Some(index) = self.client_id_map.get_mut(&id) {
             let connection = &mut self.connections[*index];
 
             internal_send_byte_packets(
@@ -662,7 +663,7 @@ mod tests {
 
         orchestrator.join_room(addr, room_c.clone());
         orchestrator.create_connection(addr);
-        orchestrator.register_client(addr, String::new());
+        orchestrator.register_client(addr, ActorId::new(0, 0));
         orchestrator.join_room(addr, room_a.clone());
         orchestrator.join_room(addr, room_b.clone());
 

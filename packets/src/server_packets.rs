@@ -17,7 +17,7 @@ pub enum ServerPacket {
         data: Vec<u8>,
     },
     Login {
-        actor_id: String,
+        actor_id: ActorId,
         warp_in: bool,
         spawn_x: f32,
         spawn_y: f32,
@@ -107,10 +107,10 @@ pub enum ServerPacket {
         id: u32,
     },
     ExcludeActor {
-        actor_id: String,
+        actor_id: ActorId,
     },
     IncludeActor {
-        actor_id: String,
+        actor_id: ActorId,
     },
     MoveCamera {
         x: f32,
@@ -133,7 +133,7 @@ pub enum ServerPacket {
         duration: f32,
     },
     TrackWithCamera {
-        actor_id: String,
+        actor_id: ActorId,
     },
     EnableCameraControls {
         dist_x: f32,
@@ -234,7 +234,7 @@ pub enum ServerPacket {
         remote_players: Vec<RemotePlayerInfo>,
     },
     ActorConnected {
-        actor_id: String,
+        actor_id: ActorId,
         name: String,
         texture_path: String,
         animation_path: String,
@@ -251,53 +251,53 @@ pub enum ServerPacket {
         animation: Option<String>,
     },
     ActorDisconnected {
-        actor_id: String,
+        actor_id: ActorId,
         warp_out: bool,
     },
     ActorSetName {
-        actor_id: String,
+        actor_id: ActorId,
         name: String,
     },
     ActorMove {
-        actor_id: String,
+        actor_id: ActorId,
         x: f32,
         y: f32,
         z: f32,
         direction: Direction,
     },
     ActorSetAvatar {
-        actor_id: String,
+        actor_id: ActorId,
         texture_path: String,
         animation_path: String,
     },
     ActorEmote {
-        actor_id: String,
+        actor_id: ActorId,
         emote_id: String,
     },
     ActorAnimate {
-        actor_id: String,
+        actor_id: ActorId,
         state: String,
         loop_animation: bool,
     },
     ActorPropertyKeyFrames {
-        actor_id: String,
+        actor_id: ActorId,
         keyframes: Vec<ActorKeyFrame>,
     },
     ActorMapColor {
-        actor_id: String,
+        actor_id: ActorId,
         color: (u8, u8, u8, u8),
     },
     SpriteCreated {
-        sprite_id: String,
+        sprite_id: SpriteId,
         sprite_definition: SpriteDefinition,
     },
     SpriteAnimate {
-        sprite_id: String,
+        sprite_id: SpriteId,
         state: String,
         loop_animation: bool,
     },
     SpriteDeleted {
-        sprite_id: String,
+        sprite_id: SpriteId,
     },
     SynchronizeUpdates,
     EndSynchronization,

@@ -12,12 +12,15 @@ flate2 = "1.0"
 num-derive = "0.4"
 num-traits = "0.2"
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua", optional = true }
+mlua = { version = "*", optional = true }
 log = "0.4"
 async-std = "1.12"
 strum = { version = "0.25", features = ["derive"] }
 hmac-sha256 = "1"
 hex = "0.4.3"
 enum-map = "2.4"
+slotmap = "1"
 
 [features]
 rollback_mlua = ["dep:rollback_mlua"]
+mlua = ["dep:mlua"]

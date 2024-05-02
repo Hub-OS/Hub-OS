@@ -1,6 +1,6 @@
 use super::{BattleStatistics, Net};
 use crate::plugins::PluginInterface;
-use packets::structures::PackageId;
+use packets::structures::{ActorId, PackageId};
 
 pub(super) struct PluginWrapper {
     plugin_interfaces: Vec<Box<dyn PluginInterface>>,
@@ -57,43 +57,43 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
-    fn handle_player_request(&mut self, net: &mut Net, player_id: &str, data: &str) {
+    fn handle_player_request(&mut self, net: &mut Net, player_id: ActorId, data: &str) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_request(net, player_id, data)
         });
     }
 
-    fn handle_player_connect(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_connect(&mut self, net: &mut Net, player_id: ActorId) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_connect(net, player_id)
         });
     }
 
-    fn handle_player_join(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_join(&mut self, net: &mut Net, player_id: ActorId) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_join(net, player_id)
         });
     }
 
-    fn handle_player_transfer(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_transfer(&mut self, net: &mut Net, player_id: ActorId) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_transfer(net, player_id)
         });
     }
 
-    fn handle_player_disconnect(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_disconnect(&mut self, net: &mut Net, player_id: ActorId) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_disconnect(net, player_id)
         });
     }
 
-    fn handle_player_move(&mut self, net: &mut Net, player_id: &str, x: f32, y: f32, z: f32) {
+    fn handle_player_move(&mut self, net: &mut Net, player_id: ActorId, x: f32, y: f32, z: f32) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_move(net, player_id, x, y, z)
         });
     }
 
-    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, augments: &[PackageId]) {
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: ActorId, augments: &[PackageId]) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_player_augment(net, player_id, augments)
         });
@@ -102,7 +102,7 @@ impl PluginInterface for PluginWrapper {
     fn handle_player_avatar_change(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         texture_path: &str,
         animation_path: &str,
     ) -> bool {
@@ -120,7 +120,7 @@ impl PluginInterface for PluginWrapper {
         prevent_default
     }
 
-    fn handle_player_emote(&mut self, net: &mut Net, player_id: &str, emote_id: &str) -> bool {
+    fn handle_player_emote(&mut self, net: &mut Net, player_id: ActorId, emote_id: &str) -> bool {
         let mut prevent_default = false;
 
         self.wrap_calls(net, |plugin_interface, net| {
@@ -130,7 +130,7 @@ impl PluginInterface for PluginWrapper {
         prevent_default
     }
 
-    fn handle_custom_warp(&mut self, net: &mut Net, player_id: &str, tile_object_id: u32) {
+    fn handle_custom_warp(&mut self, net: &mut Net, player_id: ActorId, tile_object_id: u32) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_custom_warp(net, player_id, tile_object_id)
         });
@@ -139,7 +139,7 @@ impl PluginInterface for PluginWrapper {
     fn handle_object_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         tile_object_id: u32,
         button: u8,
     ) {
@@ -151,8 +151,8 @@ impl PluginInterface for PluginWrapper {
     fn handle_actor_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
-        actor_id: &str,
+        player_id: ActorId,
+        actor_id: ActorId,
         button: u8,
     ) {
         self.wrap_calls(net, |plugin_interface, net| {
@@ -163,7 +163,7 @@ impl PluginInterface for PluginWrapper {
     fn handle_tile_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         x: f32,
         y: f32,
         z: f32,
@@ -174,7 +174,7 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
-    fn handle_textbox_response(&mut self, net: &mut Net, player_id: &str, response: u8) {
+    fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.pop_textbox() {
                 self.wrap_call(i, net, |plugin_interface, net| {
@@ -184,7 +184,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_prompt_response(&mut self, net: &mut Net, player_id: &str, response: String) {
+    fn handle_prompt_response(&mut self, net: &mut Net, player_id: ActorId, response: String) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.pop_textbox() {
                 self.wrap_call(i, net, |plugin_interface, net| {
@@ -194,7 +194,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_board_open(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_board_open(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             client.widget_tracker.open_board();
 
@@ -206,7 +206,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_board_close(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_board_close(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.close_board() {
                 self.wrap_call(i, net, |plugin_interface, net| {
@@ -216,7 +216,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_post_request(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_post_request(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.current_board() {
                 self.wrap_call(*i, net, |plugin_interface, net| {
@@ -226,7 +226,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_post_selection(&mut self, net: &mut Net, player_id: &str, post_id: &str) {
+    fn handle_post_selection(&mut self, net: &mut Net, player_id: ActorId, post_id: &str) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.current_board() {
                 self.wrap_call(*i, net, |plugin_interface, net| {
@@ -236,7 +236,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_open(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_shop_open(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             client.widget_tracker.open_shop();
 
@@ -248,7 +248,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_shop_leave(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             client.widget_tracker.open_shop();
 
@@ -260,7 +260,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_close(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_shop_close(&mut self, net: &mut Net, player_id: ActorId) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.close_shop() {
                 self.wrap_call(i, net, |plugin_interface, net| {
@@ -270,7 +270,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: ActorId, item_id: &str) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.current_shop() {
                 self.wrap_call(*i, net, |plugin_interface, net| {
@@ -280,7 +280,12 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+    fn handle_shop_description_request(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        item_id: &str,
+    ) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(i) = client.widget_tracker.current_shop() {
                 self.wrap_call(*i, net, |plugin_interface, net| {
@@ -290,7 +295,7 @@ impl PluginInterface for PluginWrapper {
         }
     }
 
-    fn handle_item_use(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+    fn handle_item_use(&mut self, net: &mut Net, player_id: ActorId, item_id: &str) {
         self.wrap_calls(net, |plugin_interface, net| {
             plugin_interface.handle_item_use(net, player_id, item_id)
         });
@@ -299,7 +304,7 @@ impl PluginInterface for PluginWrapper {
     fn handle_battle_results(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         battle_stats: &BattleStatistics,
     ) {
         if let Some(client) = net.get_client_mut(player_id) {
