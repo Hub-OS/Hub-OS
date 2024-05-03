@@ -139,7 +139,7 @@ impl Field {
                 }
 
                 if tile.team() == Team::Unset {
-                    tile.set_team(team);
+                    tile.set_team(team, None);
                 }
 
                 if !matches!(tile.direction(), Direction::Left | Direction::Right) {
@@ -198,7 +198,7 @@ impl Field {
 
                 // test unresolved neighbor blocking
 
-                let neighbor_col = if tile.direction() == Direction::Right {
+                let neighbor_col = if tile.original_direction() == Direction::Right {
                     col - 1
                 } else {
                     col + 1

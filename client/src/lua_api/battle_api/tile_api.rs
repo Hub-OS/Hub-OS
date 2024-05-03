@@ -230,7 +230,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_team", |api_ctx, lua, params| {
-        let (table, team): (rollback_mlua::Table, Team) = lua.unpack_multi(params)?;
+        let (table, team, direction): (rollback_mlua::Table, Team, Option<Direction>) =
+            lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -239,7 +240,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
 
         if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
-            tile.set_team(team);
+            tile.set_team(team, direction);
         }
 
         lua.pack_multi(())
