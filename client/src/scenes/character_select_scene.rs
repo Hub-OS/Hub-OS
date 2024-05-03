@@ -46,7 +46,7 @@ impl CharacterSelectScene {
 
         let mut package_ids: Vec<_> = globals
             .player_packages
-            .package_ids_with_override(PackageNamespace::Local)
+            .package_ids(PackageNamespace::Local)
             .collect();
 
         package_ids.sort();

@@ -1,7 +1,7 @@
 use super::{ChildPackageInfo, Package, PackageId, PackageInfo, PackageNamespace};
 use crate::resources::{LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub use packets::structures::PackageCategory;
 
@@ -42,42 +42,8 @@ impl<T: Package> PackageManager<T> {
             .flat_map(|packages| packages.values())
     }
 
-    pub fn package_ids_with_override(
-        &self,
-        ns: PackageNamespace,
-    ) -> impl Iterator<Item = &PackageId> + '_ {
-        // gather all ids into a hashset to avoid duplicates
-        let mut ids = HashSet::new();
-
-        let flow = match ns {
-            PackageNamespace::Netplay(_) => {
-                vec![
-                    PackageNamespace::RecordingServer,
-                    PackageNamespace::Server,
-                    ns,
-                    PackageNamespace::Local,
-                    PackageNamespace::BuiltIn,
-                ]
-            }
-            PackageNamespace::Local | PackageNamespace::Server | PackageNamespace::BuiltIn => {
-                vec![
-                    PackageNamespace::Server,
-                    PackageNamespace::Local,
-                    PackageNamespace::BuiltIn,
-                ]
-            }
-            PackageNamespace::RecordingServer => vec![PackageNamespace::RecordingServer],
-        };
-
-        for ns in flow {
-            ids.extend(self.package_ids(ns));
-        }
-
-        ids.into_iter()
-    }
-
     pub fn packages_with_override(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
-        self.package_ids_with_override(ns)
+        self.package_ids(ns)
             .flat_map(move |id| self.package_or_override(ns, id))
     }
 

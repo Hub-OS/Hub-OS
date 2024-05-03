@@ -35,7 +35,7 @@ impl LibraryScene {
         let dock_offset = ui_animator.point("DOCK").unwrap_or_default();
         let mut package_ids: Vec<_> = globals
             .card_packages
-            .package_ids_with_override(PackageNamespace::Local)
+            .package_ids(PackageNamespace::Local)
             .cloned()
             .collect();
 
