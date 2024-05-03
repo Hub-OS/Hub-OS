@@ -74,6 +74,7 @@ impl From<&json::Value> for PackageListing {
             "library" => PackagePreviewData::Library,
             "pack" => PackagePreviewData::Pack,
             "resource" => PackagePreviewData::Resource,
+            "status" => PackagePreviewData::Status,
             _ => PackagePreviewData::Unknown,
         };
 
