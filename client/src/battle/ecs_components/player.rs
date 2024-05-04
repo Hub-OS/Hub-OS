@@ -168,6 +168,17 @@ impl Player {
             let callbacks = animator.set_state(Player::IDLE_STATE);
             animator.set_loop_mode(AnimatorLoopMode::Loop);
             simulation.pending_callbacks.extend(callbacks);
+
+            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
+                return;
+            };
+
+            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+            else {
+                return;
+            };
+
+            animator.apply(sprite_tree.root_mut());
         });
 
         // delete callback
