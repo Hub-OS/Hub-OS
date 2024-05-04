@@ -330,7 +330,7 @@ impl Living {
                 let mut dest = IVec2::new(entity.x, entity.y);
                 let mut duration = 0;
 
-                for _ in 0..hit_props.drag.count {
+                for _ in 0..hit_props.drag.distance {
                     dest += delta;
 
                     let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();

@@ -108,7 +108,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_tile", |api_ctx, lua, params| {
-        let (table, direction, count): (rollback_mlua::Table, Option<Direction>, Option<i32>) =
+        let (table, direction, distance): (rollback_mlua::Table, Option<Direction>, Option<i32>) =
             lua.unpack_multi(params)?;
 
         let id: EntityId = table.raw_get("#id")?;
@@ -121,10 +121,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             .map_err(|_| entity_not_found())?;
 
         let vec = direction.unwrap_or_default().i32_vector();
-        let count = count.unwrap_or_default();
+        let distance = distance.unwrap_or_default();
 
-        let x = entity.x + vec.0 * count;
-        let y = entity.y + vec.1 * count;
+        let x = entity.x + vec.0 * distance;
+        let y = entity.y + vec.1 * distance;
 
         let field = &api_ctx.simulation.field;
 

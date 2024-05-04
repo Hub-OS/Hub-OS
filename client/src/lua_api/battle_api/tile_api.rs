@@ -275,12 +275,12 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "get_tile", |api_ctx, lua, params| {
-        let (table, direction, count): (rollback_mlua::Table, Direction, i32) =
+        let (table, direction, distance): (rollback_mlua::Table, Direction, i32) =
             lua.unpack_multi(params)?;
 
         let vec = direction.i32_vector();
-        let x = table.get::<_, i32>("#x")? + vec.0 * count;
-        let y = table.get::<_, i32>("#y")? + vec.1 * count;
+        let x = table.get::<_, i32>("#x")? + vec.0 * distance;
+        let y = table.get::<_, i32>("#y")? + vec.1 * distance;
 
         let api_ctx = api_ctx.borrow();
 
