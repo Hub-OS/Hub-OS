@@ -18,28 +18,15 @@ fn main() -> ExitCode {
 
     // areas
     fs_extra::dir::create_all("dist/server", true).unwrap();
-    fs_extra::dir::copy(
-        "server/areas",
-        "dist/server",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
-    fs_extra::dir::copy(
-        "server/assets",
-        "dist/server",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
 
-    // scripts
-    fs_extra::dir::create_all("dist/server/scripts", true).unwrap();
-
-    fs_extra::dir::copy(
-        "server/scripts/libs",
-        "dist/server/scripts",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
+    for folder in ["areas", "assets", "mods", "scripts"] {
+        fs_extra::dir::copy(
+            format!("server/{folder}"),
+            "dist/server",
+            &fs_extra::dir::CopyOptions::default(),
+        )
+        .unwrap();
+    }
 
     // windows exe
     let _ = fs::copy(
