@@ -418,6 +418,7 @@ impl OverworldOnlineScene {
                 data_type,
                 size,
             } => {
+                self.loaded_zips.remove(&name);
                 self.assets.start_download(
                     name,
                     last_modified,
@@ -941,30 +942,25 @@ impl OverworldOnlineScene {
             } => {
                 let namespace = PackageNamespace::Server;
 
-                let globals = game_io.resource::<Globals>().unwrap();
-                let assets = &globals.assets;
+                if !self.loaded_zips.contains_key(&package_path) {
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-                let hash = match self.loaded_zips.get(&package_path) {
-                    Some(hash) => *hash,
-                    None => {
-                        let bytes = self.assets.binary(&package_path);
-                        let hash = FileHash::hash(&bytes);
+                    let bytes = self.assets.binary(&package_path);
+                    let hash = FileHash::hash(&bytes);
 
-                        assets.load_virtual_zip(game_io, hash, bytes);
-                        self.loaded_zips.insert(package_path.clone(), hash);
+                    globals.assets.load_virtual_zip(game_io, hash, bytes);
+                    self.loaded_zips.insert(package_path.clone(), hash);
 
-                        hash
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                    if let Some(package_info) =
+                        globals.load_virtual_package(category, namespace, hash)
+                    {
+                        // save package id for starting encounters
+                        self.encounter_packages
+                            .insert(package_path, package_info.id.clone());
                     }
                 };
-
-                let globals = game_io.resource_mut::<Globals>().unwrap();
-
-                if let Some(package_info) = globals.load_virtual_package(category, namespace, hash)
-                {
-                    // save package id for starting encounters
-                    self.encounter_packages
-                        .insert(package_path, package_info.id.clone());
-                }
             }
             ServerPacket::Restrictions { restrictions_path } => {
                 let globals = game_io.resource_mut::<Globals>().unwrap();
