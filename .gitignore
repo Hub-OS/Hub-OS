@@ -7,12 +7,12 @@ dist
 .vscode
 
 # client files
-cache/
-mods
-identity
-save.dat
-corrupted_save.dat
-config.ini
+client/cache/
+client/mods
+client/identity
+client/save.dat
+client/corrupted_save.dat
+client/config.ini
 crash.txt
 
 # private files
