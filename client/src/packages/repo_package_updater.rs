@@ -174,7 +174,7 @@ impl RepoPackageUpdater {
 
             let _ = std::fs::remove_dir_all(&base_path);
 
-            crate::zip::extract(&zip_bytes, |path, mut virtual_file| {
+            packets::zip::extract(&zip_bytes, |path, mut virtual_file| {
                 let path = format!("{base_path}{path}");
 
                 if let Some(parent_path) = ResourcePaths::parent(&path) {

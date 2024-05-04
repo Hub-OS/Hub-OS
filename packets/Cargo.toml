@@ -20,6 +20,10 @@ hmac-sha256 = "1"
 hex = "0.4.3"
 enum-map = "2.4"
 slotmap = "1"
+itertools = "0.12"
+walkdir = "2"
+path-clean = "1"
+zip = { version = "0.6", features = ["deflate"], default-features = false }
 
 [features]
 rollback_mlua = ["dep:rollback_mlua"]

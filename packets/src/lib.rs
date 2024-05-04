@@ -14,6 +14,7 @@ mod server_packets;
 
 pub mod address_parsing;
 pub mod structures;
+pub mod zip;
 pub use client_packets::*;
 pub use netplay_packets::*;
 pub use network_channels::*;

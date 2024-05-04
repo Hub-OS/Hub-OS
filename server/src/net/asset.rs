@@ -38,7 +38,7 @@ pub enum AssetId {
 }
 
 impl Asset {
-    pub fn load_from_memory(path: &std::path::Path, data: &[u8]) -> Asset {
+    pub fn load_from_memory(path: &std::path::Path, data: Vec<u8>) -> Asset {
         let asset_data = resolve_asset_data(path, data);
 
         let last_modified = std::time::SystemTime::now()
@@ -68,7 +68,7 @@ impl Asset {
         use std::fs;
 
         let data = fs::read(path).unwrap_or_default();
-        let asset_data = resolve_asset_data(path, &data);
+        let asset_data = resolve_asset_data(path, data);
 
         let mut last_modified = 0;
 
@@ -364,7 +364,7 @@ pub fn get_map_path(map_id: &str) -> String {
     String::from("/server/maps/") + map_id + ".tmx"
 }
 
-fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
+fn resolve_asset_data(path: &std::path::Path, data: Vec<u8>) -> AssetData {
     let extension = path
         .extension()
         .unwrap_or_default()
@@ -372,11 +372,11 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
         .unwrap_or_default();
 
     match extension.to_lowercase().as_str() {
-        "png" | "bmp" => AssetData::Texture(data.to_vec()),
-        "flac" | "mp3" | "wav" | "mid" | "midi" | "ogg" => AssetData::Audio(data.to_vec()),
-        "zip" => AssetData::Data(data.to_vec()),
+        "png" | "bmp" => AssetData::Texture(data),
+        "flac" | "mp3" | "wav" | "mid" | "midi" | "ogg" => AssetData::Audio(data),
+        "zip" => AssetData::Data(data),
         "tsx" => {
-            let original_data = String::from_utf8_lossy(data);
+            let original_data = String::from_utf8_lossy(&data);
             let translated_data = translate_tsx(path, &original_data);
 
             if translated_data.is_none() {
@@ -385,7 +385,7 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
 
             AssetData::Text(translated_data.unwrap_or_else(|| original_data.to_string()))
         }
-        _ => AssetData::Text(String::from_utf8_lossy(data).to_string()),
+        _ => AssetData::Text(String::from_utf8_lossy(&data).to_string()),
     }
 }
 

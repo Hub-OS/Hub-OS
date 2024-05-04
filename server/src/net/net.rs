@@ -39,7 +39,8 @@ impl Net {
         use std::fs::{read_dir, read_to_string};
 
         let mut asset_manager = AssetManager::new();
-        asset_manager.load_assets_from_dir(std::path::Path::new("assets"));
+        asset_manager.load_assets_from_dir("assets");
+        asset_manager.load_mods_from_dir("mods");
 
         let mut areas = HashMap::new();
         let mut default_area_provided = false;

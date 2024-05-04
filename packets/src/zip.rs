@@ -8,7 +8,14 @@ use zip::result::ZipResult;
 use zip::write::FileOptions as ZipFileOptions;
 use zip::ZipWriter;
 
-use super::ResourcePaths;
+pub fn clean_path(path_str: &str) -> String {
+    let path = path_clean::clean(path_str)
+        .to_str()
+        .unwrap_or_default()
+        .replace('\\', "/");
+
+    path.strip_prefix("./").map(String::from).unwrap_or(path)
+}
 
 pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
     let cursor = Cursor::new(bytes);
@@ -33,7 +40,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
             log::error!("Invalid file name within zip {:?}", file.name());
             continue;
         };
-        let path = ResourcePaths::clean(path);
+        let path = clean_path(path);
 
         file_callback(path, file);
     }
@@ -76,7 +83,7 @@ where
             let _ = file.read_to_end(&mut buffer);
 
             let stripped_path = entry.path().strip_prefix(root_path).unwrap();
-            let cleaned_path = ResourcePaths::clean(&stripped_path.to_string_lossy());
+            let cleaned_path = clean_path(&stripped_path.to_string_lossy());
 
             let _ = zip_writer.start_file(cleaned_path, file_options);
             let _ = zip_writer.write_all(&buffer);

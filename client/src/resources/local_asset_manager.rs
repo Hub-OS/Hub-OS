@@ -148,7 +148,7 @@ impl LocalAssetManager {
 
         let mut virtual_files = Vec::new();
 
-        crate::zip::extract(&bytes, |path, mut file| {
+        packets::zip::extract(&bytes, |path, mut file| {
             let virtual_path = meta.virtual_prefix.clone() + path.as_str();
             let virtual_path = Arc::<str>::from(virtual_path);
 

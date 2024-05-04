@@ -32,7 +32,6 @@ mod scenes;
 mod structures;
 mod supporting_service;
 mod transitions;
-mod zip;
 
 use crate::args::Args;
 use crate::overlays::*;

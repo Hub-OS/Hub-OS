@@ -294,12 +294,7 @@ impl ResourcePaths {
     }
 
     pub fn clean(path_str: &str) -> String {
-        let path = path_clean::clean(path_str)
-            .to_str()
-            .unwrap_or_default()
-            .replace('\\', Self::SEPARATOR);
-
-        path.strip_prefix("./").map(String::from).unwrap_or(path)
+        packets::zip::clean_path(path_str)
     }
 
     pub fn clean_folder(path_str: &str) -> String {

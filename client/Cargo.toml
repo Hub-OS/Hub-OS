@@ -36,13 +36,11 @@ clap = { version = "4.3", features = ["derive"] }
 unicode_categories = "0.1"
 flate2 = "1.0"
 bimap = "0.6"
-zip = { version = "0.6", features = ["deflate"], default-features = false }
-path-clean = "1.0"
 futures = { version = "0.3", default-features = false, features = [
   "std",
   "async-await"
 ] }
-walkdir = "2.3"
+walkdir = "2"
 toml = "0.8"
 serde_json = "1.0"
 enum-map = "2"

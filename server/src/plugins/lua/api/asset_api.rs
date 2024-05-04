@@ -8,7 +8,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         let path_buf = std::path::PathBuf::from(path.to_string());
-        let asset = Asset::load_from_memory(&path_buf, data.as_bytes());
+        let asset = Asset::load_from_memory(&path_buf, data.as_bytes().to_vec());
 
         net.set_asset(path, asset);
 

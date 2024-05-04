@@ -236,7 +236,7 @@ impl<T: Package> PackageManager<T> {
             return None;
         }
 
-        let data = match crate::zip::compress(&package_info.base_path) {
+        let data = match packets::zip::compress(&package_info.base_path) {
             Ok(data) => data,
             Err(e) => {
                 log::error!("Failed to zip package {:?}: {e}", package_info.base_path);
