@@ -58,6 +58,13 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_spawner(lua, package_id, rank)?)
     });
 
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "player_count", |api_ctx, lua, params| {
+        let _: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.inputs.len())
+    });
+
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "spawn_player", |api_ctx, lua, params| {
         let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
             lua.unpack_multi(params)?;
