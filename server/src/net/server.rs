@@ -262,16 +262,17 @@ impl Server {
                         is_valid = asset.last_modified == last_modified;
                     }
 
-                    if is_valid {
-                        if let Some(client) = net.get_client_mut(player_id) {
+                    if let Some(client) = net.get_client_mut(player_id) {
+                        if is_valid {
                             client.cached_assets.insert(path);
+                        } else if !client.cached_assets.contains(&path) {
+                            // tell the client to delete this asset if we haven't already sent new data for it
+                            self.packet_orchestrator.borrow_mut().send(
+                                socket_address,
+                                Reliability::ReliableOrdered,
+                                ServerPacket::RemoveAsset { path },
+                            );
                         }
-                    } else {
-                        self.packet_orchestrator.borrow_mut().send(
-                            socket_address,
-                            Reliability::ReliableOrdered,
-                            ServerPacket::RemoveAsset { path },
-                        );
                     }
                 }
                 ClientPacket::Asset { asset_type, data } => {
