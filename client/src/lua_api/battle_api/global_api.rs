@@ -29,12 +29,14 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     let drag_table = lua.create_table()?;
     drag_table.set(
         "new",
-        lua.create_function(|_, (direction, count): (Option<Direction>, Option<u32>)| {
-            Ok(Drag {
-                direction: direction.unwrap_or_default(),
-                count: count.unwrap_or_default(),
-            })
-        })?,
+        lua.create_function(
+            |_, (direction, distance): (Option<Direction>, Option<u32>)| {
+                Ok(Drag {
+                    direction: direction.unwrap_or_default(),
+                    distance: distance.unwrap_or_default(),
+                })
+            },
+        )?,
     )?;
     drag_table.set("None", Drag::default())?;
     globals.set("Drag", drag_table)?;
