@@ -172,7 +172,9 @@ impl Config {
     }
 
     pub fn save(&self) {
-        let _ = std::fs::write("config.ini", self.to_string());
+        if let Err(err) = std::fs::write("config.ini", self.to_string()) {
+            log::error!("Failed to save config: {err:?}");
+        }
     }
 
     fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {
