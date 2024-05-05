@@ -142,7 +142,7 @@ impl CardSelectButton {
     ) {
         for (_, player) in simulation.entities.query_mut::<&mut Player>() {
             if !player.staged_items.take_updated() {
-                return;
+                continue;
             }
 
             let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
