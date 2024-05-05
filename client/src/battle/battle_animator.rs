@@ -1,7 +1,7 @@
 use super::BattleCallback;
 use crate::bindable::{AnimatorPlaybackMode, GenerationalIndex};
 use crate::render::{
-    Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameTime, SpriteNode,
+    Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameList, FrameTime, SpriteNode,
 };
 use crate::resources::Globals;
 use crate::structures::{SlotMap, Tree, TreeIndex};
@@ -279,6 +279,10 @@ impl BattleAnimator {
 
     pub fn is_complete(&self) -> bool {
         self.animator.is_complete()
+    }
+
+    pub fn iter_states(&self) -> impl Iterator<Item = (&str, &FrameList)> {
+        self.animator.iter_states()
     }
 
     pub fn current_state(&self) -> Option<&str> {

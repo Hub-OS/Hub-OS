@@ -116,6 +116,17 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(animator.current_state())
     });
 
+    getter(lua_api, "states", |animator, lua, _: ()| {
+        let table = lua.create_table_from(
+            animator
+                .iter_states()
+                .enumerate()
+                .map(|(i, (state, _))| (i + 1, state)),
+        );
+
+        lua.pack_multi(table)
+    });
+
     lua_api.add_dynamic_function(ANIMATION_TABLE, "set_state", |api_ctx, lua, params| {
         let (table, state, frame_data): (rollback_mlua::Table, String, Option<Vec<Vec<usize>>>) =
             lua.unpack_multi(params)?;
