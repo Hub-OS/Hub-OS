@@ -331,7 +331,7 @@ impl NetplayInitScene {
                     .into_iter()
                     .filter(|(category, id, hash)| {
                         globals
-                            .package_or_fallback_info(*category, PackageNamespace::Server, id)
+                            .package_or_fallback_info(*category, PackageNamespace::Local, id)
                             .map(|package_info| package_info.hash != *hash) // hashes differ
                             .unwrap_or(true) // non existent
                     })

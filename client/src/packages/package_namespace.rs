@@ -56,9 +56,7 @@ impl PackageNamespace {
                 .or_else(|| callback(PackageNamespace::Local))
                 .or_else(|| callback(PackageNamespace::BuiltIn)),
             PackageNamespace::Local | PackageNamespace::BuiltIn => {
-                callback(PackageNamespace::Local)
-                    .or_else(|| callback(PackageNamespace::Server))
-                    .or_else(|| callback(PackageNamespace::BuiltIn))
+                callback(PackageNamespace::Local).or_else(|| callback(PackageNamespace::BuiltIn))
             }
             _ => unreachable!(),
         }
