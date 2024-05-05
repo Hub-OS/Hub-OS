@@ -81,7 +81,7 @@ impl BlockGrid {
 
         let Some(package) = globals
             .augment_packages
-            .package_or_override(self.namespace, &block.package_id)
+            .package_or_fallback(self.namespace, &block.package_id)
         else {
             return Some(Vec::new());
         };
@@ -202,7 +202,7 @@ impl BlockGrid {
             .flat_map(|block| {
                 globals
                     .augment_packages
-                    .package_or_override(self.namespace, &block.package_id)
+                    .package_or_fallback(self.namespace, &block.package_id)
             })
     }
 
@@ -230,7 +230,7 @@ impl BlockGrid {
 
         for block in self.blocks.values() {
             let Some(package) =
-                augment_packages.package_or_override(self.namespace, &block.package_id)
+                augment_packages.package_or_fallback(self.namespace, &block.package_id)
             else {
                 continue;
             };
@@ -263,7 +263,7 @@ impl BlockGrid {
         let namespace = self.namespace;
 
         list.into_iter().rev().flat_map(move |(id, count, _)| {
-            Some((augment_packages.package_or_override(namespace, id)?, count))
+            Some((augment_packages.package_or_fallback(namespace, id)?, count))
         })
     }
 

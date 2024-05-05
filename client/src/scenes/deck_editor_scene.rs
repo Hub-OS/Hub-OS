@@ -479,7 +479,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         }),
         Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.short_name.clone()
@@ -487,14 +487,14 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
         Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             -package.card_properties.damage
         }),
         Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.element as u8
@@ -502,7 +502,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
         Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.card_class as u8
@@ -579,7 +579,7 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
 
     let regular_allowed = item.valid && {
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_override(NAMESPACE, package_id);
+        let package = card_packages.package(NAMESPACE, package_id);
         package.is_some_and(|package| package.regular_allowed)
     };
 
@@ -721,7 +721,7 @@ fn transfer_to_deck(
 
     let globals = game_io.resource::<Globals>().unwrap();
     let card_manager = &globals.card_packages;
-    let package = card_manager.package_or_override(NAMESPACE, &card_item.card.package_id)?;
+    let package = card_manager.package(NAMESPACE, &card_item.card.package_id)?;
     let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
@@ -952,7 +952,7 @@ impl Dock {
         card_class: CardClass,
     ) -> usize {
         self.card_items()
-            .flat_map(|item| card_manager.package_or_override(NAMESPACE, &item.card.package_id))
+            .flat_map(|item| card_manager.package(NAMESPACE, &item.card.package_id))
             .filter(|package| package.card_properties.card_class == card_class)
             .count()
     }
@@ -1118,7 +1118,7 @@ impl CardListItem {
             let owned_iter = restrictions.card_iter().filter(|(card, _)| {
                 // filter for installed cards only
                 package_manager
-                    .package_or_override(NAMESPACE, &card.package_id)
+                    .package(NAMESPACE, &card.package_id)
                     .is_some()
             });
 
@@ -1144,7 +1144,7 @@ impl CardListItem {
         } else {
             // use all packages for pack
             package_manager
-                .packages_with_override(NAMESPACE)
+                .packages(NAMESPACE)
                 .filter(|package| !package.hidden)
                 .flat_map(|package| {
                     let package_info = package.package_info();
@@ -1186,7 +1186,7 @@ impl CardListItem {
                 let card_packages = &globals.card_packages;
 
                 card_packages
-                    .package_or_override(NAMESPACE, &self.card.package_id)
+                    .package(NAMESPACE, &self.card.package_id)
                     .is_some_and(|package| package.regular_allowed)
             };
 

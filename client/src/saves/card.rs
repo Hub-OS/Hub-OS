@@ -23,7 +23,7 @@ impl Card {
         let globals = game_io.resource::<Globals>().unwrap();
         let package_manager = &globals.card_packages;
         let name = package_manager
-            .package_or_override(PackageNamespace::Local, &self.package_id)
+            .package_or_fallback(PackageNamespace::Local, &self.package_id)
             .map(|package| package.card_properties.short_name.as_ref())
             .unwrap_or("?????");
 
@@ -51,7 +51,7 @@ impl Card {
         let (preview_texture_path, element, secondary_element, damage);
 
         if let Some(package) =
-            package_manager.package_or_override(PackageNamespace::Local, &self.package_id)
+            package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
         {
             preview_texture_path = package.preview_texture_path.as_str();
             element = package.card_properties.element;
@@ -138,7 +138,7 @@ impl Card {
         let (icon_texture_path, short_name, element, limit);
 
         if let Some(package) =
-            package_manager.package_or_override(PackageNamespace::Local, &self.package_id)
+            package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
         {
             icon_texture_path = package.icon_texture_path.as_str();
             short_name = package.card_properties.short_name.as_ref();

@@ -17,54 +17,18 @@ pub struct BattleRecording {
 }
 
 impl BattleRecording {
-    fn normalize_namespace(
-        namespace: PackageNamespace,
-        local_index: Option<usize>,
-    ) -> PackageNamespace {
-        match namespace {
-            PackageNamespace::Netplay(i) => PackageNamespace::Netplay(i),
-            PackageNamespace::RecordingServer | PackageNamespace::Server => {
-                PackageNamespace::RecordingServer
-            }
-            PackageNamespace::Local => {
-                if let Some(i) = local_index {
-                    PackageNamespace::Netplay(i as u8)
-                } else {
-                    log::error!(
-                        "Unabled to handle Local namespace in BattleRecording::normalize_namespace()"
-                    );
-
-                    PackageNamespace::RecordingServer
-                }
-            }
-            PackageNamespace::BuiltIn => {
-                if let Some(i) = local_index {
-                    PackageNamespace::Netplay(i as u8)
-                } else {
-                    PackageNamespace::RecordingServer
-                }
-            }
-        }
-    }
-
     pub fn new(props: &BattleProps) -> Self {
-        let local_index = (props.player_setups.iter())
-            .find(|setup| setup.local)
-            .map(|setup| setup.index);
-
         // clear setup buffers
         let mut setups = props.player_setups.clone();
 
         for setup in &mut setups {
             // we'll put this data back in during battle
             setup.buffer.clear();
-            // fix namespaces
-            setup.package_pair.0 = Self::normalize_namespace(setup.package_pair.0, local_index);
         }
 
         Self {
             encounter_package_pair: if let Some((ns, id)) = &props.encounter_package_pair {
-                Some((Self::normalize_namespace(*ns, local_index), id.clone()))
+                Some((ns.prefix_recording(), id.clone()))
             } else {
                 None
             },
@@ -82,13 +46,9 @@ impl BattleRecording {
 
         // collect package zips
         if self.package_zips.is_empty() {
-            let local_index = (props.player_setups.iter())
-                .find(|setup| setup.local)
-                .map(|setup| setup.index);
-
             for (info, namespace) in globals.battle_dependencies(game_io, props) {
                 let category = info.package_category;
-                let namespace = Self::normalize_namespace(namespace, local_index);
+                let namespace = namespace.prefix_recording();
                 let hash = &info.hash;
 
                 if let Some(bytes) = globals.assets.virtual_zip_bytes(hash) {
@@ -99,6 +59,8 @@ impl BattleRecording {
 
                     self.package_zips.push((category, namespace, bytes));
                 }
+
+                println!("saving package: {:?} {:?}", info.id, namespace);
             }
         }
 
@@ -106,7 +68,10 @@ impl BattleRecording {
         let encounter_preview_path = self
             .encounter_package_pair
             .as_ref()
-            .and_then(|(ns, id)| globals.encounter_packages.package_or_override(*ns, id))
+            .and_then(|(ns, id)| {
+                let ns = ns.strip_recording();
+                globals.encounter_packages.package_or_fallback(ns, id)
+            })
             .map(|package| package.preview_texture_path.clone());
 
         let recording = self.clone();
@@ -118,7 +83,11 @@ impl BattleRecording {
 
             // resolve package path
             let elapsed_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-            let unique_id = format!("{}-{}", elapsed_time.as_secs(), env!("CARGO_PKG_VERSION"));
+            let unique_id = format!(
+                "{}-{}-{nickname}",
+                elapsed_time.as_secs(),
+                env!("CARGO_PKG_VERSION"),
+            );
             let folder_path = format!(
                 "{}{}{}-recording/",
                 ResourcePaths::game_folder(),
@@ -224,12 +193,6 @@ impl BattleRecording {
             // unload the package
             let id = package_info.id.clone();
             globals.unload_package(*category, *namespace, &id);
-
-            if namespace.has_override(PackageNamespace::Local) {
-                // package can be overridden by local packages
-                // no need to load a package with the same namespace
-                continue;
-            }
 
             // find the local package to reload in the new namespace
             if let Some(package_info) =

@@ -275,7 +275,7 @@ impl TileState {
                 continue;
             }
 
-            let Some(package) = packages.package_or_override(*namespace, &info.id) else {
+            let Some(package) = packages.package_or_fallback(*namespace, &info.id) else {
                 continue;
             };
 

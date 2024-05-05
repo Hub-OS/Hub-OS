@@ -217,7 +217,7 @@ impl CardSelectUi {
         let card = &player.deck[card_index];
 
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_override(player.namespace(), &card.package_id);
+        let package = card_packages.package_or_fallback(player.namespace(), &card.package_id);
 
         let card_class = package
             .map(|package| package.card_properties.card_class)

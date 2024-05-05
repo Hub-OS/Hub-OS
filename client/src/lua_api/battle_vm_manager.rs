@@ -37,10 +37,6 @@ impl BattleVmManager {
         package_info: &PackageInfo,
         namespace: PackageNamespace,
     ) {
-        // expecting local namespace to be converted to a Netplay namespace
-        // before being passed to this function
-        assert_ne!(namespace, PackageNamespace::Local);
-
         let existing_vm = resources.vm_manager.find_vm_from_info(package_info);
 
         if let Some(vm_index) = existing_vm {
@@ -119,14 +115,14 @@ impl BattleVmManager {
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
         let vm_index = namespace
-            .find_with_overrides(|namespace| {
+            .find_with_fallback(|namespace| {
                 self.vms.iter().position(|vm| {
                     vm.package_id == *package_id && vm.namespaces.contains(&namespace)
                 })
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
-                    "no package with id {:?} found",
+                    "no package with id {:?} and namespace {namespace:?} found",
                     package_id
                 ))
             })?;

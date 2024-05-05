@@ -46,7 +46,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let card_packages = &globals.card_packages;
 
             let mut card_properties =
-                if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
+                if let Some(package) = card_packages.package_or_fallback(namespace, &package_id) {
                     let status_registry = &api_ctx.resources.status_registry;
                     package.card_properties.to_bindable(status_registry)
                 } else {

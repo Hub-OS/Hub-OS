@@ -42,17 +42,12 @@ impl<T: Package> PackageManager<T> {
             .flat_map(|packages| packages.values())
     }
 
-    pub fn packages_with_override(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
-        self.package_ids(ns)
-            .flat_map(move |id| self.package_or_override(ns, id))
-    }
-
     pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         self.package_maps.get(&ns)?.get(id)
     }
 
-    pub fn package_or_override(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
-        ns.find_with_overrides(|ns| self.package(ns, id))
+    pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
+        ns.find_with_fallback(|ns| self.package(ns, id))
     }
 
     pub fn child_packages(&self, ns: PackageNamespace) -> Vec<ChildPackageInfo> {

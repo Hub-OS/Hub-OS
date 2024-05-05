@@ -88,7 +88,7 @@ impl Deck {
             let non_giga_card = &self.cards[i];
             let Some(package) = globals
                 .card_packages
-                .package_or_override(namespace, &non_giga_card.package_id)
+                .package_or_fallback(namespace, &non_giga_card.package_id)
             else {
                 continue;
             };
@@ -112,7 +112,7 @@ impl Deck {
             let card = &self.cards[i];
             let Some(package) = globals
                 .card_packages
-                .package_or_override(namespace, &card.package_id)
+                .package_or_fallback(namespace, &card.package_id)
             else {
                 continue;
             };

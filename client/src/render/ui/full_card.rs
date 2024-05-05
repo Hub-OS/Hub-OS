@@ -131,7 +131,7 @@ fn package<'a>(game_io: &'a GameIO, card: &Card) -> Option<&'a CardPackage> {
     let globals = game_io.resource::<Globals>().unwrap();
     let package_manager = &globals.card_packages;
 
-    package_manager.package_or_override(PackageNamespace::Local, &card.package_id)
+    package_manager.package_or_fallback(PackageNamespace::Local, &card.package_id)
 }
 
 fn state_for_package(package: &CardPackage) -> &'static str {

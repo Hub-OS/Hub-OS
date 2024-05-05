@@ -327,7 +327,7 @@ impl ManageSwitchDriveScene {
 
         let package = globals
             .augment_packages
-            .package_or_override(PackageNamespace::Local, &package_id)
+            .package(PackageNamespace::Local, &package_id)
             .unwrap();
 
         let slot = package.slot.unwrap();
@@ -761,7 +761,7 @@ impl Scene for ManageSwitchDriveScene {
 
 fn get_package<'a>(globals: &'a Globals, id: &PackageId) -> Option<&'a AugmentPackage> {
     let ns = PackageNamespace::Local;
-    globals.augment_packages.package_or_override(ns, id)
+    globals.augment_packages.package(ns, id)
 }
 
 fn collect_drive_package_ids(
@@ -774,7 +774,7 @@ fn collect_drive_package_ids(
 
     let mut package_ids: Vec<_> = globals
         .augment_packages
-        .packages_with_override(PackageNamespace::Local)
+        .packages(PackageNamespace::Local)
         .filter(|package| {
             let Some(slot) = package.slot else {
                 return false;

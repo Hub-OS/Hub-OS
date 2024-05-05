@@ -134,7 +134,7 @@ impl StagedItems {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
                 let card = deck.get(*i)?;
-                let package = card_packages.package_or_override(namespace, &card.package_id)?;
+                let package = card_packages.package_or_fallback(namespace, &card.package_id)?;
                 let mut card_properties = package.card_properties.to_bindable(status_registry);
 
                 card_properties.code = card.code.clone();

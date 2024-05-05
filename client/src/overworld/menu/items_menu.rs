@@ -66,7 +66,7 @@ impl ItemsMenu {
         let package_id = &area.player_data.package_id;
         let player_package = globals
             .player_packages
-            .package_or_override(PackageNamespace::Local, package_id)
+            .package_or_fallback(PackageNamespace::Local, package_id)
             .unwrap();
 
         let mut element_sprite = ElementSprite::new(game_io, player_package.element);

@@ -56,7 +56,7 @@ impl StatusRegistry {
                 continue;
             }
 
-            let Some(package) = packages.package_or_override(*namespace, &info.id) else {
+            let Some(package) = packages.package_or_fallback(*namespace, &info.id) else {
                 continue;
             };
 
@@ -118,7 +118,7 @@ impl StatusRegistry {
         // create inter status rules after flags are resolved
         for item in &self.list {
             let package = packages
-                .package_or_override(item.namespace, &item.package_id)
+                .package_or_fallback(item.namespace, &item.package_id)
                 .unwrap();
 
             for name in &package.blocked_by {

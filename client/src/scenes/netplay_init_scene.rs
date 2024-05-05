@@ -331,7 +331,7 @@ impl NetplayInitScene {
                     .into_iter()
                     .filter(|(category, id, hash)| {
                         globals
-                            .package_or_override_info(*category, PackageNamespace::Local, id)
+                            .package_or_fallback_info(*category, PackageNamespace::Server, id)
                             .map(|package_info| package_info.hash != *hash) // hashes differ
                             .unwrap_or(true) // non existent
                     })
@@ -516,7 +516,7 @@ impl NetplayInitScene {
 
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
-            player_package: player_setup.package_pair.1.clone(),
+            player_package: player_setup.package_id.clone(),
             script_enabled: player_setup.script_enabled,
             cards,
             regular_card: player_setup.deck.regular_index,
@@ -646,7 +646,7 @@ impl NetplayInitScene {
                 let namespace = PackageNamespace::Netplay(connection.index as u8);
                 let package = globals
                     .player_packages
-                    .package_or_override(namespace, &connection.player_package);
+                    .package_or_fallback(namespace, &connection.player_package);
 
                 let Some(player_package) = package else {
                     log::error!(
@@ -658,10 +658,7 @@ impl NetplayInitScene {
                 };
 
                 props.player_setups.push(PlayerSetup {
-                    package_pair: (
-                        player_package.package_info.namespace,
-                        player_package.package_info.id.clone(),
-                    ),
+                    package_id: player_package.package_info.id.clone(),
                     script_enabled: connection.script_enabled,
                     health: connection.health,
                     base_health: connection.base_health,
