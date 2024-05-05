@@ -54,7 +54,7 @@ impl State for IntroState {
                     continue;
                 }
 
-                self.tracked_entities.push_front(entity.id);
+                self.tracked_entities.push_back(entity.id);
 
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
                 {
