@@ -60,7 +60,7 @@ impl BattleRecording {
                     self.package_zips.push((category, namespace, bytes));
                 }
 
-                println!("saving package: {:?} {:?}", info.id, namespace);
+                log::debug!("Saving package: {:?} {:?}", info.id, namespace);
             }
         }
 
