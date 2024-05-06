@@ -49,7 +49,7 @@ pub struct BattleSimulation {
 impl BattleSimulation {
     pub fn new(game_io: &GameIO, props: &BattleProps) -> Self {
         let mut camera = Camera::new(game_io);
-        camera.snap(Vec2::new(0.0, 10.0));
+        camera.snap(Vec2::new(0.0, 8.0));
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;

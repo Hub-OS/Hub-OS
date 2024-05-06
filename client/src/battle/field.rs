@@ -44,7 +44,7 @@ impl Field {
             cols,
             rows,
             tiles,
-            tile_size: Vec2::new(40.0, 25.0), // todo: read from .animation?
+            tile_size: Vec2::new(40.0, 24.0), // todo: read from .animation?
             frame_sprite,
             frame_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_HOLE_ANIMATION),
             frame_full_animator: Animator::load_new(
