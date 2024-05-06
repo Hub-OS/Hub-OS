@@ -741,9 +741,23 @@ impl BattleSimulation {
                     shadow_y += movement.interpolate_jump_height(progress);
                 }
 
+                let base_sprite = self
+                    .sprite_trees
+                    .get_mut(entity.sprite_tree_index)
+                    .unwrap()
+                    .root_mut();
+                let color_mode = base_sprite.color_mode();
+                let color = base_sprite.color();
+                let shader_effect = base_sprite.shader_effect();
+
                 let shadow_tree = self.sprite_trees.get_mut(shadow.sprite_tree_index).unwrap();
                 let mut position = position;
                 position.y += shadow_y;
+
+                let sprite = shadow_tree.root_mut();
+                sprite.set_color_mode(color_mode);
+                sprite.set_color(color);
+                sprite.set_shader_effect(shader_effect);
                 shadow_tree.draw_with_offset(&mut sprite_queue, position, flipped);
             }
 
