@@ -375,8 +375,10 @@ impl CardSelectState {
                     selection.form_open_time = None;
 
                     // sfx
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    simulation.play_sound(game_io, &globals.sfx.transform_select);
+                    if selection.local {
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        simulation.play_sound(game_io, &globals.sfx.transform_select);
+                    }
 
                     return;
                 }
