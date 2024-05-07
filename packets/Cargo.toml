@@ -15,7 +15,7 @@ rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua", optional = tr
 mlua = { version = "*", optional = true }
 log = "0.4"
 async-std = "1.12"
-strum = { version = "0.25", features = ["derive"] }
+strum = { version = "0.26", features = ["derive"] }
 hmac-sha256 = "1"
 hex = "0.4.3"
 enum-map = "2.4"
