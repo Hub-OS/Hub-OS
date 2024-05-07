@@ -177,6 +177,9 @@ impl Action {
             .query_one_mut::<&mut Entity>(entity_id.into())
             .unwrap();
 
+        action.executed = true;
+        action.old_position = (entity.x, entity.y);
+
         // animations
         let animator_index = entity.animator_index;
 
@@ -268,9 +271,6 @@ impl Action {
                 attachment.apply_animation(sprite_tree, &mut simulation.animators);
             }
         }
-
-        action.executed = true;
-        action.old_position = (entity.x, entity.y);
     }
 
     pub fn queue_action(
