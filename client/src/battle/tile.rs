@@ -114,7 +114,7 @@ impl Tile {
     }
 
     pub fn should_highlight(&self) -> bool {
-        if self.state_index == TileState::HIDDEN {
+        if self.state_index == TileState::VOID {
             return false;
         }
 

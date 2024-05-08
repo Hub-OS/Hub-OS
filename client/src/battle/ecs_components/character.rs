@@ -84,8 +84,8 @@ impl Character {
                 return false;
             };
 
-            if tile.state_index() == TileState::HIDDEN {
-                // can't walk on hidden tiles, even with ignore_hole_tiles
+            if tile.state_index() == TileState::VOID {
+                // can't walk on void tiles, even with ignore_hole_tiles
                 return false;
             }
 

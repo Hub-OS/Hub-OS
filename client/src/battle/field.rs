@@ -147,7 +147,7 @@ impl Field {
                 }
 
                 if col == 0 || col == self.cols - 1 || row == 0 || row == self.rows - 1 {
-                    tile.set_state_index(TileState::HIDDEN, None);
+                    tile.set_state_index(TileState::VOID, None);
                 }
             }
         }
@@ -279,7 +279,7 @@ impl Field {
                 let tile = &self.tiles[row * self.cols + col];
                 let state_index = tile.state_index();
 
-                if state_index == TileState::HIDDEN {
+                if state_index == TileState::VOID {
                     continue;
                 }
 

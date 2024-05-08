@@ -148,7 +148,7 @@ pub struct TileState {
 }
 
 impl TileState {
-    pub const HIDDEN: usize = 0;
+    pub const VOID: usize = 0;
     pub const NORMAL: usize = 1;
     pub const HOLE: usize = 2;
     pub const CRACKED: usize = 3;
@@ -184,15 +184,14 @@ impl TileState {
         let texture = globals.assets.texture(game_io, ResourcePaths::BATTLE_TILES);
 
         // Hidden
-        debug_assert_eq!(registry.len(), TileState::HIDDEN);
-        let mut hidden_state =
-            TileState::new(String::from("Hidden"), texture.clone(), Animator::new());
-        hidden_state.blocks_team_change = true;
-        hidden_state.is_hole = true;
-        hidden_state.hide_frame = true;
-        hidden_state.hide_body = true;
-        hidden_state.change_request_callback = BattleCallback::stub(false);
-        registry.push(hidden_state);
+        debug_assert_eq!(registry.len(), TileState::VOID);
+        let mut void_state = TileState::new(String::from("Void"), texture.clone(), Animator::new());
+        void_state.blocks_team_change = true;
+        void_state.is_hole = true;
+        void_state.hide_frame = true;
+        void_state.hide_body = true;
+        void_state.change_request_callback = BattleCallback::stub(false);
+        registry.push(void_state);
 
         // Normal
         debug_assert_eq!(registry.len(), TileState::NORMAL);
