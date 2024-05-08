@@ -673,7 +673,7 @@ impl Action {
         entity.action_index = None;
 
         // update reservations as they're ignored while in a sync card action
-        if entity.auto_reserves_tiles {
+        if self.executed && entity.auto_reserves_tiles {
             let old_tile = field.tile_at_mut(self.old_position).unwrap();
             old_tile.remove_reservation_for(entity.id);
 
