@@ -114,37 +114,22 @@ impl BattleSimulation {
         }
 
         // cloning every component
-        for (id, component) in self.entities.query_mut::<&Artifact>() {
-            let _ = entities.insert_one(id, component.clone());
+        macro_rules! clone_component {
+            ($component: ty) => {
+                for (id, component) in self.entities.query_mut::<&$component>() {
+                    let _ = entities.insert_one(id, component.clone());
+                }
+            };
         }
 
-        for (id, component) in self.entities.query_mut::<&Character>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Living>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Obstacle>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Player>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Spell>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&EntityShadow>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&EntityShadowVisible>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
+        clone_component!(Artifact);
+        clone_component!(Character);
+        clone_component!(Living);
+        clone_component!(Obstacle);
+        clone_component!(Player);
+        clone_component!(Spell);
+        clone_component!(EntityShadow);
+        clone_component!(EntityShadowVisible);
 
         Self {
             config: self.config.clone(),
