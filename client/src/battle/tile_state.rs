@@ -183,7 +183,7 @@ impl TileState {
         let assets = &globals.assets;
         let texture = globals.assets.texture(game_io, ResourcePaths::BATTLE_TILES);
 
-        // Hidden
+        // Void
         debug_assert_eq!(registry.len(), TileState::VOID);
         let mut void_state = TileState::new(String::from("Void"), texture.clone(), Animator::new());
         void_state.blocks_team_change = true;
