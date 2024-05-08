@@ -9,3 +9,15 @@ point label="DAMAGE_END" x="66" y="67"
 animation state="HEALTH"
 frame y="77" w="37" h="14" originx="-30" originy="-55"
 point label="TEXT_END" x="32" y="12"
+
+animation state="SWITCH_DRIVE_HEAD"
+frame x="75" y="1" w="36" h="60" originx="-13" originy="-4"
+
+animation state="SWITCH_DRIVE_BODY"
+frame x="113" y="1" w="36" h="60" originx="-13" originy="-4"
+
+animation state="SWITCH_DRIVE_ARMS"
+frame x="75" y="62" w="36" h="60" originx="-13" originy="-4"
+
+animation state="SWITCH_DRIVE_LEGS"
+frame x="113" y="62" w="36" h="60" originx="-13" originy="-4"

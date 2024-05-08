@@ -6,7 +6,7 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::async_task::AsyncTask;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
-use packets::structures::{BlockColor, PackageCategory};
+use packets::structures::{BlockColor, PackageCategory, SwitchDriveSlot};
 
 #[derive(Clone)]
 pub enum PackagePreviewData {
@@ -21,9 +21,10 @@ pub enum PackagePreviewData {
         health: i32,
     },
     Augment {
+        slot: Option<SwitchDriveSlot>,
         flat: bool,
         colors: Vec<BlockColor>,
-        shape: [bool; 5 * 5],
+        shape: Option<[bool; 5 * 5]>,
     },
     Encounter,
     Pack,
@@ -244,7 +245,8 @@ impl PackagePreview {
             PackagePreviewData::Augment {
                 flat,
                 colors,
-                shape,
+                shape: Some(shape),
+                ..
             } => {
                 // generate shape preview
                 let preview_color = colors.first().cloned().unwrap_or_default();
@@ -278,6 +280,29 @@ impl PackagePreview {
 
                     position.x += sprite.size().x + 2.0;
                 }
+            }
+            PackagePreviewData::Augment {
+                slot: Some(slot), ..
+            } => {
+                let assets = &game_io.resource::<Globals>().unwrap().assets;
+                let mut sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGES_PREVIEW);
+
+                let mut animator =
+                    Animator::load_new(assets, ResourcePaths::PACKAGES_PREVIEW_ANIMATION);
+
+                let state = match slot {
+                    SwitchDriveSlot::Head => "SWITCH_DRIVE_HEAD",
+                    SwitchDriveSlot::Body => "SWITCH_DRIVE_BODY",
+                    SwitchDriveSlot::Arms => "SWITCH_DRIVE_ARMS",
+                    SwitchDriveSlot::Legs => "SWITCH_DRIVE_LEGS",
+                };
+
+                animator.set_state(state);
+                animator.apply(&mut sprite);
+
+                sprite.set_position(image_bounds.top_left());
+
+                self.sprites.push(sprite);
             }
             _ => {
                 if let Some(mut sprite) = self.image_sprite.clone() {
