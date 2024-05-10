@@ -1325,6 +1325,10 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
+    getter(lua_api, "is_local", |player: &Player, lua, ()| {
+        lua.pack_multi(player.local)
+    });
+
     getter(lua_api, "emotions", |player: &Player, lua, ()| {
         let emotions = player.emotion_window.emotions();
         let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
