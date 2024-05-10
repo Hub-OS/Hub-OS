@@ -297,6 +297,7 @@ impl PackagesScene {
                 Event::FilterName(name_filter) => {
                     self.name_filter = name_filter;
                     self.list.set_children(vec![]);
+                    self.exhausted_list = false;
                     self.request_more(game_io, 0);
 
                     self.list.set_focused(true);
@@ -306,6 +307,7 @@ impl PackagesScene {
                     self.category_filter = category_filter;
                     self.name_filter = String::new();
                     self.list.set_children(vec![]);
+                    self.exhausted_list = false;
                     self.request_more(game_io, 0);
 
                     self.list.set_focused(true);
