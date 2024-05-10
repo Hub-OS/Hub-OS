@@ -2,6 +2,7 @@ use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::resources::LocalAssetManager;
 use crate::saves::GlobalSave;
+use crate::ResourcePaths;
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use serde::Deserialize;
@@ -38,9 +39,10 @@ impl ResourcePackage {
             }
 
             let file_path = &entry.path().to_string_lossy()[..];
+            let file_path = file_path.replace(std::path::MAIN_SEPARATOR, ResourcePaths::SEPARATOR);
             let resource_path = &file_path[path_skip..];
 
-            assets.override_cache(game_io, resource_path, file_path);
+            assets.override_cache(game_io, resource_path, &file_path);
         }
     }
 
