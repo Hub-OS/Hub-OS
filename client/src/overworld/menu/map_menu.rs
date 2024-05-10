@@ -412,6 +412,9 @@ impl Menu for MapMenu {
                 }
             };
 
+            // reset scale
+            self.marker_sprite.set_scale(Vec2::ONE);
+
             self.marker_animator.set_state(state);
             self.marker_animator.apply(&mut self.marker_sprite);
 
