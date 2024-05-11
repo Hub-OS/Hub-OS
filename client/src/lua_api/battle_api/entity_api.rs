@@ -1073,6 +1073,57 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "attack_tile", |api_ctx, lua, params| {
+        let (table, tile_table): (rollback_mlua::Table, Option<rollback_mlua::Table>) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut *api_ctx.simulation;
+
+        // resolving tile, and query for Spell to generate errors
+        let entities = &mut simulation.entities;
+        let (entity, _) = entities
+            .query_one_mut::<(&mut Entity, &mut Spell)>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let (x, y): (i32, i32) = match tile_table {
+            Some(table) => (table.raw_get("#x")?, table.raw_get("#y")?),
+            None => (entity.x, entity.y),
+        };
+
+        Spell::attack_tile(simulation, id, x, y);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "attack_tiles", |api_ctx, lua, params| {
+        let (table, tiles): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut *api_ctx.simulation;
+
+        // query the entity for the error
+        let entities = &mut simulation.entities;
+        entities
+            .query_one_mut::<(&mut Entity, &mut Spell)>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        for tile_table in tiles.sequence_values::<rollback_mlua::Table>() {
+            let tile_table = tile_table?;
+            let x: i32 = tile_table.raw_get("#x")?;
+            let y: i32 = tile_table.raw_get("#y")?;
+
+            Spell::attack_tile(simulation, id, x, y);
+        }
+
+        lua.pack_multi(())
+    });
+
     callback_setter(
         lua_api,
         ATTACK_FN,

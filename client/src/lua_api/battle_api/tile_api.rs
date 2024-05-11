@@ -1,8 +1,6 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
-use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
-};
+use crate::battle::{BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile};
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
 
@@ -298,22 +296,17 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let x: i32 = table.raw_get("#x")?;
         let y: i32 = table.raw_get("#y")?;
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut *api_ctx.simulation;
 
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
-        let (entity, spell) = entities
+        // query for the error
+        let entities = &mut simulation.entities;
+        entities
             .query_one_mut::<(&Entity, &Spell)>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
-        let queued_attacks = &mut api_ctx.simulation.queued_attacks;
-        let is_same_attack =
-            |attack: &AttackBox| attack.attacker_id == entity.id && attack.x == x && attack.y == y;
-
-        if !queued_attacks.iter().any(is_same_attack) {
-            let attack_box = AttackBox::new_from((x, y), entity, spell);
-            queued_attacks.push(attack_box);
-        }
+        Spell::attack_tile(simulation, entity_id, x, y);
 
         lua.pack_multi(())
     });
