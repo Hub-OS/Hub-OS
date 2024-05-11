@@ -143,7 +143,7 @@ impl Component {
                 let entity_x = entity.x;
                 let entity_y = entity.y;
                 let total_entity_offset =
-                    entity.offset + entity.tile_offset + Vec2::new(0.0, entity.elevation);
+                    entity.offset + entity.movement_offset + Vec2::new(0.0, entity.elevation);
 
                 if elapsed_time % EXPLOSION_RATE == 0 && elapsed_time < total_duration - END_DELAY {
                     let id = Artifact::create_explosion(game_io, simulation);

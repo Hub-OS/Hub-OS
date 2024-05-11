@@ -208,15 +208,15 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "tile_offset", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(LuaVector::from(entity.tile_offset))
+    getter(lua_api, "movement_offset", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(LuaVector::from(entity.movement_offset))
     });
 
     setter(
         lua_api,
-        "set_tile_offset",
+        "set_movement_offset",
         |entity: &mut Entity, _, offset: (f32, f32)| {
-            entity.tile_offset = offset.into();
+            entity.movement_offset = offset.into();
             Ok(())
         },
     );

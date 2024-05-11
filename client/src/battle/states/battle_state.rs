@@ -305,7 +305,7 @@ impl BattleState {
             entity.updated = false;
 
             // reset frame temp properties
-            entity.tile_offset = Vec2::ZERO;
+            entity.movement_offset = Vec2::ZERO;
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
                 let sprite_node = sprite_tree.root_mut();
@@ -962,7 +962,7 @@ impl BattleState {
                 }
             } else {
                 // apply jump height
-                entity.tile_offset.y -= movement.interpolate_jump_height(animation_progress);
+                entity.movement_offset.y -= movement.interpolate_jump_height(animation_progress);
 
                 // calculate slide
                 let start = IVec2::from(movement.source).as_vec2();
@@ -974,8 +974,8 @@ impl BattleState {
                     (dest - start) * (animation_progress - 1.0)
                 };
 
-                entity.tile_offset.x += current.x * tile_size.x;
-                entity.tile_offset.y += current.y * tile_size.y;
+                entity.movement_offset.x += current.x * tile_size.x;
+                entity.movement_offset.y += current.y * tile_size.y;
             }
         }
 
@@ -1022,7 +1022,7 @@ impl BattleState {
             }
 
             if status_director.is_shaking() {
-                entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
+                entity.movement_offset.x += simulation.rng.gen_range(-1..=1) as f32;
                 status_director.decrement_shake_time();
             }
 

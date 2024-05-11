@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 pub struct FullEntityPosition {
     pub tile_position: IVec2,
     pub offset: Vec2,
-    pub tile_offset: Vec2,
+    pub movement_offset: Vec2,
 }
 
 #[derive(Clone)]
@@ -33,8 +33,8 @@ pub struct Entity {
     pub elevation: f32,
     pub animator_index: GenerationalIndex,
     pub sprite_tree_index: GenerationalIndex,
-    pub offset: Vec2,      // does not flip with teams, only perspective
-    pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
+    pub offset: Vec2,          // does not flip with teams, only perspective
+    pub movement_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
@@ -90,7 +90,7 @@ impl Entity {
             animator_index,
             sprite_tree_index,
             offset: Vec2::ZERO,
-            tile_offset: Vec2::ZERO,
+            movement_offset: Vec2::ZERO,
             hit_context: HitContext {
                 aggressor: id,
                 flags: HitFlag::NONE,
@@ -165,7 +165,7 @@ impl Entity {
         FullEntityPosition {
             tile_position: IVec2::new(self.x, self.y),
             offset: self.offset,
-            tile_offset: self.tile_offset,
+            movement_offset: self.movement_offset,
         }
     }
 
@@ -173,7 +173,7 @@ impl Entity {
         self.x = full_position.tile_position.x;
         self.y = full_position.tile_position.y;
         self.offset = full_position.offset;
-        self.tile_offset = full_position.tile_offset;
+        self.movement_offset = full_position.movement_offset;
     }
 
     pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
@@ -189,7 +189,7 @@ impl Entity {
     }
 
     pub fn corrected_offset(&self, perspective_flipped: bool) -> Vec2 {
-        let mut entity_offset = self.tile_offset + self.offset;
+        let mut entity_offset = self.movement_offset + self.offset;
 
         if perspective_flipped {
             entity_offset.x *= -1.0;
