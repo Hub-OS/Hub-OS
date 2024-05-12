@@ -77,6 +77,10 @@ function Buster.new(user, charged, damage)
                 motion_y = motion_y + 1
             end
 
+            if user:team() == Team.Blue then
+                motion_x = -motion_x
+            end
+
             if (motion_x ~= 0 and user:can_move_to(user:get_tile(Direction.Right, motion_x))) or
                 (motion_y ~= 0 and user:can_move_to(user:get_tile(Direction.Down, motion_y))) then
                 action:end_action()
@@ -88,7 +92,7 @@ function Buster.new(user, charged, damage)
         Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg");
 
         local field = user:field()
-        local last_tile = user:get_tile()
+        local last_tile = user:current_tile()
 
         spell:set_hit_props(HitProps.new(
             damage,
@@ -103,7 +107,7 @@ function Buster.new(user, charged, damage)
 
         spell.on_update_func = function()
             last_tile:attack_entities(spell)
-            last_tile = spell:get_tile()
+            last_tile = spell:current_tile()
             last_tile:attack_entities(spell)
 
             move_timer = move_timer + 1
@@ -150,7 +154,7 @@ function Buster.new(user, charged, damage)
                 hit_artifact:erase()
             end)
 
-            spell:field():spawn(hit_artifact, spell:get_tile())
+            spell:field():spawn(hit_artifact, spell:current_tile())
             spell:delete()
         end
 
