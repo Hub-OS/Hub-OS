@@ -4,6 +4,7 @@ use itertools::Itertools;
 use rodio::Source;
 use rustysynth::{MidiFile, MidiFileSequencer, Synthesizer, SynthesizerSettings};
 use std::io::Cursor;
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -12,7 +13,7 @@ pub struct SoundBuffer {
     channels: u16,
     sample_rate: u32,
     duration: Duration,
-    data: Arc<Vec<i16>>,
+    data: Arc<[i16]>,
 }
 
 impl SoundBuffer {
@@ -36,7 +37,7 @@ impl SoundBuffer {
 
         let channels = decoder.channels();
         let sample_rate = decoder.sample_rate();
-        let data = Arc::new(decoder.collect::<Vec<_>>());
+        let data: Arc<[i16]> = decoder.collect();
         let duration = data.len() as f32 / (channels as f32 * sample_rate as f32);
 
         Self {
@@ -93,7 +94,7 @@ impl SoundBuffer {
             channels: 2,
             sample_rate,
             duration: Duration::from_secs_f64(midi_file.get_length()),
-            data: Arc::new(data),
+            data,
         }
     }
 
@@ -102,7 +103,7 @@ impl SoundBuffer {
             channels: 1,
             sample_rate: 1,
             duration: Duration::ZERO,
-            data: Arc::new(Vec::new()),
+            data: Arc::new([]),
         }
     }
 
@@ -112,17 +113,22 @@ impl SoundBuffer {
 
     pub fn create_sampler(&self) -> SoundBufferSampler {
         SoundBufferSampler {
-            looped: false,
-            index: 0,
             buffer: self.clone(),
+            index: 0,
+            loop_range: None,
+            stop_looping: Default::default(),
         }
     }
 
-    pub fn create_looped_sampler(&self) -> SoundBufferSampler {
+    pub fn create_looped_sampler(
+        &self,
+        range: Option<std::ops::Range<usize>>,
+    ) -> SoundBufferSampler {
         SoundBufferSampler {
-            looped: true,
-            index: 0,
             buffer: self.clone(),
+            index: 0,
+            loop_range: Some(range.unwrap_or(0..self.data.len())),
+            stop_looping: Default::default(),
         }
     }
 
@@ -148,9 +154,20 @@ impl PartialEq for SoundBuffer {
 }
 
 pub struct SoundBufferSampler {
-    looped: bool,
-    index: usize,
     buffer: SoundBuffer,
+    index: usize,
+    loop_range: Option<std::ops::Range<usize>>,
+    stop_looping: Arc<AtomicBool>,
+}
+
+impl SoundBufferSampler {
+    pub fn end_loop_callback(&self) -> impl Fn() {
+        let stop_looping = self.stop_looping.clone();
+
+        move || {
+            stop_looping.store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+    }
 }
 
 impl Source for SoundBufferSampler {
@@ -167,7 +184,7 @@ impl Source for SoundBufferSampler {
     }
 
     fn total_duration(&self) -> Option<Duration> {
-        if self.looped {
+        if self.loop_range.is_some() {
             None
         } else {
             Some(self.buffer.duration)
@@ -182,9 +199,14 @@ impl Iterator for SoundBufferSampler {
         let sample = self.buffer.data.get(self.index).cloned();
         self.index += 1;
 
-        if self.looped {
-            let buffer_len = self.buffer.data.len();
-            self.index = self.index.checked_rem(buffer_len).unwrap_or_default();
+        if let Some(range) = self.loop_range.clone() {
+            if self.index > range.end {
+                if self.stop_looping.load(std::sync::atomic::Ordering::Relaxed) {
+                    self.loop_range = None;
+                } else {
+                    self.index = range.start;
+                }
+            }
         }
 
         sample

@@ -240,6 +240,11 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     let audio_behavior_table = lua.create_table()?;
     audio_behavior_table.set("Default", AudioBehavior::Default)?;
     audio_behavior_table.set("NoOverlap", AudioBehavior::NoOverlap)?;
+    audio_behavior_table.set(
+        "LoopSection",
+        lua.create_function(|_, (start, end)| Ok(AudioBehavior::LoopSection(start, end)))?,
+    )?;
+    audio_behavior_table.set("EndLoop", AudioBehavior::EndLoop)?;
     globals.set("AudioBehavior", audio_behavior_table)?;
 
     let shadow_table = lua.create_table()?;
