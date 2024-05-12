@@ -20,6 +20,7 @@ enum ActionFreezeState {
     DisplaySummary,
     Counterable,
     HideSummary,
+    BeginAction,
     Action,
     ActionCleanup,
     PollEntityAction,
@@ -71,6 +72,7 @@ impl ActionFreezeState {
             Self::Countered => Self::COUNTERED_DURATION,
             Self::DisplaySummary | Self::HideSummary => Self::SUMMARY_TRANSITION_DURATION,
             Self::Counterable => Self::COUNTER_DURATION,
+            Self::BeginAction => 1,
             Self::Action => Self::MAX_ACTION_DURATION,
             Self::ActionCleanup => 1,
             Self::PollEntityAction => 1,
@@ -83,7 +85,8 @@ impl ActionFreezeState {
             Self::FadeIn | Self::Countered => Self::DisplaySummary.into(),
             Self::DisplaySummary => Self::Counterable.into(),
             Self::Counterable => Self::HideSummary.into(),
-            Self::HideSummary => Self::Action.into(),
+            Self::HideSummary => Self::BeginAction.into(),
+            Self::BeginAction => Self::Action.into(),
             Self::Action => Self::ActionCleanup.into(),
             Self::ActionCleanup => Self::PollEntityAction.into(),
             Self::PollEntityAction => Self::FadeOut.into(),
@@ -174,7 +177,7 @@ impl TimeFreezeTracker {
         } else if self.can_processing_action_counter() {
             self.state = ActionFreezeState::Countered.into();
         } else if action.properties.skip_time_freeze_intro {
-            self.state = ActionFreezeState::Action.into();
+            self.state = ActionFreezeState::BeginAction.into();
         } else {
             self.state = ActionFreezeState::DisplaySummary.into();
         }
@@ -240,7 +243,9 @@ impl TimeFreezeTracker {
     }
 
     fn active_action_index(&self) -> Option<GenerationalIndex> {
-        if self.state != ActionFreezeState::Action.into() {
+        if self.state != ActionFreezeState::Action.into()
+            && self.state != ActionFreezeState::BeginAction.into()
+        {
             return None;
         }
 
@@ -257,7 +262,7 @@ impl TimeFreezeTracker {
         if self.action_chain.is_empty() {
             self.state = ActionFreezeState::FadeOut.into();
         } else {
-            self.state = ActionFreezeState::Action.into();
+            self.state = ActionFreezeState::BeginAction.into();
         }
 
         self.state_start_time = self.active_time;
@@ -292,14 +297,13 @@ impl TimeFreezeTracker {
 
     fn increment_time(&mut self) {
         self.should_defrost = false;
+        self.active_time += 1;
 
         if self.state != self.previous_state {
             self.previous_state = self.state;
             // prevent state changes if we just changed states
             return;
         }
-
-        self.active_time += 1;
 
         let state_elapsed_time = self.active_time - self.state_start_time;
 
@@ -312,7 +316,7 @@ impl TimeFreezeTracker {
 
                     if self.skipping_intros && self.state == ActionFreezeState::FadeIn.into() {
                         // skip straight to the action
-                        self.state = ActionFreezeState::Action.into();
+                        self.state = ActionFreezeState::BeginAction.into();
                     }
                 }
             }
@@ -323,6 +327,9 @@ impl TimeFreezeTracker {
                 }
             }
         };
+
+        // we only care about state differences from updates, not from expiration
+        self.previous_state = self.state;
     }
 
     pub fn update(
@@ -420,10 +427,11 @@ impl TimeFreezeTracker {
                     Self::detect_counter_attempt(game_io, resources, simulation);
                 }
             }
+            ActionFreezeState::BeginAction => {
+                Self::begin_action(simulation);
+            }
             ActionFreezeState::Action => {
-                if state_just_started {
-                    Self::begin_action(simulation);
-                } else if let Some(index) = time_freeze_tracker.active_action_index() {
+                if let Some(index) = time_freeze_tracker.active_action_index() {
                     // detect action end
                     if !simulation.actions.contains_key(index) {
                         // action completed, update tracking
@@ -505,25 +513,27 @@ impl TimeFreezeTracker {
             .active_action_index()
             .unwrap();
 
-        if let Some(action) = simulation.actions.get(action_index) {
-            let entity_id = action.entity;
-
-            // unfreeze our entity
-            if let Some(entity_backup) =
-                TimeFreezeEntityBackup::backup_and_prepare(simulation, entity_id, action_index)
-            {
-                simulation
-                    .time_freeze_tracker
-                    .set_entity_backup(entity_backup);
-            } else {
-                // entity erased?
-                simulation.time_freeze_tracker.end_action();
-                log::error!("Time freeze entity erased, yet action still exists?");
-            }
-        } else {
+        let Some(action) = simulation.actions.get(action_index) else {
             // action deleted?
             simulation.time_freeze_tracker.end_action();
-        }
+            return;
+        };
+
+        let entity_id = action.entity;
+
+        // unfreeze our entity
+        let Some(entity_backup) =
+            TimeFreezeEntityBackup::backup_and_prepare(simulation, entity_id, action_index)
+        else {
+            // entity erased?
+            simulation.time_freeze_tracker.end_action();
+            log::error!("Time freeze entity erased, yet action still exists?");
+            return;
+        };
+
+        simulation
+            .time_freeze_tracker
+            .set_entity_backup(entity_backup);
     }
 
     fn team_ui_position(simulation: &BattleSimulation, team: Team) -> Vec2 {
