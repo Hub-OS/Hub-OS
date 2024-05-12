@@ -291,7 +291,6 @@ impl TimeFreezeTracker {
     }
 
     fn increment_time(&mut self) {
-        self.active_time += 1;
         self.should_defrost = false;
 
         if self.state != self.previous_state {
@@ -299,6 +298,8 @@ impl TimeFreezeTracker {
             // prevent state changes if we just changed states
             return;
         }
+
+        self.active_time += 1;
 
         let state_elapsed_time = self.active_time - self.state_start_time;
 
