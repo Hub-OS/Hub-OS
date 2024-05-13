@@ -140,7 +140,8 @@ pub struct TileState {
     pub hide_body: bool,
     pub is_hole: bool,
     pub max_lifetime: Option<FrameTime>,
-    pub change_request_callback: BattleCallback<(i32, i32, usize), bool>,
+    pub replace_callback: BattleCallback<(i32, i32)>,
+    pub can_replace_callback: BattleCallback<(i32, i32, usize), bool>,
     pub update_callback: BattleCallback<(i32, i32)>,
     pub entity_enter_callback: BattleCallback<EntityId>,
     pub entity_leave_callback: BattleCallback<(EntityId, i32, i32)>,
@@ -168,7 +169,8 @@ impl TileState {
             hide_body: false,
             is_hole: false,
             max_lifetime: None,
-            change_request_callback: BattleCallback::stub(true),
+            can_replace_callback: BattleCallback::stub(true),
+            replace_callback: BattleCallback::default(),
             update_callback: BattleCallback::default(),
             entity_enter_callback: BattleCallback::default(),
             entity_leave_callback: BattleCallback::default(),
@@ -190,7 +192,7 @@ impl TileState {
         void_state.is_hole = true;
         void_state.hide_frame = true;
         void_state.hide_body = true;
-        void_state.change_request_callback = BattleCallback::stub(false);
+        void_state.can_replace_callback = BattleCallback::stub(false);
         registry.push(void_state);
 
         // Normal
@@ -202,7 +204,7 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::HOLE);
         let mut hole_state =
             TileState::new(String::from("PermaHole"), texture.clone(), Animator::new());
-        hole_state.change_request_callback = BattleCallback::stub(false);
+        hole_state.can_replace_callback = BattleCallback::stub(false);
         hole_state.blocks_team_change = true;
         hole_state.hide_body = true;
         hole_state.is_hole = true;
@@ -251,7 +253,7 @@ impl TileState {
         broken_state.is_hole = true;
         broken_state.max_lifetime = Some(BROKEN_LIFETIME);
 
-        broken_state.change_request_callback =
+        broken_state.can_replace_callback =
             BattleCallback::new(|_, _, _, (_, _, state_index)| state_index != TileState::CRACKED);
 
         registry.push(broken_state);

@@ -132,8 +132,16 @@ const SELECTION_CHANGE_FN: &str = "on_selection_change_func";
 
 // defense rules
 pub const BLOCK_FN: &str = "can_block_func";
-pub const REPLACE_FN: &str = "on_replace_func";
 pub const FILTER_STATUSES_FN: &str = "filter_statuses_func";
+
+// defense rules + tile states
+pub const REPLACE_FN: &str = "on_replace_func";
+
+// tile states
+pub const CAN_REPLACE_FN: &str = "can_replace_func";
+pub const ENTITY_ENTER_FN: &str = "on_entity_enter_func";
+pub const ENTITY_LEAVE_FN: &str = "on_entity_leave_func";
+pub const ENTITY_STOP_FN: &str = "on_entity_stop_func";
 
 // components
 const INIT_FN: &str = "on_init_func";

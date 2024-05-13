@@ -79,10 +79,11 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             return lua.pack_multi(());
         }
 
-        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
-        let change_request_callback = current_tile_state.change_request_callback.clone();
+        let old_state_index = tile.state_index();
+        let current_tile_state = simulation.tile_states.get(old_state_index).unwrap();
+        let can_replace_callback = current_tile_state.can_replace_callback.clone();
         let change_passed =
-            change_request_callback.call(game_io, resources, simulation, (x, y, state_index));
+            can_replace_callback.call(game_io, resources, simulation, (x, y, state_index));
 
         if !change_passed {
             return lua.pack_multi(());
@@ -106,6 +107,11 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         for id in entity_ids {
             tile_callback.call(game_io, resources, simulation, id);
         }
+
+        // let the old state know it was replaced
+        let old_tile_state = simulation.tile_states.get(old_state_index).unwrap();
+        let replace_callback = old_tile_state.replace_callback.clone();
+        replace_callback.call(game_io, resources, simulation, (x, y));
 
         lua.pack_multi(())
     });
