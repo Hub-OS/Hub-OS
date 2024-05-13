@@ -105,9 +105,6 @@ impl BattleScene {
         // create shared resources
         let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
-        // register tile states
-        TileState::complete_registry(game_io, &mut simulation, &resources, &dependencies);
-
         // load battle package
         if let Some(encounter_package) = props.encounter_package(game_io) {
             let vm_manager = &mut resources.vm_manager;

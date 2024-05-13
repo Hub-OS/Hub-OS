@@ -17,11 +17,11 @@ impl BattleVmManager {
         Self { vms: Vec::new() }
     }
 
-    pub fn init(
+    pub fn init<'a>(
         game_io: &GameIO,
         resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
-        dependencies: &[(&PackageInfo, PackageNamespace)],
+        dependencies: impl Iterator<Item = &'a (&'a PackageInfo, PackageNamespace)>,
     ) {
         for (package_info, namespace) in dependencies {
             if package_info.package_category.requires_vm() {
