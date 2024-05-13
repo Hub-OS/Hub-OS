@@ -314,4 +314,32 @@ impl TileState {
             }
         }
     }
+
+    pub fn can_replace(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        resources: &SharedBattleResources,
+        x: i32,
+        y: i32,
+        state_index: usize,
+    ) -> bool {
+        let Some(tile_state) = simulation.tile_states.get(state_index) else {
+            return false;
+        };
+
+        let field = &mut simulation.field;
+        let Some(tile) = field.tile_at_mut((x, y)) else {
+            return false;
+        };
+
+        if tile_state.is_hole && !tile.reservations().is_empty() {
+            // tile must be walkable for entities that are on or are moving to this tile
+            return false;
+        }
+
+        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
+        let can_replace_callback = current_tile_state.can_replace_callback.clone();
+
+        can_replace_callback.call(game_io, resources, simulation, (x, y, state_index))
+    }
 }

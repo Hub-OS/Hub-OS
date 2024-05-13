@@ -1,6 +1,8 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
-use crate::battle::{BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile};
+use crate::battle::{
+    BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile, TileState,
+};
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
 
@@ -58,44 +60,28 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_state", |api_ctx, lua, params| {
         let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let game_io = api_ctx.game_io;
         let simulation = &mut api_ctx.simulation;
         let resources = &mut api_ctx.resources;
 
-        let Some(tile_state) = simulation.tile_states.get(state_index) else {
-            return lua.pack_multi(());
-        };
+        let can_replace = TileState::can_replace(game_io, simulation, resources, x, y, state_index);
 
-        let max_lifetime = tile_state.max_lifetime;
-
-        let field = &mut simulation.field;
-        let (x, y) = tile_position_from(table)?;
-        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
-
-        if tile_state.is_hole && !tile.reservations().is_empty() {
-            // tile must be walkable for entities that are on or are moving to this tile
+        if !can_replace {
             return lua.pack_multi(());
         }
 
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+        let tile_state = &simulation.tile_states[state_index];
+
+        // swap
         let old_state_index = tile.state_index();
-        let current_tile_state = simulation.tile_states.get(old_state_index).unwrap();
-        let can_replace_callback = current_tile_state.can_replace_callback.clone();
-        let change_passed =
-            can_replace_callback.call(game_io, resources, simulation, (x, y, state_index));
-
-        if !change_passed {
-            return lua.pack_multi(());
-        }
-
-        let field = &mut simulation.field;
-        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
-
-        tile.set_state_index(state_index, max_lifetime);
+        tile.set_state_index(state_index, tile_state.max_lifetime);
 
         // activate entity_enter_callback for every entity on this tile
-        let tile_state = &simulation.tile_states[state_index];
         let tile_callback = tile_state.entity_enter_callback.clone();
 
         let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
@@ -114,6 +100,20 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         replace_callback.call(game_io, resources, simulation, (x, y));
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "can_set_state", |api_ctx, lua, params| {
+        let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let simulation = &mut api_ctx.simulation;
+        let resources = &mut api_ctx.resources;
+
+        let can_replace = TileState::can_replace(game_io, simulation, resources, x, y, state_index);
+
+        lua.pack_multi(can_replace)
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_edge", |api_ctx, lua, params| {
