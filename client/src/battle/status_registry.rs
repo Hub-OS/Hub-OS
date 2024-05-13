@@ -52,7 +52,7 @@ impl StatusRegistry {
         let packages = &globals.status_packages;
 
         for (info, namespace) in dependencies {
-            if info.package_category != PackageCategory::Status {
+            if info.category != PackageCategory::Status {
                 continue;
             }
 

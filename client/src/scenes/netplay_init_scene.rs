@@ -495,7 +495,7 @@ impl NetplayInitScene {
             .iter()
             .map(|(package_info, _)| {
                 (
-                    package_info.package_category,
+                    package_info.category,
                     package_info.id.clone(),
                     package_info.hash,
                 )

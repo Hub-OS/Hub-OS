@@ -73,7 +73,7 @@ impl SharedBattleResources {
             simulation,
             dependencies.iter().filter(|(p, _)| {
                 matches!(
-                    p.package_category,
+                    p.category,
                     PackageCategory::TileState | PackageCategory::Status
                 )
             }),
@@ -93,7 +93,7 @@ impl SharedBattleResources {
             simulation,
             dependencies.iter().filter(|(p, _)| {
                 !matches!(
-                    p.package_category,
+                    p.category,
                     PackageCategory::TileState | PackageCategory::Status
                 )
             }),

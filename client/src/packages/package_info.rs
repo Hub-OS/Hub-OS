@@ -13,7 +13,7 @@ pub struct ChildPackageInfo {
 pub struct PackageInfo {
     pub id: PackageId,
     pub hash: FileHash,
-    pub package_category: PackageCategory,
+    pub category: PackageCategory,
     pub namespace: PackageNamespace,
     pub base_path: String,
     pub script_path: String,
@@ -25,7 +25,7 @@ pub struct PackageInfo {
 
 impl PackageInfo {
     pub fn triplet(&self) -> (PackageCategory, PackageNamespace, PackageId) {
-        (self.package_category, self.namespace, self.id.clone())
+        (self.category, self.namespace, self.id.clone())
     }
 
     pub fn is_virtual(&self) -> bool {
@@ -38,7 +38,7 @@ impl PackageInfo {
             .cloned()
             .map(|(id, path)| ChildPackageInfo {
                 parent_id: self.id.clone(),
-                parent_type: self.package_category,
+                parent_type: self.category,
                 id,
                 path,
             })

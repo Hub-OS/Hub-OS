@@ -24,7 +24,7 @@ impl BattleVmManager {
         dependencies: impl Iterator<Item = &'a (&'a PackageInfo, PackageNamespace)>,
     ) {
         for (package_info, namespace) in dependencies {
-            if package_info.package_category.requires_vm() {
+            if package_info.category.requires_vm() {
                 Self::ensure_vm(game_io, resources, simulation, package_info, *namespace);
             }
         }

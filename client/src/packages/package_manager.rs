@@ -185,7 +185,7 @@ impl<T: Package> PackageManager<T> {
         Some(PackageInfo {
             id: PackageId::new_blank(),
             hash: FileHash::ZERO,
-            package_category: self.package_category,
+            category: self.package_category,
             namespace,
             base_path: base_path.clone(),
             script_path,
@@ -241,7 +241,7 @@ impl<T: Package> PackageManager<T> {
 
         let hash = FileHash::hash(&data);
 
-        if package_info.package_category.local_only() {
+        if package_info.category.local_only() {
             // file won't be sent, no need to save a zipped copy
             return Some(hash);
         }

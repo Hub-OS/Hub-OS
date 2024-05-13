@@ -47,7 +47,7 @@ impl BattleRecording {
         // collect package zips
         if self.package_zips.is_empty() {
             for (info, namespace) in globals.battle_dependencies(game_io, props) {
-                let category = info.package_category;
+                let category = info.category;
                 let namespace = namespace.prefix_recording();
                 let hash = &info.hash;
 

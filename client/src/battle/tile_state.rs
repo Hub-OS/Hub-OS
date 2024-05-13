@@ -270,7 +270,7 @@ impl TileState {
         let packages = &globals.tile_state_packages;
 
         for (info, namespace) in dependencies {
-            if info.package_category != PackageCategory::TileState {
+            if info.category != PackageCategory::TileState {
                 continue;
             }
 
