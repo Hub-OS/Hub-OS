@@ -9,6 +9,7 @@ pub struct Tile {
     position: (i32, i32),
     state_index: usize,
     state_lifetime: FrameTime,
+    state_visual_override: Option<usize>,
     max_state_lifetime: Option<FrameTime>,
     immutable_team: bool,
     team: Team,
@@ -46,6 +47,14 @@ impl Tile {
         self.state_lifetime = 0;
         self.state_index = state;
         self.max_state_lifetime = max_state_lifetime;
+    }
+
+    pub fn visible_state_index(&self) -> usize {
+        self.state_visual_override.unwrap_or(self.state_index)
+    }
+
+    pub fn set_visible_state_index(&mut self, state: Option<usize>) {
+        self.state_visual_override = state;
     }
 
     pub fn team(&self) -> Team {

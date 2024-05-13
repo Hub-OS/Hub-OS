@@ -116,6 +116,40 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(can_replace)
     });
 
+    lua_api.add_dynamic_function(TILE_TABLE, "set_visible_state", |api_ctx, lua, params| {
+        let (table, state_index): (rollback_mlua::Table, Option<usize>) =
+            lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+
+        if state_index
+            .map(|i| simulation.tile_states.len() > i)
+            .unwrap_or(true)
+        {
+            tile.set_visible_state_index(state_index);
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "visible_state", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+
+        lua.pack_multi(tile.visible_state_index())
+    });
+
     lua_api.add_dynamic_function(TILE_TABLE, "is_edge", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 

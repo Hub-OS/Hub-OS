@@ -277,7 +277,7 @@ impl Field {
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];
-                let state_index = tile.state_index();
+                let state_index = tile.visible_state_index();
 
                 if state_index == TileState::VOID {
                     continue;
