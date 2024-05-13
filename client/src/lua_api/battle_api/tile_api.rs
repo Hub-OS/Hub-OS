@@ -284,6 +284,14 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(TILE_TABLE, "original_team", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+        lua.pack_multi(tile.original_team())
+    });
+
     lua_api.add_dynamic_function(TILE_TABLE, "facing", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 

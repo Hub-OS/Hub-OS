@@ -234,6 +234,22 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(FIELD_TABLE, "reclaim_column", |api_ctx, lua, params| {
+        let (_, x): (rollback_mlua::Table, i32) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+
+        let field = &mut api_ctx.simulation.field;
+
+        for y in 0..field.rows() as i32 {
+            if let Some(tile) = field.tile_at_mut((x, y)) {
+                tile.sync_team_revert_timer(1);
+            }
+        }
+
+        lua.pack_multi(())
+    });
 }
 
 fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
