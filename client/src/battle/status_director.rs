@@ -159,6 +159,14 @@ impl StatusDirector {
         self.remaining_drag_lockout = DRAG_LOCKOUT + 1;
     }
 
+    pub fn remaining_drag_lockout(&self) -> FrameTime {
+        self.remaining_drag_lockout
+    }
+
+    pub fn set_remaining_drag_lockout(&mut self, time: FrameTime) {
+        self.remaining_drag_lockout = time;
+    }
+
     pub fn is_inactionable(&self, registry: &StatusRegistry) -> bool {
         registry
             .inactionable_flags()

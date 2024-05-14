@@ -327,6 +327,10 @@ impl Living {
                 let can_move_to_callback = entity.can_move_to_callback.clone();
                 let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
 
+                // clear + backup lockout to allow can_move_to_funcs that check for immobilize to ignore it
+                let old_lockout = status_director.remaining_drag_lockout();
+                status_director.set_remaining_drag_lockout(0);
+
                 let mut dest = IVec2::new(entity.x, entity.y);
                 let mut duration = 0;
 
@@ -351,6 +355,14 @@ impl Living {
                         .unwrap();
 
                     entity.movement = Some(Movement::slide(dest.into(), duration));
+                } else {
+                    let living = (simulation.entities)
+                        .query_one_mut::<&mut Living>(entity_id.into())
+                        .unwrap();
+
+                    living
+                        .status_director
+                        .set_remaining_drag_lockout(old_lockout);
                 }
             }
         }
