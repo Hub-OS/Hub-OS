@@ -660,7 +660,7 @@ impl BattleSimulation {
             sprite_queue.draw_sprite(&self.fade_sprite);
         }
 
-        // draw entities, sorting by position
+        // draw entities, sorting by tile, movement offset, and layer
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);
 
         // filter characters + obstacles for blindness
