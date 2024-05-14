@@ -176,16 +176,15 @@ impl Entity {
         self.movement_offset = full_position.movement_offset;
     }
 
-    pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32, i32) {
+    pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
         let Some(sprite_tree) = sprite_trees.get(self.sprite_tree_index) else {
-            return (self.y, self.movement_offset.y as _, 0, self.x);
+            return (self.y, self.movement_offset.y as _, 0);
         };
 
         (
             self.y,
             self.movement_offset.y as _,
             -sprite_tree.root().layer(),
-            self.x,
         )
     }
 
