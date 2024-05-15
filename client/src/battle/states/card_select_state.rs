@@ -509,9 +509,6 @@ impl CardSelectState {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
-        let mut pending_sfx = Vec::new();
-
         let player_index = player.index;
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
@@ -524,6 +521,7 @@ impl CardSelectState {
             return;
         }
 
+        let globals = game_io.resource::<Globals>().unwrap();
         let previous_item = resolve_selected_item(player, selection);
 
         if input.is_active(Input::End) || previous_item == SelectedItem::None {
@@ -537,9 +535,14 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            pending_sfx.push(&globals.sfx.form_select_open);
+            if selection.local {
+                // not using pending_sfx since we're returning right after anyway
+                simulation.play_sound(game_io, &globals.sfx.form_select_open);
+            }
             return;
         }
+
+        let mut pending_sfx = Vec::new();
 
         // moving cursor
 
