@@ -181,7 +181,6 @@ impl Character {
         let (entity, character) = entities.query_one_mut::<Query>(entity_id.into()).unwrap();
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // create card action
@@ -195,14 +194,6 @@ impl Character {
             namespace,
             &card_props,
         );
-
-        // revert context flags
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-        entity.hit_context.flags = original_context_flags;
 
         // spawn a poof if there's no action
         let Some(index) = action_index else {

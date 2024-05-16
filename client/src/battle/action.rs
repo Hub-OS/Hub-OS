@@ -206,21 +206,12 @@ impl Action {
         }
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // execute callback
         if let Some(callback) = action.execute_callback.take() {
             callback.call(game_io, resources, simulation, ());
         }
-
-        let entity = simulation
-            .entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-
-        // revert context
-        entity.hit_context.flags = original_context_flags;
 
         // setup frame callbacks
         let Some(action) = simulation.actions.get_mut(action_index) else {
@@ -262,6 +253,11 @@ impl Action {
         animator.on_interrupt(interrupt_callback);
 
         // update attachments
+        let entity = simulation
+            .entities
+            .query_one_mut::<&mut Entity>(entity_id.into())
+            .unwrap();
+
         if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
             if let Some(sprite) = sprite_tree.get_mut(action.sprite_index) {
                 sprite.set_visible(true);

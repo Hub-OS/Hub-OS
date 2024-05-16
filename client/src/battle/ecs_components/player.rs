@@ -151,9 +151,6 @@ impl Player {
         // spawn immediately
         entity.pending_spawn = true;
 
-        // prevent attacks from countering by default
-        entity.hit_context.flags = HitFlag::NO_COUNTER;
-
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
@@ -683,7 +680,9 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
 
@@ -691,6 +690,9 @@ impl Player {
             callbacks.normal_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -702,7 +704,9 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
 
@@ -710,6 +714,9 @@ impl Player {
             callbacks.charged_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -721,13 +728,19 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
+
         let callbacks = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
             callbacks.special_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -793,7 +806,6 @@ impl Player {
             .unwrap();
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // create card action
@@ -814,14 +826,6 @@ impl Player {
                 &card_props,
             )
         };
-
-        // revert context flags
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-        entity.hit_context.flags = original_context_flags;
 
         // spawn a poof if there's no action
         let Some(index) = action_index else {
