@@ -656,6 +656,10 @@ impl BattleState {
                 .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
                 .unwrap();
 
+            if !entity.on_field {
+                continue;
+            }
+
             let input = &simulation.inputs[player.index];
 
             // normal attack and charged attack

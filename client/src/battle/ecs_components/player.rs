@@ -849,6 +849,11 @@ impl Player {
             return;
         };
 
+        // can't move if not on the field
+        if !entity.on_field {
+            return;
+        }
+
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;
         if entity.action_index.is_some()
