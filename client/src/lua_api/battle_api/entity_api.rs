@@ -947,7 +947,11 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         "insert_field_card",
         |character: &mut Character, _, (index, card): (isize, CardProperties)| {
             // accepting index as isize to prevent type errors when we can just return nil
-            let index = character.invert_card_index((index - 1) as usize);
+            let index = if (index as usize) < character.cards.len() {
+                character.invert_card_index((index - 1) as usize)
+            } else {
+                0
+            };
 
             if index > character.cards.len() {
                 character.cards.push(card);
