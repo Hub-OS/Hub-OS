@@ -842,26 +842,28 @@ impl BattleSimulation {
         if let Ok((entity, character)) =
             (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
         {
-            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+            if entity.on_field {
+                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-            let mut base_position = entity.screen_position(&self.field, perspective_flipped);
-            base_position.y -= entity.height + 16.0;
+                let mut base_position = entity.screen_position(&self.field, perspective_flipped);
+                base_position.y -= entity.height + 16.0;
 
-            let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-            border_sprite.set_color(Color::BLACK);
-            border_sprite.set_size(Vec2::new(16.0, 16.0));
+                let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+                border_sprite.set_color(Color::BLACK);
+                border_sprite.set_size(Vec2::new(16.0, 16.0));
 
-            for i in 0..character.cards.len() {
-                let card = &character.cards[i];
+                for i in 0..character.cards.len() {
+                    let card = &character.cards[i];
 
-                let cards_before = character.cards.len() - i;
-                let card_offset = 2.0 * cards_before as f32;
-                let position = base_position - card_offset;
+                    let cards_before = character.cards.len() - i;
+                    let card_offset = 2.0 * cards_before as f32;
+                    let position = base_position - card_offset;
 
-                border_sprite.set_position(position - 1.0);
-                sprite_queue.draw_sprite(&border_sprite);
+                    border_sprite.set_position(position - 1.0);
+                    sprite_queue.draw_sprite(&border_sprite);
 
-                CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
+                    CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
+                }
             }
         }
 
