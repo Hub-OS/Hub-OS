@@ -1,7 +1,6 @@
-use super::{
-    Action, BattleAnimator, BattleSimulation, Entity, Living, SharedBattleResources, StatusDirector,
-};
-use crate::bindable::{EntityId, Movement};
+use super::{Action, BattleAnimator, BattleSimulation, Entity, Living, SharedBattleResources};
+use crate::bindable::{EntityId, HitFlags, Movement};
+use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
 
@@ -11,7 +10,7 @@ pub struct TimeFreezeEntityBackup {
     pub action_index: Option<GenerationalIndex>,
     pub movement: Option<Movement>,
     pub animator: BattleAnimator,
-    pub status_director: Option<StatusDirector>,
+    pub statuses: Vec<(HitFlags, FrameTime)>,
 }
 
 impl TimeFreezeEntityBackup {
@@ -44,25 +43,35 @@ impl TimeFreezeEntityBackup {
         animator.clear_callbacks();
 
         // backup status_director
-        let status_director = living.map(|living| {
-            let status_sprites = living.status_director.take_status_sprites();
+        let statuses = living
+            .map(|living| {
+                let status_sprites = living.status_director.take_status_sprites();
 
-            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
-                // delete old status sprites
-                for (_, index) in status_sprites {
-                    sprite_tree.remove(index);
+                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                {
+                    // delete old status sprites
+                    for (_, index) in status_sprites {
+                        sprite_tree.remove(index);
+                    }
                 }
-            }
 
-            std::mem::take(&mut living.status_director)
-        });
+                let statuses = living.status_director.applied_and_pending();
+
+                // clear existing statuses and call destructors to get rid of scripted effects and artifacts
+                living.status_director.clear_statuses();
+                let destructors = living.status_director.take_ready_destructors();
+                simulation.pending_callbacks.extend(destructors);
+
+                statuses
+            })
+            .unwrap_or_default();
 
         Some(Self {
             entity_id,
             action_index: old_action_index,
             movement,
             animator: animator_backup,
-            status_director,
+            statuses,
         })
     }
 
@@ -105,7 +114,9 @@ impl TimeFreezeEntityBackup {
         // restore statuses
         if let Some(living) = living {
             // merge to retain statuses applied during time freeze
-            living.status_director.merge(self.status_director.unwrap());
+            for (flag, duration) in self.statuses {
+                living.status_director.apply_status(flag, duration);
+            }
         }
     }
 }
