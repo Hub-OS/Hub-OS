@@ -517,6 +517,18 @@ impl CardSelectState {
         if player.staged_items.confirmed() {
             selection.confirm_time = self.time;
 
+            // activate card select close components
+            for (_, component) in &simulation.components {
+                if component.entity == entity_id
+                    && component.lifetime == ComponentLifetime::CardSelectClose
+                {
+                    let callback = component.update_callback.clone();
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            simulation.call_pending_callbacks(game_io, resources);
+
             // ignore input
             return;
         }
@@ -579,6 +591,18 @@ impl CardSelectState {
                     if selection.local {
                         pending_sfx.push(&globals.sfx.card_select_confirm);
                     }
+
+                    // activate card select close components
+                    for (_, component) in &simulation.components {
+                        if component.entity == entity_id
+                            && component.lifetime == ComponentLifetime::CardSelectClose
+                        {
+                            let callback = component.update_callback.clone();
+                            simulation.pending_callbacks.push(callback);
+                        }
+                    }
+
+                    simulation.call_pending_callbacks(game_io, resources);
                 }
                 SelectedItem::Card(index) => {
                     if !player.staged_items.has_deck_index(index)
@@ -789,7 +813,7 @@ impl CardSelectState {
 
         Character::mutate_cards(game_io, resources, simulation);
 
-        simulation.update_components(game_io, resources, ComponentLifetime::CardSelectClose);
+        simulation.update_components(game_io, resources, ComponentLifetime::CardSelectComplete);
 
         self.completed = true;
     }
