@@ -1,6 +1,6 @@
 use super::*;
 use crate::bindable::*;
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
@@ -865,7 +865,13 @@ impl BattleSimulation {
                     border_sprite.set_position(position - 1.0);
                     sprite_queue.draw_sprite(&border_sprite);
 
-                    CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
+                    CardPackage::draw_icon(
+                        game_io,
+                        &mut sprite_queue,
+                        card.namespace.unwrap_or(PackageNamespace::Local),
+                        &card.package_id,
+                        position,
+                    )
                 }
             }
         }
