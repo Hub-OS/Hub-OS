@@ -1,6 +1,8 @@
 // Increment VERSION_ITERATION lib.rs if packets are added or modified
 
-use crate::structures::{FileHash, Input, InstalledBlock, PackageCategory, PackageId, InstalledSwitchDrive};
+use crate::structures::{
+    FileHash, Input, InstalledBlock, InstalledSwitchDrive, PackageCategory, PackageId,
+};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -11,7 +13,7 @@ pub enum NetplaySignal {
     Disconnect,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct NetplayBufferItem {
     pub pressed: Vec<Input>,
     pub signals: Vec<NetplaySignal>,
