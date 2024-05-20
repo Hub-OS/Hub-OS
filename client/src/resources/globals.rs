@@ -707,6 +707,7 @@ impl Globals {
             .chain(self.player_packages.package_ids(ns))
             .chain(self.resource_packages.package_ids(ns))
             .chain(self.status_packages.package_ids(ns))
+            .chain(self.tile_state_packages.package_ids(ns))
             .map(|id| uri_encode(id.as_str()))
             .collect();
 
