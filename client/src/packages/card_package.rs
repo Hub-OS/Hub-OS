@@ -121,7 +121,7 @@ impl Package for CardPackage {
             package.card_properties.hit_flags = hit_flags;
         }
 
-        if let Some(can_boost) = meta.can_charge {
+        if let Some(can_boost) = meta.can_boost {
             package.card_properties.can_boost = can_boost;
         }
 
