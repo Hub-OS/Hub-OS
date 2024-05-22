@@ -104,9 +104,18 @@ impl LibraryScene {
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
+        // flip
+        let input_util = InputUtil::new(game_io);
+
+        if input_util.was_just_pressed(Input::Special) {
+            self.card_preview.toggle_flipped();
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+        }
+
         // switching docks
         self.page_tracker.handle_input(game_io);
-        let input_util = InputUtil::new(game_io);
 
         // leaving scene
         if input_util.was_just_pressed(Input::Cancel) {

@@ -1,0 +1,42 @@
+animation state="DEFAULT"
+blank
+point label="STEP" x="12" y="12"
+
+animation state="FLINCH"
+frame x="60" y="270" w="12" h="12"
+
+animation state="FLASH"
+frame x="72" y="270" w="12" h="12"
+
+animation state="PARALYZE"
+frame x="84" y="270" w="12" h="12"
+
+animation state="STUN"
+frame x="84" y="270" w="12" h="12"
+
+animation state="DRAG"
+frame x="96" y="270" w="12" h="12"
+
+animation state="SHAKE"
+frame x="108" y="270" w="12" h="12"
+
+animation state="PIERCE_INVIS"
+frame x="120" y="270" w="12" h="12"
+
+animation state="PIERCE_GUARD"
+frame x="132" y="270" w="12" h="12"
+
+animation state="PIERCE_GROUND"
+frame x="144" y="270" w="12" h="12"
+
+animation state="BLIND"
+frame x="156" y="270" w="12" h="12"
+
+animation state="ROOT"
+frame x="168" y="270" w="12" h="12"
+
+animation state="CONFUSE"
+frame x="180" y="270" w="12" h="12"
+
+animation state="FREEZE"
+frame x="192" y="270" w="12" h="12"

@@ -430,6 +430,15 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         scene.context_menu.open();
     }
 
+    // flip card previews
+    if input_util.was_just_pressed(Input::Special) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.play_sound(&globals.sfx.cursor_select);
+
+        scene.deck_dock.card_preview.toggle_flipped();
+        scene.pack_dock.card_preview.toggle_flipped();
+    }
+
     // handle selecting regular card
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
         let event_sender = scene.event_sender.clone();
