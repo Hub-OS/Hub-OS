@@ -20,13 +20,13 @@ frame x="96" y="270" w="12" h="12"
 animation state="SHAKE"
 frame x="108" y="270" w="12" h="12"
 
-animation state="PIERCE_INVIS"
+animation state="PIERCEINVIS"
 frame x="120" y="270" w="12" h="12"
 
-animation state="PIERCE_GUARD"
+animation state="PIERCEGUARD"
 frame x="132" y="270" w="12" h="12"
 
-animation state="PIERCE_GROUND"
+animation state="PIERCEGROUND"
 frame x="144" y="270" w="12" h="12"
 
 animation state="BLIND"
