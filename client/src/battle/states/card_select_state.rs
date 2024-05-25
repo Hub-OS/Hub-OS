@@ -30,14 +30,14 @@ struct Selection {
 impl Selection {
     fn new() -> Self {
         Self {
-            col: 0 as i32,
-            row: 0 as i32,
+            col: 0,
+            row: 0,
             form_row: 0,
             card_button_width: 0,
             has_special_button: false,
             form_select_time: Some(0),
             form_open_time: Some(0),
-            confirm_time: 0 as i64,
+            confirm_time: 0,
             animating_slide: false,
             erased: false,
             local: true,
@@ -934,7 +934,7 @@ impl CardSelectState {
                 let namespace = player.namespace();
 
                 let is_dark = card_packages
-                    .package_or_override(namespace, &card.package_id)
+                    .package_or_fallback(namespace, &card.package_id)
                     .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
                 if !is_dark {
@@ -978,7 +978,7 @@ impl CardSelectState {
         };
 
         let selection = &mut self.player_selections[player.index];
-        let SelectedItem::Card(deck_index) = resolve_selected_item(player, &selection) else {
+        let SelectedItem::Card(deck_index) = resolve_selected_item(player, selection) else {
             return;
         };
 
@@ -990,7 +990,7 @@ impl CardSelectState {
         let namespace = player.namespace();
 
         let is_dark = card_packages
-            .package_or_override(namespace, &card.package_id)
+            .package_or_fallback(namespace, &card.package_id)
             .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
         if is_dark {

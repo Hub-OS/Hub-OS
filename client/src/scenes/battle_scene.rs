@@ -800,10 +800,8 @@ impl Scene for BattleScene {
         );
 
         let fade_sprite = &mut self.resources.fade_sprite;
-
         fade_sprite.set_color(self.resources.fade_color.take());
-
-        sprite_queue.draw_sprite(&fade_sprite);
+        sprite_queue.draw_sprite(fade_sprite);
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);
