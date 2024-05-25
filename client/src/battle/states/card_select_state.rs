@@ -971,10 +971,7 @@ impl CardSelectState {
 
             pending_sfx.push(&globals.sfx.dark_card);
 
-            let mut fade_sprite = resources.fade_sprite.borrow_mut();
-
-            fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
-            fade_sprite.set_color(resources.ui_fade_color.clone());
+            resources.fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
 
             for sfx in pending_sfx {
                 let audio = &globals.audio;
