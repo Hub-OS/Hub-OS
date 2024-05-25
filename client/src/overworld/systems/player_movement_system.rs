@@ -34,7 +34,11 @@ fn system_base(game_io: &GameIO, area: &mut OverworldArea) {
         .unwrap();
 
     if input_direction == Direction::None {
-        // a little inaccurate, immediate stop, allows for better diagonal stops on keyboard
+        // clear direction queue on stop, allows for better diagonal stops on keyboard
+        if movement_animator.state() != MovementState::Idle {
+            movement_animator.clear_direction_queue();
+        }
+
         movement_animator.set_state(MovementState::Idle);
     } else if input_util.is_down(Input::Sprint) {
         movement_animator.set_state(MovementState::Running);
@@ -53,8 +57,8 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
         return;
     }
 
-    let (animator, position, &direction) = entities
-        .query_one_mut::<(&Animator, &mut Vec3, &Direction)>(player_data.entity)
+    let (movement_animator, animator, position, &direction) = entities
+        .query_one_mut::<(&MovementAnimator, &Animator, &mut Vec3, &Direction)>(player_data.entity)
         .unwrap();
 
     if position.z < 0.0 {
@@ -150,9 +154,12 @@ fn system_tile_effect(game_io: &GameIO, area: &mut OverworldArea, assets: &impl 
                 (ActorProperty::Direction(screen_direction), Ease::Floor),
             ];
 
-            if let Some(animation_state) =
-                find_state_from_movement(animator, MovementState::Idle, screen_direction)
-            {
+            if let Some(animation_state) = find_state_from_movement(
+                movement_animator,
+                animator,
+                MovementState::Idle,
+                screen_direction,
+            ) {
                 first_steps.push((
                     ActorProperty::Animation(animation_state.to_string()),
                     Ease::Floor,

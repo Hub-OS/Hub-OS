@@ -57,7 +57,7 @@ pub fn system_player_interaction(game_io: &GameIO, area: &mut OverworldArea) {
             continue;
         }
 
-        player_data.actor_interaction = Some(id.clone());
+        player_data.actor_interaction = Some(*id);
         break;
     }
 

@@ -18,10 +18,11 @@ pub struct Net {
     config: Rc<ServerConfig>,
     message_sender: Sender<ThreadMessage>,
     areas: HashMap<String, Area>,
-    clients: HashMap<String, Client>,
-    bots: HashMap<String, Actor>,
-    sprites: HashMap<String, Sprite>,
-    public_sprites: HopSlotMap<slotmap::DefaultKey, String>,
+    actor_id_registry: slotmap::SlotMap<ActorId, ()>,
+    clients: HashMap<ActorId, Client>,
+    bots: HashMap<ActorId, Actor>,
+    sprites: HopSlotMap<SpriteId, Sprite>,
+    public_sprites: HopSlotMap<PublicSpriteId, SpriteId>,
     asset_manager: AssetManager,
     active_plugin: usize,
     kick_list: Vec<Boot>,
@@ -38,7 +39,8 @@ impl Net {
         use std::fs::{read_dir, read_to_string};
 
         let mut asset_manager = AssetManager::new();
-        asset_manager.load_assets_from_dir(std::path::Path::new("assets"));
+        asset_manager.load_assets_from_dir("assets");
+        asset_manager.load_mods_from_dir("mods");
 
         let mut areas = HashMap::new();
         let mut default_area_provided = false;
@@ -78,15 +80,24 @@ impl Net {
             config,
             message_sender,
             areas,
+            actor_id_registry: Default::default(),
             clients: HashMap::new(),
             bots: HashMap::new(),
-            sprites: HashMap::new(),
+            sprites: Default::default(),
             public_sprites: Default::default(),
             asset_manager,
             active_plugin: 0,
             kick_list: Vec::new(),
             item_registry: HashMap::new(),
         }
+    }
+
+    pub fn create_actor_id(&mut self) -> ActorId {
+        self.actor_id_registry.insert(())
+    }
+
+    fn free_actor_id(&mut self, id: ActorId) {
+        self.actor_id_registry.remove(id);
     }
 
     pub fn get_asset(&self, path: &str) -> Option<&Asset> {
@@ -146,7 +157,7 @@ impl Net {
             let player_ids = area.connected_players();
 
             for player_id in player_ids {
-                self.kick_player(player_id, "Area destroyed", true);
+                self.kick_player(*player_id, "Area destroyed", true);
             }
         }
     }
@@ -155,21 +166,21 @@ impl Net {
         self.asset_manager.remove_asset(path);
     }
 
-    pub fn get_player(&self, id: &str) -> Option<&Actor> {
-        self.clients.get(id).map(|client| &client.actor)
+    pub fn get_player(&self, id: ActorId) -> Option<&Actor> {
+        self.clients.get(&id).map(|client| &client.actor)
     }
 
-    pub fn get_player_addr(&self, id: &str) -> Option<std::net::SocketAddr> {
-        self.clients.get(id).map(|client| client.socket_address)
+    pub fn get_player_addr(&self, id: ActorId) -> Option<std::net::SocketAddr> {
+        self.clients.get(&id).map(|client| client.socket_address)
     }
 
     #[allow(dead_code)]
-    pub(super) fn get_client(&self, id: &str) -> Option<&Client> {
-        self.clients.get(id)
+    pub(super) fn get_client(&self, id: ActorId) -> Option<&Client> {
+        self.clients.get(&id)
     }
 
-    pub(super) fn get_client_mut(&mut self, id: &str) -> Option<&mut Client> {
-        self.clients.get_mut(id)
+    pub(super) fn get_client_mut(&mut self, id: ActorId) -> Option<&mut Client> {
+        self.clients.get_mut(&id)
     }
 
     pub fn require_asset(&mut self, area_id: &str, asset_path: &str) {
@@ -209,8 +220,8 @@ impl Net {
         }
     }
 
-    pub fn set_player_name(&mut self, id: &str, name: &str) {
-        let Some(client) = self.clients.get_mut(id) else {
+    pub fn set_player_name(&mut self, id: ActorId, name: &str) {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -227,7 +238,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorSetName {
-            actor_id: id.to_string(),
+            actor_id: id,
             name: name.to_string(),
         };
 
@@ -239,8 +250,8 @@ impl Net {
         );
     }
 
-    pub fn set_player_avatar(&mut self, id: &str, texture_path: &str, animation_path: &str) {
-        let Some(client) = self.clients.get_mut(id) else {
+    pub fn set_player_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -266,7 +277,7 @@ impl Net {
         );
 
         let packet = ServerPacket::ActorSetAvatar {
-            actor_id: id.to_string(),
+            actor_id: id,
             texture_path: texture_path.to_string(),
             animation_path: animation_path.to_string(),
         };
@@ -279,8 +290,8 @@ impl Net {
         );
     }
 
-    pub fn set_player_emote(&mut self, id: &str, emote_id: String) {
-        let Some(client) = self.clients.get(id) else {
+    pub fn set_player_emote(&mut self, id: ActorId, emote_id: String) {
+        let Some(client) = self.clients.get(&id) else {
             return;
         };
 
@@ -290,7 +301,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorEmote {
-            actor_id: id.to_string(),
+            actor_id: id,
             emote_id,
         };
 
@@ -302,9 +313,14 @@ impl Net {
         );
     }
 
-    pub fn exclusive_player_emote(&mut self, target_id: &str, emoter_id: &str, emote_id: String) {
+    pub fn exclusive_player_emote(
+        &mut self,
+        target_id: ActorId,
+        emoter_id: ActorId,
+        emote_id: String,
+    ) {
         let packet = ServerPacket::ActorEmote {
-            actor_id: emoter_id.to_string(),
+            actor_id: emoter_id,
             emote_id,
         };
 
@@ -313,8 +329,8 @@ impl Net {
             .send_by_id(target_id, Reliability::Reliable, packet);
     }
 
-    pub fn set_player_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
-        let Some(client) = self.clients.get_mut(id) else {
+    pub fn set_player_map_color(&mut self, id: ActorId, color: (u8, u8, u8, u8)) {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -330,14 +346,14 @@ impl Net {
             area,
             Reliability::Reliable,
             ServerPacket::ActorMapColor {
-                actor_id: id.to_string(),
+                actor_id: id,
                 color,
             },
         );
     }
 
-    pub fn animate_player(&mut self, id: &str, state: &str, loop_animation: bool) {
-        let Some(client) = self.clients.get(id) else {
+    pub fn animate_player(&mut self, id: ActorId, state: &str, loop_animation: bool) {
+        let Some(client) = self.clients.get(&id) else {
             return;
         };
 
@@ -351,17 +367,17 @@ impl Net {
             area,
             Reliability::Reliable,
             ServerPacket::ActorAnimate {
-                actor_id: id.to_string(),
+                actor_id: id,
                 state: state.to_string(),
                 loop_animation,
             },
         );
     }
 
-    pub fn animate_player_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
+    pub fn animate_player_properties(&mut self, id: ActorId, animation: Vec<ActorKeyFrame>) {
         use std::collections::HashSet;
 
-        let Some(client) = self.clients.get_mut(id) else {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -397,7 +413,7 @@ impl Net {
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[id.to_string()],
+            &[id],
             asset_paths.iter(),
         );
 
@@ -409,23 +425,23 @@ impl Net {
         );
     }
 
-    pub fn is_player_in_widget(&self, id: &str) -> bool {
-        if let Some(client) = self.clients.get(id) {
+    pub fn is_player_in_widget(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
             return client.is_in_widget();
         }
 
         false
     }
 
-    pub fn is_player_shopping(&self, id: &str) -> bool {
-        if let Some(client) = self.clients.get(id) {
+    pub fn is_player_shopping(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
             return client.is_shopping();
         }
 
         false
     }
 
-    pub fn preload_asset_for_player(&mut self, id: &str, asset_path: &str) {
+    pub fn preload_asset_for_player(&mut self, id: ActorId, asset_path: &str) {
         let Some(asset) = self.asset_manager.get_asset(asset_path) else {
             return;
         };
@@ -435,7 +451,7 @@ impl Net {
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[String::from(id)],
+            &[id],
             asset_path,
         );
 
@@ -449,13 +465,13 @@ impl Net {
         );
     }
 
-    pub fn play_sound_for_player(&mut self, id: &str, path: &str) {
+    pub fn play_sound_for_player(&mut self, id: ActorId, path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[id.to_string()],
+            &[id],
             path,
         );
 
@@ -468,7 +484,7 @@ impl Net {
         );
     }
 
-    pub fn exclude_object_for_player(&mut self, id: &str, object_id: u32) {
+    pub fn exclude_object_for_player(&mut self, id: ActorId, object_id: u32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -476,7 +492,7 @@ impl Net {
         );
     }
 
-    pub fn include_object_for_player(&mut self, id: &str, object_id: u32) {
+    pub fn include_object_for_player(&mut self, id: ActorId, object_id: u32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -484,27 +500,23 @@ impl Net {
         );
     }
 
-    pub fn exclude_actor_for_player(&mut self, id: &str, actor_id: &str) {
+    pub fn exclude_actor_for_player(&mut self, id: ActorId, actor_id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
-            ServerPacket::ExcludeActor {
-                actor_id: actor_id.to_string(),
-            },
+            ServerPacket::ExcludeActor { actor_id },
         );
     }
 
-    pub fn include_actor_for_player(&mut self, id: &str, actor_id: &str) {
+    pub fn include_actor_for_player(&mut self, id: ActorId, actor_id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
-            ServerPacket::IncludeActor {
-                actor_id: actor_id.to_string(),
-            },
+            ServerPacket::IncludeActor { actor_id },
         );
     }
 
-    pub fn move_player_camera(&mut self, id: &str, x: f32, y: f32, z: f32, hold_time: f32) {
+    pub fn move_player_camera(&mut self, id: ActorId, x: f32, y: f32, z: f32, hold_time: f32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -517,7 +529,7 @@ impl Net {
         );
     }
 
-    pub fn slide_player_camera(&mut self, id: &str, x: f32, y: f32, z: f32, duration: f32) {
+    pub fn slide_player_camera(&mut self, id: ActorId, x: f32, y: f32, z: f32, duration: f32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -525,7 +537,7 @@ impl Net {
         );
     }
 
-    pub fn shake_player_camera(&mut self, id: &str, strength: f32, duration: f32) {
+    pub fn shake_player_camera(&mut self, id: ActorId, strength: f32, duration: f32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -533,7 +545,7 @@ impl Net {
         );
     }
 
-    pub fn fade_player_camera(&mut self, id: &str, color: (u8, u8, u8, u8), duration: f32) {
+    pub fn fade_player_camera(&mut self, id: ActorId, color: (u8, u8, u8, u8), duration: f32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -541,17 +553,15 @@ impl Net {
         );
     }
 
-    pub fn track_with_player_camera(&mut self, id: &str, actor_id: &str) {
+    pub fn track_with_player_camera(&mut self, id: ActorId, actor_id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
-            ServerPacket::TrackWithCamera {
-                actor_id: actor_id.to_string(),
-            },
+            ServerPacket::TrackWithCamera { actor_id },
         );
     }
 
-    pub fn enable_camera_controls(&mut self, id: &str, dist_x: f32, dist_y: f32) {
+    pub fn enable_camera_controls(&mut self, id: ActorId, dist_x: f32, dist_y: f32) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -559,7 +569,7 @@ impl Net {
         )
     }
 
-    pub fn unlock_player_camera(&mut self, id: &str) {
+    pub fn unlock_player_camera(&mut self, id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -567,16 +577,16 @@ impl Net {
         );
     }
 
-    pub fn is_player_input_locked(&self, id: &str) -> bool {
-        if let Some(client) = self.clients.get(id) {
+    pub fn is_player_input_locked(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
             return client.input_locks > 0;
         }
 
         false
     }
 
-    pub fn lock_player_input(&mut self, id: &str) {
-        if let Some(client) = self.clients.get_mut(id) {
+    pub fn lock_player_input(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
             client.input_locks += 1;
 
             self.packet_orchestrator.borrow_mut().send(
@@ -587,8 +597,8 @@ impl Net {
         }
     }
 
-    pub fn unlock_player_input(&mut self, id: &str) {
-        if let Some(client) = self.clients.get_mut(id) {
+    pub fn unlock_player_input(&mut self, id: ActorId) {
+        if let Some(client) = self.clients.get_mut(&id) {
             if client.input_locks == 0 {
                 return;
             }
@@ -605,14 +615,14 @@ impl Net {
 
     pub fn teleport_player(
         &mut self,
-        id: &str,
+        id: ActorId,
         warp: bool,
         x: f32,
         y: f32,
         z: f32,
         direction: Direction,
     ) {
-        if let Some(client) = self.clients.get_mut(id) {
+        if let Some(client) = self.clients.get_mut(&id) {
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
@@ -638,13 +648,13 @@ impl Net {
 
     pub(crate) fn update_player_position(
         &mut self,
-        id: &str,
+        id: ActorId,
         x: f32,
         y: f32,
         z: f32,
         direction: Direction,
     ) {
-        let client = self.clients.get_mut(id).unwrap();
+        let client = self.clients.get_mut(&id).unwrap();
 
         client.actor.set_position(x, y, z);
         client.actor.set_direction(direction);
@@ -667,7 +677,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorMove {
-            actor_id: id.to_string(),
+            actor_id: id,
             x,
             y,
             z,
@@ -682,8 +692,8 @@ impl Net {
         );
     }
 
-    pub fn set_hud_visibility(&mut self, id: &str, visible: bool) {
-        let Some(client) = self.clients.get(id) else {
+    pub fn set_hud_visibility(&mut self, id: ActorId, visible: bool) {
+        let Some(client) = self.clients.get(&id) else {
             return;
         };
 
@@ -700,17 +710,17 @@ impl Net {
         );
     }
 
-    pub fn message_player(&mut self, id: &str, message: &str, textbox_options: TextboxOptions) {
+    pub fn message_player(&mut self, id: ActorId, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[id.to_string()],
+            &[id],
             textbox_options.dependencies(),
         );
 
-        if let Some(client) = self.clients.get_mut(id) {
+        if let Some(client) = self.clients.get_mut(&id) {
             client.widget_tracker.track_textbox(self.active_plugin);
 
             self.packet_orchestrator.borrow_mut().send(
@@ -724,17 +734,17 @@ impl Net {
         }
     }
 
-    pub fn question_player(&mut self, id: &str, message: &str, textbox_options: TextboxOptions) {
+    pub fn question_player(&mut self, id: ActorId, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[id.to_string()],
+            &[id],
             textbox_options.dependencies(),
         );
 
-        if let Some(client) = self.clients.get_mut(id) {
+        if let Some(client) = self.clients.get_mut(&id) {
             client.widget_tracker.track_textbox(self.active_plugin);
 
             self.packet_orchestrator.borrow_mut().send(
@@ -750,7 +760,7 @@ impl Net {
 
     pub fn quiz_player(
         &mut self,
-        id: &str,
+        id: ActorId,
         option_a: &str,
         option_b: &str,
         option_c: &str,
@@ -761,11 +771,11 @@ impl Net {
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[id.to_string()],
+            &[id],
             textbox_options.dependencies(),
         );
 
-        if let Some(client) = self.clients.get_mut(id) {
+        if let Some(client) = self.clients.get_mut(&id) {
             client.widget_tracker.track_textbox(self.active_plugin);
 
             self.packet_orchestrator.borrow_mut().send(
@@ -781,8 +791,8 @@ impl Net {
         }
     }
 
-    pub fn prompt_player(&mut self, id: &str, character_limit: u16, default_text: Option<&str>) {
-        if let Some(client) = self.clients.get_mut(id) {
+    pub fn prompt_player(&mut self, id: ActorId, character_limit: u16, default_text: Option<&str>) {
+        if let Some(client) = self.clients.get_mut(&id) {
             client.widget_tracker.track_textbox(self.active_plugin);
 
             // reliability + id + type + u16 size
@@ -803,13 +813,13 @@ impl Net {
 
     pub fn open_board(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         name: &str,
         color: (u8, u8, u8),
         posts: Vec<BbsPost>,
         open_instantly: bool,
     ) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -829,8 +839,13 @@ impl Net {
         );
     }
 
-    pub fn prepend_posts(&mut self, player_id: &str, reference: Option<&str>, posts: Vec<BbsPost>) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn prepend_posts(
+        &mut self,
+        player_id: ActorId,
+        reference: Option<&str>,
+        posts: Vec<BbsPost>,
+    ) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -843,8 +858,13 @@ impl Net {
         );
     }
 
-    pub fn append_posts(&mut self, player_id: &str, reference: Option<&str>, posts: Vec<BbsPost>) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn append_posts(
+        &mut self,
+        player_id: ActorId,
+        reference: Option<&str>,
+        posts: Vec<BbsPost>,
+    ) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -857,8 +877,8 @@ impl Net {
         );
     }
 
-    pub fn remove_post(&mut self, player_id: &str, post_id: &str) {
-        if let Some(client) = self.clients.get(player_id) {
+    pub fn remove_post(&mut self, player_id: ActorId, post_id: &str) {
+        if let Some(client) = self.clients.get(&player_id) {
             self.packet_orchestrator.borrow_mut().send(
                 client.socket_address,
                 Reliability::ReliableOrdered,
@@ -869,7 +889,7 @@ impl Net {
         }
     }
 
-    pub fn close_board(&mut self, player_id: &str) {
+    pub fn close_board(&mut self, player_id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             player_id,
             Reliability::ReliableOrdered,
@@ -879,7 +899,7 @@ impl Net {
 
     pub fn open_shop(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         items: Vec<ShopItem>,
         textbox_options: TextboxOptions,
     ) {
@@ -888,11 +908,11 @@ impl Net {
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[player_id.to_string()],
+            &[player_id],
             textbox_options.dependencies(),
         );
 
-        let Some(client) = self.clients.get_mut(player_id) else {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -913,8 +933,8 @@ impl Net {
         );
     }
 
-    pub fn set_shop_message(&mut self, player_id: &str, message: String) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn set_shop_message(&mut self, player_id: ActorId, message: String) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -926,8 +946,8 @@ impl Net {
         );
     }
 
-    pub fn update_shop_item(&mut self, player_id: &str, item: ShopItem) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn update_shop_item(&mut self, player_id: ActorId, item: ShopItem) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -939,8 +959,8 @@ impl Net {
         );
     }
 
-    pub fn remove_shop_item(&mut self, player_id: &str, id: String) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn remove_shop_item(&mut self, player_id: ActorId, id: String) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -952,8 +972,8 @@ impl Net {
         );
     }
 
-    pub fn is_player_battling(&self, id: &str) -> bool {
-        if let Some(client) = self.clients.get(id) {
+    pub fn is_player_battling(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
             return client.is_battling();
         }
 
@@ -962,14 +982,12 @@ impl Net {
 
     pub fn initiate_netplay(
         &mut self,
-        ids: &[&str],
+        ids: &[ActorId],
         package_path: Option<String>,
         data: Option<String>,
     ) {
         if let Some(package_path) = package_path.as_ref() {
-            let player_ids: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
-
-            self.preload_package(&player_ids, package_path);
+            self.preload_package(ids, package_path);
         }
 
         // todo: put these clients in slow mode
@@ -978,7 +996,7 @@ impl Net {
             .iter()
             .enumerate()
             .flat_map(|(i, id)| {
-                self.clients.get(*id).map(|client| RemotePlayerInfo {
+                self.clients.get(id).map(|client| RemotePlayerInfo {
                     index: i,
                     address: client.socket_address,
                     health: client.player_data.health,
@@ -991,7 +1009,7 @@ impl Net {
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
 
         for (player_index, id) in ids.iter().enumerate() {
-            if let Some(client) = self.clients.get_mut(*id) {
+            if let Some(client) = self.clients.get_mut(id) {
                 let remote_addresses: Vec<_> = remote_players
                     .iter()
                     .filter(|info| info.address != client.socket_address)
@@ -1025,14 +1043,14 @@ impl Net {
         }
     }
 
-    pub fn set_player_restrictions(&mut self, player_id: &str, restrictions_path: Option<&str>) {
+    pub fn set_player_restrictions(&mut self, player_id: ActorId, restrictions_path: Option<&str>) {
         if let Some(restrictions_path) = restrictions_path {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
                 self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                &[String::from(player_id)],
+                &[player_id],
                 restrictions_path,
             );
         };
@@ -1046,8 +1064,8 @@ impl Net {
         );
     }
 
-    pub fn refer_server(&mut self, player_id: &str, name: String, address: String) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn refer_server(&mut self, player_id: ActorId, name: String, address: String) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1058,8 +1076,8 @@ impl Net {
         );
     }
 
-    pub fn refer_package(&mut self, player_id: &str, package_id: PackageId) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn refer_package(&mut self, player_id: ActorId, package_id: PackageId) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1070,17 +1088,17 @@ impl Net {
         );
     }
 
-    pub fn offer_package(&mut self, player_id: &str, package_path: &str) {
+    pub fn offer_package(&mut self, player_id: ActorId, package_path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
             &self.asset_manager,
             &mut self.clients,
-            &[String::from(player_id)],
+            &[player_id],
             package_path,
         );
 
-        let Some(client) = self.clients.get_mut(player_id) else {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1118,7 +1136,7 @@ impl Net {
         );
     }
 
-    pub fn preload_package(&mut self, player_ids: &[String], package_path: &str) {
+    pub fn preload_package(&mut self, player_ids: &[ActorId], package_path: &str) {
         ensure_asset(
             &mut self.packet_orchestrator.borrow_mut(),
             self.config.args.max_payload_size,
@@ -1158,19 +1176,23 @@ impl Net {
         let packets: Vec<_> = packets.into_iter().map(serialize).collect();
 
         for id in player_ids {
-            packet_orchestrator.send_byte_packets_by_id(id, Reliability::ReliableOrdered, &packets);
+            packet_orchestrator.send_byte_packets_by_id(
+                *id,
+                Reliability::ReliableOrdered,
+                &packets,
+            );
         }
     }
 
     pub fn initiate_encounter(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         package_path: &str,
         data: Option<String>,
     ) {
-        self.preload_package(&[player_id.to_string()], package_path);
+        self.preload_package(&[player_id], package_path);
 
-        let Some(client) = self.clients.get_mut(player_id) else {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1192,28 +1214,28 @@ impl Net {
         );
     }
 
-    pub fn is_player_busy(&self, id: &str) -> bool {
-        if let Some(client) = self.clients.get(id) {
+    pub fn is_player_busy(&self, id: ActorId) -> bool {
+        if let Some(client) = self.clients.get(&id) {
             return client.is_busy();
         }
 
         true
     }
 
-    pub fn get_player_data(&self, player_id: &str) -> Option<&PlayerData> {
+    pub fn get_player_data(&self, player_id: ActorId) -> Option<&PlayerData> {
         self.clients
-            .get(player_id)
+            .get(&player_id)
             .map(|client| &client.player_data)
     }
 
     pub(crate) fn update_player_data(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         avatar_name: String,
         element: String,
         base_health: i32,
     ) {
-        let client = self.clients.get_mut(player_id).unwrap();
+        let client = self.clients.get_mut(&player_id).unwrap();
         let player_data = &mut client.player_data;
 
         player_data.avatar_name = avatar_name;
@@ -1222,8 +1244,8 @@ impl Net {
         player_data.health = base_health + player_data.health_boost;
     }
 
-    pub fn set_player_health(&mut self, player_id: &str, health: i32) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+    pub fn set_player_health(&mut self, player_id: ActorId, health: i32) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.health = health;
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1234,8 +1256,8 @@ impl Net {
         }
     }
 
-    pub fn set_player_base_health(&mut self, player_id: &str, base_health: i32) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+    pub fn set_player_base_health(&mut self, player_id: ActorId, base_health: i32) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.base_health = base_health;
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1246,8 +1268,8 @@ impl Net {
         }
     }
 
-    pub fn set_player_emotion(&mut self, player_id: &str, emotion: Emotion) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+    pub fn set_player_emotion(&mut self, player_id: ActorId, emotion: Emotion) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.emotion = emotion.clone();
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1258,8 +1280,8 @@ impl Net {
         }
     }
 
-    pub fn set_player_money(&mut self, player_id: &str, money: u32) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+    pub fn set_player_money(&mut self, player_id: ActorId, money: u32) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.money = money;
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1278,8 +1300,8 @@ impl Net {
         self.item_registry.insert(item_id, item);
     }
 
-    pub fn give_player_item(&mut self, player_id: &str, item_id: String, count: isize) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub fn give_player_item(&mut self, player_id: ActorId, item_id: String, count: isize) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1315,12 +1337,12 @@ impl Net {
 
     pub fn give_player_card(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         package_id: PackageId,
         code: String,
         count: isize,
     ) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.add_card(&package_id, &code, count);
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1337,12 +1359,12 @@ impl Net {
 
     pub fn give_player_block(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         package_id: PackageId,
         color: BlockColor,
         count: isize,
     ) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client.player_data.add_block(&package_id, color, count);
 
             self.packet_orchestrator.borrow_mut().send(
@@ -1359,11 +1381,11 @@ impl Net {
 
     pub fn enable_player_character(
         &mut self,
-        player_id: &str,
+        player_id: ActorId,
         package_id: PackageId,
         enabled: bool,
     ) {
-        if let Some(client) = self.clients.get_mut(player_id) {
+        if let Some(client) = self.clients.get_mut(&player_id) {
             client
                 .player_data
                 .enable_player_character(&package_id, enabled);
@@ -1382,7 +1404,7 @@ impl Net {
     #[allow(clippy::too_many_arguments)]
     pub fn transfer_player(
         &mut self,
-        id: &str,
+        id: ActorId,
         area_id: &str,
         warp_in: bool,
         x: f32,
@@ -1395,7 +1417,7 @@ impl Net {
             return;
         }
 
-        let Some(client) = self.clients.get_mut(id) else {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -1410,7 +1432,7 @@ impl Net {
         client.warp_z = z;
         client.warp_direction = direction;
 
-        if !previous_area.connected_players().contains(&id.to_string()) {
+        if !previous_area.connected_players().contains(&id) {
             // client has not been added to any area yet
             // assume client was transferred on initial connection by a plugin
             client.actor.area_id = area_id.to_string();
@@ -1430,7 +1452,7 @@ impl Net {
             previous_area,
             Reliability::ReliableOrdered,
             ServerPacket::ActorDisconnected {
-                actor_id: id.to_string(),
+                actor_id: id,
                 warp_out: warp_in,
             },
         );
@@ -1446,8 +1468,8 @@ impl Net {
         }
     }
 
-    pub(super) fn complete_transfer(&mut self, player_id: &str) {
-        let Some(client) = self.clients.get_mut(player_id) else {
+    pub(super) fn complete_transfer(&mut self, player_id: ActorId) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
             return;
         };
 
@@ -1479,10 +1501,10 @@ impl Net {
             [texture_path.as_str(), animation_path.as_str()].iter(),
         );
 
-        area.add_player(player_id.to_string());
+        area.add_player(player_id);
         self.send_area(player_id, &area_id);
 
-        let client = self.clients.get_mut(player_id).unwrap();
+        let client = self.clients.get_mut(&player_id).unwrap();
 
         client.actor.area_id = area_id.to_string();
         client.transferring = true;
@@ -1510,7 +1532,7 @@ impl Net {
         );
     }
 
-    pub fn transfer_server(&mut self, id: &str, address: &str, data: &str, warp_out: bool) {
+    pub fn transfer_server(&mut self, id: ActorId, address: &str, data: &str, warp_out: bool) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -1521,10 +1543,17 @@ impl Net {
             },
         );
 
-        self.kick_player(id, "Transferred", warp_out);
+        if let Some(client) = self.clients.get(&id) {
+            self.kick_list.push(Boot {
+                socket_address: client.socket_address,
+                reason: String::from("Transferred"),
+                notify_client: false,
+                warp_out,
+            });
+        }
     }
 
-    pub fn request_authorization(&mut self, id: &str, address: &str, data: &[u8]) {
+    pub fn request_authorization(&mut self, id: ActorId, address: &str, data: &[u8]) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             id,
             Reliability::ReliableOrdered,
@@ -1535,11 +1564,12 @@ impl Net {
         );
     }
 
-    pub fn kick_player(&mut self, id: &str, reason: &str, warp_out: bool) {
-        if let Some(client) = self.clients.get(id) {
+    pub fn kick_player(&mut self, id: ActorId, reason: &str, warp_out: bool) {
+        if let Some(client) = self.clients.get(&id) {
             self.kick_list.push(Boot {
                 socket_address: client.socket_address,
                 reason: reason.to_string(),
+                notify_client: true,
                 warp_out,
             });
         }
@@ -1558,7 +1588,9 @@ impl Net {
         socket_address: std::net::SocketAddr,
         name: String,
         identity: Vec<u8>,
-    ) -> String {
+    ) -> ActorId {
+        let id = self.create_actor_id();
+
         let area_id = String::from("default");
         let area = self.get_area_mut(&area_id).unwrap();
         let map = area.map();
@@ -1567,6 +1599,7 @@ impl Net {
 
         let client = Client::new(
             socket_address,
+            id,
             name,
             identity,
             area_id.clone(),
@@ -1576,20 +1609,20 @@ impl Net {
             spawn_direction,
         );
 
-        let id = client.actor.id.clone();
+        let id = client.actor.id;
 
         let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
-        packet_orchestrator.register_client(client.socket_address, id.clone());
+        packet_orchestrator.register_client(client.socket_address, id);
 
-        self.clients.insert(id.clone(), client);
+        self.clients.insert(id, client);
 
         id
     }
 
-    pub(super) fn store_player_assets(&mut self, player_id: &str) -> Option<(String, String)> {
+    pub(super) fn store_player_assets(&mut self, player_id: ActorId) -> Option<(String, String)> {
         use super::client::find_longest_frame_length;
 
-        let client = self.clients.get_mut(player_id).unwrap();
+        let client = self.clients.get_mut(&player_id).unwrap();
 
         let texture_data = client.texture_buffer.clone();
         let animation_data = String::from_utf8_lossy(&client.animation_buffer).into_owned();
@@ -1654,8 +1687,8 @@ impl Net {
         Some((texture_path, animation_path))
     }
 
-    pub(super) fn spawn_client(&mut self, player_id: &str) {
-        let client = self.clients.get(player_id).unwrap();
+    pub(super) fn spawn_client(&mut self, player_id: ActorId) {
+        let client = self.clients.get(&player_id).unwrap();
         let area_id = client.actor.area_id.clone();
         let texture_path = client.actor.texture_path.clone();
         let animation_path = client.actor.animation_path.clone();
@@ -1665,7 +1698,7 @@ impl Net {
             return;
         };
 
-        area.add_player(client.actor.id.clone());
+        area.add_player(client.actor.id);
 
         {
             let packet_orchestrator = &mut self.packet_orchestrator.borrow_mut();
@@ -1683,10 +1716,10 @@ impl Net {
 
         self.send_area(player_id, &area_id);
 
-        let client = self.clients.get_mut(player_id).unwrap();
+        let client = self.clients.get_mut(&player_id).unwrap();
 
         let packet = ServerPacket::Login {
-            actor_id: player_id.to_string(),
+            actor_id: player_id,
             warp_in: client.warp_in,
             spawn_x: client.warp_x,
             spawn_y: client.warp_y,
@@ -1701,7 +1734,7 @@ impl Net {
         );
     }
 
-    pub(super) fn connect_client(&mut self, player_id: &str) {
+    pub(super) fn connect_client(&mut self, player_id: ActorId) {
         self.packet_orchestrator.borrow_mut().send_by_id(
             player_id,
             Reliability::ReliableOrdered,
@@ -1709,7 +1742,7 @@ impl Net {
         );
     }
 
-    fn send_area(&mut self, player_id: &str, area_id: &str) {
+    fn send_area(&mut self, player_id: ActorId, area_id: &str) {
         use super::asset::get_map_path;
 
         let area = self.areas.get(area_id).unwrap();
@@ -1724,7 +1757,7 @@ impl Net {
 
         // send clients
         for other_player_id in area.connected_players() {
-            if other_player_id == player_id {
+            if *other_player_id == player_id {
                 continue;
             }
 
@@ -1748,7 +1781,7 @@ impl Net {
         }
 
         // send public sprites
-        for sprite_id in self.public_sprites.values() {
+        for &sprite_id in self.public_sprites.values() {
             let sprite = &self.sprites[sprite_id];
 
             let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
@@ -1764,7 +1797,7 @@ impl Net {
             asset_paths.push(sprite.definition.texture_path.clone());
 
             packets.push(ServerPacket::SpriteCreated {
-                sprite_id: sprite_id.clone(),
+                sprite_id,
                 sprite_definition: sprite.definition.clone(),
             });
         }
@@ -1789,15 +1822,13 @@ impl Net {
         let packets: Vec<Vec<u8>> = packets.iter().map(serialize).collect();
 
         // send asset_packets before anything else
-        let asset_recievers = [player_id.to_string()];
-
         for asset_path in asset_paths {
             ensure_asset(
                 &mut self.packet_orchestrator.borrow_mut(),
                 self.config.args.max_payload_size,
                 &self.asset_manager,
                 &mut self.clients,
-                &asset_recievers[..],
+                &[player_id],
                 &asset_path,
             );
         }
@@ -1808,8 +1839,8 @@ impl Net {
     }
 
     // handles first join and completed transfer
-    pub(super) fn mark_client_ready(&mut self, id: &str) {
-        let Some(client) = self.clients.get_mut(id) else {
+    pub(super) fn mark_client_ready(&mut self, id: ActorId) {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
 
@@ -1835,7 +1866,7 @@ impl Net {
         );
 
         for sprite_id in client.actor.child_sprites.clone() {
-            let sprite = self.sprites.get(&sprite_id).unwrap();
+            let sprite = self.sprites.get(sprite_id).unwrap();
             let sprite_definition = sprite.definition.clone();
 
             self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteCreated {
@@ -1845,10 +1876,12 @@ impl Net {
         }
     }
 
-    pub(super) fn remove_player(&mut self, id: &str, warp_out: bool) {
-        let Some(client) = self.clients.remove(id) else {
+    pub(super) fn remove_player(&mut self, id: ActorId, warp_out: bool) {
+        let Some(client) = self.clients.remove(&id) else {
             return;
         };
+
+        self.free_actor_id(id);
 
         // remove assets
         let remove_list = [
@@ -1864,11 +1897,11 @@ impl Net {
 
         // delete sprites
         for id in client.actor.child_sprites {
-            let Some(sprite) = self.sprites.remove(&id) else {
+            let Some(sprite) = self.sprites.remove(id) else {
                 continue;
             };
 
-            if let Some(index) = sprite.public_sprites_index {
+            if let Some(index) = sprite.public_sprite_id {
                 self.public_sprites.remove(index);
             }
         }
@@ -1883,10 +1916,10 @@ impl Net {
             return;
         };
 
-        area.remove_player(&client.actor.id);
+        area.remove_player(client.actor.id);
 
         let packet = ServerPacket::ActorDisconnected {
-            actor_id: id.to_string(),
+            actor_id: id,
             warp_out,
         };
 
@@ -1898,8 +1931,8 @@ impl Net {
         );
     }
 
-    pub fn get_bot(&self, id: &str) -> Option<&Actor> {
-        self.bots.get(id)
+    pub fn get_bot(&self, id: ActorId) -> Option<&Actor> {
+        self.bots.get(&id)
     }
 
     pub fn add_bot(&mut self, bot: Actor, warp_in: bool) {
@@ -1914,7 +1947,7 @@ impl Net {
         }
 
         if let Some(area) = self.areas.get_mut(&bot.area_id) {
-            area.add_bot(bot.id.clone());
+            area.add_bot(bot.id);
 
             let packet = bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in);
 
@@ -1934,22 +1967,24 @@ impl Net {
                 packet,
             );
 
-            self.bots.insert(bot.id.clone(), bot);
+            self.bots.insert(bot.id, bot);
         }
     }
 
-    pub fn remove_bot(&mut self, id: &str, warp_out: bool) {
-        let Some(bot) = self.bots.remove(id) else {
+    pub fn remove_bot(&mut self, id: ActorId, warp_out: bool) {
+        let Some(bot) = self.bots.remove(&id) else {
             return;
         };
 
+        self.free_actor_id(id);
+
         // delete sprites
         for id in bot.child_sprites {
-            let Some(sprite) = self.sprites.remove(&id) else {
+            let Some(sprite) = self.sprites.remove(id) else {
                 continue;
             };
 
-            if let Some(index) = sprite.public_sprites_index {
+            if let Some(index) = sprite.public_sprite_id {
                 self.public_sprites.remove(index);
             }
         }
@@ -1959,10 +1994,10 @@ impl Net {
             return;
         };
 
-        area.remove_bot(&bot.id);
+        area.remove_bot(bot.id);
 
         let packet = ServerPacket::ActorDisconnected {
-            actor_id: id.to_string(),
+            actor_id: id,
             warp_out,
         };
 
@@ -1974,8 +2009,8 @@ impl Net {
         );
     }
 
-    pub fn set_bot_name(&mut self, id: &str, name: &str) {
-        let Some(bot) = self.bots.get_mut(id) else {
+    pub fn set_bot_name(&mut self, id: ActorId, name: &str) {
+        let Some(bot) = self.bots.get_mut(&id) else {
             return;
         };
 
@@ -1986,7 +2021,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorSetName {
-            actor_id: id.to_string(),
+            actor_id: id,
             name: name.to_string(),
         };
 
@@ -1998,8 +2033,8 @@ impl Net {
         );
     }
 
-    pub fn move_bot(&mut self, id: &str, x: f32, y: f32, z: f32) {
-        if let Some(bot) = self.bots.get_mut(id) {
+    pub fn move_bot(&mut self, id: ActorId, x: f32, y: f32, z: f32) {
+        if let Some(bot) = self.bots.get_mut(&id) {
             let updated_direction = Direction::from_offset((x - bot.x, y - bot.y));
 
             if !matches!(updated_direction, Direction::None) {
@@ -2010,14 +2045,14 @@ impl Net {
         }
     }
 
-    pub fn set_bot_direction(&mut self, id: &str, direction: Direction) {
-        if let Some(bot) = self.bots.get_mut(id) {
+    pub fn set_bot_direction(&mut self, id: ActorId, direction: Direction) {
+        if let Some(bot) = self.bots.get_mut(&id) {
             bot.set_direction(direction);
         }
     }
 
-    pub fn set_bot_avatar(&mut self, id: &str, texture_path: &str, animation_path: &str) {
-        let Some(bot) = self.bots.get_mut(id) else {
+    pub fn set_bot_avatar(&mut self, id: ActorId, texture_path: &str, animation_path: &str) {
+        let Some(bot) = self.bots.get_mut(&id) else {
             return;
         };
 
@@ -2045,7 +2080,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorSetAvatar {
-            actor_id: id.to_string(),
+            actor_id: id,
             texture_path: texture_path.to_string(),
             animation_path: animation_path.to_string(),
         };
@@ -2058,8 +2093,8 @@ impl Net {
         );
     }
 
-    pub fn set_bot_emote(&mut self, id: &str, emote_id: String) {
-        let Some(bot) = self.bots.get(id) else {
+    pub fn set_bot_emote(&mut self, id: ActorId, emote_id: String) {
+        let Some(bot) = self.bots.get(&id) else {
             return;
         };
 
@@ -2068,7 +2103,7 @@ impl Net {
         };
 
         let packet = ServerPacket::ActorEmote {
-            actor_id: id.to_string(),
+            actor_id: id,
             emote_id,
         };
 
@@ -2080,8 +2115,8 @@ impl Net {
         );
     }
 
-    pub fn set_bot_map_color(&mut self, id: &str, color: (u8, u8, u8, u8)) {
-        let Some(bot) = self.bots.get_mut(id) else {
+    pub fn set_bot_map_color(&mut self, id: ActorId, color: (u8, u8, u8, u8)) {
+        let Some(bot) = self.bots.get_mut(&id) else {
             return;
         };
 
@@ -2096,14 +2131,14 @@ impl Net {
             area,
             Reliability::Reliable,
             ServerPacket::ActorMapColor {
-                actor_id: id.to_string(),
+                actor_id: id,
                 color,
             },
         );
     }
 
-    pub fn animate_bot(&mut self, id: &str, name: &str, loop_animation: bool) {
-        let Some(bot) = self.bots.get(id) else {
+    pub fn animate_bot(&mut self, id: ActorId, name: &str, loop_animation: bool) {
+        let Some(bot) = self.bots.get(&id) else {
             return;
         };
 
@@ -2116,15 +2151,15 @@ impl Net {
             area,
             Reliability::Reliable,
             ServerPacket::ActorAnimate {
-                actor_id: id.to_string(),
+                actor_id: id,
                 state: name.to_string(),
                 loop_animation,
             },
         );
     }
 
-    pub fn animate_bot_properties(&mut self, id: &str, animation: Vec<ActorKeyFrame>) {
-        if let Some(bot) = self.bots.get_mut(id) {
+    pub fn animate_bot_properties(&mut self, id: ActorId, animation: Vec<ActorKeyFrame>) {
+        if let Some(bot) = self.bots.get_mut(&id) {
             // store final values for new players
             let Some(area) = self.areas.get(&bot.area_id) else {
                 return;
@@ -2166,13 +2201,21 @@ impl Net {
         }
     }
 
-    pub fn transfer_bot(&mut self, id: &str, area_id: &str, warp_in: bool, x: f32, y: f32, z: f32) {
+    pub fn transfer_bot(
+        &mut self,
+        id: ActorId,
+        area_id: &str,
+        warp_in: bool,
+        x: f32,
+        y: f32,
+        z: f32,
+    ) {
         if self.areas.get(area_id).is_none() {
             // non existent area
             return;
         }
 
-        let Some(bot) = self.bots.get_mut(id) else {
+        let Some(bot) = self.bots.get_mut(&id) else {
             return;
         };
 
@@ -2184,7 +2227,7 @@ impl Net {
                 previous_area,
                 Reliability::ReliableOrdered,
                 ServerPacket::ActorDisconnected {
-                    actor_id: id.to_string(),
+                    actor_id: id,
                     warp_out: warp_in,
                 },
             );
@@ -2196,7 +2239,7 @@ impl Net {
         bot.z = z;
 
         let area = self.areas.get_mut(area_id).unwrap();
-        area.add_bot(id.to_string());
+        area.add_bot(id);
 
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
@@ -2214,11 +2257,11 @@ impl Net {
             bot.create_spawn_packet(bot.x, bot.y, bot.z, warp_in),
         );
 
-        let bot = self.bots.get(id).unwrap();
+        let bot = self.bots.get(&id).unwrap();
         let area = self.areas.get(area_id).unwrap();
 
         for sprite_id in &bot.child_sprites {
-            let sprite = self.sprites.get(id).unwrap();
+            let sprite = self.sprites.get(*sprite_id).unwrap();
 
             ensure_assets(
                 &mut self.packet_orchestrator.borrow_mut(),
@@ -2243,7 +2286,7 @@ impl Net {
                 &self.areas,
                 Reliability::ReliableOrdered,
                 ServerPacket::SpriteCreated {
-                    sprite_id: sprite_id.clone(),
+                    sprite_id: *sprite_id,
                     sprite_definition: sprite.definition.clone(),
                 },
             );
@@ -2252,40 +2295,35 @@ impl Net {
 
     pub fn create_sprite(
         &mut self,
-        client_id_restriction: Option<String>,
+        client_id_restriction: Option<ActorId>,
         sprite_definition: SpriteDefinition,
-    ) -> String {
-        use uuid::Uuid;
+    ) -> SpriteId {
+        let id = self.sprites.insert_with_key(|id| {
+            let public_sprites_index = if client_id_restriction.is_none() {
+                Some(self.public_sprites.insert(id))
+            } else {
+                None
+            };
 
-        let id = Uuid::new_v4().to_string();
-
-        let public_sprites_index = if client_id_restriction.is_none() {
-            Some(self.public_sprites.insert(id.clone()))
-        } else {
-            None
-        };
+            Sprite {
+                definition: sprite_definition.clone(),
+                public_sprite_id: public_sprites_index,
+                client_id_restriction,
+            }
+        });
 
         if let SpriteParent::Actor(actor_id) = &sprite_definition.parent {
             if let Some(client) = self.clients.get_mut(actor_id) {
-                client.actor.child_sprites.push(id.clone());
+                client.actor.child_sprites.push(id);
             } else if let Some(bot) = self.bots.get_mut(actor_id) {
-                bot.child_sprites.push(id.clone());
+                bot.child_sprites.push(id);
             }
         }
 
-        // create sprite
-        let sprite = Sprite {
-            definition: sprite_definition.clone(),
-            public_sprites_index,
-            client_id_restriction,
-        };
-
         // resolve relevant scope for notifying creation
-        let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, &sprite)
+        let sprite = &self.sprites[id];
+        let scope = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
             .map(|scope| scope.into_owned());
-
-        // store sprite
-        self.sprites.insert(id.clone(), sprite);
 
         let Some(scope) = scope else {
             // no clients to send packets to
@@ -2308,7 +2346,7 @@ impl Net {
 
         // send creation packet
         let packet = ServerPacket::SpriteCreated {
-            sprite_id: id.clone(),
+            sprite_id: id,
             sprite_definition,
         };
 
@@ -2323,8 +2361,8 @@ impl Net {
         id
     }
 
-    pub fn animate_sprite(&mut self, sprite_id: String, state: String, loop_animation: bool) {
-        if let Some(sprite) = self.sprites.get_mut(&sprite_id) {
+    pub fn animate_sprite(&mut self, sprite_id: SpriteId, state: String, loop_animation: bool) {
+        if let Some(sprite) = self.sprites.get_mut(sprite_id) {
             sprite.definition.animation_state = state.clone();
             sprite.definition.animation_loops = loop_animation;
         }
@@ -2336,17 +2374,17 @@ impl Net {
         });
     }
 
-    pub fn delete_sprite(&mut self, sprite_id: String) {
-        self.message_sprite_aware(sprite_id.clone(), |sprite_id| ServerPacket::SpriteDeleted {
+    pub fn delete_sprite(&mut self, sprite_id: SpriteId) {
+        self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteDeleted {
             sprite_id,
         });
 
-        let Some(sprite) = self.sprites.remove(&sprite_id) else {
+        let Some(sprite) = self.sprites.remove(sprite_id) else {
             return;
         };
 
-        if let Some(index) = sprite.public_sprites_index {
-            self.public_sprites.remove(index);
+        if let Some(id) = sprite.public_sprite_id {
+            self.public_sprites.remove(id);
         }
 
         if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
@@ -2368,10 +2406,10 @@ impl Net {
 
     fn message_sprite_aware(
         &mut self,
-        sprite_id: String,
-        callback: impl FnOnce(String) -> ServerPacket,
+        sprite_id: SpriteId,
+        callback: impl FnOnce(SpriteId) -> ServerPacket,
     ) {
-        let Some(sprite) = self.sprites.get(&sprite_id) else {
+        let Some(sprite) = self.sprites.get(sprite_id) else {
             return;
         };
 
@@ -2392,8 +2430,8 @@ impl Net {
     }
 
     fn resolve_sprite_packet_scope<'a>(
-        clients: &'a HashMap<String, Client>,
-        bots: &'a HashMap<String, Actor>,
+        clients: &'a HashMap<ActorId, Client>,
+        bots: &'a HashMap<ActorId, Actor>,
         sprite: &'a Sprite,
     ) -> Option<PacketScope<'a>> {
         if let Some(client_id) = &sprite.client_id_restriction {
@@ -2411,7 +2449,7 @@ impl Net {
             }
 
             // send the packet just to this client
-            return Some(PacketScope::Client(Cow::Borrowed(client_id)));
+            return Some(PacketScope::Client(*client_id));
         }
 
         // assume public as there's no client_id_restriction
@@ -2422,7 +2460,7 @@ impl Net {
                 if !client.ready {
                     // if the client isn't ready only send to the client
                     // we'll send sprites again when the client is marked ready
-                    return Some(PacketScope::Client(Cow::Borrowed(&client.actor.id)));
+                    return Some(PacketScope::Client(client.actor.id));
                 }
 
                 Some(&client.actor.area_id)
@@ -2516,7 +2554,7 @@ impl Net {
             };
 
             let packet = ServerPacket::ActorMove {
-                actor_id: bot.id.clone(),
+                actor_id: bot.id,
                 x: bot.x,
                 y: bot.y,
                 z: bot.z,
@@ -2569,14 +2607,14 @@ impl Net {
 fn broadcast_actor_keyframes(
     packet_orchestrator: &mut PacketOrchestrator,
     area: &Area,
-    id: &str,
+    id: ActorId,
     keyframes: Vec<ActorKeyFrame>,
 ) {
     packet_orchestrator.broadcast_to_room(
         area.id(),
         Reliability::ReliableOrdered,
         ServerPacket::ActorPropertyKeyFrames {
-            actor_id: id.to_string(),
+            actor_id: id,
             keyframes,
         },
     );
@@ -2586,7 +2624,7 @@ fn update_cached_clients(
     packet_orchestrator: &mut PacketOrchestrator,
     max_payload_size: u16,
     asset_manager: &AssetManager,
-    clients: &mut HashMap<String, Client>,
+    clients: &mut HashMap<ActorId, Client>,
     asset_path: &str,
 ) {
     use packets::serialize;
@@ -2669,21 +2707,21 @@ fn broadcast_to_scope(
             }
         }
         PacketScope::Client(id) => {
-            packet_orchestrator.send_by_id(&id, reliability, packet);
+            packet_orchestrator.send_by_id(id, reliability, packet);
         }
     }
 }
 
-fn ensure_asset<I, P>(
+fn ensure_asset<PI, P>(
     packet_orchestrator: &mut PacketOrchestrator,
     max_payload_size: u16,
     asset_manager: &AssetManager,
-    clients: &mut HashMap<String, Client>,
-    player_ids: I,
+    clients: &mut HashMap<ActorId, Client>,
+    player_ids: PI,
     asset_path: &str,
 ) where
-    I: IntoIterator<Item = P> + Clone,
-    P: AsRef<str>,
+    PI: IntoIterator<Item = P> + Clone,
+    P: std::ops::Deref<Target = ActorId>,
 {
     if !asset_path.starts_with("/server") {
         return;
@@ -2705,7 +2743,7 @@ fn ensure_asset<I, P>(
         let mut byte_vecs = Vec::new();
 
         for player_id in player_ids.clone() {
-            let client = clients.get_mut(player_id.as_ref()).unwrap();
+            let client = clients.get_mut(player_id.deref()).unwrap();
 
             if asset.cachable && client.cached_assets.contains(asset_path) {
                 continue;
@@ -2737,14 +2775,14 @@ fn ensure_assets<AI, A, PI, P>(
     packet_orchestrator: &mut PacketOrchestrator,
     max_payload_size: u16,
     asset_manager: &AssetManager,
-    clients: &mut HashMap<String, Client>,
+    clients: &mut HashMap<ActorId, Client>,
     player_ids: PI,
     asset_paths: AI,
 ) where
     AI: IntoIterator<Item = A>,
     A: AsRef<str>,
     PI: IntoIterator<Item = P> + Clone,
-    P: AsRef<str>,
+    P: std::ops::Deref<Target = ActorId>,
 {
     for asset_path in asset_paths {
         ensure_asset(
@@ -2763,7 +2801,7 @@ fn ensure_scope_has_assets<AI, A>(
     max_payload_size: u16,
     asset_manager: &AssetManager,
     areas: &HashMap<String, Area>,
-    clients: &mut HashMap<String, Client>,
+    clients: &mut HashMap<ActorId, Client>,
     scope: &PacketScope,
     asset_paths: AI,
 ) where
@@ -2801,7 +2839,7 @@ fn ensure_scope_has_assets<AI, A>(
                 max_payload_size,
                 asset_manager,
                 clients,
-                &[id],
+                &[*id],
                 asset_paths,
             );
         }

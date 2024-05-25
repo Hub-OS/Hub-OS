@@ -140,7 +140,8 @@ pub struct TileState {
     pub hide_body: bool,
     pub is_hole: bool,
     pub max_lifetime: Option<FrameTime>,
-    pub change_request_callback: BattleCallback<(i32, i32, usize), bool>,
+    pub replace_callback: BattleCallback<(i32, i32)>,
+    pub can_replace_callback: BattleCallback<(i32, i32, usize), bool>,
     pub update_callback: BattleCallback<(i32, i32)>,
     pub entity_enter_callback: BattleCallback<EntityId>,
     pub entity_leave_callback: BattleCallback<(EntityId, i32, i32)>,
@@ -148,7 +149,7 @@ pub struct TileState {
 }
 
 impl TileState {
-    pub const HIDDEN: usize = 0;
+    pub const VOID: usize = 0;
     pub const NORMAL: usize = 1;
     pub const HOLE: usize = 2;
     pub const CRACKED: usize = 3;
@@ -168,7 +169,8 @@ impl TileState {
             hide_body: false,
             is_hole: false,
             max_lifetime: None,
-            change_request_callback: BattleCallback::stub(true),
+            can_replace_callback: BattleCallback::stub(true),
+            replace_callback: BattleCallback::default(),
             update_callback: BattleCallback::default(),
             entity_enter_callback: BattleCallback::default(),
             entity_leave_callback: BattleCallback::default(),
@@ -183,16 +185,15 @@ impl TileState {
         let assets = &globals.assets;
         let texture = globals.assets.texture(game_io, ResourcePaths::BATTLE_TILES);
 
-        // Hidden
-        debug_assert_eq!(registry.len(), TileState::HIDDEN);
-        let mut hidden_state =
-            TileState::new(String::from("Hidden"), texture.clone(), Animator::new());
-        hidden_state.blocks_team_change = true;
-        hidden_state.is_hole = true;
-        hidden_state.hide_frame = true;
-        hidden_state.hide_body = true;
-        hidden_state.change_request_callback = BattleCallback::stub(false);
-        registry.push(hidden_state);
+        // Void
+        debug_assert_eq!(registry.len(), TileState::VOID);
+        let mut void_state = TileState::new(String::from("Void"), texture.clone(), Animator::new());
+        void_state.blocks_team_change = true;
+        void_state.is_hole = true;
+        void_state.hide_frame = true;
+        void_state.hide_body = true;
+        void_state.can_replace_callback = BattleCallback::stub(false);
+        registry.push(void_state);
 
         // Normal
         debug_assert_eq!(registry.len(), TileState::NORMAL);
@@ -203,7 +204,7 @@ impl TileState {
         debug_assert_eq!(registry.len(), TileState::HOLE);
         let mut hole_state =
             TileState::new(String::from("PermaHole"), texture.clone(), Animator::new());
-        hole_state.change_request_callback = BattleCallback::stub(false);
+        hole_state.can_replace_callback = BattleCallback::stub(false);
         hole_state.blocks_team_change = true;
         hole_state.hide_body = true;
         hole_state.is_hole = true;
@@ -251,6 +252,10 @@ impl TileState {
         broken_state.hide_body = true;
         broken_state.is_hole = true;
         broken_state.max_lifetime = Some(BROKEN_LIFETIME);
+
+        broken_state.can_replace_callback =
+            BattleCallback::new(|_, _, _, (_, _, state_index)| state_index != TileState::CRACKED);
+
         registry.push(broken_state);
 
         registry
@@ -267,11 +272,11 @@ impl TileState {
         let packages = &globals.tile_state_packages;
 
         for (info, namespace) in dependencies {
-            if info.package_category != PackageCategory::TileState {
+            if info.category != PackageCategory::TileState {
                 continue;
             }
 
-            let Some(package) = packages.package_or_override(*namespace, &info.id) else {
+            let Some(package) = packages.package_or_fallback(*namespace, &info.id) else {
                 continue;
             };
 
@@ -308,5 +313,33 @@ impl TileState {
                 log::error!("{err}");
             }
         }
+    }
+
+    pub fn can_replace(
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        resources: &SharedBattleResources,
+        x: i32,
+        y: i32,
+        state_index: usize,
+    ) -> bool {
+        let Some(tile_state) = simulation.tile_states.get(state_index) else {
+            return false;
+        };
+
+        let field = &mut simulation.field;
+        let Some(tile) = field.tile_at_mut((x, y)) else {
+            return false;
+        };
+
+        if tile_state.is_hole && !tile.reservations().is_empty() {
+            // tile must be walkable for entities that are on or are moving to this tile
+            return false;
+        }
+
+        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
+        let can_replace_callback = current_tile_state.can_replace_callback.clone();
+
+        can_replace_callback.call(game_io, resources, simulation, (x, y, state_index))
     }
 }

@@ -36,7 +36,7 @@ impl HitProperties {
     }
 
     pub fn drags(&self) -> bool {
-        self.drag.count > 0
+        self.drag.distance > 0
             && self.drag.direction != Direction::None
             && self.flags & HitFlag::DRAG != HitFlag::NONE
     }

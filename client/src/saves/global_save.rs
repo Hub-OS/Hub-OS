@@ -70,7 +70,7 @@ impl GlobalSave {
 
         globals
             .player_packages
-            .package_or_override(PackageNamespace::Local, player_id)
+            .package(PackageNamespace::Local, player_id)
     }
 
     pub fn active_deck(&self) -> Option<&Deck> {

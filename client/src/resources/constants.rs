@@ -3,6 +3,8 @@ use framework::prelude::{Color, UVec2, Vec2};
 
 pub const DEFAULT_PACKAGE_REPO: &str = "https://hubos.dev";
 
+// 1 MiB
+pub const BATTLE_VM_MEMORY: usize = 1024 * 1024;
 pub const INPUT_BUFFER_LIMIT: usize = 20;
 pub const IDENTITY_LEN: usize = 32;
 
@@ -15,6 +17,7 @@ pub const TRUE_RESOLUTION: UVec2 = UVec2::new(
 pub const MAX_VOLUME: u8 = 100;
 
 // battle
+pub const INPUT_DELAY: usize = 2;
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const CARD_SELECT_CARD_COLS: usize = 5;
 pub const CARD_SELECT_COLS: usize = CARD_SELECT_CARD_COLS + 1;

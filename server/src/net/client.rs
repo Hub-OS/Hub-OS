@@ -1,3 +1,5 @@
+use packets::structures::ActorId;
+
 use super::{Actor, Direction, PlayerData, WidgetTracker};
 use std::collections::HashSet;
 use std::collections::VecDeque;
@@ -37,6 +39,7 @@ impl Client {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn new(
         socket_address: SocketAddr,
+        id: ActorId,
         name: String,
         identity: Vec<u8>,
         area_id: String,
@@ -47,20 +50,17 @@ impl Client {
     ) -> Client {
         use super::asset;
         use std::time::Instant;
-        use uuid::Uuid;
-
-        let id = Uuid::new_v4().to_string();
 
         Client {
             socket_address,
             actor: Actor {
-                id: id.clone(),
+                id,
                 name,
                 area_id,
-                texture_path: asset::get_player_texture_path(&id),
-                animation_path: asset::get_player_animation_path(&id),
-                mugshot_texture_path: asset::get_player_mugshot_texture_path(&id),
-                mugshot_animation_path: asset::get_player_mugshot_animation_path(&id),
+                texture_path: asset::get_player_texture_path(id),
+                animation_path: asset::get_player_animation_path(id),
+                mugshot_texture_path: asset::get_player_mugshot_texture_path(id),
+                mugshot_animation_path: asset::get_player_mugshot_animation_path(id),
                 direction: if spawn_direction.is_none() {
                     Direction::Down
                 } else {

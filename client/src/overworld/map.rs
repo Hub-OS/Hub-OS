@@ -485,16 +485,15 @@ impl Map {
                 continue;
             }
 
-            let tile_meta = match self.tile_meta_for_tile(tile.gid) {
-                Some(tileset) => tileset,
-                _ => continue,
+            let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+                continue;
             };
+
             let tileset = &tile_meta.tileset;
 
-            let active_frame = match tile_meta.animator.current_frame() {
-                Some(frame) => frame,
+            let Some(active_frame) = tile_meta.animator.current_frame() else {
                 // should almost never occur, will update next frame
-                _ => continue,
+                continue;
             };
 
             let tile_size = self.tile_size;
@@ -521,42 +520,25 @@ impl Map {
             screen_position /= scale;
 
             // calculate offset separately as we need to transform it separately
+            // we only need to manipulate object specific properties,
+            // as tile.intersects() will handle tile properties
             let mut screen_offset = -tileset.alignment_offset;
 
-            // not sure why this is needed
-            // something to do with being centered at tile_size.x / 2
-            screen_offset.x -= (tile_size.x / 2) as f32;
+            // tiled starts (0, 0) at the top left of a tile sitting at the bottom of the sprite
+            // view in editor to see what I mean (the square + diamond at the bottom)
+            screen_offset.x -= tile_size.x as f32 * 0.5;
+            screen_offset.y -= sprite_size.y - tile_size.y as f32;
 
             // flip
             if tile.flipped_horizontal {
                 screen_offset.x *= -1.0;
-
-                // starting from the right side of the image during a horizontal flip
-                screen_offset.x -=
-                    sprite_size.x + tileset.alignment_offset.x + tileset.drawing_offset.x;
-
-                // account for being incorrect?
-                screen_offset.x -= ((tile_size.x / 2
-                    - (sprite_size.x + tileset.drawing_offset.x) as i32)
-                    / 2) as f32;
-
-                // what??
-                screen_offset.x -=
-                    (tile_size.x / 2) as f32 * (tileset.alignment_offset.x / sprite_size.x);
             }
 
             if tile.flipped_vertical {
                 screen_offset.y *= -1.0;
-
-                // might be similar to the flip above, but not sure
-                screen_offset.y -=
-                    (tile_size.y * 2 - (sprite_size.y + tileset.drawing_offset.y) as i32) as f32;
             }
 
             // skipping tile rotation, editor doesn't allow this
-
-            // adjust for the sprite being aligned at the bottom of the tile
-            screen_offset.y -= sprite_size.y - tile_size.y as f32;
 
             screen_position.x += screen_offset.x;
             screen_position.y += screen_offset.y;
@@ -653,9 +635,8 @@ impl Map {
                 let tile = layer.tile_at((col, row).into());
 
                 // skip tiles with missing meta information
-                let tile_meta = match self.tile_meta_for_tile(tile.gid) {
-                    Some(tile_meta) => tile_meta,
-                    None => continue,
+                let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+                    continue;
                 };
 
                 // skip invisible tiles

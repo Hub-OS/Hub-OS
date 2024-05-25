@@ -1,6 +1,9 @@
 # About
 
-The project is a derivation of [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle), splintered off from creative differences.
+- [Discord](https://discord.hubos.dev)
+- [Website](https://hubos.dev)
+
+This project is a derivation of [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle), splintered off from creative differences.
 
 ## Special Thanks
 

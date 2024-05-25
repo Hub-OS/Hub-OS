@@ -1,10 +1,11 @@
+use super::ActorId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub enum SpriteParent {
     Widget,
     Hud,
-    Actor(String),
+    Actor(ActorId),
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]

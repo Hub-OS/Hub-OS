@@ -55,7 +55,7 @@ pub const DEFENSE_JUDGE_TABLE: &str = "DefenseJudge";
 pub const INTANGIBLE_RULE_TABLE: &str = "IntangibleRule";
 pub const CARD_PROPERTIES_TABLE: &str = "CardProperties";
 pub const ACTION_TABLE: &str = "Action";
-pub const STEP_TABLE: &str = "Step";
+pub const ACTION_STEP_TABLE: &str = "ActionStep";
 pub const MOVEMENT_TABLE: &str = "Movement";
 pub const ATTACHMENT_TABLE: &str = "Attachment";
 pub const COMPONENT_TABLE: &str = "Component";
@@ -64,6 +64,7 @@ pub const TILE_TABLE: &str = "Tile";
 pub const TILE_STATE_TABLE: &str = "TileState";
 pub const CUSTOM_TILE_STATE_TABLE: &str = "CustomTileState";
 pub const ENTITY_TABLE: &str = "Entity";
+pub const LIVING_TABLE: &str = "Living";
 pub const PLAYER_TABLE: &str = "Player";
 pub const PLAYER_FORM_TABLE: &str = "PlayerForm";
 pub const CHARACTER_TABLE: &str = "Character";
@@ -131,8 +132,16 @@ const SELECTION_CHANGE_FN: &str = "on_selection_change_func";
 
 // defense rules
 pub const BLOCK_FN: &str = "can_block_func";
-pub const REPLACE_FN: &str = "on_replace_func";
 pub const FILTER_STATUSES_FN: &str = "filter_statuses_func";
+
+// defense rules + tile states
+pub const REPLACE_FN: &str = "on_replace_func";
+
+// tile states
+pub const CAN_REPLACE_FN: &str = "can_replace_func";
+pub const ENTITY_ENTER_FN: &str = "on_entity_enter_func";
+pub const ENTITY_LEAVE_FN: &str = "on_entity_leave_func";
+pub const ENTITY_STOP_FN: &str = "on_entity_stop_func";
 
 // components
 const INIT_FN: &str = "on_init_func";

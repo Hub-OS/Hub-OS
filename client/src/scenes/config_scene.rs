@@ -33,7 +33,8 @@ enum ConfigCategory {
     Audio,
     Keyboard,
     Gamepad,
-    Misc,
+    Mods,
+    Profile,
 }
 
 pub struct ConfigScene {
@@ -181,7 +182,8 @@ impl ConfigScene {
             ConfigCategory::Gamepad => {
                 Self::generate_controller_menu(game_io, config, event_sender)
             }
-            ConfigCategory::Misc => Self::generate_misc_menu(game_io, event_sender),
+            ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
+            ConfigCategory::Profile => Self::generate_profile_menu(game_io, event_sender),
         }
     }
 
@@ -507,7 +509,7 @@ impl ConfigScene {
         children
     }
 
-    fn generate_misc_menu(
+    fn generate_mods_menu(
         game_io: &GameIO,
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
@@ -522,12 +524,31 @@ impl ConfigScene {
         };
 
         vec![
-            create_button("Change Nickname", Event::RequestNicknameChange),
             create_button("Manage Mods", Event::ViewPackages),
             create_button("Update Mods", Event::UpdatePackages),
             create_button("Resource Mods", Event::ReorderResources),
             create_button("Clear Cache", Event::ClearCache),
         ]
+    }
+
+    fn generate_profile_menu(
+        game_io: &GameIO,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
+        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
+            let event_sender = event_sender.clone();
+
+            Box::new(
+                UiButton::new_text(game_io, FontName::Thick, name).on_activate(move || {
+                    let _ = event_sender.send(event.clone());
+                }),
+            )
+        };
+
+        vec![create_button(
+            "Change Nickname",
+            Event::RequestNicknameChange,
+        )]
     }
 }
 

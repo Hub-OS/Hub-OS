@@ -63,10 +63,10 @@ impl Config {
                 (Input::Shoot, vec![Key::LShift, Key::K]),
                 (Input::Sprint, vec![Key::LShift, Key::K]),
                 (Input::Map, vec![Key::M]),
-                (Input::Option, vec![Key::F, Key::Return]),
+                (Input::Option, vec![Key::Return]),
                 (Input::Option2, vec![Key::R]),
                 (Input::Special, vec![Key::F]),
-                (Input::End, vec![Key::F, Key::Return]),
+                (Input::End, vec![Key::Return]),
                 (Input::Pause, vec![Key::Escape, Key::Return]),
                 (Input::RewindFrame, vec![Key::Left]),
                 (Input::AdvanceFrame, vec![Key::Right]),
@@ -172,7 +172,9 @@ impl Config {
     }
 
     pub fn save(&self) {
-        let _ = std::fs::write("config.ini", self.to_string());
+        if let Err(err) = std::fs::write("config.ini", self.to_string()) {
+            log::error!("Failed to save config: {err:?}");
+        }
     }
 
     fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {

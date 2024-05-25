@@ -1,6 +1,6 @@
 [package]
 name = "hub_os"
-version = "0.15.0"
+version = "0.20.0"
 edition = "2021"
 license = "GPL-3.0"
 
@@ -23,26 +23,24 @@ num-traits = "0.2"
 rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
-rodio = "0.17"
+rodio = "0.18"
 # let rodio restrict cpal's version, we just want to specify the feature
 cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
 roxmltree = "0.19"
-rust-ini = "0.20"
+rust-ini = "0.21"
 serde = { version = "1.0", features = ["derive"] }
-strum = { version = "0.25", features = ["derive"] }
+strum = { version = "0.26", features = ["derive"] }
 taffy = "0.3"
 unicode-segmentation = "1.10"
 clap = { version = "4.3", features = ["derive"] }
 unicode_categories = "0.1"
 flate2 = "1.0"
 bimap = "0.6"
-zip = { version = "0.6", features = ["deflate"], default-features = false }
-path-clean = "1.0"
 futures = { version = "0.3", default-features = false, features = [
   "std",
   "async-await"
 ] }
-walkdir = "2.3"
+walkdir = "2"
 toml = "0.8"
 serde_json = "1.0"
 enum-map = "2"

@@ -3,7 +3,7 @@ use super::Direction;
 #[derive(Default, Clone, Copy)]
 pub struct Drag {
     pub direction: Direction,
-    pub count: u32,
+    pub distance: u32,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for Drag {
@@ -24,7 +24,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Drag {
 
         Ok(Drag {
             direction: table.get("direction").unwrap_or_default(),
-            count: table.get("count").unwrap_or_default(),
+            distance: table.get("distance").unwrap_or_default(),
         })
     }
 }
@@ -36,7 +36,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for Drag {
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
         table.set("direction", self.direction)?;
-        table.set("count", self.count)?;
+        table.set("distance", self.distance)?;
 
         Ok(rollback_mlua::Value::Table(table))
     }

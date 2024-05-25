@@ -9,6 +9,13 @@ pub struct PlayerInputBuffer {
 }
 
 impl PlayerInputBuffer {
+    pub fn new_with_delay(delay: usize) -> Self {
+        let mut buffer = VecDeque::default();
+        buffer.push_back((NetplayBufferItem::default(), delay));
+
+        Self { buffer, len: delay }
+    }
+
     pub fn len(&self) -> usize {
         self.len
     }

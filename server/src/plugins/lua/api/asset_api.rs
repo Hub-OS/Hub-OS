@@ -1,5 +1,6 @@
 use super::LuaApi;
 use crate::net::{Asset, AssetData};
+use packets::structures::ActorId;
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "update_asset", |api_ctx, lua, params| {
@@ -8,7 +9,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let mut net = api_ctx.net_ref.borrow_mut();
 
         let path_buf = std::path::PathBuf::from(path.to_string());
-        let asset = Asset::load_from_memory(&path_buf, data.as_bytes());
+        let asset = Asset::load_from_memory(&path_buf, data.as_bytes().to_vec());
 
         net.set_asset(path, asset);
 
@@ -62,4 +63,30 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             lua.pack_multi(0)
         }
     });
+
+    lua_api.add_dynamic_function("Net", "provide_asset_for_player", |api_ctx, lua, params| {
+        let (player_id, asset_path): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+        let asset_path_str = asset_path.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        net.preload_asset_for_player(player_id, asset_path_str);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(
+        "Net",
+        "provide_package_for_player",
+        |api_ctx, lua, params| {
+            let (player_id, asset_path): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+            let asset_path_str = asset_path.to_str()?;
+
+            let mut net = api_ctx.net_ref.borrow_mut();
+
+            net.preload_package(&[player_id], asset_path_str);
+
+            lua.pack_multi(())
+        },
+    );
 }

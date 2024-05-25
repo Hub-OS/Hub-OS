@@ -177,6 +177,9 @@ impl Action {
             .query_one_mut::<&mut Entity>(entity_id.into())
             .unwrap();
 
+        action.executed = true;
+        action.old_position = (entity.x, entity.y);
+
         // animations
         let animator_index = entity.animator_index;
 
@@ -203,21 +206,12 @@ impl Action {
         }
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // execute callback
         if let Some(callback) = action.execute_callback.take() {
             callback.call(game_io, resources, simulation, ());
         }
-
-        let entity = simulation
-            .entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-
-        // revert context
-        entity.hit_context.flags = original_context_flags;
 
         // setup frame callbacks
         let Some(action) = simulation.actions.get_mut(action_index) else {
@@ -259,6 +253,11 @@ impl Action {
         animator.on_interrupt(interrupt_callback);
 
         // update attachments
+        let entity = simulation
+            .entities
+            .query_one_mut::<&mut Entity>(entity_id.into())
+            .unwrap();
+
         if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
             if let Some(sprite) = sprite_tree.get_mut(action.sprite_index) {
                 sprite.set_visible(true);
@@ -268,9 +267,6 @@ impl Action {
                 attachment.apply_animation(sprite_tree, &mut simulation.animators);
             }
         }
-
-        action.executed = true;
-        action.old_position = (entity.x, entity.y);
     }
 
     pub fn queue_action(
@@ -673,7 +669,7 @@ impl Action {
         entity.action_index = None;
 
         // update reservations as they're ignored while in a sync card action
-        if entity.auto_reserves_tiles {
+        if self.executed && entity.auto_reserves_tiles {
             let old_tile = field.tile_at_mut(self.old_position).unwrap();
             old_tile.remove_reservation_for(entity.id);
 

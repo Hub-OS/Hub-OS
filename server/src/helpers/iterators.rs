@@ -38,15 +38,11 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let item = match self.iterator.next() {
-                Some(item) => item,
-                None => {
-                    if self.current_chunk.is_empty() {
-                        return None;
-                    } else {
-                        return Some(self.flush());
-                    }
+            let Some(item) = self.iterator.next() else {
+                if self.current_chunk.is_empty() {
+                    return None;
                 }
+                return Some(self.flush());
             };
 
             let measure_item = &mut self.measure_item;

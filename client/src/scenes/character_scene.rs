@@ -1,4 +1,5 @@
 use super::{BlocksScene, CharacterSelectScene, ManageSwitchDriveScene};
+use crate::battle::PlayerFallbackResources;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
@@ -8,6 +9,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
 use framework::prelude::*;
+use std::sync::Arc;
 
 enum Event {
     BlockCustomization,
@@ -235,7 +237,7 @@ impl<'a> StatusData<'a> {
 
 struct StatusPage {
     text: Vec<Text>,
-    sprites: Vec<Sprite>,
+    sprites: Vec<(Sprite, Option<Arc<Texture>>)>, // (sprite, palette)
     animators: Vec<(Animator, usize)>,
     lists: Vec<ScrollableList>,
     player_health_ui: Vec<PlayerHealthUi>,
@@ -257,12 +259,12 @@ impl StatusPage {
         };
 
         ui_animator.apply(&mut page_sprite);
-        page.sprites.push(page_sprite);
+        page.sprites.push((page_sprite, None));
 
         if let Some(point) = ui_animator.point("ELEMENT") {
             let mut sprite = ElementSprite::new(game_io, data.player_package.element);
             sprite.set_position(point);
-            page.sprites.push(sprite);
+            page.sprites.push((sprite, None));
         }
 
         if let Some(point) = ui_animator.point("HEALTH") {
@@ -274,19 +276,25 @@ impl StatusPage {
         }
 
         if let Some(point) = ui_animator.point("PLAYER") {
-            let (texture_path, mut animator) = data.player_package.resolve_battle_sprite(game_io);
+            let player_resources = PlayerFallbackResources::resolve(game_io, data.player_package);
 
             let globals = game_io.resource::<Globals>().unwrap();
 
+            let texture_path = player_resources.texture_path;
             let mut sprite = globals.assets.new_sprite(game_io, &texture_path);
             sprite.set_position(point);
 
+            let mut animator = player_resources.animator;
             animator.set_state("PLAYER_IDLE");
             animator.set_loop_mode(AnimatorLoopMode::Loop);
             animator.apply(&mut sprite);
 
+            let palette = player_resources
+                .palette_path
+                .map(|path| globals.assets.texture(game_io, &path));
+
             let sprite_index = page.sprites.len();
-            page.sprites.push(sprite);
+            page.sprites.push((sprite, palette));
 
             page.animators.push((animator, sprite_index));
         }
@@ -402,7 +410,7 @@ impl StatusPage {
     fn update(&mut self) {
         for (animator, i) in &mut self.animators {
             animator.update();
-            animator.apply(&mut self.sprites[*i]);
+            animator.apply(&mut self.sprites[*i].0);
         }
     }
 
@@ -418,14 +426,17 @@ impl StatusPage {
             player_health_ui.set_position(position);
         }
 
-        for sprite in &mut self.sprites {
+        for (sprite, palette) in &mut self.sprites {
             let position = sprite.position();
             sprite.set_position(position + offset);
 
+            sprite_queue.set_palette(palette.clone());
             sprite_queue.draw_sprite(sprite);
 
             sprite.set_position(position);
         }
+
+        sprite_queue.set_palette(None);
 
         for text in &mut self.text {
             let bounds = text.style.bounds;

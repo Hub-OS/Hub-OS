@@ -157,7 +157,7 @@ fn handle_walk_out(
     };
 
     if movement_animator.movement_enabled() {
-        movement_animator.queue_direction(direction);
+        movement_animator.fill_direction_queue(direction);
         movement_animator.set_state(MovementState::Walking);
     }
 

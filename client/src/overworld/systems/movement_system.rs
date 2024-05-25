@@ -13,7 +13,7 @@ pub fn system_movement(area: &mut OverworldArea) {
 
     for (actor_entity, (movement_animator, position)) in query.into_iter() {
         if !movement_animator.movement_enabled() {
-            movement_animator.clear_queue();
+            movement_animator.clear_direction_queue();
             continue;
         }
 

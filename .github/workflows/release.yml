@@ -1,0 +1,109 @@
+name: Automated Builds
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  windows-and-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64 mold libasound2-dev libudev-dev libxcb-xfixes0-dev libxcb-shape0-dev
+          mkdir .cargo
+          printf "[target.x86_64-unknown-linux-gnu]\nlinker = \"/usr/bin/clang\"\nrustflags = [\"-C\", \"link-arg=--ld-path=/usr/bin/mold\"]" > .cargo/config.toml
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo
+
+      - name: Install Cargo About
+        run: cargo install cargo-about --version=^0.6
+
+      - name: Build Windows Client
+        run: cargo build -p hub_os --release --target x86_64-pc-windows-gnu
+
+      - name: Build Windows Server
+        run: cargo build -p hub_os_server --release --target x86_64-pc-windows-gnu
+
+      - name: Copy Windows Executables
+        run: |
+          cp target/x86_64-pc-windows-gnu/release/hub_os.exe target/release/hub_os.exe
+          cp target/x86_64-pc-windows-gnu/release/hub_os_server.exe target/release/hub_os_server.exe
+
+      - name: Build Linux Executables and Create Dist
+        run: cargo run --bin dist
+
+      - name: Zip Dist
+        run: (cd dist; zip -r ../hub-os-windows-and-linux.zip *)
+
+      - name: Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          files: hub-os-windows-and-linux.zip
+
+  mac-os:
+    runs-on: macos-12
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin, aarch64-apple-darwin
+
+      - name: Install Cargo About
+        run: cargo install cargo-about --version=^0.6
+
+      - name: Build ARM Client
+        run: cargo build --bin hub_os --target=aarch64-apple-darwin --release
+
+      - name: Build ARM Server
+        run: cargo build --bin hub_os_server --target=aarch64-apple-darwin --release
+
+      - name: Copy ARM Executables
+        run: |
+          cp target/aarch64-apple-darwin/release/hub_os target/release/hub_os-aarch64
+          cp target/aarch64-apple-darwin/release/hub_os_server target/release/hub_os_server-aarch64
+
+      - name: Build x86 Executables and Create Dist
+        run: cargo run --bin dist
+
+      - name: Zip Dist
+        run: (cd dist; zip -r ../hub-os-mac-os.zip *)
+
+      - name: Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          files: hub-os-mac-os.zip

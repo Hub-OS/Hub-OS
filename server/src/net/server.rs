@@ -4,6 +4,7 @@ use crate::jobs::{JobPromise, PromiseValue};
 use crate::plugins::PluginInterface;
 use crate::threads::{create_listening_thread, ListenerMessage, ThreadMessage};
 use flume::{Receiver, Sender};
+use packets::structures::ActorId;
 use packets::{
     ClientAssetType, ClientPacket, Reliability, ServerCommPacket, ServerPacket, SERVER_TICK_RATE,
 };
@@ -14,7 +15,7 @@ use std::rc::Rc;
 use std::time::Instant;
 
 pub struct Server {
-    player_id_map: HashMap<SocketAddr, String>,
+    player_id_map: HashMap<SocketAddr, ActorId>,
     plugin_wrapper: PluginWrapper,
     config: Rc<ServerConfig>,
     socket: Rc<UdpSocket>,
@@ -171,14 +172,16 @@ impl Server {
         for boot in kick_list {
             self.disconnect_client(boot.socket_address, &boot.reason, boot.warp_out);
 
-            // send reason
-            self.packet_orchestrator.borrow_mut().send(
-                boot.socket_address,
-                Reliability::ReliableOrdered,
-                ServerPacket::Kick {
-                    reason: boot.reason,
-                },
-            );
+            if boot.notify_client {
+                // send reason
+                self.packet_orchestrator.borrow_mut().send(
+                    boot.socket_address,
+                    Reliability::ReliableOrdered,
+                    ServerPacket::Kick {
+                        reason: boot.reason,
+                    },
+                );
+            }
         }
 
         self.net.tick();
@@ -239,7 +242,7 @@ impl Server {
             log::debug!("Received {packet_name} packet from {socket_address}");
         }
 
-        if let Some(player_id) = self.player_id_map.get(&socket_address) {
+        if let Some(&player_id) = self.player_id_map.get(&socket_address) {
             match client_packet {
                 ClientPacket::VersionRequest => {
                     self.packet_orchestrator.borrow_mut().send(
@@ -259,16 +262,17 @@ impl Server {
                         is_valid = asset.last_modified == last_modified;
                     }
 
-                    if is_valid {
-                        if let Some(client) = net.get_client_mut(player_id) {
+                    if let Some(client) = net.get_client_mut(player_id) {
+                        if is_valid {
                             client.cached_assets.insert(path);
+                        } else if !client.cached_assets.contains(&path) {
+                            // tell the client to delete this asset if we haven't already sent new data for it
+                            self.packet_orchestrator.borrow_mut().send(
+                                socket_address,
+                                Reliability::ReliableOrdered,
+                                ServerPacket::RemoveAsset { path },
+                            );
                         }
-                    } else {
-                        self.packet_orchestrator.borrow_mut().send(
-                            socket_address,
-                            Reliability::ReliableOrdered,
-                            ServerPacket::RemoveAsset { path },
-                        );
                     }
                 }
                 ClientPacket::Asset { asset_type, data } => {
@@ -313,7 +317,7 @@ impl Server {
                     net.connect_client(player_id);
 
                     if self.config.args.log_connections {
-                        log::debug!("{} connected", player_id);
+                        log::debug!("{:?} connected", player_id);
                     }
                 }
                 ClientPacket::Logout => {
@@ -446,7 +450,7 @@ impl Server {
                 ClientPacket::ActorInteraction { actor_id, button } => {
                     if !net.is_player_busy(player_id) {
                         self.plugin_wrapper
-                            .handle_actor_interaction(net, player_id, &actor_id, button);
+                            .handle_actor_interaction(net, player_id, actor_id, button);
                     }
                 }
                 ClientPacket::TileInteraction { x, y, z, button } => {
@@ -585,10 +589,10 @@ impl Server {
                 } => {
                     let player_id = net.add_client(socket_address, username, identity);
 
-                    self.player_id_map.insert(socket_address, player_id.clone());
+                    self.player_id_map.insert(socket_address, player_id);
 
                     self.plugin_wrapper
-                        .handle_player_request(net, &player_id, &data);
+                        .handle_player_request(net, player_id, &data);
                 }
                 _ => {
                     if self.config.args.log_packets {
@@ -604,12 +608,12 @@ impl Server {
     fn disconnect_client(&mut self, socket_address: SocketAddr, reason: &str, warp_out: bool) {
         if let Some(player_id) = self.player_id_map.remove(&socket_address) {
             self.plugin_wrapper
-                .handle_player_disconnect(&mut self.net, &player_id);
+                .handle_player_disconnect(&mut self.net, player_id);
 
-            self.net.remove_player(&player_id, warp_out);
+            self.net.remove_player(player_id, warp_out);
 
             if self.config.args.log_connections {
-                log::debug!("{} disconnected for {}", player_id, reason);
+                log::debug!("{:?} disconnected for {}", player_id, reason);
             }
         } else if self.config.args.log_connections {
             log::debug!("{} disconnected for {}", socket_address, reason);

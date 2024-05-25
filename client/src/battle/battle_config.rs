@@ -39,8 +39,6 @@ impl BattleConfig {
             battle_init_music: Some(BattleInitMusic {
                 buffer: globals.music.battle.clone(),
                 loops: true,
-                start_ms: None,
-                end_ms: None,
             }),
         }
     }

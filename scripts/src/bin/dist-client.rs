@@ -25,10 +25,16 @@ fn main() -> ExitCode {
         format!("dist/client/{BIN_NAME}.exe"),
     );
 
-    // linux exe
+    // linux + mac exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}"),
         format!("dist/client/{BIN_NAME}"),
+    );
+
+    // mac ARM exe
+    let _ = fs::copy(
+        format!("target/release/{BIN_NAME}-aarch64"),
+        format!("dist/client/{BIN_NAME}-aarch64"),
     );
 
     fs_extra::dir::copy(

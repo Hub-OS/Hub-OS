@@ -10,7 +10,7 @@ pub use crate::bindable::AudioBehavior;
 pub struct AudioManager {
     stream: Option<rodio::OutputStream>,
     stream_handle: Option<rodio::OutputStreamHandle>,
-    sfx_sinks: RefCell<IndexMap<usize, (Instant, rodio::Sink)>>,
+    sfx_sinks: RefCell<IndexMap<usize, (Instant, rodio::Sink, Option<Box<dyn Fn()>>)>>,
     music_sink: RefCell<Option<rodio::Sink>>,
     music_stack: RefCell<Vec<(SoundBuffer, bool)>>,
     music_volume: f32,
@@ -167,7 +167,7 @@ impl AudioManager {
         music_sink.set_volume(self.music_volume);
 
         if loops {
-            music_sink.append(buffer.create_looped_sampler());
+            music_sink.append(buffer.create_looped_sampler(None));
         } else {
             music_sink.append(buffer.create_sampler());
         }
@@ -201,13 +201,14 @@ impl AudioManager {
 
     pub fn play_sound_with_behavior(&self, buffer: &SoundBuffer, behavior: AudioBehavior) {
         match behavior {
-            AudioBehavior::Default => {
-                self.play_sound(buffer);
-                return;
-            }
-            AudioBehavior::NoOverlap => {}
+            AudioBehavior::Default => self.play_sound(buffer),
+            AudioBehavior::NoOverlap => self.play_no_overlap(buffer),
+            AudioBehavior::LoopSection(start, end) => self.play_loop_section(buffer, start, end),
+            AudioBehavior::EndLoop => self.end_sound_loop(buffer),
         }
+    }
 
+    fn play_no_overlap(&self, buffer: &SoundBuffer) {
         let Some(stream_handle) = self.stream_handle.as_ref() else {
             return;
         };
@@ -215,7 +216,12 @@ impl AudioManager {
         let mut sfx_sinks = self.sfx_sinks.borrow_mut();
         let (start_instant, sfx_sink);
 
-        if let Some((instant, sink)) = sfx_sinks.get_mut(&buffer.id()) {
+        if let Some((instant, sink, end_loop)) = sfx_sinks.get_mut(&buffer.id()) {
+            if end_loop.is_some() {
+                // audio is looping, blocking us from playing again
+                return;
+            }
+
             // reuse sink
             start_instant = instant;
             sfx_sink = sink;
@@ -229,10 +235,10 @@ impl AudioManager {
                 }
             };
 
-            sfx_sinks.insert(buffer.id(), (Instant::now(), sink));
+            sfx_sinks.insert(buffer.id(), (Instant::now(), sink, None));
 
             // get the newly created sink
-            let (instant, sink) = sfx_sinks.get_mut(&buffer.id()).unwrap();
+            let (instant, sink, _) = sfx_sinks.get_mut(&buffer.id()).unwrap();
             start_instant = instant;
             sfx_sink = sink;
         }
@@ -254,9 +260,53 @@ impl AudioManager {
         }
     }
 
+    fn play_loop_section(&self, buffer: &SoundBuffer, start: usize, end: usize) {
+        let Some(stream_handle) = self.stream_handle.as_ref() else {
+            return;
+        };
+
+        if start > end {
+            return;
+        }
+
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+
+        // create a new sink
+        let sink = match rodio::Sink::try_new(stream_handle) {
+            Ok(sfx_sink) => sfx_sink,
+            Err(e) => {
+                log::error!("Failed to create sfx sink: {e}");
+                return;
+            }
+        };
+
+        let sampler = buffer.create_looped_sampler(Some(start..end));
+        let callback = Box::new(sampler.end_loop_callback());
+
+        let source = sampler.convert_samples::<f32>().amplify(self.sfx_volume);
+
+        sink.append(source);
+        sink.play();
+
+        sfx_sinks.insert(buffer.id(), (Instant::now(), sink, Some(callback)));
+    }
+
+    fn end_sound_loop(&self, buffer: &SoundBuffer) {
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+
+        let Some((_, _, end_loop)) = sfx_sinks.get_mut(&buffer.id()) else {
+            return;
+        };
+
+        if let Some(callback) = end_loop.as_ref() {
+            callback();
+            *end_loop = None;
+        }
+    }
+
     pub fn drop_empty_sinks(&self) {
         let mut sfx_sinks = self.sfx_sinks.borrow_mut();
 
-        sfx_sinks.retain(|_, (_, sink)| !sink.empty());
+        sfx_sinks.retain(|_, (_, sink, _)| !sink.empty());
     }
 }

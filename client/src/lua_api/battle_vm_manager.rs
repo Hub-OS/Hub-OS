@@ -1,13 +1,12 @@
 use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources};
 use crate::packages::{PackageInfo, PackageNamespace};
-use crate::resources::{AssetManager, Globals, ResourcePaths, INPUT_BUFFER_LIMIT};
+use crate::resources::{
+    AssetManager, Globals, ResourcePaths, BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT,
+};
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::cell::RefCell;
-
-// 1 MiB
-const VM_MEMORY: usize = 1024 * 1024;
 
 pub struct BattleVmManager {
     vms: Vec<RollbackVM>,
@@ -18,14 +17,14 @@ impl BattleVmManager {
         Self { vms: Vec::new() }
     }
 
-    pub fn init(
+    pub fn init<'a>(
         game_io: &GameIO,
         resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
-        dependencies: &[(&PackageInfo, PackageNamespace)],
+        dependencies: impl Iterator<Item = &'a (&'a PackageInfo, PackageNamespace)>,
     ) {
         for (package_info, namespace) in dependencies {
-            if package_info.package_category.requires_vm() {
+            if package_info.category.requires_vm() {
                 Self::ensure_vm(game_io, resources, simulation, package_info, *namespace);
             }
         }
@@ -38,10 +37,6 @@ impl BattleVmManager {
         package_info: &PackageInfo,
         namespace: PackageNamespace,
     ) {
-        // expecting local namespace to be converted to a Netplay namespace
-        // before being passed to this function
-        assert_ne!(namespace, PackageNamespace::Local);
-
         let existing_vm = resources.vm_manager.find_vm_from_info(package_info);
 
         if let Some(vm_index) = existing_vm {
@@ -66,7 +61,7 @@ impl BattleVmManager {
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        let lua = rollback_mlua::Lua::new_rollback(VM_MEMORY, INPUT_BUFFER_LIMIT);
+        let lua = rollback_mlua::Lua::new_rollback(BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT);
         lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)
             .unwrap();
 
@@ -120,14 +115,14 @@ impl BattleVmManager {
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
         let vm_index = namespace
-            .find_with_overrides(|namespace| {
+            .find_with_fallback(|namespace| {
                 self.vms.iter().position(|vm| {
                     vm.package_id == *package_id && vm.namespaces.contains(&namespace)
                 })
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
-                    "no package with id {:?} found",
+                    "no package with id {:?} and namespace {namespace:?} found",
                     package_id
                 ))
             })?;

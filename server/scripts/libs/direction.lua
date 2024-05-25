@@ -102,6 +102,14 @@ function Direction.vector(direction)
   end
 end
 
+function Direction.vector_multi(direction)
+  local vector = chebyshev_vectors[direction]
+
+  if vector then
+    return vector.x, vector.y
+  end
+end
+
 local deg45radians = math.sin(math.pi / 4)
 local unit_vectors = {
   [Direction.UP] = { x = -deg45radians, y = -deg45radians },
@@ -119,6 +127,14 @@ function Direction.unit_vector(direction)
 
   if vector then
     return { x = vector.x, y = vector.y }
+  end
+end
+
+function Direction.unit_vector_multi(direction)
+  local vector = unit_vectors[direction]
+
+  if vector then
+    return vector.x, vector.y
   end
 end
 

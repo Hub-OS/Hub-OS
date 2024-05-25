@@ -1,89 +1,78 @@
 use super::lua_helpers::*;
 use super::LuaApi;
 use crate::net::ShopItem;
+use packets::structures::ActorId;
 use packets::structures::{PackageId, TextStyleBlueprint, TextboxOptions, TextureAnimPathPair};
 
 #[allow(clippy::type_complexity)]
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "is_player_in_widget", |api_ctx, lua, params| {
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let net = api_ctx.net_ref.borrow();
 
-        let is_in_widget = net.is_player_in_widget(player_id_str);
+        let is_in_widget = net.is_player_in_widget(player_id);
 
         lua.pack_multi(is_in_widget)
     });
 
     lua_api.add_dynamic_function("Net", "is_player_shopping", |api_ctx, lua, params| {
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let net = api_ctx.net_ref.borrow();
 
-        let is_shopping = net.is_player_shopping(player_id_str);
+        let is_shopping = net.is_player_shopping(player_id);
 
         lua.pack_multi(is_shopping)
     });
 
     lua_api.add_dynamic_function("Net", "hide_hud", |api_ctx, lua, params| {
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.set_hud_visibility(player_id_str, false);
+        net.set_hud_visibility(player_id, false);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "show_hud", |api_ctx, lua, params| {
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.set_hud_visibility(player_id_str, true);
+        net.set_hud_visibility(player_id, true);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_message_player", |api_ctx, lua, params| {
-        let (player_id, message, rest): (mlua::String, mlua::String, mlua::MultiValue) =
+        let (player_id, message, rest): (ActorId, mlua::String, mlua::MultiValue) =
             lua.unpack_multi(params)?;
-        let (player_id_str, message_str) = (player_id.to_str()?, message.to_str()?);
+        let message_str = message.to_str()?;
         let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
-            net.message_player(player_id_str, message_str, textbox_options);
+            net.message_player(player_id, message_str, textbox_options);
         }
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_question_player", |api_ctx, lua, params| {
-        let (player_id, message, rest): (mlua::String, mlua::String, mlua::MultiValue) =
+        let (player_id, message, rest): (ActorId, mlua::String, mlua::MultiValue) =
             lua.unpack_multi(params)?;
-        let (player_id_str, message_str) = (player_id.to_str()?, message.to_str()?);
+        let message_str = message.to_str()?;
         let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
-            net.question_player(player_id_str, message_str, textbox_options);
+            net.question_player(player_id, message_str, textbox_options);
         }
 
         lua.pack_multi(())
@@ -91,26 +80,22 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
     lua_api.add_dynamic_function("Net", "_quiz_player", |api_ctx, lua, params| {
         let (player_id, option_a, option_b, option_c, rest): (
-            mlua::String,
+            ActorId,
             Option<mlua::String>,
             Option<mlua::String>,
             Option<mlua::String>,
             mlua::MultiValue,
         ) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+
         let textbox_options = parse_textbox_options(lua, rest)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.quiz_player(
-                player_id_str,
+                player_id,
                 optional_lua_string_to_str(&option_a)?,
                 optional_lua_string_to_str(&option_b)?,
                 optional_lua_string_to_str(&option_c)?,
@@ -122,24 +107,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "_prompt_player", |api_ctx, lua, params| {
-        let (player_id, character_limit, message): (
-            mlua::String,
-            Option<u16>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, character_limit, message): (ActorId, Option<u16>, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_textbox(api_ctx.script_index);
 
             net.prompt_player(
-                player_id_str,
+                player_id,
                 character_limit.unwrap_or(u16::MAX),
                 optional_lua_string_to_optional_str(&message)?,
             );
@@ -152,21 +129,16 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         use crate::net::BbsPost;
 
         let (player_id, name, color_table, post_tables, open_instantly): (
-            mlua::String,
+            ActorId,
             mlua::String,
             mlua::Table,
             Vec<mlua::Table>,
             Option<bool>,
         ) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_board(api_ctx.script_index);
 
             let color = parse_rgb_table(color_table)?;
@@ -187,7 +159,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             }
 
             net.open_board(
-                player_id_str,
+                player_id,
                 name.to_str()?,
                 color,
                 posts,
@@ -201,12 +173,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "prepend_posts", |api_ctx, lua, params| {
         use crate::net::BbsPost;
 
-        let (player_id, post_tables, reference): (
-            mlua::String,
-            Vec<mlua::Table>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, post_tables, reference): (ActorId, Vec<mlua::Table>, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -226,7 +194,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
 
         net.prepend_posts(
-            player_id_str,
+            player_id,
             optional_lua_string_to_optional_str(&reference)?,
             posts,
         );
@@ -237,12 +205,8 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "append_posts", |api_ctx, lua, params| {
         use crate::net::BbsPost;
 
-        let (player_id, post_tables, reference): (
-            mlua::String,
-            Vec<mlua::Table>,
-            Option<mlua::String>,
-        ) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, post_tables, reference): (ActorId, Vec<mlua::Table>, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -262,7 +226,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
 
         net.append_posts(
-            player_id_str,
+            player_id,
             optional_lua_string_to_optional_str(&reference)?,
             posts,
         );
@@ -271,38 +235,33 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Net", "remove_post", |api_ctx, lua, params| {
-        let (player_id, post_id): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
-        let (player_id_str, post_id_str) = (player_id.to_str()?, post_id.to_str()?);
+        let (player_id, post_id): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+        let post_id_str = post_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.remove_post(player_id_str, post_id_str);
+        net.remove_post(player_id, post_id_str);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "close_board", |api_ctx, lua, params| {
-        let player_id: mlua::String = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let player_id: ActorId = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.close_board(player_id_str);
+        net.close_board(player_id);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "_open_shop", |api_ctx, lua, params| {
-        let (player_id, item_tables, rest): (mlua::String, Vec<mlua::Table>, mlua::MultiValue) =
+        let (player_id, item_tables, rest): (ActorId, Vec<mlua::Table>, mlua::MultiValue) =
             lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+
         let textbox_options = parse_textbox_options(lua, rest)?;
 
-        if let Some(tracker) = api_ctx
-            .widget_tracker_ref
-            .borrow_mut()
-            .get_mut(player_id_str)
-        {
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.track_shop(api_ctx.script_index);
             let mut net = api_ctx.net_ref.borrow_mut();
 
@@ -312,76 +271,70 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 items.push(table_to_shop_item(item_table)?);
             }
 
-            net.open_shop(player_id_str, items, textbox_options);
+            net.open_shop(player_id, items, textbox_options);
         }
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "set_shop_message", |api_ctx, lua, params| {
-        let (player_id, message): (mlua::String, String) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, message): (ActorId, String) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.set_shop_message(player_id_str, message);
+        net.set_shop_message(player_id, message);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "update_shop_item", |api_ctx, lua, params| {
-        let (player_id, table): (mlua::String, mlua::Table) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, table): (ActorId, mlua::Table) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.update_shop_item(player_id_str, table_to_shop_item(table)?);
+        net.update_shop_item(player_id, table_to_shop_item(table)?);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "remove_shop_item", |api_ctx, lua, params| {
-        let (player_id, id): (mlua::String, String) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, id): (ActorId, String) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
-        net.remove_shop_item(player_id_str, id);
+        net.remove_shop_item(player_id, id);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "refer_server", |api_ctx, lua, params| {
-        let (player_id, name, address): (mlua::String, String, String) =
-            lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, name, address): (ActorId, String, String) = lua.unpack_multi(params)?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.refer_server(player_id_str, name, address);
+        net.refer_server(player_id, name, address);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "refer_package", |api_ctx, lua, params| {
-        let (player_id, package_id_string): (mlua::String, mlua::String) =
-            lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, package_id_string): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+
         let package_id_str = package_id_string.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
         let package_id = PackageId::from(package_id_str);
-        net.refer_package(player_id_str, package_id);
+        net.refer_package(player_id, package_id);
 
         lua.pack_multi(())
     });
 
     lua_api.add_dynamic_function("Net", "offer_package", |api_ctx, lua, params| {
-        let (player_id, package_id): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
-        let player_id_str = player_id.to_str()?;
+        let (player_id, package_id): (ActorId, mlua::String) = lua.unpack_multi(params)?;
+
         let package_id_str = package_id.to_str()?;
 
         let mut net = api_ctx.net_ref.borrow_mut();
 
-        net.offer_package(player_id_str, package_id_str);
+        net.offer_package(player_id, package_id_str);
 
         lua.pack_multi(())
     });

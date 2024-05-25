@@ -1,0 +1,64 @@
+imagePath="canodumb.png"
+
+animation state="IDLE_1"
+frame duration="0.1" x="63" y="2" w="39" h="55" originx="19" originy="49" flipx="1"
+
+animation state="SHOOT_1"
+frame duration="0.1" x="63" y="2" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="106" y="2" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="149" y="2" w="41" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="194" y="2" w="41" h="55" originx="19" originy="49" flipx="1"
+
+animation state="IDLE_2"
+frame duration="0.1" x="63" y="57" w="39" h="55" originx="19" originy="49" flipx="1"
+
+animation state="SHOOT_2"
+frame duration="0.1" x="63" y="57" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="106" y="57" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="149" y="57" w="41" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="194" y="57" w="41" h="55" originx="19" originy="49" flipx="1"
+
+animation state="IDLE_3"
+frame duration="0.1" x="63" y="112" w="39" h="55" originx="19" originy="49" flipx="1"
+
+animation state="SHOOT_3"
+frame duration="0.1" x="63" y="112" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="106" y="112" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="149" y="112" w="41" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="194" y="112" w="41" h="55" originx="19" originy="49" flipx="1"
+
+animation state="IDLE_SP"
+frame duration="0.1" x="63" y="168" w="39" h="55" originx="19" originy="49" flipx="1"
+
+animation state="SHOOT_SP"
+frame duration="0.1" x="63" y="168" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="106" y="168" w="39" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="149" y="168" w="41" h="55" originx="19" originy="49" flipx="1"
+frame duration="0.1" x="194" y="168" w="41" h="55" originx="19" originy="49" flipx="1"
+
+animation state="CURSOR"
+frame duration="0.05" x="5" y="9" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.05" x="5" y="57" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.05" x="5" y="105" w="37" h="39" originx="19" originy="35" flipx="1"
+
+animation state="CURSOR_SHOOT"
+frame duration="0.03" x="5" y="153" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.06" x="5" y="105" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.03" x="5" y="153" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.06" x="5" y="105" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.03" x="5" y="153" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.06" x="5" y="105" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.03" x="5" y="153" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.06" x="5" y="105" w="37" h="39" originx="19" originy="35" flipx="1"
+frame duration="0.01" x="0" y="0" w="1" h="1" originx="0" originy="0" flipx="1"
+
+animation state="CURSOR_SMOKE"
+frame duration="2" x="0" y="0" w="1" h="1" originx="0" originy="0" flipx="1"
+
+animation state="SMOKE"
+frame duration="0.03" x="57" y="239" w="15" h="28" originx="10" originy="14" flipx="1"
+frame duration="0.03" x="77" y="232" w="22" h="42" originx="17" originy="21" flipx="1"
+frame duration="0.03" x="107" y="227" w="24" h="52" originx="19" originy="26" flipx="1"
+frame duration="0.03" x="139" y="225" w="28" h="56" originx="18" originy="28" flipx="1"
+frame duration="0.03" x="174" y="225" w="25" h="56" originx="20" originy="28" flipx="1"
+frame duration="0.03" x="208" y="226" w="22" h="54" originx="20" originy="27" flipx="1"

@@ -134,7 +134,7 @@ impl StagedItems {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
                 let card = deck.get(*i)?;
-                let package = card_packages.package_or_override(namespace, &card.package_id)?;
+                let package = card_packages.package_or_fallback(namespace, &card.package_id)?;
                 let mut card_properties = package.card_properties.to_bindable(status_registry);
 
                 card_properties.code = card.code.clone();
@@ -207,14 +207,22 @@ impl StagedItems {
             let texture = match &item.data {
                 StagedItemData::Deck(i) => {
                     if let Some(card) = deck.get(*i) {
-                        let (texture, _) = CardPackage::icon_texture(game_io, &card.package_id);
+                        let (texture, _) = CardPackage::icon_texture(
+                            game_io,
+                            PackageNamespace::Local,
+                            &card.package_id,
+                        );
                         texture
                     } else {
                         assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING)
                     }
                 }
                 StagedItemData::Card(props) => {
-                    let (texture, _) = CardPackage::icon_texture(game_io, &props.package_id);
+                    let (texture, _) = CardPackage::icon_texture(
+                        game_io,
+                        props.namespace.unwrap_or(PackageNamespace::Local),
+                        &props.package_id,
+                    );
                     texture
                 }
                 StagedItemData::Form((_, texture, _)) => texture.clone().unwrap(),

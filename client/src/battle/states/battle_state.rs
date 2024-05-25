@@ -159,13 +159,25 @@ impl BattleState {
     }
 
     fn play_low_hp_sfx(&self, game_io: &GameIO, simulation: &mut BattleSimulation) {
-        if simulation.local_health_ui.is_low_hp() && self.time % LOW_HP_SFX_RATE == 0 {
-            let globals = game_io.resource::<Globals>().unwrap();
-            let audio = &globals.audio;
-            let sfx = &globals.sfx.low_hp;
+        if !simulation.local_health_ui.is_low_hp() || self.time % LOW_HP_SFX_RATE != 0 {
+            return;
+        };
 
-            audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&Entity>(simulation.local_player_id.into())
+        else {
+            return;
+        };
+
+        if entity.deleted {
+            return;
         }
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let audio = &globals.audio;
+        let sfx = &globals.sfx.low_hp;
+
+        audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
     }
 
     fn update_turn_gauge(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
@@ -293,7 +305,7 @@ impl BattleState {
             entity.updated = false;
 
             // reset frame temp properties
-            entity.tile_offset = Vec2::ZERO;
+            entity.movement_offset = Vec2::ZERO;
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
                 let sprite_node = sprite_tree.root_mut();
@@ -366,7 +378,7 @@ impl BattleState {
             }
         }
 
-        let queued_attacks = std::mem::take(&mut simulation.queued_attacks);
+        let mut queued_attacks = std::mem::take(&mut simulation.queued_attacks);
         let mut washed_tiles = Vec::new();
 
         // interactions between attack boxes and tiles
@@ -397,6 +409,19 @@ impl BattleState {
             }
 
             tile.acknowledge_attacker(attack_box.attacker_id);
+        }
+
+        // remove ignored attacks
+        for i in (0..queued_attacks.len()).rev() {
+            let attack_box = &queued_attacks[i];
+
+            let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) else {
+                continue;
+            };
+
+            if tile.ignoring_attacker(attack_box.attacker_id) {
+                queued_attacks.swap_remove(i);
+            }
         }
 
         // interactions between attack boxes and entities
@@ -529,7 +554,7 @@ impl BattleState {
             }
 
             let tile_state = &simulation.tile_states[state_index];
-            let request_change = tile_state.change_request_callback.clone();
+            let request_change = tile_state.can_replace_callback.clone();
 
             if request_change.call(game_io, resources, simulation, (x, y, TileState::NORMAL)) {
                 // revert to NORMAL with permission
@@ -630,6 +655,10 @@ impl BattleState {
             let (entity, player, living, character) = entities
                 .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
                 .unwrap();
+
+            if !entity.on_field {
+                continue;
+            }
 
             let input = &simulation.inputs[player.index];
 
@@ -851,10 +880,9 @@ impl BattleState {
             if animation_progress >= 0.5 && !movement.success {
                 // test to see if the movement is valid
                 let dest = movement.dest;
-                let can_move_to_callback = entity.current_can_move_to_callback(&simulation.actions);
 
                 if simulation.field.tile_at_mut(dest).is_none()
-                    || !can_move_to_callback.call(game_io, resources, simulation, dest)
+                    || !Entity::can_move_to(game_io, resources, simulation, id.into(), dest)
                 {
                     let entity = simulation
                         .entities
@@ -938,7 +966,7 @@ impl BattleState {
                 }
             } else {
                 // apply jump height
-                entity.tile_offset.y -= movement.interpolate_jump_height(animation_progress);
+                entity.movement_offset.y -= movement.interpolate_jump_height(animation_progress);
 
                 // calculate slide
                 let start = IVec2::from(movement.source).as_vec2();
@@ -950,8 +978,8 @@ impl BattleState {
                     (dest - start) * (animation_progress - 1.0)
                 };
 
-                entity.tile_offset.x += current.x * tile_size.x;
-                entity.tile_offset.y += current.y * tile_size.y;
+                entity.movement_offset.x += current.x * tile_size.x;
+                entity.movement_offset.y += current.y * tile_size.y;
             }
         }
 
@@ -998,7 +1026,7 @@ impl BattleState {
             }
 
             if status_director.is_shaking() {
-                entity.tile_offset.x += simulation.rng.gen_range(-1..=1) as f32;
+                entity.movement_offset.x += simulation.rng.gen_range(-1..=1) as f32;
                 status_director.decrement_shake_time();
             }
 

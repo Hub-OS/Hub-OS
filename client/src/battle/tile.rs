@@ -9,6 +9,7 @@ pub struct Tile {
     position: (i32, i32),
     state_index: usize,
     state_lifetime: FrameTime,
+    state_visual_override: Option<usize>,
     max_state_lifetime: Option<FrameTime>,
     immutable_team: bool,
     team: Team,
@@ -16,6 +17,7 @@ pub struct Tile {
     team_revert_timer: FrameTime,
     team_flicker: Option<(Team, FrameTime)>,
     direction: Direction,
+    direction_override: Option<Direction>,
     highlight: TileHighlight,
     flash_time: FrameTime,
     ignored_attackers: Vec<EntityId>,
@@ -47,6 +49,14 @@ impl Tile {
         self.max_state_lifetime = max_state_lifetime;
     }
 
+    pub fn visible_state_index(&self) -> usize {
+        self.state_visual_override.unwrap_or(self.state_index)
+    }
+
+    pub fn set_visible_state_index(&mut self, state: Option<usize>) {
+        self.state_visual_override = state;
+    }
+
     pub fn team(&self) -> Team {
         self.team
     }
@@ -55,7 +65,7 @@ impl Tile {
         self.original_team
     }
 
-    pub fn set_team(&mut self, team: Team) {
+    pub fn set_team(&mut self, team: Team, direction_override: Option<Direction>) {
         if team == Team::Unset {
             return;
         }
@@ -63,6 +73,11 @@ impl Tile {
         if self.team == Team::Unset {
             self.original_team = team;
             self.team = team;
+
+            if let Some(direction) = direction_override {
+                self.direction = direction;
+            }
+
             return;
         }
 
@@ -71,9 +86,11 @@ impl Tile {
         }
 
         self.team = team;
+        self.direction_override = direction_override;
 
         if team == self.original_team {
             self.team_revert_timer = 0;
+            self.direction_override = None;
         } else if self.team_revert_timer == 0 {
             self.team_revert_timer = TEMP_TEAM_DURATION;
         }
@@ -89,6 +106,7 @@ impl Tile {
         if time == 0 {
             self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
             self.team = self.original_team;
+            self.direction_override = None;
         }
     }
 
@@ -97,11 +115,15 @@ impl Tile {
     }
 
     pub fn direction(&self) -> Direction {
+        self.direction_override.unwrap_or(self.direction)
+    }
+
+    pub fn original_direction(&self) -> Direction {
         self.direction
     }
 
     pub fn should_highlight(&self) -> bool {
-        if self.state_index == TileState::HIDDEN {
+        if self.state_index == TileState::VOID {
             return false;
         }
 

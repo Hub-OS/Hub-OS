@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PlayerSetup {
-    pub package_pair: (PackageNamespace, PackageId),
+    pub package_id: PackageId,
     pub script_enabled: bool,
     pub health: i32,
     pub base_health: i32,
@@ -26,12 +26,9 @@ pub struct PlayerSetup {
 }
 
 impl PlayerSetup {
-    pub fn new(player_package: &PlayerPackage, index: usize, local: bool) -> Self {
+    pub fn new_dummy(player_package: &PlayerPackage, index: usize, local: bool) -> Self {
         Self {
-            package_pair: (
-                player_package.package_info.namespace,
-                player_package.package_info.id.clone(),
-            ),
+            package_id: player_package.package_info.id.clone(),
             script_enabled: true,
             health: 9999,
             base_health: 9999,
@@ -58,7 +55,7 @@ impl PlayerSetup {
         let namespace = self.namespace();
 
         self.drives.iter().flat_map(move |drive| {
-            augment_packages.package_or_override(namespace, &drive.package_id)
+            augment_packages.package_or_fallback(namespace, &drive.package_id)
         })
     }
 
@@ -100,7 +97,7 @@ impl PlayerSetup {
         deck.conform(game_io, PackageNamespace::Local, &deck_restrictions);
 
         Self {
-            package_pair: (PackageNamespace::Local, player_package_info.id.clone()),
+            package_id: player_package_info.id.clone(),
             script_enabled,
             health: player_package.health + health_boost,
             base_health: player_package.health,
@@ -110,17 +107,16 @@ impl PlayerSetup {
             blocks,
             drives,
             local: true,
-            buffer: PlayerInputBuffer::default(),
+            buffer: PlayerInputBuffer::new_with_delay(INPUT_DELAY),
         }
     }
 
-    pub fn player_package<'a>(&self, game_io: &'a GameIO) -> &'a PlayerPackage {
+    pub fn player_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a PlayerPackage> {
         let globals = game_io.resource::<Globals>().unwrap();
 
         globals
             .player_packages
-            .package(self.package_pair.0, &self.package_pair.1)
-            .unwrap()
+            .package_or_fallback(self.namespace(), &self.package_id)
     }
 }
 
@@ -162,7 +158,7 @@ impl BattleProps {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let (ns, id) = self.encounter_package_pair.as_ref()?;
-        globals.encounter_packages.package_or_override(*ns, id)
+        globals.encounter_packages.package_or_fallback(*ns, id)
     }
 
     pub fn from_recording(game_io: &GameIO, recording: &BattleRecording) -> Self {

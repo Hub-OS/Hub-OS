@@ -97,9 +97,15 @@ impl DeckEditorScene {
         deck_dock.validate(game_io, &deck_restrictions);
 
         // pack_dock
+        let mut pack_slots = CardListItem::pack_vec_from_packages(game_io, deck);
+
+        sort_card_items(&mut pack_slots, |item: &CardListItem| {
+            item.card.package_id.clone()
+        });
+
         let pack_dock = Dock::new(
             game_io,
-            CardListItem::pack_vec_from_packages(game_io, deck),
+            pack_slots,
             ui_sprite.clone(),
             ui_animator.with_state("PACK_DOCK"),
         );
@@ -191,12 +197,6 @@ impl DeckEditorScene {
 impl Scene for DeckEditorScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
-    }
-
-    fn enter(&mut self, _game_io: &mut GameIO) {
-        sort_card_items(&mut self.pack_dock.card_slots, |item: &CardListItem| {
-            item.card.package_id.clone()
-        });
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -430,6 +430,15 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         scene.context_menu.open();
     }
 
+    // flip card previews
+    if input_util.was_just_pressed(Input::Special) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.play_sound(&globals.sfx.cursor_select);
+
+        scene.deck_dock.card_preview.toggle_flipped();
+        scene.pack_dock.card_preview.toggle_flipped();
+    }
+
     // handle selecting regular card
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
         let event_sender = scene.event_sender.clone();
@@ -448,16 +457,30 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 }
 
 fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
+    let input_util = InputUtil::new(game_io);
+
+    // closing menu
+    if input_util.was_just_pressed(Input::Option) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+        scene.context_menu.close();
+
+        return;
+    }
+
     let Some(selected_option) = scene.context_menu.update(game_io, &scene.ui_input_tracker) else {
         return;
     };
 
     let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
-    let card_slots = match scene.page_tracker.active_page() {
-        0 => &mut scene.deck_dock.card_slots,
-        1 => &mut scene.pack_dock.card_slots,
+    let dock = match scene.page_tracker.active_page() {
+        0 => &mut scene.deck_dock,
+        1 => &mut scene.pack_dock,
         _ => unreachable!(),
     };
+
+    let card_slots = &mut dock.card_slots;
 
     match selected_option {
         Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
@@ -465,7 +488,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         }),
         Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.short_name.clone()
@@ -473,14 +496,14 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
         Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             -package.card_properties.damage
         }),
         Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.element as u8
@@ -488,7 +511,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
         Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
             let package = card_manager
-                .package_or_override(NAMESPACE, &item.card.package_id)
+                .package(NAMESPACE, &item.card.package_id)
                 .unwrap();
 
             package.card_properties.card_class as u8
@@ -503,6 +526,8 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
 
     // blanks should always be at the bottom
     card_slots.sort_by_key(|item| !item.is_some());
+
+    dock.update_preview();
 }
 
 fn sort_card_items<F, K>(card_slots: &mut [Option<CardListItem>], key_function: F)
@@ -563,7 +588,7 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
 
     let regular_allowed = item.valid && {
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_override(NAMESPACE, package_id);
+        let package = card_packages.package(NAMESPACE, package_id);
         package.is_some_and(|package| package.regular_allowed)
     };
 
@@ -705,7 +730,7 @@ fn transfer_to_deck(
 
     let globals = game_io.resource::<Globals>().unwrap();
     let card_manager = &globals.card_packages;
-    let package = card_manager.package_or_override(NAMESPACE, &card_item.card.package_id)?;
+    let package = card_manager.package(NAMESPACE, &card_item.card.package_id)?;
     let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
@@ -936,7 +961,7 @@ impl Dock {
         card_class: CardClass,
     ) -> usize {
         self.card_items()
-            .flat_map(|item| card_manager.package_or_override(NAMESPACE, &item.card.package_id))
+            .flat_map(|item| card_manager.package(NAMESPACE, &item.card.package_id))
             .filter(|package| package.card_properties.card_class == card_class)
             .count()
     }
@@ -1102,7 +1127,7 @@ impl CardListItem {
             let owned_iter = restrictions.card_iter().filter(|(card, _)| {
                 // filter for installed cards only
                 package_manager
-                    .package_or_override(NAMESPACE, &card.package_id)
+                    .package(NAMESPACE, &card.package_id)
                     .is_some()
             });
 
@@ -1128,7 +1153,7 @@ impl CardListItem {
         } else {
             // use all packages for pack
             package_manager
-                .packages_with_override(NAMESPACE)
+                .packages(NAMESPACE)
                 .filter(|package| !package.hidden)
                 .flat_map(|package| {
                     let package_info = package.package_info();
@@ -1170,7 +1195,7 @@ impl CardListItem {
                 let card_packages = &globals.card_packages;
 
                 card_packages
-                    .package_or_override(NAMESPACE, &self.card.package_id)
+                    .package(NAMESPACE, &self.card.package_id)
                     .is_some_and(|package| package.regular_allowed)
             };
 

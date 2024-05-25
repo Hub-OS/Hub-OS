@@ -2,7 +2,8 @@ use super::errors::invalid_custom_tile_state;
 use super::field_api::get_field_table;
 use super::tile_api::create_tile_table;
 use super::{
-    create_entity_table, BattleLuaApi, CUSTOM_TILE_STATE_TABLE, TILE_STATE_TABLE, TILE_TABLE,
+    create_entity_table, BattleLuaApi, CAN_REPLACE_FN, CUSTOM_TILE_STATE_TABLE, ENTITY_ENTER_FN,
+    ENTITY_LEAVE_FN, ENTITY_STOP_FN, REPLACE_FN, TILE_STATE_TABLE, TILE_TABLE, UPDATE_FN,
 };
 use crate::battle::{BattleCallback, TileState};
 use crate::lua_api::helpers::inherit_metatable;
@@ -66,8 +67,8 @@ fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "change_request_func",
-        |tile_state| &mut tile_state.change_request_callback,
+        CAN_REPLACE_FN,
+        |tile_state| &mut tile_state.can_replace_callback,
         |lua, table, (x, y, state_index)| {
             lua.pack_multi((table, create_tile_table(lua, (x, y))?, state_index))
         },
@@ -75,21 +76,28 @@ fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "on_update_func",
+        REPLACE_FN,
+        |tile_state| &mut tile_state.replace_callback,
+        |lua, table, (x, y)| lua.pack_multi((table, create_tile_table(lua, (x, y))?)),
+    );
+
+    callback_setter(
+        lua_api,
+        UPDATE_FN,
         |tile_state| &mut tile_state.update_callback,
         |lua, table, tile_position| lua.pack_multi((table, create_tile_table(lua, tile_position)?)),
     );
 
     callback_setter(
         lua_api,
-        "on_entity_enter_func",
+        ENTITY_ENTER_FN,
         |tile_state| &mut tile_state.entity_enter_callback,
         |lua, table, id| lua.pack_multi((table, create_entity_table(lua, id)?)),
     );
 
     callback_setter(
         lua_api,
-        "on_entity_leave_func",
+        ENTITY_LEAVE_FN,
         |tile_state| &mut tile_state.entity_leave_callback,
         |lua, table, (id, old_x, old_y)| {
             lua.pack_multi((
@@ -102,7 +110,7 @@ fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        "on_entity_stop_func",
+        ENTITY_STOP_FN,
         |tile_state| &mut tile_state.entity_stop_callback,
         |lua, table, (id, old_x, old_y)| {
             lua.pack_multi((

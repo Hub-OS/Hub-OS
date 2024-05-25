@@ -87,9 +87,10 @@ impl Package for AugmentPackage {
             creator: String::new(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Augment {
+                slot: self.slot,
                 flat: self.is_flat,
                 colors: self.block_colors.clone(),
-                shape: self.shape,
+                shape: self.has_shape.then_some(self.shape),
             },
             dependencies: self.package_info.requirements.clone(),
         }

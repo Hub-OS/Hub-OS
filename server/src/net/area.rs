@@ -1,12 +1,13 @@
 use super::map::Map;
+use packets::structures::ActorId;
 
 pub struct Area {
     id: String,
     map: Map,
     required_assets: Vec<String>,
     // cache
-    connected_players: Vec<String>,
-    connected_bots: Vec<String>,
+    connected_players: Vec<ActorId>,
+    connected_bots: Vec<ActorId>,
 }
 
 impl Area {
@@ -46,37 +47,37 @@ impl Area {
         &self.required_assets
     }
 
-    pub fn connected_players(&self) -> &Vec<String> {
+    pub fn connected_players(&self) -> &Vec<ActorId> {
         &self.connected_players
     }
 
-    pub(super) fn add_player(&mut self, player_id: String) {
+    pub(super) fn add_player(&mut self, player_id: ActorId) {
         if !self.connected_players.contains(&player_id) {
             self.connected_players.push(player_id);
         } else {
-            log::warn!("Attempt to add {player_id} twice to an area, bugged client?");
+            log::warn!("Attempt to add {player_id:?} twice to an area, bugged client?");
         }
     }
 
-    pub(super) fn remove_player(&mut self, player_id: &str) {
+    pub(super) fn remove_player(&mut self, player_id: ActorId) {
         self.connected_players
             .iter()
-            .position(|id| id == player_id)
+            .position(|id| *id == player_id)
             .map(|position| self.connected_players.swap_remove(position));
     }
 
-    pub fn connected_bots(&self) -> &Vec<String> {
+    pub fn connected_bots(&self) -> &Vec<ActorId> {
         &self.connected_bots
     }
 
-    pub(super) fn add_bot(&mut self, bot_id: String) {
+    pub(super) fn add_bot(&mut self, bot_id: ActorId) {
         self.connected_bots.push(bot_id);
     }
 
-    pub(super) fn remove_bot(&mut self, bot_id: &str) {
+    pub(super) fn remove_bot(&mut self, bot_id: ActorId) {
         self.connected_bots
             .iter()
-            .position(|id| id == bot_id)
+            .position(|id| *id == bot_id)
             .map(|position| self.connected_bots.swap_remove(position));
     }
 }

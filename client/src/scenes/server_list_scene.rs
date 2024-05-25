@@ -144,13 +144,10 @@ impl ServerListScene {
         for (i, server_info) in server_list.iter().enumerate() {
             let new_address = &server_info.address;
 
-            let address = match self.statuses.get(i) {
-                Some((address, _)) => address,
-                None => {
-                    // status list is shorter, just need to append
-                    self.statuses.push((new_address.clone(), None));
-                    continue;
-                }
+            let Some((address, _)) = self.statuses.get(i) else {
+                // status list is shorter, just need to append
+                self.statuses.push((new_address.clone(), None));
+                continue;
             };
 
             if strip_data(address) == strip_data(new_address) {
@@ -181,9 +178,8 @@ impl ServerListScene {
             let subscription = globals.network.subscribe_to_server(address.clone());
 
             let task = game_io.spawn_local_task(async {
-                let (send, receiver) = match subscription.await {
-                    Some((sender, receiver)) => (sender, receiver),
-                    None => return ServerStatus::InvalidAddress,
+                let Some((send, receiver)) = subscription.await else {
+                    return ServerStatus::InvalidAddress;
                 };
 
                 Network::poll_server(&send, &receiver).await

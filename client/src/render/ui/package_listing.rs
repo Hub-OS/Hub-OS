@@ -3,7 +3,7 @@ use crate::render::ui::PackagePreviewData;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::*;
-use packets::structures::{FileHash, PackageCategory, PackageId};
+use packets::structures::{FileHash, PackageCategory, PackageId, SwitchDriveSlot};
 use serde_json as json;
 
 #[derive(Clone)]
@@ -45,6 +45,10 @@ impl From<&json::Value> for PackageListing {
                 damage: get_i32(package_table, "damage"),
             },
             "augment" => PackagePreviewData::Augment {
+                slot: package_table
+                    .get("slot")
+                    .and_then(|value| value.as_str())
+                    .map(SwitchDriveSlot::from),
                 flat: package_table
                     .get("flat")
                     .and_then(|value| value.as_bool())
@@ -58,22 +62,32 @@ impl From<&json::Value> for PackageListing {
                 },
                 shape: {
                     // convert list of list i64 into [bool; 25]
-                    let bools: Vec<_> = map_array_values(package_table, "shape", |value| {
-                        value
-                            .as_array()
-                            .map(|v| v.iter().map(|v| v.as_i64().unwrap_or_default() != 0))
-                    })
-                    .flatten()
-                    .flatten()
-                    .collect();
+                    let bools: Option<Vec<bool>> = package_table
+                        .get("shape")
+                        .and_then(|value| value.as_array())
+                        .map(|value| {
+                            value
+                                .iter()
+                                .flat_map(|v| {
+                                    Some(
+                                        v.as_array()?
+                                            .iter()
+                                            .map(|v| v.as_i64().unwrap_or_default() != 0),
+                                    )
+                                })
+                                .flatten()
+                                .collect()
+                        });
 
-                    bools.try_into().unwrap_or_default()
+                    bools.and_then(|bools| bools.try_into().ok())
                 },
             },
             "encounter" => PackagePreviewData::Encounter,
             "library" => PackagePreviewData::Library,
             "pack" => PackagePreviewData::Pack,
             "resource" => PackagePreviewData::Resource,
+            "status" => PackagePreviewData::Status,
+            "tile_state" => PackagePreviewData::TileState,
             _ => PackagePreviewData::Unknown,
         };
 
@@ -91,7 +105,7 @@ impl From<&json::Value> for PackageListing {
             dependencies.extend(map_array_values(dependencies_table, "augments", |id| {
                 (PackageCategory::Augment, into_id(id))
             }));
-            dependencies.extend(map_array_values(dependencies_table, "battles", |id| {
+            dependencies.extend(map_array_values(dependencies_table, "encounters", |id| {
                 (PackageCategory::Encounter, into_id(id))
             }));
             dependencies.extend(map_array_values(dependencies_table, "cards", |id| {
@@ -222,7 +236,12 @@ impl UiNode for PackageListing {
                 sprite.set_position(position);
                 sprite_queue.draw_sprite(&sprite);
             }
-            PackagePreviewData::Augment { colors, flat, .. } => {
+            PackagePreviewData::Augment {
+                colors,
+                flat,
+                shape: Some(_),
+                ..
+            } => {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
                 let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
                 sprite.set_scale(Vec2::new(2.0, 2.0));

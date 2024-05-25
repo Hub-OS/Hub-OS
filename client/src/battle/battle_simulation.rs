@@ -1,6 +1,6 @@
 use super::*;
 use crate::bindable::*;
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
@@ -28,6 +28,7 @@ pub struct BattleSimulation {
     pub tile_states: Vec<TileState>,
     pub entities: hecs::World,
     pub generation_tracking: Vec<hecs::Entity>,
+    pub ownership_tracking: OwnershipTracking,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
     pub sprite_trees: SlotMap<Tree<SpriteNode>>,
@@ -49,7 +50,7 @@ pub struct BattleSimulation {
 impl BattleSimulation {
     pub fn new(game_io: &GameIO, props: &BattleProps) -> Self {
         let mut camera = Camera::new(game_io);
-        camera.snap(Vec2::new(0.0, 10.0));
+        camera.snap(Vec2::new(0.0, 8.0));
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -72,6 +73,7 @@ impl BattleSimulation {
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
+            ownership_tracking: Default::default(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
             sprite_trees: Default::default(),
@@ -114,29 +116,22 @@ impl BattleSimulation {
         }
 
         // cloning every component
-        for (id, component) in self.entities.query_mut::<&Artifact>() {
-            let _ = entities.insert_one(id, component.clone());
+        macro_rules! clone_component {
+            ($component: ty) => {
+                for (id, component) in self.entities.query_mut::<&$component>() {
+                    let _ = entities.insert_one(id, component.clone());
+                }
+            };
         }
 
-        for (id, component) in self.entities.query_mut::<&Character>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Living>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Obstacle>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Player>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
-
-        for (id, component) in self.entities.query_mut::<&Spell>() {
-            let _ = entities.insert_one(id, component.clone());
-        }
+        clone_component!(Artifact);
+        clone_component!(Character);
+        clone_component!(Living);
+        clone_component!(Obstacle);
+        clone_component!(Player);
+        clone_component!(Spell);
+        clone_component!(EntityShadow);
+        clone_component!(EntityShadowVisible);
 
         Self {
             config: self.config.clone(),
@@ -153,6 +148,7 @@ impl BattleSimulation {
             tile_states: self.tile_states.clone(),
             entities,
             generation_tracking: self.generation_tracking.clone(),
+            ownership_tracking: self.ownership_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
             defense_judge: self.defense_judge,
             sprite_trees: self.sprite_trees.clone(),
@@ -185,15 +181,7 @@ impl BattleSimulation {
         }
     }
 
-    pub fn play_music(
-        &self,
-        game_io: &GameIO,
-        sound_buffer: &SoundBuffer,
-        loops: bool,
-        // todo:
-        _start_ms: Option<u64>,
-        _end_ms: Option<u64>,
-    ) {
+    pub fn play_music(&self, game_io: &GameIO, sound_buffer: &SoundBuffer, loops: bool) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         if globals.audio.music_stack_len() != self.music_stack_depth {
@@ -261,6 +249,9 @@ impl BattleSimulation {
         #[cfg(debug_assertions)]
         self.assertions();
 
+        // remove dead entities
+        self.cleanup_erased_entities();
+
         // update background
         self.background.update();
 
@@ -293,9 +284,6 @@ impl BattleSimulation {
 
         // should this be called every time we invoke lua?
         self.call_pending_callbacks(game_io, resources);
-
-        // remove dead entities
-        self.cleanup_erased_entities();
 
         self.update_ui();
 
@@ -501,9 +489,7 @@ impl BattleSimulation {
                 continue;
             }
 
-            if entity.spawned {
-                self.field.drop_entity(entity.id);
-            }
+            self.field.drop_entity(entity.id);
 
             for (index, component) in &mut self.components {
                 if component.entity == entity.id {
@@ -524,6 +510,10 @@ impl BattleSimulation {
         }
 
         for id in pending_removal {
+            // delete shadow
+            EntityShadow::delete(self, id.into());
+
+            // delete entity
             self.entities.despawn(id).unwrap();
         }
 
@@ -673,7 +663,7 @@ impl BattleSimulation {
             sprite_queue.draw_sprite(&self.fade_sprite);
         }
 
-        // draw entities, sorting by position
+        // draw entities, sorting by tile, movement offset, and layer
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);
 
         // filter characters + obstacles for blindness
@@ -704,40 +694,69 @@ impl BattleSimulation {
 
         sorted_entities.sort_by_key(|(_, key)| *key);
 
+        // calculations and shadow rendering
+        let mut entity_tree_render_params = Vec::with_capacity(sorted_entities.len());
+
         for (id, _) in sorted_entities {
-            let entity = self.entities.query_one_mut::<&mut Entity>(id).unwrap();
+            let (entity, shadow, shadow_visible) = self
+                .entities
+                .query_one_mut::<(
+                    &mut Entity,
+                    Option<&EntityShadow>,
+                    Option<&EntityShadowVisible>,
+                )>(id)
+                .unwrap();
 
-            // offset for calculating initial placement position
-            let mut offset: Vec2 = entity.corrected_offset(perspective_flipped);
-
-            // elevation
-            offset.y -= entity.elevation;
-
-            // shadow offset
-            let mut shadow_y = entity.elevation;
-
-            if let Some(movement) = &entity.movement {
-                let progress = movement.animation_progress_percent();
-                shadow_y += movement.interpolate_jump_height(progress);
-            }
-
-            let Some(sprite_tree) = self.sprite_trees.get_mut(entity.sprite_tree_index) else {
-                continue;
-            };
-
-            if let Some(shadow_node) = &mut sprite_tree.get_mut(entity.shadow_index) {
-                shadow_node.set_offset(Vec2::new(shadow_node.offset().x, shadow_y));
-            }
-
-            let tile_center =
+            // start at tile center
+            let mut position =
                 (self.field).calc_tile_center((entity.x, entity.y), perspective_flipped);
-            let initial_position = tile_center + offset;
+
+            // apply the entity offset
+            position += entity.corrected_offset(perspective_flipped);
+
+            // apply elevation
+            position.y -= entity.elevation;
 
             // true if only one is true, since flipping twice causes us to no longer be flipped
             let flipped = perspective_flipped ^ entity.flipped();
 
-            // offset each child by parent node accounting for perspective, and draw
-            sprite_tree.draw_with_offset(&mut sprite_queue, initial_position, flipped);
+            // render shadow
+            if let (Some(shadow), Some(_)) = (shadow, shadow_visible) {
+                let mut shadow_y = entity.elevation;
+
+                if let Some(movement) = &entity.movement {
+                    let progress = movement.animation_progress_percent();
+                    shadow_y += movement.interpolate_jump_height(progress);
+                }
+
+                let base_sprite = self
+                    .sprite_trees
+                    .get_mut(entity.sprite_tree_index)
+                    .unwrap()
+                    .root_mut();
+                let color_mode = base_sprite.color_mode();
+                let color = base_sprite.color();
+                let shader_effect = base_sprite.shader_effect();
+
+                let shadow_tree = self.sprite_trees.get_mut(shadow.sprite_tree_index).unwrap();
+                let mut position = position;
+                position.y += shadow_y;
+
+                let sprite = shadow_tree.root_mut();
+                sprite.set_color_mode(color_mode);
+                sprite.set_color(color);
+                sprite.set_shader_effect(shader_effect);
+                shadow_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+            }
+
+            entity_tree_render_params.push((entity.sprite_tree_index, position, flipped));
+        }
+
+        // rendering the entity sprite trees after shadows are drawn
+        for (tree_index, position, flipped) in entity_tree_render_params {
+            if let Some(sprite_tree) = self.sprite_trees.get_mut(tree_index) {
+                sprite_tree.draw_with_offset(&mut sprite_queue, position, flipped);
+            }
         }
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
@@ -826,26 +845,34 @@ impl BattleSimulation {
         if let Ok((entity, character)) =
             (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
         {
-            sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+            if entity.on_field {
+                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
-            let mut base_position = entity.screen_position(&self.field, perspective_flipped);
-            base_position.y -= entity.height + 16.0;
+                let mut base_position = entity.screen_position(&self.field, perspective_flipped);
+                base_position.y -= entity.height + 16.0;
 
-            let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-            border_sprite.set_color(Color::BLACK);
-            border_sprite.set_size(Vec2::new(16.0, 16.0));
+                let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+                border_sprite.set_color(Color::BLACK);
+                border_sprite.set_size(Vec2::new(16.0, 16.0));
 
-            for i in 0..character.cards.len() {
-                let card = &character.cards[i];
+                for i in 0..character.cards.len() {
+                    let card = &character.cards[i];
 
-                let cards_before = character.cards.len() - i;
-                let card_offset = 2.0 * cards_before as f32;
-                let position = base_position - card_offset;
+                    let cards_before = character.cards.len() - i;
+                    let card_offset = 2.0 * cards_before as f32;
+                    let position = base_position - card_offset;
 
-                border_sprite.set_position(position - 1.0);
-                sprite_queue.draw_sprite(&border_sprite);
+                    border_sprite.set_position(position - 1.0);
+                    sprite_queue.draw_sprite(&border_sprite);
 
-                CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
+                    CardPackage::draw_icon(
+                        game_io,
+                        &mut sprite_queue,
+                        card.namespace.unwrap_or(PackageNamespace::Local),
+                        &card.package_id,
+                        position,
+                    )
+                }
             }
         }
 

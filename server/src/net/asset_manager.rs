@@ -14,7 +14,7 @@ impl AssetManager {
         }
     }
 
-    pub fn load_assets_from_dir(&mut self, dir: &std::path::Path) {
+    pub fn load_assets_from_dir(&mut self, dir: impl AsRef<std::path::Path>) {
         use std::fs::read_dir;
 
         if let Ok(entries) = read_dir(dir) {
@@ -31,6 +31,42 @@ impl AssetManager {
                     path_string = path_string.replace('\\', "/");
 
                     self.set_asset(path_string, Asset::load_from_file(&path));
+                }
+            }
+        }
+    }
+
+    pub fn load_mods_from_dir(&mut self, dir: impl AsRef<std::path::Path>) {
+        use std::fs::read_dir;
+
+        let toml_name = std::ffi::OsStr::new("package.toml");
+
+        if let Ok(entries) = read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+
+                if path.is_dir() {
+                    self.load_mods_from_dir(&path);
+                } else if path.file_name() == Some(toml_name) {
+                    let parent_path = path.parent().unwrap();
+                    let data = match packets::zip::compress(&parent_path) {
+                        Ok(data) => data,
+                        Err(e) => {
+                            log::error!("Failed to zip package {path:?}: {e}");
+                            continue;
+                        }
+                    };
+
+                    let pseudo_path = std::path::Path::new("mod.zip");
+                    let asset = Asset::load_from_memory(pseudo_path, data);
+
+                    let mut path_string =
+                        String::from("/server/") + &*parent_path.to_string_lossy();
+
+                    // adjust windows paths
+                    path_string = path_string.replace('\\', "/");
+
+                    self.set_asset(path_string, asset);
                 }
             }
         }

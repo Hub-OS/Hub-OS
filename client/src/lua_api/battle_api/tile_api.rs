@@ -1,7 +1,7 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
 use crate::battle::{
-    AttackBox, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
+    BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile, TileState,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -60,43 +60,28 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_state", |api_ctx, lua, params| {
         let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let game_io = api_ctx.game_io;
         let simulation = &mut api_ctx.simulation;
         let resources = &mut api_ctx.resources;
 
-        let Some(tile_state) = simulation.tile_states.get(state_index) else {
-            return lua.pack_multi(());
-        };
+        let can_replace = TileState::can_replace(game_io, simulation, resources, x, y, state_index);
 
-        let max_lifetime = tile_state.max_lifetime;
-
-        let field = &mut simulation.field;
-        let (x, y) = tile_position_from(table)?;
-        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
-
-        if tile_state.is_hole && !tile.reservations().is_empty() {
-            // tile must be walkable for entities that are on or are moving to this tile
-            return lua.pack_multi(());
-        }
-
-        let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
-        let change_request_callback = current_tile_state.change_request_callback.clone();
-        let change_passed =
-            change_request_callback.call(game_io, resources, simulation, (x, y, state_index));
-
-        if !change_passed {
+        if !can_replace {
             return lua.pack_multi(());
         }
 
         let field = &mut simulation.field;
         let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+        let tile_state = &simulation.tile_states[state_index];
 
-        tile.set_state_index(state_index, max_lifetime);
+        // swap
+        let old_state_index = tile.state_index();
+        tile.set_state_index(state_index, tile_state.max_lifetime);
 
         // activate entity_enter_callback for every entity on this tile
-        let tile_state = &simulation.tile_states[state_index];
         let tile_callback = tile_state.entity_enter_callback.clone();
 
         let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
@@ -109,7 +94,60 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             tile_callback.call(game_io, resources, simulation, id);
         }
 
+        // let the old state know it was replaced
+        let old_tile_state = simulation.tile_states.get(old_state_index).unwrap();
+        let replace_callback = old_tile_state.replace_callback.clone();
+        replace_callback.call(game_io, resources, simulation, (x, y));
+
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "can_set_state", |api_ctx, lua, params| {
+        let (table, state_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let simulation = &mut api_ctx.simulation;
+        let resources = &mut api_ctx.resources;
+
+        let can_replace = TileState::can_replace(game_io, simulation, resources, x, y, state_index);
+
+        lua.pack_multi(can_replace)
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "set_visible_state", |api_ctx, lua, params| {
+        let (table, state_index): (rollback_mlua::Table, Option<usize>) =
+            lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+
+        if state_index
+            .map(|i| simulation.tile_states.len() > i)
+            .unwrap_or(true)
+        {
+            tile.set_visible_state_index(state_index);
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "visible_state", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let (x, y) = tile_position_from(table)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let field = &mut simulation.field;
+        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
+
+        lua.pack_multi(tile.visible_state_index())
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_edge", |api_ctx, lua, params| {
@@ -133,8 +171,10 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
-        let (table, exclude_list): (rollback_mlua::Table, Vec<EntityId>) =
+        let (table, exclude_list): (rollback_mlua::Table, Option<Vec<EntityId>>) =
             lua.unpack_multi(params)?;
+
+        let exclude_list = exclude_list.unwrap_or_default();
 
         let mut api_ctx = api_ctx.borrow_mut();
         let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
@@ -146,6 +186,23 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             .count();
 
         lua.pack_multi(tile.reservations().len() > excluded_count)
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "reserve_count_for", |api_ctx, lua, params| {
+        let (table, entity_table): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+
+        lua.pack_multi(
+            tile.reservations()
+                .iter()
+                .filter(|id| **id == entity_id)
+                .count(),
+        )
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "reserve_for_id", |api_ctx, lua, params| {
@@ -211,7 +268,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_team", |api_ctx, lua, params| {
-        let (table, team): (rollback_mlua::Table, Team) = lua.unpack_multi(params)?;
+        let (table, team, direction): (rollback_mlua::Table, Team, Option<Direction>) =
+            lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
@@ -220,10 +278,18 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let current_tile_state = simulation.tile_states.get(tile.state_index()).unwrap();
 
         if !current_tile_state.blocks_team_change || tile.team() == Team::Unset {
-            tile.set_team(team);
+            tile.set_team(team, direction);
         }
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TILE_TABLE, "original_team", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
+        lua.pack_multi(tile.original_team())
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "facing", |api_ctx, lua, params| {
@@ -255,12 +321,12 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "get_tile", |api_ctx, lua, params| {
-        let (table, direction, count): (rollback_mlua::Table, Direction, i32) =
+        let (table, direction, distance): (rollback_mlua::Table, Direction, i32) =
             lua.unpack_multi(params)?;
 
         let vec = direction.i32_vector();
-        let x = table.get::<_, i32>("#x")? + vec.0 * count;
-        let y = table.get::<_, i32>("#y")? + vec.1 * count;
+        let x = table.get::<_, i32>("#x")? + vec.0 * distance;
+        let y = table.get::<_, i32>("#y")? + vec.1 * distance;
 
         let api_ctx = api_ctx.borrow();
 
@@ -278,28 +344,17 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let x: i32 = table.raw_get("#x")?;
         let y: i32 = table.raw_get("#y")?;
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let field = &mut api_ctx.simulation.field;
-        let entities = &mut api_ctx.simulation.entities;
+        let simulation = &mut *api_ctx.simulation;
 
-        let tile = field.tile_at_mut((x, y)).ok_or_else(invalid_tile)?;
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
-        if tile.ignoring_attacker(entity_id) {
-            return lua.pack_multi(());
-        }
-
-        let (entity, spell) = entities
+        // query for the error
+        let entities = &mut simulation.entities;
+        entities
             .query_one_mut::<(&Entity, &Spell)>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
-        let queued_attacks = &mut api_ctx.simulation.queued_attacks;
-        let is_same_attack =
-            |attack: &AttackBox| attack.attacker_id == entity.id && attack.x == x && attack.y == y;
-
-        if !queued_attacks.iter().any(is_same_attack) {
-            let attack_box = AttackBox::new_from((x, y), entity, spell);
-            queued_attacks.push(attack_box);
-        }
+        Spell::attack_tile(simulation, entity_id, x, y);
 
         lua.pack_multi(())
     });

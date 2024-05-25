@@ -44,6 +44,19 @@ impl StatusDirector {
         self.remaining_shake_time = 0;
     }
 
+    pub fn applied_and_pending(&self) -> Vec<(HitFlags, FrameTime)> {
+        self.statuses
+            .iter()
+            .filter(|status| status.remaining_time > 0)
+            .map(|status| (status.status_flag, status.remaining_time))
+            .chain(
+                self.new_statuses
+                    .iter()
+                    .map(|status| (status.status_flag, status.remaining_time)),
+            )
+            .collect()
+    }
+
     pub fn clear_immunity(&mut self) {
         self.immunity = HitFlag::NONE;
     }
@@ -159,6 +172,14 @@ impl StatusDirector {
         self.remaining_drag_lockout = DRAG_LOCKOUT + 1;
     }
 
+    pub fn remaining_drag_lockout(&self) -> FrameTime {
+        self.remaining_drag_lockout
+    }
+
+    pub fn set_remaining_drag_lockout(&mut self, time: FrameTime) {
+        self.remaining_drag_lockout = time;
+    }
+
     pub fn is_inactionable(&self, registry: &StatusRegistry) -> bool {
         registry
             .inactionable_flags()
@@ -258,18 +279,6 @@ impl StatusDirector {
             .position(|(flag, _)| *flag == status_flag)
         {
             self.status_sprites.remove(index);
-        }
-    }
-
-    pub fn merge(&mut self, source: Self) {
-        for status in source.new_statuses {
-            self.apply_status(status.status_flag, status.remaining_time);
-        }
-
-        for status in source.statuses {
-            if status.remaining_time > 0 {
-                self.apply_status(status.status_flag, status.remaining_time);
-            }
         }
     }
 

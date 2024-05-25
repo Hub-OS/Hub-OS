@@ -234,6 +234,22 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(FIELD_TABLE, "reclaim_column", |api_ctx, lua, params| {
+        let (_, x): (rollback_mlua::Table, i32) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+
+        let field = &mut api_ctx.simulation.field;
+
+        for y in 0..field.rows() as i32 {
+            if let Some(tile) = field.tile_at_mut((x, y)) {
+                tile.sync_team_revert_timer(1);
+            }
+        }
+
+        lua.pack_multi(())
+    });
 }
 
 fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
@@ -249,7 +265,7 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
             let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
 
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
-                if entity.spawned {
+                if entity.on_field && !entity.deleted {
                     tables.push(create_entity_table(lua, id.into())?);
                 }
             }
@@ -297,7 +313,7 @@ fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &s
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
                 let pos = IVec2::new(entity.x, entity.y);
 
-                if entity.spawned {
+                if entity.on_field && !entity.deleted {
                     tables.push((create_entity_table(lua, id.into())?, pos));
                 }
             }

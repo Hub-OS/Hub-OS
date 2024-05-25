@@ -1,7 +1,7 @@
 use super::{FontName, TextStyle};
 use crate::battle::{BattleSimulation, CardSelectRestriction, Character, Entity, Player};
 use crate::bindable::{CardClass, SpriteColorMode};
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::{
     Animator, AnimatorLoopMode, FrameTime, ResolvedPoints, SpriteColorQueue, SpriteNode,
     SpriteShaderEffect,
@@ -217,7 +217,7 @@ impl CardSelectUi {
         let card = &player.deck[card_index];
 
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_override(player.namespace(), &card.package_id);
+        let package = card_packages.package_or_fallback(player.namespace(), &card.package_id);
 
         let card_class = package
             .map(|package| package.card_properties.card_class)
@@ -364,7 +364,13 @@ impl CardSelectUi {
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
 
-            CardPackage::draw_icon(game_io, sprite_queue, &card.package_id, position);
+            CardPackage::draw_icon(
+                game_io,
+                sprite_queue,
+                PackageNamespace::Local,
+                &card.package_id,
+                position,
+            );
         }
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);

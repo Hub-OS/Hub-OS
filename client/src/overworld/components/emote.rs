@@ -34,11 +34,23 @@ impl Emote {
     }
 
     pub fn spawn_or_recycle(area: &mut OverworldArea, parent_entity: hecs::Entity, emote_id: &str) {
+        let entities = &mut area.entities;
+
         if !area.emote_animator.has_state(emote_id) {
+            // despawn any existing emote
+            for (id, (_, attachment, _)) in
+                entities.query_mut::<(&mut Emote, &ActorAttachment, &mut Animator)>()
+            {
+                if attachment.actor_entity != parent_entity {
+                    continue;
+                }
+
+                let _ = entities.despawn(id);
+                break;
+            }
+
             return;
         }
-
-        let entities = &mut area.entities;
 
         for (_, (emote, attachment, animator)) in
             entities.query_mut::<(&mut Emote, &ActorAttachment, &mut Animator)>()

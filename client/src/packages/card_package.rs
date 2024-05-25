@@ -29,6 +29,7 @@ struct CardMeta {
     limit: Option<usize>,
     hit_flags: Option<Vec<String>>,
     can_boost: Option<bool>,
+    can_charge: Option<bool>,
     time_freeze: bool,
     skip_time_freeze_intro: bool,
     prevent_time_freeze_counter: bool,
@@ -124,6 +125,10 @@ impl Package for CardPackage {
             package.card_properties.can_boost = can_boost;
         }
 
+        if let Some(can_charge) = meta.can_charge {
+            package.card_properties.can_charge = can_charge;
+        }
+
         package.card_properties.time_freeze = meta.time_freeze;
         package.card_properties.skip_time_freeze_intro = meta.skip_time_freeze_intro;
         package.card_properties.prevent_time_freeze_counter = meta.prevent_time_freeze_counter;
@@ -145,10 +150,11 @@ impl CardPackage {
     pub fn draw_icon(
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
         package_id: &PackageId,
         position: Vec2,
     ) {
-        let (icon_texture, _) = Self::icon_texture(game_io, package_id);
+        let (icon_texture, _) = Self::icon_texture(game_io, namespace, package_id);
 
         let mut sprite = Sprite::new(game_io, icon_texture);
         sprite.set_position(position);
@@ -157,14 +163,14 @@ impl CardPackage {
 
     pub fn icon_texture<'a>(
         game_io: &'a GameIO,
+        namespace: PackageNamespace,
         package_id: &PackageId,
     ) -> (Arc<Texture>, &'a str) {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let ns = PackageNamespace::Local;
 
-        if let Some(package) = package_manager.package_or_override(ns, package_id) {
+        if let Some(package) = package_manager.package_or_fallback(namespace, package_id) {
             let icon_texture = assets.texture(game_io, &package.icon_texture_path);
 
             if icon_texture.size() == UVec2::new(14, 14) {
@@ -185,7 +191,7 @@ impl CardPackage {
         let package_manager = &globals.card_packages;
         let ns = PackageNamespace::Local;
 
-        if let Some(package) = package_manager.package_or_override(ns, package_id) {
+        if let Some(package) = package_manager.package_or_fallback(ns, package_id) {
             let path = package.preview_texture_path.as_str();
             let texture = assets.texture(game_io, path);
 

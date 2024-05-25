@@ -19,7 +19,7 @@ use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{
-    ActorProperty, BattleStatistics, FileHash, SpriteParent, TextboxOptions,
+    ActorId, ActorProperty, BattleStatistics, FileHash, SpriteId, SpriteParent, TextboxOptions,
 };
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -43,9 +43,9 @@ pub struct OverworldOnlineScene {
     previous_boost_packet: Option<ClientPacket>,
     last_position_send: Instant,
     assets: ServerAssetManager,
-    actor_id_map: BiMap<String, hecs::Entity>,
-    sprite_id_map: HashMap<String, hecs::Entity>,
-    excluded_actors: Vec<String>,
+    actor_id_map: BiMap<ActorId, hecs::Entity>,
+    sprite_id_map: HashMap<SpriteId, hecs::Entity>,
+    excluded_actors: Vec<ActorId>,
     excluded_objects: Vec<u32>,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
@@ -418,6 +418,7 @@ impl OverworldOnlineScene {
                 data_type,
                 size,
             } => {
+                self.loaded_zips.remove(&name);
                 self.assets.start_download(
                     name,
                     last_modified,
@@ -941,30 +942,25 @@ impl OverworldOnlineScene {
             } => {
                 let namespace = PackageNamespace::Server;
 
-                let globals = game_io.resource::<Globals>().unwrap();
-                let assets = &globals.assets;
+                if !self.loaded_zips.contains_key(&package_path) {
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-                let hash = match self.loaded_zips.get(&package_path) {
-                    Some(hash) => *hash,
-                    None => {
-                        let bytes = self.assets.binary(&package_path);
-                        let hash = FileHash::hash(&bytes);
+                    let bytes = self.assets.binary(&package_path);
+                    let hash = FileHash::hash(&bytes);
 
-                        assets.load_virtual_zip(game_io, hash, bytes);
-                        self.loaded_zips.insert(package_path.clone(), hash);
+                    globals.assets.load_virtual_zip(game_io, hash, bytes);
+                    self.loaded_zips.insert(package_path.clone(), hash);
 
-                        hash
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                    if let Some(package_info) =
+                        globals.load_virtual_package(category, namespace, hash)
+                    {
+                        // save package id for starting encounters
+                        self.encounter_packages
+                            .insert(package_path, package_info.id.clone());
                     }
                 };
-
-                let globals = game_io.resource_mut::<Globals>().unwrap();
-
-                if let Some(package_info) = globals.load_virtual_package(category, namespace, hash)
-                {
-                    // save package id for starting encounters
-                    self.encounter_packages
-                        .insert(package_path, package_info.id.clone());
-                }
             }
             ServerPacket::Restrictions { restrictions_path } => {
                 let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -1124,7 +1120,7 @@ impl OverworldOnlineScene {
                     let _ = entities.insert(
                         entity,
                         (
-                            InteractableActor(actor_id.clone()),
+                            InteractableActor(actor_id),
                             MovementInterpolator::new(game_io, position, initial_direction),
                             NameLabel(name),
                         ),
@@ -1199,8 +1195,10 @@ impl OverworldOnlineScene {
                         let tile_position = Vec3::new(x, y, z);
                         let position = self.area.map.tile_3d_to_world(tile_position);
 
-                        if interpolator.is_movement_impossible(&self.area.map, position) {
-                            if !animating_properties && !self.excluded_actors.contains(&actor_id) {
+                        if animating_properties {
+                            interpolator.force_position(position)
+                        } else if interpolator.is_movement_impossible(&self.area.map, position) {
+                            if !self.excluded_actors.contains(&actor_id) {
                                 interpolator.force_position(position);
 
                                 WarpEffect::warp_full(
@@ -1605,7 +1603,7 @@ impl OverworldOnlineScene {
         }
 
         // then actors
-        if let Some(actor_id) = player_data.actor_interaction.clone() {
+        if let Some(actor_id) = player_data.actor_interaction {
             send_packet(
                 Reliability::Reliable,
                 ClientPacket::ActorInteraction { actor_id, button },

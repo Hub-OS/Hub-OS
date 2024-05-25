@@ -60,6 +60,8 @@ impl From<&str> for PackageCategory {
             "character" => Self::Character,
             "player" => Self::Player,
             "resource" => Self::Resource,
+            "status" => Self::Status,
+            "tile_state" => Self::TileState,
             _ => Self::Library,
         }
     }

@@ -16,6 +16,14 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(area_ids?)
     });
 
+    lua_api.add_dynamic_function("Net", "is_area", |api_ctx, lua, params| {
+        let area_id: mlua::String = lua.unpack_multi(params)?;
+        let net = api_ctx.net_ref.borrow();
+        let exists = net.get_area(area_id.to_str()?).is_some();
+
+        lua.pack_multi(exists)
+    });
+
     lua_api.add_dynamic_function("Net", "update_area", |api_ctx, lua, params| {
         let (area_id, data): (mlua::String, mlua::String) = lua.unpack_multi(params)?;
         let (area_id_str, data_str) = (area_id.to_str()?, data.to_str()?);

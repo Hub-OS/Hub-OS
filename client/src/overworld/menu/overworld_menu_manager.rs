@@ -570,7 +570,7 @@ impl OverworldMenuManager {
         area: &OverworldArea,
     ) {
         // draw names
-        if !self.navigation_menu.is_open() {
+        if !self.is_blocking_hud() {
             area.draw_player_names(game_io, sprite_queue);
         }
 

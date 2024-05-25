@@ -46,7 +46,7 @@ impl CharacterSelectScene {
 
         let mut package_ids: Vec<_> = globals
             .player_packages
-            .package_ids_with_override(PackageNamespace::Local)
+            .package_ids(PackageNamespace::Local)
             .collect();
 
         package_ids.sort();
@@ -149,7 +149,7 @@ impl CharacterSelectScene {
 
         globals
             .player_packages
-            .package_or_override(PackageNamespace::Local, character_id)
+            .package(PackageNamespace::Local, character_id)
             .unwrap()
     }
 
@@ -230,7 +230,7 @@ impl CharacterSelectScene {
             let package_id = self.selected_package_id();
             let player_packages = &globals.player_packages;
             let package = player_packages
-                .package_or_override(PackageNamespace::Local, package_id)
+                .package(PackageNamespace::Local, package_id)
                 .unwrap();
 
             // set avatar
@@ -395,7 +395,7 @@ impl IconRow {
         let player_packages = &globals.player_packages;
 
         let compact_package_data = package_ids
-            .flat_map(|id| player_packages.package_or_override(PackageNamespace::Local, id))
+            .flat_map(|id| player_packages.package(PackageNamespace::Local, id))
             .map(|package| {
                 let package_id = &package.package_info.id;
                 let valid = restrictions.owns_player(package_id)

@@ -35,7 +35,7 @@ impl LibraryScene {
         let dock_offset = ui_animator.point("DOCK").unwrap_or_default();
         let mut package_ids: Vec<_> = globals
             .card_packages
-            .package_ids_with_override(PackageNamespace::Local)
+            .package_ids(PackageNamespace::Local)
             .cloned()
             .collect();
 
@@ -104,9 +104,18 @@ impl LibraryScene {
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
+        // flip
+        let input_util = InputUtil::new(game_io);
+
+        if input_util.was_just_pressed(Input::Special) {
+            self.card_preview.toggle_flipped();
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+        }
+
         // switching docks
         self.page_tracker.handle_input(game_io);
-        let input_util = InputUtil::new(game_io);
 
         // leaving scene
         if input_util.was_just_pressed(Input::Cancel) {
@@ -206,11 +215,7 @@ impl Dock {
         // cards
         let cards: Vec<_> = available_packages
             .iter()
-            .flat_map(|id| {
-                globals
-                    .card_packages
-                    .package_or_override(PackageNamespace::Local, id)
-            })
+            .flat_map(|id| globals.card_packages.package(PackageNamespace::Local, id))
             .filter(|package| !package.hidden && package.card_properties.card_class == card_class)
             .map(|package| Card {
                 package_id: package.package_info.id.clone(),

@@ -44,7 +44,7 @@ impl Field {
             cols,
             rows,
             tiles,
-            tile_size: Vec2::new(40.0, 25.0), // todo: read from .animation?
+            tile_size: Vec2::new(40.0, 24.0), // todo: read from .animation?
             frame_sprite,
             frame_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_HOLE_ANIMATION),
             frame_full_animator: Animator::load_new(
@@ -139,7 +139,7 @@ impl Field {
                 }
 
                 if tile.team() == Team::Unset {
-                    tile.set_team(team);
+                    tile.set_team(team, None);
                 }
 
                 if !matches!(tile.direction(), Direction::Left | Direction::Right) {
@@ -147,7 +147,7 @@ impl Field {
                 }
 
                 if col == 0 || col == self.cols - 1 || row == 0 || row == self.rows - 1 {
-                    tile.set_state_index(TileState::HIDDEN, None);
+                    tile.set_state_index(TileState::VOID, None);
                 }
             }
         }
@@ -198,7 +198,7 @@ impl Field {
 
                 // test unresolved neighbor blocking
 
-                let neighbor_col = if tile.direction() == Direction::Right {
+                let neighbor_col = if tile.original_direction() == Direction::Right {
                     col - 1
                 } else {
                     col + 1
@@ -277,9 +277,9 @@ impl Field {
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];
-                let state_index = tile.state_index();
+                let state_index = tile.visible_state_index();
 
-                if state_index == TileState::HIDDEN {
+                if state_index == TileState::VOID {
                     continue;
                 }
 

@@ -84,13 +84,12 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     data,
                     range,
                 } => {
-                    let tracker = match self
+                    let Some(tracker) = self
                         .send_trackers
                         .iter_mut()
                         .find(|tracker| tracker.label() == *channel)
-                    {
-                        Some(tracker) => tracker,
-                        None => continue,
+                    else {
+                        continue;
                     };
 
                     let header = PacketHeader {

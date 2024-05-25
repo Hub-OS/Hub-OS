@@ -1,7 +1,7 @@
 use super::BattleCallback;
 use crate::bindable::{AnimatorPlaybackMode, GenerationalIndex};
 use crate::render::{
-    Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameTime, SpriteNode,
+    Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameList, FrameTime, SpriteNode,
 };
 use crate::resources::Globals;
 use crate::structures::{SlotMap, Tree, TreeIndex};
@@ -281,6 +281,10 @@ impl BattleAnimator {
         self.animator.is_complete()
     }
 
+    pub fn iter_states(&self) -> impl Iterator<Item = (&str, &FrameList)> {
+        self.animator.iter_states()
+    }
+
     pub fn current_state(&self) -> Option<&str> {
         self.animator.current_state()
     }
@@ -292,6 +296,17 @@ impl BattleAnimator {
     #[must_use]
     pub fn set_state(&mut self, state: &str) -> Vec<BattleCallback> {
         self.animator.set_state(state);
+        self.interrupt()
+    }
+
+    #[must_use]
+    pub fn remove_state(&mut self, state: &str) -> Vec<BattleCallback> {
+        self.animator.remove_state(state);
+        self.interrupt()
+    }
+
+    #[must_use]
+    fn interrupt(&mut self) -> Vec<BattleCallback> {
         self.time = 0;
 
         self.complete_callbacks.clear();

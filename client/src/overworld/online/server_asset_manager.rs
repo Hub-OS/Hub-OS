@@ -141,9 +141,8 @@ impl ServerAssetManager {
             }
 
             let file_name = entry.file_name();
-            let file_name_str = match file_name.to_str() {
-                Some(name) => name,
-                None => continue,
+            let Some(file_name_str) = file_name.to_str() else {
+                continue;
             };
 
             if let Some(asset) = CachedServerAsset::decode_local(path, file_name_str) {
@@ -194,12 +193,9 @@ impl ServerAssetManager {
     }
 
     pub fn receive_download_data(&mut self, game_io: &GameIO, data: Vec<u8>) {
-        let download = match &mut self.current_download {
-            Some(download) => download,
-            None => {
-                log::warn!("Received data for a server asset when no download has started");
-                return;
-            }
+        let Some(download) = &mut self.current_download else {
+            log::warn!("Received data for a server asset when no download has started");
+            return;
         };
 
         download.data.extend(data);
@@ -286,9 +282,8 @@ impl AssetManager for ServerAssetManager {
         }
 
         let mut stored_assets = self.stored_assets.borrow_mut();
-        let asset = match stored_assets.get_mut(path) {
-            Some(asset) => asset,
-            None => return Vec::new(),
+        let Some(asset) = stored_assets.get_mut(path) else {
+            return Vec::new();
         };
 
         match &asset.data {

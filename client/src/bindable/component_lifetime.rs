@@ -8,6 +8,7 @@ pub enum ComponentLifetime {
     Scene,
     CardSelectOpen,
     CardSelectClose,
+    CardSelectComplete,
     Nil,
 }
 

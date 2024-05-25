@@ -1,7 +1,7 @@
 use super::{ChildPackageInfo, Package, PackageId, PackageInfo, PackageNamespace};
 use crate::resources::{LocalAssetManager, ResourcePaths};
 use packets::structures::FileHash;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub use packets::structures::PackageCategory;
 
@@ -42,51 +42,12 @@ impl<T: Package> PackageManager<T> {
             .flat_map(|packages| packages.values())
     }
 
-    pub fn package_ids_with_override(
-        &self,
-        ns: PackageNamespace,
-    ) -> impl Iterator<Item = &PackageId> + '_ {
-        // gather all ids into a hashset to avoid duplicates
-        let mut ids = HashSet::new();
-
-        let flow = match ns {
-            PackageNamespace::Netplay(_) => {
-                vec![
-                    PackageNamespace::RecordingServer,
-                    PackageNamespace::Server,
-                    ns,
-                    PackageNamespace::Local,
-                    PackageNamespace::BuiltIn,
-                ]
-            }
-            PackageNamespace::Local | PackageNamespace::Server | PackageNamespace::BuiltIn => {
-                vec![
-                    PackageNamespace::Server,
-                    PackageNamespace::Local,
-                    PackageNamespace::BuiltIn,
-                ]
-            }
-            PackageNamespace::RecordingServer => vec![PackageNamespace::RecordingServer],
-        };
-
-        for ns in flow {
-            ids.extend(self.package_ids(ns));
-        }
-
-        ids.into_iter()
-    }
-
-    pub fn packages_with_override(&self, ns: PackageNamespace) -> impl Iterator<Item = &T> + '_ {
-        self.package_ids_with_override(ns)
-            .flat_map(move |id| self.package_or_override(ns, id))
-    }
-
     pub fn package(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
         self.package_maps.get(&ns)?.get(id)
     }
 
-    pub fn package_or_override(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
-        ns.find_with_overrides(|ns| self.package(ns, id))
+    pub fn package_or_fallback(&self, ns: PackageNamespace, id: &PackageId) -> Option<&T> {
+        ns.find_with_fallback(|ns| self.package(ns, id))
     }
 
     pub fn child_packages(&self, ns: PackageNamespace) -> Vec<ChildPackageInfo> {
@@ -151,10 +112,10 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         child_package_info: &ChildPackageInfo,
     ) -> bool {
-        let mut package_info = match self.generate_package_info(namespace, &child_package_info.path)
-        {
-            Some(package_info) => package_info,
-            None => return false,
+        let Some(mut package_info) =
+            self.generate_package_info(namespace, &child_package_info.path)
+        else {
+            return false;
         };
 
         let parent_tuple = (
@@ -191,12 +152,9 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         hash: FileHash,
     ) -> Option<&PackageInfo> {
-        let zip_meta = match assets.virtual_zip_meta(&hash) {
-            Some(zip_meta) => zip_meta,
-            None => {
-                log::error!("Package {hash} has not been loaded as a virtual zip");
-                return None;
-            }
+        let Some(zip_meta) = assets.virtual_zip_meta(&hash) else {
+            log::error!("Package {hash} has not been loaded as a virtual zip");
+            return None;
         };
 
         let mut package_info = self.generate_package_info(namespace, &zip_meta.virtual_prefix)?;
@@ -216,21 +174,18 @@ impl<T: Package> PackageManager<T> {
         namespace: PackageNamespace,
         path: &str,
     ) -> Option<PackageInfo> {
-        let (base_path, script_path) = match Self::resolve_package_paths(path) {
-            Some(result) => result,
-            None => {
-                log::error!(
-                    "Failed to resolve parent folder for {:?}?",
-                    ResourcePaths::shorten(path)
-                );
-                return None;
-            }
+        let Some((base_path, script_path)) = Self::resolve_package_paths(path) else {
+            log::error!(
+                "Failed to resolve parent folder for {:?}?",
+                ResourcePaths::shorten(path)
+            );
+            return None;
         };
 
         Some(PackageInfo {
             id: PackageId::new_blank(),
             hash: FileHash::ZERO,
-            package_category: self.package_category,
+            category: self.package_category,
             namespace,
             base_path: base_path.clone(),
             script_path,
@@ -276,7 +231,7 @@ impl<T: Package> PackageManager<T> {
             return None;
         }
 
-        let data = match crate::zip::compress(&package_info.base_path) {
+        let data = match packets::zip::compress(&package_info.base_path) {
             Ok(data) => data,
             Err(e) => {
                 log::error!("Failed to zip package {:?}: {e}", package_info.base_path);
@@ -286,7 +241,7 @@ impl<T: Package> PackageManager<T> {
 
         let hash = FileHash::hash(&data);
 
-        if package_info.package_category.local_only() {
+        if package_info.category.local_only() {
             // file won't be sent, no need to save a zipped copy
             return Some(hash);
         }

@@ -255,7 +255,7 @@ impl Globals {
         self.character_packages
             .load_child_packages(namespace, child_packages);
 
-        self.package_or_override_info(category, namespace, &id)
+        self.package_info(category, namespace, &id)
     }
 
     pub fn load_package(
@@ -310,7 +310,7 @@ impl Globals {
         self.character_packages
             .load_child_packages(namespace, child_packages);
 
-        self.package_or_override_info(category, namespace, &id)
+        self.package_info(category, namespace, &id)
     }
 
     pub fn unload_package(
@@ -319,7 +319,7 @@ impl Globals {
         namespace: PackageNamespace,
         id: &PackageId,
     ) {
-        let Some(package_info) = self.package_or_override_info(category, namespace, id) else {
+        let Some(package_info) = self.package_info(category, namespace, id) else {
             return;
         };
 
@@ -385,7 +385,7 @@ impl Globals {
             (
                 PackageCategory::Player,
                 setup.namespace(),
-                setup.package_pair.1.clone(),
+                setup.package_id.clone(),
             )
         });
 
@@ -429,10 +429,7 @@ impl Globals {
 
         let encounter_triplet_iter = std::iter::once(props.encounter_package(game_io))
             .flatten()
-            .map(|package| package.package_info().triplet())
-            // remapping namespace to avoid using Local namespace, breaking an assert
-            // in this case, Local is serving the battle anyway. so this isn't inaccurate
-            .map(|(category, ns, id)| (category, ns.into_server(), id));
+            .map(|package| package.package_info().triplet());
 
         let status_triplet_iter = self
             .status_packages
@@ -469,7 +466,7 @@ impl Globals {
         let resolve =
             |(package_category, ns, id): (PackageCategory, PackageNamespace, PackageId)| {
                 Some((
-                    self.package_or_override_info(package_category, ns, &id)?,
+                    self.package_or_fallback_info(package_category, ns, &id)?,
                     ns,
                 ))
             };
@@ -548,7 +545,7 @@ impl Globals {
         }
     }
 
-    pub fn package_or_override_info(
+    pub fn package_or_fallback_info(
         &self,
         category: PackageCategory,
         namespace: PackageNamespace,
@@ -557,39 +554,39 @@ impl Globals {
         match category {
             PackageCategory::Encounter => self
                 .encounter_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Augment => self
                 .augment_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Card => self
                 .card_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Character => self
                 .character_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Library => self
                 .library_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Player => self
                 .player_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Resource => self
                 .resource_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::Status => self
                 .status_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
             PackageCategory::TileState => self
                 .tile_state_packages
-                .package_or_override(namespace, id)
+                .package_or_fallback(namespace, id)
                 .map(|package| package.package_info()),
         }
     }
@@ -690,8 +687,7 @@ impl Globals {
         category: PackageCategory,
         id: &PackageId,
     ) -> String {
-        if let Some(package) = self.package_or_override_info(category, PackageNamespace::Local, id)
-        {
+        if let Some(package) = self.package_info(category, PackageNamespace::Local, id) {
             package.base_path.clone()
         } else {
             let encoded_id = uri_encode(id.as_str());
@@ -711,6 +707,7 @@ impl Globals {
             .chain(self.player_packages.package_ids(ns))
             .chain(self.resource_packages.package_ids(ns))
             .chain(self.status_packages.package_ids(ns))
+            .chain(self.tile_state_packages.package_ids(ns))
             .map(|id| uri_encode(id.as_str()))
             .collect();
 

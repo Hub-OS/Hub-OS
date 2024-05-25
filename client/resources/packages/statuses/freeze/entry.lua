@@ -30,8 +30,8 @@ local function spawn_alert(parent)
   local alert_artifact = Alert.new()
   alert_artifact:sprite():set_never_flip(true)
 
-  local tile_offset = parent:tile_offset()
-  alert_artifact:set_offset(tile_offset.x, tile_offset.y - parent:height())
+  local movement_offset = parent:movement_offset()
+  alert_artifact:set_offset(movement_offset.x, movement_offset.y - parent:height())
 
   parent:field():spawn(alert_artifact, parent:current_tile())
 end

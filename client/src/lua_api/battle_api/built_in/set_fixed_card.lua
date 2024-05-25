@@ -1,6 +1,7 @@
 local table, card_properties = ...
 
 local button = table:create_card_button(1)
+---@type Entity
 local player = button:owner()
 
 button:use_card_preview(card_properties)
@@ -32,14 +33,40 @@ button:use_card_description(card_properties)
 -- functionality
 local used = false
 
+local component = player:create_component(Lifetime.CardSelectClose)
+
+component.on_update_func = function()
+  if used then
+    button:delete()
+    component:eject()
+  end
+end
+
 local function card_allowed()
+  -- check selection count
+  local items = player:staged_items()
+  local total_selection = 0
+
+  for _, item in ipairs(items) do
+    if item.category == "card" or item.category == "deck_card" or item.category == "icon" then
+      total_selection = total_selection + 1
+    end
+  end
+
+  if total_selection >= 5 then
+    return false
+  end
+
   if card_properties.code == "" then
+    -- codeless, no need to check against restrictions
     return true
   end
 
+  -- check against restriction
   local restriction = player:card_select_restriction()
 
   if not restriction.code and not restriction.package_id then
+    -- no restriction
     return true
   end
 
@@ -70,3 +97,5 @@ button.on_selection_change_func = function()
     icon_node:set_shader_effect(SpriteShaderEffect.Grayscale)
   end
 end
+
+return button

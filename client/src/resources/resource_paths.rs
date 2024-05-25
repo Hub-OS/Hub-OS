@@ -81,6 +81,8 @@ impl ResourcePaths {
         "resources/scenes/shared/regular_card.animation";
     pub const FULL_CARD: &'static str = "resources/scenes/shared/full_card.png";
     pub const FULL_CARD_ANIMATION: &'static str = "resources/scenes/shared/full_card.animation";
+    pub const FULL_CARD_STATUSES_ANIMATION: &'static str =
+        "resources/scenes/shared/full_card_statuses.animation";
     pub const HEALTH_FRAME: &'static str = "resources/scenes/shared/health_frame.png";
     pub const HEALTH_FRAME_ANIMATION: &'static str =
         "resources/scenes/shared/health_frame.animation";
@@ -295,12 +297,7 @@ impl ResourcePaths {
     }
 
     pub fn clean(path_str: &str) -> String {
-        let path = path_clean::clean(path_str)
-            .to_str()
-            .unwrap_or_default()
-            .replace('\\', Self::SEPARATOR);
-
-        path.strip_prefix("./").map(String::from).unwrap_or(path)
+        packets::zip::clean_path(path_str)
     }
 
     pub fn clean_folder(path_str: &str) -> String {

@@ -46,7 +46,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let card_packages = &globals.card_packages;
 
             let mut card_properties =
-                if let Some(package) = card_packages.package_or_override(namespace, &package_id) {
+                if let Some(package) = card_packages.package_or_fallback(namespace, &package_id) {
                     let status_registry = &api_ctx.resources.status_registry;
                     package.card_properties.to_bindable(status_registry)
                 } else {
@@ -273,13 +273,13 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
         let step_table = lua.create_table()?;
         step_table.raw_set("#id", id)?;
         step_table.raw_set("#index", index)?;
-        inherit_metatable(lua, STEP_TABLE, &step_table)?;
+        inherit_metatable(lua, ACTION_STEP_TABLE, &step_table)?;
 
         lua.pack_multi(step_table)
     });
 
-    lua_api.add_dynamic_setter(STEP_TABLE, UPDATE_FN, |api_ctx, lua, params| {
-        let (table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+    lua_api.add_dynamic_setter(ACTION_STEP_TABLE, UPDATE_FN, |api_ctx, lua, params| {
+        let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
             lua.unpack_multi(params)?;
 
         let id: GenerationalIndex = table.raw_get("#id")?;
@@ -293,38 +293,47 @@ fn inject_step_api(lua_api: &mut BattleLuaApi) {
             .get_mut(index)
             .ok_or_else(action_step_not_found)?;
 
-        let key = lua.create_registry_value(table)?;
-        step.callback = BattleCallback::new_transformed_lua_callback(
-            lua,
-            api_ctx.vm_index,
-            callback,
-            move |_, lua, _| {
-                let table: rollback_mlua::Table = lua.registry_value(&key)?;
-                lua.pack_multi(table)
-            },
-        )?;
+        step.callback = if let Some(callback) = callback {
+            let key = lua.create_registry_value(table)?;
+
+            BattleCallback::new_transformed_lua_callback(
+                lua,
+                api_ctx.vm_index,
+                callback,
+                move |_, lua, _| {
+                    let table: rollback_mlua::Table = lua.registry_value(&key)?;
+                    lua.pack_multi(table)
+                },
+            )?
+        } else {
+            BattleCallback::default()
+        };
 
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(STEP_TABLE, "complete_step", |api_ctx, lua, params| {
-        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+    lua_api.add_dynamic_function(
+        ACTION_STEP_TABLE,
+        "complete_step",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-        let id: GenerationalIndex = table.raw_get("#id")?;
-        let index: usize = table.raw_get("#index")?;
+            let id: GenerationalIndex = table.raw_get("#id")?;
+            let index: usize = table.raw_get("#index")?;
 
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let actions = &mut api_ctx.simulation.actions;
+            let action = actions.get_mut(id).ok_or_else(action_not_found)?;
 
-        let step = (action.steps)
-            .get_mut(index)
-            .ok_or_else(action_step_not_found)?;
+            let step = (action.steps)
+                .get_mut(index)
+                .ok_or_else(action_step_not_found)?;
 
-        step.completed = true;
+            step.completed = true;
 
-        lua.pack_multi(())
-    });
+            lua.pack_multi(())
+        },
+    );
 }
 
 pub fn inject_attachment_api(lua_api: &mut BattleLuaApi) {

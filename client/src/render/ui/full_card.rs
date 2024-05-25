@@ -5,18 +5,26 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
 use framework::prelude::*;
+use std::collections::HashMap;
+use uncased::{Uncased, UncasedStr};
 
-use super::TextStyle;
+const MAX_ART_TIME: FrameTime = 5;
 
 pub struct FullCard {
     card_sprite: Sprite,
     card_animator: Animator,
+    status_sprite: Sprite,
+    status_sprites: HashMap<Uncased<'static>, Sprite>,
+    status_animator: Animator,
+    status_step: Vec2,
+    status_bounds: Rect,
     position: Vec2,
     preview_position: Vec2,
     previous_card: Option<Card>,
     current_card: Option<Card>,
     description_style: TextStyle,
-    time: FrameTime,
+    art_time: FrameTime,
+    flipped: bool,
 }
 
 impl FullCard {
@@ -29,11 +37,33 @@ impl FullCard {
         card_sprite.set_position(position);
 
         let mut card_animator = Animator::load_new(assets, ResourcePaths::FULL_CARD_ANIMATION);
-        card_animator.set_state("standard");
+        card_animator.set_state("STANDARD");
         card_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
+        // statuses
+        let status_sprites = globals
+            .status_packages
+            .packages(PackageNamespace::Local)
+            .flat_map(|package| {
+                Some((
+                    Uncased::from(package.flag_name.clone()),
+                    assets.new_sprite(game_io, package.icon_texture_path.as_ref()?),
+                ))
+            })
+            .collect::<HashMap<Uncased<'static>, Sprite>>();
+
+        let mut status_animator =
+            Animator::load_new(assets, ResourcePaths::FULL_CARD_STATUSES_ANIMATION);
+        status_animator.set_state("DEFAULT");
+
+        let status_step = status_animator.point("STEP").unwrap_or_default();
+        let status_bounds = Rect::from_corners(
+            card_animator.point("STATUS_START").unwrap_or_default(),
+            card_animator.point("STATUS_END").unwrap_or_default(),
+        );
+
         // preview
-        let preview_point = card_animator.point("preview").unwrap_or_default();
+        let preview_point = card_animator.point("PREVIEW").unwrap_or_default();
 
         // description_style
         let mut description_style = TextStyle::new(game_io, FontName::Thin);
@@ -51,14 +81,20 @@ impl FullCard {
         description_style.bounds.set_size(bounds_size);
 
         Self {
-            card_sprite,
+            card_sprite: card_sprite.clone(),
             card_animator,
+            status_sprite: card_sprite,
+            status_sprites,
+            status_animator,
+            status_step,
+            status_bounds,
             position,
             preview_position: position + preview_point,
             previous_card: None,
             current_card: None,
             description_style,
-            time: 0,
+            art_time: 0,
+            flipped: false,
         }
     }
 
@@ -83,15 +119,23 @@ impl FullCard {
     pub fn set_card(&mut self, card: Option<Card>) {
         self.previous_card = self.current_card.take();
         self.current_card = card;
-        self.time = 0;
+        self.art_time = 0;
+    }
+
+    pub fn set_flipped(&mut self, flipped: bool) {
+        self.flipped = flipped;
+    }
+
+    pub fn toggle_flipped(&mut self) {
+        self.set_flipped(!self.flipped);
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        self.time += 1;
+        self.art_time += 1;
 
-        let progress = (self.time as f32 / 5.0).clamp(0.0, 1.0);
+        let art_progress = (self.art_time as f32 / MAX_ART_TIME as f32).clamp(0.0, 1.0);
 
-        let card = match progress > 0.5 {
+        let card = match art_progress > 0.5 {
             true => self.current_card.as_ref(),
             false => self.previous_card.as_ref(),
         };
@@ -99,30 +143,107 @@ impl FullCard {
         let package = card.as_ref().and_then(|card| package(game_io, card));
 
         // draw card sprite
-        if let Some(package) = package {
+        if self.flipped {
+            if let Some(package) = package {
+                let state = back_state_for_package(package);
+                self.card_animator.set_state(state);
+            } else {
+                self.card_animator.set_state("STANDARD_BACK");
+            }
+        } else if let Some(package) = package {
             let state = state_for_package(package);
             self.card_animator.set_state(state);
         } else {
-            self.card_animator.set_state("standard");
+            self.card_animator.set_state("STANDARD");
         }
 
-        self.card_animator.sync_time(self.time);
+        self.card_animator.sync_time(self.art_time);
         self.card_animator.apply(&mut self.card_sprite);
         sprite_queue.draw_sprite(&self.card_sprite);
 
-        // draw preview info
-        if let Some(card) = card {
-            let scale = (0.5 - progress).abs() * 2.0;
+        if self.flipped {
+            if let Some(package) = package {
+                // draw statuses
+                let status_bounds = self.status_bounds;
+                let status_start = status_bounds.top_left() + self.position;
+                let mut status_offset = Vec2::ZERO;
 
-            card.draw_preview(game_io, sprite_queue, self.preview_position, scale);
-        }
+                for flag in &package.card_properties.hit_flags {
+                    let uncased_flag = <&UncasedStr>::from(flag.as_str());
 
-        // draw description
-        if let Some(package) = package {
-            let description = &package.description;
+                    if self.status_animator.has_state(flag) {
+                        // use built in sprite, prioritized for resource packs
+                        self.status_animator.set_state(flag);
+                        self.status_animator.apply(&mut self.status_sprite);
 
-            self.description_style
-                .draw(game_io, sprite_queue, description);
+                        let position = status_start + status_offset;
+                        self.status_sprite.set_position(position);
+                        sprite_queue.draw_sprite(&self.status_sprite);
+                    } else if let Some(sprite) = self.status_sprites.get_mut(uncased_flag) {
+                        // use package sprite
+                        let position = status_start + status_offset;
+                        sprite.set_position(position);
+                        sprite_queue.draw_sprite(sprite);
+                    } else {
+                        continue;
+                    }
+
+                    status_offset.x += self.status_step.x;
+
+                    if status_offset.x > status_bounds.width {
+                        status_offset.x = 0.0;
+                        status_offset.y += self.status_step.y;
+                    }
+                }
+
+                // draw static properties
+                self.status_sprite.set_position(self.position);
+
+                if package.card_properties.can_charge {
+                    self.card_animator.set_state("CAN_CHARGE");
+                    self.card_animator.apply(&mut self.status_sprite);
+                    sprite_queue.draw_sprite(&self.status_sprite);
+                }
+
+                if package.card_properties.can_boost {
+                    self.card_animator.set_state("CAN_BOOST");
+                    self.card_animator.apply(&mut self.status_sprite);
+                    sprite_queue.draw_sprite(&self.status_sprite);
+                }
+
+                if package.card_properties.recover != 0 {
+                    self.card_animator.set_state("RECOVER");
+                    self.card_animator.apply(&mut self.status_sprite);
+                    sprite_queue.draw_sprite(&self.status_sprite);
+                }
+
+                if package.card_properties.conceal {
+                    self.card_animator.set_state("CONCEAL");
+                    self.card_animator.apply(&mut self.status_sprite);
+                    sprite_queue.draw_sprite(&self.status_sprite);
+                }
+
+                if package.card_properties.time_freeze {
+                    self.card_animator.set_state("TIME_FREEZE");
+                    self.card_animator.apply(&mut self.status_sprite);
+                    sprite_queue.draw_sprite(&self.status_sprite);
+                }
+            }
+        } else {
+            // draw preview info
+            if let Some(card) = card {
+                let scale = (0.5 - art_progress).abs() * 2.0;
+
+                card.draw_preview(game_io, sprite_queue, self.preview_position, scale);
+            }
+
+            // draw description
+            if let Some(package) = package {
+                let description = &package.description;
+
+                self.description_style
+                    .draw(game_io, sprite_queue, description);
+            }
         }
     }
 }
@@ -131,14 +252,23 @@ fn package<'a>(game_io: &'a GameIO, card: &Card) -> Option<&'a CardPackage> {
     let globals = game_io.resource::<Globals>().unwrap();
     let package_manager = &globals.card_packages;
 
-    package_manager.package_or_override(PackageNamespace::Local, &card.package_id)
+    package_manager.package_or_fallback(PackageNamespace::Local, &card.package_id)
 }
 
 fn state_for_package(package: &CardPackage) -> &'static str {
     match package.card_properties.card_class {
-        CardClass::Standard => "standard",
-        CardClass::Mega => "mega",
-        CardClass::Giga => "giga",
-        CardClass::Dark => "dark",
+        CardClass::Standard => "STANDARD",
+        CardClass::Mega => "MEGA",
+        CardClass::Giga => "GIGA",
+        CardClass::Dark => "DARK",
+    }
+}
+
+fn back_state_for_package(package: &CardPackage) -> &'static str {
+    match package.card_properties.card_class {
+        CardClass::Standard => "STANDARD_BACK",
+        CardClass::Mega => "MEGA_BACK",
+        CardClass::Giga => "GIGA_BACK",
+        CardClass::Dark => "DARK_BACK",
     }
 }

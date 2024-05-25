@@ -99,7 +99,7 @@ impl BlocksScene {
         // load block packages
         let mut packages: Vec<_> = globals
             .augment_packages
-            .packages_with_override(PackageNamespace::Local)
+            .packages(PackageNamespace::Local)
             .filter(|package| package.has_shape)
             .filter(|package| {
                 restrictions.validate_package_tree(game_io, package.package_info.triplet())
@@ -301,7 +301,7 @@ impl BlocksScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_override(PackageNamespace::Local, &block.package_id)
+                        .package(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
@@ -320,7 +320,7 @@ impl BlocksScene {
 
                     let package = globals
                         .augment_packages
-                        .package_or_override(PackageNamespace::Local, &package.id)
+                        .package(PackageNamespace::Local, &package.id)
                         .unwrap();
 
                     self.information_text.text = package.description.clone();
@@ -352,7 +352,7 @@ impl BlocksScene {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let package = globals
                             .augment_packages
-                            .package_or_override(PackageNamespace::Local, &block.package_id)
+                            .package(PackageNamespace::Local, &block.package_id)
                             .unwrap();
 
                         &package.name
@@ -674,7 +674,7 @@ impl BlocksScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let package = globals
             .augment_packages
-            .package_or_override(PackageNamespace::Local, &block.package_id)
+            .package(PackageNamespace::Local, &block.package_id)
             .unwrap();
 
         self.packages.insert(
@@ -764,6 +764,10 @@ impl BlocksScene {
     }
 
     fn resolve_flashing_blocks(&self) -> Vec<(usize, usize)> {
+        if self.state != State::Applying {
+            return Vec::new();
+        }
+
         let (end_x, y) = self.arrow.current_block();
 
         (0..=end_x)
@@ -881,7 +885,7 @@ impl Scene for BlocksScene {
                 } else {
                     let packages = &globals.augment_packages;
                     let package = packages
-                        .package_or_override(PackageNamespace::Local, &block.package_id)
+                        .package(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
                     if package.is_flat {
@@ -993,7 +997,7 @@ impl Scene for BlocksScene {
         if let Some(block) = &self.held_block {
             let packages = &globals.augment_packages;
             let package = packages
-                .package_or_override(PackageNamespace::Local, &block.package_id)
+                .package(PackageNamespace::Local, &block.package_id)
                 .unwrap();
 
             // create sprite

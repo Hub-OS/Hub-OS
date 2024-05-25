@@ -3,7 +3,7 @@ use crate::jobs::JobPromiseManager;
 use crate::net::{BattleStatistics, Net, WidgetTracker};
 use crate::plugins::PluginInterface;
 use mlua::Lua;
-use packets::structures::PackageId;
+use packets::structures::{ActorId, PackageId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -11,8 +11,8 @@ use std::collections::VecDeque;
 pub struct LuaPluginInterface {
     scripts: Vec<Lua>,
     all_scripts: Vec<usize>,
-    widget_trackers: HashMap<String, WidgetTracker<usize>>,
-    battle_trackers: HashMap<String, VecDeque<usize>>,
+    widget_trackers: HashMap<ActorId, WidgetTracker<usize>>,
+    battle_trackers: HashMap<ActorId, VecDeque<usize>>,
     promise_manager: JobPromiseManager,
     lua_api: LuaApi,
 }
@@ -159,12 +159,9 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_request(&mut self, net: &mut Net, player_id: &str, data: &str) {
-        self.widget_trackers
-            .insert(player_id.to_string(), WidgetTracker::new());
-
-        self.battle_trackers
-            .insert(player_id.to_string(), VecDeque::new());
+    fn handle_player_request(&mut self, net: &mut Net, player_id: ActorId, data: &str) {
+        self.widget_trackers.insert(player_id, WidgetTracker::new());
+        self.battle_trackers.insert(player_id, VecDeque::new());
 
         handle_event(
             &mut self.scripts,
@@ -184,7 +181,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_connect(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_connect(&mut self, net: &mut Net, player_id: ActorId) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -202,7 +199,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_join(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_join(&mut self, net: &mut Net, player_id: ActorId) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -220,7 +217,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_transfer(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_transfer(&mut self, net: &mut Net, player_id: ActorId) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -238,7 +235,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_disconnect(&mut self, net: &mut Net, player_id: &str) {
+    fn handle_player_disconnect(&mut self, net: &mut Net, player_id: ActorId) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -255,11 +252,11 @@ impl PluginInterface for LuaPluginInterface {
             },
         );
 
-        self.widget_trackers.remove(player_id);
-        self.battle_trackers.remove(player_id);
+        self.widget_trackers.remove(&player_id);
+        self.battle_trackers.remove(&player_id);
     }
 
-    fn handle_player_move(&mut self, net: &mut Net, player_id: &str, x: f32, y: f32, z: f32) {
+    fn handle_player_move(&mut self, net: &mut Net, player_id: ActorId, x: f32, y: f32, z: f32) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -280,7 +277,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_player_augment(&mut self, net: &mut Net, player_id: &str, augments: &[PackageId]) {
+    fn handle_player_augment(&mut self, net: &mut Net, player_id: ActorId, augments: &[PackageId]) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -313,7 +310,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_player_avatar_change(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         texture_path: &str,
         animation_path: &str,
     ) -> bool {
@@ -352,7 +349,7 @@ impl PluginInterface for LuaPluginInterface {
         prevent_default.get()
     }
 
-    fn handle_player_emote(&mut self, net: &mut Net, player_id: &str, emote_id: &str) -> bool {
+    fn handle_player_emote(&mut self, net: &mut Net, player_id: ActorId, emote_id: &str) -> bool {
         use std::cell::Cell;
         use std::rc::Rc;
 
@@ -387,7 +384,7 @@ impl PluginInterface for LuaPluginInterface {
         prevent_default.get()
     }
 
-    fn handle_custom_warp(&mut self, net: &mut Net, player_id: &str, tile_object_id: u32) {
+    fn handle_custom_warp(&mut self, net: &mut Net, player_id: ActorId, tile_object_id: u32) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -409,7 +406,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_object_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         tile_object_id: u32,
         button: u8,
     ) {
@@ -435,8 +432,8 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_actor_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
-        actor_id: &str,
+        player_id: ActorId,
+        actor_id: ActorId,
         button: u8,
     ) {
         handle_event(
@@ -461,7 +458,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_tile_interaction(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         x: f32,
         y: f32,
         z: f32,
@@ -488,8 +485,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_textbox_response(&mut self, net: &mut Net, player_id: &str, response: u8) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_textbox_response(&mut self, net: &mut Net, player_id: ActorId, response: u8) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.pop_textbox() else {
             // protect against attackers
@@ -514,8 +511,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_prompt_response(&mut self, net: &mut Net, player_id: &str, response: String) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_prompt_response(&mut self, net: &mut Net, player_id: ActorId, response: String) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.pop_textbox() else {
             // protect against attackers
@@ -540,8 +537,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_board_open(&mut self, net: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_board_open(&mut self, net: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         tracker.open_board();
 
@@ -567,8 +564,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_board_close(&mut self, net: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_board_close(&mut self, net: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.close_board() else {
             // protect against attackers
@@ -592,8 +589,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_post_request(&mut self, net: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_post_request(&mut self, net: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(&script_index) = tracker.current_board() else {
             // protect against attackers
@@ -617,8 +614,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_post_selection(&mut self, net: &mut Net, player_id: &str, post_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_post_selection(&mut self, net: &mut Net, player_id: ActorId, post_id: &str) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(&script_index) = tracker.current_board() else {
             // protect against attackers
@@ -643,14 +640,14 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_shop_open(&mut self, _: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_shop_open(&mut self, _: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         tracker.open_shop();
     }
 
-    fn handle_shop_leave(&mut self, net: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_shop_leave(&mut self, net: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.close_shop() else {
             // protect against attackers
@@ -674,8 +671,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_shop_close(&mut self, net: &mut Net, player_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_shop_close(&mut self, net: &mut Net, player_id: ActorId) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.close_shop() else {
             // protect against attackers
@@ -699,8 +696,8 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_shop_purchase(&mut self, net: &mut Net, player_id: ActorId, item_id: &str) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(&script_index) = tracker.current_shop() else {
             // protect against attackers
@@ -725,8 +722,13 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_shop_description_request(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
-        let tracker = self.widget_trackers.get_mut(player_id).unwrap();
+    fn handle_shop_description_request(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        item_id: &str,
+    ) {
+        let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
         let Some(&script_index) = tracker.current_shop() else {
             // protect against attackers
@@ -751,7 +753,7 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_item_use(&mut self, net: &mut Net, player_id: &str, item_id: &str) {
+    fn handle_item_use(&mut self, net: &mut Net, player_id: ActorId, item_id: &str) {
         handle_event(
             &mut self.scripts,
             &self.all_scripts,
@@ -773,10 +775,10 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_battle_results(
         &mut self,
         net: &mut Net,
-        player_id: &str,
+        player_id: ActorId,
         battle_stats: &BattleStatistics,
     ) {
-        let tracker = self.battle_trackers.get_mut(player_id).unwrap();
+        let tracker = self.battle_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.pop_front() else {
             // protect against attackers
@@ -873,8 +875,8 @@ impl PluginInterface for LuaPluginInterface {
 fn handle_event<F>(
     scripts: &mut [Lua],
     event_listeners: &[usize],
-    widget_tracker: &mut HashMap<String, WidgetTracker<usize>>,
-    battle_tracker: &mut HashMap<String, VecDeque<usize>>,
+    widget_tracker: &mut HashMap<ActorId, WidgetTracker<usize>>,
+    battle_tracker: &mut HashMap<ActorId, VecDeque<usize>>,
     promise_manager: &mut JobPromiseManager,
     lua_api: &mut LuaApi,
     net: &mut Net,

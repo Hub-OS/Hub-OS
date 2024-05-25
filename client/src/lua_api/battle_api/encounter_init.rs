@@ -9,7 +9,7 @@ use crate::resources::{AssetManager, Globals};
 use framework::prelude::Vec2;
 use std::cell::RefCell;
 
-pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<String>) {
+pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
     let globals = api_ctx.game_io.resource::<Globals>().unwrap();
     let battle_api = &globals.battle_api;
 
@@ -26,7 +26,7 @@ pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<String>) {
     };
 
     let chunk = data.and_then(|data| {
-        let chunk: Option<rollback_mlua::Value> = lua.load(&data).eval().ok();
+        let chunk: Option<rollback_mlua::Value> = lua.load(data).eval().ok();
 
         if chunk.is_none() {
             log::error!("Failed to read data from server:\n{data}");
@@ -56,6 +56,13 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
             lua.unpack_multi(params)?;
 
         lua.pack_multi(create_spawner(lua, package_id, rank)?)
+    });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "player_count", |api_ctx, lua, params| {
+        let _: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.inputs.len())
     });
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "spawn_player", |api_ctx, lua, params| {
@@ -110,13 +117,8 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_music", |api_ctx, lua, params| {
-        let (_, path, loops, start_ms, end_ms): (
-            rollback_mlua::Table,
-            String,
-            Option<bool>,
-            Option<u64>,
-            Option<u64>,
-        ) = lua.unpack_multi(params)?;
+        let (_, path, loops): (rollback_mlua::Table, String, Option<bool>) =
+            lua.unpack_multi(params)?;
 
         let path = absolute_path(lua, path)?;
         let loops = loops.unwrap_or(true);
@@ -129,8 +131,6 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         simulation.config.battle_init_music = Some(BattleInitMusic {
             buffer: globals.assets.audio(game_io, &path),
             loops,
-            start_ms,
-            end_ms,
         });
 
         lua.pack_multi(())

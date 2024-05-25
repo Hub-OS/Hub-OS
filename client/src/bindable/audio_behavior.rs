@@ -1,11 +1,10 @@
-use num_derive::FromPrimitive;
-
-#[repr(u8)]
-#[derive(Default, FromPrimitive)]
+#[derive(Default)]
 pub enum AudioBehavior {
     #[default]
     Default,
     NoOverlap,
+    LoopSection(usize, usize),
+    EndLoop,
 }
 
 impl<'lua> rollback_mlua::FromLua<'lua> for AudioBehavior {
@@ -13,23 +12,21 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AudioBehavior {
         lua_value: rollback_mlua::Value<'lua>,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<Self> {
-        use num_traits::FromPrimitive;
-
-        let number = match lua_value {
-            rollback_mlua::Value::Number(number) => number,
-            _ => {
-                return Err(rollback_mlua::Error::FromLuaConversionError {
-                    from: lua_value.type_name(),
-                    to: "AudioBehavior",
-                    message: None,
-                })
-            }
+        let Some(table) = lua_value.as_table() else {
+            return Err(rollback_mlua::Error::FromLuaConversionError {
+                from: lua_value.type_name(),
+                to: "AudioBehavior",
+                message: None,
+            });
         };
 
-        AudioBehavior::from_u8(number as u8).ok_or(rollback_mlua::Error::FromLuaConversionError {
-            from: lua_value.type_name(),
-            to: "AudioBehavior",
-            message: None,
+        let id: usize = table.get("id")?;
+
+        Ok(match id {
+            1 => AudioBehavior::NoOverlap,
+            2 => AudioBehavior::LoopSection(table.get("start")?, table.get("end")?),
+            3 => AudioBehavior::EndLoop,
+            _ => AudioBehavior::Default,
         })
     }
 }
@@ -37,8 +34,27 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AudioBehavior {
 impl<'lua> rollback_mlua::IntoLua<'lua> for AudioBehavior {
     fn into_lua(
         self,
-        _lua: &'lua rollback_mlua::Lua,
+        lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        Ok(rollback_mlua::Value::Number(self as u8 as f64))
+        let table = lua.create_table()?;
+
+        match self {
+            AudioBehavior::Default => {
+                table.set("id", 0)?;
+            }
+            AudioBehavior::NoOverlap => {
+                table.set("id", 1)?;
+            }
+            AudioBehavior::LoopSection(start, end) => {
+                table.set("id", 2)?;
+                table.set("start", start)?;
+                table.set("end", end)?;
+            }
+            AudioBehavior::EndLoop => {
+                table.set("id", 3)?;
+            }
+        };
+
+        table.into_lua(lua)
     }
 }

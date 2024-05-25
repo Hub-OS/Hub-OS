@@ -13,7 +13,7 @@ pub struct ChildPackageInfo {
 pub struct PackageInfo {
     pub id: PackageId,
     pub hash: FileHash,
-    pub package_category: PackageCategory,
+    pub category: PackageCategory,
     pub namespace: PackageNamespace,
     pub base_path: String,
     pub script_path: String,
@@ -25,7 +25,7 @@ pub struct PackageInfo {
 
 impl PackageInfo {
     pub fn triplet(&self) -> (PackageCategory, PackageNamespace, PackageId) {
-        (self.package_category, self.namespace, self.id.clone())
+        (self.category, self.namespace, self.id.clone())
     }
 
     pub fn is_virtual(&self) -> bool {
@@ -38,7 +38,7 @@ impl PackageInfo {
             .cloned()
             .map(|(id, path)| ChildPackageInfo {
                 parent_id: self.id.clone(),
-                parent_type: self.package_category,
+                parent_type: self.category,
                 id,
                 path,
             })
@@ -82,15 +82,12 @@ impl PackageInfo {
             .get("package")
             .and_then(|table| table.as_table().cloned());
 
-        let package_table = match package_table {
-            Some(table) => table,
-            None => {
-                log::error!(
-                    "Missing [package] section in {:?}",
-                    ResourcePaths::shorten(&self.toml_path)
-                );
-                return None;
-            }
+        let Some(package_table) = package_table else {
+            log::error!(
+                "Missing [package] section in {:?}",
+                ResourcePaths::shorten(&self.toml_path)
+            );
+            return None;
         };
 
         self.id = package_table.get("id")?.as_str()?.to_string().into();

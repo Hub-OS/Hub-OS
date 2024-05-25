@@ -3,7 +3,7 @@ use super::{BattleLuaApi, ENTITY_TABLE};
 use crate::battle::{BattleCallback, CardSelectRestriction, Player, StagedItem, StagedItemData};
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::absolute_path;
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 
@@ -127,13 +127,23 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             let texture_path = item.map(|item| match &item.data {
                 StagedItemData::Deck(i) => {
                     if let Some(card) = player.deck.get(*i) {
-                        CardPackage::icon_texture(game_io, &card.package_id).1
+                        CardPackage::icon_texture(
+                            game_io,
+                            PackageNamespace::Local,
+                            &card.package_id,
+                        )
+                        .1
                     } else {
                         ResourcePaths::CARD_ICON_MISSING
                     }
                 }
                 StagedItemData::Card(props) => {
-                    CardPackage::icon_texture(game_io, &props.package_id).1
+                    CardPackage::icon_texture(
+                        game_io,
+                        props.namespace.unwrap_or(PackageNamespace::Local),
+                        &props.package_id,
+                    )
+                    .1
                 }
                 StagedItemData::Form((_, _, texture_path)) => {
                     texture_path.as_ref().map(|s| &**s).unwrap_or("")

@@ -205,7 +205,7 @@ impl GameOverlay for MobileOverlay {
             let render_offset = window.render_offset();
             let view_size = window.resolution().as_vec2() * scale;
 
-            let mut text_style = TextStyle::new(game_io, FontName::Small);
+            let mut text_style = TextStyle::new(game_io, FontName::ThinSmall);
             text_style.shadow_color = Color::BLACK;
             text_style.scale *= scale;
 

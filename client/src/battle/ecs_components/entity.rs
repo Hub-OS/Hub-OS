@@ -1,7 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
-use crate::structures::DenseSlotMap;
 use crate::structures::SlotMap;
 use framework::prelude::*;
 use std::collections::VecDeque;
@@ -10,7 +9,7 @@ use std::collections::VecDeque;
 pub struct FullEntityPosition {
     pub tile_position: IVec2,
     pub offset: Vec2,
-    pub tile_offset: Vec2,
+    pub movement_offset: Vec2,
 }
 
 #[derive(Clone)]
@@ -34,9 +33,8 @@ pub struct Entity {
     pub elevation: f32,
     pub animator_index: GenerationalIndex,
     pub sprite_tree_index: GenerationalIndex,
-    pub shadow_index: TreeIndex,
-    pub offset: Vec2,      // does not flip with teams, only perspective
-    pub tile_offset: Vec2, // resets every frame, does not flip with teams, only perspective
+    pub offset: Vec2,          // does not flip with teams, only perspective
+    pub movement_offset: Vec2, // resets every frame, does not flip with teams, only perspective
     pub hit_context: HitContext,
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
@@ -61,13 +59,7 @@ impl Entity {
         let id: EntityId = Self::reserve(simulation);
 
         // create sprite tree
-        let mut sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
-
-        let mut shadow_node = SpriteNode::new(game_io, SpriteColorMode::Add);
-        shadow_node.set_visible(false);
-        shadow_node.set_layer(i32::MAX);
-        let shadow_index = sprite_tree.insert_root_child(shadow_node);
-
+        let sprite_tree = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Add));
         let sprite_tree_index = simulation.sprite_trees.insert(sprite_tree);
 
         // create animator
@@ -97,9 +89,8 @@ impl Entity {
             elevation: 0.0,
             animator_index,
             sprite_tree_index,
-            shadow_index,
             offset: Vec2::ZERO,
-            tile_offset: Vec2::ZERO,
+            movement_offset: Vec2::ZERO,
             hit_context: HitContext {
                 aggressor: id,
                 flags: HitFlag::NONE,
@@ -144,11 +135,37 @@ impl Entity {
         id.into()
     }
 
+    pub fn can_move_to(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        position: (i32, i32),
+    ) -> bool {
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+            return false;
+        };
+
+        let entity_callback = entity.can_move_to_callback.clone();
+        let Some(index) = entity.action_index else {
+            return entity_callback.call(game_io, resources, simulation, position);
+        };
+
+        let action = &simulation.actions[index];
+
+        let Some(action_callback) = action.can_move_to_callback.clone() else {
+            return entity_callback.call(game_io, resources, simulation, position);
+        };
+
+        action_callback.call(game_io, resources, simulation, position)
+    }
+
     pub fn full_position(&self) -> FullEntityPosition {
         FullEntityPosition {
             tile_position: IVec2::new(self.x, self.y),
             offset: self.offset,
-            tile_offset: self.tile_offset,
+            movement_offset: self.movement_offset,
         }
     }
 
@@ -156,45 +173,19 @@ impl Entity {
         self.x = full_position.tile_position.x;
         self.y = full_position.tile_position.y;
         self.offset = full_position.offset;
-        self.tile_offset = full_position.tile_offset;
-    }
-
-    pub fn set_shadow(
-        &mut self,
-        game_io: &GameIO,
-        sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
-        path: String,
-    ) {
-        if let Some(sprite_tree) = sprite_trees.get_mut(self.sprite_tree_index) {
-            if let Some(sprite_node) = sprite_tree.get_mut(self.shadow_index) {
-                sprite_node.set_texture(game_io, path);
-
-                let shadow_size = sprite_node.size();
-                sprite_node.set_origin(shadow_size * 0.5);
-            }
-        }
-    }
-
-    pub fn current_can_move_to_callback(
-        &self,
-        actions: &DenseSlotMap<Action>,
-    ) -> BattleCallback<(i32, i32), bool> {
-        if let Some(index) = self.action_index {
-            // does the card action have a special can_move_to_callback?
-            if let Some(callback) = actions[index].can_move_to_callback.clone() {
-                return callback;
-            }
-        }
-
-        self.can_move_to_callback.clone()
+        self.movement_offset = full_position.movement_offset;
     }
 
     pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
         let Some(sprite_tree) = sprite_trees.get(self.sprite_tree_index) else {
-            return (self.y, self.x, 0);
+            return (self.y, 0, self.movement_offset.y as _);
         };
 
-        (self.y, self.x, -sprite_tree.root().layer())
+        (
+            self.y,
+            -sprite_tree.root().layer(),
+            self.movement_offset.y as _,
+        )
     }
 
     pub fn flipped(&self) -> bool {
@@ -202,7 +193,7 @@ impl Entity {
     }
 
     pub fn corrected_offset(&self, perspective_flipped: bool) -> Vec2 {
-        let mut entity_offset = self.tile_offset + self.offset;
+        let mut entity_offset = self.movement_offset + self.offset;
 
         if perspective_flipped {
             entity_offset.x *= -1.0;

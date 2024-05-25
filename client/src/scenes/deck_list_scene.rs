@@ -491,7 +491,8 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 event_sender.send(event).unwrap();
             };
 
-            let deck_name = &global_save.decks[global_save.selected_deck].name;
+            let index = scene.deck_scroll_tracker.selected_index();
+            let deck_name = &global_save.decks[index].name;
             let textbox_interface = TextboxPrompt::new(callback)
                 .with_str(deck_name)
                 .with_character_limit(9);

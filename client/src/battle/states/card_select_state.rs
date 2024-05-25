@@ -397,8 +397,10 @@ impl CardSelectState {
                     selection.form_open_time = None;
 
                     // sfx
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    simulation.play_sound(game_io, &globals.sfx.transform_select);
+                    if selection.local {
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        simulation.play_sound(game_io, &globals.sfx.transform_select);
+                    }
 
                     return;
                 }
@@ -529,9 +531,6 @@ impl CardSelectState {
             return;
         }
 
-        let globals = game_io.resource::<Globals>().unwrap();
-        let mut pending_sfx = Vec::new();
-
         let player_index = player.index;
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
@@ -540,10 +539,23 @@ impl CardSelectState {
         if player.staged_items.confirmed() {
             selection.confirm_time = self.time;
 
+            // activate card select close components
+            for (_, component) in &simulation.components {
+                if component.entity == entity_id
+                    && component.lifetime == ComponentLifetime::CardSelectClose
+                {
+                    let callback = component.update_callback.clone();
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            simulation.call_pending_callbacks(game_io, resources);
+
             // ignore input
             return;
         }
 
+        let globals = game_io.resource::<Globals>().unwrap();
         let previous_item = resolve_selected_item(player, selection);
 
         if input.is_active(Input::End) || previous_item == SelectedItem::None {
@@ -557,9 +569,14 @@ impl CardSelectState {
             // open form select
             selection.form_open_time = Some(self.time);
 
-            pending_sfx.push(&globals.sfx.form_select_open);
+            if selection.local {
+                // not using pending_sfx since we're returning right after anyway
+                simulation.play_sound(game_io, &globals.sfx.form_select_open);
+            }
             return;
         }
+
+        let mut pending_sfx = Vec::new();
 
         // moving cursor
 
@@ -596,6 +613,18 @@ impl CardSelectState {
                     if selection.local {
                         pending_sfx.push(&globals.sfx.card_select_confirm);
                     }
+
+                    // activate card select close components
+                    for (_, component) in &simulation.components {
+                        if component.entity == entity_id
+                            && component.lifetime == ComponentLifetime::CardSelectClose
+                        {
+                            let callback = component.update_callback.clone();
+                            simulation.pending_callbacks.push(callback);
+                        }
+                    }
+
+                    simulation.call_pending_callbacks(game_io, resources);
                 }
                 SelectedItem::Card(index) => {
                     if !player.staged_items.has_deck_index(index)
@@ -806,7 +835,7 @@ impl CardSelectState {
 
         Character::mutate_cards(game_io, resources, simulation);
 
-        simulation.update_components(game_io, resources, ComponentLifetime::CardSelectClose);
+        simulation.update_components(game_io, resources, ComponentLifetime::CardSelectComplete);
 
         self.completed = true;
     }

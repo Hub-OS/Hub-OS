@@ -9,29 +9,17 @@ pub struct RollbackVM {
 
 impl RollbackVM {
     pub fn preferred_namespace(&self) -> PackageNamespace {
-        let is_server_or_built_in = |namespace: &&PackageNamespace| {
-            matches!(
-                namespace,
-                PackageNamespace::Server
-                    | PackageNamespace::RecordingServer
-                    | PackageNamespace::BuiltIn
-            )
-        };
-
-        if let Some(namespace) = self.namespaces.iter().find(is_server_or_built_in) {
-            return *namespace;
-        }
-
-        let index = self
+        *self
             .namespaces
             .iter()
-            .map(|ns| match ns {
-                PackageNamespace::Netplay(index) => *index,
-                _ => u8::MAX,
+            .min_by_key(|ns| match ns {
+                PackageNamespace::Server | PackageNamespace::RecordingServer => (0, 0),
+                // assuming local namespaces only pass in from encounters
+                // battle_props remaps the local namespace to a netplay namespace otherwise
+                PackageNamespace::Local | PackageNamespace::RecordingLocal => (1, 0),
+                PackageNamespace::BuiltIn | PackageNamespace::RecordingBuiltIn => (2, 0),
+                PackageNamespace::Netplay(index) => (3, *index),
             })
-            .min()
-            .unwrap();
-
-        PackageNamespace::Netplay(index)
+            .unwrap()
     }
 }

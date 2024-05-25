@@ -1,4 +1,4 @@
-use packets::structures::{AssetData, PackageCategory};
+use packets::structures::{ActorId, AssetData, PackageCategory};
 
 #[derive(Clone, Debug)]
 pub struct PackageInfo {
@@ -38,7 +38,7 @@ pub enum AssetId {
 }
 
 impl Asset {
-    pub fn load_from_memory(path: &std::path::Path, data: &[u8]) -> Asset {
+    pub fn load_from_memory(path: &std::path::Path, data: Vec<u8>) -> Asset {
         let asset_data = resolve_asset_data(path, data);
 
         let last_modified = std::time::SystemTime::now()
@@ -68,7 +68,7 @@ impl Asset {
         use std::fs;
 
         let data = fs::read(path).unwrap_or_default();
-        let asset_data = resolve_asset_data(path, &data);
+        let asset_data = resolve_asset_data(path, data);
 
         let mut last_modified = 0;
 
@@ -273,7 +273,13 @@ impl Asset {
         );
 
         let aug_iter =
-            Self::resolve_dependency_category(dependencies, "augment", PackageCategory::Augment);
+            Self::resolve_dependency_category(dependencies, "augments", PackageCategory::Augment);
+
+        let battles_iter = Self::resolve_dependency_category(
+            dependencies,
+            "encounters",
+            PackageCategory::Encounter,
+        );
 
         let card_iter =
             Self::resolve_dependency_category(dependencies, "cards", PackageCategory::Card);
@@ -284,12 +290,20 @@ impl Asset {
         let status_iter =
             Self::resolve_dependency_category(dependencies, "statuses", PackageCategory::Status);
 
+        let tile_state_iter = Self::resolve_dependency_category(
+            dependencies,
+            "tile_states",
+            PackageCategory::TileState,
+        );
+
         Some(
             char_iter
                 .chain(aug_iter)
+                .chain(battles_iter)
                 .chain(card_iter)
                 .chain(lib_iter)
-                .chain(status_iter),
+                .chain(status_iter)
+                .chain(tile_state_iter),
         )
     }
 
@@ -330,27 +344,27 @@ fn get_str<'a>(table: &'a toml::Value, key: &str) -> &'a str {
         .unwrap_or_default()
 }
 
-pub fn get_player_texture_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + ".texture"
+pub fn get_player_texture_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}.texture")
 }
 
-pub fn get_player_animation_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + ".animation"
+pub fn get_player_animation_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}.animation")
 }
 
-pub fn get_player_mugshot_texture_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + "_mug.texture"
+pub fn get_player_mugshot_texture_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}_mug.texture")
 }
 
-pub fn get_player_mugshot_animation_path(player_id: &str) -> String {
-    String::from("/server/players/") + player_id + "_mug.animation"
+pub fn get_player_mugshot_animation_path(player_id: ActorId) -> String {
+    format!("/server/players/{player_id:?}_mug.animation")
 }
 
 pub fn get_map_path(map_id: &str) -> String {
     String::from("/server/maps/") + map_id + ".tmx"
 }
 
-fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
+fn resolve_asset_data(path: &std::path::Path, data: Vec<u8>) -> AssetData {
     let extension = path
         .extension()
         .unwrap_or_default()
@@ -358,11 +372,11 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
         .unwrap_or_default();
 
     match extension.to_lowercase().as_str() {
-        "png" | "bmp" => AssetData::Texture(data.to_vec()),
-        "flac" | "mp3" | "wav" | "mid" | "midi" | "ogg" => AssetData::Audio(data.to_vec()),
-        "zip" => AssetData::Data(data.to_vec()),
+        "png" | "bmp" => AssetData::Texture(data),
+        "flac" | "mp3" | "wav" | "mid" | "midi" | "ogg" => AssetData::Audio(data),
+        "zip" => AssetData::Data(data),
         "tsx" => {
-            let original_data = String::from_utf8_lossy(data);
+            let original_data = String::from_utf8_lossy(&data);
             let translated_data = translate_tsx(path, &original_data);
 
             if translated_data.is_none() {
@@ -371,7 +385,7 @@ fn resolve_asset_data(path: &std::path::Path, data: &[u8]) -> AssetData {
 
             AssetData::Text(translated_data.unwrap_or_else(|| original_data.to_string()))
         }
-        _ => AssetData::Text(String::from_utf8_lossy(data).to_string()),
+        _ => AssetData::Text(String::from_utf8_lossy(&data).to_string()),
     }
 }
 

@@ -8,12 +8,13 @@ use crate::scenes::BattleEvent;
 use crate::RESOLUTION_F;
 use framework::math::{Rect, Vec2};
 use framework::prelude::{Color, GameIO, Sprite, Texture};
+use packets::structures::PackageCategory;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use super::{BattleSimulation, StatusRegistry};
+use super::{BattleSimulation, StatusRegistry, TileState};
 
 /// Resources that are shared between battle snapshots
 pub struct SharedBattleResources {
@@ -78,9 +79,38 @@ impl SharedBattleResources {
         simulation: &mut BattleSimulation,
         dependencies: &[(&PackageInfo, PackageNamespace)],
     ) {
-        BattleVmManager::init(game_io, self, simulation, dependencies);
+        // load tile states + statuses first
+        BattleVmManager::init(
+            game_io,
+            self,
+            simulation,
+            dependencies.iter().filter(|(p, _)| {
+                matches!(
+                    p.category,
+                    PackageCategory::TileState | PackageCategory::Status
+                )
+            }),
+        );
+
+        // register tile states
+        TileState::complete_registry(game_io, simulation, self, dependencies);
+
+        // register statuses
         self.status_registry
             .init(game_io, &self.vm_manager, dependencies);
+
+        // load remaining packages
+        BattleVmManager::init(
+            game_io,
+            self,
+            simulation,
+            dependencies.iter().filter(|(p, _)| {
+                !matches!(
+                    p.category,
+                    PackageCategory::TileState | PackageCategory::Status
+                )
+            }),
+        );
     }
 
     pub fn parse_math_expr(

@@ -18,28 +18,15 @@ fn main() -> ExitCode {
 
     // areas
     fs_extra::dir::create_all("dist/server", true).unwrap();
-    fs_extra::dir::copy(
-        "server/areas",
-        "dist/server",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
-    fs_extra::dir::copy(
-        "server/assets",
-        "dist/server",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
 
-    // scripts
-    fs_extra::dir::create_all("dist/server/scripts", true).unwrap();
-
-    fs_extra::dir::copy(
-        "server/scripts/libs",
-        "dist/server/scripts",
-        &fs_extra::dir::CopyOptions::default(),
-    )
-    .unwrap();
+    for folder in ["areas", "assets", "mods", "scripts"] {
+        fs_extra::dir::copy(
+            format!("server/{folder}"),
+            "dist/server",
+            &fs_extra::dir::CopyOptions::default(),
+        )
+        .unwrap();
+    }
 
     // windows exe
     let _ = fs::copy(
@@ -47,10 +34,16 @@ fn main() -> ExitCode {
         format!("dist/server/{BIN_NAME}.exe"),
     );
 
-    // linux exe
+    // linux + mac exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}"),
         format!("dist/server/{BIN_NAME}"),
+    );
+
+    // mac ARM exe
+    let _ = fs::copy(
+        format!("target/release/{BIN_NAME}-aarch64"),
+        format!("dist/server/{BIN_NAME}-aarch64"),
     );
 
     ExitCode::SUCCESS

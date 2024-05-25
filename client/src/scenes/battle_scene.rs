@@ -36,7 +36,7 @@ struct Backup {
 }
 
 pub struct BattleScene {
-    battle_duration: FrameTime,
+    props: BattleProps,
     recording: Option<BattleRecording>,
     ui_camera: Camera,
     textbox: Textbox,
@@ -49,15 +49,13 @@ pub struct BattleScene {
     backups: VecDeque<Backup>,
     player_controllers: Vec<PlayerController>,
     local_index: Option<usize>,
-    senders: Vec<NetplayPacketSender>,
-    receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
+    resimulating: bool,
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
     exiting: bool,
-    statistics_callback: Option<BattleStatisticsCallback>,
     next_scene: NextScene,
 }
 
@@ -87,7 +85,7 @@ impl BattleScene {
 
         // init recording struct
         let recording = if props.recording_enabled {
-            Some(BattleRecording::new(game_io, &props))
+            Some(BattleRecording::new(&props))
         } else {
             None
         };
@@ -108,9 +106,6 @@ impl BattleScene {
         // create shared resources
         let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
 
-        // register tile states
-        TileState::complete_registry(game_io, &mut simulation, &resources, &dependencies);
-
         // load battle package
         if let Some(encounter_package) = props.encounter_package(game_io) {
             let vm_manager = &mut resources.vm_manager;
@@ -125,11 +120,11 @@ impl BattleScene {
                 simulation: &mut simulation,
             };
 
-            encounter_init(context, props.data);
+            encounter_init(context, props.data.as_deref());
         }
 
         // load the players in the correct order
-        let player_setups = props.player_setups;
+        let player_setups = &props.player_setups;
         let mut player_controllers = vec![PlayerController::default(); player_setups.len()];
         let local_index = if is_playing_back_recording {
             None
@@ -140,15 +135,11 @@ impl BattleScene {
                 .map(|setup| setup.index)
         };
 
-        for mut setup in player_setups {
+        for setup in player_setups {
             if let Some(remote_controller) = player_controllers.get_mut(setup.index) {
-                remote_controller.buffer = std::mem::take(&mut setup.buffer);
+                remote_controller.buffer = setup.buffer.clone();
                 remote_controller.connected = true;
             }
-
-            // shuffle cards
-            let rng = &mut simulation.rng;
-            setup.deck.shuffle(game_io, rng, setup.namespace());
 
             let result = Player::load(game_io, &resources, &mut simulation, setup);
 
@@ -160,7 +151,7 @@ impl BattleScene {
         simulation.initialize_uninitialized();
 
         Self {
-            battle_duration: 0,
+            props,
             recording,
             ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io)
@@ -174,15 +165,13 @@ impl BattleScene {
             backups: VecDeque::new(),
             player_controllers,
             local_index,
-            senders: std::mem::take(&mut props.senders),
-            receivers: std::mem::take(&mut props.receivers),
             slow_cooldown: 0,
             frame_by_frame_debug: false,
+            resimulating: false,
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
             exiting: false,
-            statistics_callback: props.statistics_callback.take(),
             next_scene: NextScene::None,
         }
     }
@@ -203,8 +192,7 @@ impl BattleScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     let ns = PackageNamespace::Local;
 
-                    let Some(package) = globals.card_packages.package_or_override(ns, &package_id)
-                    else {
+                    let Some(package) = globals.card_packages.package(ns, &package_id) else {
                         continue;
                     };
 
@@ -323,7 +311,7 @@ impl BattleScene {
 
         let mut connected_count = self.count_connected_players();
 
-        'main_loop: for (i, (index, receiver)) in self.receivers.iter().enumerate() {
+        'main_loop: for (i, (index, receiver)) in self.props.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
                 if index.is_some() && Some(packet.index()) != *index {
                     // ignore obvious impersonation cheat
@@ -355,7 +343,7 @@ impl BattleScene {
 
         // remove disconnected receivers
         for i in pending_removal.into_iter().rev() {
-            let (player_index, _) = self.receivers.remove(i);
+            let (player_index, _) = self.props.receivers.remove(i);
 
             let Some(index) = player_index else {
                 continue;
@@ -375,7 +363,7 @@ impl BattleScene {
 
         if connected_count == 0 {
             // no need to store these, helps prevent reading too many packets from the fallback receiver
-            self.receivers.clear();
+            self.props.receivers.clear();
         }
 
         for packet in packets {
@@ -442,7 +430,7 @@ impl BattleScene {
     }
 
     fn broadcast(&self, packet: NetplayPacket) {
-        for send in &self.senders {
+        for send in &self.props.senders {
             send(packet.clone());
         }
     }
@@ -511,14 +499,7 @@ impl BattleScene {
             }
         }
 
-        if self.input_synced() && !self.is_playing_back_recording {
-            // log inputs if we're in multiplayer to help track desyncs
-            if self.player_controllers.len() > 1 {
-                if let Err(e) = self.log_input_to_file() {
-                    log::error!("{e:?}");
-                }
-            }
-
+        if !self.resimulating && self.input_synced() && !self.is_playing_back_recording {
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
                 let Some(buffer_item) = controller.buffer.pop_next() else {
@@ -535,37 +516,6 @@ impl BattleScene {
         }
     }
 
-    fn log_input_to_file(&self) -> std::io::Result<()> {
-        use std::io::Write;
-
-        let mut file = std::fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open("_input_buffers.txt")?;
-
-        writeln!(&mut file, "F: {}", self.synced_time)?;
-
-        for controller in &self.player_controllers {
-            writeln!(&mut file, "  {:?}", controller.buffer.peek_next())?;
-        }
-
-        writeln!(&mut file, "Archetypes: [")?;
-
-        for archetype in self.simulation.entities.archetypes() {
-            write!(&mut file, "(")?;
-
-            for t in archetype.component_types() {
-                write!(&mut file, "{t:?}, ")?;
-            }
-
-            write!(&mut file, "), ")?;
-        }
-
-        writeln!(&mut file, "]")?;
-
-        Ok(())
-    }
-
     fn resimulate(&mut self, game_io: &GameIO, start_time: FrameTime) {
         let local_time = self.simulation.time;
 
@@ -579,6 +529,7 @@ impl BattleScene {
         self.rollback(game_io, steps);
 
         self.simulation.is_resimulation = true;
+        self.resimulating = true;
 
         // resimulate until we're caught up to our previous time
         while self.simulation.time < local_time {
@@ -587,6 +538,7 @@ impl BattleScene {
         }
 
         self.simulation.is_resimulation = false;
+        self.resimulating = false;
     }
 
     fn rewind(&mut self, game_io: &GameIO, mut steps: usize) {
@@ -598,8 +550,10 @@ impl BattleScene {
             return;
         }
 
+        self.resimulating = true;
         self.rollback(game_io, steps);
         self.simulate(game_io);
+        self.resimulating = false;
 
         if !self.is_playing_back_recording {
             // only updating synced time for actual battles
@@ -615,6 +569,10 @@ impl BattleScene {
                 }
 
                 debug_assert_eq!(self.synced_time as usize, setup.buffer.len());
+            }
+
+            if let Some(index) = self.local_index {
+                debug_assert_eq!(self.player_controllers[index].buffer.len(), INPUT_DELAY);
             }
         }
     }
@@ -687,8 +645,8 @@ impl BattleScene {
 
         // save recording
         if game_io.input().was_key_just_pressed(Key::S) {
-            if let Some(recording) = &self.recording {
-                recording.save(game_io);
+            if let Some(recording) = &mut self.recording {
+                recording.save(game_io, &self.props);
             } else {
                 log::error!("Recording is disabled");
             }
@@ -706,7 +664,7 @@ impl BattleScene {
             self.pending_signals.push(NetplaySignal::Disconnect);
         }
 
-        if let Some(statistics_callback) = self.statistics_callback.take() {
+        if let Some(statistics_callback) = self.props.statistics_callback.take() {
             self.simulation.wrap_up_statistics();
             let mut statistics = self.simulation.statistics.clone();
             statistics.ran = fleeing;

@@ -1,10 +1,10 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::memoize::ResultCacheSingle;
-use crate::packages::PackageNamespace;
+use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BlockGrid, Card};
+use crate::saves::{BlockGrid, Card, Deck};
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
 
@@ -52,19 +52,31 @@ impl Player {
 
     fn new(
         game_io: &GameIO,
-        setup: PlayerSetup,
+        setup: &PlayerSetup,
+        player_package: &PlayerPackage,
+        mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
         buster_charge_sprite_index: TreeIndex,
     ) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
-        let player_package = setup.player_package(game_io);
-
-        let mut deck = setup.deck;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
         if let Some(index) = deck.regular_index {
             // move the regular card to the front
             deck.cards.swap(0, index);
         }
+
+        // load emotions assets with defaults to prevent warnings
+        let emotion_sprite;
+        let emotion_animation;
+
+        if let Some(pair) = player_package.emotions_paths.as_ref() {
+            emotion_sprite = assets.new_sprite(game_io, &pair.texture);
+            emotion_animation = Animator::load_new(assets, &pair.animation);
+        } else {
+            emotion_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
+            emotion_animation = Default::default();
+        };
 
         Self {
             index: setup.index,
@@ -95,9 +107,9 @@ impl Player {
             movement_animation_state: String::new(),
             slide_when_moving: false,
             emotion_window: EmotionUi::new(
-                setup.emotion,
-                assets.new_sprite(game_io, &player_package.emotions_paths.texture),
-                Animator::load_new(assets, &player_package.emotions_paths.animation),
+                setup.emotion.clone(),
+                emotion_sprite,
+                emotion_animation,
             ),
             forms: Vec::new(),
             active_form: None,
@@ -110,11 +122,16 @@ impl Player {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
-        mut setup: PlayerSetup,
+        setup: &PlayerSetup,
     ) -> rollback_mlua::Result<EntityId> {
         let local = setup.local;
-        let player_package = setup.player_package(game_io);
-        let blocks = std::mem::take(&mut setup.blocks);
+        let Some(player_package) = setup.player_package(game_io) else {
+            return Err(rollback_mlua::Error::runtime(
+                "Failed to load player package",
+            ));
+        };
+
+        let blocks = setup.blocks.clone();
 
         // namespace for using cards / attacks
         let namespace = setup.namespace();
@@ -134,9 +151,6 @@ impl Player {
         // spawn immediately
         entity.pending_spawn = true;
 
-        // prevent attacks from countering by default
-        entity.hit_context.flags = HitFlag::NO_COUNTER;
-
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name = player_package.name.clone();
@@ -151,6 +165,17 @@ impl Player {
             let callbacks = animator.set_state(Player::IDLE_STATE);
             animator.set_loop_mode(AnimatorLoopMode::Loop);
             simulation.pending_callbacks.extend(callbacks);
+
+            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
+                return;
+            };
+
+            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+            else {
+                return;
+            };
+
+            animator.apply(sprite_tree.root_mut());
         });
 
         // delete callback
@@ -285,9 +310,14 @@ impl Player {
         let buster_charge_sprite_index =
             AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CHARGE);
 
+        let mut deck = setup.deck.clone();
+        deck.shuffle(game_io, &mut simulation.rng, setup.namespace());
+
         let mut player = Player::new(
             game_io,
             setup,
+            player_package,
+            deck,
             card_charge_sprite_index,
             buster_charge_sprite_index,
         );
@@ -321,7 +351,7 @@ impl Player {
             })?;
         } else {
             // default init, sprites + animation only
-            let (texture_path, animator) = player_package.resolve_battle_sprite(game_io);
+            let player_resources = PlayerFallbackResources::resolve(game_io, player_package);
 
             // regrab entity
             let entity = simulation
@@ -331,11 +361,12 @@ impl Player {
 
             // adopt texture
             let sprite_node = sprite_tree.root_mut();
-            sprite_node.set_texture(game_io, texture_path);
+            sprite_node.set_texture(game_io, player_resources.texture_path);
+            sprite_node.set_palette(game_io, player_resources.palette_path);
 
             // adopt animator
             let battle_animator = &mut simulation.animators[entity.animator_index];
-            let callbacks = battle_animator.copy_from_animator(&animator);
+            let callbacks = battle_animator.copy_from_animator(&player_resources.animator);
             battle_animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
             // callbacks
@@ -649,7 +680,9 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
 
@@ -657,6 +690,9 @@ impl Player {
             callbacks.normal_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -668,7 +704,9 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
 
@@ -676,6 +714,9 @@ impl Player {
             callbacks.charged_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -687,13 +728,19 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
+
         let callbacks = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
             callbacks.special_attack.clone()
         })
         .collect();
+
+        // prevent countering
+        entity.hit_context.flags = HitFlag::NO_COUNTER;
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -759,7 +806,6 @@ impl Player {
             .unwrap();
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // create card action
@@ -780,14 +826,6 @@ impl Player {
                 &card_props,
             )
         };
-
-        // revert context flags
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-        entity.hit_context.flags = original_context_flags;
 
         // spawn a poof if there's no action
         let Some(index) = action_index else {
@@ -810,6 +848,11 @@ impl Player {
         let Ok((entity, living, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
             return;
         };
+
+        // can't move if not on the field
+        if !entity.on_field {
+            return;
+        }
 
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;

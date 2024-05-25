@@ -116,36 +116,80 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(animator.current_state())
     });
 
-    updater(lua_api, "set_state", |animator, _, _, state: String| {
-        Ok(animator.set_state(&state))
+    getter(lua_api, "states", |animator, lua, _: ()| {
+        let table = lua.create_table_from(
+            animator
+                .iter_states()
+                .enumerate()
+                .map(|(i, (state, _))| (i + 1, state)),
+        );
+
+        lua.pack_multi(table)
     });
 
-    lua_api.add_dynamic_function(ANIMATION_TABLE, "derive_state", |api_ctx, lua, params| {
-        let (table, state, frame_data): (rollback_mlua::Table, String, Vec<Vec<usize>>) =
+    lua_api.add_dynamic_function(ANIMATION_TABLE, "set_state", |api_ctx, lua, params| {
+        let (table, state, frame_data): (rollback_mlua::Table, String, Option<Vec<Vec<usize>>>) =
             lua.unpack_multi(params)?;
-        let derived_frames = frame_data
-            .into_iter()
-            .flat_map(|item| {
-                let frame_index = *item.first()?;
-                let duration = *item.get(1)? as FrameTime;
-
-                Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
-            })
-            .collect();
 
         let animator_index: GenerationalIndex = table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let animators = &mut api_ctx.simulation.animators;
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
+        let simulation = &mut api_ctx.simulation;
+        let animators = &mut simulation.animators;
 
         if !animators.contains_key(animator_index) {
             return Err(animator_not_found());
         }
 
-        let derived_state =
-            BattleAnimator::derive_state(animators, &state, derived_frames, animator_index);
+        let state = if let Some(frame_data) = frame_data {
+            let derived_frames = frame_data
+                .into_iter()
+                .flat_map(|item| {
+                    let frame_index = *item.first()?;
+                    let duration = *item.get(1)? as FrameTime;
 
-        lua.pack_multi(derived_state)
+                    Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
+                })
+                .collect();
+
+            let derived_state =
+                BattleAnimator::derive_state(animators, &state, derived_frames, animator_index);
+            let closure_state = derived_state.clone();
+
+            let animator = &mut animators[animator_index];
+            animator.on_complete(BattleCallback::new(
+                move |game_io, resources, simulation, _| {
+                    // delete the derived_state
+                    let animator = &mut simulation.animators[animator_index];
+                    let callbacks = animator.remove_state(&closure_state);
+
+                    // sync
+                    animator.find_and_apply_to_target(&mut simulation.sprite_trees);
+
+                    // handle interrupt
+                    simulation.pending_callbacks.extend(callbacks);
+                    simulation.call_pending_callbacks(game_io, resources);
+                },
+            ));
+
+            derived_state
+        } else {
+            state
+        };
+
+        let animator = &mut animators[animator_index];
+        let callbacks = animator.set_state(&state);
+
+        // sync
+        animator.find_and_apply_to_target(&mut simulation.sprite_trees);
+
+        // handle interrupt
+        simulation.pending_callbacks.extend(callbacks);
+        simulation.call_pending_callbacks(game_io, resources);
+
+        lua.pack_multi(())
     });
 
     getter(lua_api, "has_point", |animator, lua, name: String| {

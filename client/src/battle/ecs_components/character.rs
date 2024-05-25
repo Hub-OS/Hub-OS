@@ -79,20 +79,21 @@ impl Character {
 
         living.add_aux_prop(elemental_weakness_aux_prop);
 
-        entity.can_move_to_callback = BattleCallback::new(move |_, _, simulation, dest| {
+        entity.can_move_to_callback = BattleCallback::new(move |_, resources, simulation, dest| {
             let Some(tile) = simulation.field.tile_at_mut(dest) else {
                 return false;
             };
 
-            if tile.state_index() == TileState::HIDDEN {
-                // can't walk on hidden tiles, even with ignore_hole_tiles
+            if tile.state_index() == TileState::VOID {
+                // can't walk on void tiles, even with ignore_hole_tiles
                 return false;
             }
 
-            let entity = simulation
-                .entities
-                .query_one_mut::<&Entity>(id.into())
-                .unwrap();
+            let entities = &mut simulation.entities;
+            let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &Living)>(id.into())
+            else {
+                return false;
+            };
 
             if !entity.ignore_hole_tiles && simulation.tile_states[tile.state_index()].is_hole {
                 // can't walk on holes
@@ -101,6 +102,13 @@ impl Character {
 
             if tile.team() != entity.team && tile.team() != Team::Other {
                 // tile can't belong to the opponent team
+                return false;
+            }
+
+            let status_registry = &resources.status_registry;
+
+            if living.status_director.is_immobile(status_registry) {
+                // can't move while immobilized, useful feedback for scripts
                 return false;
             }
 
@@ -173,7 +181,6 @@ impl Character {
         let (entity, character) = entities.query_one_mut::<Query>(entity_id.into()).unwrap();
 
         // allow attacks to counter
-        let original_context_flags = entity.hit_context.flags;
         entity.hit_context.flags = HitFlag::NONE;
 
         // create card action
@@ -187,14 +194,6 @@ impl Character {
             namespace,
             &card_props,
         );
-
-        // revert context flags
-        let entities = &mut simulation.entities;
-
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .unwrap();
-        entity.hit_context.flags = original_context_flags;
 
         // spawn a poof if there's no action
         let Some(index) = action_index else {

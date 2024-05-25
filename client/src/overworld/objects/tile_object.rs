@@ -25,10 +25,7 @@ impl TileObject {
             return None;
         }
 
-        let tile_meta = match map.tile_meta_for_tile(self.tile.gid) {
-            Some(tile_meta) => tile_meta,
-            _ => return None,
-        };
+        let tile_meta = map.tile_meta_for_tile(self.tile.gid)?;
 
         let mut sprite = Sprite::new(game_io, tile_meta.tileset.texture.clone());
 
@@ -52,19 +49,27 @@ impl TileObject {
             1.0
         };
 
-        let scale = self.data.size / sprite.size();
+        let flip_multiplier = Vec2::new(horizontal_multiplier, vertical_multiplier);
 
-        sprite.set_scale(Vec2::new(
-            horizontal_multiplier * scale.x,
-            vertical_multiplier * scale.y,
-        ));
+        let sprite_size = sprite.size();
+        let scale = self.data.size / sprite_size;
+        sprite.set_scale(scale * flip_multiplier);
 
         // resolve rotation
         let rotation = self.data.rotation.to_radians();
         sprite.set_rotation(rotation);
 
         // resolve origin
-        let origin = -tile_meta.alignment_offset - tile_meta.drawing_offset;
+        let mut origin = (-tile_meta.alignment_offset - tile_meta.drawing_offset) * flip_multiplier;
+
+        if self.tile.flipped_horizontal {
+            origin.x += sprite_size.x;
+        }
+
+        if self.tile.flipped_vertical {
+            origin.y += sprite_size.y;
+        }
+
         sprite.set_origin(origin);
 
         Some(sprite)

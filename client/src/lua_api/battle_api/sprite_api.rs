@@ -37,6 +37,62 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(child_table)
     });
 
+    lua_api.add_dynamic_function(SPRITE_TABLE, "copy_from", |api_ctx, lua, params| {
+        let (table_a, table_b): (rollback_mlua::Table, rollback_mlua::Table) =
+            lua.unpack_multi(params)?;
+
+        let slot_a_index: GenerationalIndex = table_a.raw_get("#tree")?;
+        let sprite_a_index: TreeIndex = table_a.raw_get("#sprite")?;
+
+        let slot_b_index: GenerationalIndex = table_b.raw_get("#tree")?;
+        let sprite_b_index: TreeIndex = table_b.raw_get("#sprite")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        if slot_a_index == slot_b_index {
+            // same sprite tree
+            if sprite_a_index == sprite_b_index {
+                // copying from self, noop
+                return lua.pack_multi(());
+            }
+
+            let sprite_tree = simulation
+                .sprite_trees
+                .get_mut(slot_a_index)
+                .ok_or_else(sprite_not_found)?;
+
+            let cloned_sprite_b = sprite_tree
+                .get(sprite_b_index)
+                .ok_or_else(sprite_not_found)?
+                .clone();
+
+            let sprite_a = sprite_tree
+                .get_mut(sprite_a_index)
+                .ok_or_else(sprite_not_found)?;
+
+            *sprite_a = cloned_sprite_b;
+        } else {
+            // copying between two trees
+            let [sprite_tree_a, sprite_tree_b] = simulation
+                .sprite_trees
+                .get_disjoint_mut([slot_a_index, slot_b_index])
+                .expect("Same tree cloning is handled above");
+
+            let sprite_a = sprite_tree_a
+                .get_mut(sprite_a_index)
+                .ok_or_else(sprite_not_found)?;
+
+            let sprite_b = sprite_tree_b
+                .get(sprite_b_index)
+                .ok_or_else(sprite_not_found)?;
+
+            *sprite_a = sprite_b.clone();
+        }
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(SPRITE_TABLE, "create_text_node", |api_ctx, lua, params| {
         let (table, text_style_table, text): (
             rollback_mlua::Table,
