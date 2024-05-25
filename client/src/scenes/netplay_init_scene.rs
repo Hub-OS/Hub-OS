@@ -175,7 +175,7 @@ impl NetplayInitScene {
                 ready: false,
                 send: None,
                 receiver: None,
-                buffer: PlayerInputBuffer::default(),
+                buffer: PlayerInputBuffer::new_with_delay(INPUT_DELAY),
             })
             .collect();
 

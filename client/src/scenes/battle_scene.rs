@@ -51,6 +51,7 @@ pub struct BattleScene {
     local_index: Option<usize>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
+    resimulating: bool,
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
@@ -166,6 +167,7 @@ impl BattleScene {
             local_index,
             slow_cooldown: 0,
             frame_by_frame_debug: false,
+            resimulating: false,
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
@@ -497,7 +499,7 @@ impl BattleScene {
             }
         }
 
-        if self.input_synced() && !self.is_playing_back_recording {
+        if !self.resimulating && self.input_synced() && !self.is_playing_back_recording {
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
                 let Some(buffer_item) = controller.buffer.pop_next() else {
@@ -527,6 +529,7 @@ impl BattleScene {
         self.rollback(game_io, steps);
 
         self.simulation.is_resimulation = true;
+        self.resimulating = true;
 
         // resimulate until we're caught up to our previous time
         while self.simulation.time < local_time {
@@ -535,6 +538,7 @@ impl BattleScene {
         }
 
         self.simulation.is_resimulation = false;
+        self.resimulating = false;
     }
 
     fn rewind(&mut self, game_io: &GameIO, mut steps: usize) {
@@ -546,8 +550,10 @@ impl BattleScene {
             return;
         }
 
+        self.resimulating = true;
         self.rollback(game_io, steps);
         self.simulate(game_io);
+        self.resimulating = false;
 
         if !self.is_playing_back_recording {
             // only updating synced time for actual battles
@@ -563,6 +569,10 @@ impl BattleScene {
                 }
 
                 debug_assert_eq!(self.synced_time as usize, setup.buffer.len());
+            }
+
+            if let Some(index) = self.local_index {
+                debug_assert_eq!(self.player_controllers[index].buffer.len(), INPUT_DELAY);
             }
         }
     }
@@ -761,6 +771,9 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        // Set to transparent at start of update loop
+        self.resources.fade_sprite.set_color(Color::TRANSPARENT);
+
         self.update_textbox(game_io);
         self.handle_packets(game_io);
         self.core_update(game_io);
@@ -785,6 +798,10 @@ impl Scene for BattleScene {
             &mut self.simulation,
             &mut sprite_queue,
         );
+
+        let fade_sprite = &mut self.resources.fade_sprite;
+        fade_sprite.set_color(self.resources.fade_color.take());
+        sprite_queue.draw_sprite(fade_sprite);
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);

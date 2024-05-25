@@ -107,6 +107,41 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(entity.team == team)
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_owner", |api_ctx, lua, params| {
+        let (table, owner): (rollback_mlua::Table, Option<EntityOwner>) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let Some(owner) = owner else {
+            simulation.ownership_tracking.untrack(id);
+            return lua.pack_multi(());
+        };
+
+        let pending_delete = simulation.ownership_tracking.track(owner, id);
+
+        if let Some(id) = pending_delete {
+            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "owner", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let owner = simulation.ownership_tracking.resolve_owner(id);
+
+        lua.pack_multi(owner)
+    });
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "get_tile", |api_ctx, lua, params| {
         let (table, direction, distance): (rollback_mlua::Table, Option<Direction>, Option<i32>) =
             lua.unpack_multi(params)?;

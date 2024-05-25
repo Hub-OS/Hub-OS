@@ -3,6 +3,8 @@ frame x="0" y="0" w="80" h="134"
 point label="PREVIEW" x="40" y="4"
 point label="DESCRIPTION_START" x="4" y="71"
 point label="DESCRIPTION_END" x="75" y="120"
+point label="STATUS_START" x="10" y="3"
+point label="STATUS_END" x="70" y="51"
 
 animation state="MEGA"
 frame x="80" y="0" w="80" h="134"
@@ -12,3 +14,30 @@ frame x="160" y="0" w="80" h="134"
 
 animation state="DARK"
 frame x="240" y="0" w="80" h="134"
+
+animation state="STANDARD_BACK"
+frame x="0" y="135" w="80" h="134"
+
+animation state="MEGA_BACK"
+frame x="80" y="135" w="80" h="134"
+
+animation state="GIGA_BACK"
+frame x="160" y="135" w="80" h="134"
+
+animation state="DARK_BACK"
+frame x="240" y="135" w="80" h="134"
+
+animation state="CAN_CHARGE"
+frame x="0" y="270" w="12" h="12" originx="-10" originy="-54"
+
+animation state="CAN_BOOST"
+frame x="12" y="270" w="12" h="12" originx="-22" originy="-54"
+
+animation state="RECOVER"
+frame x="24" y="270" w="12" h="12" originx="-34" originy="-54"
+
+animation state="CONCEAL"
+frame x="48" y="270" w="12" h="12" originx="-46" originy="-54"
+
+animation state="TIME_FREEZE"
+frame x="36" y="270" w="12" h="12" originx="-58" originy="-54"

@@ -55,6 +55,7 @@ impl ResourcePaths {
     pub const PLAYER_DELETED_SFX: &'static str = "resources/sfx/player_deleted.ogg";
     pub const HURT_SFX: &'static str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &'static str = "resources/sfx/explode.ogg";
+    pub const DARK_CARD_SFX: &'static str = "resources/sfx/dark_card.ogg";
 
     // General
     pub const BLANK: &'static str = "";
@@ -80,6 +81,8 @@ impl ResourcePaths {
         "resources/scenes/shared/regular_card.animation";
     pub const FULL_CARD: &'static str = "resources/scenes/shared/full_card.png";
     pub const FULL_CARD_ANIMATION: &'static str = "resources/scenes/shared/full_card.animation";
+    pub const FULL_CARD_STATUSES_ANIMATION: &'static str =
+        "resources/scenes/shared/full_card_statuses.animation";
     pub const HEALTH_FRAME: &'static str = "resources/scenes/shared/health_frame.png";
     pub const HEALTH_FRAME_ANIMATION: &'static str =
         "resources/scenes/shared/health_frame.animation";

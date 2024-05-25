@@ -87,6 +87,7 @@ impl From<&json::Value> for PackageListing {
             "pack" => PackagePreviewData::Pack,
             "resource" => PackagePreviewData::Resource,
             "status" => PackagePreviewData::Status,
+            "tile_state" => PackagePreviewData::TileState,
             _ => PackagePreviewData::Unknown,
         };
 

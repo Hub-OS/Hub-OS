@@ -268,7 +268,7 @@ impl PackagesScene {
 
         if !has_players {
             let interface = TextboxMessage::new(String::from(
-                "At least one player mod must be installed to play.",
+                "At least one player mod must be installed to play.\nInstalling a pack is also recommended.",
             ));
 
             self.textbox.push_interface(interface);

@@ -121,7 +121,7 @@ impl Package for CardPackage {
             package.card_properties.hit_flags = hit_flags;
         }
 
-        if let Some(can_boost) = meta.can_charge {
+        if let Some(can_boost) = meta.can_boost {
             package.card_properties.can_boost = can_boost;
         }
 
@@ -150,10 +150,11 @@ impl CardPackage {
     pub fn draw_icon(
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
         package_id: &PackageId,
         position: Vec2,
     ) {
-        let (icon_texture, _) = Self::icon_texture(game_io, package_id);
+        let (icon_texture, _) = Self::icon_texture(game_io, namespace, package_id);
 
         let mut sprite = Sprite::new(game_io, icon_texture);
         sprite.set_position(position);
@@ -162,14 +163,14 @@ impl CardPackage {
 
     pub fn icon_texture<'a>(
         game_io: &'a GameIO,
+        namespace: PackageNamespace,
         package_id: &PackageId,
     ) -> (Arc<Texture>, &'a str) {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
-        let ns = PackageNamespace::Local;
 
-        if let Some(package) = package_manager.package_or_fallback(ns, package_id) {
+        if let Some(package) = package_manager.package_or_fallback(namespace, package_id) {
             let icon_texture = assets.texture(game_io, &package.icon_texture_path);
 
             if icon_texture.size() == UVec2::new(14, 14) {
