@@ -528,7 +528,7 @@ fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let globals = game_io.resource_mut::<Globals>().unwrap();
     let global_save = &mut globals.global_save;
 
-    let name = String::from("My Deck");
+    let name = String::from("NewFldr");
     global_save.decks.push(Deck::new(name));
     scene.deck_validities.push(DeckValidity::default());
 
