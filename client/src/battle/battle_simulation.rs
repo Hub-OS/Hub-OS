@@ -1,6 +1,6 @@
 use super::*;
 use crate::bindable::*;
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
@@ -28,6 +28,7 @@ pub struct BattleSimulation {
     pub tile_states: Vec<TileState>,
     pub entities: hecs::World,
     pub generation_tracking: Vec<hecs::Entity>,
+    pub ownership_tracking: OwnershipTracking,
     pub queued_attacks: Vec<AttackBox>,
     pub defense_judge: DefenseJudge,
     pub sprite_trees: SlotMap<Tree<SpriteNode>>,
@@ -72,6 +73,7 @@ impl BattleSimulation {
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
+            ownership_tracking: Default::default(),
             queued_attacks: Vec::new(),
             defense_judge: DefenseJudge::new(),
             sprite_trees: Default::default(),
@@ -146,6 +148,7 @@ impl BattleSimulation {
             tile_states: self.tile_states.clone(),
             entities,
             generation_tracking: self.generation_tracking.clone(),
+            ownership_tracking: self.ownership_tracking.clone(),
             queued_attacks: self.queued_attacks.clone(),
             defense_judge: self.defense_judge,
             sprite_trees: self.sprite_trees.clone(),
@@ -862,7 +865,13 @@ impl BattleSimulation {
                     border_sprite.set_position(position - 1.0);
                     sprite_queue.draw_sprite(&border_sprite);
 
-                    CardPackage::draw_icon(game_io, &mut sprite_queue, &card.package_id, position)
+                    CardPackage::draw_icon(
+                        game_io,
+                        &mut sprite_queue,
+                        card.namespace.unwrap_or(PackageNamespace::Local),
+                        &card.package_id,
+                        position,
+                    )
                 }
             }
         }

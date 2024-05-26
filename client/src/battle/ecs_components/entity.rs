@@ -178,13 +178,13 @@ impl Entity {
 
     pub fn sort_key(&self, sprite_trees: &SlotMap<Tree<SpriteNode>>) -> (i32, i32, i32) {
         let Some(sprite_tree) = sprite_trees.get(self.sprite_tree_index) else {
-            return (self.y, self.movement_offset.y as _, 0);
+            return (self.y, 0, self.movement_offset.y as _);
         };
 
         (
             self.y,
-            self.movement_offset.y as _,
             -sprite_tree.root().layer(),
+            self.movement_offset.y as _,
         )
     }
 

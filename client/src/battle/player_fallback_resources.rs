@@ -20,7 +20,7 @@ impl PlayerFallbackResources {
         let package_info = &package.package_info;
 
         // create simulation
-        let setup = PlayerSetup::new(package, 0, true);
+        let setup = PlayerSetup::new_dummy(package, 0, true);
         let mut props = BattleProps {
             player_setups: vec![setup],
             ..BattleProps::new_with_defaults(game_io, None)

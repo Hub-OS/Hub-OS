@@ -5,10 +5,12 @@ use crate::render::ui::GlyphAtlas;
 use crate::render::Animator;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::scenes::BattleEvent;
-use framework::prelude::{GameIO, Texture};
+use crate::RESOLUTION_F;
+use framework::math::{Rect, Vec2};
+use framework::prelude::{Color, GameIO, Sprite, Texture};
 use packets::structures::PackageCategory;
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -24,6 +26,8 @@ pub struct SharedBattleResources {
     pub math_expressions:
         RefCell<HashMap<String, rollback_mlua::Result<MathExpr<f32, AuxVariable>>>>,
     pub glyph_atlases: RefCell<HashMap<(Cow<'static, str>, Cow<'static, str>), Arc<GlyphAtlas>>>,
+    pub fade_color: Cell<Color>,
+    pub fade_sprite: Sprite,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
 }
@@ -38,6 +42,13 @@ impl SharedBattleResources {
 
         let (event_sender, event_receiver) = flume::unbounded();
 
+        let fade_sprite_texture = assets.texture(game_io, ResourcePaths::WHITE_PIXEL);
+
+        let fade_color = Cell::new(Color::new(0.0, 0.0, 0.0, 0.0));
+
+        let mut fade_sprite = Sprite::new(game_io, fade_sprite_texture);
+        fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
+
         let mut resources = Self {
             vm_manager: BattleVmManager::new(),
             status_registry: StatusRegistry::new(),
@@ -51,6 +62,8 @@ impl SharedBattleResources {
             ),
             math_expressions: Default::default(),
             glyph_atlases: Default::default(),
+            fade_color,
+            fade_sprite,
             event_sender,
             event_receiver,
         };

@@ -7,6 +7,7 @@ use serde::Deserialize;
 #[serde(default)]
 struct StatusMeta {
     category: String,
+    icon_texture_path: Option<String>,
     name: String,
     description: String,
     flag_name: String,
@@ -20,6 +21,7 @@ struct StatusMeta {
 #[derive(Default, Clone)]
 pub struct StatusPackage {
     pub package_info: PackageInfo,
+    pub icon_texture_path: Option<String>,
     pub name: String,
     pub description: String,
     pub flag_name: String,
@@ -68,7 +70,10 @@ impl Package for StatusPackage {
             );
         }
 
+        let base_path = &package.package_info.base_path;
+
         package.name = meta.name;
+        package.icon_texture_path = meta.icon_texture_path.map(|p| base_path.clone() + &p);
         package.description = meta.description;
         package.flag_name = meta.flag_name;
         package.blocks_flags = meta.blocks_flags;

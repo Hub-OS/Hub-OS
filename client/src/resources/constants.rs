@@ -17,6 +17,7 @@ pub const TRUE_RESOLUTION: UVec2 = UVec2::new(
 pub const MAX_VOLUME: u8 = 100;
 
 // battle
+pub const INPUT_DELAY: usize = 2;
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const CARD_SELECT_CARD_COLS: usize = 5;
 pub const CARD_SELECT_COLS: usize = CARD_SELECT_CARD_COLS + 1;

@@ -26,7 +26,7 @@ pub struct PlayerSetup {
 }
 
 impl PlayerSetup {
-    pub fn new(player_package: &PlayerPackage, index: usize, local: bool) -> Self {
+    pub fn new_dummy(player_package: &PlayerPackage, index: usize, local: bool) -> Self {
         Self {
             package_id: player_package.package_info.id.clone(),
             script_enabled: true,
@@ -107,7 +107,7 @@ impl PlayerSetup {
             blocks,
             drives,
             local: true,
-            buffer: PlayerInputBuffer::default(),
+            buffer: PlayerInputBuffer::new_with_delay(INPUT_DELAY),
         }
     }
 

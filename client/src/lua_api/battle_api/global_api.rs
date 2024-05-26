@@ -195,6 +195,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     lifetime_table.set("Scene", ComponentLifetime::Scene)?;
     lifetime_table.set("CardSelectOpen", ComponentLifetime::CardSelectOpen)?;
     lifetime_table.set("CardSelectClose", ComponentLifetime::CardSelectClose)?;
+    lifetime_table.set("CardSelectComplete", ComponentLifetime::CardSelectComplete)?;
     lifetime_table.set("Nil", ComponentLifetime::Nil)?;
     globals.set("Lifetime", lifetime_table)?;
 
