@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+use std::ffi::c_void;
+
 pub fn optional_lua_string_to_optional_str<'a>(
     optional_string: &'a Option<mlua::String>,
 ) -> mlua::Result<Option<&'a str>> {
@@ -18,27 +21,20 @@ pub fn lua_value_to_string(
     indentation: &str,
     indentation_level: usize,
 ) -> String {
-    let mut root_table = None;
-    lua_value_to_string_internal(value, indentation, indentation_level, &mut root_table)
+    let mut visited = HashSet::new();
+    lua_value_to_string_internal(value, indentation, indentation_level, &mut visited)
 }
 
-fn lua_value_to_string_internal<'lua>(
-    value: mlua::Value<'lua>,
+fn lua_value_to_string_internal(
+    value: mlua::Value,
     indentation: &str,
     indentation_level: usize,
-    root_table: &mut Option<mlua::Table<'lua>>,
+    visited: &mut HashSet<*const c_void>,
 ) -> String {
     match value {
         mlua::Value::Table(table) => {
-            let circular_reference = match &root_table {
-                Some(root_table) => root_table.equals(table.clone()).unwrap_or_default(),
-                None => {
-                    *root_table = Some(table.clone());
-                    false
-                }
-            };
-
-            if circular_reference {
+            let key = table.to_pointer();
+            if !visited.insert(key) {
                 return String::from("Circular Reference");
             }
 
@@ -54,17 +50,19 @@ fn lua_value_to_string_internal<'lua>(
                             key,
                             indentation,
                             indentation_level + 1,
-                            root_table
+                            visited
                         ),
                         lua_value_to_string_internal(
                             value,
                             indentation,
                             indentation_level + 1,
-                            root_table
+                            visited
                         ),
                     )
                 })
                 .collect();
+
+            visited.remove(&key);
 
             if indentation.is_empty() {
                 // {pair_strings}, `{{` and `}}` are escaped versions of `{` and `}`
