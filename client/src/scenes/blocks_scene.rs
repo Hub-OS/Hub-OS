@@ -63,6 +63,7 @@ pub struct BlocksScene {
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
+    block_original_rotation: u8,
     cursor: GridCursor,
     block_returns_to_grid: bool,
     state: State,
@@ -200,6 +201,7 @@ impl BlocksScene {
                 &[("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
             ),
             held_block: None,
+            block_original_rotation: 0,
             cursor,
             state: State::ListSelection,
             block_returns_to_grid: false,
@@ -304,7 +306,7 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
-                    self.information_text.text = package.description.clone();
+                    self.information_text.text.clone_from(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&block.package_id, block.color);
                 } else {
@@ -323,7 +325,7 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &package.id)
                         .unwrap();
 
-                    self.information_text.text = package.description.clone();
+                    self.information_text.text.clone_from(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&package.package_info.id, block_color);
 
@@ -410,9 +412,11 @@ impl BlocksScene {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
             } else if self.input_tracker.is_active(Input::Cancel) {
-                let block = self.held_block.take().unwrap();
+                let mut block = self.held_block.take().unwrap();
 
                 if self.block_returns_to_grid {
+                    block.rotation = self.block_original_rotation;
+
                     let (x, y) = block.position;
                     self.state = State::GridSelection { x, y };
 
@@ -583,6 +587,7 @@ impl BlocksScene {
 
                     match op {
                         BlockOption::Move => {
+                            self.block_original_rotation = block.rotation;
                             self.held_block = Some(block);
                             self.block_returns_to_grid = true;
                         }

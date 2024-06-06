@@ -153,7 +153,7 @@ impl Player {
 
         // use preloaded package properties
         entity.element = player_package.element;
-        entity.name = player_package.name.clone();
+        entity.name.clone_from(&player_package.name);
         living.status_director.set_input_index(setup.index);
 
         // idle callback
