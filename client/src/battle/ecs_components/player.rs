@@ -611,14 +611,13 @@ impl Player {
 
         // update AttackCharge structs
         let entities = &mut simulation.entities;
-        let (entity, player, character) = entities
-            .query_one_mut::<(&Entity, &mut Player, &mut Character)>(entity_id.into())
+        let (player, character) = entities
+            .query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
         player.card_chargable_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
-        let is_idle = entity.movement.is_none();
         let input = &simulation.inputs[player.index];
 
         if can_charge_card && input.was_just_pressed(Input::UseCard) {
@@ -650,10 +649,10 @@ impl Player {
         let card_used = if !can_charge_card && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
-            player.card_charge.update(game_io, is_idle, play_sfx)
+            player.card_charge.update(game_io, play_sfx)
         };
 
-        let buster_fired = player.buster_charge.update(game_io, is_idle, play_sfx);
+        let buster_fired = player.buster_charge.update(game_io, play_sfx);
 
         // update from results
 
