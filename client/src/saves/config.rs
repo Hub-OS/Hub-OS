@@ -343,81 +343,74 @@ impl From<&str> for Config {
     }
 }
 
-impl ToString for Config {
-    fn to_string(&self) -> String {
-        use std::fmt::Write;
+impl std::fmt::Display for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use strum::IntoEnumIterator;
 
-        let attempt = || -> Result<String, std::fmt::Error> {
-            let mut s = String::new();
+        writeln!(f, "[Video]")?;
+        writeln!(f, "Fullscreen = {}", self.fullscreen)?;
+        writeln!(f, "VSync = {}", self.vsync)?;
+        writeln!(f, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
+        writeln!(f, "Brightness = {}", self.brightness)?;
+        writeln!(f, "Saturation = {}", self.saturation)?;
+        writeln!(f, "Ghosting = {}", self.ghosting)?;
+        writeln!(f, "ColorBlindness = {}", self.color_blindness)?;
 
-            writeln!(s, "[Video]")?;
-            writeln!(s, "Fullscreen = {}", self.fullscreen)?;
-            writeln!(s, "VSync = {}", self.vsync)?;
-            writeln!(s, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
-            writeln!(s, "Brightness = {}", self.brightness)?;
-            writeln!(s, "Saturation = {}", self.saturation)?;
-            writeln!(s, "Ghosting = {}", self.ghosting)?;
-            writeln!(s, "ColorBlindness = {}", self.color_blindness)?;
+        writeln!(f, "[Audio]")?;
+        writeln!(f, "Music = {}", self.music)?;
+        writeln!(f, "SFX = {}", self.sfx)?;
+        writeln!(f, "MuteMusic = {}", self.mute_music)?;
+        writeln!(f, "MuteSFX = {}", self.mute_sfx)?;
+        writeln!(f, "OutputDevice = {}", self.audio_device)?;
 
-            writeln!(s, "[Audio]")?;
-            writeln!(s, "Music = {}", self.music)?;
-            writeln!(s, "SFX = {}", self.sfx)?;
-            writeln!(s, "MuteMusic = {}", self.mute_music)?;
-            writeln!(s, "MuteSFX = {}", self.mute_sfx)?;
-            writeln!(s, "OutputDevice = {}", self.audio_device)?;
+        writeln!(f, "[Keyboard]")?;
 
-            writeln!(s, "[Keyboard]")?;
+        match self.key_style {
+            KeyStyle::Wasd => writeln!(f, "Style = WASD")?,
+            KeyStyle::Emulator => writeln!(f, "Style = Emulator")?,
+        }
 
-            match self.key_style {
-                KeyStyle::Wasd => writeln!(s, "Style = WASD")?,
-                KeyStyle::Emulator => writeln!(s, "Style = Emulator")?,
-            }
+        for input in Input::iter() {
+            write!(f, "{input:?} = ")?;
 
-            for input in Input::iter() {
-                write!(s, "{input:?} = ")?;
+            if let Some(keys) = self.key_bindings.get(&input) {
+                let keys_string = keys
+                    .iter()
+                    .map(|key| -> &'static str { key.into() })
+                    .join(",");
 
-                if let Some(keys) = self.key_bindings.get(&input) {
-                    let keys_string = keys
-                        .iter()
-                        .map(|key| -> &'static str { key.into() })
-                        .join(",");
-
-                    writeln!(s, "{keys_string}")?;
-                } else {
-                    writeln!(s, "None")?;
-                }
-            }
-
-            writeln!(s, "[Controller]")?;
-            writeln!(s, "ControllerIndex = {}", self.controller_index)?;
-
-            for input in Input::iter() {
-                write!(s, "{input:?} = ")?;
-
-                if let Some(buttons) = self.controller_bindings.get(&input) {
-                    let buttons_string = buttons
-                        .iter()
-                        .map(|button| -> &'static str { button.into() })
-                        .join(",");
-
-                    writeln!(s, "{buttons_string}")?;
-                } else {
-                    writeln!(s, "None")?;
-                }
-            }
-
-            writeln!(s, "[Online]")?;
-
-            if self.package_repo != DEFAULT_PACKAGE_REPO {
-                writeln!(s, "PackageRepo = {}", self.package_repo)?;
+                writeln!(f, "{keys_string}")?;
             } else {
-                writeln!(s, "PackageRepo = ",)?;
+                writeln!(f, "None")?;
             }
+        }
 
-            Ok(s)
-        };
+        writeln!(f, "[Controller]")?;
+        writeln!(f, "ControllerIndex = {}", self.controller_index)?;
 
-        attempt().unwrap()
+        for input in Input::iter() {
+            write!(f, "{input:?} = ")?;
+
+            if let Some(buttons) = self.controller_bindings.get(&input) {
+                let buttons_string = buttons
+                    .iter()
+                    .map(|button| -> &'static str { button.into() })
+                    .join(",");
+
+                writeln!(f, "{buttons_string}")?;
+            } else {
+                writeln!(f, "None")?;
+            }
+        }
+
+        writeln!(f, "[Online]")?;
+
+        if self.package_repo != DEFAULT_PACKAGE_REPO {
+            writeln!(f, "PackageRepo = {}", self.package_repo)?;
+        } else {
+            writeln!(f, "PackageRepo = ",)?;
+        }
+
+        Ok(())
     }
 }

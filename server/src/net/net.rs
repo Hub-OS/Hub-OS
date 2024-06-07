@@ -1412,7 +1412,7 @@ impl Net {
         z: f32,
         direction: Direction,
     ) {
-        if self.areas.get(area_id).is_none() {
+        if !self.areas.contains_key(area_id) {
             // non existent area
             return;
         }
@@ -2210,7 +2210,7 @@ impl Net {
         y: f32,
         z: f32,
     ) {
-        if self.areas.get(area_id).is_none() {
+        if !self.areas.contains_key(area_id) {
             // non existent area
             return;
         }
@@ -2363,7 +2363,7 @@ impl Net {
 
     pub fn animate_sprite(&mut self, sprite_id: SpriteId, state: String, loop_animation: bool) {
         if let Some(sprite) = self.sprites.get_mut(sprite_id) {
-            sprite.definition.animation_state = state.clone();
+            sprite.definition.animation_state.clone_from(&state);
             sprite.definition.animation_loops = loop_animation;
         }
 

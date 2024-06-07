@@ -133,7 +133,7 @@ impl Shop {
     }
 
     pub fn set_message(&mut self, message: String) {
-        self.saved_message = message.clone();
+        self.saved_message.clone_from(&message);
 
         if self.confirming_leave {
             return;

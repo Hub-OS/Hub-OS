@@ -399,7 +399,7 @@ impl ConfigScene {
                     let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
                     audio.use_device(&device_name);
 
-                    config.audio_device = device_name.clone();
+                    config.audio_device.clone_from(&device_name);
 
                     device_name
                 },

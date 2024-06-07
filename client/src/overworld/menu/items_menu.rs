@@ -143,7 +143,9 @@ impl ItemsMenu {
         // if there were previously 0 items, initialize the description text
         if self.registered_count == 0 {
             if let Some((_, item_definition, _)) = Self::consumables_iter(area).next() {
-                self.description_text.text = item_definition.description.clone();
+                self.description_text
+                    .text
+                    .clone_from(&item_definition.description);
             }
         }
 
@@ -224,7 +226,9 @@ impl Menu for ItemsMenu {
 
             // update description
             let (_, item_definition, _) = Self::consumables_iter(area).nth(index).unwrap();
-            self.description_text.text = item_definition.description.clone();
+            self.description_text
+                .text
+                .clone_from(&item_definition.description);
         }
 
         // handle selection

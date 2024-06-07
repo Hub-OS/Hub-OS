@@ -171,7 +171,7 @@ impl Menu for EmoteMenu {
 
         // merge
         self.emotes = emoticon_iter.chain(actor_animation_iter).collect();
-        self.filtered_emotes = self.emotes.clone();
+        self.filtered_emotes.clone_from(&self.emotes);
         self.scroll_tracker.set_total_items(self.emotes.len() + 1);
         self.scroll_tracker.set_selected_index(0);
     }

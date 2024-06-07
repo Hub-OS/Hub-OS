@@ -137,7 +137,7 @@ impl StagedItems {
                 let package = card_packages.package_or_fallback(namespace, &card.package_id)?;
                 let mut card_properties = package.card_properties.to_bindable(status_registry);
 
-                card_properties.code = card.code.clone();
+                card_properties.code.clone_from(&card.code);
                 card_properties.namespace = Some(namespace);
 
                 Some(card_properties)
