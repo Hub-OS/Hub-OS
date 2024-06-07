@@ -39,7 +39,7 @@ impl Player {
     pub const IDLE_STATE: &'static str = "PLAYER_IDLE";
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
-        DerivedFrame::new(0, 1),
+        DerivedFrame::new(0, 2),
         DerivedFrame::new(1, 1),
         DerivedFrame::new(2, 1),
         DerivedFrame::new(3, 1),
