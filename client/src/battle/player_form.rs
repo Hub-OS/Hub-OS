@@ -10,6 +10,8 @@ pub struct PlayerForm {
     pub description: Option<Arc<str>>,
     pub activate_callback: Option<BattleCallback>,
     pub deactivate_callback: Option<BattleCallback>,
+    pub select_callback: Option<BattleCallback>,
+    pub deselect_callback: Option<BattleCallback>,
     pub update_callback: Option<BattleCallback>,
     pub overridables: PlayerOverridables,
 }

@@ -402,6 +402,17 @@ impl CardSelectState {
                         simulation.play_sound(game_io, &globals.sfx.transform_select);
                     }
 
+                    // call form select callback
+                    let entities = &mut simulation.entities;
+
+                    if let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) {
+                        if let Some(index) = player.staged_items.stored_form_index() {
+                            if let Some(callback) = &player.forms[index].select_callback {
+                                callback.clone().call(game_io, resources, simulation, ());
+                            }
+                        }
+                    }
+
                     return;
                 }
                 40.. => {
@@ -469,12 +480,18 @@ impl CardSelectState {
                 .map(|(index, _)| index);
 
             if let Some(index) = form_index {
-                if player.staged_items.stored_form_index() == Some(index) {
+                if let Some(index) = player.staged_items.stored_form_index() {
                     // deselect the form if the player reselected it
                     player.staged_items.drop_form_selection();
+
+                    if let Some(callback) = &player.forms[index].deselect_callback {
+                        simulation.pending_callbacks.push(callback.clone());
+                    }
                 } else {
                     // select new form
                     player.staged_items.stage_form(index, None, None);
+
+                    // select_callback will be called in the middle of the select animation
                     selection.form_select_time = Some(self.time);
                 }
             }
@@ -513,6 +530,8 @@ impl CardSelectState {
         for sfx in pending_sfx {
             simulation.play_sound(game_io, sfx);
         }
+
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     fn handle_card_input(
@@ -771,6 +790,14 @@ impl CardSelectState {
         let mut applied = false;
 
         if let Some(popped) = player.staged_items.pop() {
+            if let StagedItemData::Form((index, ..)) = popped.data {
+                if let Some(callback) = &player.forms[index].deselect_callback {
+                    callback.clone().call(game_io, resources, simulation, ());
+                }
+
+                simulation.play_sound(game_io, &globals.sfx.transform_revert);
+            }
+
             if let Some(callback) = popped.undo_callback {
                 callback.call(game_io, resources, simulation, ());
             }

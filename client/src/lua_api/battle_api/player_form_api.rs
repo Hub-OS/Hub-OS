@@ -1,8 +1,8 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{
     create_card_select_button_and_table, BattleLuaApi, ACTIVATE_FN, CAN_CHARGE_CARD_FN,
-    CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, MOVEMENT_FN,
-    PLAYER_FORM_TABLE, SPECIAL_ATTACK_FN, UPDATE_FN,
+    CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN,
+    PLAYER_FORM_TABLE, SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
 use crate::battle::{BattleCallback, CardSelectButtonPath, Player, PlayerForm};
 use crate::bindable::EntityId;
@@ -144,6 +144,26 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         DEACTIVATE_FN,
         |form| &mut form.deactivate_callback,
+        |lua, form_table, _| {
+            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
+            lua.pack_multi((form_table, player_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        SELECT_FN,
+        |form| &mut form.select_callback,
+        |lua, form_table, _| {
+            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
+            lua.pack_multi((form_table, player_table))
+        },
+    );
+
+    callback_setter(
+        lua_api,
+        DESELECT_FN,
+        |form| &mut form.deselect_callback,
         |lua, form_table, _| {
             let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
             lua.pack_multi((form_table, player_table))

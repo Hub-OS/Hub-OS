@@ -180,6 +180,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field_table)
     });
 
+    getter(lua_api, "spawned", |entity: &Entity, lua, _: ()| {
+        lua.pack_multi(entity.spawned)
+    });
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "hittable", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -1434,6 +1438,64 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |player: &mut Player, _lua, emotion: Emotion| {
             player.emotion_window.set_emotion(emotion);
             Ok(())
+        },
+    );
+
+    getter(
+        lua_api,
+        "emotions_texture",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.texture_path()),
+    );
+
+    getter(
+        lua_api,
+        "emotions_animation_path",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.animation_path()),
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "set_emotions_texture",
+        |api_ctx, lua, params| {
+            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+            let path = absolute_path(lua, path)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            player.emotion_window.set_texture(api_ctx.game_io, path);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "load_emotions_animation",
+        |api_ctx, lua, params| {
+            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+            let path = absolute_path(lua, path)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            player.emotion_window.load_animation(api_ctx.game_io, path);
+
+            lua.pack_multi(())
         },
     );
 
