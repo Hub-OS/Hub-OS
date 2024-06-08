@@ -290,10 +290,6 @@ impl State for CardSelectState {
                 }
             }
 
-            if player.has_regular_card {
-                self.ui.draw_regular_card_frame(sprite_queue);
-            }
-
             // draw preview icon
 
             match selected_item {
@@ -325,6 +321,10 @@ impl State for CardSelectState {
                 }
                 SelectedItem::None => {}
             }
+        }
+
+        if player.has_regular_card {
+            self.ui.draw_regular_card_frame(sprite_queue);
         }
 
         if !simulation.battle_started {
