@@ -271,7 +271,7 @@ impl Player {
 
                         // play revert sfx
                         let sfx = &game_io.resource::<Globals>().unwrap().sfx;
-                        simulation.play_sound(game_io, &sfx.transform_revert);
+                        simulation.play_sound(game_io, &sfx.form_deactivate);
 
                         // actual shine creation as indicated above
                         let shine_id = Artifact::create_transformation_shine(game_io, simulation);

@@ -45,9 +45,9 @@ impl ResourcePaths {
     pub const TILE_BREAK_SFX: &'static str = "resources/sfx/tile_break.ogg";
     pub const TRAP_SFX: &'static str = "resources/sfx/trap.ogg";
     pub const SHINE_SFX: &'static str = "resources/sfx/shine.ogg";
-    pub const TRANSFORM_SELECT_SFX: &'static str = "resources/sfx/transform_select.ogg";
-    pub const TRANSFORM_SFX: &'static str = "resources/sfx/transform.ogg";
-    pub const TRANSFORM_REVERT_SFX: &'static str = "resources/sfx/transform_revert.ogg";
+    pub const FORM_SELECT_SFX: &'static str = "resources/sfx/form_select.ogg";
+    pub const FORM_SFX: &'static str = "resources/sfx/form_activate.ogg";
+    pub const FORM_REVERT_SFX: &'static str = "resources/sfx/form_deactivate.ogg";
     pub const ATTACK_CHARGING_SFX: &'static str = "resources/sfx/attack_charging.ogg";
     pub const ATTACK_CHARGED_SFX: &'static str = "resources/sfx/attack_charged.ogg";
     pub const COUNTER_HIT_SFX: &'static str = "resources/sfx/counter_hit.ogg";
@@ -224,9 +224,8 @@ impl ResourcePaths {
     pub const BATTLE_CARD_CHARGE: &'static str = "resources/scenes/battle/card_charge.png";
     pub const BATTLE_CARD_CHARGE_ANIMATION: &'static str =
         "resources/scenes/battle/card_charge.animation";
-    pub const BATTLE_TRANSFORM_SHINE: &'static str = "resources/scenes/battle/transform_shine.png";
-    pub const BATTLE_TRANSFORM_SHINE_ANIMATION: &'static str =
-        "resources/scenes/battle/transform_shine.animation";
+    pub const BATTLE_SHINE: &'static str = "resources/scenes/battle/shine.png";
+    pub const BATTLE_SHINE_ANIMATION: &'static str = "resources/scenes/battle/shine.animation";
     pub const BATTLE_CARD_SELECT: &'static str = "resources/scenes/battle/card_select.png";
     pub const BATTLE_CARD_SELECT_ANIMATION: &'static str =
         "resources/scenes/battle/card_select.animation";

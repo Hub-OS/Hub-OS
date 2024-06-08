@@ -399,7 +399,7 @@ impl CardSelectState {
                     // sfx
                     if selection.local {
                         let globals = game_io.resource::<Globals>().unwrap();
-                        simulation.play_sound(game_io, &globals.sfx.transform_select);
+                        simulation.play_sound(game_io, &globals.sfx.form_select);
                     }
 
                     // call form select callback
@@ -795,7 +795,7 @@ impl CardSelectState {
                     callback.clone().call(game_io, resources, simulation, ());
                 }
 
-                simulation.play_sound(game_io, &globals.sfx.transform_revert);
+                simulation.play_sound(game_io, &globals.sfx.form_deactivate);
             }
 
             if let Some(callback) = popped.undo_callback {

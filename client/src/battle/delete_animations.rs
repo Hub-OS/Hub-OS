@@ -31,9 +31,10 @@ pub fn delete_player_animation(game_io: &GameIO, simulation: &mut BattleSimulati
 
     player_animator.disable();
 
-    // create transformation shine artifact
+    // fade entity
     Component::create_player_deletion(simulation, id);
 
+    // create shine artifact
     let artifact_id = Artifact::create_transformation_shine(game_io, simulation);
     let artifact_entity = simulation
         .entities
