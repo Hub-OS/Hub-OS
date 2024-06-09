@@ -53,4 +53,11 @@ pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "complete_turn", |api_ctx, lua, _| {
+        let mut api_ctx = api_ctx.borrow_mut();
+        api_ctx.simulation.turn_gauge.set_completed_turn(true);
+
+        lua.pack_multi(())
+    });
 }
