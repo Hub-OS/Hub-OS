@@ -776,8 +776,9 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        // Set to transparent at start of update loop
-        self.resources.fade_sprite.set_color(Color::TRANSPARENT);
+        // Set fade colors to transparent at the start of the update loop
+        self.resources.ui_fade_color.set(Color::TRANSPARENT);
+        self.resources.battle_fade_color.set(Color::TRANSPARENT);
 
         self.update_textbox(game_io);
         self.handle_packets(game_io);
@@ -789,17 +790,16 @@ impl Scene for BattleScene {
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // draw simulation
-        self.simulation
-            .draw(game_io, render_pass, self.draw_player_indices);
+        self.simulation.draw(
+            game_io,
+            &self.resources,
+            render_pass,
+            self.draw_player_indices,
+        );
 
         // draw ui
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.ui_camera, SpriteColorMode::Multiply);
-
-        // draw battle fade color
-        let fade_color = self.resources.battle_fade_color.take();
-        self.resources
-            .draw_fade_sprite(&mut sprite_queue, fade_color);
 
         // draw ui
         self.simulation.draw_ui(game_io, &mut sprite_queue);
@@ -811,7 +811,7 @@ impl Scene for BattleScene {
         );
 
         // draw ui fade color
-        let fade_color = self.resources.ui_fade_color.take();
+        let fade_color = self.resources.ui_fade_color.get();
         self.resources
             .draw_fade_sprite(&mut sprite_queue, fade_color);
 

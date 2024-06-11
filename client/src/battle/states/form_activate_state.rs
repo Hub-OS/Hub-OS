@@ -53,7 +53,7 @@ impl State for FormActivateState {
         };
 
         let fade_color = Color::BLACK.multiply_alpha(alpha);
-        simulation.fade_sprite.set_color(fade_color);
+        resources.battle_fade_color.set(fade_color);
 
         // logic
         if self.target_complete_time.is_none() {

@@ -1,3 +1,4 @@
+use super::{BattleSimulation, PlayerSetup, StatusRegistry, TileState};
 use crate::bindable::{AuxVariable, MathExpr};
 use crate::lua_api::BattleVmManager;
 use crate::packages::{PackageInfo, PackageNamespace};
@@ -6,15 +7,13 @@ use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::scenes::BattleEvent;
 use crate::{CardRecipes, RESOLUTION_F};
-use framework::math::{Rect, Vec2};
+use framework::math::Rect;
 use framework::prelude::{Color, GameIO, Sprite, Texture};
 use packets::structures::PackageCategory;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::sync::Arc;
-
-use super::{BattleSimulation, PlayerSetup, StatusRegistry, TileState};
 
 /// Resources that are shared between battle snapshots
 pub struct SharedBattleResources {
@@ -30,7 +29,7 @@ pub struct SharedBattleResources {
     pub glyph_atlases: RefCell<HashMap<(Cow<'static, str>, Cow<'static, str>), Arc<GlyphAtlas>>>,
     pub battle_fade_color: Cell<Color>,
     pub ui_fade_color: Cell<Color>,
-    pub fade_sprite: Sprite,
+    pub fade_sprite: RefCell<Sprite>,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
 }
@@ -48,8 +47,9 @@ impl SharedBattleResources {
 
         let fade_sprite_texture = assets.texture(game_io, ResourcePaths::WHITE_PIXEL);
 
+        // large fade sprite to account for camera differences between ui and battle
         let mut fade_sprite = Sprite::new(game_io, fade_sprite_texture);
-        fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
+        fade_sprite.set_bounds(Rect::from_corners(-RESOLUTION_F, RESOLUTION_F));
 
         let mut resources = Self {
             vm_manager: BattleVmManager::new(),
@@ -69,7 +69,7 @@ impl SharedBattleResources {
             glyph_atlases: Default::default(),
             battle_fade_color: Default::default(),
             ui_fade_color: Default::default(),
-            fade_sprite,
+            fade_sprite: fade_sprite.into(),
             event_sender,
             event_receiver,
         };
@@ -148,10 +148,11 @@ impl SharedBattleResources {
             .clone()
     }
 
-    pub fn draw_fade_sprite(&mut self, sprite_queue: &mut SpriteColorQueue, color: Color) {
+    pub fn draw_fade_sprite(&self, sprite_queue: &mut SpriteColorQueue, color: Color) {
         if color != Color::TRANSPARENT {
-            self.fade_sprite.set_color(color);
-            sprite_queue.draw_sprite(&self.fade_sprite);
+            let fade_sprite = &mut *self.fade_sprite.borrow_mut();
+            fade_sprite.set_color(color);
+            sprite_queue.draw_sprite(fade_sprite);
         }
     }
 }
