@@ -103,13 +103,36 @@ impl State for CardSelectState {
                 player.staged_items.set_confirmed(false);
             }
 
+            simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
+
+            // handle frame 0 scripted confirmation
+            let mut pre_confirmed = false;
+            for (_, player) in simulation.entities.query_mut::<&mut Player>() {
+                if !player.staged_items.confirmed() {
+                    continue;
+                }
+
+                if player.local {
+                    pre_confirmed = true;
+                }
+
+                // initialize selection
+                self.player_selections
+                    .resize_with(player.index + 1, Selection::default);
+                let selection = &mut self.player_selections[player.index];
+                selection.local = player.local;
+                selection.confirm_time = -CardSelectUi::SLIDE_DURATION;
+                selection.recipe_animation =
+                    CardRecipeAnimation::try_new(game_io, resources, player);
+            }
+
             // sfx
-            let globals = game_io.resource::<Globals>().unwrap();
-            simulation.play_sound(game_io, &globals.sfx.card_select_open);
+            if !pre_confirmed {
+                let globals = game_io.resource::<Globals>().unwrap();
+                simulation.play_sound(game_io, &globals.sfx.card_select_open);
+            }
 
             self.dark_card_check(simulation, game_io);
-
-            simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
         }
 
         CardSelectButton::update_all_from_staged_items(game_io, resources, simulation);

@@ -38,6 +38,7 @@ pub struct CardSelectUi {
 
 impl CardSelectUi {
     pub const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
+    pub const SLIDE_DURATION: FrameTime = 10;
 
     pub fn new(game_io: &GameIO) -> Self {
         let mut sprites = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Multiply));
@@ -188,12 +189,10 @@ impl CardSelectUi {
     }
 
     pub fn slide_progress(&self, confirm_time: FrameTime) -> f32 {
-        const ANIMATION_DURATION: f32 = 10.0;
-
         let progress = if confirm_time == 0 {
-            inverse_lerp!(0.0, ANIMATION_DURATION, self.time)
+            inverse_lerp!(0.0, Self::SLIDE_DURATION, self.time)
         } else {
-            1.0 - inverse_lerp!(0.0, ANIMATION_DURATION, self.time - confirm_time)
+            1.0 - inverse_lerp!(0.0, Self::SLIDE_DURATION, self.time - confirm_time)
         };
 
         progress.clamp(0.0, 1.0)
