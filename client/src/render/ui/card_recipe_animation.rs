@@ -116,8 +116,11 @@ impl CardRecipeAnimation {
             return;
         };
 
+        // store pending cards
         character.cards = self.cards.to_vec();
+        character.next_card_mutation = Some(0);
 
+        // apply recipes
         let globals = game_io.resource::<Globals>().unwrap();
         let card_packages = &globals.card_packages;
         let status_registry = &resources.status_registry;
