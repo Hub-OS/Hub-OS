@@ -104,7 +104,12 @@ impl BattleScene {
         simulation.seed_random(props.seed);
 
         // create shared resources
-        let mut resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
+        let mut resources = SharedBattleResources::new(
+            game_io,
+            &mut simulation,
+            &props.player_setups,
+            &dependencies,
+        );
 
         // load battle package
         if let Some(encounter_package) = props.encounter_package(game_io) {
@@ -791,6 +796,12 @@ impl Scene for BattleScene {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.ui_camera, SpriteColorMode::Multiply);
 
+        // draw battle fade color
+        let fade_color = self.resources.battle_fade_color.take();
+        self.resources
+            .draw_fade_sprite(&mut sprite_queue, fade_color);
+
+        // draw ui
         self.simulation.draw_ui(game_io, &mut sprite_queue);
         self.state.draw_ui(
             game_io,
@@ -799,9 +810,10 @@ impl Scene for BattleScene {
             &mut sprite_queue,
         );
 
-        let fade_sprite = &mut self.resources.fade_sprite;
-        fade_sprite.set_color(self.resources.fade_color.take());
-        sprite_queue.draw_sprite(fade_sprite);
+        // draw ui fade color
+        let fade_color = self.resources.ui_fade_color.take();
+        self.resources
+            .draw_fade_sprite(&mut sprite_queue, fade_color);
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);

@@ -118,6 +118,12 @@ impl BootScene {
                 }
                 BootEvent::CardManager(card_packages) => {
                     globals.card_packages = card_packages;
+
+                    // load recipes
+                    let ns = PackageNamespace::Local;
+                    for package in globals.card_packages.packages(ns) {
+                        globals.card_recipes.load_from_package(ns, package);
+                    }
                 }
                 BootEvent::EncounterManager(encounter_packages) => {
                     globals.encounter_packages = encounter_packages;

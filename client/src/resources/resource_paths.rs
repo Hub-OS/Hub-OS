@@ -56,6 +56,8 @@ impl ResourcePaths {
     pub const HURT_SFX: &'static str = "resources/sfx/hurt.ogg";
     pub const EXPLODE_SFX: &'static str = "resources/sfx/explode.ogg";
     pub const DARK_CARD_SFX: &'static str = "resources/sfx/dark_card.ogg";
+    pub const INDICATE_SFX: &'static str = "resources/sfx/indicate.ogg";
+    pub const CRAFT_SFX: &'static str = "resources/sfx/craft.ogg";
 
     // General
     pub const BLANK: &'static str = "";
@@ -229,6 +231,8 @@ impl ResourcePaths {
     pub const BATTLE_CARD_SELECT: &'static str = "resources/scenes/battle/card_select.png";
     pub const BATTLE_CARD_SELECT_ANIMATION: &'static str =
         "resources/scenes/battle/card_select.animation";
+    pub const BATTLE_RECIPE: &'static str = "resources/scenes/battle/recipe.png";
+    pub const BATTLE_RECIPE_ANIMATION: &'static str = "resources/scenes/battle/recipe.animation";
     pub const BATTLE_TURN_GAUGE: &'static str = "resources/scenes/battle/turn_gauge.png";
     pub const BATTLE_TURN_GAUGE_ANIMATION: &'static str =
         "resources/scenes/battle/turn_gauge.animation";

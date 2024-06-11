@@ -23,6 +23,7 @@ struct Selection {
     form_open_time: Option<FrameTime>,
     confirm_time: FrameTime,
     animating_slide: bool,
+    recipe_animation: Option<CardRecipeAnimation>,
     erased: bool,
     local: bool,
 }
@@ -39,6 +40,7 @@ impl Selection {
             form_open_time: Some(0),
             confirm_time: 0,
             animating_slide: false,
+            recipe_animation: None,
             erased: false,
             local: true,
         }
@@ -142,8 +144,23 @@ impl State for CardSelectState {
             // unmark as erased
             selection.erased = false;
 
-            if selection.animating_slide || selection.confirm_time != 0 {
-                // if we're animating the ui or already confirmed we should skip this input
+            if selection.animating_slide {
+                // don't update if we're animating slide
+                continue;
+            }
+
+            // update recipe animation if it's visible
+            if let Some(animation) = &mut selection.recipe_animation {
+                animation.update(game_io, simulation, resources, selection.local);
+
+                if animation.completed() {
+                    animation.apply(game_io, simulation, resources, entity_id);
+                    selection.recipe_animation = None;
+                }
+            }
+
+            if selection.confirm_time != 0 {
+                // player confirmed selection, we can skip input
                 continue;
             }
 
@@ -179,7 +196,10 @@ impl State for CardSelectState {
         // completion detection
 
         let all_confirmed = (self.player_selections).iter().all(|selection| {
-            selection.erased || (!selection.animating_slide && selection.confirm_time != 0)
+            selection.erased
+                || (!selection.animating_slide
+                    && selection.confirm_time != 0
+                    && selection.recipe_animation.is_none())
         });
 
         if all_confirmed {
@@ -195,7 +215,7 @@ impl State for CardSelectState {
     fn draw_ui<'a>(
         &mut self,
         game_io: &'a GameIO,
-        _resources: &SharedBattleResources,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
@@ -327,28 +347,33 @@ impl State for CardSelectState {
             self.ui.draw_regular_card_frame(sprite_queue);
         }
 
-        if !simulation.battle_started {
-            self.ui.draw_names(game_io, simulation, sprite_queue);
+        if !selection.animating_slide {
+            if let Some(animation) = &selection.recipe_animation {
+                // animate recipes
+                animation.draw(game_io, resources, sprite_queue, player);
+            } else if selection.confirm_time != 0 {
+                // render text to signal we're waiting on other players
+                const MARGIN_TOP: f32 = 38.0;
+
+                let wait_time = self.time - selection.confirm_time;
+
+                if (wait_time / 30) % 2 == 0 {
+                    const TEXT: &str = "Waiting...";
+
+                    let mut style = TextStyle::new(game_io, FontName::Thick);
+                    style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+                    let metrics = style.measure(TEXT);
+                    let position = Vec2::new((RESOLUTION_F.x - metrics.size.x) * 0.5, MARGIN_TOP);
+
+                    style.bounds.set_position(position);
+                    style.draw(game_io, sprite_queue, TEXT);
+                }
+            }
         }
 
-        if !selection.animating_slide && selection.confirm_time != 0 {
-            // render text to signal we're waiting on other players
-            const MARGIN_TOP: f32 = 38.0;
-
-            let wait_time = self.time - selection.confirm_time;
-
-            if (wait_time / 30) % 2 == 0 {
-                const TEXT: &str = "Waiting...";
-
-                let mut style = TextStyle::new(game_io, FontName::Thick);
-                style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-
-                let metrics = style.measure(TEXT);
-                let position = Vec2::new((RESOLUTION_F.x - metrics.size.x) * 0.5, MARGIN_TOP);
-
-                style.bounds.set_position(position);
-                style.draw(game_io, sprite_queue, TEXT);
-            }
+        if !simulation.battle_started {
+            self.ui.draw_names(game_io, simulation, sprite_queue);
         }
 
         // draw fade sprite
@@ -557,6 +582,7 @@ impl CardSelectState {
         // see if a script confirmed our selection for us
         if player.staged_items.confirmed() {
             selection.confirm_time = self.time;
+            selection.recipe_animation = CardRecipeAnimation::try_new(game_io, resources, player);
 
             // activate card select close components
             for (_, component) in &simulation.components {
@@ -626,6 +652,8 @@ impl CardSelectState {
             match selected_item {
                 SelectedItem::Confirm => {
                     selection.confirm_time = self.time;
+                    selection.recipe_animation =
+                        CardRecipeAnimation::try_new(game_io, resources, player);
                     player.staged_items.set_confirmed(true);
 
                     // sfx
@@ -849,7 +877,9 @@ impl CardSelectState {
             deck_indices.sort();
 
             for i in deck_indices.iter().rev() {
-                player.deck.remove(*i);
+                if player.deck.get(*i).is_some() {
+                    player.deck.remove(*i);
+                }
             }
 
             // unmark player as having regular card
@@ -1027,7 +1057,7 @@ impl CardSelectState {
 
             pending_sfx.push(&globals.sfx.dark_card);
 
-            resources.fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
+            resources.ui_fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
 
             for sfx in pending_sfx {
                 let audio = &globals.audio;

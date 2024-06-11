@@ -24,6 +24,7 @@ pub struct Globals {
     pub post_process_color_blindness: u8,
     pub global_save: GlobalSave,
     pub restrictions: Restrictions,
+    pub card_recipes: CardRecipes,
     pub player_packages: PackageManager<PlayerPackage>,
     pub card_packages: PackageManager<CardPackage>,
     pub encounter_packages: PackageManager<EncounterPackage>,
@@ -118,6 +119,7 @@ impl Globals {
             post_process_color_blindness,
             global_save,
             restrictions: Restrictions::default(),
+            card_recipes: CardRecipes::default(),
             player_packages: PackageManager::new(PackageCategory::Player),
             card_packages: PackageManager::new(PackageCategory::Card),
             encounter_packages: PackageManager::new(PackageCategory::Encounter),
@@ -214,8 +216,23 @@ impl Globals {
                     .load_virtual_package(&self.assets, namespace, hash)
             }
             PackageCategory::Card => {
-                self.card_packages
-                    .load_virtual_package(&self.assets, namespace, hash)
+                let mut package_info =
+                    self.card_packages
+                        .load_virtual_package(&self.assets, namespace, hash);
+
+                // load recipes
+                if let Some(info) = package_info {
+                    let id = info.id.clone();
+                    let package = self.card_packages.package(namespace, &id).unwrap();
+                    self.card_recipes.load_from_package(namespace, package);
+
+                    package_info = self
+                        .card_packages
+                        .package(namespace, &id)
+                        .map(|p| p.package_info());
+                }
+
+                package_info
             }
             PackageCategory::Encounter => {
                 self.encounter_packages
@@ -269,9 +286,25 @@ impl Globals {
                 self.augment_packages
                     .load_package(&self.assets, namespace, path)
             }
-            PackageCategory::Card => self
-                .card_packages
-                .load_package(&self.assets, namespace, path),
+            PackageCategory::Card => {
+                let mut package_info =
+                    self.card_packages
+                        .load_package(&self.assets, namespace, path);
+
+                // load recipes
+                if let Some(info) = package_info {
+                    let id = info.id.clone();
+                    let package = self.card_packages.package(namespace, &id).unwrap();
+                    self.card_recipes.load_from_package(namespace, package);
+
+                    package_info = self
+                        .card_packages
+                        .package(namespace, &id)
+                        .map(|p| p.package_info());
+                }
+
+                package_info
+            }
             PackageCategory::Encounter => {
                 self.encounter_packages
                     .load_package(&self.assets, namespace, path)
@@ -333,6 +366,8 @@ impl Globals {
                     .unload_package(&self.assets, namespace, id);
             }
             PackageCategory::Card => {
+                self.card_recipes.remove_associated(namespace, id);
+
                 self.card_packages
                     .unload_package(&self.assets, namespace, id);
             }
@@ -392,8 +427,18 @@ impl Globals {
         let card_triplet_iter = props.player_setups.iter().flat_map(|setup| {
             let ns = setup.namespace();
 
-            let card_iter = setup.deck.cards.iter();
-            card_iter.map(move |card| (PackageCategory::Card, ns, card.package_id.clone()))
+            let card_iter = setup
+                .deck
+                .cards
+                .iter()
+                .map(move |card| (PackageCategory::Card, ns, card.package_id.clone()));
+
+            let recipes_iter = setup
+                .recipes
+                .iter()
+                .map(move |id| (PackageCategory::Card, ns, id.clone()));
+
+            card_iter.chain(recipes_iter)
         });
 
         let block_triplet_iter = props.player_setups.iter().flat_map(|setup| {
@@ -655,6 +700,8 @@ impl Globals {
     }
 
     pub fn remove_namespace(&mut self, namespace: PackageNamespace) {
+        self.card_recipes.remove_namespace(namespace);
+
         self.augment_packages
             .remove_namespace(&self.assets, namespace);
 

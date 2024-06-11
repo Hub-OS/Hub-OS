@@ -35,7 +35,12 @@ impl PlayerFallbackResources {
         ));
 
         let dependencies = globals.package_dependency_iter(inital_iter);
-        let resources = SharedBattleResources::new(game_io, &mut simulation, &dependencies);
+        let resources = SharedBattleResources::new(
+            game_io,
+            &mut simulation,
+            &props.player_setups,
+            &dependencies,
+        );
 
         // load player into the simulation
         let setup = props.player_setups.pop().unwrap();

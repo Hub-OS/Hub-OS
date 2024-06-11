@@ -1,0 +1,5 @@
+animation state="DEFAULT"
+frame w="92" h="16" originx="46" originy="8"
+point label="LABEL" x="58" y="32"
+point label="LIST_START" x="9" y="44"
+point label="LIST_STEP" x="0" y="24"

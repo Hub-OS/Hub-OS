@@ -581,6 +581,10 @@ impl Animator {
         self.current_frame()?.point(name)
     }
 
+    pub fn point_or_zero(&self, name: &str) -> Vec2 {
+        self.point(name).unwrap_or_default()
+    }
+
     pub fn apply(&self, sprite: &mut Sprite) {
         if let Some(frame) = self.current_frame() {
             frame.apply(sprite);

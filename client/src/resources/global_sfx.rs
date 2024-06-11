@@ -39,6 +39,8 @@ pub struct GlobalSfx {
     pub hurt: SoundBuffer,
     pub explode: SoundBuffer,
     pub dark_card: SoundBuffer,
+    pub indicate: SoundBuffer,
+    pub craft: SoundBuffer,
 }
 
 impl GlobalSfx {
@@ -80,6 +82,8 @@ impl GlobalSfx {
             hurt: load(ResourcePaths::HURT_SFX),
             explode: load(ResourcePaths::EXPLODE_SFX),
             dark_card: load(ResourcePaths::DARK_CARD_SFX),
+            indicate: load(ResourcePaths::INDICATE_SFX),
+            craft: load(ResourcePaths::CRAFT_SFX),
         }
     }
 

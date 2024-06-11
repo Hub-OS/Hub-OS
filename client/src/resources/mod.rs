@@ -1,6 +1,7 @@
 mod asset_manager;
 mod audio_manager;
 mod boot_thread;
+mod card_recipes;
 mod constants;
 mod deck_restrictions;
 mod emulated_input;
@@ -17,6 +18,7 @@ mod sound_buffer;
 pub use asset_manager::*;
 pub use audio_manager::*;
 pub use boot_thread::*;
+pub use card_recipes::*;
 pub use constants::*;
 pub use deck_restrictions::*;
 pub use emulated_input::*;
