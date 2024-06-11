@@ -1,4 +1,6 @@
-use crate::battle::{BattleSimulation, Character, Player, SharedBattleResources};
+use crate::battle::{
+    BattleSimulation, Character, Player, SharedBattleResources, StagedItem, StagedItemData,
+};
 use crate::bindable::{CardProperties, EntityId};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::{AssetManager, Globals, ResourcePaths};
@@ -71,9 +73,18 @@ impl CardRecipeAnimation {
             return None;
         }
 
-        // reset staged cards, preserve form changes
+        // reset staged cards, preserve form changes and discards
         let form_index = player.staged_items.stored_form_index();
+        let discards: Vec<_> = player.staged_items.deck_card_indices().collect();
+
         player.staged_items.clear();
+
+        for index in discards {
+            player.staged_items.stage_item(StagedItem {
+                data: StagedItemData::Discard(index),
+                undo_callback: None,
+            });
+        }
 
         if let Some(index) = form_index {
             player.staged_items.stage_form(index, None, None);
