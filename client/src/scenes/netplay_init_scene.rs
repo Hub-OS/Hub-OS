@@ -625,7 +625,6 @@ impl NetplayInitScene {
             let encounter_package = self.encounter_package.take();
             let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
 
-            props.statistics_callback = self.statistics_callback.take();
             props.data = self.data.take();
             props.seed = self.seed;
 
@@ -684,6 +683,8 @@ impl NetplayInitScene {
                 props.senders.push(send);
                 props.receivers.push((None, receiver));
             }
+
+            props.statistics_callback = self.statistics_callback.take();
 
             // create scene
             let battle_scene = BattleScene::new(game_io, props);
