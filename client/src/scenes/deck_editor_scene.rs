@@ -1153,7 +1153,9 @@ impl CardListItem {
             // use all packages for pack
             package_manager
                 .packages(NAMESPACE)
-                .filter(|package| !package.hidden)
+                .filter(|package| {
+                    !package.hidden && package.card_properties.card_class != CardClass::Recipe
+                })
                 .flat_map(|package| {
                     let package_info = package.package_info();
                     let triplet = package.package_info.triplet();
