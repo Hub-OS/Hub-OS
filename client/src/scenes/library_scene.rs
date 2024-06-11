@@ -244,6 +244,7 @@ impl Dock {
             CardClass::Mega => "Mega",
             CardClass::Giga => "Giga",
             CardClass::Dark => "Dark",
+            CardClass::Recipe => "Recipe",
         };
 
         let mut label = Text::new(game_io, FontName::Thick)

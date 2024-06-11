@@ -261,6 +261,7 @@ fn state_for_package(package: &CardPackage) -> &'static str {
         CardClass::Mega => "MEGA",
         CardClass::Giga => "GIGA",
         CardClass::Dark => "DARK",
+        CardClass::Recipe => "RECIPE",
     }
 }
 
@@ -270,5 +271,6 @@ fn back_state_for_package(package: &CardPackage) -> &'static str {
         CardClass::Mega => "MEGA_BACK",
         CardClass::Giga => "GIGA_BACK",
         CardClass::Dark => "DARK_BACK",
+        CardClass::Recipe => "RECIPE_BACK",
     }
 }

@@ -8,6 +8,7 @@ pub enum CardClass {
     Mega,
     Giga,
     Dark,
+    Recipe,
 }
 
 impl From<String> for CardClass {
@@ -22,6 +23,7 @@ impl From<&str> for CardClass {
             "mega" => CardClass::Mega,
             "giga" => CardClass::Giga,
             "dark" => CardClass::Dark,
+            "recipe" => CardClass::Recipe,
             _ => CardClass::Standard,
         }
     }

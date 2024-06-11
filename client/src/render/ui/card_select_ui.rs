@@ -228,6 +228,7 @@ impl CardSelectUi {
             CardClass::Mega => "MEGA_FRAME",
             CardClass::Giga => "GIGA_FRAME",
             CardClass::Dark => "DARK_FRAME",
+            CardClass::Recipe => unreachable!(),
         };
 
         let card_frame_node = &mut self.sprites[self.card_frame_index];
