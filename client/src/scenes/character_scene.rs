@@ -330,7 +330,7 @@ impl StatusPage {
         }
 
         if let Some(start_point) = ui_animator.point("DECK_START") {
-            let end_point = ui_animator.point("DECK_END").unwrap_or_default();
+            let end_point = ui_animator.point_or_zero("DECK_END");
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)
@@ -359,7 +359,7 @@ impl StatusPage {
         }
 
         if let Some(start_point) = ui_animator.point("BLOCKS_START") {
-            let end_point = ui_animator.point("BLOCKS_END").unwrap_or_default();
+            let end_point = ui_animator.point_or_zero("BLOCKS_END");
             let bounds = Rect::from_corners(start_point, end_point);
 
             let list = ScrollableList::new(game_io, bounds, 15.0)

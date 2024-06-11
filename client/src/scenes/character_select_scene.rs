@@ -58,15 +58,15 @@ impl CharacterSelectScene {
 
         // health_ui
         let mut health_ui = PlayerHealthUi::new(game_io);
-        health_ui.set_position(ui_animator.point("HP").unwrap_or_default());
+        health_ui.set_position(ui_animator.point_or_zero("HP"));
         health_ui.snap_health(player_package.health);
 
         // element_sprite
         let mut element_sprite = ElementSprite::new(game_io, player_package.element);
-        element_sprite.set_position(ui_animator.point("ELEMENT").unwrap_or_default());
+        element_sprite.set_position(ui_animator.point_or_zero("ELEMENT"));
 
         // name_position
-        let name_position = ui_animator.point("NAME").unwrap_or_default();
+        let name_position = ui_animator.point_or_zero("NAME");
 
         // invalid sprite
         let mut invalid_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_UI);
@@ -76,8 +76,8 @@ impl CharacterSelectScene {
 
         // list bounds
         let list_bounds = Rect::from_corners(
-            ui_animator.point("LIST_START").unwrap_or_default(),
-            ui_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point_or_zero("LIST_START"),
+            ui_animator.point_or_zero("LIST_END"),
         );
 
         let icons_per_row = ((list_bounds.width + ICON_MARGIN * 2.0) / ICON_X_OFFSET) as usize;

@@ -42,16 +42,16 @@ impl PackageScene {
         let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_UI_ANIMATION);
         animator.set_state("DEFAULT");
 
-        let preview_position = animator.point("PREVIEW").unwrap_or_default();
+        let preview_position = animator.point_or_zero("PREVIEW");
 
         let list_bounds = Rect::from_corners(
-            animator.point("LIST_START").unwrap_or_default(),
-            animator.point("LIST_END").unwrap_or_default(),
+            animator.point_or_zero("LIST_START"),
+            animator.point_or_zero("LIST_END"),
         );
 
         let button_bounds = Rect::from_corners(
-            animator.point("BUTTONS_START").unwrap_or_default(),
-            animator.point("BUTTONS_END").unwrap_or_default(),
+            animator.point_or_zero("BUTTONS_START"),
+            animator.point_or_zero("BUTTONS_END"),
         );
 
         // buttons

@@ -145,8 +145,8 @@ impl PackagePreview {
             .with_state("DEFAULT");
 
         let image_bounds = Rect::from_corners(
-            animator.point("IMAGE_START").unwrap_or_default(),
-            animator.point("IMAGE_END").unwrap_or_default(),
+            animator.point_or_zero("IMAGE_START"),
+            animator.point_or_zero("IMAGE_END"),
         );
 
         // background
@@ -184,7 +184,7 @@ impl PackagePreview {
                 // primary element
                 let mut element_sprite = ElementSprite::new(game_io, *element);
 
-                let element_position = animator.point("PRIMARY_ELEMENT").unwrap_or_default();
+                let element_position = animator.point_or_zero("PRIMARY_ELEMENT");
                 element_sprite.set_position(element_position);
 
                 self.sprites.push(element_sprite);
@@ -193,7 +193,7 @@ impl PackagePreview {
                 if *secondary_element != Element::None {
                     let mut element_sprite = ElementSprite::new(game_io, *secondary_element);
 
-                    let element_position = animator.point("SECONDARY_ELEMENT").unwrap_or_default();
+                    let element_position = animator.point_or_zero("SECONDARY_ELEMENT");
                     element_sprite.set_position(element_position);
 
                     self.sprites.push(element_sprite);
@@ -203,7 +203,7 @@ impl PackagePreview {
                 let mut text = Text::new(game_io, FontName::Thick);
                 text.text = format!("{damage}");
 
-                let text_anchor = animator.point("DAMAGE_END").unwrap_or_default();
+                let text_anchor = animator.point_or_zero("DAMAGE_END");
 
                 let text_size = text.measure().size;
                 text.style.bounds += text_anchor - text_size;
@@ -219,7 +219,7 @@ impl PackagePreview {
                 // element
                 let mut element_sprite = ElementSprite::new(game_io, *element);
 
-                let element_position = animator.point("PRIMARY_ELEMENT").unwrap_or_default();
+                let element_position = animator.point_or_zero("PRIMARY_ELEMENT");
                 element_sprite.set_position(element_position);
                 self.sprites.push(element_sprite);
 
@@ -235,8 +235,7 @@ impl PackagePreview {
                 let mut text = Text::new(game_io, FontName::Thick);
                 text.text = format!("{health}");
 
-                let text_anchor =
-                    animator.point("TEXT_END").unwrap_or_default() - animator.origin();
+                let text_anchor = animator.point_or_zero("TEXT_END") - animator.origin();
 
                 let text_size = text.measure().size;
                 text.style.bounds += text_anchor - text_size;

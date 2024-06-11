@@ -57,8 +57,8 @@ impl MobileOverlay {
         animator.apply(&mut dpad_sprite);
 
         let dpad_dead_zone = Rect::from_corners(
-            animator.point("DEAD_ZONE_START").unwrap_or_default(),
-            animator.point("DEAD_ZONE_END").unwrap_or_default(),
+            animator.point_or_zero("DEAD_ZONE_START"),
+            animator.point_or_zero("DEAD_ZONE_END"),
         );
 
         Self {

@@ -22,7 +22,7 @@ impl Background {
             }
         }
 
-        let velocity = animator.point("VELOCITY").unwrap_or_default();
+        let velocity = animator.point_or_zero("VELOCITY");
         animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         Self {

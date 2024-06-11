@@ -48,8 +48,8 @@ impl ServerListScene {
 
         // list box
         let frame_bounds = Rect::from_corners(
-            ui_animator.point("LIST_START").unwrap_or_default(),
-            ui_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point_or_zero("LIST_START"),
+            ui_animator.point_or_zero("LIST_END"),
         );
 
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);
@@ -65,11 +65,11 @@ impl ServerListScene {
         );
 
         // context menu
-        let context_position = ui_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_position = ui_animator.point_or_zero("CONTEXT_MENU");
         let context_menu = ContextMenu::new(game_io, "OPTIONS", context_position);
 
         // option tip
-        let option_tip_top_right = ui_animator.point("MENU_TIP_TOP_RIGHT").unwrap_or_default();
+        let option_tip_top_right = ui_animator.point_or_zero("MENU_TIP_TOP_RIGHT");
         let option_tip = OptionTip::new(String::from("MENU"), option_tip_top_right);
 
         // events

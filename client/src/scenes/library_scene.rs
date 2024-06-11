@@ -32,7 +32,7 @@ impl LibraryScene {
         ui_animator.set_state("DEFAULT");
 
         // docks
-        let dock_offset = ui_animator.point("DOCK").unwrap_or_default();
+        let dock_offset = ui_animator.point_or_zero("DOCK");
         let mut package_ids: Vec<_> = globals
             .card_packages
             .package_ids(PackageNamespace::Local)
@@ -54,7 +54,7 @@ impl LibraryScene {
 
         let dock_scissor = dock_sprite.bounds() / RESOLUTION_F;
         let page_width = dock_sprite.size().x;
-        let page_arrow_point = dock_animator.point("PAGE_ARROWS").unwrap_or_default();
+        let page_arrow_point = dock_animator.point_or_zero("PAGE_ARROWS");
 
         let mut page_tracker = PageTracker::new(game_io, docks.len())
             .with_page_width(page_width)
@@ -65,7 +65,7 @@ impl LibraryScene {
         }
 
         // card
-        let card_position = ui_animator.point("CARD").unwrap_or_default();
+        let card_position = ui_animator.point_or_zero("CARD");
 
         let mut scene = Box::new(Self {
             camera,
@@ -232,10 +232,10 @@ impl Dock {
 
         dock_sprite.set_position(dock_offset);
 
-        let list_point = dock_animator.point("LIST").unwrap_or_default();
+        let list_point = dock_animator.point_or_zero("LIST");
         let list_position = dock_offset + list_point;
 
-        let context_menu_point = dock_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_menu_point = dock_animator.point_or_zero("CONTEXT_MENU");
         let context_menu_position = dock_offset + context_menu_point;
 
         // label
@@ -251,16 +251,15 @@ impl Dock {
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
             .with_str(label_text);
 
-        let label_position =
-            dock_animator.point("LABEL").unwrap_or_default() - dock_sprite.origin();
+        let label_position = dock_animator.point_or_zero("LABEL") - dock_sprite.origin();
         label.style.bounds.set_position(label_position);
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.set_total_items(cards.len());
 
-        let scroll_start_point = dock_animator.point("SCROLL_START").unwrap_or_default();
-        let scroll_end_point = dock_animator.point("SCROLL_END").unwrap_or_default();
+        let scroll_start_point = dock_animator.point_or_zero("SCROLL_START");
+        let scroll_end_point = dock_animator.point_or_zero("SCROLL_END");
 
         let scroll_start = dock_offset + scroll_start_point;
         let scroll_end = dock_offset + scroll_end_point;

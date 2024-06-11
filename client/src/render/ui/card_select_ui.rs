@@ -180,7 +180,7 @@ impl CardSelectUi {
         form_list_node.apply_animation(&self.animator);
 
         // animate origin
-        let inital_origin = self.animator.point("INITIAL_ORIGIN").unwrap_or_default();
+        let inital_origin = self.animator.point_or_zero("INITIAL_ORIGIN");
         let progress =
             inverse_lerp!(time, time + Self::FORM_LIST_ANIMATION_TIME, self.time).clamp(0.0, 1.0);
         let origin = inital_origin.lerp(self.animator.origin(), progress);

@@ -80,13 +80,13 @@ impl ConfigScene {
         let ui_animator =
             Animator::load_new(assets, ResourcePaths::CONFIG_UI_ANIMATION).with_state("DEFAULT");
 
-        let primary_layout_start = ui_animator.point("PRIMARY").unwrap_or_default();
+        let primary_layout_start = ui_animator.point_or_zero("PRIMARY");
 
-        let secondary_layout_start = ui_animator.point("SECONDARY_START").unwrap_or_default();
-        let secondary_layout_end = ui_animator.point("SECONDARY_END").unwrap_or_default();
+        let secondary_layout_start = ui_animator.point_or_zero("SECONDARY_START");
+        let secondary_layout_end = ui_animator.point_or_zero("SECONDARY_END");
         let secondary_bounds = Rect::from_corners(secondary_layout_start, secondary_layout_end);
 
-        let context_position = ui_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_position = ui_animator.point_or_zero("CONTEXT_MENU");
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),

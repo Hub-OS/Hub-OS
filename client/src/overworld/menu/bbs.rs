@@ -50,26 +50,26 @@ impl Bbs {
         animator.apply(&mut bg_sprite);
 
         // frame
-        let frame_point = animator.point("FRAME").unwrap_or_default();
+        let frame_point = animator.point_or_zero("FRAME");
         frame_sprite.set_position(frame_point);
 
         animator.set_state("FRAME");
         animator.apply(&mut frame_sprite);
 
         // scrollbar
-        let scroll_start = animator.point("SCROLL_START").unwrap_or_default() + frame_point;
-        let scroll_end = animator.point("SCROLL_END").unwrap_or_default() + frame_point;
+        let scroll_start = animator.point_or_zero("SCROLL_START") + frame_point;
+        let scroll_end = animator.point_or_zero("SCROLL_END") + frame_point;
         scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
         // posts_bg
-        let posts_bg_point = animator.point("POSTS_BG").unwrap_or_default() + frame_point;
+        let posts_bg_point = animator.point_or_zero("POSTS_BG") + frame_point;
         posts_bg_sprite.set_position(posts_bg_point);
 
         animator.set_state("POSTS_BG");
         animator.apply(&mut posts_bg_sprite);
 
         // list start + cursor
-        let list_point = animator.point("POSTS_START").unwrap_or_default() + posts_bg_point;
+        let list_point = animator.point_or_zero("POSTS_START") + posts_bg_point;
 
         let cursor_start = list_point + Vec2::new(-5.0, 3.0);
         scroll_tracker.define_cursor(cursor_start, 16.0);

@@ -29,8 +29,8 @@ impl BlockPreview {
         sprites.push(sprite.clone());
 
         // get constants for rendering shape
-        let grid_start = animator.point("GRID_START").unwrap_or_default() - animator.origin();
-        let grid_next = animator.point("GRID_STEP").unwrap_or_default();
+        let grid_start = animator.point_or_zero("GRID_START") - animator.origin();
+        let grid_next = animator.point_or_zero("GRID_STEP");
 
         // set sprite to block for rendering shape
         animator.set_state(if is_flat {

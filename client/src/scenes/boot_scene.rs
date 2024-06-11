@@ -35,16 +35,16 @@ impl BootScene {
         animator.set_state("DEFAULT");
 
         let progress_bar_bounds = Rect::from_corners(
-            animator.point("BAR_START").unwrap_or_default(),
-            animator.point("BAR_END").unwrap_or_default(),
+            animator.point_or_zero("BAR_START"),
+            animator.point_or_zero("BAR_END"),
         );
 
         let log_bounds = Rect::from_corners(
-            animator.point("LOG_START").unwrap_or_default(),
-            animator.point("LOG_END").unwrap_or_default(),
+            animator.point_or_zero("LOG_START"),
+            animator.point_or_zero("LOG_END"),
         );
 
-        let status_position = animator.point("STATUS_CENTER").unwrap_or_default();
+        let status_position = animator.point_or_zero("STATUS_CENTER");
 
         // progress bar
         let mut progress_bar_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);

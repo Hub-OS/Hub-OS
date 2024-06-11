@@ -97,13 +97,13 @@ impl PackagesScene {
         animator.set_state("DEFAULT");
 
         let sidebar_bounds = Rect::from_corners(
-            animator.point("SIDEBAR_START").unwrap_or_default(),
-            animator.point("SIDEBAR_END").unwrap_or_default(),
+            animator.point_or_zero("SIDEBAR_START"),
+            animator.point_or_zero("SIDEBAR_END"),
         );
 
         let list_bounds = Rect::from_corners(
-            animator.point("LIST_START").unwrap_or_default(),
-            animator.point("LIST_END").unwrap_or_default(),
+            animator.point_or_zero("LIST_START"),
+            animator.point_or_zero("LIST_END"),
         );
 
         // events

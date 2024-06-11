@@ -90,7 +90,7 @@ impl MainMenuScene {
         // layout
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::MAIN_MENU_UI_ANIMATION);
         ui_animator.set_state("DEFAULT");
-        let scrolling_text_point = ui_animator.point("SCROLLING_TEXT").unwrap_or_default();
+        let scrolling_text_point = ui_animator.point_or_zero("SCROLLING_TEXT");
 
         // scrolling text
         let mut scrolling_text_style = TextStyle::new(game_io, FontName::Context);

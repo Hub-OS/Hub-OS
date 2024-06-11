@@ -33,8 +33,8 @@ impl BattleSelectScene {
         // layout
         let mut ui_animator = Animator::load_new(assets, ResourcePaths::BATTLE_SELECT_UI_ANIMATION);
         ui_animator.set_state("DEFAULT");
-        let grid_start = ui_animator.point("GRID_START").unwrap_or_default();
-        let grid_step = ui_animator.point("GRID_STEP").unwrap_or_default();
+        let grid_start = ui_animator.point_or_zero("GRID_START");
+        let grid_step = ui_animator.point_or_zero("GRID_STEP");
 
         // preview frame
         let mut preview_frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_SELECT_UI);

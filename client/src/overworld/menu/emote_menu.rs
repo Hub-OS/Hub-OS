@@ -44,13 +44,13 @@ impl EmoteMenu {
         let mut ui_animator =
             Animator::load_new(assets, ResourcePaths::OVERWORLD_EMOTE_UI_ANIMATION);
         ui_animator.set_state("DEFAULT");
-        let start_point = ui_animator.point("START").unwrap_or_default();
+        let start_point = ui_animator.point_or_zero("START");
         let search_box_bounds = Rect::from_corners(
-            ui_animator.point("SEARCH_BOX_START").unwrap_or_default(),
-            ui_animator.point("SEARCH_BOX_END").unwrap_or_default(),
+            ui_animator.point_or_zero("SEARCH_BOX_START"),
+            ui_animator.point_or_zero("SEARCH_BOX_END"),
         );
-        let next_point = ui_animator.point("NEXT").unwrap_or_default();
-        let view_size = ui_animator.point("VIEW_SIZE").unwrap_or_default().x as usize;
+        let next_point = ui_animator.point_or_zero("NEXT");
+        let view_size = ui_animator.point_or_zero("VIEW_SIZE").x as usize;
 
         // search sprite
         let mut search_sprite = assets.new_sprite(game_io, ResourcePaths::OVERWORLD_EMOTE_UI);
