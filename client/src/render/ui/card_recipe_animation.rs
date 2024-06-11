@@ -153,6 +153,9 @@ impl CardRecipeAnimation {
 
             character.cards.splice(range, std::iter::once(card));
         }
+
+        // reverse cards to allow us to pop the top card on use
+        character.cards.reverse();
     }
 
     pub fn update(
