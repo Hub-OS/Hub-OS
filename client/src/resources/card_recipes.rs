@@ -177,6 +177,7 @@ impl CardRecipes {
         &self,
         namespace: PackageNamespace,
         cards: &[CardProperties],
+        blocked: &[PackageId],
     ) -> Vec<(PackageId, Range<usize>)> {
         let mut results = Vec::new();
 
@@ -203,6 +204,10 @@ impl CardRecipes {
             let remaining_cards = &cards[i..];
 
             'recipe_loop: for (output, recipe) in iter {
+                if blocked.contains(output) {
+                    continue;
+                }
+
                 match recipe {
                     CardRecipe::CodeSequence { id_type, id, codes } => {
                         if codes.len() < recipe_len {

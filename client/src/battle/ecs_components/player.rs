@@ -7,6 +7,7 @@ use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
+use packets::structures::PackageId;
 
 #[derive(Clone)]
 pub struct Player {
@@ -14,6 +15,7 @@ pub struct Player {
     pub local: bool,
     pub deck: Vec<Card>,
     pub staged_items: StagedItems,
+    pub used_recipes: Vec<PackageId>,
     pub card_select_blocked: bool,
     pub has_regular_card: bool,
     pub can_flip: bool,
@@ -88,6 +90,7 @@ impl Player {
             local: setup.local,
             deck: deck.cards,
             staged_items: Default::default(),
+            used_recipes: Default::default(),
             card_select_blocked: false,
             has_regular_card: deck.regular_index.is_some(),
             can_flip: true,

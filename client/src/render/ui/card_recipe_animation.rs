@@ -65,7 +65,7 @@ impl CardRecipeAnimation {
             .collect::<Arc<_>>();
 
         let recipes = &resources.recipes;
-        let mut changes = recipes.resolve_changes(player.namespace(), &cards);
+        let mut changes = recipes.resolve_changes(player.namespace(), &cards, &player.used_recipes);
 
         if changes.is_empty() {
             return None;
@@ -111,7 +111,7 @@ impl CardRecipeAnimation {
     ) {
         let entities = &mut simulation.entities;
         let Ok((player, character)) =
-            entities.query_one_mut::<(&Player, &mut Character)>(entity_id.into())
+            entities.query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
         else {
             return;
         };
@@ -128,6 +128,8 @@ impl CardRecipeAnimation {
         let mut removed_count: usize = 0;
 
         for (package_id, range) in self.changes.iter() {
+            player.used_recipes.push(package_id.clone());
+
             let Some(card_package) =
                 card_packages.package_or_fallback(player.namespace(), package_id)
             else {
