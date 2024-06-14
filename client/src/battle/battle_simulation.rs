@@ -252,6 +252,10 @@ impl BattleSimulation {
         // update background
         self.background.update();
 
+        // reset fade colors
+        resources.ui_fade_color.set(Color::TRANSPARENT);
+        resources.battle_fade_color.set(Color::TRANSPARENT);
+
         if state.allows_animation_updates() {
             // update animations
             self.update_animations(resources);

@@ -776,10 +776,6 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        // Set fade colors to transparent at the start of the update loop
-        self.resources.ui_fade_color.set(Color::TRANSPARENT);
-        self.resources.battle_fade_color.set(Color::TRANSPARENT);
-
         self.update_textbox(game_io);
         self.handle_packets(game_io);
         self.core_update(game_io);
