@@ -98,9 +98,19 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_gauge.set_time(0);
 
-            // reset staged items confirmation
+            // reset staged items confirmation and initialize selection data
             for (_, player) in simulation.entities.query_mut::<&mut Player>() {
                 player.staged_items.set_confirmed(false);
+
+                if player.index >= self.player_selections.len() {
+                    self.player_selections
+                        .resize_with(player.index + 1, Selection::default);
+                }
+
+                // initialize selection
+                let selection = &mut self.player_selections[player.index];
+                selection.local = player.local;
+                selection.animating_slide = true;
             }
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
@@ -116,11 +126,8 @@ impl State for CardSelectState {
                     pre_confirmed = true;
                 }
 
-                // initialize selection
-                self.player_selections
-                    .resize_with(player.index + 1, Selection::default);
+                // update data
                 let selection = &mut self.player_selections[player.index];
-                selection.local = player.local;
                 selection.confirm_time = -CardSelectUi::SLIDE_DURATION;
                 selection.recipe_animation =
                     CardRecipeAnimation::try_new(game_io, resources, player);
@@ -144,24 +151,14 @@ impl State for CardSelectState {
 
         // we'll only see our own selection
         // but we must simulate every player's input to stay in sync
-        let id_index_local_tuples = simulation
+        let id_index_tuples = simulation
             .entities
             .query_mut::<&Player>()
             .into_iter()
-            .map(|(id, player)| (id.into(), player.index, player.local))
-            .collect::<Vec<(EntityId, usize, bool)>>();
+            .map(|(id, player)| (id.into(), player.index))
+            .collect::<Vec<(EntityId, usize)>>();
 
-        for (entity_id, player_index, local) in id_index_local_tuples {
-            if player_index >= self.player_selections.len() {
-                self.player_selections
-                    .resize_with(player_index + 1, Selection::default);
-
-                // initialize selection
-                let selection = &mut self.player_selections[player_index];
-                selection.local = local;
-                selection.animating_slide = true;
-            }
-
+        for (entity_id, player_index) in id_index_tuples {
             let selection = &mut self.player_selections[player_index];
 
             // unmark as erased
@@ -1021,15 +1018,8 @@ impl CardSelectState {
                     continue;
                 };
 
-                if player.index >= self.player_selections.len() {
-                    self.player_selections
-                        .resize_with(player.index + 1, Selection::default);
-                }
-
-                // initialize selection
+                // update selection
                 let selection = &mut self.player_selections[player.index];
-                selection.local = player.local;
-                selection.animating_slide = true;
 
                 let x = (index % CARD_COLS) as i32;
                 let y = (index / CARD_COLS) as i32;
