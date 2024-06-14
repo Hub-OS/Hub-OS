@@ -32,7 +32,7 @@ impl State {
         match self {
             Self::FadeIn => (8, Self::DisplayLabel),
             Self::DisplayLabel => (8, Self::DisplayDelay),
-            Self::DisplayDelay => (16, Self::DisplayCard),
+            Self::DisplayDelay => (9, Self::DisplayCard),
             Self::DisplayCard => (16, Self::HidePendingDelay),
             Self::HidePendingDelay => (16, Self::HidePending),
             Self::HidePending => (8, Self::DisplayChanges),
