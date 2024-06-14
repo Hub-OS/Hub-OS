@@ -57,8 +57,10 @@ impl BattleSimulation {
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         fade_sprite.set_color(Color::TRANSPARENT);
 
+        let field = Field::new(game_io, 8, 5);
+
         Self {
-            config: BattleConfig::new(globals, props.player_setups.len()),
+            config: BattleConfig::new(globals, &field, props.player_setups.len()),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(props.seed),
             time: 0,
@@ -67,7 +69,7 @@ impl BattleSimulation {
             camera,
             background: props.background.clone(),
             turn_gauge: TurnGauge::new(game_io),
-            field: Field::new(game_io, 8, 5),
+            field,
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
