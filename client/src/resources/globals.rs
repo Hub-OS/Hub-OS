@@ -91,12 +91,12 @@ impl Globals {
             .with_music_volume(music_volume)
             .with_sfx_volume(sfx_volume);
 
-        if config.fullscreen {
-            game_io.window_mut().set_fullscreen(true);
-        }
+        let window = game_io.window_mut();
+        window.set_fullscreen(config.fullscreen);
+        window.set_integer_scaling(config.integer_scaling);
 
         if config.lock_aspect_ratio {
-            game_io.window_mut().lock_resolution(TRUE_RESOLUTION);
+            window.lock_resolution(TRUE_RESOLUTION);
         }
 
         let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);

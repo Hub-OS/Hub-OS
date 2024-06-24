@@ -118,8 +118,8 @@ impl ConfigScene {
             context_sender: None,
             textbox: Textbox::new_navigation(game_io),
             doorstop_remover: None,
-            next_scene: NextScene::None,
             config,
+            next_scene: NextScene::None,
         })
     }
 
@@ -229,6 +229,19 @@ impl ConfigScene {
                     }
 
                     config.lock_aspect_ratio
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                "Integer Scaling",
+                config.borrow().integer_scaling,
+                config.clone(),
+                |game_io, mut config| {
+                    config.integer_scaling = !config.integer_scaling;
+
+                    let window = game_io.window_mut();
+                    window.set_integer_scaling(config.integer_scaling);
+
+                    config.integer_scaling
                 },
             )),
             Box::new(
@@ -758,6 +771,7 @@ impl ConfigScene {
                         // window
                         let fullscreen = config.fullscreen;
                         let lock_aspect_ratio = config.lock_aspect_ratio;
+                        let integer_scaling = config.integer_scaling;
                         let window = game_io.window_mut();
 
                         window.set_fullscreen(fullscreen);
@@ -767,6 +781,8 @@ impl ConfigScene {
                         } else {
                             window.unlock_resolution();
                         }
+
+                        window.set_integer_scaling(integer_scaling);
 
                         // post processing again
                         game_io.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);
