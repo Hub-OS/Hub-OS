@@ -1,5 +1,5 @@
-use crate::packages::PackageNamespace;
 use crate::resources::Globals;
+use crate::{packages::PackageNamespace, TRUE_RESOLUTION};
 use framework::prelude::{GameIO, GameService};
 use packets::structures::PackageCategory;
 
@@ -50,6 +50,19 @@ impl GameService for SupportingService {
             // resume music if we stopped it
             globals.audio.restart_music();
             self.suspended_music = false;
+        }
+
+        // handle snap resize
+        let snap_resize = globals.snap_resize;
+        let window = game_io.window_mut();
+
+        if snap_resize && window.has_locked_resolution() {
+            let target_size = TRUE_RESOLUTION.as_vec2() * window.render_scale();
+            let target_size = target_size.as_uvec2();
+
+            if target_size != window.size() {
+                window.request_size(target_size);
+            }
         }
     }
 

@@ -19,6 +19,7 @@ use super::restrictions::Restrictions;
 
 pub struct Globals {
     pub config: Config,
+    pub snap_resize: bool,
     pub post_process_adjust_config: PostProcessAdjustConfig,
     pub post_process_ghosting: f32,
     pub post_process_color_blindness: u8,
@@ -99,6 +100,7 @@ impl Globals {
             window.lock_resolution(TRUE_RESOLUTION);
         }
 
+        let snap_resize = config.snap_resize;
         let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);
         let post_process_ghosting = config.ghosting as f32 * 0.01;
         let post_process_color_blindness = config.color_blindness;
@@ -114,6 +116,7 @@ impl Globals {
 
         Self {
             config,
+            snap_resize,
             post_process_adjust_config,
             post_process_ghosting,
             post_process_color_blindness,

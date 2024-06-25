@@ -805,7 +805,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "cfg_macros"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 
 [[package]]
 name = "chrono"
@@ -1589,7 +1589,7 @@ dependencies = [
 [[package]]
 name = "framework"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "cfg_macros",
  "framework_core",
@@ -1603,7 +1603,7 @@ dependencies = [
 [[package]]
 name = "framework_core"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "anyhow",
  "async-executor",
@@ -2301,7 +2301,7 @@ dependencies = [
 [[package]]
 name = "input"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "math",
  "strum 0.25.0",
@@ -2625,7 +2625,7 @@ dependencies = [
 [[package]]
 name = "logging"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "backtrace",
  "cfg_macros",
@@ -2676,7 +2676,7 @@ dependencies = [
 [[package]]
 name = "math"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "bytemuck",
  "glam",
@@ -4935,7 +4935,7 @@ checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 [[package]]
 name = "wasm_forward"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -5612,7 +5612,7 @@ dependencies = [
 [[package]]
 name = "winit_game_loop"
 version = "0.1.0"
-source = "git+https://github.com/Hub-OS/framework#e58d9d5ad98922f35a7b661ce39e2d5f32d099cf"
+source = "git+https://github.com/Hub-OS/framework#b8d52ed213c335fac98621b48bbf45b18ba41c58"
 dependencies = [
  "anyhow",
  "async-executor",

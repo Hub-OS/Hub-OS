@@ -244,6 +244,19 @@ impl ConfigScene {
                     config.integer_scaling
                 },
             )),
+            Box::new(UiConfigToggle::new(
+                "Snap Resize",
+                config.borrow().snap_resize,
+                config.clone(),
+                |game_io, mut config| {
+                    config.snap_resize = !config.snap_resize;
+
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.snap_resize = config.snap_resize;
+
+                    config.snap_resize
+                },
+            )),
             Box::new(
                 UiConfigPercentage::new(
                     "Brightness",
@@ -772,6 +785,7 @@ impl ConfigScene {
                         let fullscreen = config.fullscreen;
                         let lock_aspect_ratio = config.lock_aspect_ratio;
                         let integer_scaling = config.integer_scaling;
+                        globals.snap_resize = config.snap_resize;
                         let window = game_io.window_mut();
 
                         window.set_fullscreen(fullscreen);
