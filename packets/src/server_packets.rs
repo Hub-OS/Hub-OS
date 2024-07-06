@@ -155,6 +155,11 @@ pub enum ServerPacket {
         message: String,
         textbox_options: TextboxOptions,
     },
+    AutoMessage {
+        message: String,
+        close_delay: f32,
+        textbox_options: TextboxOptions,
+    },
     Question {
         message: String,
         textbox_options: TextboxOptions,

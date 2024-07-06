@@ -301,6 +301,7 @@ end
 -- asyncified textboxes
 
 create_asyncified_api("message_player", textbox_trackers)
+create_asyncified_api("message_player_auto", textbox_trackers)
 create_asyncified_api("question_player", textbox_trackers)
 create_asyncified_api("quiz_player", textbox_trackers)
 create_asyncified_api("prompt_player", textbox_trackers)

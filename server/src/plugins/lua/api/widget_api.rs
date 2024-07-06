@@ -61,6 +61,27 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "_message_player_auto", |api_ctx, lua, params| {
+        let (player_id, message, close_delay, rest): (
+            ActorId,
+            mlua::String,
+            f32,
+            mlua::MultiValue,
+        ) = lua.unpack_multi(params)?;
+        let message_str = message.to_str()?;
+        let textbox_options = parse_textbox_options(lua, rest)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(tracker) = api_ctx.widget_tracker_ref.borrow_mut().get_mut(&player_id) {
+            tracker.track_textbox(api_ctx.script_index);
+
+            net.message_player_auto(player_id, message_str, close_delay, textbox_options);
+        }
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "_question_player", |api_ctx, lua, params| {
         let (player_id, message, rest): (ActorId, mlua::String, mlua::MultiValue) =
             lua.unpack_multi(params)?;

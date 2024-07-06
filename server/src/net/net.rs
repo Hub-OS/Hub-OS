@@ -734,6 +734,37 @@ impl Net {
         }
     }
 
+    pub fn message_player_auto(
+        &mut self,
+        id: ActorId,
+        message: &str,
+        close_delay: f32,
+        textbox_options: TextboxOptions,
+    ) {
+        ensure_assets(
+            &mut self.packet_orchestrator.borrow_mut(),
+            self.config.args.max_payload_size,
+            &self.asset_manager,
+            &mut self.clients,
+            &[id],
+            textbox_options.dependencies(),
+        );
+
+        if let Some(client) = self.clients.get_mut(&id) {
+            client.widget_tracker.track_textbox(self.active_plugin);
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::AutoMessage {
+                    message: message.to_string(),
+                    close_delay,
+                    textbox_options,
+                },
+            );
+        }
+    }
+
     pub fn question_player(&mut self, id: ActorId, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),

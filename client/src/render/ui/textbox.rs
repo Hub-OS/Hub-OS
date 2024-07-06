@@ -13,8 +13,6 @@ const IDLE_CHAR_DELAY: FrameTime = 2;
 const FAST_CHAR_DELAY: FrameTime = 1;
 const DRAMATIC_CHAR_DELAY: FrameTime = 40;
 
-const AUTO_PAGE_DELAY: FrameTime = 10;
-
 pub trait TextboxInterface {
     /// This should not change after the first call
     fn text(&self) -> &str;
@@ -386,9 +384,7 @@ impl Textbox {
             // try advancing page
             self.char_time += 1;
 
-            let can_auto_advance = auto_advance && self.char_time > AUTO_PAGE_DELAY;
-
-            if (!is_last_page || completes_with_input) && (pressed_advance || can_auto_advance) {
+            if (!is_last_page || completes_with_input) && (pressed_advance || auto_advance) {
                 self.advance_page(game_io);
             }
         }
