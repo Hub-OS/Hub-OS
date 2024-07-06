@@ -44,15 +44,15 @@ impl ItemsMenu {
         // layout
         let ui_animator =
             Animator::load_new(assets, ResourcePaths::ITEMS_UI_ANIMATION).with_state("DEFAULT");
-        let health_position = ui_animator.point("HEALTH").unwrap_or_default();
-        let element_position = ui_animator.point("ELEMENT").unwrap_or_default();
-        let player_position = ui_animator.point("PLAYER").unwrap_or_default();
-        let cursor_start = ui_animator.point("CURSOR_START").unwrap_or_default();
-        let items_start = ui_animator.point("ITEMS_START").unwrap_or_default();
-        let item_width = ui_animator.point("ITEM_SIZE").unwrap_or_default().x;
-        let description_bg_start = ui_animator.point("DESCRIPTION_BG").unwrap_or_default();
-        let description_start = ui_animator.point("DESCRIPTION_START").unwrap_or_default();
-        let description_end = ui_animator.point("DESCRIPTION_END").unwrap_or_default();
+        let health_position = ui_animator.point_or_zero("HEALTH");
+        let element_position = ui_animator.point_or_zero("ELEMENT");
+        let player_position = ui_animator.point_or_zero("PLAYER");
+        let cursor_start = ui_animator.point_or_zero("CURSOR_START");
+        let items_start = ui_animator.point_or_zero("ITEMS_START");
+        let item_width = ui_animator.point_or_zero("ITEM_SIZE").x;
+        let description_bg_start = ui_animator.point_or_zero("DESCRIPTION_BG");
+        let description_start = ui_animator.point_or_zero("DESCRIPTION_START");
+        let description_end = ui_animator.point_or_zero("DESCRIPTION_END");
 
         // background sprites, items added after this
         let mut background_sprites = Vec::new();
@@ -143,7 +143,9 @@ impl ItemsMenu {
         // if there were previously 0 items, initialize the description text
         if self.registered_count == 0 {
             if let Some((_, item_definition, _)) = Self::consumables_iter(area).next() {
-                self.description_text.text = item_definition.description.clone();
+                self.description_text
+                    .text
+                    .clone_from(&item_definition.description);
             }
         }
 
@@ -224,7 +226,9 @@ impl Menu for ItemsMenu {
 
             // update description
             let (_, item_definition, _) = Self::consumables_iter(area).nth(index).unwrap();
-            self.description_text.text = item_definition.description.clone();
+            self.description_text
+                .text
+                .clone_from(&item_definition.description);
         }
 
         // handle selection

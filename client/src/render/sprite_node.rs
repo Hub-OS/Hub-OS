@@ -357,7 +357,7 @@ impl Tree<SpriteNode> {
                 if node.using_parent_shader {
                     node.color_mode = inherited.color_mode;
                     node.set_color(inherited.color);
-                    node.palette = inherited.palette.clone();
+                    node.palette.clone_from(&inherited.palette);
                     node.shader_effect = inherited.shader_effect;
                 }
 

@@ -49,6 +49,7 @@ struct RemotePlayerConnection {
     base_health: i32,
     emotion: Emotion,
     deck: Deck,
+    recipes: Vec<PackageId>,
     blocks: Vec<InstalledBlock>,
     drives: Vec<InstalledSwitchDrive>,
     load_map: HashMap<FileHash, PackageCategory>,
@@ -166,6 +167,7 @@ impl NetplayInitScene {
                 base_health: info.base_health,
                 emotion: info.emotion,
                 deck: Deck::default(),
+                recipes: Vec::new(),
                 blocks: Vec::new(),
                 drives: Vec::new(),
                 load_map: HashMap::new(),
@@ -307,17 +309,19 @@ impl NetplayInitScene {
                 script_enabled,
                 cards,
                 regular_card,
+                recipes,
                 blocks,
                 drives,
                 ..
             } => {
                 connection.player_package = player_package;
                 connection.script_enabled = script_enabled;
-                connection.deck.regular_index = regular_card;
                 connection.deck.cards = cards
                     .into_iter()
                     .map(|(package_id, code)| Card { package_id, code })
                     .collect();
+                connection.deck.regular_index = regular_card;
+                connection.recipes = recipes;
                 connection.blocks = blocks;
                 connection.drives = drives;
             }
@@ -400,7 +404,12 @@ impl NetplayInitScene {
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
                             let namespace = PackageNamespace::Netplay(connection.index as u8);
-                            globals.load_virtual_package(category, namespace, hash);
+                            let optional_package =
+                                globals.load_virtual_package(category, namespace, hash);
+
+                            if let Some(package) = optional_package {
+                                log::debug!("Loaded {:?} for {}", package.id, connection.index);
+                            }
                         }
                     }
 
@@ -511,6 +520,7 @@ impl NetplayInitScene {
         let cards = (player_setup.deck.cards.iter())
             .map(|card| (card.package_id.clone(), card.code.clone()))
             .collect();
+        let recipes = player_setup.recipes.clone();
         let blocks = player_setup.blocks.clone();
         let drives = player_setup.drives.clone();
 
@@ -519,6 +529,7 @@ impl NetplayInitScene {
             player_package: player_setup.package_id.clone(),
             script_enabled: player_setup.script_enabled,
             cards,
+            recipes,
             regular_card: player_setup.deck.regular_index,
             blocks,
             drives,
@@ -625,7 +636,6 @@ impl NetplayInitScene {
             let encounter_package = self.encounter_package.take();
             let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
 
-            props.statistics_callback = self.statistics_callback.take();
             props.data = self.data.take();
             props.seed = self.seed;
 
@@ -650,7 +660,8 @@ impl NetplayInitScene {
 
                 let Some(player_package) = package else {
                     log::error!(
-                        "Never received player package for player {}",
+                        "Never received player package ({}) for player {}",
+                        connection.player_package,
                         connection.index
                     );
                     self.failed = true;
@@ -664,6 +675,7 @@ impl NetplayInitScene {
                     base_health: connection.base_health,
                     emotion: connection.emotion,
                     deck: connection.deck.clone(),
+                    recipes: connection.recipes.clone(),
                     blocks: connection.blocks.clone(),
                     drives: connection.drives.clone(),
                     index: connection.index,
@@ -684,6 +696,8 @@ impl NetplayInitScene {
                 props.senders.push(send);
                 props.receivers.push((None, receiver));
             }
+
+            props.statistics_callback = self.statistics_callback.take();
 
             // create scene
             let battle_scene = BattleScene::new(game_io, props);

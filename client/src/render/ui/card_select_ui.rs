@@ -38,6 +38,7 @@ pub struct CardSelectUi {
 
 impl CardSelectUi {
     pub const FORM_LIST_ANIMATION_TIME: FrameTime = 9;
+    pub const SLIDE_DURATION: FrameTime = 10;
 
     pub fn new(game_io: &GameIO) -> Self {
         let mut sprites = Tree::new(SpriteNode::new(game_io, SpriteColorMode::Multiply));
@@ -180,7 +181,7 @@ impl CardSelectUi {
         form_list_node.apply_animation(&self.animator);
 
         // animate origin
-        let inital_origin = self.animator.point("INITIAL_ORIGIN").unwrap_or_default();
+        let inital_origin = self.animator.point_or_zero("INITIAL_ORIGIN");
         let progress =
             inverse_lerp!(time, time + Self::FORM_LIST_ANIMATION_TIME, self.time).clamp(0.0, 1.0);
         let origin = inital_origin.lerp(self.animator.origin(), progress);
@@ -188,12 +189,10 @@ impl CardSelectUi {
     }
 
     pub fn slide_progress(&self, confirm_time: FrameTime) -> f32 {
-        const ANIMATION_DURATION: f32 = 10.0;
-
         let progress = if confirm_time == 0 {
-            inverse_lerp!(0.0, ANIMATION_DURATION, self.time)
+            inverse_lerp!(0.0, Self::SLIDE_DURATION, self.time)
         } else {
-            1.0 - inverse_lerp!(0.0, ANIMATION_DURATION, self.time - confirm_time)
+            1.0 - inverse_lerp!(0.0, Self::SLIDE_DURATION, self.time - confirm_time)
         };
 
         progress.clamp(0.0, 1.0)
@@ -228,6 +227,7 @@ impl CardSelectUi {
             CardClass::Mega => "MEGA_FRAME",
             CardClass::Giga => "GIGA_FRAME",
             CardClass::Dark => "DARK_FRAME",
+            CardClass::Recipe => unreachable!(),
         };
 
         let card_frame_node = &mut self.sprites[self.card_frame_index];

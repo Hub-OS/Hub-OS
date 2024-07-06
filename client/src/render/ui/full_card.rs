@@ -56,14 +56,14 @@ impl FullCard {
             Animator::load_new(assets, ResourcePaths::FULL_CARD_STATUSES_ANIMATION);
         status_animator.set_state("DEFAULT");
 
-        let status_step = status_animator.point("STEP").unwrap_or_default();
+        let status_step = status_animator.point_or_zero("STEP");
         let status_bounds = Rect::from_corners(
-            card_animator.point("STATUS_START").unwrap_or_default(),
-            card_animator.point("STATUS_END").unwrap_or_default(),
+            card_animator.point_or_zero("STATUS_START"),
+            card_animator.point_or_zero("STATUS_END"),
         );
 
         // preview
-        let preview_point = card_animator.point("PREVIEW").unwrap_or_default();
+        let preview_point = card_animator.point_or_zero("PREVIEW");
 
         // description_style
         let mut description_style = TextStyle::new(game_io, FontName::Thin);
@@ -71,9 +71,9 @@ impl FullCard {
         description_style.color = Color::BLACK;
         description_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 
-        let description_start = card_animator.point("description_start").unwrap_or_default();
+        let description_start = card_animator.point_or_zero("description_start");
 
-        let description_end = card_animator.point("description_end").unwrap_or_default();
+        let description_end = card_animator.point_or_zero("description_end");
 
         let bounds_position = position + description_start;
         let bounds_size = description_end - description_start;
@@ -261,6 +261,7 @@ fn state_for_package(package: &CardPackage) -> &'static str {
         CardClass::Mega => "MEGA",
         CardClass::Giga => "GIGA",
         CardClass::Dark => "DARK",
+        CardClass::Recipe => "STANDARD",
     }
 }
 
@@ -270,5 +271,6 @@ fn back_state_for_package(package: &CardPackage) -> &'static str {
         CardClass::Mega => "MEGA_BACK",
         CardClass::Giga => "GIGA_BACK",
         CardClass::Dark => "DARK_BACK",
+        CardClass::Recipe => "STANDARD_BACK",
     }
 }

@@ -35,16 +35,16 @@ impl BootScene {
         animator.set_state("DEFAULT");
 
         let progress_bar_bounds = Rect::from_corners(
-            animator.point("BAR_START").unwrap_or_default(),
-            animator.point("BAR_END").unwrap_or_default(),
+            animator.point_or_zero("BAR_START"),
+            animator.point_or_zero("BAR_END"),
         );
 
         let log_bounds = Rect::from_corners(
-            animator.point("LOG_START").unwrap_or_default(),
-            animator.point("LOG_END").unwrap_or_default(),
+            animator.point_or_zero("LOG_START"),
+            animator.point_or_zero("LOG_END"),
         );
 
-        let status_position = animator.point("STATUS_CENTER").unwrap_or_default();
+        let status_position = animator.point_or_zero("STATUS_CENTER");
 
         // progress bar
         let mut progress_bar_sprite = assets.new_sprite(game_io, ResourcePaths::BOOT_UI);
@@ -95,6 +95,8 @@ impl BootScene {
             return;
         }
 
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+
         while let Ok(message) = self.event_receiver.try_recv() {
             match message {
                 BootEvent::ProgressUpdate(status_update) => {
@@ -106,43 +108,42 @@ impl BootScene {
                     self.update_progress_bar(multiplier);
                 }
                 BootEvent::Music(music) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.music = music;
                 }
                 BootEvent::Sfx(sfx) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.sfx = sfx;
                 }
                 BootEvent::PlayerManager(player_packages) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.player_packages = player_packages;
                 }
                 BootEvent::CardManager(card_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().card_packages = card_packages;
+                    globals.card_packages = card_packages;
+
+                    // load recipes
+                    let ns = PackageNamespace::Local;
+                    for package in globals.card_packages.packages(ns) {
+                        globals.card_recipes.load_from_package(ns, package);
+                    }
                 }
                 BootEvent::EncounterManager(encounter_packages) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.encounter_packages = encounter_packages;
                 }
                 BootEvent::AugmentManager(augment_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().augment_packages = augment_packages;
+                    globals.augment_packages = augment_packages;
                 }
                 BootEvent::StatusManager(status_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().status_packages = status_packages;
+                    globals.status_packages = status_packages;
                 }
                 BootEvent::TileStateManager(tile_state_packages) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.tile_state_packages = tile_state_packages;
                 }
                 BootEvent::LibraryManager(library_packages) => {
-                    game_io.resource_mut::<Globals>().unwrap().library_packages = library_packages;
+                    globals.library_packages = library_packages;
                 }
                 BootEvent::CharacterManager(character_packages) => {
-                    let globals = game_io.resource_mut::<Globals>().unwrap();
                     globals.character_packages = character_packages;
                 }
                 BootEvent::Done => {
-                    let globals = game_io.resource::<Globals>().unwrap();
                     let mut available_players =
                         globals.player_packages.package_ids(PackageNamespace::Local);
 

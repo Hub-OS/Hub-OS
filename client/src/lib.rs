@@ -113,6 +113,7 @@ fn update_resources(app: &WinitPlatformApp) {
     const HASH_FILE: &str = "resources-hash";
 
     use packets::structures::FileHash;
+    use packets::zip;
     use std::ffi::CString;
 
     // find the zip

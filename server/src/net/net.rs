@@ -734,6 +734,37 @@ impl Net {
         }
     }
 
+    pub fn message_player_auto(
+        &mut self,
+        id: ActorId,
+        message: &str,
+        close_delay: f32,
+        textbox_options: TextboxOptions,
+    ) {
+        ensure_assets(
+            &mut self.packet_orchestrator.borrow_mut(),
+            self.config.args.max_payload_size,
+            &self.asset_manager,
+            &mut self.clients,
+            &[id],
+            textbox_options.dependencies(),
+        );
+
+        if let Some(client) = self.clients.get_mut(&id) {
+            client.widget_tracker.track_textbox(self.active_plugin);
+
+            self.packet_orchestrator.borrow_mut().send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::AutoMessage {
+                    message: message.to_string(),
+                    close_delay,
+                    textbox_options,
+                },
+            );
+        }
+    }
+
     pub fn question_player(&mut self, id: ActorId, message: &str, textbox_options: TextboxOptions) {
         ensure_assets(
             &mut self.packet_orchestrator.borrow_mut(),
@@ -1412,7 +1443,7 @@ impl Net {
         z: f32,
         direction: Direction,
     ) {
-        if self.areas.get(area_id).is_none() {
+        if !self.areas.contains_key(area_id) {
             // non existent area
             return;
         }
@@ -2210,7 +2241,7 @@ impl Net {
         y: f32,
         z: f32,
     ) {
-        if self.areas.get(area_id).is_none() {
+        if !self.areas.contains_key(area_id) {
             // non existent area
             return;
         }
@@ -2363,7 +2394,7 @@ impl Net {
 
     pub fn animate_sprite(&mut self, sprite_id: SpriteId, state: String, loop_animation: bool) {
         if let Some(sprite) = self.sprites.get_mut(sprite_id) {
-            sprite.definition.animation_state = state.clone();
+            sprite.definition.animation_state.clone_from(&state);
             sprite.definition.animation_loops = loop_animation;
         }
 

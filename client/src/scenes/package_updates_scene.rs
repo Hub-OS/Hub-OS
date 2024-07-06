@@ -53,13 +53,13 @@ impl PackageUpdatesScene {
         ui_animator.set_state("DEFAULT");
 
         let list_bounds = Rect::from_corners(
-            ui_animator.point("LIST_START").unwrap_or_default(),
-            ui_animator.point("LIST_END").unwrap_or_default(),
+            ui_animator.point_or_zero("LIST_START"),
+            ui_animator.point_or_zero("LIST_END"),
         );
 
         let button_bounds = Rect::from_corners(
-            ui_animator.point("BUTTONS_START").unwrap_or_default(),
-            ui_animator.point("BUTTONS_END").unwrap_or_default(),
+            ui_animator.point_or_zero("BUTTONS_START"),
+            ui_animator.point_or_zero("BUTTONS_END"),
         );
 
         // cursor

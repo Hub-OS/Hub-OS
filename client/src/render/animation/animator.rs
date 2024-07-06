@@ -83,14 +83,14 @@ impl Animator {
     }
 
     pub fn copy_from(&mut self, other: &Self) {
-        self.current_state = other.current_state.clone();
+        self.current_state.clone_from(&other.current_state);
         self.frame_index = other.frame_index;
         self.frame_progress = other.frame_progress;
         self.complete = other.complete;
         self.loop_mode = other.loop_mode;
         self.bounced = other.bounced;
         self.reversed = other.reversed;
-        self.states = other.states.clone();
+        self.states.clone_from(&other.states);
         self.rederive_states();
     }
 
@@ -579,6 +579,10 @@ impl Animator {
 
     pub fn point(&self, name: &str) -> Option<Vec2> {
         self.current_frame()?.point(name)
+    }
+
+    pub fn point_or_zero(&self, name: &str) -> Vec2 {
+        self.point(name).unwrap_or_default()
     }
 
     pub fn apply(&self, sprite: &mut Sprite) {

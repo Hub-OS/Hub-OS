@@ -63,6 +63,7 @@ pub struct BlocksScene {
     block_preview: Option<BlockPreview>,
     block_context_menu: ContextMenu<BlockOption>,
     held_block: Option<InstalledBlock>,
+    block_original_rotation: u8,
     cursor: GridCursor,
     block_returns_to_grid: bool,
     state: State,
@@ -134,8 +135,8 @@ impl BlocksScene {
         animator.set_state("GRID");
         animator.apply(&mut grid_sprite);
 
-        let grid_start = animator.point("GRID_START").unwrap_or_default() - grid_sprite.origin();
-        let grid_step = animator.point("GRID_STEP").unwrap_or_default();
+        let grid_start = animator.point_or_zero("GRID_START") - grid_sprite.origin();
+        let grid_step = animator.point_or_zero("GRID_STEP");
 
         // rail sprite
         let mut rail_sprite = grid_sprite.clone();
@@ -148,8 +149,8 @@ impl BlocksScene {
         animator.apply(&mut information_box_sprite);
 
         let information_bounds = Rect::from_corners(
-            animator.point("TEXT_START").unwrap_or_default(),
-            animator.point("TEXT_END").unwrap_or_default(),
+            animator.point_or_zero("TEXT_START"),
+            animator.point_or_zero("TEXT_END"),
         ) - animator.origin();
         let information_text = Text::new(game_io, FontName::Thin)
             .with_bounds(information_bounds)
@@ -166,8 +167,8 @@ impl BlocksScene {
             );
 
         animator.set_state("OPTION");
-        let list_next = animator.point("STEP").unwrap_or_default();
-        let list_start = animator.point("START").unwrap_or_default() + list_next;
+        let list_next = animator.point_or_zero("STEP");
+        let list_start = animator.point_or_zero("START") + list_next;
 
         scroll_tracker.define_cursor(list_start, list_next.y);
 
@@ -200,6 +201,7 @@ impl BlocksScene {
                 &[("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
             ),
             held_block: None,
+            block_original_rotation: 0,
             cursor,
             state: State::ListSelection,
             block_returns_to_grid: false,
@@ -304,7 +306,7 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
-                    self.information_text.text = package.description.clone();
+                    self.information_text.text.clone_from(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&block.package_id, block.color);
                 } else {
@@ -323,18 +325,18 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &package.id)
                         .unwrap();
 
-                    self.information_text.text = package.description.clone();
+                    self.information_text.text.clone_from(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&package.package_info.id, block_color);
 
                     // update block preview
                     self.animator.set_state("OPTION");
-                    let list_step = self.animator.point("STEP").unwrap_or_default();
-                    let mut position = self.animator.point("START").unwrap_or_default() + list_step;
+                    let list_step = self.animator.point_or_zero("STEP");
+                    let mut position = self.animator.point_or_zero("START") + list_step;
 
                     let index_offset = index - self.scroll_tracker.top_index();
                     position += list_step * index_offset as f32;
-                    position += self.animator.point("BLOCK_PREVIEW").unwrap_or_default();
+                    position += self.animator.point_or_zero("BLOCK_PREVIEW");
 
                     let block_preview =
                         BlockPreview::new(game_io, block_color, package.is_flat, package.shape)
@@ -410,9 +412,11 @@ impl BlocksScene {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
             } else if self.input_tracker.is_active(Input::Cancel) {
-                let block = self.held_block.take().unwrap();
+                let mut block = self.held_block.take().unwrap();
 
                 if self.block_returns_to_grid {
+                    block.rotation = self.block_original_rotation;
+
                     let (x, y) = block.position;
                     self.state = State::GridSelection { x, y };
 
@@ -583,6 +587,7 @@ impl BlocksScene {
 
                     match op {
                         BlockOption::Move => {
+                            self.block_original_rotation = block.rotation;
                             self.held_block = Some(block);
                             self.block_returns_to_grid = true;
                         }
@@ -835,8 +840,8 @@ impl Scene for BlocksScene {
 
         self.animator.set_state("GRID");
         let mut color_position =
-            self.animator.point("COLORS_START").unwrap_or_default() - self.grid_sprite.origin();
-        let color_step = self.animator.point("COLORS_STEP").unwrap_or_default();
+            self.animator.point_or_zero("COLORS_START") - self.grid_sprite.origin();
+        let color_step = self.animator.point_or_zero("COLORS_STEP");
 
         for (i, color) in self.colors.iter().enumerate() {
             if i == 4 {
@@ -936,12 +941,12 @@ impl Scene for BlocksScene {
         };
 
         self.animator.set_state("OPTION");
-        let mut offset = self.animator.point("START").unwrap_or_default();
-        let offset_jump = self.animator.point("STEP").unwrap_or_default();
+        let mut offset = self.animator.point_or_zero("START");
+        let offset_jump = self.animator.point_or_zero("STEP");
 
         let text_bounds = Rect::from_corners(
-            self.animator.point("TEXT_START").unwrap_or_default(),
-            self.animator.point("TEXT_END").unwrap_or_default(),
+            self.animator.point_or_zero("TEXT_START"),
+            self.animator.point_or_zero("TEXT_END"),
         );
         let mut text_style = TextStyle::new(game_io, FontName::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)

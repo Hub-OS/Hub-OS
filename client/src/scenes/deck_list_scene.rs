@@ -64,8 +64,8 @@ impl DeckListScene {
 
         // layout points
         ui_animator.set_state("DEFAULT");
-        let deck_start_position = ui_animator.point("DECK_START").unwrap_or_default();
-        let frame_position = ui_animator.point("CARD_LIST").unwrap_or_default();
+        let deck_start_position = ui_animator.point_or_zero("DECK_START");
+        let frame_position = ui_animator.point_or_zero("CARD_LIST");
 
         // regular card sprite
         let mut regular_card_sprite = assets.new_sprite(game_io, ResourcePaths::REGULAR_CARD);
@@ -80,7 +80,7 @@ impl DeckListScene {
         ui_animator.set_state("DECK");
         ui_animator.apply(&mut deck_sprite);
 
-        let deck_name_offset = ui_animator.point("NAME").unwrap_or_default();
+        let deck_name_offset = ui_animator.point_or_zero("NAME");
 
         // card list
         let mut deck_frame_sprite = ui_sprite.clone();
@@ -92,10 +92,10 @@ impl DeckListScene {
         // card scroll tracker
         let mut card_scroll_tracker = ScrollTracker::new(game_io, 5);
 
-        let card_list_position = ui_animator.point("LIST").unwrap_or_default() + frame_position;
+        let card_list_position = ui_animator.point_or_zero("LIST") + frame_position;
 
-        let scroll_start = ui_animator.point("SCROLL_START").unwrap_or_default() + frame_position;
-        let scroll_end = ui_animator.point("SCROLL_END").unwrap_or_default() + frame_position;
+        let scroll_start = ui_animator.point_or_zero("SCROLL_START") + frame_position;
+        let scroll_end = ui_animator.point_or_zero("SCROLL_END") + frame_position;
 
         card_scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 

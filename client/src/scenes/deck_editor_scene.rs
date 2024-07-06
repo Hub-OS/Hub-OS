@@ -80,8 +80,7 @@ impl DeckEditorScene {
 
         // total text
         let mut deck_total_text = Text::new_monospace(game_io, FontName::Code);
-        let deck_total_position =
-            ui_animator.point("TEXT_START").unwrap_or_default() - ui_animator.origin();
+        let deck_total_position = ui_animator.point_or_zero("TEXT_START") - ui_animator.origin();
 
         (deck_total_text.style.bounds).set_position(deck_total_position);
         deck_total_text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
@@ -899,13 +898,13 @@ impl Dock {
 
         let dock_offset = -dock_sprite.origin();
 
-        let list_point = dock_animator.point("LIST").unwrap_or_default();
+        let list_point = dock_animator.point_or_zero("LIST");
         let list_position = dock_offset + list_point;
 
-        let context_menu_point = dock_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_menu_point = dock_animator.point_or_zero("CONTEXT_MENU");
         let context_menu_position = dock_offset + context_menu_point;
 
-        let page_arrow_point = dock_animator.point("PAGE_ARROWS").unwrap_or_default();
+        let page_arrow_point = dock_animator.point_or_zero("PAGE_ARROWS");
         let page_arrow_offset = dock_offset + page_arrow_point;
 
         // regular sprite
@@ -917,20 +916,20 @@ impl Dock {
         regular_animator.apply(&mut regular_sprite);
 
         // card sprite
-        let card_offset = dock_animator.point("CARD").unwrap_or_default();
+        let card_offset = dock_animator.point_or_zero("CARD");
         let card_preview = FullCard::new(game_io, dock_offset + card_offset);
 
         // scroll tracker
         let mut scroll_tracker = ScrollTracker::new(game_io, 7);
         scroll_tracker.set_total_items(card_slots.len());
 
-        let scroll_start = dock_offset + dock_animator.point("SCROLL_START").unwrap_or_default();
-        let scroll_end = dock_offset + dock_animator.point("SCROLL_END").unwrap_or_default();
+        let scroll_start = dock_offset + dock_animator.point_or_zero("SCROLL_START");
+        let scroll_end = dock_offset + dock_animator.point_or_zero("SCROLL_END");
 
         scroll_tracker.define_scrollbar(scroll_start, scroll_end);
 
         // cursor
-        let cursor_start = dock_offset + dock_animator.point("CURSOR_START").unwrap_or_default();
+        let cursor_start = dock_offset + dock_animator.point_or_zero("CURSOR_START");
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
         let mut dock = Self {
@@ -1154,7 +1153,9 @@ impl CardListItem {
             // use all packages for pack
             package_manager
                 .packages(NAMESPACE)
-                .filter(|package| !package.hidden)
+                .filter(|package| {
+                    !package.hidden && package.card_properties.card_class != CardClass::Recipe
+                })
                 .flat_map(|package| {
                     let package_info = package.package_info();
                     let triplet = package.package_info.triplet();

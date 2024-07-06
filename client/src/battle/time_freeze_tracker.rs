@@ -347,7 +347,7 @@ impl TimeFreezeTracker {
 
             let fade_alpha = simulation.time_freeze_tracker.fade_alpha();
             let fade_color = FADE_COLOR.multiply_alpha(fade_alpha);
-            simulation.fade_sprite.set_color(fade_color);
+            resources.battle_fade_color.set(fade_color);
         }
 
         // detect freeze start

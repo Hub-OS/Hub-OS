@@ -39,8 +39,7 @@ impl<K: EnumArray<Vec2>> Index<K> for ResolvedPoints<K> {
 impl<K: EnumArray<Vec2> + EnumArray<&'static str>> ResolvedPoints<K> {
     pub fn new(animator: &Animator, point_map: EnumMap<K, &'static str>) -> Self {
         let origin = animator.origin();
-        let position_map =
-            point_map.map(|_, name| animator.point(name).unwrap_or_default() - origin);
+        let position_map = point_map.map(|_, name| animator.point_or_zero(name) - origin);
 
         Self { position_map }
     }
@@ -109,7 +108,7 @@ where
 
             // store initial position value
             animator.set_state(state);
-            animator.point(name).unwrap_or_default() - animator.origin()
+            animator.point_or_zero(name) - animator.origin()
         });
 
         // resolve parent depth for sorting

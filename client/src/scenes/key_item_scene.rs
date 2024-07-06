@@ -49,14 +49,14 @@ impl KeyItemsScene {
         ui_animator.set_state("DEFAULT");
 
         // cursors
-        let cursor_left_start = ui_animator.point("CURSOR_LEFT").unwrap_or_default();
-        let cursor_right_start = ui_animator.point("CURSOR_RIGHT").unwrap_or_default();
-        let text_offset = ui_animator.point("TEXT_OFFSET").unwrap_or_default();
+        let cursor_left_start = ui_animator.point_or_zero("CURSOR_LEFT");
+        let cursor_right_start = ui_animator.point_or_zero("CURSOR_RIGHT");
+        let text_offset = ui_animator.point_or_zero("TEXT_OFFSET");
 
         // scrollable frame
         let frame_bounds = Rect::from_corners(
-            ui_animator.point("FRAME_START").unwrap_or_default(),
-            ui_animator.point("FRAME_END").unwrap_or_default(),
+            ui_animator.point_or_zero("FRAME_START"),
+            ui_animator.point_or_zero("FRAME_END"),
         );
 
         let scrollable_frame = ScrollableFrame::new(game_io, frame_bounds);

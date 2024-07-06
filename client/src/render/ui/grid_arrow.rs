@@ -40,10 +40,10 @@ impl GridArrow {
 
         // resolve start point
         animator.set_state("GRID");
-        let grid_start = animator.point("GRID_START").unwrap_or_default() - animator.origin();
-        let grid_step = animator.point("GRID_STEP").unwrap_or_default();
-        let start = animator.point("ARROW_START").unwrap_or_default() - animator.origin();
-        let end = animator.point("ARROW_END").unwrap_or_default() - animator.origin();
+        let grid_start = animator.point_or_zero("GRID_START") - animator.origin();
+        let grid_step = animator.point_or_zero("GRID_STEP");
+        let start = animator.point_or_zero("ARROW_START") - animator.origin();
+        let end = animator.point_or_zero("ARROW_END") - animator.origin();
 
         // resolve width
         let max_width = end.x - start.x;

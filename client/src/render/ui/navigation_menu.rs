@@ -141,8 +141,8 @@ impl NavigationMenu {
         ui_animator.set_state("INFO");
         ui_animator.apply(&mut info_sprite);
 
-        let hp_point = ui_animator.point("HP").unwrap_or_default() - ui_animator.origin();
-        let money_point = ui_animator.point("MONEY").unwrap_or_default() - ui_animator.origin();
+        let hp_point = ui_animator.point_or_zero("HP") - ui_animator.origin();
+        let money_point = ui_animator.point_or_zero("MONEY") - ui_animator.origin();
 
         // backing fade sprite
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
@@ -151,8 +151,8 @@ impl NavigationMenu {
 
         // items
         ui_animator.set_state("DEFAULT");
-        let item_start = ui_animator.point("OPTION_START").unwrap_or_default();
-        let item_next = ui_animator.point("OPTION_NEXT").unwrap_or_default();
+        let item_start = ui_animator.point_or_zero("OPTION_START");
+        let item_next = ui_animator.point_or_zero("OPTION_NEXT");
 
         NavigationMenu {
             open_state: OpenState::Open,

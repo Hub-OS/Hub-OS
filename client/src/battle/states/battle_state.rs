@@ -205,7 +205,8 @@ impl BattleState {
             return;
         }
 
-        if simulation.config.automatic_turn_end {
+        if simulation.config.automatic_turn_end || simulation.turn_gauge.completed_turn() {
+            simulation.turn_gauge.set_completed_turn(false);
             self.complete = true;
             return;
         }

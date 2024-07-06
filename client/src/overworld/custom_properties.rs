@@ -12,7 +12,7 @@ impl CustomProperties {
     }
 
     pub fn has_property(&self, name: &str) -> bool {
-        self.properties.get(name).is_some()
+        self.properties.contains_key(name)
     }
 
     pub fn get(&self, name: &str) -> &str {

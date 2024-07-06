@@ -77,7 +77,7 @@ impl SlotUi {
 
         let mut sprite = assets.new_sprite(game_io, ResourcePaths::SWITCH_DRIVE_UI);
 
-        let point = animator.point(part_name).unwrap_or_default() + offset;
+        let point = animator.point_or_zero(part_name) + offset;
 
         // save state
         let old_state = animator.current_state().unwrap_or_default().to_string();
@@ -95,8 +95,8 @@ impl SlotUi {
 
         // resolve name position
         let name_bounds = Rect::from_corners(
-            animator.point("NAME_START").unwrap_or_default(),
-            animator.point("NAME_END").unwrap_or_default(),
+            animator.point_or_zero("NAME_START"),
+            animator.point_or_zero("NAME_END"),
         ) - animator.origin()
             + point;
 
@@ -133,7 +133,7 @@ impl SlotUi {
     fn set_package(&mut self, package: Option<&AugmentPackage>) {
         if let Some(package) = package {
             self.package_id = Some(package.package_info.id.clone());
-            self.name_text.text = package.name.clone();
+            self.name_text.text.clone_from(&package.name);
         } else {
             self.package_id = None;
             self.name_text.text.clear();
@@ -211,8 +211,8 @@ impl ManageSwitchDriveScene {
 
         // layout
         animator.set_state("DEFAULT");
-        let equipment_position = animator.point("EQUIPMENT").unwrap_or_default();
-        let info_box_position = animator.point("TEXTBOX").unwrap_or_default();
+        let equipment_position = animator.point_or_zero("EQUIPMENT");
+        let info_box_position = animator.point_or_zero("TEXTBOX");
 
         let mut equipment_sprite = assets.new_sprite(game_io, ResourcePaths::SWITCH_DRIVE_UI);
 
@@ -238,8 +238,8 @@ impl ManageSwitchDriveScene {
         info_box_sprite.set_position(info_box_position);
 
         let info_bounds = Rect::from_corners(
-            animator.point("TEXT_START").unwrap_or_default(),
-            animator.point("TEXT_END").unwrap_or_default(),
+            animator.point_or_zero("TEXT_START"),
+            animator.point_or_zero("TEXT_END"),
         ) - animator.origin()
             + info_box_position;
 
@@ -672,12 +672,12 @@ impl Scene for ManageSwitchDriveScene {
         };
 
         self.animator.set_state("OPTION");
-        let mut offset = self.animator.point("START").unwrap_or_default();
-        let offset_jump = self.animator.point("STEP").unwrap_or_default();
+        let mut offset = self.animator.point_or_zero("START");
+        let offset_jump = self.animator.point_or_zero("STEP");
 
         let text_bounds = Rect::from_corners(
-            self.animator.point("TEXT_START").unwrap_or_default(),
-            self.animator.point("TEXT_END").unwrap_or_default(),
+            self.animator.point_or_zero("TEXT_START"),
+            self.animator.point_or_zero("TEXT_END"),
         );
 
         let mut text_style = TextStyle::new(game_io, FontName::Thick)

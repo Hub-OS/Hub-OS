@@ -80,13 +80,13 @@ impl ConfigScene {
         let ui_animator =
             Animator::load_new(assets, ResourcePaths::CONFIG_UI_ANIMATION).with_state("DEFAULT");
 
-        let primary_layout_start = ui_animator.point("PRIMARY").unwrap_or_default();
+        let primary_layout_start = ui_animator.point_or_zero("PRIMARY");
 
-        let secondary_layout_start = ui_animator.point("SECONDARY_START").unwrap_or_default();
-        let secondary_layout_end = ui_animator.point("SECONDARY_END").unwrap_or_default();
+        let secondary_layout_start = ui_animator.point_or_zero("SECONDARY_START");
+        let secondary_layout_end = ui_animator.point_or_zero("SECONDARY_END");
         let secondary_bounds = Rect::from_corners(secondary_layout_start, secondary_layout_end);
 
-        let context_position = ui_animator.point("CONTEXT_MENU").unwrap_or_default();
+        let context_position = ui_animator.point_or_zero("CONTEXT_MENU");
 
         Box::new(Self {
             camera: Camera::new_ui(game_io),
@@ -118,8 +118,8 @@ impl ConfigScene {
             context_sender: None,
             textbox: Textbox::new_navigation(game_io),
             doorstop_remover: None,
-            next_scene: NextScene::None,
             config,
+            next_scene: NextScene::None,
         })
     }
 
@@ -229,6 +229,32 @@ impl ConfigScene {
                     }
 
                     config.lock_aspect_ratio
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                "Integer Scaling",
+                config.borrow().integer_scaling,
+                config.clone(),
+                |game_io, mut config| {
+                    config.integer_scaling = !config.integer_scaling;
+
+                    let window = game_io.window_mut();
+                    window.set_integer_scaling(config.integer_scaling);
+
+                    config.integer_scaling
+                },
+            )),
+            Box::new(UiConfigToggle::new(
+                "Snap Resize",
+                config.borrow().snap_resize,
+                config.clone(),
+                |game_io, mut config| {
+                    config.snap_resize = !config.snap_resize;
+
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.snap_resize = config.snap_resize;
+
+                    config.snap_resize
                 },
             )),
             Box::new(
@@ -399,7 +425,7 @@ impl ConfigScene {
                     let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
                     audio.use_device(&device_name);
 
-                    config.audio_device = device_name.clone();
+                    config.audio_device.clone_from(&device_name);
 
                     device_name
                 },
@@ -758,6 +784,8 @@ impl ConfigScene {
                         // window
                         let fullscreen = config.fullscreen;
                         let lock_aspect_ratio = config.lock_aspect_ratio;
+                        let integer_scaling = config.integer_scaling;
+                        globals.snap_resize = config.snap_resize;
                         let window = game_io.window_mut();
 
                         window.set_fullscreen(fullscreen);
@@ -767,6 +795,8 @@ impl ConfigScene {
                         } else {
                             window.unlock_resolution();
                         }
+
+                        window.set_integer_scaling(integer_scaling);
 
                         // post processing again
                         game_io.set_post_process_enabled::<PostProcessAdjust>(enable_adjustment);

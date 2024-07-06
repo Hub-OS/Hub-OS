@@ -9,7 +9,7 @@ use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
     PackageListing, TextStyle, TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface,
-    TextboxMessage, TextboxPrompt, TextboxQuestion, TextboxQuiz,
+    TextboxMessage, TextboxMessageAuto, TextboxPrompt, TextboxQuestion, TextboxQuiz,
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
 use crate::resources::*;
@@ -682,6 +682,23 @@ impl OverworldOnlineScene {
                         .send(OverworldEvent::TextboxResponse(0))
                         .unwrap();
                 });
+
+                self.push_textbox_interface_with_options(game_io, interface, textbox_options);
+                self.set_textbox_doorstop();
+            }
+            ServerPacket::AutoMessage {
+                message,
+                close_delay,
+                textbox_options,
+            } => {
+                let event_sender = self.area.event_sender.clone();
+                let interface = TextboxMessageAuto::new(message)
+                    .with_close_delay((close_delay * 60.0).round() as _)
+                    .with_callback(move || {
+                        event_sender
+                            .send(OverworldEvent::TextboxResponse(0))
+                            .unwrap();
+                    });
 
                 self.push_textbox_interface_with_options(game_io, interface, textbox_options);
                 self.set_textbox_doorstop();

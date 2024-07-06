@@ -3,6 +3,7 @@ use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::SpriteColorQueue;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
+use crate::CardRecipe;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -37,7 +38,7 @@ struct CardMeta {
     tags: Vec<String>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct CardPackage {
     pub package_info: PackageInfo,
     pub icon_texture_path: String,
@@ -49,6 +50,7 @@ pub struct CardPackage {
     pub regular_allowed: bool,
     pub hidden: bool,
     pub limit: usize,
+    pub recipes: Vec<CardRecipe>,
 }
 
 impl Package for CardPackage {
@@ -82,6 +84,16 @@ impl Package for CardPackage {
             package_info,
             ..Default::default()
         };
+
+        // handle recipes
+
+        if let Some(recipes) = package_table.get("recipes").and_then(|v| v.as_array()) {
+            for recipe in recipes {
+                if let Some(resolved) = CardRecipe::from_toml(recipe) {
+                    package.recipes.push(resolved);
+                }
+            }
+        }
 
         let meta: CardMeta = match package_table.try_into() {
             Ok(toml) => toml,

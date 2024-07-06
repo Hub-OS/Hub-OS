@@ -28,9 +28,9 @@ pub struct GlobalSfx {
     pub tile_break: SoundBuffer,
     pub trap: SoundBuffer,
     pub shine: SoundBuffer,
-    pub transform_select: SoundBuffer,
-    pub transform: SoundBuffer,
-    pub transform_revert: SoundBuffer,
+    pub form_select: SoundBuffer,
+    pub form_activate: SoundBuffer,
+    pub form_deactivate: SoundBuffer,
     pub attack_charging: SoundBuffer,
     pub attack_charged: SoundBuffer,
     pub counter_hit: SoundBuffer,
@@ -39,6 +39,8 @@ pub struct GlobalSfx {
     pub hurt: SoundBuffer,
     pub explode: SoundBuffer,
     pub dark_card: SoundBuffer,
+    pub indicate: SoundBuffer,
+    pub craft: SoundBuffer,
 }
 
 impl GlobalSfx {
@@ -69,9 +71,9 @@ impl GlobalSfx {
             tile_break: load(ResourcePaths::TILE_BREAK_SFX),
             trap: load(ResourcePaths::TRAP_SFX),
             shine: load(ResourcePaths::SHINE_SFX),
-            transform_select: load(ResourcePaths::TRANSFORM_SELECT_SFX),
-            transform: load(ResourcePaths::TRANSFORM_SFX),
-            transform_revert: load(ResourcePaths::TRANSFORM_REVERT_SFX),
+            form_select: load(ResourcePaths::FORM_SELECT_SFX),
+            form_activate: load(ResourcePaths::FORM_SFX),
+            form_deactivate: load(ResourcePaths::FORM_REVERT_SFX),
             attack_charging: load(ResourcePaths::ATTACK_CHARGING_SFX),
             attack_charged: load(ResourcePaths::ATTACK_CHARGED_SFX),
             counter_hit: load(ResourcePaths::COUNTER_HIT_SFX),
@@ -80,6 +82,8 @@ impl GlobalSfx {
             hurt: load(ResourcePaths::HURT_SFX),
             explode: load(ResourcePaths::EXPLODE_SFX),
             dark_card: load(ResourcePaths::DARK_CARD_SFX),
+            indicate: load(ResourcePaths::INDICATE_SFX),
+            craft: load(ResourcePaths::CRAFT_SFX),
         }
     }
 

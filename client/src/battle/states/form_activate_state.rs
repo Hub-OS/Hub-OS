@@ -53,7 +53,7 @@ impl State for FormActivateState {
         };
 
         let fade_color = Color::BLACK.multiply_alpha(alpha);
-        simulation.fade_sprite.set_color(fade_color);
+        resources.battle_fade_color.set(fade_color);
 
         // logic
         if self.target_complete_time.is_none() {
@@ -186,7 +186,7 @@ impl FormActivateState {
         // play sfx
         let globals = game_io.resource::<Globals>().unwrap();
         simulation.play_sound(game_io, &globals.sfx.shine);
-        simulation.play_sound(game_io, &globals.sfx.transform);
+        simulation.play_sound(game_io, &globals.sfx.form_activate);
     }
 
     fn detect_animation_end(

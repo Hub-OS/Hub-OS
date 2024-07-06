@@ -18,6 +18,7 @@ pub struct PlayerSetup {
     pub base_health: i32,
     pub emotion: Emotion,
     pub deck: Deck,
+    pub recipes: Vec<PackageId>,
     pub blocks: Vec<InstalledBlock>,
     pub drives: Vec<InstalledSwitchDrive>,
     pub index: usize,
@@ -34,6 +35,7 @@ impl PlayerSetup {
             base_health: 9999,
             emotion: Emotion::default(),
             deck: Deck::new(String::new()),
+            recipes: Vec::new(),
             blocks: Vec::new(),
             drives: Vec::new(),
             index,
@@ -94,7 +96,9 @@ impl PlayerSetup {
         // TODO: Filter Switch Drive restrictions to deck as well.
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
-        deck.conform(game_io, PackageNamespace::Local, &deck_restrictions);
+        deck.conform(game_io, ns, &deck_restrictions);
+
+        let recipes = deck.resolve_relevant_recipes(game_io, restrictions, ns);
 
         Self {
             package_id: player_package_info.id.clone(),
@@ -104,6 +108,7 @@ impl PlayerSetup {
             emotion: Emotion::default(),
             index: 0,
             deck,
+            recipes,
             blocks,
             drives,
             local: true,

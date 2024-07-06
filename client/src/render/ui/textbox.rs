@@ -13,8 +13,6 @@ const IDLE_CHAR_DELAY: FrameTime = 2;
 const FAST_CHAR_DELAY: FrameTime = 1;
 const DRAMATIC_CHAR_DELAY: FrameTime = 40;
 
-const AUTO_PAGE_DELAY: FrameTime = 10;
-
 pub trait TextboxInterface {
     /// This should not change after the first call
     fn text(&self) -> &str;
@@ -80,8 +78,8 @@ impl Textbox {
         // first frame of IDLE contains text bounds information
         animator.set_state("IDLE");
         let text_bounds = Rect::from_corners(
-            animator.point("TEXT_TOP_LEFT").unwrap_or_default() - animator.origin(),
-            animator.point("TEXT_BOTTOM_RIGHT").unwrap_or_default() - animator.origin(),
+            animator.point_or_zero("TEXT_TOP_LEFT") - animator.origin(),
+            animator.point_or_zero("TEXT_BOTTOM_RIGHT") - animator.origin(),
         );
 
         let mut sprite = assets.new_sprite(game_io, texture_path);
@@ -92,7 +90,7 @@ impl Textbox {
         let y = RESOLUTION_F.y - bottom_height;
 
         // get next_sprite_offset
-        let next_sprite_offset = animator.point("NEXT").unwrap_or_default() - animator.origin();
+        let next_sprite_offset = animator.point_or_zero("NEXT") - animator.origin();
 
         let textbox = Self {
             is_open: false,
@@ -386,9 +384,7 @@ impl Textbox {
             // try advancing page
             self.char_time += 1;
 
-            let can_auto_advance = auto_advance && self.char_time > AUTO_PAGE_DELAY;
-
-            if (!is_last_page || completes_with_input) && (pressed_advance || can_auto_advance) {
+            if (!is_last_page || completes_with_input) && (pressed_advance || auto_advance) {
                 self.advance_page(game_io);
             }
         }
@@ -573,8 +569,7 @@ impl Textbox {
         if !self.hide_avatar {
             if let Some((animator, sprite, _)) = self.avatar_queue.front_mut() {
                 // render avatar
-                let point =
-                    self.animator.point("AVATAR").unwrap_or_default() - self.animator.origin();
+                let point = self.animator.point_or_zero("AVATAR") - self.animator.origin();
                 sprite.set_position(self.sprite.position() + point);
 
                 animator.apply(sprite);

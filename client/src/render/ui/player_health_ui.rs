@@ -22,7 +22,7 @@ impl PlayerHealthUi {
         // use animation to load placement information
         let mut animator = Animator::load_new(assets, ResourcePaths::HEALTH_FRAME_ANIMATION);
         animator.set_state("DEFAULT");
-        let text_offset = animator.point("TEXT_START").unwrap_or_default();
+        let text_offset = animator.point_or_zero("TEXT_START");
 
         let mut health_ui = Self {
             max_health: 0,

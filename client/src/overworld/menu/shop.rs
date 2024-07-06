@@ -63,8 +63,8 @@ impl Shop {
         animator.set_state("LIST");
         animator.apply(&mut list_sprite);
 
-        let list_left = animator.point("LIST_LEFT").unwrap_or_default() - animator.origin();
-        let list_right = animator.point("LIST_RIGHT").unwrap_or_default() - animator.origin();
+        let list_left = animator.point_or_zero("LIST_LEFT") - animator.origin();
+        let list_right = animator.point_or_zero("LIST_RIGHT") - animator.origin();
 
         // cursor
         let mut scroll_tracker = ScrollTracker::new(game_io, 5).with_custom_cursor(
@@ -73,7 +73,7 @@ impl Shop {
             ResourcePaths::TEXTBOX_CURSOR,
         );
 
-        let cursor_start = animator.point("CURSOR").unwrap_or_default() - animator.origin();
+        let cursor_start = animator.point_or_zero("CURSOR") - animator.origin();
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
         // money
@@ -81,8 +81,7 @@ impl Shop {
 
         animator.set_state("MONEY");
         animator.apply(&mut list_sprite);
-        let money_amount_right =
-            animator.point("AMOUNT_RIGHT").unwrap_or_default() - animator.origin();
+        let money_amount_right = animator.point_or_zero("AMOUNT_RIGHT") - animator.origin();
 
         // recycled sprite
         let recycled_sprite = money_sprite.clone();
@@ -133,7 +132,7 @@ impl Shop {
     }
 
     pub fn set_message(&mut self, message: String) {
-        self.saved_message = message.clone();
+        self.saved_message.clone_from(&message);
 
         if self.confirming_leave {
             return;

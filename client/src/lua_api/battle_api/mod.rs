@@ -125,6 +125,8 @@ const BUILD_SPECIAL_CARD_FN: &str = "build_special_card_func";
 // player forms
 const ACTIVATE_FN: &str = "on_activate_func";
 const DEACTIVATE_FN: &str = "on_deactivate_func";
+const SELECT_FN: &str = "on_select_func";
+const DESELECT_FN: &str = "on_deselect_func";
 
 // buttons
 const USE_FN: &str = "use_func";

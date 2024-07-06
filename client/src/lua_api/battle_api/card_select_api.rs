@@ -86,6 +86,12 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
                 .map_err(|_| entity_not_found())?;
 
             if let Some(item) = player.staged_items.pop() {
+                if let StagedItemData::Form((index, ..)) = item.data {
+                    if let Some(callback) = &player.forms[index].deselect_callback {
+                        callback.clone().call(game_io, resources, simulation, ());
+                    }
+                }
+
                 if let Some(callback) = item.undo_callback.clone() {
                     callback.call(game_io, resources, simulation, ());
                 }
@@ -219,7 +225,9 @@ where
         let mut api_ctx = api_ctx.borrow_mut();
         let vm_index = api_ctx.vm_index;
         let game_io = api_ctx.game_io;
-        let entities = &mut api_ctx.simulation.entities;
+        let resources = api_ctx.resources;
+        let simulation = &mut *api_ctx.simulation;
+        let entities = &mut simulation.entities;
 
         let player = entities
             .query_one_mut::<&mut Player>(id.into())
@@ -235,7 +243,14 @@ where
             undo_callback,
         };
 
+        if let StagedItemData::Form((index, ..)) = item.data {
+            if let Some(callback) = &player.forms[index].select_callback {
+                simulation.pending_callbacks.push(callback.clone());
+            }
+        }
+
         player.staged_items.stage_item(item);
+        simulation.call_pending_callbacks(game_io, resources);
 
         lua.pack_multi(())
     });

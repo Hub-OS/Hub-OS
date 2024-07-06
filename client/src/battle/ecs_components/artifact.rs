@@ -157,8 +157,8 @@ impl Artifact {
         Self::create_animated_artifact(
             game_io,
             simulation,
-            ResourcePaths::BATTLE_TRANSFORM_SHINE,
-            ResourcePaths::BATTLE_TRANSFORM_SHINE_ANIMATION,
+            ResourcePaths::BATTLE_SHINE,
+            ResourcePaths::BATTLE_SHINE_ANIMATION,
         )
     }
 }

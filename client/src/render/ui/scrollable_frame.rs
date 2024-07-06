@@ -24,7 +24,7 @@ impl ScrollableFrame {
 
         animator.set_state("LIST_LABEL");
         animator.apply(&mut label_sprite);
-        let label_text_start = animator.point("TEXT_START").unwrap_or_default() - animator.origin();
+        let label_text_start = animator.point_or_zero("TEXT_START") - animator.origin();
 
         // frame
         let nine_patch = build_9patch!(game_io, label_sprite.texture().clone(), &animator, "LIST");

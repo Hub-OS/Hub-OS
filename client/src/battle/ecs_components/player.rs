@@ -7,6 +7,7 @@ use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
 use crate::structures::DenseSlotMap;
 use framework::prelude::*;
+use packets::structures::PackageId;
 
 #[derive(Clone)]
 pub struct Player {
@@ -14,6 +15,7 @@ pub struct Player {
     pub local: bool,
     pub deck: Vec<Card>,
     pub staged_items: StagedItems,
+    pub used_recipes: Vec<PackageId>,
     pub card_select_blocked: bool,
     pub has_regular_card: bool,
     pub can_flip: bool,
@@ -39,7 +41,7 @@ impl Player {
     pub const IDLE_STATE: &'static str = "PLAYER_IDLE";
 
     pub const MOVE_FRAMES: [DerivedFrame; 7] = [
-        DerivedFrame::new(0, 1),
+        DerivedFrame::new(0, 2),
         DerivedFrame::new(1, 1),
         DerivedFrame::new(2, 1),
         DerivedFrame::new(3, 1),
@@ -67,15 +69,20 @@ impl Player {
         }
 
         // load emotions assets with defaults to prevent warnings
-        let emotion_sprite;
-        let emotion_animation;
-
-        if let Some(pair) = player_package.emotions_paths.as_ref() {
-            emotion_sprite = assets.new_sprite(game_io, &pair.texture);
-            emotion_animation = Animator::load_new(assets, &pair.animation);
+        let emotion_window = if let Some(pair) = player_package.emotions_paths.as_ref() {
+            EmotionUi::new(
+                game_io,
+                setup.emotion.clone(),
+                &pair.texture,
+                &pair.animation,
+            )
         } else {
-            emotion_sprite = assets.new_sprite(game_io, ResourcePaths::BLANK);
-            emotion_animation = Default::default();
+            EmotionUi::new(
+                game_io,
+                setup.emotion.clone(),
+                ResourcePaths::BLANK,
+                ResourcePaths::BLANK,
+            )
         };
 
         Self {
@@ -83,6 +90,7 @@ impl Player {
             local: setup.local,
             deck: deck.cards,
             staged_items: Default::default(),
+            used_recipes: Default::default(),
             card_select_blocked: false,
             has_regular_card: deck.regular_index.is_some(),
             can_flip: true,
@@ -106,11 +114,7 @@ impl Player {
             flinch_animation_state: String::new(),
             movement_animation_state: String::new(),
             slide_when_moving: false,
-            emotion_window: EmotionUi::new(
-                setup.emotion.clone(),
-                emotion_sprite,
-                emotion_animation,
-            ),
+            emotion_window,
             forms: Vec::new(),
             active_form: None,
             augments: Default::default(),
@@ -153,7 +157,7 @@ impl Player {
 
         // use preloaded package properties
         entity.element = player_package.element;
-        entity.name = player_package.name.clone();
+        entity.name.clone_from(&player_package.name);
         living.status_director.set_input_index(setup.index);
 
         // idle callback
@@ -270,7 +274,7 @@ impl Player {
 
                         // play revert sfx
                         let sfx = &game_io.resource::<Globals>().unwrap().sfx;
-                        simulation.play_sound(game_io, &sfx.transform_revert);
+                        simulation.play_sound(game_io, &sfx.form_deactivate);
 
                         // actual shine creation as indicated above
                         let shine_id = Artifact::create_transformation_shine(game_io, simulation);
@@ -611,14 +615,13 @@ impl Player {
 
         // update AttackCharge structs
         let entities = &mut simulation.entities;
-        let (entity, player, character) = entities
-            .query_one_mut::<(&Entity, &mut Player, &mut Character)>(entity_id.into())
+        let (player, character) = entities
+            .query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
         player.card_chargable_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
-        let is_idle = entity.movement.is_none();
         let input = &simulation.inputs[player.index];
 
         if can_charge_card && input.was_just_pressed(Input::UseCard) {
@@ -650,10 +653,10 @@ impl Player {
         let card_used = if !can_charge_card && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
-            player.card_charge.update(game_io, is_idle, play_sfx)
+            player.card_charge.update(game_io, play_sfx)
         };
 
-        let buster_fired = player.buster_charge.update(game_io, is_idle, play_sfx);
+        let buster_fired = player.buster_charge.update(game_io, play_sfx);
 
         // update from results
 

@@ -99,7 +99,7 @@ impl PlayerInput {
 
     pub fn flush(&mut self) {
         // copy previous state
-        self.previous_input = self.pressed_input.clone();
+        self.previous_input.clone_from(&self.pressed_input);
         self.signals.clear();
 
         let navigation_held = self

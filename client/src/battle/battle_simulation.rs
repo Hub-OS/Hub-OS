@@ -22,7 +22,6 @@ pub struct BattleSimulation {
     pub battle_time: FrameTime,
     pub camera: Camera,
     pub background: Background,
-    pub fade_sprite: Sprite,
     pub turn_gauge: TurnGauge,
     pub field: Field,
     pub tile_states: Vec<TileState>,
@@ -58,8 +57,10 @@ impl BattleSimulation {
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         fade_sprite.set_color(Color::TRANSPARENT);
 
+        let field = Field::new(game_io, 8, 5);
+
         Self {
-            config: BattleConfig::new(globals, props.player_setups.len()),
+            config: BattleConfig::new(globals, &field, props.player_setups.len()),
             statistics: BattleStatistics::new(),
             rng: Xoshiro256PlusPlus::seed_from_u64(props.seed),
             time: 0,
@@ -67,9 +68,8 @@ impl BattleSimulation {
             inputs: vec![PlayerInput::new(); props.player_setups.len()],
             camera,
             background: props.background.clone(),
-            fade_sprite,
             turn_gauge: TurnGauge::new(game_io),
-            field: Field::new(game_io, 8, 5),
+            field,
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
@@ -142,7 +142,6 @@ impl BattleSimulation {
             battle_time: self.battle_time,
             camera: self.camera.clone(game_io),
             background: self.background.clone(),
-            fade_sprite: self.fade_sprite.clone(),
             turn_gauge: self.turn_gauge.clone(),
             field: self.field.clone(),
             tile_states: self.tile_states.clone(),
@@ -255,8 +254,9 @@ impl BattleSimulation {
         // update background
         self.background.update();
 
-        // reset fade
-        self.fade_sprite.set_color(Color::TRANSPARENT);
+        // reset fade colors
+        resources.ui_fade_color.set(Color::TRANSPARENT);
+        resources.battle_fade_color.set(Color::TRANSPARENT);
 
         if state.allows_animation_updates() {
             // update animations
@@ -621,6 +621,7 @@ impl BattleSimulation {
     pub fn draw(
         &mut self,
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         render_pass: &mut RenderPass,
         draw_player_indices: bool,
     ) {
@@ -656,12 +657,9 @@ impl BattleSimulation {
             perspective_flipped,
         );
 
-        // draw dramatic fade
-        if self.fade_sprite.color().a > 0.0 {
-            self.fade_sprite.set_bounds(self.camera.bounds());
-
-            sprite_queue.draw_sprite(&self.fade_sprite);
-        }
+        // draw battle fade color
+        let fade_color = resources.battle_fade_color.get();
+        resources.draw_fade_sprite(&mut sprite_queue, fade_color);
 
         // draw entities, sorting by tile, movement offset, and layer
         let mut sorted_entities = Vec::with_capacity(self.entities.len() as usize);

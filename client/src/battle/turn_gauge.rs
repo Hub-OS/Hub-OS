@@ -9,6 +9,7 @@ pub struct TurnGauge {
     animator: Animator,
     container_sprite: Sprite,
     bar_sprite: Sprite,
+    completed_turn: bool,
 }
 
 impl TurnGauge {
@@ -31,6 +32,7 @@ impl TurnGauge {
             animator,
             bar_sprite: sprite,
             container_sprite,
+            completed_turn: false,
         }
     }
 
@@ -39,8 +41,16 @@ impl TurnGauge {
         self.animator.update();
     }
 
+    pub fn set_completed_turn(&mut self, value: bool) {
+        self.completed_turn = value;
+    }
+
+    pub fn completed_turn(&self) -> bool {
+        self.completed_turn
+    }
+
     pub fn is_complete(&self) -> bool {
-        self.time >= self.max_time
+        self.time >= self.max_time || self.completed_turn
     }
 
     pub fn progress(&self) -> f32 {

@@ -2,8 +2,9 @@ use crate::bindable::CardClass;
 use crate::packages::PackageNamespace;
 use crate::resources::{DeckRestrictions, Globals};
 use crate::saves::Card;
+use crate::Restrictions;
 use framework::prelude::GameIO;
-use packets::structures::PackageId;
+use packets::structures::{PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -130,5 +131,37 @@ impl Deck {
             // Swap the cards.
             self.cards.swap(i, swap_index);
         }
+    }
+
+    pub fn resolve_relevant_recipes(
+        &self,
+        game_io: &GameIO,
+        restrictions: &Restrictions,
+        ns: PackageNamespace,
+    ) -> Vec<PackageId> {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let mut results = Vec::new();
+
+        for card in &self.cards {
+            let Some(package) = globals.card_packages.package(ns, &card.package_id) else {
+                continue;
+            };
+
+            for id in globals.card_recipes.related_output(ns, package) {
+                if results.contains(&id) {
+                    continue;
+                }
+
+                let triplet = (PackageCategory::Card, ns, id.clone());
+
+                if !restrictions.validate_package_tree(game_io, triplet) {
+                    continue;
+                }
+
+                results.push(id);
+            }
+        }
+
+        results
     }
 }

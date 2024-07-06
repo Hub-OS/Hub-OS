@@ -109,15 +109,10 @@ impl AttackCharge {
         sprite_node.apply_animation(&self.animator);
     }
 
-    pub fn update(
-        &mut self,
-        game_io: &GameIO,
-        entity_is_idle: bool,
-        play_sfx: bool,
-    ) -> Option<bool> {
+    pub fn update(&mut self, game_io: &GameIO, play_sfx: bool) -> Option<bool> {
         let previously_charging = self.has_charge();
 
-        if self.charging || (!entity_is_idle && previously_charging) {
+        if self.charging {
             // charging
             if play_sfx && self.charging_time == Self::CHARGE_DELAY {
                 let globals = game_io.resource::<Globals>().unwrap();
