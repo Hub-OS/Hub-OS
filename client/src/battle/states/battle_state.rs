@@ -1,18 +1,20 @@
 use super::State;
 use crate::battle::*;
 use crate::bindable::*;
-use crate::ease::inverse_lerp;
-use crate::render::ui::{FontName, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use rand::Rng;
+use std::borrow::Cow;
+use ui::BattleBannerMessage;
+
+const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
 
 #[derive(Clone)]
 pub struct BattleState {
     time: FrameTime,
     complete: bool,
-    message: Option<(&'static str, FrameTime)>,
+    end_message: BattleBannerMessage,
 }
 
 impl State for BattleState {
@@ -38,6 +40,8 @@ impl State for BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        self.end_message.update();
+
         self.detect_battle_start(game_io, resources, simulation);
 
         // reset frame temporary variables
@@ -91,7 +95,9 @@ impl State for BattleState {
 
         self.apply_status_vfx(game_io, resources, simulation);
 
-        if self.message.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
+        if self.end_message.remaining_time().is_none()
+            && !simulation.time_freeze_tracker.time_is_frozen()
+        {
             // only update the time statistic if the battle is still going for the local player
             // and if time is not frozen
             simulation.statistics.time += 1;
@@ -114,18 +120,8 @@ impl State for BattleState {
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
         // win / lose message
-        if let Some((text, start_time)) = self.message {
-            const MESSAGE_INTRO_TIME: FrameTime = 10;
-
-            let mut style = TextStyle::new(game_io, FontName::Battle);
-            style.letter_spacing = 0.0;
-            style.scale.y = inverse_lerp!(0, MESSAGE_INTRO_TIME, simulation.time - start_time);
-
-            let size = style.measure(text).size;
-            let position = (RESOLUTION_F - size * style.scale) * 0.5;
-            style.bounds.set_position(position);
-
-            style.draw(game_io, sprite_queue, text);
+        if self.end_message.remaining_time().is_some() {
+            self.end_message.draw(game_io, sprite_queue);
         } else {
             // turn gauge
             simulation.turn_gauge.draw(sprite_queue);
@@ -154,7 +150,7 @@ impl BattleState {
         Self {
             time: 0,
             complete: false,
-            message: None,
+            end_message: BattleBannerMessage::default(),
         }
     }
 
@@ -189,7 +185,7 @@ impl BattleState {
 
         simulation.turn_gauge.increment_time();
 
-        if !simulation.turn_gauge.is_complete() || self.message.is_some() {
+        if !simulation.turn_gauge.is_complete() || self.end_message.remaining_time().is_some() {
             // don't check for input if the battle has ended, or if the turn guage isn't complete
             return;
         }
@@ -201,7 +197,7 @@ impl BattleState {
         }
 
         if simulation.config.turn_limit == Some(simulation.statistics.turns) {
-            self.fail(simulation);
+            self.fail();
             return;
         }
 
@@ -232,10 +228,8 @@ impl BattleState {
             return;
         }
 
-        const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
-
-        if let Some((_, time)) = self.message {
-            if simulation.time - time >= TOTAL_MESSAGE_TIME {
+        if let Some(t) = self.end_message.remaining_time() {
+            if t == 0 {
                 simulation.exit = true;
             }
             return;
@@ -248,13 +242,13 @@ impl BattleState {
             (simulation.entities).query_one_mut::<&Entity>(simulation.local_player_id.into())
         {
             if entity.deleted {
-                self.fail(simulation);
+                self.fail();
                 return;
             }
 
             local_team = entity.team;
         } else {
-            self.fail(simulation);
+            self.fail();
             return;
         }
 
@@ -268,16 +262,18 @@ impl BattleState {
             .any(|(_, (entity, _))| entity.team != local_team);
 
         if !enemies_alive {
-            self.succeed(simulation);
+            self.succeed();
         }
     }
 
-    fn fail(&mut self, simulation: &BattleSimulation) {
-        self.message = Some(("<_FAILED_>", simulation.time));
+    fn fail(&mut self) {
+        self.end_message.set_message(Cow::Borrowed("<_FAILED_>"));
+        self.end_message.show_for(TOTAL_MESSAGE_TIME);
     }
 
-    fn succeed(&mut self, simulation: &BattleSimulation) {
-        self.message = Some(("<_SUCCESS_>", simulation.time));
+    fn succeed(&mut self) {
+        self.end_message.set_message(Cow::Borrowed("<_SUCCESS_>"));
+        self.end_message.show_for(TOTAL_MESSAGE_TIME);
     }
 
     fn detect_battle_start(
