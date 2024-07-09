@@ -13,8 +13,9 @@ const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
 #[derive(Clone)]
 pub struct BattleState {
     time: FrameTime,
-    complete: bool,
     end_message: BattleBannerMessage,
+    complete: bool,
+    out_of_time: bool,
 }
 
 impl State for BattleState {
@@ -23,7 +24,9 @@ impl State for BattleState {
     }
 
     fn next_state(&self, game_io: &GameIO) -> Option<Box<dyn State>> {
-        if self.complete {
+        if self.out_of_time {
+            Some(Box::new(TimeUpState::new()))
+        } else if self.complete {
             Some(Box::new(CardSelectState::new(game_io)))
         } else {
             None
@@ -149,8 +152,9 @@ impl BattleState {
     pub fn new() -> Self {
         Self {
             time: 0,
-            complete: false,
             end_message: BattleBannerMessage::default(),
+            complete: false,
+            out_of_time: false,
         }
     }
 
@@ -197,7 +201,7 @@ impl BattleState {
         }
 
         if simulation.config.turn_limit == Some(simulation.statistics.turns) {
-            self.fail();
+            self.out_of_time = true;
             return;
         }
 
