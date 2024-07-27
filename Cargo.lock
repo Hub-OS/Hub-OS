@@ -2156,7 +2156,6 @@ dependencies = [
  "hecs",
  "indexmap",
  "itertools",
- "lazy_static",
  "log",
  "nom 8.0.0-alpha2",
  "num-derive",
