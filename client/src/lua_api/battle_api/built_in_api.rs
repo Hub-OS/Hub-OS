@@ -1,4 +1,6 @@
-use super::{BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, VIRUS_DEFENSE_TABLE};
+use super::{
+    BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, STANDARD_ENEMY_AUX_TABLE,
+};
 use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
 use crate::bindable::{ComponentLifetime, EntityId};
 use crate::lua_api::{
@@ -84,7 +86,7 @@ macro_rules! built_in_method {
 
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
     built_in_table!(lua_api, "buster", BUSTER_TABLE);
-    built_in_table!(lua_api, "defense_virus_body", VIRUS_DEFENSE_TABLE);
+    built_in_table!(lua_api, "standard_enemy_aux", STANDARD_ENEMY_AUX_TABLE);
     built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
     built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
     built_in_table!(lua_api, "text_style", TEXT_STYLE_TABLE);
