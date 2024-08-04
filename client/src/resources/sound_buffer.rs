@@ -200,7 +200,7 @@ impl Iterator for SoundBufferSampler {
         self.index += 1;
 
         if let Some(range) = self.loop_range.clone() {
-            if self.index > range.end {
+            if self.index >= range.end {
                 if self.stop_looping.load(std::sync::atomic::Ordering::Relaxed) {
                     self.loop_range = None;
                 } else {
