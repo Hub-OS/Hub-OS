@@ -88,6 +88,7 @@ impl Package for TileStatePackage {
         package.state_name = meta.state_name;
         package.texture_path = base_path.clone() + &meta.texture_path;
         package.animation_path = base_path.clone() + &meta.animation_path;
+        package.max_lifetime = meta.max_lifetime;
         package.hide_frame = meta.hide_frame;
         package.hide_body = meta.hide_body;
         package.hole = meta.hole;
