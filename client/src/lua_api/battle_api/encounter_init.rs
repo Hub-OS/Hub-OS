@@ -38,12 +38,10 @@ pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
     let context = RefCell::new(api_ctx);
 
     battle_api.inject_dynamic(lua, &context, |lua| {
-        lua.scope(|_| {
-            let init_table = lua.create_table()?;
-            inherit_metatable(lua, ENCOUNTER_TABLE, &init_table)?;
+        let init_table = lua.create_table()?;
+        inherit_metatable(lua, ENCOUNTER_TABLE, &init_table)?;
 
-            encounter_init.call((init_table, chunk))
-        })
+        encounter_init.call((init_table, chunk))
     });
 }
 

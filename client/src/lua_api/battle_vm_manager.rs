@@ -62,8 +62,12 @@ impl BattleVmManager {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let lua = rollback_mlua::Lua::new_rollback(BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT);
-        lua.load_from_std_lib(rollback_mlua::StdLib::MATH | rollback_mlua::StdLib::TABLE)
-            .unwrap();
+        lua.load_from_std_lib(
+            rollback_mlua::StdLib::MATH
+                | rollback_mlua::StdLib::TABLE
+                | rollback_mlua::StdLib::STRING,
+        )
+        .unwrap();
 
         let vm = RollbackVM {
             lua,

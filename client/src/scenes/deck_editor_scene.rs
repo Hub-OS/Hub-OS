@@ -558,16 +558,23 @@ fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
         inactive_dock = &mut scene.deck_dock;
     }
 
-    let globals = game_io.resource::<Globals>().unwrap();
-    globals.audio.play_sound(&globals.sfx.cursor_select);
+    let mut success = true;
 
     if let Some(index) = active_dock.scroll_tracker.forget_index() {
-        dock_internal_swap(scene, game_io, index);
+        success = dock_internal_swap(scene, game_io, index).is_ok();
     } else if let Some(inactive_index) = inactive_dock.scroll_tracker.forget_index() {
         let active_index = active_dock.scroll_tracker.selected_index();
-        inter_dock_swap(scene, game_io, inactive_index, active_index);
+        success = inter_dock_swap(scene, game_io, inactive_index, active_index).is_ok();
     } else {
         active_dock.scroll_tracker.remember_index();
+    }
+
+    let globals = game_io.resource::<Globals>().unwrap();
+
+    if success {
+        globals.audio.play_sound(&globals.sfx.cursor_select);
+    } else {
+        globals.audio.play_sound(&globals.sfx.cursor_error);
     }
 }
 
@@ -626,7 +633,11 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
     scene.mode = EditorMode::Default;
 }
 
-fn dock_internal_swap(scene: &mut DeckEditorScene, game_io: &GameIO, index: usize) {
+fn dock_internal_swap(
+    scene: &mut DeckEditorScene,
+    game_io: &GameIO,
+    index: usize,
+) -> Result<(), ()> {
     if scene.page_tracker.active_page() == 0 {
         let selected_index = scene.deck_dock.scroll_tracker.selected_index();
 
@@ -640,11 +651,13 @@ fn dock_internal_swap(scene: &mut DeckEditorScene, game_io: &GameIO, index: usiz
         let selected_index = scene.pack_dock.scroll_tracker.selected_index();
 
         if index == selected_index {
-            transfer_to_deck(scene, game_io, index);
+            transfer_to_deck(scene, game_io, index)?;
         } else {
             scene.pack_dock.card_slots.swap(selected_index, index);
         }
     }
+
+    Ok(())
 }
 
 fn inter_dock_swap(
@@ -652,7 +665,7 @@ fn inter_dock_swap(
     game_io: &GameIO,
     inactive_index: usize,
     active_index: usize,
-) -> Option<()> {
+) -> Result<(), ()> {
     let (deck_index, pack_index);
 
     if scene.page_tracker.active_page() == 0 {
@@ -670,10 +683,10 @@ fn inter_dock_swap(
     // store the index of the transferred card in case we need to move it back
     let mut stored_index = transfer_to_pack(scene, game_io, deck_index);
 
-    let Some(index) = transfer_to_deck(scene, game_io, pack_index) else {
+    let Ok(index) = transfer_to_deck(scene, game_io, pack_index) else {
         if transfer_to_pack_cleanup(scene, stored_index) {
             // converted negative cards in pack to 0
-            return Some(());
+            return Ok(());
         }
 
         if let Some(stored_index) = stored_index {
@@ -682,7 +695,7 @@ fn inter_dock_swap(
             scene.deck_dock.card_slots.swap(index, deck_index);
         }
 
-        return None;
+        return Err(());
     };
 
     if let Some(stored_index) = &mut stored_index {
@@ -711,25 +724,28 @@ fn inter_dock_swap(
     scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
-    Some(())
+    Ok(())
 }
 
 fn transfer_to_deck(
     scene: &mut DeckEditorScene,
     game_io: &GameIO,
     from_index: usize,
-) -> Option<usize> {
-    let card_item = scene.pack_dock.card_slots.get_mut(from_index)?.as_mut()?;
+) -> Result<usize, ()> {
+    let card_slot = scene.pack_dock.card_slots.get_mut(from_index).ok_or(())?;
+    let card_item = card_slot.as_mut().ok_or(())?;
 
     // can't move negative count
     // negative counts exist when an invalid deck is viewed
     if card_item.count <= 0 {
-        return None;
+        return Err(());
     }
 
     let globals = game_io.resource::<Globals>().unwrap();
     let card_manager = &globals.card_packages;
-    let package = card_manager.package(NAMESPACE, &card_item.card.package_id)?;
+    let package = card_manager
+        .package(NAMESPACE, &card_item.card.package_id)
+        .ok_or(())?;
     let deck_dock = &mut scene.deck_dock;
 
     // maintain duplicate limit requirement
@@ -739,7 +755,7 @@ fn transfer_to_deck(
         .count();
 
     if package_count >= package.limit {
-        return None;
+        return Err(());
     }
 
     // maintain ownership requirement
@@ -751,7 +767,7 @@ fn transfer_to_deck(
         .count();
 
     if card_count > restrictions.card_count(game_io, &card_item.card) {
-        return None;
+        return Err(());
     }
 
     match package.card_properties.card_class {
@@ -759,21 +775,21 @@ fn transfer_to_deck(
             let mega_count = deck_dock.count_class(card_manager, CardClass::Mega);
 
             if mega_count >= scene.deck_restrictions.mega_limit {
-                return None;
+                return Err(());
             }
         }
         CardClass::Giga => {
             let giga_count = deck_dock.count_class(card_manager, CardClass::Giga);
 
             if giga_count >= scene.deck_restrictions.giga_limit {
-                return None;
+                return Err(());
             }
         }
         CardClass::Dark => {
             let dark_count = deck_dock.count_class(card_manager, CardClass::Dark);
 
             if dark_count >= scene.deck_restrictions.dark_limit {
-                return None;
+                return Err(());
             }
         }
         _ => {}
@@ -782,7 +798,10 @@ fn transfer_to_deck(
     // search for an empty slot to insert the card into
     let deck_slots = &mut scene.deck_dock.card_slots;
 
-    let empty_index = deck_slots.iter_mut().position(|item| item.is_none())?;
+    let empty_index = deck_slots
+        .iter_mut()
+        .position(|item| item.is_none())
+        .ok_or(())?;
 
     deck_slots[empty_index] = Some(CardListItem {
         card: card_item.card.clone(),
@@ -805,7 +824,7 @@ fn transfer_to_deck(
     scene.deck_dock.update_preview();
     scene.pack_dock.update_preview();
 
-    Some(empty_index)
+    Ok(empty_index)
 }
 
 fn transfer_to_pack(

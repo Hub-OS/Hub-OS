@@ -752,7 +752,6 @@ impl Globals {
         let package_ids: Vec<_> = (self.augment_packages.package_ids(ns))
             .chain(self.encounter_packages.package_ids(ns))
             .chain(self.card_packages.package_ids(ns))
-            .chain(self.character_packages.package_ids(ns))
             .chain(self.library_packages.package_ids(ns))
             .chain(self.player_packages.package_ids(ns))
             .chain(self.resource_packages.package_ids(ns))
