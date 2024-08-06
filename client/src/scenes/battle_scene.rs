@@ -751,8 +751,7 @@ impl BattleScene {
                 self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
                     || self.input_synced()
             };
-            let should_slow_down =
-                self.slow_cooldown == SLOW_COOLDOWN || game_io.input().is_key_down(Key::B);
+            let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
             if !should_slow_down && can_simulate {
                 self.handle_local_input(game_io);
