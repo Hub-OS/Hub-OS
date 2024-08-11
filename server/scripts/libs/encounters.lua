@@ -14,7 +14,7 @@ function lib.track_player(player_id)
         last_pos = Net.get_player_position(player_id),
         area = area_id,
         total_dist = 0,
-        last_test = (area_table.min_travel or lib.CHECK_DISTANCE) - lib.CHECK_DISTANCE
+        last_test = ((area_table and area_table.min_travel) or lib.CHECK_DISTANCE) - lib.CHECK_DISTANCE
     }
 end
 
