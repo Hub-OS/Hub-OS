@@ -31,7 +31,8 @@ impl HpDisplay {
 
             let diff = living.health - hp_display.value;
 
-            // https://www.desmos.com/calculator/nd0vqxf6ye
+            // diff + change: https://www.desmos.com/calculator/nd0vqxf6ye
+            // raw data: https://www.desmos.com/calculator/odwgooh1bl
             // x = diff, y = change
             let y = match diff.abs() {
                 x @ 2.. => x / 8 + 2,
