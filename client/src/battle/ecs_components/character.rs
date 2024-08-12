@@ -1,4 +1,4 @@
-use super::{Artifact, Living, Player};
+use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
     Action, BattleCallback, BattleSimulation, BattleState, Entity, SharedBattleResources, TileState,
 };
@@ -43,7 +43,11 @@ impl Character {
             .entities
             .insert(
                 id.into(),
-                (Character::new(rank, namespace), Living::default()),
+                (
+                    Character::new(rank, namespace),
+                    Living::default(),
+                    HpDisplay::default(),
+                ),
             )
             .unwrap();
 
