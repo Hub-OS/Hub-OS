@@ -65,7 +65,7 @@ pub enum NetplayPacket {
     Buffer {
         index: usize,
         data: NetplayBufferItem,
-        buffer_sizes: Vec<usize>,
+        lead: Vec<i16>,
     },
 }
 
@@ -77,7 +77,7 @@ impl NetplayPacket {
                 pressed: Vec::new(),
                 signals: vec![NetplaySignal::Disconnect],
             },
-            buffer_sizes: Vec::new(),
+            lead: Vec::new(),
         }
     }
 

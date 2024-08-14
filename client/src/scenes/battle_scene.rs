@@ -33,8 +33,8 @@ pub enum BattleEvent {
 struct PlayerController {
     connected: bool,
     buffer: PlayerInputBuffer,
-    buffer_len_average: f32,
-    received_average: f32,
+    local_average: f32,
+    remote_average: f32,
 }
 
 struct Backup {
@@ -151,8 +151,8 @@ impl BattleScene {
             player_controllers.push(PlayerController {
                 connected: true,
                 buffer: setup.buffer.clone(),
-                buffer_len_average: setup.buffer.len() as _,
-                received_average: setup.buffer.len() as _,
+                local_average: 0.0,
+                remote_average: 0.0,
             });
 
             let result = Player::load(game_io, &resources, &mut simulation, setup);
@@ -391,11 +391,7 @@ impl BattleScene {
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
         match packet {
-            NetplayPacket::Buffer {
-                index,
-                data,
-                buffer_sizes,
-            } => {
+            NetplayPacket::Buffer { index, data, lead } => {
                 let mut resimulation_time = self.simulation.time;
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
@@ -405,16 +401,10 @@ impl BattleScene {
                     }
 
                     // track data for resolving if we should slow down
-                    let remote_received_size = self
-                        .local_index
-                        .and_then(|index| buffer_sizes.get(index))
-                        .cloned();
+                    let remote_lead = self.local_index.and_then(|index| lead.get(index)).cloned();
 
-                    if let Some(remote_received_size) = remote_received_size {
-                        simple_rolling_average(
-                            &mut controller.received_average,
-                            remote_received_size as _,
-                        );
+                    if let Some(remote_lead) = remote_lead {
+                        simple_rolling_average(&mut controller.remote_average, remote_lead as _);
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index) {
@@ -448,20 +438,21 @@ impl BattleScene {
             self.slow_cooldown -= 1;
         }
 
+        let sync_dist = (self.simulation.time - self.synced_time) as f32;
+
         for (i, controller) in self.player_controllers.iter_mut().enumerate() {
             if !controller.connected || self.local_index == Some(i) {
                 continue;
             }
 
-            // resolve buffer len average separately from processing packets
+            let lead = sync_dist - controller.buffer.len() as f32;
+
+            // resolve local average separately from processing packets
             // to use a final single value for the frame
-            simple_rolling_average(
-                &mut controller.buffer_len_average,
-                controller.buffer.len() as _,
-            );
+            simple_rolling_average(&mut controller.local_average, lead);
 
             let has_substantial_diff = controller.connected
-                && controller.received_average > controller.buffer_len_average + BUFFER_TOLERANCE;
+                && controller.local_average > controller.remote_average + BUFFER_TOLERANCE;
 
             if self.slow_cooldown == 0 && has_substantial_diff {
                 self.slow_cooldown = SLOW_COOLDOWN;
@@ -512,17 +503,19 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
+        let sync_dist = (self.simulation.time - self.synced_time) as i16;
+
         // gather buffer sizes for remotes to know if they should slow down
-        let buffer_sizes = self
+        let lead = self
             .player_controllers
             .iter()
-            .map(|controller| controller.buffer.len())
+            .map(|controller| sync_dist - controller.buffer.len() as i16)
             .collect();
 
         self.broadcast(NetplayPacket::Buffer {
             index: local_index,
             data,
-            buffer_sizes,
+            lead,
         });
     }
 
