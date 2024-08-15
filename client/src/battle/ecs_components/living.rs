@@ -1,7 +1,7 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::resources::*;
-use crate::structures::DenseSlotMap;
+use crate::structures::SlotMap;
 use framework::prelude::*;
 use std::collections::HashMap;
 
@@ -17,7 +17,7 @@ pub struct Living {
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub countered_callback: BattleCallback,
-    pub aux_props: DenseSlotMap<AuxProp>,
+    pub aux_props: SlotMap<AuxProp>,
     pub pending_hits: Vec<HitProperties>,
 }
 
@@ -66,7 +66,7 @@ impl Living {
         self.aux_props.insert(aux_prop)
     }
 
-    fn pre_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn pre_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_before_hit())
@@ -77,7 +77,7 @@ impl Living {
         aux_props
     }
 
-    fn on_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn on_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_on_hit())
@@ -88,7 +88,7 @@ impl Living {
         aux_props
     }
 
-    fn post_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn post_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_after_hit())

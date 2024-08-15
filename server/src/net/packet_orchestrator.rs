@@ -3,7 +3,7 @@ use packets::{
     serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
     PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
-use slotmap::DenseSlotMap;
+use slotmap::SlotMap;
 use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
 use std::rc::Rc;
@@ -55,7 +55,7 @@ pub struct PacketOrchestrator {
     socket: Rc<UdpSocket>,
     server_config: Rc<ServerConfig>,
     connection_config: packets::Config,
-    connections: DenseSlotMap<slotmap::DefaultKey, Connection>,
+    connections: SlotMap<slotmap::DefaultKey, Connection>,
     connection_map: HashMap<SocketAddr, slotmap::DefaultKey>,
     client_id_map: HashMap<ActorId, slotmap::DefaultKey>,
     client_room_map: HashMap<SocketAddr, Vec<String>>,

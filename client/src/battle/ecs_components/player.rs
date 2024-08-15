@@ -5,7 +5,7 @@ use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
-use crate::structures::DenseSlotMap;
+use crate::structures::SlotMap;
 use framework::prelude::*;
 use packets::structures::PackageId;
 
@@ -33,7 +33,7 @@ pub struct Player {
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub augments: DenseSlotMap<Augment>,
+    pub augments: SlotMap<Augment>,
     pub overridables: PlayerOverridables,
 }
 
