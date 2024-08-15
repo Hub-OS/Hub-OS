@@ -26,7 +26,9 @@ else
 end
 
 movement.on_end_func = function()
-  tile:add_entity(entity)
+  if entity:can_move_to(tile) then
+    tile:add_entity(entity)
+  end
   tile:remove_reservation_for(entity)
 end
 
