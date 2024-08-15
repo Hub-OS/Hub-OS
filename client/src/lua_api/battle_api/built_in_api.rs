@@ -4,8 +4,8 @@ use super::{
 use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
 use crate::bindable::{ComponentLifetime, EntityId};
 use crate::lua_api::{
-    create_entity_table, AUGMENT_TABLE, AUX_PROP_TABLE, ENTITY_TABLE, PLAYER_FORM_TABLE,
-    TEXT_STYLE_TABLE,
+    create_entity_table, BattleVmManager, AUGMENT_TABLE, AUX_PROP_TABLE, ENTITY_TABLE,
+    PLAYER_FORM_TABLE, TEXT_STYLE_TABLE,
 };
 use crate::render::FrameTime;
 
@@ -64,13 +64,18 @@ macro_rules! built_in_table {
     }};
 }
 
+macro_rules! internal_script {
+    ($lua:expr, $file_name:literal) => {
+        $lua.load(include_str!(concat!("built_in/", $file_name, ".lua")))
+            .set_name(concat!("built_in/", $file_name, ".lua"))
+            .into_function()
+    };
+}
+
 macro_rules! built_in_method {
     ($lua_api:expr, $file_name:literal, $table_names:expr) => {{
         $lua_api.add_static_injector(|lua| {
-            let function = lua
-                .load(include_str!(concat!("built_in/", $file_name, ".lua")))
-                .set_name(concat!("built_in/", $file_name, ".lua"))
-                .into_function()?;
+            let function = internal_script!(lua, $file_name)?;
 
             let globals = lua.globals();
 
@@ -82,6 +87,28 @@ macro_rules! built_in_method {
             Ok(())
         });
     }};
+}
+
+pub fn inject_internal_scripts(vm_manager: &mut BattleVmManager) -> rollback_mlua::Result<()> {
+    let lua = &vm_manager.vms[0].lua;
+
+    let delete_player_fn = internal_script!(lua, "default_player_delete")?;
+    vm_manager.scripts.default_player_delete =
+        BattleCallback::new_transformed_lua_callback(lua, 0, delete_player_fn, |_, lua, id| {
+            lua.pack_multi(create_entity_table(lua, id)?)
+        })?;
+
+    let delete_character_fn = internal_script!(lua, "default_character_delete")?;
+    vm_manager.scripts.default_character_delete = BattleCallback::new_transformed_lua_callback(
+        lua,
+        0,
+        delete_character_fn,
+        |_, lua, (id, explosion_count)| {
+            lua.pack_multi((create_entity_table(lua, id)?, explosion_count))
+        },
+    )?;
+
+    Ok(())
 }
 
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {

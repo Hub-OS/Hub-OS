@@ -734,15 +734,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
-            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
-            let entities = &mut simulation.entities;
-            let is_living = entities.satisfies::<&Living>(id.into()).is_ok();
-
-            if is_living {
-                crate::battle::delete_player_animation(api_ctx.game_io, simulation, id);
-            }
+            let scripts = &api_ctx.resources.vm_manager.scripts;
+            scripts.default_player_delete.call(
+                api_ctx.game_io,
+                api_ctx.resources,
+                api_ctx.simulation,
+                id,
+            );
 
             lua.pack_multi(())
         },
@@ -758,12 +757,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
-            Entity::delete(api_ctx.game_io, api_ctx.resources, simulation, id);
 
-            if simulation.entities.contains(id.into()) {
-                crate::battle::delete_character_animation(simulation, id, explosion_count);
-            }
+            let scripts = &api_ctx.resources.vm_manager.scripts;
+            scripts.default_character_delete.call(
+                api_ctx.game_io,
+                api_ctx.resources,
+                api_ctx.simulation,
+                (id, explosion_count),
+            );
 
             lua.pack_multi(())
         },

@@ -33,6 +33,7 @@ impl Character {
 
     pub fn create(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         rank: CharacterRank,
         namespace: PackageNamespace,
@@ -140,9 +141,8 @@ impl Character {
             true
         });
 
-        entity.delete_callback = BattleCallback::new(move |_, _, simulation, _| {
-            crate::battle::delete_character_animation(simulation, id, None);
-        });
+        let scripts = &resources.vm_manager.scripts;
+        entity.delete_callback = scripts.default_character_delete.clone().bind((id, None));
 
         Ok(id)
     }
@@ -155,7 +155,7 @@ impl Character {
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityId> {
-        let id = Self::create(game_io, simulation, rank, namespace)?;
+        let id = Self::create(game_io, resources, simulation, rank, namespace)?;
 
         let vm_index = resources.vm_manager.find_vm(package_id, namespace)?;
         simulation.call_global(game_io, resources, vm_index, "character_init", move |lua| {

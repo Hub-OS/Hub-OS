@@ -139,7 +139,7 @@ impl Player {
 
         // namespace for using cards / attacks
         let namespace = setup.namespace();
-        let id = Character::create(game_io, simulation, CharacterRank::V1, namespace)?;
+        let id = Character::create(game_io, resources, simulation, CharacterRank::V1, namespace)?;
 
         let (entity, living) = simulation
             .entities
@@ -183,9 +183,8 @@ impl Player {
         });
 
         // delete callback
-        entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
-            delete_player_animation(game_io, simulation, id);
-        });
+        let scripts = &resources.vm_manager.scripts;
+        entity.delete_callback = scripts.default_player_delete.clone().bind(id);
 
         // flinch callback
         living.register_status_callback(
