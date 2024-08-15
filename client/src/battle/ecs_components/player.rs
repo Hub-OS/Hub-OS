@@ -193,19 +193,22 @@ impl Player {
                 // cancel actions
                 Action::cancel_all(game_io, resources, simulation, id);
 
-                let (entity, living, player) = simulation
+                let (living, player) = simulation
                     .entities
-                    .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
+                    .query_one_mut::<(&Living, &mut Player)>(id.into())
                     .unwrap();
-
-                if !living.status_director.is_dragged() {
-                    // cancel movement
-                    entity.movement = None;
-                }
 
                 player.cancel_charge();
 
+                // grab flinch state
                 let state = player.flinch_animation_state.clone();
+
+                // cancel movement
+                if !living.status_director.is_dragged() {
+                    let _ = simulation.entities.remove_one::<Movement>(id.into());
+                }
+
+                // flinch
                 let flinch_action_index = Action::create(game_io, simulation, state, id).unwrap();
                 Action::queue_action(simulation, id, flinch_action_index);
 
@@ -844,7 +847,8 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        type Query<'a> = (&'a mut Entity, &'a Living, &'a mut Player);
+        // can't move if we're already moving
+        type Query<'a> = hecs::Without<(&'a mut Entity, &'a Living, &'a mut Player), &'a Movement>;
 
         let entities = &mut simulation.entities;
         let Ok((entity, living, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
@@ -862,11 +866,6 @@ impl Player {
             || !entity.action_queue.is_empty()
             || living.status_director.is_immobile(status_registry)
         {
-            return;
-        }
-
-        // can only move if there's no move action queued
-        if entity.movement.is_some() {
             return;
         }
 
@@ -925,11 +924,8 @@ impl Player {
         // movement statistics
         if simulation.local_player_id == entity_id {
             let entities = &mut simulation.entities;
-            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
-                return;
-            };
 
-            if entity.movement.is_some() {
+            if entities.satisfies::<&Movement>(entity_id.into()).unwrap() {
                 simulation.statistics.movements += 1;
             }
         }
@@ -948,17 +944,17 @@ impl Player {
         };
 
         if player.slide_when_moving {
-            entity.movement = Some(Movement::slide(dest, 14));
+            let _ = entities.insert_one(entity_id.into(), Movement::slide(dest, 14));
         } else {
-            let mut move_event = Movement::teleport(dest);
-            move_event.delay = 5;
-            move_event.endlag = 7;
+            let mut movement = Movement::teleport(dest);
+            movement.delay = 5;
+            movement.endlag = 7;
 
             let animator_index = entity.animator_index;
             let movement_state = player.movement_animation_state.clone();
             let idle_callback = entity.idle_callback.clone();
 
-            move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
+            movement.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
                 let anim = &mut simulation.animators[animator_index];
 
                 let callbacks = anim.set_state(&movement_state);
@@ -968,7 +964,7 @@ impl Player {
                 anim.on_complete(idle_callback.clone());
             }));
 
-            entity.movement = Some(move_event);
+            let _ = entities.insert_one(entity_id.into(), movement);
         }
     }
 }

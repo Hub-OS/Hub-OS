@@ -1,6 +1,6 @@
 use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
-    Field, Living, SharedBattleResources,
+    Field, Living, Movement, SharedBattleResources,
 };
 use crate::bindable::{
     ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
@@ -502,7 +502,9 @@ impl Action {
             let entities = &mut simulation.entities;
             let entity_id = action.entity;
 
-            let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            let Ok((entity, movement)) =
+                entities.query_one_mut::<(&mut Entity, Option<&Movement>)>(entity_id.into())
+            else {
                 continue;
             };
 
@@ -514,7 +516,7 @@ impl Action {
 
             // execute
             if !action.executed {
-                if entity.movement.is_some() {
+                if movement.is_some() {
                     continue;
                 }
 

@@ -1,5 +1,5 @@
-use super::Direction;
 use crate::battle::BattleCallback;
+use crate::bindable::Direction;
 use crate::lua_api::{create_movement_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 

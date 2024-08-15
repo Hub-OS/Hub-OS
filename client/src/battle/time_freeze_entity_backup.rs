@@ -1,5 +1,7 @@
-use super::{Action, BattleAnimator, BattleSimulation, Entity, Living, SharedBattleResources};
-use crate::bindable::{EntityId, HitFlags, Movement};
+use super::{
+    Action, BattleAnimator, BattleSimulation, Entity, Living, Movement, SharedBattleResources,
+};
+use crate::bindable::{EntityId, HitFlags};
 use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
@@ -32,9 +34,6 @@ impl TimeFreezeEntityBackup {
         let old_action_index = entity.action_index;
         entity.action_index = Some(action_index);
 
-        // back up movement
-        let movement = std::mem::take(&mut entity.movement);
-
         // back up animator
         let animator = &mut simulation.animators[entity.animator_index];
         let animator_backup = animator.clone();
@@ -42,7 +41,7 @@ impl TimeFreezeEntityBackup {
         // reset callbacks as they're already stored in the original animator
         animator.clear_callbacks();
 
-        // backup status_director
+        // back up status_director
         let statuses = living
             .map(|living| {
                 let status_sprites = living.status_director.take_status_sprites();
@@ -66,6 +65,9 @@ impl TimeFreezeEntityBackup {
             })
             .unwrap_or_default();
 
+        // back up movement
+        let movement = entities.remove_one::<Movement>(entity_id.into()).ok();
+
         Some(Self {
             entity_id,
             action_index: old_action_index,
@@ -81,9 +83,11 @@ impl TimeFreezeEntityBackup {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        let id = self.entity_id.into();
+
         // delete action if it still exists
         let entities = &mut simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&mut Entity>(self.entity_id.into()) else {
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(id) else {
             return;
         };
 
@@ -93,8 +97,7 @@ impl TimeFreezeEntityBackup {
 
         // fully restore the entity
         let entities = &mut simulation.entities;
-        let Ok((entity, living)) =
-            entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(self.entity_id.into())
+        let Ok((entity, living)) = entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
         else {
             return;
         };
@@ -105,9 +108,6 @@ impl TimeFreezeEntityBackup {
         // restore the action
         entity.action_index = self.action_index;
 
-        // restore the movement
-        entity.movement = self.movement;
-
         // restore animator
         simulation.animators[entity.animator_index] = self.animator;
 
@@ -117,6 +117,11 @@ impl TimeFreezeEntityBackup {
             for (flag, duration) in self.statuses {
                 living.status_director.apply_status(flag, duration);
             }
+        }
+
+        // restore the movement
+        if let Some(movement) = self.movement {
+            let _ = simulation.entities.insert_one(id, movement);
         }
     }
 }

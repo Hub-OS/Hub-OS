@@ -133,6 +133,7 @@ impl BattleSimulation {
         clone_component!(EntityShadow);
         clone_component!(EntityShadowVisible);
         clone_component!(HpDisplay);
+        clone_component!(Movement);
 
         Self {
             config: self.config.clone(),
@@ -701,10 +702,11 @@ impl BattleSimulation {
         let mut entity_tree_render_params = Vec::with_capacity(sorted_entities.len());
 
         for (id, _) in sorted_entities {
-            let (entity, shadow, shadow_visible) = self
+            let (entity, movement, shadow, shadow_visible) = self
                 .entities
                 .query_one_mut::<(
                     &mut Entity,
+                    Option<&Movement>,
                     Option<&EntityShadow>,
                     Option<&EntityShadowVisible>,
                 )>(id)
@@ -727,7 +729,7 @@ impl BattleSimulation {
             if let (Some(shadow), Some(_)) = (shadow, shadow_visible) {
                 let mut shadow_y = entity.elevation;
 
-                if let Some(movement) = &entity.movement {
+                if let Some(movement) = movement {
                     let progress = movement.animation_progress_percent();
                     shadow_y += movement.interpolate_jump_height(progress);
                 }

@@ -202,8 +202,8 @@ impl Living {
             );
 
             let entities = &mut simulation.entities;
-            let Ok((entity, living)) =
-                entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+            let Ok((entity, living, movement)) = entities
+                .query_one_mut::<(&Entity, &mut Living, Option<&Movement>)>(entity_id.into())
             else {
                 return;
             };
@@ -321,7 +321,7 @@ impl Living {
             status_director.apply_hit_flags(status_registry, hit_props.flags);
 
             // handle drag
-            if hit_props.drags() && entity.movement.is_none() {
+            if hit_props.drags() && movement.is_none() {
                 let can_move_to_callback = entity.can_move_to_callback.clone();
                 let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
 
@@ -348,11 +348,10 @@ impl Living {
                 }
 
                 if duration != 0 {
-                    let entity = (simulation.entities)
-                        .query_one_mut::<&mut Entity>(entity_id.into())
+                    simulation
+                        .entities
+                        .insert_one(entity_id.into(), Movement::slide(dest.into(), duration))
                         .unwrap();
-
-                    entity.movement = Some(Movement::slide(dest.into(), duration));
                 } else {
                     let living = (simulation.entities)
                         .query_one_mut::<&mut Living>(entity_id.into())

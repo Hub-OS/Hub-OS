@@ -69,7 +69,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(id)
     });
 
-    getter(lua_api, "name", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "name", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.name.clone())
     });
     setter(lua_api, "set_name", |entity: &mut Entity, _, name| {
@@ -77,7 +77,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "element", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "element", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.element)
     });
     setter(lua_api, "set_element", |entity: &mut Entity, _, element| {
@@ -85,10 +85,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "facing", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "facing", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.facing)
     });
-    getter(lua_api, "facing_away", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "facing_away", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.facing.reversed())
     });
     setter(lua_api, "set_facing", |entity: &mut Entity, _, facing| {
@@ -96,14 +96,14 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         Ok(())
     });
 
-    getter(lua_api, "team", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "team", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.team)
     });
     setter(lua_api, "set_team", |entity: &mut Entity, _, team| {
         entity.team = team;
         Ok(())
     });
-    getter(lua_api, "is_team", |entity: &Entity, lua, team| {
+    getter::<&Entity, _, _>(lua_api, "is_team", |entity: &Entity, lua, team| {
         lua.pack_multi(entity.team == team)
     });
 
@@ -170,7 +170,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
-    getter(lua_api, "current_tile", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "current_tile", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(create_tile_table(lua, (entity.x, entity.y))?)
     });
 
@@ -180,7 +180,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(field_table)
     });
 
-    getter(lua_api, "spawned", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "spawned", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.spawned)
     });
 
@@ -205,7 +205,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(!entity.deleted && entity.on_field && living_hittable)
     });
 
-    getter(lua_api, "sharing_tile", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "sharing_tile", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.share_tile)
     });
     setter(
@@ -217,7 +217,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Entity, _, _>(
         lua_api,
         "ignoring_negative_tile_effects",
         |entity: &Entity, lua, _: ()| lua.pack_multi(entity.ignore_negative_tile_effects),
@@ -232,7 +232,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Entity, _, _>(
         lua_api,
         "ignoring_hole_tiles",
         |entity: &Entity, lua, _: ()| lua.pack_multi(entity.ignore_hole_tiles),
@@ -247,7 +247,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "movement_offset", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "movement_offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.movement_offset))
     });
 
@@ -260,7 +260,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "offset", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "offset", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(LuaVector::from(entity.offset))
     });
 
@@ -273,7 +273,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "elevation", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "elevation", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.elevation)
     });
     setter(
@@ -285,7 +285,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "height", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "height", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(entity.height)
     });
     setter(lua_api, "set_height", |entity: &mut Entity, _, height| {
@@ -526,7 +526,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter(lua_api, "context", |entity: &Entity, lua, _: ()| {
+    getter::<&Entity, _, _>(lua_api, "context", |entity: &Entity, lua, _: ()| {
         lua.pack_multi(&entity.hit_context)
     });
 
@@ -596,8 +596,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             let api_ctx = &mut *api_ctx.borrow_mut();
             let entities = &mut api_ctx.simulation.entities;
 
-            let (entity, living) = entities
-                .query_one_mut::<(&mut Entity, Option<&Living>)>(id.into())
+            let (_, living) = entities
+                .query_one_mut::<(&Entity, Option<&Living>)>(id.into())
                 .map_err(|_| entity_not_found())?;
 
             let dragged = living
@@ -605,7 +605,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 .unwrap_or_default();
 
             if !dragged {
-                entity.movement = None;
+                let _ = entities.remove_one::<Movement>(id.into());
             }
 
             lua.pack_multi(())
@@ -653,36 +653,44 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         attempt_movement(api_ctx, lua, table, movement)
     });
-    getter(lua_api, "is_sliding", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(
-            entity
-                .movement
-                .as_ref()
-                .map(|action| action.is_sliding())
-                .unwrap_or_default(),
-        )
-    });
-    getter(lua_api, "is_jumping", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(
-            entity
-                .movement
-                .as_ref()
-                .map(|action| action.is_jumping())
-                .unwrap_or_default(),
-        )
-    });
-    getter(lua_api, "is_teleporting", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(
-            entity
-                .movement
-                .as_ref()
-                .map(|action| action.is_teleporting())
-                .unwrap_or_default(),
-        )
-    });
-    getter(lua_api, "is_moving", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.movement.is_some())
-    });
+    getter::<Option<&Movement>, _, _>(
+        lua_api,
+        "is_sliding",
+        |movement: Option<&Movement>, lua, _: ()| {
+            lua.pack_multi(
+                movement
+                    .map(|action| action.is_sliding())
+                    .unwrap_or_default(),
+            )
+        },
+    );
+    getter::<Option<&Movement>, _, _>(
+        lua_api,
+        "is_jumping",
+        |movement: Option<&Movement>, lua, _: ()| {
+            lua.pack_multi(
+                movement
+                    .map(|action| action.is_jumping())
+                    .unwrap_or_default(),
+            )
+        },
+    );
+    getter::<Option<&Movement>, _, _>(
+        lua_api,
+        "is_teleporting",
+        |movement: Option<&Movement>, lua, _: ()| {
+            lua.pack_multi(
+                movement
+                    .map(|action| action.is_teleporting())
+                    .unwrap_or_default(),
+            )
+        },
+    );
+    getter::<Option<&Movement>, _, _>(
+        lua_api,
+        "is_moving",
+        |movement: Option<&Movement>, lua, _: ()| lua.pack_multi(movement.is_some()),
+    );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "is_dragged", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -905,7 +913,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(create_entity_table(lua, id))
     });
 
-    getter(
+    getter::<&Character, _, _>(
         lua_api,
         "field_cards",
         |character: &Character, lua, _: ()| {
@@ -917,7 +925,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Character, _, _>(
         lua_api,
         "field_card",
         |character: &Character, lua, index: isize| {
@@ -1026,7 +1034,7 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     //     lua.pack_multi(api_ctx.simulation.is_entity_actionable(entity_id))
     // });
 
-    getter(lua_api, "rank", |character: &Character, lua, _: ()| {
+    getter::<&Character, _, _>(lua_api, "rank", |character: &Character, lua, _: ()| {
         lua.pack_multi(character.rank)
     });
 }
@@ -1094,7 +1102,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "copy_hit_props", |spell: &Spell, lua, _: ()| {
+    getter::<&Spell, _, _>(lua_api, "copy_hit_props", |spell: &Spell, lua, _: ()| {
         lua.pack_multi(&spell.hit_props)
     });
 
@@ -1190,10 +1198,10 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_living_api(lua_api: &mut BattleLuaApi) {
-    getter(lua_api, "max_health", |living: &Living, lua, _: ()| {
+    getter::<&Living, _, _>(lua_api, "max_health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.max_health)
     });
-    getter(lua_api, "health", |living: &Living, lua, _: ()| {
+    getter::<&Living, _, _>(lua_api, "health", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.health)
     });
     setter(lua_api, "set_health", |living: &mut Living, _, health| {
@@ -1210,7 +1218,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "hitbox_enabled", |living: &Living, lua, _: ()| {
+    getter::<&Living, _, _>(lua_api, "hitbox_enabled", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.hitbox_enabled)
     });
     setter(
@@ -1222,7 +1230,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "counterable", |living: &Living, lua, _: ()| {
+    getter::<&Living, _, _>(lua_api, "counterable", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.counterable)
     });
     setter(
@@ -1235,7 +1243,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
     );
     // todo: set_counter_frame_range
 
-    getter(lua_api, "intangible", |living: &Living, lua, _: ()| {
+    getter::<&Living, _, _>(lua_api, "intangible", |living: &Living, lua, _: ()| {
         lua.pack_multi(living.intangibility.is_enabled())
     });
 
@@ -1281,7 +1289,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Living, _, _>(
         lua_api,
         "remaining_status_time",
         |living: &Living, lua, hit_flag: HitFlags| {
@@ -1420,17 +1428,17 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
-    getter(lua_api, "is_local", |player: &Player, lua, ()| {
+    getter::<&Player, _, _>(lua_api, "is_local", |player: &Player, lua, ()| {
         lua.pack_multi(player.local)
     });
 
-    getter(lua_api, "emotions", |player: &Player, lua, ()| {
+    getter::<&Player, _, _>(lua_api, "emotions", |player: &Player, lua, ()| {
         let emotions = player.emotion_window.emotions();
         let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
 
         lua.pack_multi(table)
     });
-    getter(lua_api, "emotion", |player: &Player, lua, ()| {
+    getter::<&Player, _, _>(lua_api, "emotion", |player: &Player, lua, ()| {
         lua.pack_multi(player.emotion_window.emotion())
     });
     setter(
@@ -1442,13 +1450,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Player, _, _>(
         lua_api,
         "emotions_texture",
         |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.texture_path()),
     );
 
-    getter(
+    getter::<&Player, _, _>(
         lua_api,
         "emotions_animation_path",
         |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.animation_path()),
@@ -1574,7 +1582,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Player, _, _>(
         lua_api,
         "slide_when_moving",
         |player: &Player, lua, _: ()| lua.pack_multi(player.slide_when_moving),
@@ -1616,13 +1624,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(
+    getter::<&Player, _, _>(
         lua_api,
         "has_regular_card",
         |player: &Player, lua, _: ()| lua.pack_multi(player.has_regular_card),
     );
 
-    getter(lua_api, "deck_cards", |player: &Player, lua, _: ()| {
+    getter::<&Player, _, _>(lua_api, "deck_cards", |player: &Player, lua, _: ()| {
         let card_iter = player.deck.iter();
         let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
         let table = lua.create_table_from(indexed_iter);
@@ -1630,7 +1638,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter(
+    getter::<&Player, _, _>(
         lua_api,
         "deck_card",
         |player: &Player, lua, index: usize| {
@@ -1942,7 +1950,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "hand_size", |player: &Player, lua, _: ()| {
+    getter::<&Player, _, _>(lua_api, "hand_size", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.hand_size())
     });
     setter(
@@ -1954,7 +1962,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "attack_level", |player: &Player, lua, _: ()| {
+    getter::<&Player, _, _>(lua_api, "attack_level", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.attack_level())
     });
     setter(
@@ -1966,7 +1974,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "rapid_level", |player: &Player, lua, _: ()| {
+    getter::<&Player, _, _>(lua_api, "rapid_level", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.rapid_level())
     });
     setter(
@@ -1978,7 +1986,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter(lua_api, "charge_level", |player: &Player, lua, _: ()| {
+    getter::<&Player, _, _>(lua_api, "charge_level", |player: &Player, lua, _: ()| {
         lua.pack_multi(player.charge_level())
     });
     setter(
@@ -2103,10 +2111,10 @@ where
 
 fn getter<C, F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
-    C: hecs::Component,
+    C: hecs::Query,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(
-            &C,
+    F: for<'lua, 'world> Fn(
+            C::Item<'world>,
             &'lua rollback_mlua::Lua,
             P,
         ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
@@ -2121,7 +2129,7 @@ where
         let entities = &mut api_ctx.simulation.entities;
 
         let component = entities
-            .query_one_mut::<&C>(id.into())
+            .query_one_mut::<C>(id.into())
             .map_err(|_| entity_not_found())?;
 
         lua.pack_multi(callback(component, lua, param)?)
@@ -2314,11 +2322,11 @@ fn attempt_movement<'lua>(
 
     let entities = &mut simulation.entities;
 
-    let entity = entities
-        .query_one_mut::<&mut Entity>(id.into())
+    let (_, existing_movement) = entities
+        .query_one_mut::<(&Entity, Option<&Movement>)>(id.into())
         .map_err(|_| entity_not_found())?;
 
-    if entity.movement.is_some() {
+    if existing_movement.is_some() {
         return lua.pack_multi(false);
     }
 
@@ -2332,12 +2340,7 @@ fn attempt_movement<'lua>(
         return lua.pack_multi(false);
     }
 
-    let entity = simulation
-        .entities
-        .query_one_mut::<&mut Entity>(id.into())
-        .unwrap();
-
-    entity.movement = Some(movement);
+    simulation.entities.insert_one(id.into(), movement).unwrap();
 
     lua.pack_multi(true)
 }

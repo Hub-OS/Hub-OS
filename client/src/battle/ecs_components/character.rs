@@ -1,6 +1,7 @@
 use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
-    Action, BattleCallback, BattleSimulation, BattleState, Entity, SharedBattleResources, TileState,
+    Action, BattleCallback, BattleSimulation, BattleState, Entity, Movement, SharedBattleResources,
+    TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
@@ -281,13 +282,15 @@ impl Character {
             let mut requesters = Vec::new();
 
             let entities = &mut simulation.entities;
-            type Query<'a> = (&'a Entity, &'a mut Character, &'a mut Living);
+
+            // wait until movement ends before adding a card action
+            // this is to prevent time freeze cards from applying during movement
+            // process_action_queues only prevents non time freeze actions from starting until movements end
+            type Query<'a> =
+                hecs::Without<(&'a Entity, &'a mut Character, &'a mut Living), &'a Movement>;
 
             for (_, (entity, character, living)) in entities.query_mut::<Query>() {
-                if !character.card_use_requested || entity.movement.is_some() {
-                    // wait until movement ends before adding a card action
-                    // this is to prevent time freeze cards from applying during movement
-                    // process_action_queues only prevents non time freeze actions from starting until movements end
+                if !character.card_use_requested {
                     continue;
                 }
 
