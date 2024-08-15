@@ -15,6 +15,7 @@ use std::cell::RefCell;
 pub struct InternalScripts {
     pub default_player_delete: BattleCallback<EntityId>,
     pub default_character_delete: BattleCallback<(EntityId, Option<usize>)>,
+    pub queue_default_player_movement: BattleCallback<(EntityId, (i32, i32))>,
 }
 
 pub struct BattleVmManager {

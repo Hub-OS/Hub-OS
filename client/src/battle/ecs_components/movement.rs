@@ -1,6 +1,6 @@
 use crate::battle::BattleCallback;
 use crate::bindable::Direction;
-use crate::lua_api::{create_movement_table, VM_INDEX_REGISTRY_KEY};
+use crate::lua_api::{create_movement_table, BEGIN_FN, END_FN, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 
 #[derive(Default, Clone)]
@@ -13,7 +13,8 @@ pub struct Movement {
     pub height: f32, // If this is non-zero with delta frames, the character will effectively jump
     pub dest: (i32, i32),
     pub source: (i32, i32),
-    pub on_begin: Option<BattleCallback>,
+    pub begin_callback: Option<BattleCallback>,
+    pub end_callback: Option<BattleCallback>,
 }
 
 impl Movement {
@@ -128,9 +129,15 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
         let dest_table: rollback_mlua::Table = table.raw_get("dest_tile")?;
         let dest = (dest_table.raw_get("#x")?, dest_table.raw_get("#y")?);
 
-        let on_begin: Option<rollback_mlua::Function> = table.raw_get("on_begin_func")?;
+        let on_begin: Option<rollback_mlua::Function> = table.raw_get(BEGIN_FN)?;
+        let on_end: Option<rollback_mlua::Function> = table.raw_get(END_FN)?;
+
         let vm_index = lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?;
         let on_begin = on_begin
+            .map(|func| BattleCallback::new_lua_callback(lua, vm_index, func))
+            .transpose()?;
+
+        let on_end = on_end
             .map(|func| BattleCallback::new_lua_callback(lua, vm_index, func))
             .transpose()?;
 
@@ -143,7 +150,8 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
             height: table.raw_get("height").unwrap_or_default(),
             dest,
             source: (0, 0),
-            on_begin,
+            begin_callback: on_begin,
+            end_callback: on_end,
         })
     }
 }

@@ -205,7 +205,9 @@ impl Player {
 
                 // cancel movement
                 if !living.status_director.is_dragged() {
-                    let _ = simulation.entities.remove_one::<Movement>(id.into());
+                    if let Ok(movement) = simulation.entities.remove_one::<Movement>(id.into()) {
+                        simulation.pending_callbacks.extend(movement.end_callback)
+                    }
                 }
 
                 // flinch
@@ -928,43 +930,6 @@ impl Player {
             if entities.satisfies::<&Movement>(entity_id.into()).unwrap() {
                 simulation.statistics.movements += 1;
             }
-        }
-    }
-
-    pub fn queue_default_movement(
-        simulation: &mut BattleSimulation,
-        entity_id: EntityId,
-        dest: (i32, i32),
-    ) {
-        type Query<'a> = (&'a mut Entity, &'a mut Player);
-
-        let entities = &mut simulation.entities;
-        let Ok((entity, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
-            return;
-        };
-
-        if player.slide_when_moving {
-            let _ = entities.insert_one(entity_id.into(), Movement::slide(dest, 14));
-        } else {
-            let mut movement = Movement::teleport(dest);
-            movement.delay = 5;
-            movement.endlag = 7;
-
-            let animator_index = entity.animator_index;
-            let movement_state = player.movement_animation_state.clone();
-            let idle_callback = entity.idle_callback.clone();
-
-            movement.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
-                let anim = &mut simulation.animators[animator_index];
-
-                let callbacks = anim.set_state(&movement_state);
-                simulation.pending_callbacks.extend(callbacks);
-
-                // idle when movement finishes
-                anim.on_complete(idle_callback.clone());
-            }));
-
-            let _ = entities.insert_one(entity_id.into(), movement);
         }
     }
 }

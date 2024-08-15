@@ -140,7 +140,9 @@ impl FormActivateState {
 
         // cancel movement
         for id in activated {
-            let _ = simulation.entities.remove_one::<Movement>(id);
+            if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {
+                simulation.pending_callbacks.extend(movement.end_callback)
+            }
         }
 
         simulation.call_pending_callbacks(game_io, resources);

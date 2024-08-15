@@ -149,6 +149,10 @@ pub const ENTITY_STOP_FN: &str = "on_entity_stop_func";
 // components
 const INIT_FN: &str = "on_init_func";
 
+// movement
+pub const BEGIN_FN: &str = "on_begin_func";
+pub const END_FN: &str = "on_end_func";
+
 // globals, using named registry keys to avoid lua globals / implementation privacy
 // naming conflicts with table names are avoided by using snake_case
 pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";

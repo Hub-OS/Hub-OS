@@ -594,7 +594,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             let id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
+            let simulation = &mut *api_ctx.simulation;
+            let entities = &mut simulation.entities;
 
             let (_, living) = entities
                 .query_one_mut::<(&Entity, Option<&Living>)>(id.into())
@@ -605,7 +606,9 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 .unwrap_or_default();
 
             if !dragged {
-                let _ = entities.remove_one::<Movement>(id.into());
+                if let Ok(movement) = entities.remove_one::<Movement>(id.into()) {
+                    simulation.pending_callbacks.extend(movement.end_callback)
+                }
             }
 
             lua.pack_multi(())
@@ -1597,6 +1600,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&Player, (), _>(lua_api, "player_move_state", |player: &Player, lua, _| {
+        lua.pack_multi(player.movement_animation_state.as_str())
+    });
+    getter::<&Player, (), _>(lua_api, "player_hit_state", |player: &Player, lua, _| {
+        lua.pack_multi(player.flinch_animation_state.as_str())
+    });
+
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "queue_default_player_movement",
@@ -1618,7 +1628,14 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             };
 
             let tile_position = tile.position();
-            Player::queue_default_movement(simulation, id, tile_position);
+
+            let scripts = &api_ctx.resources.vm_manager.scripts;
+            scripts.queue_default_player_movement.call(
+                api_ctx.game_io,
+                api_ctx.resources,
+                api_ctx.simulation,
+                (id, tile_position),
+            );
 
             lua.pack_multi(())
         },
@@ -2109,7 +2126,7 @@ where
     });
 }
 
-fn getter<C, F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
+fn getter<C, P, F>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
 where
     C: hecs::Query,
     P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
@@ -2295,7 +2312,7 @@ where
         let api_ctx = &mut *api_ctx.borrow_mut();
 
         if let Some(on_begin) = on_begin {
-            movement.on_begin = Some(BattleCallback::new_lua_callback(
+            movement.begin_callback = Some(BattleCallback::new_lua_callback(
                 lua,
                 api_ctx.vm_index,
                 on_begin,

@@ -1,3 +1,4 @@
+use super::tile_api::create_tile_table;
 use super::{
     BattleLuaApi, BUSTER_TABLE, HITBOX_TABLE, SHARED_HITBOX_TABLE, STANDARD_ENEMY_AUX_TABLE,
 };
@@ -107,6 +108,20 @@ pub fn inject_internal_scripts(vm_manager: &mut BattleVmManager) -> rollback_mlu
             lua.pack_multi((create_entity_table(lua, id)?, explosion_count))
         },
     )?;
+
+    let delete_character_fn = internal_script!(lua, "queue_default_player_movement")?;
+    vm_manager.scripts.queue_default_player_movement =
+        BattleCallback::new_transformed_lua_callback(
+            lua,
+            0,
+            delete_character_fn,
+            |_, lua, (id, tile_position)| {
+                lua.pack_multi((
+                    create_entity_table(lua, id)?,
+                    create_tile_table(lua, tile_position)?,
+                ))
+            },
+        )?;
 
     Ok(())
 }

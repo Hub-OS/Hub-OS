@@ -872,7 +872,7 @@ impl BattleState {
                 movement.source = (entity.x, entity.y);
             }
 
-            if let Some(callback) = movement.on_begin.take() {
+            if let Some(callback) = movement.begin_callback.take() {
                 simulation.pending_callbacks.push(callback);
             }
 
@@ -889,7 +889,10 @@ impl BattleState {
                 if simulation.field.tile_at_mut(dest).is_none()
                     || !Entity::can_move_to(game_io, resources, simulation, id.into(), dest)
                 {
-                    let _ = simulation.entities.remove_one::<Movement>(id);
+                    if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {
+                        simulation.pending_callbacks.extend(movement.end_callback)
+                    }
+
                     continue;
                 }
 
@@ -960,7 +963,9 @@ impl BattleState {
                     simulation.pending_callbacks.push(callback);
                 }
 
-                let _ = simulation.entities.remove_one::<Movement>(id);
+                if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {
+                    simulation.pending_callbacks.extend(movement.end_callback)
+                }
             } else {
                 // apply jump height
                 entity.movement_offset.y -= movement.interpolate_jump_height(animation_progress);
