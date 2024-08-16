@@ -9,7 +9,7 @@ use framework::graphics::Color;
 use framework::math::Vec2;
 use packets::structures::PackageId;
 use std::ops::Range;
-use std::sync::Arc;
+use std::rc::Rc;
 
 use super::{FontName, TextStyle};
 
@@ -50,8 +50,8 @@ pub struct CardRecipeAnimation {
     time: FrameTime,
     state: State,
     visible_card_count: usize,
-    cards: Arc<[CardProperties]>,
-    changes: Arc<[(PackageId, Range<usize>)]>,
+    cards: Rc<[CardProperties]>,
+    changes: Rc<[(PackageId, Range<usize>)]>,
 }
 
 impl CardRecipeAnimation {
@@ -64,7 +64,7 @@ impl CardRecipeAnimation {
         let cards = player
             .staged_items
             .resolve_card_properties(game_io, resources, namespace, &player.deck)
-            .collect::<Arc<_>>();
+            .collect::<Rc<_>>();
 
         let recipes = &resources.recipes;
         let mut changes = recipes.resolve_changes(player.namespace(), &cards, &player.used_recipes);

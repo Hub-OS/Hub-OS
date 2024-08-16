@@ -13,7 +13,12 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
-const BUFFER_TOLERANCE: usize = 3;
+const BUFFER_TOLERANCE: f32 = 2.0;
+const BUFFER_AVERAGE_PERIOD: f32 = SLOW_COOLDOWN as _;
+
+fn simple_rolling_average(average: &mut f32, new_data: f32) {
+    *average = (*average * (BUFFER_AVERAGE_PERIOD - 1.0) + new_data) / BUFFER_AVERAGE_PERIOD;
+}
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -24,10 +29,12 @@ pub enum BattleEvent {
     CompleteFlee(bool),
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct PlayerController {
     connected: bool,
     buffer: PlayerInputBuffer,
+    local_average: f32,
+    remote_average: f32,
 }
 
 struct Backup {
@@ -130,7 +137,7 @@ impl BattleScene {
 
         // load the players in the correct order
         let player_setups = &props.player_setups;
-        let mut player_controllers = vec![PlayerController::default(); player_setups.len()];
+        let mut player_controllers = Vec::with_capacity(player_setups.len());
         let local_index = if is_playing_back_recording {
             None
         } else {
@@ -141,10 +148,12 @@ impl BattleScene {
         };
 
         for setup in player_setups {
-            if let Some(remote_controller) = player_controllers.get_mut(setup.index) {
-                remote_controller.buffer = setup.buffer.clone();
-                remote_controller.connected = true;
-            }
+            player_controllers.push(PlayerController {
+                connected: true,
+                buffer: setup.buffer.clone(),
+                local_average: 0.0,
+                remote_average: 0.0,
+            });
 
             let result = Player::load(game_io, &resources, &mut simulation, setup);
 
@@ -374,15 +383,15 @@ impl BattleScene {
         for packet in packets {
             self.handle_packet(game_io, packet);
         }
+
+        // after resolving packets we should see if we're too far ahead of other players
+        // and decide whether we should slow down
+        self.resolve_slowdown();
     }
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
         match packet {
-            NetplayPacket::Buffer {
-                index,
-                data,
-                buffer_sizes,
-            } => {
+            NetplayPacket::Buffer { index, data, lead } => {
                 let mut resimulation_time = self.simulation.time;
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
@@ -391,21 +400,11 @@ impl BattleScene {
                         controller.connected = false;
                     }
 
-                    // figure out if we should slow down
-                    let remote_received_size = self
-                        .local_index
-                        .and_then(|index| buffer_sizes.get(index))
-                        .cloned();
+                    // track data for resolving if we should slow down
+                    let remote_lead = self.local_index.and_then(|index| lead.get(index)).cloned();
 
-                    if let Some(remote_received_size) = remote_received_size {
-                        let local_remote_size = controller.buffer.len();
-
-                        let has_substantial_diff = controller.connected
-                            && remote_received_size > local_remote_size + BUFFER_TOLERANCE;
-
-                        if self.slow_cooldown == 0 && has_substantial_diff {
-                            self.slow_cooldown = SLOW_COOLDOWN;
-                        }
+                    if let Some(remote_lead) = remote_lead {
+                        simple_rolling_average(&mut controller.remote_average, remote_lead as _);
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index) {
@@ -430,6 +429,33 @@ impl BattleScene {
                 let index = packet.index();
 
                 log::error!("Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
+            }
+        }
+    }
+
+    fn resolve_slowdown(&mut self) {
+        if self.slow_cooldown > 0 {
+            self.slow_cooldown -= 1;
+        }
+
+        let sync_dist = (self.simulation.time - self.synced_time) as f32;
+
+        for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+            if !controller.connected || self.local_index == Some(i) {
+                continue;
+            }
+
+            let lead = sync_dist - controller.buffer.len() as f32;
+
+            // resolve local average separately from processing packets
+            // to use a final single value for the frame
+            simple_rolling_average(&mut controller.local_average, lead);
+
+            let has_substantial_diff = controller.connected
+                && controller.local_average > controller.remote_average + BUFFER_TOLERANCE;
+
+            if self.slow_cooldown == 0 && has_substantial_diff {
+                self.slow_cooldown = SLOW_COOLDOWN;
             }
         }
     }
@@ -477,17 +503,19 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
+        let sync_dist = (self.simulation.time - self.synced_time) as i16;
+
         // gather buffer sizes for remotes to know if they should slow down
-        let buffer_sizes = self
+        let lead = self
             .player_controllers
             .iter()
-            .map(|controller| controller.buffer.len())
+            .map(|controller| sync_dist - controller.buffer.len() as i16)
             .collect();
 
         self.broadcast(NetplayPacket::Buffer {
             index: local_index,
             data,
-            buffer_sizes,
+            lead,
         });
     }
 
@@ -721,10 +749,6 @@ impl BattleScene {
             if !should_slow_down && can_simulate {
                 self.handle_local_input(game_io);
                 self.simulate(game_io);
-            }
-
-            if self.slow_cooldown > 0 {
-                self.slow_cooldown -= 1;
             }
 
             self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_solo())

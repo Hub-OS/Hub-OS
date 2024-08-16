@@ -5,7 +5,7 @@ use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
-use crate::structures::DenseSlotMap;
+use crate::structures::SlotMap;
 use framework::prelude::*;
 use packets::structures::PackageId;
 
@@ -33,7 +33,7 @@ pub struct Player {
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
-    pub augments: DenseSlotMap<Augment>,
+    pub augments: SlotMap<Augment>,
     pub overridables: PlayerOverridables,
 }
 
@@ -139,7 +139,7 @@ impl Player {
 
         // namespace for using cards / attacks
         let namespace = setup.namespace();
-        let id = Character::create(game_io, simulation, CharacterRank::V1, namespace)?;
+        let id = Character::create(game_io, resources, simulation, CharacterRank::V1, namespace)?;
 
         let (entity, living) = simulation
             .entities
@@ -183,9 +183,8 @@ impl Player {
         });
 
         // delete callback
-        entity.delete_callback = BattleCallback::new(move |game_io, _, simulation, _| {
-            delete_player_animation(game_io, simulation, id);
-        });
+        let scripts = &resources.vm_manager.scripts;
+        entity.delete_callback = scripts.default_player_delete.clone().bind(id);
 
         // flinch callback
         living.register_status_callback(
@@ -194,19 +193,24 @@ impl Player {
                 // cancel actions
                 Action::cancel_all(game_io, resources, simulation, id);
 
-                let (entity, living, player) = simulation
+                let (living, player) = simulation
                     .entities
-                    .query_one_mut::<(&mut Entity, &Living, &mut Player)>(id.into())
+                    .query_one_mut::<(&Living, &mut Player)>(id.into())
                     .unwrap();
-
-                if !living.status_director.is_dragged() {
-                    // cancel movement
-                    entity.movement = None;
-                }
 
                 player.cancel_charge();
 
+                // grab flinch state
                 let state = player.flinch_animation_state.clone();
+
+                // cancel movement
+                if !living.status_director.is_dragged() {
+                    if let Ok(movement) = simulation.entities.remove_one::<Movement>(id.into()) {
+                        simulation.pending_callbacks.extend(movement.end_callback)
+                    }
+                }
+
+                // flinch
                 let flinch_action_index = Action::create(game_io, simulation, state, id).unwrap();
                 Action::queue_action(simulation, id, flinch_action_index);
 
@@ -845,7 +849,8 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        type Query<'a> = (&'a mut Entity, &'a Living, &'a mut Player);
+        // can't move if we're already moving
+        type Query<'a> = hecs::Without<(&'a mut Entity, &'a Living, &'a mut Player), &'a Movement>;
 
         let entities = &mut simulation.entities;
         let Ok((entity, living, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
@@ -863,11 +868,6 @@ impl Player {
             || !entity.action_queue.is_empty()
             || living.status_director.is_immobile(status_registry)
         {
-            return;
-        }
-
-        // can only move if there's no move action queued
-        if entity.movement.is_some() {
             return;
         }
 
@@ -926,50 +926,10 @@ impl Player {
         // movement statistics
         if simulation.local_player_id == entity_id {
             let entities = &mut simulation.entities;
-            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
-                return;
-            };
 
-            if entity.movement.is_some() {
+            if entities.satisfies::<&Movement>(entity_id.into()).unwrap() {
                 simulation.statistics.movements += 1;
             }
-        }
-    }
-
-    pub fn queue_default_movement(
-        simulation: &mut BattleSimulation,
-        entity_id: EntityId,
-        dest: (i32, i32),
-    ) {
-        type Query<'a> = (&'a mut Entity, &'a mut Player);
-
-        let entities = &mut simulation.entities;
-        let Ok((entity, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
-            return;
-        };
-
-        if player.slide_when_moving {
-            entity.movement = Some(Movement::slide(dest, 14));
-        } else {
-            let mut move_event = Movement::teleport(dest);
-            move_event.delay = 5;
-            move_event.endlag = 7;
-
-            let animator_index = entity.animator_index;
-            let movement_state = player.movement_animation_state.clone();
-            let idle_callback = entity.idle_callback.clone();
-
-            move_event.on_begin = Some(BattleCallback::new(move |_, _, simulation, _| {
-                let anim = &mut simulation.animators[animator_index];
-
-                let callbacks = anim.set_state(&movement_state);
-                simulation.pending_callbacks.extend(callbacks);
-
-                // idle when movement finishes
-                anim.on_complete(idle_callback.clone());
-            }));
-
-            entity.movement = Some(move_event);
         }
     }
 }

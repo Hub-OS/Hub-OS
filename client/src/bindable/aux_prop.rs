@@ -453,6 +453,13 @@ impl AuxProp {
         self.requirements.iter().all(|(_, state)| state.passed)
     }
 
+    pub fn passed_non_time_tests(&self) -> bool {
+        self.requirements
+            .iter()
+            .filter(|(requirement, _)| !matches!(requirement, AuxRequirement::Interval(_)))
+            .all(|(_, state)| state.passed)
+    }
+
     pub fn hit_passes_tests(
         &mut self,
         entity: &Entity,

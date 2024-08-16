@@ -99,8 +99,10 @@ impl SharedBattleResources {
             }
         }
 
+        BattleVmManager::init_internal_vm(game_io, self, simulation);
+
         // load tile states + statuses first
-        BattleVmManager::init(
+        BattleVmManager::init_dependency_vms(
             game_io,
             self,
             simulation,
@@ -120,7 +122,7 @@ impl SharedBattleResources {
             .init(game_io, &self.vm_manager, dependencies);
 
         // load remaining packages
-        BattleVmManager::init(
+        BattleVmManager::init_dependency_vms(
             game_io,
             self,
             simulation,

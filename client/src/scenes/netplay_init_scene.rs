@@ -612,7 +612,7 @@ impl NetplayInitScene {
                     pressed: Vec::new(),
                     signals: vec![NetplaySignal::Disconnect],
                 },
-                buffer_sizes: Vec::new(),
+                lead: Vec::new(),
             });
 
             // make sure the statistics callback gets called

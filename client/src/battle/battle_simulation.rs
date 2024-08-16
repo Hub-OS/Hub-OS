@@ -49,7 +49,7 @@ pub struct BattleSimulation {
 impl BattleSimulation {
     pub fn new(game_io: &GameIO, props: &BattleProps) -> Self {
         let mut camera = Camera::new(game_io);
-        camera.snap(Vec2::new(0.0, 8.0));
+        camera.snap(BATTLE_CAMERA_OFFSET);
 
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -132,6 +132,8 @@ impl BattleSimulation {
         clone_component!(Spell);
         clone_component!(EntityShadow);
         clone_component!(EntityShadowVisible);
+        clone_component!(HpDisplay);
+        clone_component!(Movement);
 
         Self {
             config: self.config.clone(),
@@ -530,6 +532,7 @@ impl BattleSimulation {
     fn update_ui(&mut self) {
         let entities = &mut self.entities;
 
+        // update player ui
         if let Ok((player, living)) =
             entities.query_one_mut::<(&mut Player, &Living)>(self.local_player_id.into())
         {
@@ -541,6 +544,9 @@ impl BattleSimulation {
         }
 
         self.local_health_ui.update();
+
+        // update battle hp displays
+        HpDisplay::update(self);
     }
 
     pub fn is_entity_actionable(
@@ -696,10 +702,11 @@ impl BattleSimulation {
         let mut entity_tree_render_params = Vec::with_capacity(sorted_entities.len());
 
         for (id, _) in sorted_entities {
-            let (entity, shadow, shadow_visible) = self
+            let (entity, movement, shadow, shadow_visible) = self
                 .entities
                 .query_one_mut::<(
                     &mut Entity,
+                    Option<&Movement>,
                     Option<&EntityShadow>,
                     Option<&EntityShadowVisible>,
                 )>(id)
@@ -722,7 +729,7 @@ impl BattleSimulation {
             if let (Some(shadow), Some(_)) = (shadow, shadow_visible) {
                 let mut shadow_y = entity.elevation;
 
-                if let Some(movement) = &entity.movement {
+                if let Some(movement) = movement {
                     let progress = movement.animation_progress_percent();
                     shadow_y += movement.interpolate_jump_height(progress);
                 }
@@ -761,16 +768,15 @@ impl BattleSimulation {
 
         // draw hp on living entities
         if self.intro_complete {
-            let mut hp_text = Text::new(game_io, FontName::EntityHP);
+            let mut hp_text = Text::new(game_io, FontName::EntityHp);
             hp_text.style.letter_spacing = 0.0;
             let tile_size = self.field.tile_size();
 
-            type Query<'a> = hecs::Without<(&'a Entity, &'a Living, &'a Character), &'a Obstacle>;
-
-            for (_, (entity, living, ..)) in self.entities.query_mut::<Query>() {
+            for (_, (hp_display, entity)) in self.entities.query_mut::<(&HpDisplay, &Entity)>() {
                 if entity.deleted
                     || !entity.on_field
-                    || living.health <= 0
+                    || !hp_display.initialized
+                    || hp_display.value <= 0
                     || entity.id == self.local_player_id
                 {
                     continue;
@@ -789,15 +795,25 @@ impl BattleSimulation {
                     continue;
                 }
 
+                // resolve font / color
+                hp_text.style.font = match hp_display.value.cmp(&hp_display.last_value) {
+                    std::cmp::Ordering::Less => FontName::EntityHpRed,
+                    std::cmp::Ordering::Equal => FontName::EntityHp,
+                    std::cmp::Ordering::Greater => FontName::EntityHpGreen,
+                };
+
+                // resolve text
+                hp_text.text = hp_display.value.to_string();
+
+                // resolve position
                 let entity_screen_position =
                     entity.screen_position(&self.field, perspective_flipped);
 
-                hp_text.text = living.health.to_string();
+                hp_text.style.bounds.set_position(entity_screen_position);
                 let text_size = hp_text.measure().size;
-
-                (hp_text.style.bounds).set_position(entity_screen_position);
                 hp_text.style.bounds.x -= text_size.x * 0.5;
                 hp_text.style.bounds.y += tile_size.y * 0.5 - text_size.y;
+
                 hp_text.draw(game_io, &mut sprite_queue);
             }
         }

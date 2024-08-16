@@ -54,7 +54,13 @@ impl PlayerOverridables {
         }
 
         if Entity::can_move_to(game_io, resources, simulation, entity_id, dest) {
-            Player::queue_default_movement(simulation, entity_id, dest);
+            let scripts = &resources.vm_manager.scripts;
+            scripts.queue_default_player_movement.call(
+                game_io,
+                resources,
+                simulation,
+                (entity_id, dest),
+            );
         }
     }
 

@@ -273,7 +273,7 @@ impl Field {
         let mut highlight_positions = Vec::new();
 
         for row in 0..self.rows {
-            let state_row = (row) * 3 / (self.rows - 1) + 1;
+            let state_row = row * 3 / (self.rows - 1) + 1;
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];

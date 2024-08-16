@@ -1,6 +1,7 @@
-use super::{Artifact, Living, Player};
+use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
-    Action, BattleCallback, BattleSimulation, BattleState, Entity, SharedBattleResources, TileState,
+    Action, BattleCallback, BattleSimulation, BattleState, Entity, Movement, SharedBattleResources,
+    TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
@@ -33,6 +34,7 @@ impl Character {
 
     pub fn create(
         game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         rank: CharacterRank,
         namespace: PackageNamespace,
@@ -43,7 +45,11 @@ impl Character {
             .entities
             .insert(
                 id.into(),
-                (Character::new(rank, namespace), Living::default()),
+                (
+                    Character::new(rank, namespace),
+                    Living::default(),
+                    HpDisplay::default(),
+                ),
             )
             .unwrap();
 
@@ -136,9 +142,8 @@ impl Character {
             true
         });
 
-        entity.delete_callback = BattleCallback::new(move |_, _, simulation, _| {
-            crate::battle::delete_character_animation(simulation, id, None);
-        });
+        let scripts = &resources.vm_manager.scripts;
+        entity.delete_callback = scripts.default_character_delete.clone().bind((id, None));
 
         Ok(id)
     }
@@ -151,7 +156,7 @@ impl Character {
         namespace: PackageNamespace,
         rank: CharacterRank,
     ) -> rollback_mlua::Result<EntityId> {
-        let id = Self::create(game_io, simulation, rank, namespace)?;
+        let id = Self::create(game_io, resources, simulation, rank, namespace)?;
 
         let vm_index = resources.vm_manager.find_vm(package_id, namespace)?;
         simulation.call_global(game_io, resources, vm_index, "character_init", move |lua| {
@@ -277,13 +282,15 @@ impl Character {
             let mut requesters = Vec::new();
 
             let entities = &mut simulation.entities;
-            type Query<'a> = (&'a Entity, &'a mut Character, &'a mut Living);
+
+            // wait until movement ends before adding a card action
+            // this is to prevent time freeze cards from applying during movement
+            // process_action_queues only prevents non time freeze actions from starting until movements end
+            type Query<'a> =
+                hecs::Without<(&'a Entity, &'a mut Character, &'a mut Living), &'a Movement>;
 
             for (_, (entity, character, living)) in entities.query_mut::<Query>() {
-                if !character.card_use_requested || entity.movement.is_some() {
-                    // wait until movement ends before adding a card action
-                    // this is to prevent time freeze cards from applying during movement
-                    // process_action_queues only prevents non time freeze actions from starting until movements end
+                if !character.card_use_requested {
                     continue;
                 }
 

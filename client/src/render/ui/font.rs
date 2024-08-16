@@ -24,7 +24,9 @@ pub enum FontName {
     Damage,
     Result,
     Battle,
-    EntityHP,
+    EntityHp,
+    EntityHpRed,
+    EntityHpGreen,
     External(Arc<str>),
 }
 
@@ -46,7 +48,9 @@ impl FontName {
             "DAMAGE" => FontName::Damage,
             "RESULT" => FontName::Result,
             "BATTLE" => FontName::Battle,
-            "ENTITY_HP" => FontName::EntityHP,
+            "ENTITY_HP" => FontName::EntityHp,
+            "ENTITY_HP_RED" => FontName::EntityHpRed,
+            "ENTITY_HP_GREEN" => FontName::EntityHpGreen,
             _ => FontName::External(uppercase_name.into()),
         }
     }
@@ -66,7 +70,9 @@ impl FontName {
             "DAMAGE_U+" => FontName::Damage,
             "RESULT_U+" => FontName::Result,
             "BATTLE_U+" => FontName::Battle,
-            "ENTITY_HP_U+" => FontName::EntityHP,
+            "ENTITY_HP_U+" => FontName::EntityHp,
+            "ENTITY_HP_RED_U+" => FontName::EntityHpRed,
+            "ENTITY_HP_GREEN_U+" => FontName::EntityHpGreen,
             _ => {
                 let name_end = state_prefix.rfind(SPLIT_PATTERN)?;
                 let name = &state_prefix[0..name_end];

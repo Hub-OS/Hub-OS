@@ -1,7 +1,7 @@
 use crate::battle::*;
 use crate::bindable::*;
 use crate::resources::*;
-use crate::structures::DenseSlotMap;
+use crate::structures::SlotMap;
 use framework::prelude::*;
 use std::collections::HashMap;
 
@@ -12,13 +12,12 @@ pub struct Living {
     pub counterable: bool,
     pub health: i32,
     pub max_health: i32,
-    pub pending_damage: i32,
     pub intangibility: Intangibility,
     pub defense_rules: Vec<DefenseRule>,
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub countered_callback: BattleCallback,
-    pub aux_props: DenseSlotMap<AuxProp>,
+    pub aux_props: SlotMap<AuxProp>,
     pub pending_hits: Vec<HitProperties>,
 }
 
@@ -30,7 +29,6 @@ impl Default for Living {
             counterable: false,
             health: 0,
             max_health: 0,
-            pending_damage: 0,
             intangibility: Intangibility::default(),
             defense_rules: Vec::new(),
             status_director: StatusDirector::default(),
@@ -68,7 +66,7 @@ impl Living {
         self.aux_props.insert(aux_prop)
     }
 
-    fn pre_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn pre_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_before_hit())
@@ -79,7 +77,7 @@ impl Living {
         aux_props
     }
 
-    fn on_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn on_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_on_hit())
@@ -90,7 +88,7 @@ impl Living {
         aux_props
     }
 
-    fn post_hit_aux_props(aux_props: &mut DenseSlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    fn post_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
             .filter(|aux_prop| aux_prop.effect().execute_after_hit())
@@ -204,8 +202,8 @@ impl Living {
             );
 
             let entities = &mut simulation.entities;
-            let Ok((entity, living)) =
-                entities.query_one_mut::<(&Entity, &mut Living)>(entity_id.into())
+            let Ok((entity, living, movement)) = entities
+                .query_one_mut::<(&Entity, &mut Living, Option<&Movement>)>(entity_id.into())
             else {
                 return;
             };
@@ -323,7 +321,7 @@ impl Living {
             status_director.apply_hit_flags(status_registry, hit_props.flags);
 
             // handle drag
-            if hit_props.drags() && entity.movement.is_none() {
+            if hit_props.drags() && movement.is_none() {
                 let can_move_to_callback = entity.can_move_to_callback.clone();
                 let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
 
@@ -350,11 +348,10 @@ impl Living {
                 }
 
                 if duration != 0 {
-                    let entity = (simulation.entities)
-                        .query_one_mut::<&mut Entity>(entity_id.into())
+                    simulation
+                        .entities
+                        .insert_one(entity_id.into(), Movement::slide(dest.into(), duration))
                         .unwrap();
-
-                    entity.movement = Some(Movement::slide(dest.into(), duration));
                 } else {
                     let living = (simulation.entities)
                         .query_one_mut::<&mut Living>(entity_id.into())

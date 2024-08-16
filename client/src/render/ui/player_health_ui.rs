@@ -97,14 +97,15 @@ impl PlayerHealthUi {
 
         let diff = self.target_health - self.current_health;
 
-        let increment = match diff.abs() {
-            diff if diff >= 100 => 10,
-            diff if diff >= 40 => 5,
-            diff if diff >= 3 => 3,
+        // https://www.desmos.com/calculator/qwxqhthmuw
+        // x = diff, y = change
+        let y = match diff.abs() {
+            x @ 4.. => x / 8 + 4,
+            2..4 => 2,
             _ => 1,
         };
 
-        self.current_health += diff.signum() * increment;
+        self.current_health += diff.signum() * y;
 
         if diff < 0 {
             self.style_change_cooldown = 15; // quarter of a second

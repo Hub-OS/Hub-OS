@@ -1,5 +1,8 @@
-use super::{GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
-use crate::battle::{BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources};
+use super::{inject_internal_scripts, GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
+use crate::battle::{
+    BattleCallback, BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources,
+};
+use crate::bindable::EntityId;
 use crate::packages::{PackageInfo, PackageNamespace};
 use crate::resources::{
     AssetManager, Globals, ResourcePaths, BATTLE_VM_MEMORY, INPUT_BUFFER_LIMIT,
@@ -8,16 +11,27 @@ use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::cell::RefCell;
 
+#[derive(Default)]
+pub struct InternalScripts {
+    pub default_player_delete: BattleCallback<EntityId>,
+    pub default_character_delete: BattleCallback<(EntityId, Option<usize>)>,
+    pub queue_default_player_movement: BattleCallback<(EntityId, (i32, i32))>,
+}
+
 pub struct BattleVmManager {
-    vms: Vec<RollbackVM>,
+    pub vms: Vec<RollbackVM>,
+    pub scripts: InternalScripts,
 }
 
 impl BattleVmManager {
     pub fn new() -> Self {
-        Self { vms: Vec::new() }
+        Self {
+            vms: Vec::new(),
+            scripts: Default::default(),
+        }
     }
 
-    pub fn init<'a>(
+    pub fn init_dependency_vms<'a>(
         game_io: &GameIO,
         resources: &mut SharedBattleResources,
         simulation: &mut BattleSimulation,
@@ -27,6 +41,30 @@ impl BattleVmManager {
             if package_info.category.requires_vm() {
                 Self::ensure_vm(game_io, resources, simulation, package_info, *namespace);
             }
+        }
+    }
+
+    pub fn init_internal_vm(
+        game_io: &GameIO,
+        resources: &mut SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let internal_vm_package_info = PackageInfo {
+            namespace: PackageNamespace::BuiltIn,
+            id: PackageId::from("dev.hubos.InternalScripts"),
+            ..Default::default()
+        };
+
+        Self::ensure_vm(
+            game_io,
+            resources,
+            simulation,
+            &internal_vm_package_info,
+            internal_vm_package_info.namespace,
+        );
+
+        if let Err(err) = inject_internal_scripts(&mut resources.vm_manager) {
+            log::error!("{err:?}");
         }
     }
 

@@ -1,6 +1,6 @@
 use super::tile_api::{create_tile_table, tile_mut_from_table};
 use super::{BattleLuaApi, MOVEMENT_TABLE};
-use crate::bindable::Movement;
+use crate::battle::Movement;
 use crate::lua_api::helpers::inherit_metatable;
 use crate::render::FrameTime;
 

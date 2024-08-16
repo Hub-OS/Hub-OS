@@ -743,9 +743,14 @@ impl BattleState {
         let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
-        type Query<'a> = (&'a mut Entity, &'a mut Living, Option<&'a Player>);
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a mut Living,
+            Option<&'a Player>,
+            Option<&'a Movement>,
+        );
 
-        for (id, (entity, living, player)) in entities.query_mut::<Query>().into_iter() {
+        for (id, (entity, living, player, movement)) in entities.query_mut::<Query>().into_iter() {
             if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
@@ -768,7 +773,7 @@ impl BattleState {
 
             entity.updated = true;
 
-            if living.status_director.is_dragged() && entity.movement.is_none() {
+            if living.status_director.is_dragged() && movement.is_none() {
                 // let the status director know we're no longer being dragged
                 living.status_director.end_drag()
             }
@@ -837,30 +842,29 @@ impl BattleState {
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
 
-        for (id, entity) in simulation.entities.query::<&Entity>().into_iter() {
+        for (id, (entity, living, _)) in simulation
+            .entities
+            .query_mut::<(&Entity, Option<&Living>, &Movement)>()
+        {
             let mut update_progress = entity.spawned && !entity.deleted && !entity.time_frozen;
 
-            if let Some(living) = simulation.entities.query_one::<&Living>(id).unwrap().get() {
+            if let Some(living) = living {
                 if living.status_director.is_immobile(status_registry) {
                     update_progress = false;
                 }
             }
 
-            if entity.movement.is_some() {
-                moving_entities.push((id, update_progress));
-            }
+            moving_entities.push((id, update_progress));
         }
 
         // movement
         // maybe this should happen in a separate update before everything else updates
         // that way scripts see accurate offsets
         for (id, update_progress) in moving_entities {
-            let mut entity = simulation
+            let Ok((mut entity, mut movement)) = simulation
                 .entities
-                .query_one_mut::<&mut Entity>(id)
-                .unwrap();
-
-            let Some(movement) = entity.movement.as_mut() else {
+                .query_one_mut::<(&mut Entity, &mut Movement)>(id)
+            else {
                 continue;
             };
 
@@ -868,7 +872,7 @@ impl BattleState {
                 movement.source = (entity.x, entity.y);
             }
 
-            if let Some(callback) = movement.on_begin.take() {
+            if let Some(callback) = movement.begin_callback.take() {
                 simulation.pending_callbacks.push(callback);
             }
 
@@ -885,22 +889,21 @@ impl BattleState {
                 if simulation.field.tile_at_mut(dest).is_none()
                     || !Entity::can_move_to(game_io, resources, simulation, id.into(), dest)
                 {
-                    let entity = simulation
-                        .entities
-                        .query_one_mut::<&mut Entity>(id)
-                        .unwrap();
-                    entity.movement = None;
+                    if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {
+                        simulation.pending_callbacks.extend(movement.end_callback)
+                    }
+
                     continue;
                 }
 
                 // refetch entity to satisfy lifetime requirements
-                entity = simulation
+                let Ok(tuple) = simulation
                     .entities
-                    .query_one_mut::<&mut Entity>(id)
-                    .unwrap();
-                let Some(movement) = entity.movement.as_mut() else {
+                    .query_one_mut::<(&mut Entity, &mut Movement)>(id)
+                else {
                     continue;
                 };
+                (entity, movement) = tuple;
 
                 // update tile position
                 entity.x = dest.0;
@@ -911,7 +914,7 @@ impl BattleState {
                 start_tile.handle_auto_reservation_removal(&simulation.actions, entity);
 
                 if !entity.ignore_negative_tile_effects {
-                    let movement = entity.movement.clone().unwrap();
+                    let movement = movement.clone();
 
                     // process stepping off the tile
                     let tile_state = &simulation.tile_states[start_tile.state_index()];
@@ -943,13 +946,7 @@ impl BattleState {
                 current_tile.handle_auto_reservation_addition(&simulation.actions, entity);
             }
 
-            let Some(movement) = entity.movement.as_mut() else {
-                continue;
-            };
-
             if movement.is_complete() {
-                let movement = entity.movement.take().unwrap();
-
                 if movement.success && !entity.ignore_negative_tile_effects {
                     let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
 
@@ -964,6 +961,10 @@ impl BattleState {
                         });
 
                     simulation.pending_callbacks.push(callback);
+                }
+
+                if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {
+                    simulation.pending_callbacks.extend(movement.end_callback)
                 }
             } else {
                 // apply jump height

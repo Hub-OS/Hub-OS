@@ -7,11 +7,12 @@ use crate::render::{
     SpriteShaderEffect,
 };
 use crate::resources::{
-    AssetManager, Globals, ResourcePaths, BATTLE_UI_MARGIN, CARD_SELECT_CARD_COLS as CARD_COLS,
-    CARD_SELECT_ROWS, RESOLUTION_F,
+    AssetManager, Globals, ResourcePaths, BATTLE_CAMERA_OFFSET, BATTLE_UI_MARGIN,
+    CARD_SELECT_CARD_COLS as CARD_COLS, CARD_SELECT_ROWS, RESOLUTION_F,
 };
 use crate::saves::Card;
 use crate::structures::{GenerationalIndex, Tree};
+use crate::BATTLE_CARD_SELECT_CAMERA_OFFSET;
 use enum_map::{enum_map, Enum};
 use framework::prelude::*;
 
@@ -209,6 +210,11 @@ impl CardSelectUi {
         // note: moving health ui also moves emotion ui
         (simulation.local_health_ui)
             .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
+
+        let camera_start = BATTLE_CAMERA_OFFSET;
+        let camera_end = BATTLE_CARD_SELECT_CAMERA_OFFSET;
+        let camera_position = camera_start.lerp(camera_end, progress).floor();
+        simulation.camera.snap(camera_position);
     }
 
     pub fn update_card_frame(&mut self, game_io: &GameIO, player: &Player, card_index: usize) {

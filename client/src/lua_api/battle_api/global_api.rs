@@ -91,10 +91,6 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     globals.set("Direction", direction_table)?;
 
-    let move_event_table = lua.create_table()?;
-    move_event_table.set("new", lua.create_function(|lua, _: ()| lua.create_table())?)?;
-    globals.set("Movement", move_event_table)?;
-
     use crate::bindable::CardClass;
 
     let card_class_table = lua.create_table()?;

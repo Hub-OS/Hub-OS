@@ -98,7 +98,7 @@ impl StatusDirector {
             } else if hit_flag == HitFlag::FLASH {
                 DEFAULT_INTANGIBILITY_DURATION
             } else {
-                0
+                1
             };
 
             if hit_flag == HitFlag::SHAKE {
@@ -398,7 +398,7 @@ impl StatusDirector {
             status.remaining_time -= 1;
             status.lifetime += 1;
 
-            if status.remaining_time < 0 {
+            if status.remaining_time <= 0 {
                 status.remaining_time = 0;
                 status.lifetime = 0;
 
