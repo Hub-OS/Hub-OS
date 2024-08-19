@@ -1128,25 +1128,43 @@ fn can_player_select(player: &Player, index: usize) -> bool {
 fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {
     let previous_selection = resolve_selected_item(player, selection);
 
-    // 6 attempts, we should've looped back around by then
-    for _ in 0..6 {
-        selection.col += col_diff;
-        selection.row += row_diff;
+    // move row
+    selection.row += row_diff;
 
+    // wrap
+    if selection.row == -1 {
+        selection.row = CARD_SELECT_ROWS as i32 - 1;
+    } else {
+        selection.row %= CARD_SELECT_ROWS as i32;
+    }
+
+    // move col
+    for _ in 0..CARD_SELECT_COLS {
+        selection.col += col_diff;
+
+        // wrap
         if selection.col == -1 {
             selection.col = CARD_SELECT_COLS as i32 - 1;
+        } else {
+            selection.col %= CARD_SELECT_COLS as i32;
         }
-
-        if selection.row == -1 {
-            selection.row = CARD_SELECT_ROWS as i32 - 1;
-        }
-
-        selection.col %= CARD_SELECT_COLS as i32;
-        selection.row %= CARD_SELECT_ROWS as i32;
 
         let new_selection = resolve_selected_item(player, selection);
 
         if new_selection == SelectedItem::None {
+            // test the next row
+            let previous_row = selection.row;
+            selection.row += 1;
+            selection.row %= CARD_SELECT_ROWS as i32;
+
+            let new_selection = resolve_selected_item(player, selection);
+
+            if new_selection != SelectedItem::None && new_selection != previous_selection {
+                return;
+            }
+
+            // restore row and continue tests
+            selection.row = previous_row;
             continue;
         }
 
