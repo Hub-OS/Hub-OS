@@ -193,13 +193,7 @@ impl Living {
 
         for hit_props in &mut hit_prop_list {
             // filter statuses through defense rules
-            DefenseJudge::filter_statuses(
-                game_io,
-                resources,
-                simulation,
-                hit_props,
-                &defense_rules,
-            );
+            Defense::filter_statuses(game_io, resources, simulation, hit_props, &defense_rules);
 
             let entities = &mut simulation.entities;
             let Ok((entity, living, movement)) = entities

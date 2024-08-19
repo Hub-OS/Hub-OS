@@ -52,7 +52,7 @@ pub const HIT_FLAG_TABLE: &str = "Hit";
 pub const HIT_HELPER_TABLE: &str = "HitHelper";
 pub const STATUS_TABLE: &str = "Status";
 pub const DEFENSE_RULE_TABLE: &str = "DefenseRule";
-pub const DEFENSE_JUDGE_TABLE: &str = "DefenseJudge";
+pub const DEFENSE_TABLE: &str = "Defense";
 pub const INTANGIBLE_RULE_TABLE: &str = "IntangibleRule";
 pub const CARD_PROPERTIES_TABLE: &str = "CardProperties";
 pub const ACTION_TABLE: &str = "Action";
@@ -134,8 +134,8 @@ const USE_FN: &str = "use_func";
 const SELECTION_CHANGE_FN: &str = "on_selection_change_func";
 
 // defense rules
-pub const BLOCK_FN: &str = "can_block_func";
-pub const FILTER_STATUSES_FN: &str = "filter_statuses_func";
+pub const DEFENSE_FN: &str = "defense_func";
+pub const FILTER_HIT_PROPS_FN: &str = "filter_func";
 
 // defense rules + tile states
 pub const REPLACE_FN: &str = "on_replace_func";

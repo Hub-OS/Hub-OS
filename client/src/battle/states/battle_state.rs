@@ -479,9 +479,9 @@ impl BattleState {
                 let attack_callback = spell.attack_callback.clone();
 
                 // defense check against DefenseOrder::Always
-                simulation.defense_judge = DefenseJudge::new();
+                simulation.defense = Defense::new();
 
-                DefenseJudge::judge(
+                Defense::defend(
                     game_io,
                     resources,
                     simulation,
@@ -491,7 +491,7 @@ impl BattleState {
                     false,
                 );
 
-                if simulation.defense_judge.damage_blocked {
+                if simulation.defense.damage_blocked {
                     // blocked by a defense rule such as barrier, mark as ignored as if we collided
                     if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
                         tile.ignore_attacker(attacker_id);
@@ -515,7 +515,7 @@ impl BattleState {
                 collision_callback.call(game_io, resources, simulation, id.into());
 
                 // defense check against DefenseOrder::CollisionOnly
-                DefenseJudge::judge(
+                Defense::defend(
                     game_io,
                     resources,
                     simulation,
@@ -525,7 +525,7 @@ impl BattleState {
                     true,
                 );
 
-                if simulation.defense_judge.damage_blocked {
+                if simulation.defense.damage_blocked {
                     continue;
                 }
 

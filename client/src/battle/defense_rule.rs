@@ -2,7 +2,7 @@ use super::{AttackBox, BattleScriptContext};
 use super::{BattleSimulation, Entity, Living, Player, SharedBattleResources};
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
 use crate::lua_api::{
-    create_entity_table, BLOCK_FN, DEFENSE_JUDGE_TABLE, FILTER_STATUSES_FN, REPLACE_FN,
+    create_entity_table, DEFENSE_FN, DEFENSE_TABLE, FILTER_HIT_PROPS_FN, REPLACE_FN,
 };
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
@@ -203,12 +203,12 @@ impl DefenseRule {
 }
 
 #[derive(Clone, Copy)]
-pub struct DefenseJudge {
+pub struct Defense {
     pub impact_blocked: bool,
     pub damage_blocked: bool,
 }
 
-impl DefenseJudge {
+impl Defense {
     pub fn new() -> Self {
         Self {
             impact_blocked: false,
@@ -216,7 +216,7 @@ impl DefenseJudge {
         }
     }
 
-    pub fn judge(
+    pub fn defend(
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
@@ -245,17 +245,17 @@ impl DefenseJudge {
             let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |lua| {
-                let Ok(callback): LuaResult<LuaFunction> = table.get(BLOCK_FN) else {
+                let Ok(callback): LuaResult<LuaFunction> = table.get(DEFENSE_FN) else {
                     return Ok(());
                 };
 
-                let judge_table: LuaTable = lua.globals().get(DEFENSE_JUDGE_TABLE)?;
+                let defense_table: LuaTable = lua.globals().get(DEFENSE_TABLE)?;
 
                 let attacker_table = create_entity_table(lua, attack_box.attacker_id)?;
                 let defender_table = create_entity_table(lua, defender_id)?;
 
                 callback.call::<_, ()>((
-                    judge_table,
+                    defense_table,
                     attacker_table,
                     defender_table,
                     &attack_box.props,
@@ -290,7 +290,7 @@ impl DefenseJudge {
             let table: LuaTable = lua.registry_value(&defense_rule.table).unwrap();
 
             lua_api.inject_dynamic(lua, &context, |_| {
-                let Ok(callback): LuaResult<LuaFunction> = table.get(FILTER_STATUSES_FN) else {
+                let Ok(callback): LuaResult<LuaFunction> = table.get(FILTER_HIT_PROPS_FN) else {
                     return Ok(());
                 };
 
@@ -300,7 +300,7 @@ impl DefenseJudge {
                 if props.damage < 0 {
                     log::warn!(
                         "{} returned hit props with negative damage",
-                        FILTER_STATUSES_FN
+                        FILTER_HIT_PROPS_FN
                     );
                     props.damage = 0;
                 }
