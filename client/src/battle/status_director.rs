@@ -336,12 +336,9 @@ impl StatusDirector {
         self.new_statuses.reverse();
         self.new_statuses.retain(|status| {
             let flag = status.status_flag;
-            for &(flag_a, flag_b) in registry.mutual_exclusions() {
-                if flag == flag_a {
-                    cancelled_statuses.push(flag_b);
-                } else if flag == flag_b {
-                    cancelled_statuses.push(flag_a);
-                }
+
+            for &cancelled_flag in registry.mutual_exclusions_for(flag) {
+                cancelled_statuses.push(cancelled_flag);
             }
 
             !cancelled_statuses.contains(&flag)

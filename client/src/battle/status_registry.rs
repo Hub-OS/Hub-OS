@@ -4,8 +4,10 @@ use crate::lua_api::{create_status_table, BattleVmManager, HIT_FLAG_TABLE};
 use crate::packages::{Package, PackageInfo, PackageNamespace};
 use crate::render::FrameTime;
 use crate::resources::Globals;
+use crate::structures::VecSet;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
+use std::collections::HashMap;
 
 const STATUS_LIMIT: HitFlags = 32;
 
@@ -33,7 +35,7 @@ impl RegisteredStatus {
 pub struct StatusRegistry {
     next_shift: HitFlags,
     list: Vec<RegisteredStatus>,
-    mutual_exclusions: Vec<(HitFlags, HitFlags)>,
+    mutual_exclusions: HashMap<HitFlags, VecSet<HitFlags>>,
     immobilizing_flags: Vec<HitFlags>,
     inactionable_flags: Vec<HitFlags>,
 }
@@ -43,7 +45,7 @@ impl StatusRegistry {
         Self {
             next_shift: HitFlag::NEXT_SHIFT,
             list: Vec::new(),
-            mutual_exclusions: Vec::new(),
+            mutual_exclusions: Default::default(),
             immobilizing_flags: vec![],
             inactionable_flags: vec![],
         }
@@ -155,7 +157,11 @@ impl StatusRegistry {
             for name in &package.mutual_exclusions {
                 let flag = HitFlag::from_str(self, name);
 
-                self.mutual_exclusions.push((item.flag, flag));
+                let set = self.mutual_exclusions.entry(item.flag).or_default();
+                set.insert(flag);
+
+                let set = self.mutual_exclusions.entry(flag).or_default();
+                set.insert(item.flag);
             }
         }
     }
@@ -184,8 +190,12 @@ impl StatusRegistry {
         Some(item.constructor.clone())
     }
 
-    pub fn mutual_exclusions(&self) -> &[(HitFlags, HitFlags)] {
-        &self.mutual_exclusions
+    pub fn mutual_exclusions_for(&self, flag: HitFlags) -> &[HitFlags] {
+        let Some(set) = self.mutual_exclusions.get(&flag) else {
+            return &[];
+        };
+
+        set
     }
 
     pub fn immobilizing_flags(&self) -> &[HitFlags] {
