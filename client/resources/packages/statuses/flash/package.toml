@@ -1,0 +1,9 @@
+[package]
+category = "status"
+id = "dev.hubos.Statuses.Flash"
+name = "Flash Status"
+flag_name = "Flash"
+mutual_exclusions = []
+blocks_actions = false
+blocks_mobility = false
+durations = [120]

@@ -1,15 +1,15 @@
 use super::{CardClass, Element, HitFlag, HitFlags};
 use crate::battle::StatusRegistry;
 use crate::bindable::SpriteColorMode;
-use crate::packages::{CardPackage, PackageId, PackageNamespace};
+use crate::packages::{CardPackage, CardPackageStatusDuration, PackageId, PackageNamespace};
 use crate::render::ui::{ElementSprite, FontName, TextStyle};
-use crate::render::{SpriteColorQueue, SpriteNode};
-use crate::structures::Tree;
+use crate::render::{FrameTime, SpriteColorQueue, SpriteNode};
+use crate::structures::{Tree, VecMap};
 use framework::prelude::{Color, GameIO, Vec2};
 use std::borrow::Cow;
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct CardProperties<H = HitFlags> {
+pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
     pub package_id: PackageId,
     pub namespace: Option<PackageNamespace>,
     pub code: String,
@@ -20,7 +20,8 @@ pub struct CardProperties<H = HitFlags> {
     pub element: Element,
     pub secondary_element: Element,
     pub card_class: CardClass,
-    pub hit_flags: H,
+    pub hit_flags: L,
+    pub status_durations: D,
     pub can_boost: bool,
     pub can_charge: bool,
     pub time_freeze: bool,
@@ -30,7 +31,7 @@ pub struct CardProperties<H = HitFlags> {
     pub tags: Vec<String>,
 }
 
-impl<H: Default> Default for CardProperties<H> {
+impl<L: Default, F: Default> Default for CardProperties<L, F> {
     fn default() -> Self {
         Self {
             package_id: PackageId::new_blank(),
@@ -45,6 +46,7 @@ impl<H: Default> Default for CardProperties<H> {
             time_freeze: false,
             card_class: CardClass::Standard,
             hit_flags: Default::default(),
+            status_durations: Default::default(),
             can_boost: true,
             can_charge: true,
             skip_time_freeze_intro: false,
@@ -55,7 +57,7 @@ impl<H: Default> Default for CardProperties<H> {
     }
 }
 
-impl<H> CardProperties<H> {
+impl<L, F> CardProperties<L, F> {
     pub fn draw_summary(
         &self,
         game_io: &GameIO,
@@ -174,7 +176,7 @@ impl<H> CardProperties<H> {
     }
 }
 
-impl CardProperties<Vec<String>> {
+impl CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>> {
     pub fn to_bindable(&self, registry: &StatusRegistry) -> CardProperties<HitFlags> {
         CardProperties::<HitFlags> {
             package_id: self.package_id.clone(),
@@ -192,6 +194,23 @@ impl CardProperties<Vec<String>> {
                 .iter()
                 .map(|flag| HitFlag::from_str(registry, flag))
                 .fold(0, |acc, flag| acc | flag),
+            status_durations: VecMap::from_unique_vec(
+                self.status_durations
+                    .iter()
+                    .map(|(name, duration)| {
+                        let flag = HitFlag::from_str(registry, name);
+
+                        let duration = match duration {
+                            CardPackageStatusDuration::Level(level) => {
+                                registry.duration_for(flag, *level)
+                            }
+                            CardPackageStatusDuration::Duration(frames) => *frames,
+                        };
+
+                        (flag, duration)
+                    })
+                    .collect(),
+            ),
             can_boost: self.can_boost,
             can_charge: self.can_charge,
             time_freeze: self.time_freeze,
@@ -234,6 +253,10 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
             secondary_element: table.get("secondary_element").unwrap_or_default(),
             card_class: table.get("card_class").unwrap_or_default(),
             hit_flags: table.get("hit_flags").unwrap_or_default(),
+            status_durations: table
+                .get("status_durations")
+                .map(VecMap::from_lua_table)
+                .unwrap_or_default(),
             can_boost: table.get("can_boost").unwrap_or_default(),
             can_charge: table.get("can_charge").unwrap_or_default(),
             time_freeze: table.get("time_freeze").unwrap_or_default(),
@@ -273,6 +296,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
         table.set("secondary_element", self.secondary_element)?;
         table.set("card_class", self.card_class)?;
         table.set("hit_flags", self.hit_flags)?;
+        table.set("status_durations", self.status_durations.to_lua_table(lua)?)?;
 
         if self.can_boost {
             table.set("can_boost", true)?;

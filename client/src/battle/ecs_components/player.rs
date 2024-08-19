@@ -158,7 +158,6 @@ impl Player {
         // use preloaded package properties
         entity.element = player_package.element;
         entity.name.clone_from(&player_package.name);
-        living.status_director.set_input_index(setup.index);
 
         // idle callback
         entity.idle_callback = BattleCallback::new(move |_, _, simulation, _| {

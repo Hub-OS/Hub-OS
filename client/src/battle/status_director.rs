@@ -1,13 +1,9 @@
-use super::{BattleCallback, Entity, PlayerInput, SharedBattleResources, StatusRegistry};
+use super::{BattleCallback, Entity, SharedBattleResources, StatusRegistry};
 use crate::bindable::{HitFlag, HitFlags, SpriteColorMode};
 use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
-use crate::resources::{
-    Input, DEFAULT_INTANGIBILITY_DURATION, DEFAULT_STATUS_DURATION, DRAG_LOCKOUT,
-};
-use crate::structures::Tree;
+use crate::resources::DRAG_LOCKOUT;
+use crate::structures::{Tree, VecMap};
 use framework::prelude::GameIO;
-
-const MASHABLE_STATUSES: [HitFlags; 1] = [HitFlag::PARALYZE];
 
 #[derive(Clone)]
 struct AppliedStatus {
@@ -24,10 +20,8 @@ pub struct StatusDirector {
     new_statuses: Vec<AppliedStatus>,
     ready_destructors: Vec<BattleCallback>,
     status_sprites: Vec<(HitFlags, TreeIndex)>,
-    input_index: Option<usize>,
     dragged: bool,
     remaining_drag_lockout: FrameTime,
-    remaining_shake_time: FrameTime,
 }
 
 impl StatusDirector {
@@ -41,7 +35,6 @@ impl StatusDirector {
         self.new_statuses.clear();
         self.dragged = false;
         self.remaining_drag_lockout = 0;
-        self.remaining_shake_time = 0;
     }
 
     pub fn applied_and_pending(&self) -> Vec<(HitFlags, FrameTime)> {
@@ -65,10 +58,6 @@ impl StatusDirector {
         self.immunity |= hit_flags;
     }
 
-    pub fn set_input_index(&mut self, input_index: usize) {
-        self.input_index = Some(input_index);
-    }
-
     pub fn set_destructor(&mut self, flag: HitFlags, destructor: Option<BattleCallback>) {
         let Some(status) = self
             .statuses
@@ -81,10 +70,15 @@ impl StatusDirector {
         status.destructor = destructor;
     }
 
-    pub fn apply_hit_flags(&mut self, status_registry: &StatusRegistry, mut hit_flags: HitFlags) {
+    pub fn apply_hit_flags(
+        &mut self,
+        status_registry: &StatusRegistry,
+        mut hit_flags: HitFlags,
+        durations: &VecMap<HitFlags, FrameTime>,
+    ) {
         hit_flags &= !self.immunity;
 
-        for hit_flag in HitFlag::BUILT_IN {
+        for hit_flag in HitFlag::BAKED {
             if hit_flags & hit_flag == HitFlag::NONE {
                 continue;
             }
@@ -93,19 +87,7 @@ impl StatusDirector {
                 self.dragged = true;
             }
 
-            let duration = if HitFlag::BUILT_IN_STATUSES.contains(&hit_flag) {
-                DEFAULT_STATUS_DURATION
-            } else if hit_flag == HitFlag::FLASH {
-                DEFAULT_INTANGIBILITY_DURATION
-            } else {
-                1
-            };
-
-            if hit_flag == HitFlag::SHAKE {
-                self.remaining_shake_time = DEFAULT_STATUS_DURATION;
-            }
-
-            self.apply_status(hit_flag, duration);
+            self.apply_status(hit_flag, 1);
         }
 
         for registered_status in status_registry.registered_list() {
@@ -113,7 +95,12 @@ impl StatusDirector {
                 continue;
             }
 
-            self.apply_status(registered_status.flag, registered_status.durations[0]);
+            let duration = durations
+                .get(&registered_status.flag)
+                .cloned()
+                .unwrap_or_else(|| registered_status.duration_for(1));
+
+            self.apply_status(registered_status.flag, duration);
         }
     }
 
@@ -122,21 +109,15 @@ impl StatusDirector {
             return;
         }
 
-        let status_search = self
-            .new_statuses
-            .iter_mut()
-            .find(|status| status.status_flag == status_flag);
+        self.new_statuses
+            .retain(|status| status.status_flag != status_flag);
 
-        if let Some(status) = status_search {
-            status.remaining_time = duration.max(status.remaining_time);
-        } else {
-            self.new_statuses.push(AppliedStatus {
-                status_flag,
-                remaining_time: duration,
-                lifetime: 0,
-                destructor: None,
-            })
-        }
+        self.new_statuses.push(AppliedStatus {
+            status_flag,
+            remaining_time: duration,
+            lifetime: 0,
+            destructor: None,
+        });
     }
 
     pub fn set_remaining_status_time(&mut self, status_flag: HitFlags, duration: FrameTime) {
@@ -193,16 +174,6 @@ impl StatusDirector {
                 .immobilizing_flags()
                 .iter()
                 .any(|&flag| self.remaining_status_time(flag) > 0)
-    }
-
-    pub fn is_shaking(&self) -> bool {
-        self.remaining_shake_time > 0
-    }
-
-    pub fn decrement_shake_time(&mut self) {
-        if self.remaining_shake_time > 0 {
-            self.remaining_shake_time -= 1;
-        }
     }
 
     pub fn take_status_sprites(&mut self) -> Vec<(HitFlags, TreeIndex)> {
@@ -334,9 +305,9 @@ impl StatusDirector {
     }
 
     fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
-        let mut already_existing = Vec::new();
+        self.resolve_conflicts(registry);
 
-        for (i, status) in self.new_statuses.iter().enumerate() {
+        self.new_statuses.retain(|status| {
             let status_flag = status.status_flag;
 
             let status_search = self
@@ -344,57 +315,54 @@ impl StatusDirector {
                 .iter_mut()
                 .find(|status| status.status_flag == status_flag);
 
-            if let Some(prev_status) = status_search {
-                if prev_status.remaining_time > 0 {
-                    already_existing.push(i);
-                }
-                prev_status.remaining_time = status.remaining_time.max(prev_status.remaining_time);
-            } else {
+            let Some(prev_status) = status_search else {
+                // new status
                 self.statuses.push(status.clone());
-            }
-        }
+                return true;
+            };
 
-        already_existing.sort();
+            let still_active = prev_status.remaining_time > 0;
 
-        for i in already_existing.into_iter().rev() {
-            self.new_statuses.remove(i);
-        }
+            prev_status.remaining_time = status.remaining_time.max(prev_status.remaining_time);
 
-        self.detect_cancelled_statuses(registry);
+            !still_active
+        });
     }
 
-    fn detect_cancelled_statuses(&mut self, registry: &StatusRegistry) {
+    fn resolve_conflicts(&mut self, registry: &StatusRegistry) {
         let mut cancelled_statuses = Vec::new();
 
-        for blocker in registry.blockers() {
-            if self.remaining_status_time(blocker.blocking_flag) > 0 {
-                cancelled_statuses.push(blocker.blocked_flag);
+        // reverse to preserve the newest statuses
+        self.new_statuses.reverse();
+        self.new_statuses.retain(|status| {
+            let flag = status.status_flag;
+            for &(flag_a, flag_b) in registry.mutual_exclusions() {
+                if flag == flag_a {
+                    cancelled_statuses.push(flag_b);
+                } else if flag == flag_b {
+                    cancelled_statuses.push(flag_a);
+                }
             }
-        }
+
+            !cancelled_statuses.contains(&flag)
+        });
 
         for status_flag in cancelled_statuses {
-            self.remove_status(status_flag);
+            // protect the status if we're going to add it again
+            let protected = self
+                .new_statuses
+                .iter()
+                .any(|status| status.status_flag == status_flag);
+
+            if !protected {
+                self.remove_status(status_flag);
+            }
         }
     }
 
-    pub fn update(&mut self, registry: &StatusRegistry, inputs: &[PlayerInput]) {
-        // detect mashing
-        let mashed = if let Some(index) = self.input_index {
-            let player_input = &inputs[index];
-
-            Input::BATTLE
-                .iter()
-                .any(|input| player_input.was_just_pressed(*input))
-        } else {
-            false
-        };
-
+    pub fn update(&mut self, registry: &StatusRegistry) {
         // update remaining time
         for status in &mut self.statuses {
-            if mashed && MASHABLE_STATUSES.contains(&status.status_flag) {
-                status.remaining_time -= 1;
-            }
-
             status.remaining_time -= 1;
             status.lifetime += 1;
 

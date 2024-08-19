@@ -1075,6 +1075,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(HitProperties {
             damage,
             flags,
+            durations: Default::default(),
             element,
             secondary_element,
             drag,
@@ -1089,6 +1090,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(HitProperties {
             damage: card_properties.damage,
             flags: card_properties.hit_flags,
+            durations: card_properties.status_durations,
             element: card_properties.element,
             secondary_element: card_properties.secondary_element,
             drag: drag.unwrap_or_default(),

@@ -1,12 +1,18 @@
 use super::*;
 use crate::bindable::{CardClass, CardProperties};
 use crate::render::ui::{PackageListing, PackagePreviewData};
-use crate::render::SpriteColorQueue;
+use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
+use crate::structures::VecMap;
 use crate::CardRecipe;
 use framework::prelude::{GameIO, Sprite, Texture, UVec2, Vec2};
 use serde::Deserialize;
 use std::sync::Arc;
+
+pub enum CardPackageStatusDuration {
+    Level(usize),
+    Duration(FrameTime),
+}
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -43,7 +49,7 @@ pub struct CardPackage {
     pub package_info: PackageInfo,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
-    pub card_properties: CardProperties<Vec<String>>,
+    pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
     pub description: String,
     pub long_description: String,
     pub default_codes: Vec<String>,
@@ -86,7 +92,6 @@ impl Package for CardPackage {
         };
 
         // handle recipes
-
         if let Some(recipes) = package_table.get("recipes").and_then(|v| v.as_array()) {
             for recipe in recipes {
                 if let Some(resolved) = CardRecipe::from_toml(recipe) {
@@ -95,6 +100,30 @@ impl Package for CardPackage {
             }
         }
 
+        // handle status durations
+        if let Some(durations_list) = package_table
+            .get("status_durations")
+            .and_then(|v| v.as_array())
+        {
+            for item in durations_list {
+                let Some(key) = item.get("flag_name").and_then(|v| v.as_str()) else {
+                    continue;
+                };
+
+                let duration = if let Some(level) = item.get("level").and_then(|v| v.as_integer()) {
+                    CardPackageStatusDuration::Level(level.max(1) as usize)
+                } else if let Some(frames) = item.get("duration").and_then(|v| v.as_integer()) {
+                    CardPackageStatusDuration::Duration(frames)
+                } else {
+                    continue;
+                };
+
+                let durations = &mut package.card_properties.status_durations;
+                durations.insert(key.to_string(), duration);
+            }
+        }
+
+        // read as CardMeta
         let meta: CardMeta = match package_table.try_into() {
             Ok(toml) => toml,
             Err(e) => {

@@ -47,6 +47,16 @@ function status_init(status)
   freeze_sprite:set_offset(0, -entity:height() / 2)
   freeze_sprite:set_layer(-1)
 
+  -- remove flash
+  entity:remove_status(Hit.Flash)
+
+  -- if we're hit with flinch + flash, cancel freeze
+  local aux_prop = AuxProp.new()
+      :require_hit_flag(Hit.Flinch)
+      :require_hit_flag(Hit.Flash)
+      :remove_status(Hit.Freeze)
+  entity:add_aux_prop(aux_prop)
+
   -- resolve state
   local animator_state
 
@@ -108,5 +118,6 @@ function status_init(status)
     entity:remove_defense_rule(defense_rule)
     entity_sprite:remove_node(freeze_sprite)
     component:eject()
+    entity:remove_aux_prop(aux_prop)
   end
 end

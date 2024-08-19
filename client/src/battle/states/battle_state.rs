@@ -4,7 +4,6 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use rand::Rng;
 use std::borrow::Cow;
 use ui::BattleBannerMessage;
 
@@ -781,33 +780,13 @@ impl BattleState {
             // process statuses as long as the entity isn't being dragged
             if !living.status_director.is_dragged() {
                 let status_director = &mut living.status_director;
-                status_director.update(status_registry, &simulation.inputs);
+                status_director.update(status_registry);
 
                 // status destructors
                 callbacks.extend(status_director.take_ready_destructors());
 
                 // new status callbacks
                 for hit_flag in status_director.take_new_statuses() {
-                    if hit_flag & HitFlag::FLASH != HitFlag::NONE {
-                        // apply intangible
-
-                        // callback will keep the status director in sync when intangibility is pierced
-                        let callback = BattleCallback::new(move |_, _, simulation, _| {
-                            let living = simulation
-                                .entities
-                                .query_one_mut::<&mut Living>(id)
-                                .unwrap();
-
-                            living.status_director.remove_status(HitFlag::FLASH)
-                        });
-
-                        living.intangibility.enable(IntangibleRule {
-                            duration: living.status_director.remaining_status_time(hit_flag),
-                            deactivate_callback: Some(callback),
-                            ..Default::default()
-                        });
-                    }
-
                     if let Some(callback) = status_registry.status_constructor(hit_flag) {
                         callbacks.push(callback.bind(id.into()));
                     }
@@ -1003,34 +982,6 @@ impl BattleState {
             };
 
             let status_director = &mut living.status_director;
-
-            if let Some(lifetime) = status_director.status_lifetime(HitFlag::PARALYZE) {
-                if (lifetime / 2) % 2 == 0 {
-                    let root_sprite = sprite_tree.root_mut();
-                    root_sprite.set_color_mode(SpriteColorMode::Add);
-                    root_sprite.set_color(Color::YELLOW);
-                }
-            }
-
-            if let Some(lifetime) = status_director.status_lifetime(HitFlag::ROOT) {
-                if (lifetime / 2) % 2 == 0 {
-                    let root_sprite = sprite_tree.root_mut();
-                    root_sprite.set_color_mode(SpriteColorMode::Multiply);
-                    root_sprite.set_color(Color::BLACK);
-                }
-            }
-
-            if let Some(lifetime) = status_director.status_lifetime(HitFlag::FLASH) {
-                if (lifetime / 2) % 2 == 0 {
-                    let root_sprite = sprite_tree.root_mut();
-                    root_sprite.set_color(Color::TRANSPARENT);
-                }
-            }
-
-            if status_director.is_shaking() {
-                entity.movement_offset.x += simulation.rng.gen_range(-1..=1) as f32;
-                status_director.decrement_shake_time();
-            }
 
             if living.hit {
                 let root_node = sprite_tree.root_mut();

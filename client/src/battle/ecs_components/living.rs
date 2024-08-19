@@ -318,7 +318,7 @@ impl Living {
 
             // apply statuses
             let status_director = &mut living.status_director;
-            status_director.apply_hit_flags(status_registry, hit_props.flags);
+            status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
 
             // handle drag
             if hit_props.drags() && movement.is_none() {
