@@ -282,7 +282,7 @@ impl Menu for Shop {
                 }
             });
 
-            textbox.use_player_avatar(game_io);
+            textbox.use_navigation_avatar(game_io);
             textbox.push_interface(question_interface);
             textbox.open();
 

@@ -584,7 +584,7 @@ impl Scene for ConfigScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        self.textbox.use_player_avatar(game_io);
+        self.textbox.use_navigation_avatar(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

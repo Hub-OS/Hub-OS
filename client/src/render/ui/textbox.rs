@@ -129,7 +129,7 @@ impl Textbox {
             ResourcePaths::NAVIGATION_TEXTBOX_ANIMATION,
         );
 
-        textbox.use_player_avatar(game_io);
+        textbox.use_navigation_avatar(game_io);
         textbox
     }
 
@@ -257,7 +257,7 @@ impl Textbox {
         self.set_next_avatar(game_io, &globals.assets, Default::default());
     }
 
-    pub fn use_player_avatar(&mut self, game_io: &GameIO) {
+    pub fn use_navigation_avatar(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let Some(player_package) = globals.global_save.player_package(game_io) else {

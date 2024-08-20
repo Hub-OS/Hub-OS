@@ -155,7 +155,7 @@ impl ResourceOrderScene {
                     event_sender.send(Event::SaveResponse { save }).unwrap();
                 });
 
-                self.textbox.use_player_avatar(game_io);
+                self.textbox.use_navigation_avatar(game_io);
                 self.textbox.push_interface(interface);
                 self.textbox.open();
             }
