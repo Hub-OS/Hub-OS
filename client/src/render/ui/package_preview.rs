@@ -1,5 +1,5 @@
 use super::{BlockPreview, ElementSprite, FontName, Text};
-use crate::bindable::Element;
+use crate::bindable::{CardClass, Element};
 use crate::render::ui::PackageListing;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
@@ -11,6 +11,7 @@ use packets::structures::{BlockColor, PackageCategory, SwitchDriveSlot};
 #[derive(Clone)]
 pub enum PackagePreviewData {
     Card {
+        class: CardClass,
         codes: Vec<String>,
         element: Element,
         secondary_element: Element,
@@ -61,7 +62,8 @@ pub struct PackagePreview {
     listing: PackageListing,
     position: Vec2,
     image_sprite: Option<Sprite>,
-    image_task: Option<AsyncTask<Vec<u8>>>,
+    image_task: Option<AsyncTask<Option<Vec<u8>>>>,
+    image_requested: bool,
     sprites: Vec<Sprite>,
     text: Vec<Text>,
     dirty: bool,
@@ -74,6 +76,7 @@ impl PackagePreview {
             position: Vec2::ZERO,
             image_sprite: None,
             image_task: None,
+            image_requested: false,
             sprites: Vec::new(),
             text: Vec::new(),
             dirty: true,
@@ -95,6 +98,8 @@ impl PackagePreview {
     }
 
     fn request_image(&mut self, game_io: &GameIO) {
+        self.image_requested = true;
+
         if !self.listing.preview_data.has_image() {
             let assets = &game_io.resource::<Globals>().unwrap().assets;
             self.image_sprite = Some(assets.new_sprite(game_io, ResourcePaths::BLANK));
@@ -107,31 +112,37 @@ impl PackagePreview {
 
         let uri = format!("{repo}/api/mods/{encoded_id}/preview");
 
-        let task = game_io
-            .spawn_local_task(async move { crate::http::request(&uri).await.unwrap_or_default() });
+        let task = game_io.spawn_local_task(async move { crate::http::request(&uri).await });
 
         self.image_task = Some(task);
     }
 
     fn manage_image(&mut self, game_io: &GameIO) {
+        if !self.image_requested {
+            self.request_image(game_io);
+            return;
+        }
+
         let finished_request = matches!(&self.image_task, Some(task) if task.is_finished());
 
-        if self.image_sprite.is_none() && self.image_task.is_none() {
-            self.request_image(game_io);
-        } else if finished_request {
-            let task = self.image_task.take().unwrap();
-            let bytes = task.join().unwrap();
-
-            let sprite = if let Ok(texture) = Texture::load_from_memory(game_io, &bytes) {
-                Sprite::new(game_io, texture)
-            } else {
-                let assets = &game_io.resource::<Globals>().unwrap().assets;
-                assets.new_sprite(game_io, ResourcePaths::BLANK)
-            };
-
-            self.image_sprite = Some(sprite);
-            self.dirty = true;
+        if !finished_request {
+            return;
         }
+
+        let task = self.image_task.take().unwrap();
+        let Some(bytes) = task.join().unwrap() else {
+            return;
+        };
+
+        let sprite = if let Ok(texture) = Texture::load_from_memory(game_io, &bytes) {
+            Sprite::new(game_io, texture)
+        } else {
+            let assets = &game_io.resource::<Globals>().unwrap().assets;
+            assets.new_sprite(game_io, ResourcePaths::BLANK)
+        };
+
+        self.image_sprite = Some(sprite);
+        self.dirty = true;
     }
 
     fn regenerate(&mut self, game_io: &GameIO) {
@@ -167,6 +178,7 @@ impl PackagePreview {
 
         match &self.listing.preview_data {
             PackagePreviewData::Card {
+                class,
                 element,
                 secondary_element,
                 damage,
@@ -177,6 +189,14 @@ impl PackagePreview {
                     sprite.set_origin(Vec2::new(sprite.size().x * 0.5, 0.0));
                     sprite.set_position(image_bounds.top_center());
                     self.sprites.push(sprite);
+                } else if matches!(class, CardClass::Recipe) {
+                    let mut text = Text::new(game_io, FontName::Thick);
+                    text.text = String::from("P.A.");
+
+                    let text_size = text.measure().size;
+                    text.style.bounds += image_bounds.center() - text_size * 0.5;
+
+                    self.text.push(text);
                 }
 
                 const ITEM_MARGIN: f32 = 1.0;
@@ -204,9 +224,9 @@ impl PackagePreview {
                 text.text = format!("{damage}");
 
                 let text_anchor = animator.point_or_zero("DAMAGE_END");
-
                 let text_size = text.measure().size;
                 text.style.bounds += text_anchor - text_size;
+
                 self.text.push(text);
             }
             PackagePreviewData::Player { element, health } => {

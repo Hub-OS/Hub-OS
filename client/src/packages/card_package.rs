@@ -76,6 +76,7 @@ impl Package for CardPackage {
             creator: String::new(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Card {
+                class: self.card_properties.card_class,
                 codes: self.default_codes.clone(),
                 element: self.card_properties.element,
                 secondary_element: self.card_properties.secondary_element,
