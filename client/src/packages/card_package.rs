@@ -112,6 +112,13 @@ impl Package for CardPackage {
                 };
 
                 let duration = if let Some(level) = item.get("level").and_then(|v| v.as_integer()) {
+                    if item.get("duration").is_some() {
+                        log::warn!(
+                            "Both level and duration specified for Hit.{key} in {:?}. Defaulting to level",
+                            package.package_info.toml_path
+                        )
+                    }
+
                     CardPackageStatusDuration::Level(level.max(1) as usize)
                 } else if let Some(frames) = item.get("duration").and_then(|v| v.as_integer()) {
                     CardPackageStatusDuration::Duration(frames)
