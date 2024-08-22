@@ -1,10 +1,9 @@
 use super::PackageScene;
 use crate::bindable::SpriteColorMode;
-use crate::packages::PackageNamespace;
 use crate::render::ui::{
     build_9patch, FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
-    SubSceneFrame, Textbox, TextboxMessage, TextboxPrompt, UiButton, UiInputTracker, UiLayout,
-    UiLayoutNode, UiNode, UiStyle,
+    SubSceneFrame, Textbox, TextboxPrompt, UiButton, UiInputTracker, UiLayout, UiLayoutNode,
+    UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
@@ -259,22 +258,6 @@ impl PackagesScene {
 
     fn leave(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
-
-        let has_players = globals
-            .player_packages
-            .package_ids(PackageNamespace::Local)
-            .next()
-            .is_some();
-
-        if !has_players {
-            let interface = TextboxMessage::new(String::from(
-                "At least one player mod must be installed to play.\nInstalling a pack is also recommended.",
-            ));
-
-            self.textbox.push_interface(interface);
-            self.textbox.open();
-            return;
-        }
 
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);

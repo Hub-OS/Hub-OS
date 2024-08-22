@@ -6,7 +6,7 @@ use crate::resources::*;
 use framework::logging::{LogLevel, LogRecord};
 use framework::prelude::*;
 
-use super::{CategoryFilter, MainMenuScene, PackagesScene};
+use super::MainMenuScene;
 
 const LOG_MARGIN: f32 = 2.0;
 
@@ -172,24 +172,10 @@ impl BootScene {
     }
 
     fn transfer(&mut self, game_io: &mut GameIO) {
-        let has_playable_character = {
-            let globals = game_io.resource::<Globals>().unwrap();
-            let mut available_players =
-                globals.player_packages.package_ids(PackageNamespace::Local);
-
-            available_players.next().is_some()
-        };
-
-        if has_playable_character {
-            let mut scene = MainMenuScene::new(game_io);
-            scene.set_background(self.background.clone());
-            let transition = crate::transitions::new_boot(game_io);
-            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
-        } else {
-            let scene = PackagesScene::new(game_io, CategoryFilter::Players);
-            let transition = crate::transitions::new_sub_scene(game_io);
-            self.next_scene = NextScene::new_push(scene).with_transition(transition);
-        }
+        let mut scene = MainMenuScene::new(game_io);
+        scene.set_background(self.background.clone());
+        let transition = crate::transitions::new_boot(game_io);
+        self.next_scene = NextScene::new_swap(scene).with_transition(transition);
     }
 }
 
