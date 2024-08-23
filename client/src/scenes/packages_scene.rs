@@ -115,11 +115,10 @@ impl PackagesScene {
                 .with_top_bar(true)
                 .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
-            sidebar: Self::generate_sidebar(game_io, event_sender.clone(), sidebar_bounds)
-                .with_focus(false),
+            sidebar: Self::generate_sidebar(game_io, event_sender.clone(), sidebar_bounds),
             cursor_sprite,
             cursor_animator,
-            list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(true),
+            list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
             list_task: None,
             exhausted_list: false,
             category_filter: initial_category,
@@ -239,6 +238,21 @@ impl PackagesScene {
         }
 
         let input_util = InputUtil::new(game_io);
+
+        if input_util.was_just_pressed(Input::Left) && !self.sidebar.focused() {
+            self.sidebar.set_focused(true);
+            self.list.set_focused(false);
+            self.sidebar.focus_default();
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+        } else if input_util.was_just_pressed(Input::Right) && self.sidebar.focused() {
+            self.sidebar.set_focused(false);
+            self.list.set_focused(true);
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+        }
 
         if input_util.was_just_pressed(Input::Cancel) {
             if self.sidebar.focused() {

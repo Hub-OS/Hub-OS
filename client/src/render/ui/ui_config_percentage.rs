@@ -1,3 +1,4 @@
+use super::ui_config_cycle_arrows::UiConfigCycleArrows;
 use super::{FontName, TextStyle, UiInputTracker, UiNode};
 use crate::render::SpriteColorQueue;
 use crate::resources::*;
@@ -6,6 +7,11 @@ use framework::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
+struct LockedState {
+    original_value: u8,
+    arrows: UiConfigCycleArrows,
+}
+
 pub struct UiConfigPercentage {
     name: &'static str,
     value: u8,
@@ -13,10 +19,10 @@ pub struct UiConfigPercentage {
     lower_bound: u8,
     upper_bound: u8,
     auditory_feedback: bool,
-    locking_focus: bool,
     ui_input_tracker: UiInputTracker,
     config: Rc<RefCell<Config>>,
     callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, u8)>,
+    locked_state: Option<Box<LockedState>>,
 }
 
 impl UiConfigPercentage {
@@ -33,10 +39,10 @@ impl UiConfigPercentage {
             lower_bound: 0,
             upper_bound: 100,
             auditory_feedback: true,
-            locking_focus: false,
             ui_input_tracker: UiInputTracker::new(),
             config,
             callback: Box::new(callback),
+            locked_state: None,
         }
     }
 
@@ -79,6 +85,12 @@ impl UiNode for UiConfigPercentage {
         text_style.bounds.x += bounds.width - metrics.size.x - 1.0;
 
         text_style.draw(game_io, sprite_queue, &self.value_text);
+
+        if let Some(locked_state) = &mut self.locked_state {
+            let mut bounds = bounds;
+            bounds.height = metrics.size.y;
+            locked_state.arrows.draw(sprite_queue, bounds);
+        }
     }
 
     fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
@@ -86,7 +98,7 @@ impl UiNode for UiConfigPercentage {
     }
 
     fn is_locking_focus(&self) -> bool {
-        self.locking_focus
+        self.locked_state.is_some()
     }
 
     fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
@@ -97,36 +109,47 @@ impl UiNode for UiConfigPercentage {
         }
 
         let input_util = InputUtil::new(game_io);
-
         let confirm = input_util.was_just_pressed(Input::Confirm);
-        let left = self.ui_input_tracker.is_active(Input::Left);
-        let right = self.ui_input_tracker.is_active(Input::Right);
 
-        if !self.locking_focus {
-            if left || right || confirm {
+        if !self.is_locking_focus() {
+            if confirm {
                 // focus, play sfx, update, and continue
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.sfx.cursor_select);
 
-                self.locking_focus = true;
-            } else {
-                // no focus
-                return;
+                self.locked_state = Some(Box::new(LockedState {
+                    original_value: self.value,
+                    arrows: UiConfigCycleArrows::new(game_io),
+                }));
             }
-        } else if confirm || input_util.was_just_pressed(Input::Cancel) {
+        } else if confirm {
             // unfocus and play sfx
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
-            self.locking_focus = false;
-            return;
+            self.locked_state = None;
+        } else if input_util.was_just_pressed(Input::Cancel) {
+            // unfocus, undo, and play sfx
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+            if let Some(locked_state) = self.locked_state.take() {
+                self.value = locked_state.original_value;
+                self.value_text = Self::generate_value_text(self.value);
+                (self.callback)(game_io, self.config.borrow_mut(), self.value);
+            }
         }
 
-        if !self.locking_focus {
-            // can't change value unless the input is selected
+        // update arrows, also tests if we're locking input
+        let Some(locked_state) = &mut self.locked_state else {
             return;
-        }
+        };
 
+        locked_state.arrows.update();
+
+        // test input
+        let left = self.ui_input_tracker.is_active(Input::Left);
+        let right = self.ui_input_tracker.is_active(Input::Right);
         let up = self.ui_input_tracker.is_active(Input::Up);
         let down = self.ui_input_tracker.is_active(Input::Down);
 

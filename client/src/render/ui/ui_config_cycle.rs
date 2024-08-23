@@ -1,3 +1,4 @@
+use super::ui_config_cycle_arrows::UiConfigCycleArrows;
 use super::{FontName, TextStyle, UiNode};
 use crate::render::SpriteColorQueue;
 use crate::resources::*;
@@ -6,12 +7,18 @@ use framework::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
+struct LockedState {
+    original_selection: usize,
+    arrows: UiConfigCycleArrows,
+}
+
 pub struct UiConfigCycle<T> {
     name: &'static str,
     selection: usize,
     options: Vec<(String, T)>,
     config: Rc<RefCell<Config>>,
     callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, T)>,
+    locked_state: Option<Box<LockedState>>,
 }
 
 impl<T: Copy + PartialEq> UiConfigCycle<T> {
@@ -34,6 +41,7 @@ impl<T: Copy + PartialEq> UiConfigCycle<T> {
                 .collect(),
             config,
             callback: Box::new(callback),
+            locked_state: None,
         }
     }
 }
@@ -58,10 +66,20 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         text_style.bounds.x += bounds.width - metrics.size.x - 1.0;
 
         text_style.draw(game_io, sprite_queue, text);
+
+        if let Some(locked_state) = &mut self.locked_state {
+            let mut bounds = bounds;
+            bounds.height = metrics.size.y;
+            locked_state.arrows.draw(sprite_queue, bounds);
+        }
     }
 
     fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
+    }
+
+    fn is_locking_focus(&self) -> bool {
+        self.locked_state.is_some()
     }
 
     fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
@@ -70,11 +88,47 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         }
 
         let input_util = InputUtil::new(game_io);
-
         let left = input_util.was_just_pressed(Input::Left);
-        let right = input_util.was_just_pressed(Input::Confirm)
-            || input_util.was_just_pressed(Input::Right);
+        let right = input_util.was_just_pressed(Input::Right);
+        let confirm = input_util.was_just_pressed(Input::Confirm);
 
+        if !self.is_locking_focus() {
+            if confirm {
+                // focus, play sfx, update, and continue
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.audio.play_sound(&globals.sfx.cursor_select);
+
+                self.locked_state = Some(Box::new(LockedState {
+                    original_selection: self.selection,
+                    arrows: UiConfigCycleArrows::new(game_io),
+                }));
+            }
+        } else if confirm {
+            // unfocus and play sfx
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
+            self.locked_state = None;
+        } else if input_util.was_just_pressed(Input::Cancel) {
+            // unfocus, undo, and play sfx
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
+
+            if let Some(locked_state) = self.locked_state.take() {
+                self.selection = locked_state.original_selection;
+                let value = self.options[self.selection].1;
+                (self.callback)(game_io, self.config.borrow_mut(), value);
+            }
+        }
+
+        // update arrows, also tests if we're locking input
+        let Some(locked_state) = &mut self.locked_state else {
+            return;
+        };
+
+        locked_state.arrows.update();
+
+        // test input
         if !left && !right {
             return;
         }

@@ -177,6 +177,9 @@ impl ScrollableList {
         // draw frame
         self.frame.draw(game_io, sprite_queue);
 
+        // draw scrollbar
+        self.scroll_tracker.draw_scrollbar(sprite_queue);
+
         // draw children
         let mut child_bounds = self.initial_child_bounds();
 
@@ -187,9 +190,7 @@ impl ScrollableList {
             child_bounds.y += child_bounds.height;
         }
 
-        // draw scrollbar + cursor
-        self.scroll_tracker.draw_scrollbar(sprite_queue);
-
+        // draw cursor
         if self.focused && !self.is_focus_locked() {
             self.scroll_tracker.draw_cursor(sprite_queue);
         }

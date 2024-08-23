@@ -62,11 +62,7 @@ impl UiNode for UiConfigToggle {
 
         let input_util = InputUtil::new(game_io);
 
-        let confirmed = input_util.was_just_pressed(Input::Confirm)
-            || input_util.was_just_pressed(Input::Left)
-            || input_util.was_just_pressed(Input::Right);
-
-        if !confirmed {
+        if !input_util.was_just_pressed(Input::Confirm) {
             return;
         }
 
