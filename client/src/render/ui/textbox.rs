@@ -4,6 +4,7 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use packets::structures::TextureAnimPathPair;
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::ops::Range;
 use unicode_categories::UnicodeCategories;
@@ -261,7 +262,14 @@ impl Textbox {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let Some(player_package) = globals.global_save.player_package(game_io) else {
-            self.use_blank_avatar(game_io);
+            self.set_next_avatar(
+                game_io,
+                &globals.assets,
+                Some(&TextureAnimPathPair {
+                    texture: Cow::Borrowed(ResourcePaths::GUIDE_MUG),
+                    animation: Cow::Borrowed(ResourcePaths::GUIDE_MUG_ANIMATION),
+                }),
+            );
             return;
         };
 

@@ -93,6 +93,8 @@ impl ResourcePaths {
     pub const INPUT_OVERLAY: &'static str = "resources/scenes/shared/input_overlay.png";
     pub const INPUT_OVERLAY_ANIMATION: &'static str =
         "resources/scenes/shared/input_overlay.animation";
+    pub const GUIDE_MUG: &'static str = "resources/scenes/shared/guide_mug.png";
+    pub const GUIDE_MUG_ANIMATION: &'static str = "resources/scenes/shared/guide_mug.animation";
 
     // Textbox
     pub const TEXTBOX_CURSOR: &'static str = "resources/scenes/shared/textbox_cursor.png";
