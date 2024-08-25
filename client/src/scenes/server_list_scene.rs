@@ -218,11 +218,11 @@ impl ServerListScene {
 
         if global_save.server_list.is_empty() {
             self.context_menu
-                .set_options(game_io, &[("NEW", MenuOption::New)]);
+                .set_options(game_io, [("NEW", MenuOption::New)]);
         } else {
             self.context_menu.set_options(
                 game_io,
-                &[
+                [
                     ("NEW", MenuOption::New),
                     ("EDIT", MenuOption::Edit),
                     ("MOVE", MenuOption::Move),

@@ -442,19 +442,22 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_select);
 
-        let options: &[(&str, DeckOption)] = if total_decks == 0 {
-            &[("NEW", DeckOption::New)]
-        } else {
-            &[
-                ("EDIT", DeckOption::Edit),
-                ("EQUIP", DeckOption::Equip),
-                ("CHG NAME", DeckOption::ChangeName),
-                ("NEW", DeckOption::New),
-                ("DELETE", DeckOption::Delete),
-            ]
-        };
+        let context_menu = &mut scene.context_menu;
 
-        scene.context_menu.set_options(game_io, options);
+        if total_decks == 0 {
+            context_menu.set_options(game_io, [("NEW", DeckOption::New)]);
+        } else {
+            context_menu.set_options(
+                game_io,
+                [
+                    ("EDIT", DeckOption::Edit),
+                    ("EQUIP", DeckOption::Equip),
+                    ("CHG NAME", DeckOption::ChangeName),
+                    ("NEW", DeckOption::New),
+                    ("DELETE", DeckOption::Delete),
+                ],
+            );
+        }
 
         scene.context_menu.open();
     }

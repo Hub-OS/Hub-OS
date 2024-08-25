@@ -198,7 +198,7 @@ impl BlocksScene {
             block_preview: None,
             block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
                 game_io,
-                &[("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
+                [("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
             ),
             held_block: None,
             block_original_rotation: 0,

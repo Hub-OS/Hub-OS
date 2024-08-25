@@ -193,10 +193,10 @@ impl ResourceOrderScene {
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if index == 0 {
-                let options = &[("VIEW", MenuOption::View)];
+                let options = [("VIEW", MenuOption::View)];
                 self.context_menu.set_options(game_io, options)
             } else {
-                let options = &[("MOVE", MenuOption::Move), ("VIEW", MenuOption::View)];
+                let options = [("MOVE", MenuOption::Move), ("VIEW", MenuOption::View)];
                 self.context_menu.set_options(game_io, options)
             }
 

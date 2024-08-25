@@ -110,7 +110,7 @@ impl ConfigScene {
             event_receiver,
             context_menu: ContextMenu::new(game_io, "BINDING", context_position).with_options(
                 game_io,
-                &[
+                [
                     ("Append", BindingContextOption::Append),
                     ("Clear", BindingContextOption::Clear),
                 ],

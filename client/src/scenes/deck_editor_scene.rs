@@ -123,7 +123,7 @@ impl DeckEditorScene {
                 .with_page_arrow_offset(0, pack_dock.page_arrow_offset),
             context_menu: ContextMenu::new(game_io, "SORT", Vec2::ZERO).with_options(
                 game_io,
-                &[
+                [
                     ("ID", Sorting::Id),
                     ("ABCDE", Sorting::Alphabetical),
                     ("Code", Sorting::Code),

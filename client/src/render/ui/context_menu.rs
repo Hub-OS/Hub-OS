@@ -98,7 +98,11 @@ impl<T: Copy + 'static> ContextMenu<T> {
         }
     }
 
-    pub fn with_options(mut self, game_io: &GameIO, options: &[(&str, T)]) -> Self {
+    pub fn with_options<'a>(
+        mut self,
+        game_io: &GameIO,
+        options: impl IntoIterator<Item = (&'a str, T)>,
+    ) -> Self {
         self.set_options(game_io, options);
         self
     }
@@ -128,17 +132,20 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.ui_layout.get_bounds(TreeIndex::tree_root()).unwrap()
     }
 
-    pub fn set_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
+    pub fn set_options<'a>(
+        &mut self,
+        game_io: &GameIO,
+        options: impl IntoIterator<Item = (&'a str, T)>,
+    ) {
         let option_style = UiStyle {
             margin_top: LengthPercentageAuto::Points(3.0),
             ..Default::default()
         };
 
         let mut nodes: VecDeque<_> = options
-            .iter()
+            .into_iter()
             .map(|(label, option)| {
                 let sender = self.ui_sender.clone();
-                let option = *option;
 
                 UiLayoutNode::new(
                     UiButton::new(
