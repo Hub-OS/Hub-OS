@@ -14,32 +14,26 @@ pub mod HitFlag {
     pub const DRAG: HitFlags = 1 << 3;
     pub const IMPACT: HitFlags = 1 << 4;
     pub const FLINCH: HitFlags = 1 << 5;
-    pub const FLASH: HitFlags = 1 << 6;
-    pub const SHAKE: HitFlags = 1 << 7;
-    pub const PIERCE_INVIS: HitFlags = 1 << 8;
-    pub const PIERCE_GUARD: HitFlags = 1 << 9; // NOTE: this is what we refer to as "true breaking"
-    pub const PIERCE_GROUND: HitFlags = 1 << 10;
+    pub const PIERCE_INVIS: HitFlags = 1 << 6;
+    pub const PIERCE_GUARD: HitFlags = 1 << 7; // NOTE: this is what we refer to as "true breaking"
+    pub const PIERCE_GROUND: HitFlags = 1 << 8;
 
+    pub const SHAKE: HitFlags = 1 << 9;
+    pub const FLASH: HitFlags = 1 << 10;
     pub const PARALYZE: HitFlags = 1 << 11;
-    pub const ROOT: HitFlags = 1 << 12;
-    pub const BLIND: HitFlags = 1 << 13;
-    pub const CONFUSE: HitFlags = 1 << 14;
+    pub const BLIND: HitFlags = 1 << 12;
+    pub const CONFUSE: HitFlags = 1 << 13;
+    pub const NEXT_SHIFT: HitFlags = 14;
 
-    pub const BUILT_IN: [HitFlags; 14] = [
+    pub const BAKED: [HitFlags; 8] = [
         RETAIN_INTANGIBLE,
         NO_COUNTER,
         DRAG,
         IMPACT,
         FLINCH,
-        FLASH,
-        SHAKE,
         PIERCE_INVIS,
         PIERCE_GUARD,
         PIERCE_GROUND,
-        PARALYZE,
-        ROOT,
-        BLIND,
-        CONFUSE,
     ];
 
     pub fn from_str(status_registry: &StatusRegistry, s: &str) -> HitFlags {
@@ -55,14 +49,11 @@ pub mod HitFlag {
             "PierceGuard" => PIERCE_GUARD,
             "PierceGround" => PIERCE_GROUND,
             "Paralyze" => PARALYZE,
-            "Root" => ROOT,
             "Blind" => BLIND,
             "Confuse" => CONFUSE,
             _ => status_registry.resolve_flag(s).unwrap_or(NONE),
         }
     }
-
-    pub const BUILT_IN_STATUSES: [HitFlags; 4] = [PARALYZE, ROOT, BLIND, CONFUSE];
 
     pub fn status_animation_state(flag: HitFlags) -> &'static str {
         match flag {

@@ -110,7 +110,7 @@ impl ConfigScene {
             event_receiver,
             context_menu: ContextMenu::new(game_io, "BINDING", context_position).with_options(
                 game_io,
-                &[
+                [
                     ("Append", BindingContextOption::Append),
                     ("Clear", BindingContextOption::Clear),
                 ],
@@ -405,7 +405,7 @@ impl ConfigScene {
                         value.clone()
                     }
                 },
-                |game_io, mut config, previous_value, cycle_right| {
+                |_, previous_value, cycle_right| {
                     let names: Vec<_> = std::iter::once(None)
                         .chain(AudioManager::device_names().map(Some))
                         .collect();
@@ -422,12 +422,13 @@ impl ConfigScene {
                         .unwrap_or_default()
                         .unwrap_or_default();
 
-                    let audio = &mut game_io.resource_mut::<Globals>().unwrap().audio;
-                    audio.use_device(&device_name);
-
-                    config.audio_device.clone_from(&device_name);
-
                     device_name
+                },
+                |game_io, mut config, value| {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.audio.use_device(value);
+
+                    config.audio_device.clone_from(value);
                 },
             )),
         ]
@@ -490,7 +491,7 @@ impl ConfigScene {
                 config.borrow().controller_index,
                 config.clone(),
                 |_, value| value.to_string(),
-                |game_io, mut config, previous_value, cycle_right| {
+                |game_io, previous_value, cycle_right| {
                     let controllers = game_io.input().controllers();
 
                     let id =
@@ -500,9 +501,10 @@ impl ConfigScene {
                         .map(|controller| controller.id())
                         .unwrap_or_default();
 
-                    config.controller_index = id;
-
                     id
+                },
+                |_, mut config, value| {
+                    config.controller_index = *value;
                 },
             )),
             Box::new(
@@ -584,7 +586,7 @@ impl Scene for ConfigScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
-        self.textbox.use_player_avatar(game_io);
+        self.textbox.use_navigation_avatar(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -878,8 +880,17 @@ impl ConfigScene {
 
         let input_util = InputUtil::new(game_io);
 
+        if input_util.was_just_pressed(Input::Right) {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
+            self.primary_layout.set_focused(false);
+            self.secondary_layout.set_focused(true);
+            return;
+        }
+
         if !input_util.was_just_pressed(Input::Cancel) {
-            // this function only handles exiting the scene
+            // the rest of this function only handles exiting the scene
             return;
         }
 
@@ -928,7 +939,7 @@ impl ConfigScene {
 
         let input_util = InputUtil::new(game_io);
 
-        if input_util.was_just_pressed(Input::Cancel) {
+        if input_util.was_just_pressed(Input::Left) || input_util.was_just_pressed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 

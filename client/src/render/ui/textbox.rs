@@ -4,6 +4,7 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 use packets::structures::TextureAnimPathPair;
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::ops::Range;
 use unicode_categories::UnicodeCategories;
@@ -129,7 +130,7 @@ impl Textbox {
             ResourcePaths::NAVIGATION_TEXTBOX_ANIMATION,
         );
 
-        textbox.use_player_avatar(game_io);
+        textbox.use_navigation_avatar(game_io);
         textbox
     }
 
@@ -257,11 +258,18 @@ impl Textbox {
         self.set_next_avatar(game_io, &globals.assets, Default::default());
     }
 
-    pub fn use_player_avatar(&mut self, game_io: &GameIO) {
+    pub fn use_navigation_avatar(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let Some(player_package) = globals.global_save.player_package(game_io) else {
-            self.use_blank_avatar(game_io);
+            self.set_next_avatar(
+                game_io,
+                &globals.assets,
+                Some(&TextureAnimPathPair {
+                    texture: Cow::Borrowed(ResourcePaths::GUIDE_MUG),
+                    animation: Cow::Borrowed(ResourcePaths::GUIDE_MUG_ANIMATION),
+                }),
+            );
             return;
         };
 

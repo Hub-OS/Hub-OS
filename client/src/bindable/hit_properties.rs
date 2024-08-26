@@ -1,9 +1,12 @@
 use crate::bindable::*;
+use crate::render::FrameTime;
+use crate::structures::VecMap;
 
 #[derive(Clone)]
 pub struct HitProperties {
     pub damage: i32,
     pub flags: HitFlags,
+    pub durations: VecMap<HitFlags, FrameTime>,
     pub element: Element,
     pub secondary_element: Element,
     pub drag: Drag, // only used if HitFlags::Drag is set
@@ -15,6 +18,7 @@ impl Default for HitProperties {
         HitProperties {
             damage: 0,
             flags: HitFlag::FLINCH | HitFlag::IMPACT,
+            durations: Default::default(),
             element: Element::None,
             secondary_element: Element::None,
             drag: Drag::default(),
@@ -28,6 +32,7 @@ impl HitProperties {
         HitProperties {
             damage: 0,
             flags: 0,
+            durations: Default::default(),
             element: Element::None,
             secondary_element: Element::None,
             drag: Drag::default(),
@@ -63,12 +68,13 @@ impl<'lua> rollback_mlua::FromLua<'lua> for HitProperties {
         };
 
         Ok(HitProperties {
-            damage: table.get("damage").unwrap_or_default(),
+            damage: table.raw_get("damage").unwrap_or_default(),
             flags: table.get("flags").unwrap_or_default(),
-            element: table.get("element").unwrap_or_default(),
-            secondary_element: table.get("secondary_element").unwrap_or_default(),
-            drag: table.get("drag").unwrap_or_default(),
-            context: table.get("context").unwrap_or_default(),
+            durations: VecMap::from_lua_table(table.get("status_durations")?),
+            element: table.raw_get("element").unwrap_or_default(),
+            secondary_element: table.raw_get("secondary_element").unwrap_or_default(),
+            drag: table.raw_get("drag").unwrap_or_default(),
+            context: table.raw_get("context").unwrap_or_default(),
         })
     }
 }
@@ -88,12 +94,13 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &HitProperties {
         lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
-        table.set("damage", self.damage)?;
-        table.set("flags", self.flags)?;
-        table.set("element", self.element)?;
-        table.set("secondary_element", self.secondary_element)?;
-        table.set("drag", self.drag)?;
-        table.set("context", &self.context)?;
+        table.raw_set("damage", self.damage)?;
+        table.raw_set("flags", self.flags)?;
+        table.raw_set("status_durations", self.durations.to_lua_table(lua)?)?;
+        table.raw_set("element", self.element)?;
+        table.raw_set("secondary_element", self.secondary_element)?;
+        table.raw_set("drag", self.drag)?;
+        table.raw_set("context", &self.context)?;
 
         Ok(rollback_mlua::Value::Table(table))
     }

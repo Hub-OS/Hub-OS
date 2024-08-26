@@ -340,7 +340,7 @@ impl OverworldMenuManager {
     }
 
     pub fn use_player_avatar(&mut self, game_io: &GameIO) {
-        self.textbox.use_player_avatar(game_io);
+        self.textbox.use_navigation_avatar(game_io);
     }
 
     pub fn remaining_textbox_interfaces(&self) -> usize {

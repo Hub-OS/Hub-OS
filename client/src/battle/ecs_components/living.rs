@@ -193,13 +193,7 @@ impl Living {
 
         for hit_props in &mut hit_prop_list {
             // filter statuses through defense rules
-            DefenseJudge::filter_statuses(
-                game_io,
-                resources,
-                simulation,
-                hit_props,
-                &defense_rules,
-            );
+            Defense::filter_statuses(game_io, resources, simulation, hit_props, &defense_rules);
 
             let entities = &mut simulation.entities;
             let Ok((entity, living, movement)) = entities
@@ -318,7 +312,7 @@ impl Living {
 
             // apply statuses
             let status_director = &mut living.status_director;
-            status_director.apply_hit_flags(status_registry, hit_props.flags);
+            status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
 
             // handle drag
             if hit_props.drags() && movement.is_none() {

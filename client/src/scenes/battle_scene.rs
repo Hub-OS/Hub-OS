@@ -225,7 +225,7 @@ impl BattleScene {
                     let is_boss_battle = self.simulation.statistics.boss_battle;
                     let can_run = !is_boss_battle;
 
-                    self.textbox.use_player_avatar(game_io);
+                    self.textbox.use_navigation_avatar(game_io);
 
                     if can_run {
                         // confirm
@@ -267,7 +267,7 @@ impl BattleScene {
                             .unwrap();
                     });
 
-                    self.textbox.use_player_avatar(game_io);
+                    self.textbox.use_navigation_avatar(game_io);
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 }

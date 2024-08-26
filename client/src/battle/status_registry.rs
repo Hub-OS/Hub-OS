@@ -4,10 +4,12 @@ use crate::lua_api::{create_status_table, BattleVmManager, HIT_FLAG_TABLE};
 use crate::packages::{Package, PackageInfo, PackageNamespace};
 use crate::render::FrameTime;
 use crate::resources::Globals;
+use crate::structures::VecSet;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId};
+use std::collections::HashMap;
 
-const STATUS_LIMIT: usize = 32;
+const STATUS_LIMIT: HitFlags = 32;
 
 pub struct RegisteredStatus {
     pub package_id: PackageId,
@@ -18,15 +20,22 @@ pub struct RegisteredStatus {
     pub constructor: BattleCallback<EntityId>,
 }
 
-pub struct StatusBlocker {
-    pub blocking_flag: HitFlags, // The flag that prevents the other from going through.
-    pub blocked_flag: HitFlags,  // The flag that is being prevented.
+impl RegisteredStatus {
+    pub fn duration_for(&self, mut level: usize) -> FrameTime {
+        level = level.saturating_sub(1);
+
+        *self
+            .durations
+            .get(level)
+            .or(self.durations.last())
+            .unwrap_or(&1)
+    }
 }
 
 pub struct StatusRegistry {
-    next_shift: usize,
+    next_shift: HitFlags,
     list: Vec<RegisteredStatus>,
-    blockers: Vec<StatusBlocker>,
+    mutual_exclusions: HashMap<HitFlags, VecSet<HitFlags>>,
     immobilizing_flags: Vec<HitFlags>,
     inactionable_flags: Vec<HitFlags>,
 }
@@ -34,11 +43,11 @@ pub struct StatusRegistry {
 impl StatusRegistry {
     pub fn new() -> Self {
         Self {
-            next_shift: HitFlag::BUILT_IN.len() + 1,
+            next_shift: HitFlag::NEXT_SHIFT,
             list: Vec::new(),
-            blockers: Vec::new(),
-            immobilizing_flags: vec![HitFlag::PARALYZE, HitFlag::ROOT],
-            inactionable_flags: vec![HitFlag::PARALYZE],
+            mutual_exclusions: Default::default(),
+            immobilizing_flags: vec![],
+            inactionable_flags: vec![],
         }
     }
 
@@ -60,16 +69,18 @@ impl StatusRegistry {
                 continue;
             };
 
-            if self.list.iter().any(|item| item.name == package.flag_name) {
-                // ignore conflict
-                continue;
-            }
+            let existing_index = self
+                .list
+                .iter()
+                .position(|item| item.name == package.flag_name);
 
-            if self.next_shift >= STATUS_LIMIT {
-                log::error!(
-                    "Failed to register {HIT_FLAG_TABLE}.{}: Too many statuses registered",
-                    package.flag_name
-                );
+            if existing_index.is_some_and(|i| {
+                !matches!(
+                    self.list[i].namespace,
+                    PackageNamespace::BuiltIn | PackageNamespace::RecordingBuiltIn,
+                )
+            }) {
+                // skip conflict
                 continue;
             }
 
@@ -78,7 +89,25 @@ impl StatusRegistry {
             };
 
             // register new status
-            let flag = 1 << self.next_shift;
+            let mut flag = HitFlag::from_str(self, &package.flag_name);
+
+            if flag != HitFlag::NONE {
+                // overwrite existing flag
+                self.immobilizing_flags.retain(|f| *f != flag);
+                self.inactionable_flags.retain(|f| *f != flag);
+            } else {
+                // use a new flag
+                if self.next_shift >= STATUS_LIMIT {
+                    log::error!(
+                        "Failed to register {HIT_FLAG_TABLE}.{}: Too many statuses registered",
+                        package.flag_name
+                    );
+                    continue;
+                }
+
+                flag = 1 << self.next_shift;
+                self.next_shift += 1;
+            }
 
             let constructor =
                 BattleCallback::new(move |game_io, resources, simulation, entity_id| {
@@ -95,14 +124,20 @@ impl StatusRegistry {
                     }
                 });
 
-            self.list.push(RegisteredStatus {
+            let status = RegisteredStatus {
                 package_id: info.id.clone(),
                 namespace: *namespace,
                 name: package.flag_name.clone(),
                 flag,
                 durations: package.durations.clone(),
                 constructor,
-            });
+            };
+
+            if let Some(i) = existing_index {
+                self.list[i] = status;
+            } else {
+                self.list.push(status);
+            }
 
             if package.blocks_actions {
                 self.inactionable_flags.push(flag);
@@ -111,8 +146,6 @@ impl StatusRegistry {
             if package.blocks_mobility {
                 self.immobilizing_flags.push(flag);
             }
-
-            self.next_shift += 1;
         }
 
         // create inter status rules after flags are resolved
@@ -121,22 +154,14 @@ impl StatusRegistry {
                 .package_or_fallback(item.namespace, &item.package_id)
                 .unwrap();
 
-            for name in &package.blocked_by {
+            for name in &package.mutual_exclusions {
                 let flag = HitFlag::from_str(self, name);
 
-                self.blockers.push(StatusBlocker {
-                    blocking_flag: flag,
-                    blocked_flag: item.flag,
-                });
-            }
+                let set = self.mutual_exclusions.entry(item.flag).or_default();
+                set.insert(flag);
 
-            for name in &package.blocks_flags {
-                let flag = HitFlag::from_str(self, name);
-
-                self.blockers.push(StatusBlocker {
-                    blocking_flag: item.flag,
-                    blocked_flag: flag,
-                });
+                let set = self.mutual_exclusions.entry(flag).or_default();
+                set.insert(item.flag);
             }
         }
     }
@@ -152,13 +177,25 @@ impl StatusRegistry {
         &self.list
     }
 
+    pub fn duration_for(&self, flag: HitFlags, level: usize) -> FrameTime {
+        self.registered_list()
+            .iter()
+            .find(|status| status.flag == flag)
+            .map(|status| status.duration_for(level))
+            .unwrap_or(1)
+    }
+
     pub fn status_constructor(&self, flag: HitFlags) -> Option<BattleCallback<EntityId>> {
         let item = self.list.iter().find(|item| item.flag == flag)?;
         Some(item.constructor.clone())
     }
 
-    pub fn blockers(&self) -> &[StatusBlocker] {
-        &self.blockers
+    pub fn mutual_exclusions_for(&self, flag: HitFlags) -> &[HitFlags] {
+        let Some(set) = self.mutual_exclusions.get(&flag) else {
+            return &[];
+        };
+
+        set
     }
 
     pub fn immobilizing_flags(&self) -> &[HitFlags] {

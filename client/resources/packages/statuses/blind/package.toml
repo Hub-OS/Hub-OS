@@ -1,0 +1,9 @@
+[package]
+category = "status"
+id = "dev.hubos.Statuses.Blind"
+name = "Blind Status"
+flag_name = "Blind"
+mutual_exclusions = []
+blocks_actions = false
+blocks_mobility = false
+durations = [480, 1200]

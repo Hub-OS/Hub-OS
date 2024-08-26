@@ -1,0 +1,9 @@
+[package]
+category = "status"
+id = "dev.hubos.Statuses.Root"
+name = "Root Status"
+flag_name = "Root"
+mutual_exclusions = []
+blocks_actions = false
+blocks_mobility = true
+durations = [90]

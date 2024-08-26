@@ -33,8 +33,6 @@ pub const TILE_FLICKER_DURATION: FrameTime = 60;
 pub const TEMP_TEAM_DURATION: FrameTime = 1800;
 
 // statuses
-pub const DEFAULT_STATUS_DURATION: FrameTime = 90;
-pub const DEFAULT_INTANGIBILITY_DURATION: FrameTime = 120;
 pub const DRAG_PER_TILE_DURATION: FrameTime = 4;
 pub const DRAG_LOCKOUT: FrameTime = 22;
 

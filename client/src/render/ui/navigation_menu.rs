@@ -154,7 +154,7 @@ impl NavigationMenu {
         let item_start = ui_animator.point_or_zero("OPTION_START");
         let item_next = ui_animator.point_or_zero("OPTION_NEXT");
 
-        NavigationMenu {
+        let mut menu = NavigationMenu {
             open_state: OpenState::Open,
             overlay: false,
             animation_time: 0,
@@ -172,7 +172,11 @@ impl NavigationMenu {
             item_next,
             items,
             ui_input_tracker: UiInputTracker::new(),
-        }
+        };
+
+        menu.update_animations();
+
+        menu
     }
 
     pub fn into_overlay(mut self, closeable: bool) -> Self {
@@ -187,6 +191,10 @@ impl NavigationMenu {
 
     pub fn is_open(&self) -> bool {
         self.open_state != OpenState::Closed
+    }
+
+    pub fn opening(&self) -> bool {
+        self.open_state == OpenState::Opening
     }
 
     pub fn open(&mut self) {
@@ -206,6 +214,13 @@ impl NavigationMenu {
         self.money_text = format!("{:>8}$", player_data.money);
     }
 
+    fn update_animations(&mut self) {
+        system_animate_items(self);
+        system_scroll(self);
+        system_transition(self);
+        self.animation_time += 1;
+    }
+
     pub fn update(
         &mut self,
         game_io: &mut GameIO,
@@ -218,10 +233,7 @@ impl NavigationMenu {
         }
 
         // systems
-        system_animate_items(self);
-        system_scroll(self);
-        system_transition(self);
-        self.animation_time += 1;
+        self.update_animations();
 
         // input based updates after this
         if self.open_state.is_animated() || game_io.is_in_transition() {

@@ -1,0 +1,8 @@
+animation state="TALK"
+frame duration="3f" x="41" y="0" w="40" h="48"
+frame duration="3f" x="0" y="0" w="40" h="48"
+frame duration="3f" x="82" y="0" w="40" h="48"
+frame duration="3f" x="0" y="0" w="40" h="48"
+
+animation state="IDLE"
+frame duration="3f" x="123" y="0" w="40" h="48"

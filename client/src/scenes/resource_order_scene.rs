@@ -155,7 +155,7 @@ impl ResourceOrderScene {
                     event_sender.send(Event::SaveResponse { save }).unwrap();
                 });
 
-                self.textbox.use_player_avatar(game_io);
+                self.textbox.use_navigation_avatar(game_io);
                 self.textbox.push_interface(interface);
                 self.textbox.open();
             }
@@ -193,10 +193,10 @@ impl ResourceOrderScene {
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if index == 0 {
-                let options = &[("VIEW", MenuOption::View)];
+                let options = [("VIEW", MenuOption::View)];
                 self.context_menu.set_options(game_io, options)
             } else {
-                let options = &[("MOVE", MenuOption::Move), ("VIEW", MenuOption::View)];
+                let options = [("MOVE", MenuOption::Move), ("VIEW", MenuOption::View)];
                 self.context_menu.set_options(game_io, options)
             }
 

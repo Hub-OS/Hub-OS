@@ -267,7 +267,7 @@ impl PackageUpdatesScene {
         globals.assets.clear_local_mod_assets();
 
         // update player avatar
-        self.textbox.use_player_avatar(game_io);
+        self.textbox.use_navigation_avatar(game_io);
 
         // notify player
         let event_sender = self.event_sender.clone();
@@ -296,7 +296,7 @@ impl Scene for PackageUpdatesScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         // update player avatar
-        self.textbox.use_player_avatar(game_io);
+        self.textbox.use_navigation_avatar(game_io);
 
         // update list in case a package was individually updated or deleted
         let globals = game_io.resource::<Globals>().unwrap();

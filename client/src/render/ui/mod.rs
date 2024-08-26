@@ -39,6 +39,7 @@ mod textbox_quiz;
 mod ui_button;
 mod ui_config_binding;
 mod ui_config_cycle;
+mod ui_config_cycle_arrows;
 mod ui_config_dynamic_cycle;
 mod ui_config_percentage;
 mod ui_config_toggle;

@@ -323,7 +323,7 @@ impl PackageScene {
                     self.reload_buttons(game_io);
 
                     // update player avatar
-                    self.textbox.use_player_avatar(game_io);
+                    self.textbox.use_navigation_avatar(game_io);
 
                     let interface = TextboxMessage::new(String::from("Package deleted."));
                     self.textbox.push_interface(interface);
@@ -366,7 +366,7 @@ impl PackageScene {
             globals.assets.clear_local_mod_assets();
 
             // update player avatar
-            self.textbox.use_player_avatar(game_io);
+            self.textbox.use_navigation_avatar(game_io);
 
             // reload ui
             self.reload_buttons(game_io);

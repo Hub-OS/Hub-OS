@@ -1,11 +1,11 @@
-use super::{BattleLuaApi, DEFENSE_JUDGE_TABLE, DEFENSE_RULE_TABLE};
+use super::{BattleLuaApi, DEFENSE_RULE_TABLE, DEFENSE_TABLE};
 use crate::{
     bindable::{DefensePriority, IntangibleRule},
     lua_api::INTANGIBLE_RULE_TABLE,
 };
 
 pub fn inject_defense_rule_api(lua_api: &mut BattleLuaApi) {
-    inject_judge_api(lua_api);
+    inject_defense_api(lua_api);
     inject_intangible_api(lua_api);
 
     lua_api.add_dynamic_function(DEFENSE_RULE_TABLE, "new", |_, lua, params| {
@@ -25,30 +25,30 @@ pub fn inject_defense_rule_api(lua_api: &mut BattleLuaApi) {
     });
 }
 
-fn inject_judge_api(lua_api: &mut BattleLuaApi) {
-    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "block_damage", |api_ctx, lua, _| {
+fn inject_defense_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(DEFENSE_TABLE, "block_damage", |api_ctx, lua, _| {
         let mut api_ctx = api_ctx.borrow_mut();
-        api_ctx.simulation.defense_judge.damage_blocked = true;
+        api_ctx.simulation.defense.damage_blocked = true;
 
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "block_impact", |api_ctx, lua, _| {
+    lua_api.add_dynamic_function(DEFENSE_TABLE, "block_impact", |api_ctx, lua, _| {
         let mut api_ctx = api_ctx.borrow_mut();
-        api_ctx.simulation.defense_judge.impact_blocked = true;
+        api_ctx.simulation.defense.impact_blocked = true;
 
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "damage_blocked", |api_ctx, lua, _| {
+    lua_api.add_dynamic_function(DEFENSE_TABLE, "damage_blocked", |api_ctx, lua, _| {
         let api_ctx = api_ctx.borrow();
 
-        lua.pack_multi(api_ctx.simulation.defense_judge.damage_blocked)
+        lua.pack_multi(api_ctx.simulation.defense.damage_blocked)
     });
 
-    lua_api.add_dynamic_function(DEFENSE_JUDGE_TABLE, "impact_blocked", |api_ctx, lua, _| {
+    lua_api.add_dynamic_function(DEFENSE_TABLE, "impact_blocked", |api_ctx, lua, _| {
         let api_ctx = api_ctx.borrow();
-        lua.pack_multi(api_ctx.simulation.defense_judge.impact_blocked)
+        lua.pack_multi(api_ctx.simulation.defense.impact_blocked)
     });
 }
 

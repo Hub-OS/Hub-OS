@@ -1,4 +1,5 @@
 use super::{ElementSprite, FontName, TextStyle, UiNode};
+use crate::bindable::CardClass;
 use crate::render::ui::PackagePreviewData;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
@@ -39,6 +40,7 @@ impl From<&json::Value> for PackageListing {
                 health: get_i32(package_table, "health"),
             },
             "card" => PackagePreviewData::Card {
+                class: CardClass::from(get_str(package_table, "card_class")),
                 codes: get_string_vec(package_table, "codes"),
                 element: get_str(package_table, "element").into(),
                 secondary_element: get_str(package_table, "secondary_element").into(),

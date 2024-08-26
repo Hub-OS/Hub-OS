@@ -1092,7 +1092,7 @@ fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem
         return if selection.has_special_button {
             SelectedItem::SpecialButton
         } else {
-            SelectedItem::Confirm
+            SelectedItem::None
         };
     }
 
@@ -1126,31 +1126,90 @@ fn can_player_select(player: &Player, index: usize) -> bool {
 }
 
 fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {
-    let previous_selection = resolve_selected_item(player, selection);
+    let previous_item = resolve_selected_item(player, selection);
 
-    // 6 attempts, we should've looped back around by then
-    for _ in 0..6 {
+    // move row
+    selection.row += row_diff;
+
+    // wrap row
+    if selection.row == -1 {
+        selection.row = CARD_SELECT_ROWS as i32 - 1;
+    } else {
+        selection.row %= CARD_SELECT_ROWS as i32;
+    }
+
+    if col_diff == 0 {
+        return;
+    }
+
+    // scan row to change behavior
+    let mut test_other_rows = true;
+
+    if selection.col != CARD_SELECT_COLS as i32 - 1 {
+        let original_col = selection.col;
+
+        let row_scan_range = if col_diff > 0 {
+            0..CARD_SELECT_CARD_COLS as i32
+        } else {
+            0..CARD_SELECT_COLS as i32
+        };
+
+        loop {
+            selection.col += col_diff;
+
+            if !row_scan_range.contains(&selection.col) {
+                break;
+            }
+
+            let item = resolve_selected_item(player, selection);
+
+            if item != previous_item && item != SelectedItem::None {
+                test_other_rows = false;
+                break;
+            }
+        }
+
+        selection.col = original_col;
+    }
+
+    // move col
+    for _ in 0..CARD_SELECT_COLS {
         selection.col += col_diff;
-        selection.row += row_diff;
 
+        // wrap
         if selection.col == -1 {
             selection.col = CARD_SELECT_COLS as i32 - 1;
+        } else {
+            selection.col %= CARD_SELECT_COLS as i32;
         }
 
-        if selection.row == -1 {
-            selection.row = CARD_SELECT_ROWS as i32 - 1;
-        }
+        let item = resolve_selected_item(player, selection);
 
-        selection.col %= CARD_SELECT_COLS as i32;
-        selection.row %= CARD_SELECT_ROWS as i32;
+        if item == SelectedItem::None {
+            if test_other_rows {
+                let previous_row = selection.row;
 
-        let new_selection = resolve_selected_item(player, selection);
+                for row in 0..CARD_SELECT_ROWS as i32 {
+                    selection.row = row;
 
-        if new_selection == SelectedItem::None {
+                    if selection.row == previous_row {
+                        continue;
+                    }
+
+                    if resolve_selected_item(player, selection) != SelectedItem::None {
+                        return;
+                    }
+                }
+
+                // restore row
+                selection.row = previous_row;
+            }
+
+            // continue tests
             continue;
         }
 
-        if new_selection == previous_selection {
+        if item == previous_item {
             // selection takes up multiple slots
             continue;
         }

@@ -11,8 +11,7 @@ struct StatusMeta {
     name: String,
     description: String,
     flag_name: String,
-    blocks_flags: Vec<String>,
-    blocked_by: Vec<String>,
+    mutual_exclusions: Vec<String>,
     blocks_actions: bool,
     blocks_mobility: bool,
     durations: Vec<FrameTime>,
@@ -25,8 +24,7 @@ pub struct StatusPackage {
     pub name: String,
     pub description: String,
     pub flag_name: String,
-    pub blocks_flags: Vec<String>,
-    pub blocked_by: Vec<String>,
+    pub mutual_exclusions: Vec<String>,
     pub blocks_actions: bool,
     pub blocks_mobility: bool,
     pub durations: Vec<FrameTime>,
@@ -76,8 +74,7 @@ impl Package for StatusPackage {
         package.icon_texture_path = meta.icon_texture_path.map(|p| base_path.clone() + &p);
         package.description = meta.description;
         package.flag_name = meta.flag_name;
-        package.blocks_flags = meta.blocks_flags;
-        package.blocked_by = meta.blocked_by;
+        package.mutual_exclusions = meta.mutual_exclusions;
         package.blocks_actions = meta.blocks_actions;
         package.blocks_mobility = meta.blocks_mobility;
         package.durations = meta.durations;
