@@ -154,6 +154,25 @@ pub fn inject_hit_flag_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(duration)
     });
+
+    lua_api.add_dynamic_function(
+        HIT_HELPER_TABLE,
+        "mutual_exclusions_for",
+        |api_ctx, lua, params| {
+            let flag: HitFlags = lua.unpack_multi(params)?;
+
+            let api_ctx = api_ctx.borrow();
+            let status_registry = &api_ctx.resources.status_registry;
+
+            let mut result = 0;
+
+            for other in status_registry.mutual_exclusions_for(flag) {
+                result |= *other;
+            }
+
+            lua.pack_multi(result)
+        },
+    );
 }
 
 pub fn create_status_table(
