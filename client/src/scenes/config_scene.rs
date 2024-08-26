@@ -9,7 +9,7 @@ use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
 use std::rc::Rc;
-use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
+use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Clone)]
 enum Event {
@@ -139,11 +139,20 @@ impl ConfigScene {
             ..Default::default()
         };
 
+        let options = [
+            ("Video", ConfigCategory::Video),
+            ("Audio", ConfigCategory::Audio),
+            ("Controls", ConfigCategory::Keyboard),
+            ("Mods", ConfigCategory::Mods),
+            ("Profile", ConfigCategory::Profile),
+        ];
+
         UiLayout::new_vertical(
             Rect::new(start.x, start.y, f32::INFINITY, f32::INFINITY),
-            ConfigCategory::iter()
-                .map(|option| {
-                    UiButton::new_text(game_io, FontName::Thick, option.into())
+            options
+                .into_iter()
+                .map(|(name, category)| {
+                    UiButton::new_text(game_io, FontName::Thick, name)
                         .on_activate({
                             let event_sender = event_sender.clone();
 
@@ -155,7 +164,7 @@ impl ConfigScene {
                             let event_sender = event_sender.clone();
 
                             move || {
-                                let _ = event_sender.send(Event::CategoryChange(option));
+                                let _ = event_sender.send(Event::CategoryChange(category));
                             }
                         })
                 })
@@ -440,6 +449,15 @@ impl ConfigScene {
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         let mut children: Vec<Box<dyn UiNode>> = vec![
+            Box::new(
+                UiButton::new_text(game_io, FontName::Thick, "Edit Gamepad").on_activate({
+                    let event_sender = event_sender.clone();
+
+                    move || {
+                        let _ = event_sender.send(Event::CategoryChange(ConfigCategory::Gamepad));
+                    }
+                }),
+            ),
             Box::new(UiConfigCycle::new(
                 "Style",
                 config.borrow().key_style,
@@ -485,6 +503,15 @@ impl ConfigScene {
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         let mut children: Vec<Box<dyn UiNode>> = vec![
+            Box::new(
+                UiButton::new_text(game_io, FontName::Thick, "Edit Keyboard").on_activate({
+                    let event_sender = event_sender.clone();
+
+                    move || {
+                        let _ = event_sender.send(Event::CategoryChange(ConfigCategory::Keyboard));
+                    }
+                }),
+            ),
             Box::new(UiConfigDynamicCycle::new(
                 game_io,
                 "Active Gamepad",
