@@ -29,7 +29,7 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    fs_extra::dir::create_all("dist", true).unwrap();
+    fs_extra::dir::create_all("dist", false).unwrap();
 
     let _ = fs::copy(
         format!("target/release/apk/{BIN_NAME}.apk"),
