@@ -1,5 +1,5 @@
 use super::{FontName, OverflowTextScroller, TextStyle, UiNode};
-use crate::render::SpriteColorQueue;
+use crate::render::{FrameTime, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::Config;
 use framework::prelude::*;
@@ -7,6 +7,8 @@ use itertools::Itertools;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+
+const MAX_WAIT_TIME: FrameTime = 60 * 5;
 
 enum CachedBindings {
     Keys(Vec<Key>),
@@ -28,12 +30,15 @@ pub enum BindingContextOption {
     Clear,
 }
 
+struct BindingState {
+    appending: bool,
+    open_time: FrameTime,
+}
+
 pub struct UiConfigBinding {
-    binds_keyboard: bool,
     input: Input,
     config: Rc<RefCell<Config>>,
-    binding: bool,
-    appending: bool,
+    binding_state: Option<Box<BindingState>>,
     cached_bindings: CachedBindings,
     bound_text: String,
     text_scroller: OverflowTextScroller,
@@ -44,11 +49,9 @@ pub struct UiConfigBinding {
 impl UiConfigBinding {
     fn new(input: Input, config: Rc<RefCell<Config>>, binds_keyboard: bool) -> Self {
         let mut ui = Self {
-            binds_keyboard,
             input,
             config,
-            binding: false,
-            appending: false,
+            binding_state: None,
             cached_bindings: if binds_keyboard {
                 CachedBindings::Keys(Vec::new())
             } else {
@@ -106,8 +109,8 @@ impl UiConfigBinding {
             }
         };
 
-        self.bound_text =
-            Self::generate_bound_text(&config, self.binds_keyboard, self.input).unwrap_or_default();
+        self.bound_text = Self::generate_bound_text(&config, self.binds_keyboard(), self.input)
+            .unwrap_or_default();
     }
 
     fn generate_bound_text(config: &Config, binds_keyboard: bool, input: Input) -> Option<String> {
@@ -160,7 +163,7 @@ impl UiConfigBinding {
     }
 
     fn displayed_text(&self) -> &str {
-        let text = if self.binding {
+        let text = if self.binding_state.is_some() {
             "..."
         } else {
             &self.bound_text
@@ -169,6 +172,10 @@ impl UiConfigBinding {
         let range = self.text_scroller.text_range(text);
 
         &text[range]
+    }
+
+    fn binds_keyboard(&self) -> bool {
+        matches!(self.cached_bindings, CachedBindings::Keys(_))
     }
 }
 
@@ -217,11 +224,11 @@ impl UiNode for UiConfigBinding {
     }
 
     fn is_locking_focus(&self) -> bool {
-        self.binding || self.context_receiver.is_some()
+        self.binding_state.is_some() || self.context_receiver.is_some()
     }
 
     fn update(&mut self, game_io: &mut GameIO, _bounds: Rect, focused: bool) {
-        if !focused || self.binding {
+        if !focused || self.binding_state.is_some() {
             self.text_scroller.reset();
         }
 
@@ -231,18 +238,22 @@ impl UiNode for UiConfigBinding {
 
         self.text_scroller.update();
 
+        let binds_keyboard = self.binds_keyboard();
+
         if let Some(receiver) = &self.context_receiver {
             if let Ok(selection) = receiver.try_recv() {
                 // handle option
                 match selection {
                     Some(BindingContextOption::Append) => {
-                        self.binding = true;
-                        self.appending = true;
+                        self.binding_state = Some(Box::new(BindingState {
+                            appending: true,
+                            open_time: 0,
+                        }));
                     }
                     Some(BindingContextOption::Clear) => {
                         let mut config = self.config.borrow_mut();
 
-                        if self.binds_keyboard {
+                        if binds_keyboard {
                             config.key_bindings.remove(&self.input);
                         } else {
                             config.controller_bindings.remove(&self.input);
@@ -259,7 +270,7 @@ impl UiNode for UiConfigBinding {
             return;
         }
 
-        if !self.binding {
+        let Some(state) = &mut self.binding_state else {
             let input_util = InputUtil::new(game_io);
 
             // open context menu
@@ -274,24 +285,32 @@ impl UiNode for UiConfigBinding {
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.sfx.cursor_select);
 
-                self.binding = true;
-                self.appending = false;
+                self.binding_state = Some(Box::new(BindingState {
+                    appending: false,
+                    open_time: 0,
+                }));
             }
+
+            return;
+        };
+
+        // time out to avoid softlocking when a keyboard or controller isn't present
+        state.open_time += 1;
+
+        if state.open_time > MAX_WAIT_TIME {
+            self.binding_state = None;
             return;
         }
 
-        if self.binds_keyboard {
+        // check input
+        if binds_keyboard {
             if let Some(key) = game_io.input().latest_key() {
                 let mut config = self.config.borrow_mut();
-                Self::bind(&mut config.key_bindings, self.input, key, self.appending);
+                Self::bind(&mut config.key_bindings, self.input, key, state.appending);
 
-                self.binding = false;
+                self.binding_state = None;
             }
         } else {
-            if game_io.input().latest_key().is_some() {
-                self.binding = false;
-            }
-
             let globals = game_io.resource::<Globals>().unwrap();
             let latest_button = game_io.input().latest_button();
             let latest_button = latest_button.or(globals.emulated_input.latest_button());
@@ -302,10 +321,13 @@ impl UiNode for UiConfigBinding {
                     &mut config.controller_bindings,
                     self.input,
                     button,
-                    self.appending,
+                    state.appending,
                 );
 
-                self.binding = false;
+                self.binding_state = None;
+            } else if game_io.input().latest_key().is_some() {
+                // cancel controller binding with any keyboard press
+                self.binding_state = None;
             }
         }
     }

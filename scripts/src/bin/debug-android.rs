@@ -1,7 +1,4 @@
-use std::fs;
 use std::process::{Command, ExitCode};
-
-const BIN_NAME: &str = "hub_os";
 
 fn main() -> ExitCode {
     let zip_output = Command::new("cargo")
@@ -17,7 +14,7 @@ fn main() -> ExitCode {
     }
 
     let build_output = Command::new("cargo")
-        .args(["apk", "run", "--lib", "--release"])
+        .args(["apk", "run", "--lib"])
         .current_dir("./client")
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
@@ -28,13 +25,6 @@ fn main() -> ExitCode {
         // stdout + stderr are shared, no need to display anything
         return ExitCode::FAILURE;
     }
-
-    fs_extra::dir::create_all("dist", true).unwrap();
-
-    let _ = fs::copy(
-        format!("target/release/apk/{BIN_NAME}.apk"),
-        format!("dist/{BIN_NAME}.apk"),
-    );
 
     ExitCode::SUCCESS
 }
