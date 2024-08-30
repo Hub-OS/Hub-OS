@@ -344,6 +344,9 @@ impl StatusDirector {
             !cancelled_statuses.contains(&flag)
         });
 
+        // reverse again to preserve application order
+        self.new_statuses.reverse();
+
         for status_flag in cancelled_statuses {
             // protect the status if we're going to add it again
             let protected = self
