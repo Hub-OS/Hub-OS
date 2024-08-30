@@ -69,7 +69,8 @@ pub enum AuxRequirement {
     Interval(FrameTime),
     HitElement(Element),
     HitElementIsWeakness,
-    HitFlag(HitFlags),
+    HitFlags(HitFlags),
+    HitFlagsAbsent(HitFlags),
     HitDamage(Comparison, i32),
     ProjectedHitDamage(MathExpr<f32, AuxVariable>, Comparison, i32),
     TotalDamage(Comparison, i32),
@@ -82,6 +83,7 @@ pub enum AuxRequirement {
     CardDamage(Comparison, i32),
     CardRecover(Comparison, i32),
     CardHitFlags(HitFlags),
+    CardHitFlagsAbsent(HitFlags),
     CardCode(String),
     CardClass(CardClass),
     CardTimeFreeze(bool),
@@ -113,7 +115,8 @@ impl AuxRequirement {
             AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // TIMER
             AuxRequirement::HitElement(_)
             | AuxRequirement::HitElementIsWeakness
-            | AuxRequirement::HitFlag(_)
+            | AuxRequirement::HitFlags(_)
+            | AuxRequirement::HitFlagsAbsent(_)
             | AuxRequirement::HitDamage(_, _)
             | AuxRequirement::ProjectedHitDamage(_, _, _)
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
@@ -126,6 +129,7 @@ impl AuxRequirement {
             | AuxRequirement::CardDamage(_, _)
             | AuxRequirement::CardRecover(_, _)
             | AuxRequirement::CardHitFlags(_)
+            | AuxRequirement::CardHitFlagsAbsent(_)
             | AuxRequirement::CardCode(_)
             | AuxRequirement::CardClass(_)
             | AuxRequirement::CardTimeFreeze(_)
@@ -157,7 +161,8 @@ impl AuxRequirement {
             "require_interval" => AuxRequirement::Interval(table.get(2)?),
             "require_hit_element" => AuxRequirement::HitElement(table.get(2)?),
             "require_hit_element_is_weakness" => AuxRequirement::HitElementIsWeakness,
-            "require_hit_flag" => AuxRequirement::HitFlag(table.get(2)?),
+            "require_hit_flags" => AuxRequirement::HitFlags(table.get(2)?),
+            "require_hit_flags_absent" => AuxRequirement::HitFlagsAbsent(table.get(2)?),
             "require_hit_damage" => AuxRequirement::HitDamage(table.get(2)?, table.get(3)?),
             "require_projected_hit_damage" => {
                 let expr = resources.parse_math_expr(table.get(2)?)?;
@@ -173,6 +178,7 @@ impl AuxRequirement {
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
             "require_card_recover" => AuxRequirement::CardRecover(table.get(2)?, table.get(3)?),
             "require_card_hit_flags" => AuxRequirement::CardHitFlags(table.get(2)?),
+            "require_card_hit_flags_absent" => AuxRequirement::CardHitFlagsAbsent(table.get(2)?),
             "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
             "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
@@ -513,6 +519,9 @@ impl AuxProp {
                 AuxRequirement::CardHitFlags(flags) => {
                     card.is_some_and(|card| card.hit_flags & *flags == *flags)
                 }
+                AuxRequirement::CardHitFlagsAbsent(flags) => {
+                    card.is_some_and(|card| card.hit_flags & *flags == 0)
+                }
                 AuxRequirement::CardCode(code) => card.is_some_and(|card| card.code == *code),
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
@@ -588,7 +597,8 @@ impl AuxProp {
                     entity.element.is_weak_to(hit_props.element)
                         || entity.element.is_weak_to(hit_props.secondary_element)
                 }
-                AuxRequirement::HitFlag(hit_flag) => hit_props.flags & *hit_flag == *hit_flag,
+                AuxRequirement::HitFlags(hit_flag) => hit_props.flags & *hit_flag == *hit_flag,
+                AuxRequirement::HitFlagsAbsent(hit_flag) => hit_props.flags & *hit_flag == 0,
                 AuxRequirement::HitDamage(cmp, damage) => cmp.compare(hit_props.damage, *damage),
                 AuxRequirement::ProjectedHitDamage(expr, cmp, damage) => {
                     let value = expr.eval(AuxVariable::create_resolver(

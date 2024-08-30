@@ -47,15 +47,30 @@ function status_init(status)
   freeze_sprite:set_offset(0, -entity:height() / 2)
   freeze_sprite:set_layer(-1)
 
+  if Player.from(entity) then
+    entity:cancel_actions()
+    entity:cancel_movement()
+
+    local animation = entity:animation()
+    animation:set_state("PLAYER_HIT", { { 1, 1 } })
+    animation:on_complete(function()
+      entity:set_idle()
+    end)
+  end
+
   -- remove flash
   entity:remove_status(Hit.Flash)
 
+  local flinch_immunity = AuxProp.new()
+      :require_hit_flags_absent(Hit.Flash)
+      :declare_immunity(Hit.Flinch)
+  entity:add_aux_prop(flinch_immunity)
+
   -- if we're hit with flinch + flash, cancel freeze
-  local aux_prop = AuxProp.new()
-      :require_hit_flag(Hit.Flinch)
-      :require_hit_flag(Hit.Flash)
+  local cancel_aux_prop = AuxProp.new()
+      :require_hit_flags(Hit.Flinch | Hit.Flash)
       :remove_status(Hit.Freeze)
-  entity:add_aux_prop(aux_prop)
+  entity:add_aux_prop(cancel_aux_prop)
 
   -- resolve state
   local animator_state
@@ -96,7 +111,7 @@ function status_init(status)
   -- defense rule to add Break weakness and refresh from Aqua attacks
   local defense_rule = DefenseRule.new(DefensePriority.Last, DefenseOrder.CollisionOnly)
 
-  defense_rule.filter_statuses_func = function(hit_props)
+  defense_rule.filter_func = function(hit_props)
     if not TurnGauge.frozen() and hit_props.element == Element.Aqua or hit_props.secondary_element == Element.Aqua then
       -- refresh when hit with an Aqua attack out of time freeze
       status:set_remaining_time(150)
@@ -118,6 +133,7 @@ function status_init(status)
     entity:remove_defense_rule(defense_rule)
     entity_sprite:remove_node(freeze_sprite)
     component:eject()
-    entity:remove_aux_prop(aux_prop)
+    entity:remove_aux_prop(flinch_immunity)
+    entity:remove_aux_prop(cancel_aux_prop)
   end
 end
