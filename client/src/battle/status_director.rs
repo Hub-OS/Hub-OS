@@ -294,6 +294,18 @@ impl StatusDirector {
 
     // should be called after update()
     pub fn take_new_statuses(&mut self) -> Vec<HitFlags> {
+        // append some final statuses
+        for status in &mut self.statuses {
+            if status.remaining_time <= 0 {
+                status.remaining_time = 0;
+                status.lifetime = 0;
+
+                if let Some(callback) = status.destructor.take() {
+                    self.ready_destructors.push(callback);
+                }
+            }
+        }
+
         std::mem::take(&mut self.new_statuses)
             .into_iter()
             .map(|status| status.status_flag)
@@ -304,7 +316,7 @@ impl StatusDirector {
         std::mem::take(&mut self.ready_destructors)
     }
 
-    fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
+    pub fn apply_new_statuses(&mut self, registry: &StatusRegistry) {
         self.resolve_conflicts(registry);
 
         self.new_statuses.retain(|status| {
@@ -360,23 +372,12 @@ impl StatusDirector {
         }
     }
 
-    pub fn update(&mut self, registry: &StatusRegistry) {
+    pub fn update(&mut self) {
         // update remaining time
         for status in &mut self.statuses {
             status.remaining_time -= 1;
             status.lifetime += 1;
-
-            if status.remaining_time <= 0 {
-                status.remaining_time = 0;
-                status.lifetime = 0;
-
-                if let Some(callback) = status.destructor.take() {
-                    self.ready_destructors.push(callback);
-                }
-            }
         }
-
-        self.apply_new_statuses(registry);
 
         if self.remaining_drag_lockout > 0 {
             self.remaining_drag_lockout -= 1;

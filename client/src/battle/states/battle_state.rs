@@ -750,24 +750,8 @@ impl BattleState {
         );
 
         for (id, (entity, living, player, movement)) in entities.query_mut::<Query>().into_iter() {
-            if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
+            if entity.updated || !entity.spawned || entity.deleted {
                 continue;
-            }
-
-            if !living.status_director.is_inactionable(status_registry) {
-                callbacks.push(entity.update_callback.clone());
-
-                if let Some(player) = player {
-                    if let Some(callback) = player.active_form_update_callback() {
-                        callbacks.push(callback.clone());
-                    }
-                }
-
-                for index in entity.local_components.iter().cloned() {
-                    let component = simulation.components.get(index).unwrap();
-
-                    callbacks.push(component.update_callback.clone());
-                }
             }
 
             entity.updated = true;
@@ -780,7 +764,14 @@ impl BattleState {
             // process statuses as long as the entity isn't being dragged
             if !living.status_director.is_dragged() {
                 let status_director = &mut living.status_director;
-                status_director.update(status_registry);
+
+                if !entity.time_frozen {
+                    // tick statuses only if time isn't frozen
+                    status_director.update();
+                }
+
+                // apply new statuses even if time is frozen
+                status_director.apply_new_statuses(status_registry);
 
                 // status destructors
                 callbacks.extend(status_director.take_ready_destructors());
@@ -798,11 +789,32 @@ impl BattleState {
                 }
             }
 
+            if entity.time_frozen {
+                // skip remaining updates if time is frozen
+                continue;
+            }
+
             // update intangibility
             living.intangibility.update();
 
             let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
             callbacks.extend(deactivate_callbacks);
+
+            if !living.status_director.is_inactionable(status_registry) {
+                callbacks.push(entity.update_callback.clone());
+
+                if let Some(player) = player {
+                    if let Some(callback) = player.active_form_update_callback() {
+                        callbacks.push(callback.clone());
+                    }
+                }
+
+                for index in entity.local_components.iter().cloned() {
+                    let component = simulation.components.get(index).unwrap();
+
+                    callbacks.push(component.update_callback.clone());
+                }
+            }
         }
 
         // execute update functions
