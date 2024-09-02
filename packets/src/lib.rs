@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 pub const VERSION_ID: &str = "https://github.com/ArthurCose/RealPET";
-pub const VERSION_ITERATION: u64 = 17;
+pub const VERSION_ITERATION: u64 = 18;
 pub const SERVER_TICK_RATE_F: f32 = 1.0 / 20.0; // 1 / 20 of a second
 pub const SERVER_TICK_RATE: Duration = Duration::from_millis(50); // 1 / 20 of a second
 pub const MAX_IDLE_DURATION: Duration = Duration::from_secs(1);
