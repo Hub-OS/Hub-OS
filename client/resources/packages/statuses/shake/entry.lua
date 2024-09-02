@@ -2,7 +2,7 @@
 function status_init(status)
   local entity = status:owner()
 
-  local component = entity:create_component(Lifetime.Scene)
+  local component = entity:create_component(Lifetime.Battle)
   local ejected = false
 
   component.on_update_func = function()

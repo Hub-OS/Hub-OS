@@ -5,7 +5,7 @@ function status_init(status)
   local entity = status:owner()
   local entity_sprite = entity:sprite()
 
-  local component = entity:create_component(Lifetime.Battle)
+  local component = entity:create_component(Lifetime.ActiveBattle)
   local time = 0
 
   component.on_update_func = function()

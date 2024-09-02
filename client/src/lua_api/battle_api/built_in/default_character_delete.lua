@@ -17,7 +17,7 @@ local i = 0
 
 local field = entity:field()
 local sprite = entity:sprite()
-local component = entity:create_component(Lifetime.Battle)
+local component = entity:create_component(Lifetime.ActiveBattle)
 
 component.on_update_func = function()
   i = i + 1

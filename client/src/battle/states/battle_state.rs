@@ -74,7 +74,7 @@ impl State for BattleState {
 
         // todo: handle spells attacking on tiles they're not on?
         // this can unintentionally occur by queueing an attack outside of update_spells,
-        // such as in a BattleStep component or callback
+        // such as in a Battle component or callback
 
         // execute attacks
         self.execute_attacks(game_io, resources, simulation);
@@ -88,10 +88,13 @@ impl State for BattleState {
         // update artifacts
         self.update_artifacts(game_io, resources, simulation);
 
-        // update battle step components
         if !simulation.time_freeze_tracker.time_is_frozen() {
-            simulation.update_components(game_io, resources, ComponentLifetime::Battle);
+            // update active battle components
+            simulation.update_components(game_io, resources, ComponentLifetime::ActiveBattle);
         }
+
+        // update battle components
+        simulation.update_components(game_io, resources, ComponentLifetime::Battle);
 
         simulation.call_pending_callbacks(game_io, resources);
 

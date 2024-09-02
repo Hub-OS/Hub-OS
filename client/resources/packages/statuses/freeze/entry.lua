@@ -87,7 +87,7 @@ function status_init(status)
   animator:apply(freeze_sprite)
 
   -- this component updates the status's animation and handles mashing
-  local component = entity:create_component(Lifetime.Battle)
+  local component = entity:create_component(Lifetime.ActiveBattle)
   local time = 0
 
   component.on_update_func = function()

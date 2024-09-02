@@ -4,6 +4,7 @@ use num_derive::FromPrimitive;
 #[derive(PartialEq, Eq, Clone, Copy, FromPrimitive)]
 pub enum ComponentLifetime {
     Local,
+    ActiveBattle,
     Battle,
     Scene,
     CardSelectOpen,
