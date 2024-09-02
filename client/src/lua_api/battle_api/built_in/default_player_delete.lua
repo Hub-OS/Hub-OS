@@ -6,7 +6,7 @@ entity:delete()
 
 -- play the first flinch frame
 local animation = entity:animation()
-animation:set_state("PLAYER_HIT")
+animation:set_state("CHARACTER_HIT")
 animation:pause()
 
 -- spawn shine artifact

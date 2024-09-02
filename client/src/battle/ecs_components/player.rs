@@ -27,8 +27,6 @@ pub struct Player {
     pub card_charged: bool,
     pub card_charge: AttackCharge,
     pub buster_charge: AttackCharge,
-    pub flinch_animation_state: String,
-    pub movement_animation_state: String,
     pub slide_when_moving: bool,
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
@@ -38,19 +36,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub const IDLE_STATE: &'static str = "PLAYER_IDLE";
-
-    pub const MOVE_FRAMES: [DerivedFrame; 7] = [
-        DerivedFrame::new(0, 2),
-        DerivedFrame::new(1, 1),
-        DerivedFrame::new(2, 1),
-        DerivedFrame::new(3, 1),
-        DerivedFrame::new(2, 1),
-        DerivedFrame::new(1, 1),
-        DerivedFrame::new(0, 1),
-    ];
-
-    pub const HIT_FRAMES: [DerivedFrame; 2] = [DerivedFrame::new(0, 15), DerivedFrame::new(1, 7)];
+    pub const IDLE_STATE: &'static str = "CHARACTER_IDLE";
 
     fn new(
         game_io: &GameIO,
@@ -111,8 +97,6 @@ impl Player {
                 ResourcePaths::BATTLE_CHARGE_ANIMATION,
             )
             .with_color(Color::MAGENTA),
-            flinch_animation_state: String::new(),
-            movement_animation_state: String::new(),
             slide_when_moving: false,
             emotion_window,
             forms: Vec::new(),
@@ -184,38 +168,6 @@ impl Player {
         // delete callback
         let scripts = &resources.vm_manager.scripts;
         entity.delete_callback = scripts.default_player_delete.clone().bind(id);
-
-        // flinch callback
-        living.register_status_callback(
-            HitFlag::FLINCH,
-            BattleCallback::new(move |game_io, resources, simulation, _| {
-                // cancel actions
-                Action::cancel_all(game_io, resources, simulation, id);
-
-                let (living, player) = simulation
-                    .entities
-                    .query_one_mut::<(&Living, &mut Player)>(id.into())
-                    .unwrap();
-
-                player.cancel_charge();
-
-                // grab flinch state
-                let state = player.flinch_animation_state.clone();
-
-                // cancel movement
-                if !living.status_director.is_dragged() {
-                    if let Ok(movement) = simulation.entities.remove_one::<Movement>(id.into()) {
-                        simulation.pending_callbacks.extend(movement.end_callback)
-                    }
-                }
-
-                // flinch
-                let flinch_action_index = Action::create(game_io, simulation, state, id).unwrap();
-                Action::queue_action(simulation, id, flinch_action_index);
-
-                simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.hurt);
-            }),
-        );
 
         // AuxProp for hit statistics
         let statistics_aux_prop = AuxProp::new()
@@ -320,27 +272,13 @@ impl Player {
         let mut deck = setup.deck.clone();
         deck.shuffle(game_io, &mut simulation.rng, setup.namespace());
 
-        let mut player = Player::new(
+        let player = Player::new(
             game_io,
             setup,
             player_package,
             deck,
             card_charge_sprite_index,
             buster_charge_sprite_index,
-        );
-
-        player.movement_animation_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_MOVE",
-            Player::MOVE_FRAMES.to_vec(),
-            entity.animator_index,
-        );
-
-        player.flinch_animation_state = BattleAnimator::derive_state(
-            &mut simulation.animators,
-            "PLAYER_HIT",
-            Player::HIT_FRAMES.to_vec(),
-            entity.animator_index,
         );
 
         simulation.entities.insert_one(id.into(), player).unwrap();

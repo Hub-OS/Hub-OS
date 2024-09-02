@@ -16,8 +16,18 @@ else
   movement.delay = 5
   movement.endlag = 7
 
+  local FRAMES = {
+    { 1, 2 },
+    { 2, 1 },
+    { 3, 1 },
+    { 4, 1 },
+    { 3, 1 },
+    { 2, 1 },
+    { 1, 1 },
+  }
+
   local animation = entity:animation()
-  animation:set_state(entity:player_move_state())
+  animation:set_state("CHARACTER_MOVE", FRAMES)
 
   -- idle when movement finishes
   animation:on_complete(function()

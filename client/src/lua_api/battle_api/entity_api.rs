@@ -1602,13 +1602,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter::<&Player, (), _>(lua_api, "player_move_state", |player: &Player, lua, _| {
-        lua.pack_multi(player.movement_animation_state.as_str())
-    });
-    getter::<&Player, (), _>(lua_api, "player_hit_state", |player: &Player, lua, _| {
-        lua.pack_multi(player.flinch_animation_state.as_str())
-    });
-
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "queue_default_player_movement",

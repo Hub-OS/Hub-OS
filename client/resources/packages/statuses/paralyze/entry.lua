@@ -22,14 +22,14 @@ local COLOR = Color.new(255, 255, 0, 255)
 function status_init(status)
   local entity = status:owner()
   local entity_sprite = entity:sprite()
+  local entity_animation = entity:animation()
 
-  if Player.from(entity) then
+  if entity_animation:has_state("CHARACTER_HIT") then
     entity:cancel_actions()
     entity:cancel_movement()
 
-    local animation = entity:animation()
-    animation:set_state("PLAYER_HIT", { { 1, 1 } })
-    animation:on_complete(function()
+    entity_animation:set_state("CHARACTER_HIT", { { 1, 1 } })
+    entity_animation:on_complete(function()
       entity:set_idle()
     end)
   end

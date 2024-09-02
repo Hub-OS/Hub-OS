@@ -42,18 +42,18 @@ function status_init(status)
 
   local entity = status:owner()
   local entity_sprite = entity:sprite()
+  local entity_animation = entity:animation()
   local freeze_sprite = entity:create_node()
   freeze_sprite:set_texture(TEXTURE)
   freeze_sprite:set_offset(0, -entity:height() / 2)
   freeze_sprite:set_layer(-1)
 
-  if Player.from(entity) then
+  if entity_animation:has_state("CHARACTER_HIT") then
     entity:cancel_actions()
     entity:cancel_movement()
 
-    local animation = entity:animation()
-    animation:set_state("PLAYER_HIT", { { 1, 1 } })
-    animation:on_complete(function()
+    entity_animation:set_state("CHARACTER_HIT", { { 1, 1 } })
+    entity_animation:on_complete(function()
       entity:set_idle()
     end)
   end
