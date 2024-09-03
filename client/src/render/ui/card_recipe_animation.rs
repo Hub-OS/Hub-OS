@@ -235,9 +235,21 @@ impl CardRecipeAnimation {
         let mut text_style =
             TextStyle::new_monospace(game_io, FontName::Thick).with_shadow_color(TEXT_SHADOW_COLOR);
 
+        // resolve code offset
+        let longest_name_len = self
+            .cards
+            .iter()
+            .map(|card| card.short_name.len())
+            .max()
+            .unwrap_or_default();
+        let space_width = text_style.measure(" ").size.x + text_style.letter_spacing;
+        let code_x_offset = space_width * (longest_name_len.max(8) + 1) as f32;
+
+        // apply + resolve initial offsets
         text_style.bounds += resources.recipe_animator.point_or_zero("LIST_START");
         let list_step = resources.recipe_animator.point_or_zero("LIST_STEP");
 
+        // display based on state
         let (duration, _) = self.state.next_state();
         let mut label_scale = 1.0;
 
@@ -259,14 +271,27 @@ impl CardRecipeAnimation {
                         PLAIN_TEXT_COLOR
                     };
 
+                    // draw name
                     text_style.draw(game_io, sprite_queue, &card.short_name);
+
+                    // draw code
+                    text_style.bounds.x += code_x_offset;
+                    text_style.draw(game_io, sprite_queue, &card.code);
+                    text_style.bounds.x -= code_x_offset;
+
                     text_style.bounds += list_step;
                 }
             }
             State::HidePending => {
                 for (i, card) in self.cards.iter().enumerate().take(self.visible_card_count) {
                     if !self.changes_contain_index(i) {
+                        // draw name
                         text_style.draw(game_io, sprite_queue, &card.short_name);
+
+                        // draw code
+                        text_style.bounds.x += code_x_offset;
+                        text_style.draw(game_io, sprite_queue, &card.code);
+                        text_style.bounds.x -= code_x_offset;
                     }
 
                     text_style.bounds += list_step;
@@ -304,6 +329,11 @@ impl CardRecipeAnimation {
                         // draw cards not part of any recipe
                         text_style.color = PLAIN_TEXT_COLOR;
                         text_style.draw(game_io, sprite_queue, &card.short_name);
+
+                        // draw code
+                        text_style.bounds.x += code_x_offset;
+                        text_style.draw(game_io, sprite_queue, &card.code);
+                        text_style.bounds.x -= code_x_offset;
                     }
 
                     text_style.bounds += list_step;
