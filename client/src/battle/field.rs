@@ -1,7 +1,7 @@
+use super::Tile;
 use super::{
     BattleCallback, BattleSimulation, SharedBattleResources, TileState, TileStateAnimationSupport,
 };
-use super::{Entity, Tile};
 use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
@@ -139,7 +139,7 @@ impl Field {
                 }
 
                 if tile.team() == Team::Unset {
-                    tile.set_team(team, None);
+                    tile.set_team(team, tile.direction());
                 }
 
                 if !matches!(tile.direction(), Direction::Left | Direction::Right) {
@@ -159,68 +159,91 @@ impl Field {
         }
     }
 
-    pub fn update_tiles(&mut self, entities: &mut hecs::World) {
+    pub fn update_tiles(&mut self) {
         for tile in &mut self.tiles {
             tile.update_state();
         }
 
-        self.sync_team_timers(entities);
+        self.sync_team_timers();
     }
 
-    fn sync_team_timers(&mut self, entities: &mut hecs::World) {
-        for col in 0..self.cols as i32 {
-            let mut col_timer = FrameTime::MAX;
-            let mut revert_blocked = false;
+    fn sync_team_timers(&mut self) {
+        #[derive(Clone, Copy)]
+        struct TeamState {
+            timer: FrameTime,
+            has_reservation: bool,
+            behind_claimed: bool,
+        }
 
-            // find the smallest time
-            'rows: for row in 0..self.rows as i32 {
-                let tile = self.tile_at_mut((col, row)).unwrap();
-
-                let timer = tile.team_revert_timer();
-
-                if col_timer > timer && timer > 0 {
-                    col_timer = timer;
+        impl Default for TeamState {
+            fn default() -> Self {
+                Self {
+                    timer: FrameTime::MAX,
+                    has_reservation: false,
+                    behind_claimed: false,
                 }
+            }
+        }
+
+        for col in 0..self.cols as i32 {
+            let mut team_states = [TeamState::default(); 4];
+
+            // resolve team states in the column
+            for row in 0..self.rows as i32 {
+                let tile = self.tile_at_mut((col, row)).unwrap();
+                let team = tile.team();
+                let team_state = &mut team_states[team as usize];
 
                 // test reservation blocking
-                let original_team = tile.original_team();
+                team_state.has_reservation |= !tile.reservations().is_empty();
 
-                for id in tile.reservations().iter().cloned() {
-                    if let Ok(entity) = entities.query_one_mut::<&Entity>(id.into()) {
-                        // only opponents can block team changes
-                        // checking for Team::Other prevents field obstacles such as rocks from blocking
-                        if entity.team != original_team && entity.team != Team::Other {
-                            revert_blocked = true;
-                            continue 'rows;
-                        }
-                    }
+                let timer = tile.team_reclaim_timer();
+
+                if team_state.timer > timer && timer > 0 {
+                    team_state.timer = timer;
                 }
 
                 // test unresolved neighbor blocking
-
-                let neighbor_col = if tile.original_direction() == Direction::Right {
-                    col - 1
-                } else {
+                let direction = tile.direction();
+                let neighbor_col = if direction == Direction::Right {
                     col + 1
+                } else {
+                    col - 1
                 };
 
                 if let Some(neighbor_tile) = self.tile_at_mut((neighbor_col, row)) {
-                    // test if the neighbor must revert too
-                    revert_blocked |= neighbor_tile.original_team() == original_team
-                        && neighbor_tile.team() != original_team;
+                    // test if we've claimed past this column
+                    team_state.behind_claimed |= neighbor_tile.direction() == direction
+                        && neighbor_tile.original_team() != team
+                        && neighbor_tile.team() == team;
                 }
             }
 
-            // sync the timers if one was found
-            if col_timer < FrameTime::MAX {
-                if col_timer > 1 || !revert_blocked {
-                    // prevent the timer from hitting 0 if there's a rule blocking us
-                    col_timer -= 1;
+            // syncing timers
+            for (team_i, team_state) in team_states.iter().enumerate() {
+                let mut timer = team_state.timer;
+
+                if timer == FrameTime::MAX {
+                    // no timers to sync
+                    continue;
                 }
 
+                // reclaiming is blocked if we're behind another column that we've claimed
+                // or if we have a reservation in the column
+                let reclaim_blocked = team_state.behind_claimed || team_state.has_reservation;
+
+                if timer > 1 || !reclaim_blocked {
+                    // prevent the timer from hitting 0 if there's a rule blocking us
+                    timer -= 1;
+                }
+
+                // sync tiles in the same column that match our team
                 for row in 0..self.rows as i32 {
                     let tile = self.tile_at_mut((col, row)).unwrap();
-                    tile.sync_team_revert_timer(col_timer);
+
+                    if tile.team() as usize == team_i {
+                        tile.sync_team_reclaim_timer(timer);
+                    }
                 }
             }
         }

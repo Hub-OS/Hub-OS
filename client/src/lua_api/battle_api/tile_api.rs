@@ -268,7 +268,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "set_team", |api_ctx, lua, params| {
-        let (table, team, direction): (rollback_mlua::Table, Team, Option<Direction>) =
+        let (table, team, direction): (rollback_mlua::Table, Team, Direction) =
             lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();

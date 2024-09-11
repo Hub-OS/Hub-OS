@@ -331,7 +331,7 @@ impl BattleState {
             return;
         }
 
-        simulation.field.update_tiles(&mut simulation.entities);
+        simulation.field.update_tiles();
         Field::apply_side_effects(game_io, resources, simulation);
     }
 

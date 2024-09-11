@@ -1,14 +1,13 @@
-use framework::prelude::IVec2;
-
 use super::errors::entity_not_found;
 use super::tile_api::create_tile_table;
 use super::{create_entity_table, BattleLuaApi, FIELD_TABLE};
 use crate::battle::{
     BattleCallback, BattleScriptContext, Character, Entity, Obstacle, Player, Spell,
 };
-use crate::bindable::EntityId;
+use crate::bindable::{EntityId, Team};
 use crate::render::FrameTime;
 use crate::resources::Globals;
+use framework::prelude::IVec2;
 use std::cell::RefCell;
 
 pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
@@ -236,7 +235,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "reclaim_column", |api_ctx, lua, params| {
-        let (_, x): (rollback_mlua::Table, i32) = lua.unpack_multi(params)?;
+        let (_, x, team): (rollback_mlua::Table, i32, Team) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
 
@@ -244,7 +243,9 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         for y in 0..field.rows() as i32 {
             if let Some(tile) = field.tile_at_mut((x, y)) {
-                tile.sync_team_revert_timer(1);
+                if tile.original_team() == team {
+                    tile.sync_team_reclaim_timer(1);
+                }
             }
         }
 
