@@ -263,8 +263,11 @@ impl Living {
 
             // time freeze effects
             if entity.time_frozen {
-                hit_props.flags |= HitFlag::SHAKE;
                 hit_props.context.flags |= HitFlag::NO_COUNTER;
+
+                if hit_props.flags & HitFlag::IMPACT != 0 {
+                    hit_props.flags |= HitFlag::SHAKE;
+                }
             }
 
             if hit_props.flags & HitFlag::IMPACT != 0 {
