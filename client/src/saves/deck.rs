@@ -34,9 +34,7 @@ impl Deck {
         let deck_validity = deck_restrictions.validate_deck(game_io, namespace, self);
 
         if let Some(index) = self.regular_index {
-            let card = &self.cards[index];
-
-            if deck_validity.is_card_valid(card) {
+            if deck_validity.is_regular_valid() {
                 self.cards.swap(0, index);
                 self.regular_index = Some(0);
             } else {

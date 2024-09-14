@@ -44,15 +44,47 @@ impl DeckRestrictions {
         self.giga_limit = (giga_boost + self.giga_limit as isize).max(0) as usize;
     }
 
+    /// Uses validate_cards and checks regular card validity
     pub fn validate_deck(
         &self,
         game_io: &GameIO,
         namespace: PackageNamespace,
         deck: &Deck,
     ) -> DeckValidity {
-        self.validate_cards(game_io, namespace, deck.cards.iter())
+        let mut deck_validity = self.validate_cards(game_io, namespace, deck.cards.iter());
+
+        if !Self::validate_regular_card(game_io, namespace, &deck_validity, deck) {
+            deck_validity.valid_regular = false;
+            deck_validity.is_valid = false;
+        }
+
+        deck_validity
     }
 
+    fn validate_regular_card(
+        game_io: &GameIO,
+        namespace: PackageNamespace,
+        deck_validity: &DeckValidity,
+        deck: &Deck,
+    ) -> bool {
+        let Some(i) = deck.regular_index else {
+            return true;
+        };
+
+        let Some(card) = deck.cards.get(i) else {
+            return false;
+        };
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let Some(package) = globals.card_packages.package(namespace, &card.package_id) else {
+            return false;
+        };
+
+        package.regular_allowed && deck_validity.is_card_valid(card)
+    }
+
+    /// Does not account for regular card
     pub fn validate_cards<'a>(
         &self,
         game_io: &GameIO,
@@ -74,6 +106,7 @@ impl DeckRestrictions {
 
         DeckValidity {
             is_valid: self.required_total == deck_validator.total_cards && invalid_cards.is_empty(),
+            valid_regular: true,
             invalid_cards,
         }
     }
@@ -82,12 +115,17 @@ impl DeckRestrictions {
 #[derive(Default)]
 pub struct DeckValidity {
     is_valid: bool,
+    valid_regular: bool,
     invalid_cards: HashSet<Card>,
 }
 
 impl DeckValidity {
     pub fn is_valid(&self) -> bool {
         self.is_valid
+    }
+
+    pub fn is_regular_valid(&self) -> bool {
+        self.valid_regular
     }
 
     pub fn is_card_valid(&self, card: &Card) -> bool {
