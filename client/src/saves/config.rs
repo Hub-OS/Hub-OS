@@ -74,8 +74,8 @@ impl Config {
                 (Input::Special, vec![Key::F]),
                 (Input::End, vec![Key::Return]),
                 (Input::Pause, vec![Key::Escape, Key::Return]),
-                (Input::RewindFrame, vec![]),
-                (Input::AdvanceFrame, vec![]),
+                (Input::RewindFrame, vec![Key::Comma]),
+                (Input::AdvanceFrame, vec![Key::Period]),
             ]),
             KeyStyle::Wasd => HashMap::from([
                 (Input::Up, vec![Key::W]),
