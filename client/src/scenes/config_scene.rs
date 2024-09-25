@@ -16,6 +16,7 @@ use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 enum Event {
     CategoryChange(ConfigCategory),
     EnterCategory,
+    ApplyKeyBinds,
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     RequestNicknameChange,
     ChangeNickname { name: String },
@@ -466,10 +467,13 @@ impl ConfigScene {
             Box::new(
                 UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
                     let config = config.clone();
+                    let event_sender = event_sender.clone();
 
                     move || {
                         let mut config = config.borrow_mut();
                         config.key_bindings = Config::default_key_bindings(config.key_style);
+
+                        event_sender.send(Event::ApplyKeyBinds).unwrap();
                     }
                 }),
             ),
@@ -646,6 +650,10 @@ impl ConfigScene {
 
                     self.secondary_layout.set_label(label.to_ascii_uppercase());
                     self.secondary_layout.set_children(children);
+                }
+                Event::ApplyKeyBinds => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.config.key_bindings = self.config.borrow().key_bindings.clone();
                 }
                 Event::OpenBindingContextMenu(sender) => {
                     let globals = game_io.resource::<Globals>().unwrap();
