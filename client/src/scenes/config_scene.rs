@@ -444,7 +444,11 @@ impl ConfigScene {
                 "Style",
                 config.borrow().key_style,
                 config.clone(),
-                &[("WASD", KeyStyle::Wasd), ("Emulator", KeyStyle::Emulator)],
+                &[
+                    ("Mix", KeyStyle::Mix),
+                    ("WASD", KeyStyle::Wasd),
+                    ("Emulator", KeyStyle::Emulator),
+                ],
                 |_, mut config, value| {
                     config.key_style = value;
                 },
