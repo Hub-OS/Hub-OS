@@ -922,7 +922,7 @@ impl ConfigScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let config = self.config.borrow();
 
-        if *config == globals.config {
+        if *config == globals.config && self.key_bindings_backup == config.key_bindings {
             // no changes, no need to ask if we should save
             let _ = self.event_sender.send(Event::Leave { save: false });
 
