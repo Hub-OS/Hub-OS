@@ -454,7 +454,7 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
+                UiButton::new_text(game_io, FontName::Thick, "Apply Style").on_activate({
                     let config = config.clone();
 
                     move || {
