@@ -17,7 +17,7 @@ pub struct UiConfigCycle<T> {
     selection: usize,
     options: Vec<(String, T)>,
     config: Rc<RefCell<Config>>,
-    callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, T)>,
+    callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, T, bool)>,
     locked_state: Option<Box<LockedState>>,
 }
 
@@ -27,7 +27,7 @@ impl<T: Copy + PartialEq> UiConfigCycle<T> {
         value: T,
         config: Rc<RefCell<Config>>,
         options: &[(&str, T)],
-        callback: impl Fn(&mut GameIO, RefMut<Config>, T) + 'static,
+        callback: impl Fn(&mut GameIO, RefMut<Config>, T, bool) + 'static,
     ) -> Self {
         Self {
             name,
@@ -109,6 +109,8 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             self.locked_state = None;
+            let value = self.options[self.selection].1;
+            (self.callback)(game_io, self.config.borrow_mut(), value, true);
         } else if input_util.was_just_pressed(Input::Cancel) {
             // unfocus, undo, and play sfx
             let globals = game_io.resource::<Globals>().unwrap();
@@ -117,7 +119,7 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
             if let Some(locked_state) = self.locked_state.take() {
                 self.selection = locked_state.original_selection;
                 let value = self.options[self.selection].1;
-                (self.callback)(game_io, self.config.borrow_mut(), value);
+                (self.callback)(game_io, self.config.borrow_mut(), value, true);
             }
         }
 
@@ -155,7 +157,7 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         }
 
         let value = self.options[self.selection].1;
-        (self.callback)(game_io, self.config.borrow_mut(), value);
+        (self.callback)(game_io, self.config.borrow_mut(), value, false);
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_move);
