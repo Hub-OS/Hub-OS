@@ -461,7 +461,7 @@ impl Player {
 
         let max = MAX_HAND_SIZE.saturating_sub(button_space);
 
-        (augmented_hand_size as usize).min(max).max(1)
+        (augmented_hand_size as usize).max(1).min(max)
     }
 
     pub fn attack_level(&self) -> u8 {
