@@ -454,19 +454,14 @@ impl Player {
             acc.saturating_add(m.hand_size_boost * m.level as i8)
         });
 
-        // subtract space taken up by card button
-        let card_button = PlayerOverridables::flat_map_for(self, |overridables| {
-            overridables.card_button.as_ref()
-        })
-        .next();
-
-        let card_button_width = card_button
-            .map(|button| button.slot_width)
+        // subtract space taken up by card buttons
+        let button_space = PlayerOverridables::card_button_slots_for(self)
+            .map(CardSelectButton::space_used_by_card_buttons)
             .unwrap_or_default();
 
-        let max = MAX_HAND_SIZE.saturating_sub(card_button_width);
+        let max = MAX_HAND_SIZE.saturating_sub(button_space);
 
-        (augmented_hand_size as usize).clamp(1, max)
+        (augmented_hand_size as usize).min(max).max(1)
     }
 
     pub fn attack_level(&self) -> u8 {

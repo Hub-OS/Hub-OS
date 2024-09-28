@@ -17,7 +17,6 @@ struct Selection {
     col: i32,
     row: i32,
     form_row: usize,
-    card_button_width: usize,
     has_special_button: bool,
     form_select_time: Option<FrameTime>,
     form_open_time: Option<FrameTime>,
@@ -34,7 +33,6 @@ impl Selection {
             col: 0,
             row: 0,
             form_row: 0,
-            card_button_width: 0,
             has_special_button: false,
             form_select_time: Some(0),
             form_open_time: Some(0),
@@ -50,20 +48,18 @@ impl Selection {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SelectedItem {
     Card(usize),
-    CardButton,
-    SpecialButton,
+    Button(usize),
     Confirm,
     None,
 }
 
 impl SelectedItem {
     fn button(self, player: &Player) -> Option<&CardSelectButton> {
-        PlayerOverridables::flat_map_for(player, move |overridables| match self {
-            SelectedItem::CardButton => overridables.card_button.as_deref(),
-            SelectedItem::SpecialButton => overridables.special_button.as_deref(),
-            _ => unreachable!(),
-        })
-        .next()
+        match self {
+            SelectedItem::Button(index) => PlayerOverridables::card_button_slots_for(player)
+                .and_then(|buttons| buttons.get(index)?.as_ref()),
+            _ => None,
+        }
     }
 }
 
@@ -265,22 +261,19 @@ impl State for CardSelectState {
         self.ui.draw_staged_icons(game_io, sprite_queue, player);
 
         // draw buttons
-        let card_button = PlayerOverridables::flat_map_for(player, |overridables| {
-            overridables.card_button.as_ref()
-        })
-        .next();
+        let card_buttons = PlayerOverridables::card_button_slots_for(player);
 
-        if let Some(button) = card_button {
-            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index) {
-                sprite_tree.draw(sprite_queue);
-                sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+        if let Some(buttons) = card_buttons {
+            for button in buttons.iter().flatten() {
+                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index)
+                {
+                    sprite_tree.draw(sprite_queue);
+                    sprite_queue.set_color_mode(SpriteColorMode::Multiply);
+                }
             }
         }
 
-        let special_button = PlayerOverridables::flat_map_for(player, |card_button| {
-            card_button.special_button.as_ref()
-        })
-        .next();
+        let special_button = PlayerOverridables::special_button_for(player);
 
         if let Some(button) = special_button {
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(button.sprite_tree_index) {
@@ -313,17 +306,26 @@ impl State for CardSelectState {
                     SelectedItem::Confirm => {
                         self.ui.draw_confirm_cursor(sprite_queue);
                     }
-                    SelectedItem::SpecialButton => {
-                        self.ui.draw_special_cursor(sprite_queue);
-                    }
-                    SelectedItem::CardButton => {
-                        if card_button.is_some_and(|button| button.uses_fixed_card_cursor) {
-                            let col = (CARD_SELECT_CARD_COLS - 1) as i32;
-                            let row = (CARD_SELECT_ROWS - 1) as i32;
-                            self.ui.draw_card_cursor(sprite_queue, col, row);
-                        } else {
-                            let slot_width = selection.card_button_width;
-                            self.ui.draw_card_button_cursor(sprite_queue, slot_width);
+                    SelectedItem::Button(i) => {
+                        let find_card_button = |buttons| {
+                            CardSelectButton::iter_card_button_slots(buttons)
+                                .find(|(_, _, index, _)| *index == i)
+                        };
+
+                        if i == CardSelectButton::SPECIAL_SLOT {
+                            // special slot
+                            self.ui.draw_special_cursor(sprite_queue);
+                        } else if let Some(slot_data) = card_buttons.and_then(find_card_button) {
+                            // card button
+                            let (col, row, _, button) = slot_data;
+
+                            if button.uses_fixed_card_cursor {
+                                self.ui.draw_card_cursor(sprite_queue, col, row);
+                            } else {
+                                let slot_width = button.slot_width as i32;
+                                self.ui
+                                    .draw_card_button_cursor(sprite_queue, slot_width, col, row);
+                            }
                         }
                     }
                     _ => {}
@@ -343,11 +345,11 @@ impl State for CardSelectState {
                 SelectedItem::Confirm => {
                     self.ui.draw_confirm_preview(player, sprite_queue);
                 }
-                SelectedItem::CardButton | SelectedItem::SpecialButton => {
-                    let button = match selected_item {
-                        SelectedItem::CardButton => card_button,
-                        SelectedItem::SpecialButton => special_button,
-                        _ => unreachable!(),
+                SelectedItem::Button(i) => {
+                    let button = if i == CardSelectButton::SPECIAL_SLOT {
+                        special_button
+                    } else {
+                        card_buttons.and_then(|b| b.get(i - 1)?.as_ref())
                     };
 
                     if let Some(button) = button {
@@ -713,8 +715,8 @@ impl CardSelectState {
                         pending_sfx.push(&globals.sfx.cursor_error);
                     }
                 }
-                SelectedItem::CardButton | SelectedItem::SpecialButton => {
-                    self.use_button(game_io, resources, simulation, entity_id, selected_item);
+                SelectedItem::Button(i) => {
+                    self.use_button(game_io, resources, simulation, entity_id, i);
                 }
                 SelectedItem::None => {}
             }
@@ -760,7 +762,7 @@ impl CardSelectState {
                         let event = BattleEvent::DescribeCard(card.package_id.clone());
                         resources.event_sender.send(event).unwrap();
                     }
-                    SelectedItem::CardButton | SelectedItem::SpecialButton => {
+                    SelectedItem::Button(_) => {
                         let entities = &mut simulation.entities;
                         let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
 
@@ -789,17 +791,29 @@ impl CardSelectState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
-        selected_item: SelectedItem,
+        button_slot_index: usize,
     ) {
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
             return;
         };
 
-        let card_button = selected_item.button(player);
+        let button = if button_slot_index == CardSelectButton::SPECIAL_SLOT {
+            let Some(button) = PlayerOverridables::special_button_for(player) else {
+                return;
+            };
 
-        let Some(button) = card_button else {
-            return;
+            button
+        } else {
+            let Some(card_buttons) = PlayerOverridables::card_button_slots_for(player) else {
+                return;
+            };
+
+            let Some(Some(button)) = card_buttons.get(button_slot_index - 1) else {
+                return;
+            };
+
+            button
         };
 
         let Some(callback) = button.use_callback.clone() else {
@@ -928,62 +942,44 @@ impl CardSelectState {
         let mut preview_position = self.ui.preview_point();
         preview_position.x -= CARD_PREVIEW_SIZE.x * 0.5;
 
+        let mut update_button = move |selected_item, i, position, button: &mut CardSelectButton| {
+            button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
+
+            if selected_item == SelectedItem::Button(i) {
+                button.animate_preview_sprite(
+                    sprite_trees,
+                    animators,
+                    pending_callbacks,
+                    preview_position,
+                );
+            }
+        };
+
         // we must update buttons for every player to keep the game in sync
         for (_, player) in entities.query_mut::<&mut Player>() {
             let selection = &mut self.player_selections[player.index];
             let selected_item = resolve_selected_item(player, selection);
 
-            let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
-                overridables.card_button.as_mut()
-            })
-            .next();
-
-            if let Some(button) = card_button {
-                // update slot width
-                let button_width = button.slot_width.min(CARD_COLS);
-                selection.card_button_width = button_width;
-
-                // animate
-                let position = CardSelectUi::calculate_icon_position(
-                    card_start_point,
-                    CARD_COLS.saturating_sub(button_width) as i32,
-                    CARD_SELECT_ROWS as i32 - 1,
-                );
-
-                button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
-
-                // animate preview sprite
-                if selected_item == SelectedItem::CardButton {
-                    button.animate_preview_sprite(
-                        sprite_trees,
-                        animators,
-                        pending_callbacks,
-                        preview_position,
+            if let Some(buttons) = PlayerOverridables::card_button_slots_mut_for(player) {
+                for (col, row, i, button) in CardSelectButton::iter_card_button_slots_mut(buttons) {
+                    update_button(
+                        selected_item,
+                        i,
+                        CardSelectUi::calculate_icon_position(card_start_point, col, row),
+                        button,
                     );
                 }
             }
 
-            let special_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
-                overridables.special_button.as_mut()
-            })
-            .next();
+            if let Some(button) = PlayerOverridables::special_button_mut_for(player) {
+                update_button(
+                    selected_item,
+                    CardSelectButton::SPECIAL_SLOT,
+                    self.ui.special_button_point(),
+                    button,
+                );
 
-            selection.has_special_button = special_button.is_some();
-
-            if let Some(button) = special_button {
-                // animate
-                let position = self.ui.special_button_point();
-                button.animate_sprite(sprite_trees, animators, pending_callbacks, position);
-
-                // animate preview sprite
-                if selected_item == SelectedItem::SpecialButton {
-                    button.animate_preview_sprite(
-                        sprite_trees,
-                        animators,
-                        pending_callbacks,
-                        preview_position,
-                    );
-                }
+                selection.has_special_button = true;
             }
         }
     }
@@ -1090,16 +1086,18 @@ fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem
 
     if row == 1 && col == CARD_SELECT_COLS - 1 {
         return if selection.has_special_button {
-            SelectedItem::SpecialButton
+            SelectedItem::Button(CardSelectButton::SPECIAL_SLOT)
         } else {
             SelectedItem::None
         };
     }
 
-    let card_button_range = (CARD_COLS - selection.card_button_width)..(CARD_COLS + 1);
-
-    if row == 1 && card_button_range.contains(&col) {
-        return SelectedItem::CardButton;
+    if let Some(buttons) = PlayerOverridables::card_button_slots_for(player) {
+        for (c, r, i, _) in CardSelectButton::iter_card_button_slots(buttons) {
+            if row == r as usize && col >= c as usize {
+                return SelectedItem::Button(i);
+            }
+        }
     }
 
     let card_view_size = player.deck.len().min(player.hand_size());
@@ -1129,6 +1127,7 @@ fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32
     let previous_item = resolve_selected_item(player, selection);
 
     // move row
+    let previous_row = selection.row;
     selection.row += row_diff;
 
     // wrap row
@@ -1139,6 +1138,10 @@ fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32
     }
 
     if col_diff == 0 {
+        if resolve_selected_item(player, selection) == SelectedItem::None {
+            selection.row = previous_row;
+        }
+
         return;
     }
 

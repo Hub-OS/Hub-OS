@@ -4,7 +4,7 @@ use super::{
     CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN,
     NORMAL_ATTACK_FN, PLAYER_FORM_TABLE, SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
-use crate::battle::{BattleCallback, CardSelectButtonPath, Player, PlayerForm};
+use crate::battle::{BattleCallback, CardSelectButton, CardSelectButtonPath, Player, PlayerForm};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
@@ -70,7 +70,8 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         PLAYER_FORM_TABLE,
         "create_card_button",
         |api_ctx, lua, params| {
-            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let (table, slot_width, button_slot): (rollback_mlua::Table, usize, Option<usize>) =
+                lua.unpack_multi(params)?;
             let entity_table: rollback_mlua::Table = table.raw_get("#entity")?;
             let entity_id: EntityId = entity_table.raw_get("#id")?;
 
@@ -82,7 +83,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: Some(table.raw_get("#index")?),
                 augment_index: None,
-                uses_card_slots: true,
+                card_button_slot: button_slot.unwrap_or_default().max(1),
             };
 
             let table = create_card_select_button_and_table(
@@ -114,7 +115,7 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: Some(table.raw_get("#index")?),
                 augment_index: None,
-                uses_card_slots: false,
+                card_button_slot: CardSelectButton::SPECIAL_SLOT,
             };
 
             let table = create_card_select_button_and_table(

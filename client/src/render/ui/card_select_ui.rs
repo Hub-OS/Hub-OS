@@ -464,21 +464,14 @@ impl CardSelectUi {
     pub fn draw_card_button_cursor(
         &mut self,
         sprite_queue: &mut SpriteColorQueue,
-        button_width: usize,
+        button_width: i32,
+        col: i32,
+        row: i32,
     ) {
         let card_start = self.card_start_point();
 
-        let start_position = Self::calculate_icon_position(
-            card_start,
-            CARD_COLS.saturating_sub(button_width) as i32,
-            CARD_SELECT_ROWS as i32 - 1,
-        );
-
-        let end_position = Self::calculate_icon_position(
-            card_start,
-            CARD_COLS as i32,
-            CARD_SELECT_ROWS as i32 - 1,
-        );
+        let start_position = Self::calculate_icon_position(card_start, col, row);
+        let end_position = Self::calculate_icon_position(card_start, col + button_width, row);
 
         self.draw_state_at(sprite_queue, "CARD_BUTTON_LEFT_CURSOR", start_position);
         self.draw_state_at(sprite_queue, "CARD_BUTTON_RIGHT_CURSOR", end_position);

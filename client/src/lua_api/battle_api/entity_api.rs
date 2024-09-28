@@ -1715,7 +1715,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         ENTITY_TABLE,
         "create_card_button",
         |api_ctx, lua, params| {
-            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let (table, slot_width, button_slot): (rollback_mlua::Table, usize, Option<usize>) =
+                lua.unpack_multi(params)?;
             let entity_id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
@@ -1726,7 +1727,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: None,
-                uses_card_slots: true,
+                card_button_slot: button_slot.unwrap_or_default().max(1),
             };
 
             let table = create_card_select_button_and_table(
@@ -1757,7 +1758,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: None,
-                uses_card_slots: false,
+                card_button_slot: CardSelectButton::SPECIAL_SLOT,
             };
 
             let table = create_card_select_button_and_table(

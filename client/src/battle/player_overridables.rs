@@ -10,8 +10,7 @@ use packets::structures::Direction;
 
 #[derive(Default, Clone)]
 pub struct PlayerOverridables {
-    pub card_button: Option<Box<CardSelectButton>>,
-    pub special_button: Option<Box<CardSelectButton>>,
+    pub buttons: Vec<Option<CardSelectButton>>,
     pub calculate_charge_time: Option<BattleCallback<u8, FrameTime>>,
     pub normal_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
@@ -118,16 +117,68 @@ impl PlayerOverridables {
             .chain(player_callback_iter)
     }
 
+    pub fn card_button_slots_for(player: &Player) -> Option<&[Option<CardSelectButton>]> {
+        PlayerOverridables::flat_map_for(player, |overridables| {
+            if overridables.buttons.len() <= 1 {
+                return None;
+            }
+
+            let buttons = &overridables.buttons[1..];
+
+            if buttons.iter().all(Option::is_none) {
+                return None;
+            }
+
+            Some(buttons)
+        })
+        .next()
+    }
+
+    pub fn card_button_slots_mut_for(
+        player: &mut Player,
+    ) -> Option<&mut [Option<CardSelectButton>]> {
+        PlayerOverridables::flat_map_mut_for(player, move |overridables| {
+            if overridables.buttons.len() <= 1 {
+                return None;
+            }
+
+            let buttons = &mut overridables.buttons[1..];
+
+            if buttons.iter().all(Option::is_none) {
+                return None;
+            }
+
+            Some(buttons)
+        })
+        .next()
+    }
+
+    pub fn special_button_for(player: &Player) -> Option<&CardSelectButton> {
+        PlayerOverridables::flat_map_for(player, |overridables| {
+            overridables
+                .buttons
+                .get(CardSelectButton::SPECIAL_SLOT)?
+                .as_ref()
+        })
+        .next()
+    }
+
+    pub fn special_button_mut_for(player: &mut Player) -> Option<&mut CardSelectButton> {
+        PlayerOverridables::flat_map_mut_for(player, |overridables| {
+            overridables
+                .buttons
+                .get_mut(CardSelectButton::SPECIAL_SLOT)?
+                .as_mut()
+        })
+        .next()
+    }
+
     pub fn delete_self(
         self,
         sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
         animators: &mut SlotMap<BattleAnimator>,
     ) {
-        if let Some(button) = self.card_button {
-            button.delete_self(sprite_trees, animators);
-        }
-
-        if let Some(button) = self.special_button {
+        for button in self.buttons.into_iter().flatten() {
             button.delete_self(sprite_trees, animators);
         }
     }

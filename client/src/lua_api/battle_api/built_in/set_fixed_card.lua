@@ -1,6 +1,6 @@
-local table, card_properties = ...
+local table, card_properties, button_slot = ...
 
-local button = table:create_card_button(1)
+local button = table:create_card_button(1, button_slot)
 ---@type Entity
 local player = button:owner()
 
