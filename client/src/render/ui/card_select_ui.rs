@@ -8,7 +8,7 @@ use crate::render::{
 };
 use crate::resources::{
     AssetManager, Globals, ResourcePaths, BATTLE_CAMERA_OFFSET, BATTLE_UI_MARGIN,
-    CARD_SELECT_CARD_COLS as CARD_COLS, CARD_SELECT_ROWS, RESOLUTION_F,
+    CARD_SELECT_CARD_COLS as CARD_COLS, RESOLUTION_F,
 };
 use crate::saves::Card;
 use crate::structures::{GenerationalIndex, Tree};
