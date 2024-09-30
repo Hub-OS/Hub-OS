@@ -1683,9 +1683,15 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |player: &mut Player, _, index: usize| {
             let index = index.saturating_sub(1);
 
-            if player.deck.get(index).is_some() {
-                player.deck.remove(index);
-                player.staged_items.handle_deck_index_removed(index);
+            if player.deck.get(index).is_none() {
+                return Ok(());
+            }
+
+            player.deck.remove(index);
+            player.staged_items.handle_deck_index_removed(index);
+
+            if index == 0 {
+                player.has_regular_card = false;
             }
 
             Ok(())
@@ -1701,6 +1707,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             if index > player.deck.len() {
                 player.deck.push(card);
             } else {
+                if index == 0 {
+                    player.has_regular_card = false;
+                }
+
                 player.deck.insert(index, card);
                 player.staged_items.handle_deck_index_inserted(index);
             }
