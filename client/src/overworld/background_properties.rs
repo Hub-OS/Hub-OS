@@ -6,7 +6,7 @@ use framework::prelude::*;
 pub struct BackgroundProperties {
     pub texture_path: String,
     pub animation_path: String,
-    pub velocity: Vec2,
+    pub velocity: Option<Vec2>,
     pub parallax: f32,
 }
 
@@ -16,7 +16,10 @@ impl BackgroundProperties {
         let animator = Animator::from(&assets.text(&self.animation_path));
 
         let mut background = Background::new(animator, sprite);
-        background.set_velocity(self.velocity);
+
+        if let Some(velocity) = self.velocity {
+            background.set_velocity(velocity);
+        }
 
         background
     }
