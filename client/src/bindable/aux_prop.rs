@@ -64,7 +64,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxVariable {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum AuxRequirement {
     Interval(FrameTime),
     HitElement(Element),
@@ -206,7 +206,7 @@ impl AuxRequirement {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Clone)]
 pub enum AuxEffect {
     IncreaseCardDamage(i32),
     IncreaseCardMultiplier(f32),
@@ -351,13 +351,13 @@ impl AuxEffect {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Clone)]
 struct RequirementState {
     passed: bool,
     tested: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AuxProp {
     requirements: Vec<(AuxRequirement, RequirementState)>,
     effect: AuxEffect,
