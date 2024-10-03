@@ -888,6 +888,7 @@ impl CardSelectState {
             if let Some(index) = player.staged_items.stored_form_index() {
                 // change form
                 player.active_form = Some(index);
+                player.forms[index].activated = false;
             }
 
             if player.staged_items.visible_count() > 0 {
