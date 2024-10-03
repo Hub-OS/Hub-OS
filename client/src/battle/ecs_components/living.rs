@@ -667,4 +667,62 @@ impl Living {
             return;
         }
     }
+
+    pub fn update_action_context(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        action_type: ActionTypes,
+        entity_id: EntityId,
+    ) {
+        let entities = &mut simulation.entities;
+
+        // gather body properties for aux props
+        let Ok((entity, living, player, character)) = entities.query_one_mut::<(
+            &mut Entity,
+            &mut Living,
+            Option<&Player>,
+            Option<&Character>,
+        )>(entity_id.into()) else {
+            return;
+        };
+
+        entity.action_type = action_type;
+        entity.attack_context = AttackContext::default();
+
+        if player.is_some() && action_type != ActionType::CARD {
+            entity.attack_context.flags = HitFlag::NO_COUNTER;
+        }
+
+        let mut aux_props: Vec<_> = living
+            .aux_props
+            .values_mut()
+            .filter(|aux_prop| aux_prop.effect().resolves_action_context())
+            .collect();
+        aux_props.sort_by_key(|aux_prop| aux_prop.priority());
+
+        for aux_prop in aux_props {
+            aux_prop.process_body(player, character, entity);
+
+            if !aux_prop.passed_all_tests() {
+                continue;
+            }
+
+            aux_prop.mark_activated();
+
+            match aux_prop.effect() {
+                AuxEffect::UpdateContext(callback) => {
+                    let callback = callback.clone().bind(entity_id);
+                    simulation.pending_callbacks.push(callback);
+                }
+                _ => log::error!("Engine error: Unexpected AuxEffect!"),
+            }
+
+            simulation
+                .pending_callbacks
+                .extend(aux_prop.callbacks().iter().cloned());
+        }
+
+        simulation.call_pending_callbacks(game_io, resources);
+    }
 }

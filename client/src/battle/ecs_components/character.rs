@@ -1,7 +1,7 @@
 use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
-    Action, BattleCallback, BattleSimulation, BattleState, Entity, Movement, SharedBattleResources,
-    TileState,
+    Action, ActionType, BattleCallback, BattleSimulation, BattleState, Entity, Movement,
+    SharedBattleResources, TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
@@ -182,11 +182,12 @@ impl Character {
             return;
         }
 
-        type Query<'a> = (&'a mut Entity, &'a mut Character);
-        let (entity, character) = entities.query_one_mut::<Query>(entity_id.into()).unwrap();
+        Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
-        // allow attacks to counter
-        entity.hit_context.flags = HitFlag::NONE;
+        let entities = &mut simulation.entities;
+        let character = entities
+            .query_one_mut::<&mut Character>(entity_id.into())
+            .unwrap();
 
         // create card action
         let namespace = character.namespace;

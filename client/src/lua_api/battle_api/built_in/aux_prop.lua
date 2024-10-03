@@ -22,6 +22,7 @@ local req_list = {
   "require_element",
   "require_emotion",
   "require_negative_tile_interaction",
+  "require_action",
   "require_charged_card",
   "require_card_element",
   "require_card_not_element",
@@ -47,6 +48,11 @@ for _, name in ipairs(req_list) do
 end
 
 local eff_list = {
+  "update_context",
+  "increase_card_multiplier",
+  "increase_card_damage",
+  "intercept_action",
+  "interrupt_action",
   "declare_immunity",
   "apply_status",
   "remove_status",
@@ -55,10 +61,6 @@ local eff_list = {
   "decrease_total_damage",
   "drain_health",
   "recover_health",
-  "intercept_action",
-  "increase_card_multiplier",
-  "increase_card_damage",
-  "interrupt_action",
 }
 
 for _, name in ipairs(eff_list) do

@@ -619,9 +619,7 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((entity, player)) =
-            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
-        else {
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return;
         };
 
@@ -630,8 +628,13 @@ impl Player {
         })
         .collect();
 
-        // prevent countering
-        entity.hit_context.flags = HitFlag::NO_COUNTER;
+        Living::update_action_context(
+            game_io,
+            resources,
+            simulation,
+            ActionType::NORMAL,
+            entity_id,
+        );
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -643,9 +646,7 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((entity, player)) =
-            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
-        else {
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return;
         };
 
@@ -654,8 +655,13 @@ impl Player {
         })
         .collect();
 
-        // prevent countering
-        entity.hit_context.flags = HitFlag::NO_COUNTER;
+        Living::update_action_context(
+            game_io,
+            resources,
+            simulation,
+            ActionType::CHARGED,
+            entity_id,
+        );
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -667,9 +673,7 @@ impl Player {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((entity, player)) =
-            entities.query_one_mut::<(&mut Entity, &mut Player)>(entity_id.into())
-        else {
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return;
         };
 
@@ -678,8 +682,13 @@ impl Player {
         })
         .collect();
 
-        // prevent countering
-        entity.hit_context.flags = HitFlag::NO_COUNTER;
+        Living::update_action_context(
+            game_io,
+            resources,
+            simulation,
+            ActionType::SPECIAL,
+            entity_id,
+        );
 
         Action::queue_first_from_factories(game_io, resources, simulation, entity_id, callbacks);
     }
@@ -739,13 +748,12 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        let (entity, character, player) = simulation
-            .entities
-            .query_one_mut::<(&mut Entity, &mut Character, &mut Player)>(entity_id.into())
-            .unwrap();
+        Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
-        // allow attacks to counter
-        entity.hit_context.flags = HitFlag::NONE;
+        let (character, player) = simulation
+            .entities
+            .query_one_mut::<(&mut Character, &mut Player)>(entity_id.into())
+            .unwrap();
 
         // create card action
         let card_props = character.cards.pop().unwrap();

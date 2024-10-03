@@ -10,7 +10,7 @@ pub struct HitProperties {
     pub element: Element,
     pub secondary_element: Element,
     pub drag: Drag, // only used if HitFlags::Drag is set
-    pub context: HitContext,
+    pub context: AttackContext,
 }
 
 impl Default for HitProperties {
@@ -22,7 +22,7 @@ impl Default for HitProperties {
             element: Element::None,
             secondary_element: Element::None,
             drag: Drag::default(),
-            context: HitContext::default(),
+            context: AttackContext::default(),
         }
     }
 }
@@ -36,7 +36,7 @@ impl HitProperties {
             element: Element::None,
             secondary_element: Element::None,
             drag: Drag::default(),
-            context: HitContext::default(),
+            context: AttackContext::default(),
         }
     }
 

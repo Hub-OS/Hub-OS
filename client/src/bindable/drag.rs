@@ -1,6 +1,6 @@
 use super::Direction;
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Drag {
     pub direction: Direction,
     pub distance: u32,

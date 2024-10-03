@@ -15,6 +15,10 @@ impl<K, V> VecMap<K, V>
 where
     K: PartialEq,
 {
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
     pub fn get(&self, key: &K) -> Option<&V> {
         self.list
             .iter()

@@ -527,7 +527,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     });
 
     getter::<&Entity, _, _>(lua_api, "context", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(&entity.hit_context)
+        lua.pack_multi(&entity.attack_context)
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "has_actions", |api_ctx, lua, params| {
@@ -1054,7 +1054,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         let middle_param = rest.pop_front().unwrap_or(rollback_mlua::Value::Nil);
 
         let secondary_element: Element;
-        let context: Option<HitContext>;
+        let context: Option<AttackContext>;
 
         match lua.unpack(middle_param.clone()) {
             Ok(element) => {
@@ -1084,8 +1084,11 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(HIT_PROPS_TABLE, "from_card", |_, lua, params| {
-        let (card_properties, context, drag): (CardProperties, Option<HitContext>, Option<Drag>) =
-            lua.unpack_multi(params)?;
+        let (card_properties, context, drag): (
+            CardProperties,
+            Option<AttackContext>,
+            Option<Drag>,
+        ) = lua.unpack_multi(params)?;
 
         lua.pack_multi(HitProperties {
             damage: card_properties.damage,
@@ -1123,8 +1126,8 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<(&mut Entity, &mut Spell)>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        // copy context into entity for get_context
-        entity.hit_context = props.context;
+        // copy context into entity for entity:context()
+        entity.attack_context = props.context.clone();
         spell.hit_props = props;
 
         lua.pack_multi(())
