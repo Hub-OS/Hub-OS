@@ -76,7 +76,14 @@ impl SoundBuffer {
         };
 
         let track_id = track.id;
-        let channels: u16 = track.codec_params.channels.unwrap_or_default().count() as _;
+        let channels = track.codec_params.channels.unwrap_or_default().count();
+
+        if channels == 0 {
+            // avoiding dividing by zero
+            // also if there's no channels, there's no audio
+            return Self::new_empty();
+        }
+
         let sample_rate = track.codec_params.sample_rate.unwrap_or(44100); // 44.1 kHz
 
         // "8. To instantiate a Decoder for a selected Track, call the CodecRegistry’s make function and pass it the CodecParameters for that track.
@@ -97,10 +104,14 @@ impl SoundBuffer {
         if let Some(metadata_revision) = format.metadata().current() {
             for tag in metadata_revision.tags() {
                 match tag.key.as_str() {
-                    "LOOP_START" | "LOOPSTART" => loop_start = meta_value_as_usize(&tag.value),
-                    "LOOP_END" | "LOOPEND" => loop_end = Some(meta_value_as_usize(&tag.value)),
+                    "LOOP_START" | "LOOPSTART" => {
+                        loop_start = meta_value_as_usize(&tag.value) * channels
+                    }
+                    "LOOP_END" | "LOOPEND" => {
+                        loop_end = Some(meta_value_as_usize(&tag.value) * channels)
+                    }
                     "LOOP_LENGTH" | "LOOPLENGTH" | "LOOP_LEN" | "LOOPLEN" => {
-                        loop_length = Some(meta_value_as_usize(&tag.value))
+                        loop_length = Some(meta_value_as_usize(&tag.value) * channels)
                     }
                     _ => {}
                 }
@@ -155,7 +166,7 @@ impl SoundBuffer {
 
         Self {
             default_loop_range: loop_range,
-            channels,
+            channels: channels as _,
             sample_rate,
             duration: Duration::from_secs_f32(duration),
             data,
