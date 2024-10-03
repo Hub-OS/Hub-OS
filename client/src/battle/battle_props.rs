@@ -81,19 +81,33 @@ impl PlayerSetup {
             .cloned()
             .collect();
 
-        let drives = global_save.active_drive_parts().to_vec();
-
         let grid = BlockGrid::new(ns).with_blocks(game_io, blocks.clone());
 
+        // switch drives
+        let drives: Vec<_> = global_save
+            .active_drive_parts()
+            .iter()
+            .filter(|drive| {
+                restrictions.validate_package_tree(
+                    game_io,
+                    (PackageCategory::Augment, ns, drive.package_id.clone()),
+                )
+            })
+            .cloned()
+            .collect();
+
         // resolve health
-        let health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
+        let mut health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
             acc + package.health_boost * level as i32
         });
 
+        health_boost += drives
+            .iter()
+            .flat_map(|drive| globals.augment_packages.package(ns, &drive.package_id))
+            .fold(0, |acc, package| acc + package.health_boost);
+
         // deck
         deck_restrictions.apply_augments(grid.augments(game_io));
-
-        // TODO: Filter Switch Drive restrictions to deck as well.
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
         deck.conform(game_io, ns, &deck_restrictions);
