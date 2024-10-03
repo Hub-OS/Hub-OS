@@ -24,11 +24,11 @@ fn meta_value_as_usize(value: &symphonia::core::meta::Value) -> usize {
 
 #[derive(Clone)]
 pub struct SoundBuffer {
-    default_loop_range: std::ops::Range<usize>,
-    channels: u16,
-    sample_rate: u32,
-    duration: Duration,
-    data: Arc<[i16]>,
+    pub default_loop_range: std::ops::Range<usize>,
+    pub channels: u16,
+    pub sample_rate: u32,
+    pub duration: Duration,
+    pub data: Arc<[i16]>,
 }
 
 impl SoundBuffer {
