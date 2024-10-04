@@ -135,90 +135,63 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         ACTIVATE_FN,
         |form| &mut form.activate_callback,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         DEACTIVATE_FN,
         |form| &mut form.deactivate_callback,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         SELECT_FN,
         |form| &mut form.select_callback,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         DESELECT_FN,
         |form| &mut form.deselect_callback,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,
         |form| &mut form.overridables.calculate_charge_time,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         UPDATE_FN,
         |form| &mut form.update_callback,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         NORMAL_ATTACK_FN,
         |form| &mut form.overridables.normal_attack,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         CHARGED_ATTACK_FN,
         |form| &mut form.overridables.charged_attack,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
         lua_api,
         SPECIAL_ATTACK_FN,
         |form| &mut form.overridables.special_attack,
-        |lua, form_table, _| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table))
-        },
+        |lua, form_table, _| lua.pack_multi(form_table),
     );
 
     callback_setter(
@@ -232,20 +205,14 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         CHARGED_CARD_FN,
         |form| &mut form.overridables.charged_card,
-        |lua, form_table, card_props| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table, card_props))
-        },
+        |lua, form_table, card_props| lua.pack_multi((form_table, card_props)),
     );
 
     callback_setter(
         lua_api,
         MOVEMENT_FN,
         |form| &mut form.overridables.movement,
-        |lua, form_table, direction| {
-            let player_table = form_table.get::<_, rollback_mlua::Table>("#entity")?;
-            lua.pack_multi((form_table, player_table, direction))
-        },
+        |lua, form_table, direction| lua.pack_multi((form_table, direction)),
     );
 }
 
