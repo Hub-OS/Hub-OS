@@ -1,6 +1,6 @@
 [package]
 name = "hub_os"
-version = "0.30.0"
+version = "0.31.0"
 edition = "2021"
 license = "GPL-3.0"
 
