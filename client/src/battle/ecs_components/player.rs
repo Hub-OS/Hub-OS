@@ -542,7 +542,7 @@ impl Player {
         let card_props = character.cards.last().cloned();
         let can_charge_card = card_chargable_cache.calculate(card_props, |card_props| {
             if let Some(card_props) = card_props {
-                Self::resolve_card_charger(game_io, resources, simulation, entity_id, card_props)
+                Self::resolve_card_charger(game_io, resources, simulation, entity_id, &card_props)
                     .is_some()
             } else {
                 false
@@ -698,7 +698,7 @@ impl Player {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
-        card_props: CardProperties,
+        card_props: &CardProperties,
     ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
@@ -729,13 +729,8 @@ impl Player {
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<GenerationalIndex> {
-        let callback = Self::resolve_card_charger(
-            game_io,
-            resources,
-            simulation,
-            entity_id,
-            card_props.clone(),
-        )?;
+        let callback =
+            Self::resolve_card_charger(game_io, resources, simulation, entity_id, &card_props)?;
 
         callback
             .call(game_io, resources, simulation, card_props)
