@@ -1,5 +1,5 @@
 use super::{Entity, Spell};
-use crate::bindable::{EntityId, HitProperties, Team, TileHighlight};
+use crate::bindable::{EntityId, HitFlag, HitProperties, Team, TileHighlight};
 
 #[derive(Clone)]
 pub struct AttackBox {
@@ -13,12 +13,31 @@ pub struct AttackBox {
 
 impl AttackBox {
     pub fn new_from((x, y): (i32, i32), entity: &Entity, spell: &Spell) -> Self {
+        let mut props = spell.hit_props.clone();
+
+        // apply status durations from context
+        for &(flag, mut duration) in props.context.durations.iter() {
+            if let Some(existing) = props.durations.get(&flag) {
+                duration = duration.max(*existing);
+            }
+
+            props.durations.insert(flag, duration);
+        }
+
+        // overwrite drag if the hit props doesn't directly define any
+        if props.flags & HitFlag::DRAG == 0 {
+            props.drag = props.context.drag;
+        }
+
+        // apply context to hit props
+        props.flags |= props.context.flags;
+
         Self {
             attacker_id: entity.id,
             team: entity.team,
             x,
             y,
-            props: spell.hit_props.clone(),
+            props,
             highlight: spell.requested_highlight == TileHighlight::Automatic,
         }
     }

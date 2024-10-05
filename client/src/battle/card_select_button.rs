@@ -5,6 +5,7 @@ use super::{
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
+use crate::{CARD_SELECT_CARD_COLS, CARD_SELECT_ROWS};
 use framework::prelude::{GameIO, Vec2};
 use std::sync::Arc;
 
@@ -13,7 +14,31 @@ pub struct CardSelectButtonPath {
     pub entity_id: EntityId,
     pub form_index: Option<usize>,
     pub augment_index: Option<GenerationalIndex>,
-    pub uses_card_slots: bool,
+    pub card_button_slot: usize,
+}
+
+impl CardSelectButtonPath {
+    fn resolve_mut_overridables<'a>(
+        &self,
+        entities: &'a mut hecs::World,
+    ) -> Option<&'a mut PlayerOverridables> {
+        let player = entities
+            .query_one_mut::<&mut Player>(self.entity_id.into())
+            .ok()?;
+
+        let overridables = if let Some(index) = self.form_index {
+            let form = player.forms.get_mut(index)?;
+            &mut form.overridables
+        } else if let Some(index) = self.augment_index {
+            let augments = &mut player.augments;
+            let augment = augments.get_mut(index)?;
+            &mut augment.overridables
+        } else {
+            &mut player.overridables
+        };
+
+        Some(overridables)
+    }
 }
 
 #[derive(Clone)]
@@ -31,6 +56,8 @@ pub struct CardSelectButton {
 }
 
 impl CardSelectButton {
+    pub const SPECIAL_SLOT: usize = 0;
+
     pub fn new(
         game_io: &GameIO,
         sprite_trees: &mut SlotMap<Tree<SpriteNode>>,
@@ -72,29 +99,82 @@ impl CardSelectButton {
     pub fn resolve_button_option_mut(
         entities: &mut hecs::World,
         button_path: CardSelectButtonPath,
-    ) -> Option<&mut Option<Box<Self>>> {
-        let player = entities
-            .query_one_mut::<&mut Player>(button_path.entity_id.into())
-            .ok()?;
+    ) -> Option<&mut Option<Self>> {
+        let overridables = button_path.resolve_mut_overridables(entities)?;
 
-        let overridables = if let Some(index) = button_path.form_index {
-            let form = player.forms.get_mut(index)?;
-            &mut form.overridables
-        } else if let Some(index) = button_path.augment_index {
-            let augments = &mut player.augments;
-            let augment = augments.get_mut(index)?;
-            &mut augment.overridables
-        } else {
-            &mut player.overridables
+        let i = button_path.card_button_slot;
+
+        if i >= overridables.buttons.len() {
+            if i > CARD_SELECT_CARD_COLS * CARD_SELECT_ROWS {
+                return None;
+            }
+
+            overridables.buttons.resize(i + 1, None);
+        }
+
+        overridables.buttons.get_mut(i)
+    }
+
+    fn iter_card_button_slots_impl<'a, T: std::borrow::Borrow<CardSelectButton>>(
+        iter: impl Iterator<Item = (usize, T)> + 'a,
+    ) -> impl Iterator<Item = (i32, i32, usize, T)> + 'a {
+        const COLS: i32 = CARD_SELECT_CARD_COLS as i32;
+        const ROWS: i32 = CARD_SELECT_ROWS as i32;
+
+        let mut col = COLS;
+        let mut row = ROWS - 1;
+
+        iter.map_while(move |(i, button)| {
+            let slot_width = COLS.min(button.borrow().slot_width as i32);
+
+            col -= slot_width;
+
+            if col < 0 {
+                col = COLS - slot_width;
+                row -= 1;
+
+                if row < 0 {
+                    // there's no more room for buttons
+                    return None;
+                }
+            }
+
+            Some((col, row, i, button))
+        })
+    }
+
+    pub fn iter_card_button_slots(
+        card_buttons: &[Option<Self>],
+    ) -> impl Iterator<Item = (i32, i32, usize, &Self)> + '_ {
+        Self::iter_card_button_slots_impl(
+            card_buttons
+                .iter()
+                .enumerate()
+                .flat_map(|(i, b)| Some((i + 1, b.as_ref()?))),
+        )
+    }
+
+    pub fn iter_card_button_slots_mut(
+        card_buttons: &mut [Option<Self>],
+    ) -> impl Iterator<Item = (i32, i32, usize, &mut Self)> + '_ {
+        Self::iter_card_button_slots_impl(
+            card_buttons
+                .iter_mut()
+                .enumerate()
+                .flat_map(|(i, b)| Some((i + 1, b.as_mut()?))),
+        )
+    }
+
+    pub fn space_used_by_card_buttons(buttons: &[Option<Self>]) -> usize {
+        const COLS: i32 = CARD_SELECT_CARD_COLS as i32;
+        const ROWS: i32 = CARD_SELECT_ROWS as i32;
+
+        let Some((col, row, _, _)) = Self::iter_card_button_slots(buttons).last() else {
+            return 0;
         };
 
-        let button_option = if button_path.uses_card_slots {
-            &mut overridables.card_button
-        } else {
-            &mut overridables.special_button
-        };
-
-        Some(button_option)
+        let space_used = (ROWS - row - 1) * COLS + (COLS - col);
+        space_used as usize
     }
 
     pub fn animate_sprite(
@@ -145,23 +225,15 @@ impl CardSelectButton {
                 continue;
             }
 
-            let card_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
-                overridables.card_button.as_mut()
-            })
-            .next();
-
-            if let Some(button) = card_button {
-                if let Some(callback) = button.selection_change_callback.clone() {
-                    simulation.pending_callbacks.push(callback);
+            if let Some(buttons) = PlayerOverridables::card_button_slots_mut_for(player) {
+                for button in buttons.iter_mut().flatten() {
+                    if let Some(callback) = button.selection_change_callback.clone() {
+                        simulation.pending_callbacks.push(callback);
+                    }
                 }
             }
 
-            let special_button = PlayerOverridables::flat_map_mut_for(player, |overridables| {
-                overridables.special_button.as_mut()
-            })
-            .next();
-
-            if let Some(button) = special_button {
+            if let Some(button) = PlayerOverridables::special_button_mut_for(player) {
                 if let Some(callback) = button.selection_change_callback.clone() {
                     simulation.pending_callbacks.push(callback);
                 }

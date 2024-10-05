@@ -1,8 +1,10 @@
 use super::{
-    CardClass, CardProperties, Comparison, Element, GenerationalIndex, HitFlags, HitProperties,
-    MathExpr,
+    AttackContext, CardClass, CardProperties, Comparison, Element, EntityId, GenerationalIndex,
+    HitFlags, HitProperties, MathExpr,
 };
-use crate::battle::{BattleCallback, Character, Entity, Player, SharedBattleResources};
+use crate::battle::{
+    ActionType, ActionTypes, BattleCallback, Character, Entity, Player, SharedBattleResources,
+};
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 use packets::structures::Emotion;
@@ -64,24 +66,27 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AuxVariable {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum AuxRequirement {
     Interval(FrameTime),
     HitElement(Element),
     HitElementIsWeakness,
-    HitFlag(HitFlags),
+    HitFlags(HitFlags),
+    HitFlagsAbsent(HitFlags),
     HitDamage(Comparison, i32),
     ProjectedHitDamage(MathExpr<f32, AuxVariable>, Comparison, i32),
     TotalDamage(Comparison, i32),
     Element(Element),
     Emotion(Emotion),
     NegativeTileInteraction,
+    Action(ActionTypes),
     ChargedCard,
     CardElement(Element),
     CardNotElement(Element),
     CardDamage(Comparison, i32),
     CardRecover(Comparison, i32),
     CardHitFlags(HitFlags),
+    CardHitFlagsAbsent(HitFlags),
     CardCode(String),
     CardClass(CardClass),
     CardTimeFreeze(bool),
@@ -113,19 +118,22 @@ impl AuxRequirement {
             AuxRequirement::Interval(_) => Self::TIMER_PRIORITY, // TIMER
             AuxRequirement::HitElement(_)
             | AuxRequirement::HitElementIsWeakness
-            | AuxRequirement::HitFlag(_)
+            | AuxRequirement::HitFlags(_)
+            | AuxRequirement::HitFlagsAbsent(_)
             | AuxRequirement::HitDamage(_, _)
             | AuxRequirement::ProjectedHitDamage(_, _, _)
             | AuxRequirement::TotalDamage(_, _) => Self::HIT_PRIORITY, // HIT
             AuxRequirement::Element(_)
             | AuxRequirement::Emotion(_)
             | AuxRequirement::NegativeTileInteraction
+            | AuxRequirement::Action(_)
             | AuxRequirement::ChargedCard
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
             | AuxRequirement::CardDamage(_, _)
             | AuxRequirement::CardRecover(_, _)
             | AuxRequirement::CardHitFlags(_)
+            | AuxRequirement::CardHitFlagsAbsent(_)
             | AuxRequirement::CardCode(_)
             | AuxRequirement::CardClass(_)
             | AuxRequirement::CardTimeFreeze(_)
@@ -157,7 +165,8 @@ impl AuxRequirement {
             "require_interval" => AuxRequirement::Interval(table.get(2)?),
             "require_hit_element" => AuxRequirement::HitElement(table.get(2)?),
             "require_hit_element_is_weakness" => AuxRequirement::HitElementIsWeakness,
-            "require_hit_flag" => AuxRequirement::HitFlag(table.get(2)?),
+            "require_hit_flags" => AuxRequirement::HitFlags(table.get(2)?),
+            "require_hit_flags_absent" => AuxRequirement::HitFlagsAbsent(table.get(2)?),
             "require_hit_damage" => AuxRequirement::HitDamage(table.get(2)?, table.get(3)?),
             "require_projected_hit_damage" => {
                 let expr = resources.parse_math_expr(table.get(2)?)?;
@@ -167,12 +176,18 @@ impl AuxRequirement {
             "require_element" => AuxRequirement::Element(table.get(2)?),
             "require_emotion" => AuxRequirement::Emotion(table.get(2)?),
             "require_negative_tile_interaction" => AuxRequirement::NegativeTileInteraction,
+            "require_action" => AuxRequirement::Action(
+                table
+                    .get::<_, Option<ActionTypes>>(2)?
+                    .unwrap_or(ActionType::ALL),
+            ),
             "require_charged_card" => AuxRequirement::ChargedCard,
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
             "require_card_recover" => AuxRequirement::CardRecover(table.get(2)?, table.get(3)?),
             "require_card_hit_flags" => AuxRequirement::CardHitFlags(table.get(2)?),
+            "require_card_hit_flags_absent" => AuxRequirement::CardHitFlagsAbsent(table.get(2)?),
             "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
             "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
@@ -200,8 +215,9 @@ impl AuxRequirement {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Clone)]
 pub enum AuxEffect {
+    UpdateContext(BattleCallback<EntityId>),
     IncreaseCardDamage(i32),
     IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
@@ -219,26 +235,27 @@ pub enum AuxEffect {
 }
 
 impl AuxEffect {
-    const PRE_HIT_START: usize = 4; // StatusImmunity
-    const ON_HIT_START: usize = 7; // IncreaseHitDamage
-    const POST_HIT_START: usize = 9; // DecreaseDamageSum
-    const POST_HIT_END: usize = 12; // None
+    const PRE_HIT_START: usize = 5; // StatusImmunity
+    const ON_HIT_START: usize = 8; // IncreaseHitDamage
+    const POST_HIT_START: usize = 10; // DecreaseDamageSum
+    const POST_HIT_END: usize = 13; // None
 
     const fn priority(&self) -> usize {
         match self {
-            AuxEffect::IncreaseCardDamage(_) => 0,
-            AuxEffect::IncreaseCardMultiplier(_) => 1,
-            AuxEffect::InterceptAction(_) => 2,
-            AuxEffect::InterruptAction(_) => 3,
-            AuxEffect::StatusImmunity(_) => 4,
-            AuxEffect::ApplyStatus(_, _) => 5,
-            AuxEffect::RemoveStatus(_) => 6,
-            AuxEffect::IncreaseHitDamage(_) => 7,
-            AuxEffect::DecreaseHitDamage(_) => 8,
-            AuxEffect::DecreaseDamageSum(_) => 9,
-            AuxEffect::DrainHP(_) => 10,
-            AuxEffect::RecoverHP(_) => 11,
-            AuxEffect::None => 12,
+            AuxEffect::UpdateContext(..) => 0,
+            AuxEffect::IncreaseCardDamage(_) => 1,
+            AuxEffect::IncreaseCardMultiplier(_) => 2,
+            AuxEffect::InterceptAction(_) => 3,
+            AuxEffect::InterruptAction(_) => 4,
+            AuxEffect::StatusImmunity(_) => 5,
+            AuxEffect::ApplyStatus(_, _) => 6,
+            AuxEffect::RemoveStatus(_) => 7,
+            AuxEffect::IncreaseHitDamage(_) => 8,
+            AuxEffect::DecreaseHitDamage(_) => 9,
+            AuxEffect::DecreaseDamageSum(_) => 10,
+            AuxEffect::DrainHP(_) => 11,
+            AuxEffect::RecoverHP(_) => 12,
+            AuxEffect::None => 13,
         }
     }
 
@@ -251,6 +268,10 @@ impl AuxEffect {
 
     pub fn resolves_action(&self) -> bool {
         matches!(self, AuxEffect::InterceptAction(_))
+    }
+
+    pub fn resolves_action_context(&self) -> bool {
+        matches!(self, AuxEffect::UpdateContext(..))
     }
 
     pub fn executes_on_current_action(&self) -> bool {
@@ -334,6 +355,41 @@ impl AuxEffect {
             }
             "drain_health" => AuxEffect::DrainHP(table.get(2)?),
             "recover_health" => AuxEffect::RecoverHP(table.get(2)?),
+            "update_context" => {
+                let vm_index = lua.named_registry_value(VM_INDEX_REGISTRY_KEY)?;
+                let callback =
+                    BattleCallback::<EntityId, AttackContext>::new_transformed_lua_callback(
+                        lua,
+                        vm_index,
+                        table.get(2)?,
+                        |api_ctx, lua, entity_id| {
+                            let mut api_ctx = api_ctx.borrow_mut();
+                            let entities = &mut api_ctx.simulation.entities;
+                            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into())
+                            else {
+                                return lua.pack_multi(());
+                            };
+
+                            lua.pack_multi(&entity.attack_context)
+                        },
+                    )?;
+
+                let callback = BattleCallback::new(
+                    move |game_io, resources, simulation, entity_id: EntityId| {
+                        let context = callback.call(game_io, resources, simulation, entity_id);
+
+                        let entities = &mut simulation.entities;
+                        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into())
+                        else {
+                            return;
+                        };
+
+                        entity.attack_context = context;
+                    },
+                );
+
+                AuxEffect::UpdateContext(callback)
+            }
             _ => {
                 return Err(rollback_mlua::Error::RuntimeError(String::from(
                     "invalid or missing AuxProp effect",
@@ -345,13 +401,13 @@ impl AuxEffect {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Clone)]
 struct RequirementState {
     passed: bool,
     tested: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AuxProp {
     requirements: Vec<(AuxRequirement, RequirementState)>,
     effect: AuxEffect,
@@ -513,6 +569,9 @@ impl AuxProp {
                 AuxRequirement::CardHitFlags(flags) => {
                     card.is_some_and(|card| card.hit_flags & *flags == *flags)
                 }
+                AuxRequirement::CardHitFlagsAbsent(flags) => {
+                    card.is_some_and(|card| card.hit_flags & *flags == 0)
+                }
                 AuxRequirement::CardCode(code) => card.is_some_and(|card| card.code == *code),
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
@@ -521,6 +580,9 @@ impl AuxProp {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
                 AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                AuxRequirement::Action(action_type_filter) => {
+                    *action_type_filter & entity.action_type != 0
+                }
                 _ => continue,
             };
 
@@ -588,7 +650,8 @@ impl AuxProp {
                     entity.element.is_weak_to(hit_props.element)
                         || entity.element.is_weak_to(hit_props.secondary_element)
                 }
-                AuxRequirement::HitFlag(hit_flag) => hit_props.flags & *hit_flag == *hit_flag,
+                AuxRequirement::HitFlags(hit_flag) => hit_props.flags & *hit_flag == *hit_flag,
+                AuxRequirement::HitFlagsAbsent(hit_flag) => hit_props.flags & *hit_flag == 0,
                 AuxRequirement::HitDamage(cmp, damage) => cmp.compare(hit_props.damage, *damage),
                 AuxRequirement::ProjectedHitDamage(expr, cmp, damage) => {
                     let value = expr.eval(AuxVariable::create_resolver(

@@ -1,6 +1,6 @@
-local table, card_properties = ...
+local table, card_properties, button_slot = ...
 
-local button = table:create_card_button(1)
+local button = table:create_card_button(1, button_slot)
 ---@type Entity
 local player = button:owner()
 
@@ -70,8 +70,11 @@ local function card_allowed()
     return true
   end
 
-  return ((restriction.code and restriction.code == card_properties.code) or
-    (restriction.package_id and restriction.package_id == card_properties.package_id))
+  if restriction.code then
+    return restriction.code == card_properties.code or card_properties.code == "*"
+  end
+
+  return restriction.package_id == card_properties.package_id
 end
 
 button.use_func = function()

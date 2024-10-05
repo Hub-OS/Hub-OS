@@ -8,6 +8,7 @@ use crate::saves::{Config, KeyStyle};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 
@@ -15,6 +16,7 @@ use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
 enum Event {
     CategoryChange(ConfigCategory),
     EnterCategory,
+    ApplyKeyBinds,
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     RequestNicknameChange,
     ChangeNickname { name: String },
@@ -53,6 +55,7 @@ pub struct ConfigScene {
     textbox: Textbox,
     doorstop_remover: Option<TextboxDoorstopRemover>,
     config: Rc<RefCell<Config>>,
+    key_bindings_backup: HashMap<Input, Vec<Key>>,
     next_scene: NextScene,
 }
 
@@ -74,6 +77,7 @@ impl ConfigScene {
 
         // config
         let config = globals.config.clone();
+        let key_bindings_backup = config.key_bindings.clone();
         let config = Rc::new(RefCell::new(config));
 
         // layout positioning
@@ -119,6 +123,7 @@ impl ConfigScene {
             textbox: Textbox::new_navigation(game_io),
             doorstop_remover: None,
             config,
+            key_bindings_backup,
             next_scene: NextScene::None,
         })
     }
@@ -317,7 +322,7 @@ impl ConfigScene {
                     ("Trit", 2),
                     ("Off", PostProcessColorBlindness::TOTAL_OPTIONS),
                 ],
-                |game_io, mut config, value| {
+                |game_io, mut config, value, _| {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     config.color_blindness = value;
@@ -444,18 +449,31 @@ impl ConfigScene {
                 "Style",
                 config.borrow().key_style,
                 config.clone(),
-                &[("WASD", KeyStyle::Wasd), ("Emulator", KeyStyle::Emulator)],
-                |_, mut config, value| {
+                &[
+                    ("Mix", KeyStyle::Mix),
+                    ("WASD", KeyStyle::Wasd),
+                    ("Emulator", KeyStyle::Emulator),
+                ],
+                |game_io, mut config, value, confirmed| {
                     config.key_style = value;
+                    config.key_bindings = Config::default_key_bindings(config.key_style);
+
+                    if confirmed {
+                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        globals.config.key_bindings = config.key_bindings.clone();
+                    }
                 },
             )),
             Box::new(
                 UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
                     let config = config.clone();
+                    let event_sender = event_sender.clone();
 
                     move || {
                         let mut config = config.borrow_mut();
                         config.key_bindings = Config::default_key_bindings(config.key_style);
+
+                        event_sender.send(Event::ApplyKeyBinds).unwrap();
                     }
                 }),
             ),
@@ -633,6 +651,10 @@ impl ConfigScene {
                     self.secondary_layout.set_label(label.to_ascii_uppercase());
                     self.secondary_layout.set_children(children);
                 }
+                Event::ApplyKeyBinds => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.config.key_bindings = self.config.borrow().key_bindings.clone();
+                }
                 Event::OpenBindingContextMenu(sender) => {
                     let globals = game_io.resource::<Globals>().unwrap();
                     globals.audio.play_sound(&globals.sfx.cursor_select);
@@ -765,7 +787,10 @@ impl ConfigScene {
                         globals.config.save();
                     } else {
                         // reapply previous config
-                        let config = &globals.config;
+                        let config = &mut globals.config;
+
+                        // input
+                        config.key_bindings = self.key_bindings_backup.clone();
 
                         // audio
                         let audio = &mut globals.audio;
@@ -897,7 +922,7 @@ impl ConfigScene {
         let globals = game_io.resource::<Globals>().unwrap();
         let config = self.config.borrow();
 
-        if *config == globals.config {
+        if *config == globals.config && self.key_bindings_backup == config.key_bindings {
             // no changes, no need to ask if we should save
             let _ = self.event_sender.send(Event::Leave { save: false });
 

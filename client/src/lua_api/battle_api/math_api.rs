@@ -16,7 +16,7 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function("math", "random", |api_ctx, lua, params| {
-        let (n, m): (Option<f32>, Option<f32>) = lua.unpack_multi(params)?;
+        let (n, m): (Option<i64>, Option<i64>) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
         let rng = &mut api_ctx.simulation.rng;
@@ -26,8 +26,6 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
         };
 
         let Some(mut m) = m else {
-            let n = n as i64;
-
             if n <= 0 {
                 return Err(LuaError::RuntimeError(String::from(
                     "n must be larger than 0",

@@ -16,7 +16,7 @@ function status_init(status)
   entity:set_intangible(true, intangible_rule)
 
   -- animation
-  local component = entity:create_component(Lifetime.Battle)
+  local component = entity:create_component(Lifetime.ActiveBattle)
   local time = 0
 
   component.on_update_func = function()

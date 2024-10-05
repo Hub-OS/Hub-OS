@@ -280,7 +280,11 @@ impl AudioManager {
             }
         };
 
-        let sampler = buffer.create_looped_sampler(Some(start..end));
+        // convert sample index for a single chanel to buffer index
+        let channels = buffer.channels as usize;
+        let range = (start * channels)..(end * channels);
+
+        let sampler = buffer.create_looped_sampler(Some(range));
         let callback = Box::new(sampler.end_loop_callback());
 
         let source = sampler.convert_samples::<f32>().amplify(self.sfx_volume);

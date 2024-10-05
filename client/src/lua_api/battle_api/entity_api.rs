@@ -527,7 +527,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     });
 
     getter::<&Entity, _, _>(lua_api, "context", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(&entity.hit_context)
+        lua.pack_multi(&entity.attack_context)
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "has_actions", |api_ctx, lua, params| {
@@ -1054,7 +1054,7 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         let middle_param = rest.pop_front().unwrap_or(rollback_mlua::Value::Nil);
 
         let secondary_element: Element;
-        let context: Option<HitContext>;
+        let context: Option<AttackContext>;
 
         match lua.unpack(middle_param.clone()) {
             Ok(element) => {
@@ -1084,8 +1084,11 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(HIT_PROPS_TABLE, "from_card", |_, lua, params| {
-        let (card_properties, context, drag): (CardProperties, Option<HitContext>, Option<Drag>) =
-            lua.unpack_multi(params)?;
+        let (card_properties, context, drag): (
+            CardProperties,
+            Option<AttackContext>,
+            Option<Drag>,
+        ) = lua.unpack_multi(params)?;
 
         lua.pack_multi(HitProperties {
             damage: card_properties.damage,
@@ -1123,8 +1126,8 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<(&mut Entity, &mut Spell)>(id.into())
             .map_err(|_| entity_not_found())?;
 
-        // copy context into entity for get_context
-        entity.hit_context = props.context;
+        // copy context into entity for entity:context()
+        entity.attack_context = props.context.clone();
         spell.hit_props = props;
 
         lua.pack_multi(())
@@ -1602,13 +1605,6 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    getter::<&Player, (), _>(lua_api, "player_move_state", |player: &Player, lua, _| {
-        lua.pack_multi(player.movement_animation_state.as_str())
-    });
-    getter::<&Player, (), _>(lua_api, "player_hit_state", |player: &Player, lua, _| {
-        lua.pack_multi(player.flinch_animation_state.as_str())
-    });
-
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "queue_default_player_movement",
@@ -1690,9 +1686,15 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |player: &mut Player, _, index: usize| {
             let index = index.saturating_sub(1);
 
-            if player.deck.get(index).is_some() {
-                player.deck.remove(index);
-                player.staged_items.handle_deck_index_removed(index);
+            if player.deck.get(index).is_none() {
+                return Ok(());
+            }
+
+            player.deck.remove(index);
+            player.staged_items.handle_deck_index_removed(index);
+
+            if index == 0 {
+                player.has_regular_card = false;
             }
 
             Ok(())
@@ -1708,6 +1710,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             if index > player.deck.len() {
                 player.deck.push(card);
             } else {
+                if index == 0 {
+                    player.has_regular_card = false;
+                }
+
                 player.deck.insert(index, card);
                 player.staged_items.handle_deck_index_inserted(index);
             }
@@ -1722,7 +1728,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         ENTITY_TABLE,
         "create_card_button",
         |api_ctx, lua, params| {
-            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let (table, slot_width, button_slot): (rollback_mlua::Table, usize, Option<usize>) =
+                lua.unpack_multi(params)?;
             let entity_id: EntityId = table.raw_get("#id")?;
 
             let api_ctx = &mut *api_ctx.borrow_mut();
@@ -1733,7 +1740,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: None,
-                uses_card_slots: true,
+                card_button_slot: button_slot.unwrap_or_default().max(1),
             };
 
             let table = create_card_select_button_and_table(
@@ -1764,7 +1771,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: None,
-                uses_card_slots: false,
+                card_button_slot: CardSelectButton::SPECIAL_SLOT,
             };
 
             let table = create_card_select_button_and_table(

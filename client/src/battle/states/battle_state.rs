@@ -74,7 +74,7 @@ impl State for BattleState {
 
         // todo: handle spells attacking on tiles they're not on?
         // this can unintentionally occur by queueing an attack outside of update_spells,
-        // such as in a BattleStep component or callback
+        // such as in a Battle component or callback
 
         // execute attacks
         self.execute_attacks(game_io, resources, simulation);
@@ -88,10 +88,13 @@ impl State for BattleState {
         // update artifacts
         self.update_artifacts(game_io, resources, simulation);
 
-        // update battle step components
         if !simulation.time_freeze_tracker.time_is_frozen() {
-            simulation.update_components(game_io, resources, ComponentLifetime::Battle);
+            // update active battle components
+            simulation.update_components(game_io, resources, ComponentLifetime::ActiveBattle);
         }
+
+        // update battle components
+        simulation.update_components(game_io, resources, ComponentLifetime::Battle);
 
         simulation.call_pending_callbacks(game_io, resources);
 
@@ -328,7 +331,7 @@ impl BattleState {
             return;
         }
 
-        simulation.field.update_tiles(&mut simulation.entities);
+        simulation.field.update_tiles();
         Field::apply_side_effects(game_io, resources, simulation);
     }
 
@@ -750,24 +753,8 @@ impl BattleState {
         );
 
         for (id, (entity, living, player, movement)) in entities.query_mut::<Query>().into_iter() {
-            if entity.time_frozen || entity.updated || !entity.spawned || entity.deleted {
+            if entity.updated || !entity.spawned || entity.deleted {
                 continue;
-            }
-
-            if !living.status_director.is_inactionable(status_registry) {
-                callbacks.push(entity.update_callback.clone());
-
-                if let Some(player) = player {
-                    if let Some(callback) = player.active_form_update_callback() {
-                        callbacks.push(callback.clone());
-                    }
-                }
-
-                for index in entity.local_components.iter().cloned() {
-                    let component = simulation.components.get(index).unwrap();
-
-                    callbacks.push(component.update_callback.clone());
-                }
             }
 
             entity.updated = true;
@@ -780,7 +767,14 @@ impl BattleState {
             // process statuses as long as the entity isn't being dragged
             if !living.status_director.is_dragged() {
                 let status_director = &mut living.status_director;
-                status_director.update(status_registry);
+
+                if !entity.time_frozen {
+                    // tick statuses only if time isn't frozen
+                    status_director.update();
+                }
+
+                // apply new statuses even if time is frozen
+                status_director.apply_new_statuses(status_registry);
 
                 // status destructors
                 callbacks.extend(status_director.take_ready_destructors());
@@ -798,11 +792,32 @@ impl BattleState {
                 }
             }
 
+            if entity.time_frozen {
+                // skip remaining updates if time is frozen
+                continue;
+            }
+
             // update intangibility
             living.intangibility.update();
 
             let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
             callbacks.extend(deactivate_callbacks);
+
+            if !living.status_director.is_inactionable(status_registry) {
+                callbacks.push(entity.update_callback.clone());
+
+                if let Some(player) = player {
+                    if let Some(callback) = player.active_form_update_callback() {
+                        callbacks.push(callback.clone());
+                    }
+                }
+
+                for index in entity.local_components.iter().cloned() {
+                    let component = simulation.components.get(index).unwrap();
+
+                    callbacks.push(component.update_callback.clone());
+                }
+            }
         }
 
         // execute update functions

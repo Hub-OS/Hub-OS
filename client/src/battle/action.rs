@@ -1,9 +1,10 @@
 use super::{
     BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
-    Field, Living, Movement, SharedBattleResources,
+    Field, Living, Movement, Player, SharedBattleResources,
 };
 use crate::bindable::{
-    ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
+    ActionLockout, AttackContext, CardProperties, EntityId, GenerationalIndex, HitFlag,
+    SpriteColorMode,
 };
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
@@ -12,6 +13,22 @@ use crate::resources::Globals;
 use crate::structures::SlotMap;
 use framework::prelude::GameIO;
 use std::cell::RefCell;
+
+pub type ActionTypes = u64;
+
+// simulating an enum here, could use a better solution
+#[allow(non_snake_case)]
+pub mod ActionType {
+    use super::*;
+
+    pub const NONE: ActionTypes = 0;
+    pub const SCRIPT: ActionTypes = 1;
+    pub const NORMAL: ActionTypes = 1 << 1;
+    pub const CHARGED: ActionTypes = 1 << 2;
+    pub const SPECIAL: ActionTypes = 1 << 3;
+    pub const CARD: ActionTypes = 1 << 4;
+    pub const ALL: ActionTypes = SCRIPT | NORMAL | CHARGED | SPECIAL | CARD;
+}
 
 #[derive(Clone)]
 pub struct Action {
@@ -204,9 +221,6 @@ impl Action {
                 animator.apply(sprite_node);
             }
         }
-
-        // allow attacks to counter
-        entity.hit_context.flags = HitFlag::NONE;
 
         // execute callback
         if let Some(callback) = action.execute_callback.take() {
@@ -520,6 +534,11 @@ impl Action {
                     continue;
                 }
 
+                if entity.action_type == ActionType::NONE {
+                    // the action was prompted by script, not by the engine
+                    entity.action_type = ActionType::SCRIPT;
+                }
+
                 if !simulation.is_entity_actionable(resources, entity_id) {
                     continue;
                 }
@@ -592,7 +611,8 @@ impl Action {
         }
 
         Living::aux_prop_cleanup(simulation, |aux_prop| {
-            aux_prop.effect().executes_on_current_action()
+            let effect = aux_prop.effect();
+            effect.executes_on_current_action() || effect.resolves_action_context()
         });
 
         Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
@@ -638,9 +658,9 @@ impl Action {
             let action = simulation.actions.get(index).unwrap();
 
             // remove attachments from the entity
-            let entity = simulation
+            let (entity, player) = simulation
                 .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
+                .query_one_mut::<(&mut Entity, Option<&Player>)>(action.entity.into())
                 .unwrap();
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
@@ -651,8 +671,19 @@ impl Action {
                 simulation.animators.remove(attachment.animator_index);
             }
 
-            // finally remove the card action
+            // finally remove the action
             simulation.actions.remove(index);
+
+            // reset hit context
+            if entity.action_index.is_none() && entity.action_queue.is_empty() {
+                entity.action_type = ActionType::NONE;
+                entity.attack_context = AttackContext::default();
+                entity.attack_context.flags = if player.is_some() {
+                    HitFlag::NO_COUNTER
+                } else {
+                    HitFlag::NONE
+                };
+            }
         }
 
         simulation.call_pending_callbacks(game_io, resources);
@@ -667,10 +698,10 @@ impl Action {
         let entity_id = self.entity.into();
         let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
 
-        // unset action_index to allow other card actions to be used
+        // unset action_index to allow other actions to be used
         entity.action_index = None;
 
-        // update reservations as they're ignored while in a sync card action
+        // update reservations as they're ignored while in a sync action
         if self.executed && entity.auto_reserves_tiles {
             let old_tile = field.tile_at_mut(self.old_position).unwrap();
             old_tile.remove_reservation_for(entity.id);

@@ -592,15 +592,17 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
 
     let package_id = &item.card.package_id;
 
-    let regular_allowed = item.valid && {
-        let card_packages = &globals.card_packages;
-        let package = card_packages.package(NAMESPACE, package_id);
-        package.is_some_and(|package| package.regular_allowed)
-    };
+    if !item.is_regular {
+        let regular_allowed = item.valid && {
+            let card_packages = &globals.card_packages;
+            let package = card_packages.package(NAMESPACE, package_id);
+            package.is_some_and(|package| package.regular_allowed)
+        };
 
-    if !regular_allowed {
-        globals.audio.play_sound(&globals.sfx.cursor_error);
-        return;
+        if !regular_allowed {
+            globals.audio.play_sound(&globals.sfx.cursor_error);
+            return;
+        }
     }
 
     item.is_regular = !item.is_regular;

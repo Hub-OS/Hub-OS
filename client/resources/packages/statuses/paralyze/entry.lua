@@ -22,9 +22,20 @@ local COLOR = Color.new(255, 255, 0, 255)
 function status_init(status)
   local entity = status:owner()
   local entity_sprite = entity:sprite()
+  local entity_animation = entity:animation()
+
+  if entity_animation:has_state("CHARACTER_HIT") then
+    entity:cancel_actions()
+    entity:cancel_movement()
+
+    entity_animation:set_state("CHARACTER_HIT", { { 1, 1 } })
+    entity_animation:on_complete(function()
+      entity:set_idle()
+    end)
+  end
 
   -- this component updates the status's animation and handles mashing
-  local component = entity:create_component(Lifetime.Battle)
+  local component = entity:create_component(Lifetime.ActiveBattle)
   local time = 0
 
   component.on_update_func = function()

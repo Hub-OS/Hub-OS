@@ -8,6 +8,7 @@ use std::collections::HashMap;
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub enum KeyStyle {
     #[default]
+    Mix,
     Wasd,
     Emulator,
 }
@@ -47,6 +48,35 @@ impl Config {
 
     pub fn default_key_bindings(key_style: KeyStyle) -> HashMap<Input, Vec<Key>> {
         match key_style {
+            KeyStyle::Mix => HashMap::from([
+                (Input::Up, vec![Key::W, Key::Up]),
+                (Input::Down, vec![Key::S, Key::Down]),
+                (Input::Left, vec![Key::A, Key::Left]),
+                (Input::Right, vec![Key::D, Key::Right]),
+                (Input::ShoulderL, vec![Key::Q, Key::C]),
+                (Input::ShoulderR, vec![Key::E, Key::V]),
+                (Input::Flee, vec![Key::Q, Key::C]),
+                (Input::Info, vec![Key::E, Key::V]),
+                (Input::EndTurn, vec![Key::Q, Key::E, Key::C, Key::V]),
+                (Input::FaceLeft, vec![Key::R, Key::Backspace]),
+                (Input::FaceRight, vec![Key::R, Key::Backspace]),
+                (Input::Confirm, vec![Key::Space, Key::J, Key::Z]),
+                (Input::UseCard, vec![Key::Space, Key::J, Key::Z]),
+                (
+                    Input::Cancel,
+                    vec![Key::LShift, Key::K, Key::Escape, Key::X],
+                ),
+                (Input::Shoot, vec![Key::LShift, Key::K, Key::X]),
+                (Input::Sprint, vec![Key::LShift, Key::K, Key::X]),
+                (Input::Map, vec![Key::M]),
+                (Input::Option, vec![Key::Return]),
+                (Input::Option2, vec![Key::R, Key::Backspace]),
+                (Input::Special, vec![Key::F]),
+                (Input::End, vec![Key::Return]),
+                (Input::Pause, vec![Key::Escape, Key::Return]),
+                (Input::RewindFrame, vec![Key::Comma]),
+                (Input::AdvanceFrame, vec![Key::Period]),
+            ]),
             KeyStyle::Wasd => HashMap::from([
                 (Input::Up, vec![Key::W]),
                 (Input::Down, vec![Key::S]),
@@ -300,6 +330,7 @@ impl From<&str> for Config {
             let key_style_str = properties.get("Style").unwrap_or_default();
 
             config.key_style = match key_style_str.to_lowercase().as_str() {
+                "mix" => KeyStyle::Mix,
                 "wasd" => KeyStyle::Wasd,
                 "emulator" => KeyStyle::Emulator,
                 _ => KeyStyle::default(),
@@ -376,6 +407,7 @@ impl std::fmt::Display for Config {
         writeln!(f, "[Keyboard]")?;
 
         match self.key_style {
+            KeyStyle::Mix => writeln!(f, "Style = Mix")?,
             KeyStyle::Wasd => writeln!(f, "Style = WASD")?,
             KeyStyle::Emulator => writeln!(f, "Style = Emulator")?,
         }

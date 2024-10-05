@@ -59,12 +59,14 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
                     map.background_properties_mut().animation_path = property_value.to_string();
                 }
                 "background vel x" => {
-                    let velocity = property_value.parse().unwrap_or_default();
-                    map.background_properties_mut().velocity.x = velocity;
+                    let bg_properties = map.background_properties_mut();
+                    let velocity = bg_properties.velocity.get_or_insert(Default::default());
+                    velocity.x = property_value.parse().unwrap_or_default();
                 }
                 "background vel y" => {
-                    let velocity = property_value.parse().unwrap_or_default();
-                    map.background_properties_mut().velocity.y = velocity;
+                    let bg_properties = map.background_properties_mut();
+                    let velocity = bg_properties.velocity.get_or_insert(Default::default());
+                    velocity.y = property_value.parse().unwrap_or_default();
                 }
                 "background parallax" => {
                     let parallax = property_value.parse().unwrap_or_default();
@@ -77,12 +79,14 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
                     map.foreground_properties_mut().animation_path = property_value.to_string();
                 }
                 "foreground vel x" => {
-                    let velocity = property_value.parse().unwrap_or_default();
-                    map.foreground_properties_mut().velocity.x = velocity;
+                    let fg_properties = map.foreground_properties_mut();
+                    let velocity = fg_properties.velocity.get_or_insert(Default::default());
+                    velocity.x = property_value.parse().unwrap_or_default();
                 }
                 "foreground vel y" => {
-                    let velocity = property_value.parse().unwrap_or_default();
-                    map.foreground_properties_mut().velocity.y = velocity;
+                    let fg_properties = map.foreground_properties_mut();
+                    let velocity = fg_properties.velocity.get_or_insert(Default::default());
+                    velocity.y = property_value.parse().unwrap_or_default();
                 }
                 "foreground parallax" => {
                     let parallax = property_value.parse().unwrap_or_default();

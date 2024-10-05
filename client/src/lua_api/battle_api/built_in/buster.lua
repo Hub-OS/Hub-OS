@@ -4,7 +4,7 @@ local Buster = {}
 ---@param charged boolean
 ---@param damage number
 function Buster.new(user, charged, damage)
-    local action = Action.new(user, "PLAYER_SHOOTING")
+    local action = Action.new(user, "CHARACTER_SHOOT")
     local context = user:context()
     local rapid_level = user:rapid_level()
 

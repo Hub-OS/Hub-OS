@@ -4,7 +4,7 @@ use super::{
     CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN,
     MOVEMENT_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
-use crate::battle::{Augment, BattleCallback, CardSelectButtonPath, Player};
+use crate::battle::{Augment, BattleCallback, CardSelectButton, CardSelectButtonPath, Player};
 use crate::bindable::{EntityId, GenerationalIndex};
 use crate::lua_api::helpers::inherit_metatable;
 
@@ -31,7 +31,8 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         AUGMENT_TABLE,
         "create_card_button",
         |api_ctx, lua, params| {
-            let (table, slot_width): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+            let (table, slot_width, button_slot): (rollback_mlua::Table, usize, Option<usize>) =
+                lua.unpack_multi(params)?;
             let entity_id: EntityId = table.raw_get("#id")?;
             let entity_table = create_entity_table(lua, entity_id)?;
 
@@ -43,7 +44,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: Some(table.raw_get("#index")?),
-                uses_card_slots: true,
+                card_button_slot: button_slot.unwrap_or_default().max(1),
             };
 
             let table = create_card_select_button_and_table(
@@ -75,7 +76,7 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
                 entity_id,
                 form_index: None,
                 augment_index: Some(table.raw_get("#index")?),
-                uses_card_slots: false,
+                card_button_slot: CardSelectButton::SPECIAL_SLOT,
             };
 
             let table = create_card_select_button_and_table(

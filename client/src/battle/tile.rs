@@ -14,10 +14,10 @@ pub struct Tile {
     immutable_team: bool,
     team: Team,
     original_team: Team,
-    team_revert_timer: FrameTime,
+    team_reclaim_timer: FrameTime,
     team_flicker: Option<(Team, FrameTime)>,
+    original_direction: Direction,
     direction: Direction,
-    direction_override: Option<Direction>,
     highlight: TileHighlight,
     flash_time: FrameTime,
     ignored_attackers: Vec<EntityId>,
@@ -65,7 +65,7 @@ impl Tile {
         self.original_team
     }
 
-    pub fn set_team(&mut self, team: Team, direction_override: Option<Direction>) {
+    pub fn set_team(&mut self, team: Team, direction: Direction) {
         if team == Team::Unset {
             return;
         }
@@ -73,11 +73,8 @@ impl Tile {
         if self.team == Team::Unset {
             self.original_team = team;
             self.team = team;
-
-            if let Some(direction) = direction_override {
-                self.direction = direction;
-            }
-
+            self.original_direction = direction;
+            self.direction = direction;
             return;
         }
 
@@ -86,40 +83,41 @@ impl Tile {
         }
 
         self.team = team;
-        self.direction_override = direction_override;
+        self.direction = direction;
 
         if team == self.original_team {
-            self.team_revert_timer = 0;
-            self.direction_override = None;
-        } else if self.team_revert_timer == 0 {
-            self.team_revert_timer = TEMP_TEAM_DURATION;
+            self.team_reclaim_timer = 0;
+            self.direction = direction;
+        } else if self.team_reclaim_timer == 0 {
+            self.team_reclaim_timer = TEMP_TEAM_DURATION;
         }
     }
 
-    pub fn team_revert_timer(&self) -> FrameTime {
-        self.team_revert_timer
+    pub fn team_reclaim_timer(&self) -> FrameTime {
+        self.team_reclaim_timer
     }
 
-    pub fn sync_team_revert_timer(&mut self, time: FrameTime) {
-        self.team_revert_timer = time;
+    pub fn sync_team_reclaim_timer(&mut self, time: FrameTime) {
+        self.team_reclaim_timer = time;
 
         if time == 0 {
             self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
             self.team = self.original_team;
-            self.direction_override = None;
+            self.direction = self.original_direction;
         }
     }
 
     pub fn set_direction(&mut self, direction: Direction) {
+        self.original_direction = direction;
         self.direction = direction;
     }
 
     pub fn direction(&self) -> Direction {
-        self.direction_override.unwrap_or(self.direction)
+        self.direction
     }
 
     pub fn original_direction(&self) -> Direction {
-        self.direction
+        self.original_direction
     }
 
     pub fn should_highlight(&self) -> bool {
@@ -231,7 +229,7 @@ impl Tile {
     }
 
     pub fn horizontal_scale(&self) -> f32 {
-        if self.direction == Direction::Left {
+        if self.original_direction == Direction::Left {
             -1.0
         } else {
             1.0

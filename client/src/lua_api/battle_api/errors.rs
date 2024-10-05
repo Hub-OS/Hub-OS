@@ -24,10 +24,6 @@ pub fn button_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("button invalid"))
 }
 
-pub fn button_already_exists() -> rollback_mlua::Error {
-    rollback_mlua::Error::RuntimeError(String::from("button already exists"))
-}
-
 pub fn sprite_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("sprite deleted"))
 }

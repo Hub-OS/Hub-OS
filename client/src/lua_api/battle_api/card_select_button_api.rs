@@ -1,8 +1,5 @@
 use super::animation_api::create_animation_table;
-use super::errors::{
-    animator_not_found, button_already_exists, button_not_found, component_not_found,
-    sprite_not_found,
-};
+use super::errors::{animator_not_found, button_not_found, component_not_found, sprite_not_found};
 use super::sprite_api::create_sprite_table;
 use super::{BattleLuaApi, CARD_SELECT_BUTTON_TABLE, SELECTION_CHANGE_FN, USE_FN};
 use crate::battle::{BattleCallback, BattleSimulation, CardSelectButton, CardSelectButtonPath};
@@ -258,13 +255,13 @@ pub fn inject_card_select_button_api(lua_api: &mut BattleLuaApi) {
             let entity_id = table.raw_get("#entity_id")?;
             let form_index = table.raw_get("#form_index")?;
             let augment_index = table.raw_get("#aug_index")?;
-            let uses_card_slots = table.raw_get("#card_slots")?;
+            let card_button_slot = table.raw_get("#slot")?;
 
             let button_path = CardSelectButtonPath {
                 entity_id,
                 form_index,
                 augment_index,
-                uses_card_slots,
+                card_button_slot,
             };
 
             let entities = &mut simulation.entities;
@@ -384,19 +381,17 @@ fn button_mut_from_table<'a>(
     let entity_id = table.raw_get("#entity_id").ok()?;
     let form_index = table.raw_get("#form_index").ok()?;
     let augment_index = table.raw_get("#aug_index").ok()?;
-    let uses_card_slots = table.raw_get("#card_slots").ok()?;
+    let card_button_slot = table.raw_get("#slot").ok()?;
 
     let button_path = CardSelectButtonPath {
         entity_id,
         form_index,
         augment_index,
-        uses_card_slots,
+        card_button_slot,
     };
 
     let entities = &mut simulation.entities;
-    CardSelectButton::resolve_button_option_mut(entities, button_path)?
-        .as_mut()
-        .map(|button| &mut **button)
+    CardSelectButton::resolve_button_option_mut(entities, button_path)?.as_mut()
 }
 
 pub fn create_card_select_button_and_table<'lua>(
@@ -414,16 +409,14 @@ pub fn create_card_select_button_and_table<'lua>(
     let button_option = CardSelectButton::resolve_button_option_mut(entities, button_path)
         .ok_or_else(button_not_found)?;
 
-    if button_option.is_some() {
-        return Err(button_already_exists());
+    let sprite_trees = &mut simulation.sprite_trees;
+    let animators = &mut simulation.animators;
+
+    if let Some(button) = button_option.take() {
+        button.delete_self(sprite_trees, animators);
     }
 
-    let button = CardSelectButton::new(
-        game_io,
-        &mut simulation.sprite_trees,
-        &mut simulation.animators,
-        slot_width,
-    );
+    let button = CardSelectButton::new(game_io, sprite_trees, animators, slot_width);
 
     let sprite_table = create_sprite_table(
         lua,
@@ -439,7 +432,7 @@ pub fn create_card_select_button_and_table<'lua>(
         Some(button.preview_animator_index),
     )?;
 
-    *button_option = Some(Box::new(button));
+    *button_option = Some(button);
 
     // create the table
     let table = lua.create_table()?;
@@ -448,9 +441,7 @@ pub fn create_card_select_button_and_table<'lua>(
     table.raw_set("#sprite", sprite_table)?;
     table.raw_set("#preview_sprite", preview_sprite_table)?;
 
-    if button_path.uses_card_slots {
-        table.raw_set("#card_slots", true)?;
-    }
+    table.raw_set("#slot", button_path.card_button_slot)?;
 
     if let Some(index) = button_path.form_index {
         table.raw_set("#form_index", index)?;

@@ -1,3 +1,4 @@
+use crate::battle::ActionType;
 use crate::bindable::{AudioBehavior, LuaVector};
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
@@ -187,6 +188,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     let lifetime_table = lua.create_table()?;
     lifetime_table.set("Local", ComponentLifetime::Local)?;
+    lifetime_table.set("ActiveBattle", ComponentLifetime::ActiveBattle)?;
     lifetime_table.set("Battle", ComponentLifetime::Battle)?;
     lifetime_table.set("Scene", ComponentLifetime::Scene)?;
     lifetime_table.set("CardSelectOpen", ComponentLifetime::CardSelectOpen)?;
@@ -211,6 +213,15 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     defense_order_table.set("Always", false)?;
     defense_order_table.set("CollisionOnly", true)?;
     globals.set("DefenseOrder", defense_order_table)?;
+
+    let action_type = lua.create_table()?;
+    action_type.set("All", ActionType::ALL)?;
+    action_type.set("Scripted", ActionType::SCRIPT)?;
+    action_type.set("Normal", ActionType::NORMAL)?;
+    action_type.set("Charged", ActionType::CHARGED)?;
+    action_type.set("Special", ActionType::SPECIAL)?;
+    action_type.set("Card", ActionType::CARD)?;
+    globals.set("ActionType", action_type)?;
 
     // todo: ActionOrder, currently stubbed
     globals.set("ActionOrder", lua.create_table()?)?;

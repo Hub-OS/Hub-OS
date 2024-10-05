@@ -1,6 +1,6 @@
 [package]
 name = "hub_os"
-version = "0.26.0"
+version = "0.31.0"
 edition = "2021"
 license = "GPL-3.0"
 
@@ -22,7 +22,13 @@ num-traits = "0.2"
 rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
-rodio = "0.18"
+rodio = { version = "0.19", default-features = false }
+symphonia = { version = "0.5", features = [
+  "ogg",
+  "vorbis",
+  "wav",
+  "mp3"
+], default_features = false }
 # let rodio restrict cpal's version, we just want to specify the feature
 cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
 roxmltree = "0.19"

@@ -1,5 +1,5 @@
 use super::{BlocksScene, CharacterSelectScene, ManageSwitchDriveScene};
-use crate::battle::PlayerFallbackResources;
+use crate::battle::{Player, PlayerFallbackResources};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PlayerPackage;
 use crate::render::ui::{
@@ -285,7 +285,7 @@ impl StatusPage {
             sprite.set_position(point);
 
             let mut animator = player_resources.animator;
-            animator.set_state("PLAYER_IDLE");
+            animator.set_state(Player::IDLE_STATE);
             animator.set_loop_mode(AnimatorLoopMode::Loop);
             animator.apply(&mut sprite);
 

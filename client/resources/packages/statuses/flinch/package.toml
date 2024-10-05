@@ -1,0 +1,8 @@
+[package]
+category = "status"
+id = "dev.hubos.Statuses.Flinch"
+name = "Flinch Status"
+flag_name = "Flinch"
+mutual_exclusions = []
+blocks_actions = false
+blocks_mobility = false

@@ -6,7 +6,7 @@ entity:delete()
 
 -- play the first flinch frame
 local animation = entity:animation()
-animation:set_state("PLAYER_HIT")
+animation:set_state("CHARACTER_HIT")
 animation:pause()
 
 -- spawn shine artifact
@@ -33,7 +33,7 @@ local i = 0
 local sprite = entity:sprite()
 local color = Color.new(255, 255, 255, 255)
 
-local component = entity:create_component(Lifetime.Battle)
+local component = entity:create_component(Lifetime.ActiveBattle)
 component.on_update_func = function()
   i = i + 1
 
