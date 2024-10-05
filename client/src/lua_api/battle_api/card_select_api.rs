@@ -38,8 +38,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         let (form_table, texture_path): (rollback_mlua::Table, Option<String>) =
             lua.unpack_multi(params)?;
 
-        let index: usize = form_table.raw_get("#index")?;
-        let form_index = index.saturating_sub(1);
+        let form_index: usize = form_table.raw_get("#index")?;
 
         if form_index > player.forms.len() {
             return Err(form_not_found());

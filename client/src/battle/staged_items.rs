@@ -284,10 +284,11 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &StagedItem {
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         let table = lua.create_table()?;
         match &self.data {
-            StagedItemData::Deck(i)
-            | StagedItemData::Discard(i)
-            | StagedItemData::Form((i, _, _)) => {
+            StagedItemData::Deck(i) | StagedItemData::Discard(i) => {
                 table.set("index", *i + 1)?;
+            }
+            StagedItemData::Form((i, _, _)) => {
+                table.set("index", *i)?;
             }
             StagedItemData::Card(properties) => {
                 table.set("card_properties", properties)?;
