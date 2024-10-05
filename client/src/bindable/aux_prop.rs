@@ -80,6 +80,8 @@ pub enum AuxRequirement {
     Emotion(Emotion),
     NegativeTileInteraction,
     Action(ActionTypes),
+    ChargeTime(Comparison, FrameTime),
+    CardChargeTime(Comparison, FrameTime),
     ChargedCard,
     CardElement(Element),
     CardNotElement(Element),
@@ -127,6 +129,8 @@ impl AuxRequirement {
             | AuxRequirement::Emotion(_)
             | AuxRequirement::NegativeTileInteraction
             | AuxRequirement::Action(_)
+            | AuxRequirement::ChargeTime(..)
+            | AuxRequirement::CardChargeTime(..)
             | AuxRequirement::ChargedCard
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
@@ -181,6 +185,10 @@ impl AuxRequirement {
                     .get::<_, Option<ActionTypes>>(2)?
                     .unwrap_or(ActionType::ALL),
             ),
+            "require_charge_time" => AuxRequirement::ChargeTime(table.get(2)?, table.get(3)?),
+            "require_card_charge_time" => {
+                AuxRequirement::CardChargeTime(table.get(2)?, table.get(3)?)
+            }
             "require_charged_card" => AuxRequirement::ChargedCard,
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
@@ -553,6 +561,18 @@ impl AuxProp {
                     emotion.is_some_and(|emotion| emot == emotion) || *emot == Emotion::default()
                 }
                 AuxRequirement::NegativeTileInteraction => !entity.ignore_negative_tile_effects,
+                AuxRequirement::ChargeTime(cmp, time) => player.is_some_and(|player| {
+                    let max_charge_time = player.attack_charge.max_charge_time();
+                    let charge_time = player.attack_charge.charging_time();
+
+                    cmp.compare(charge_time.min(max_charge_time), *time)
+                }),
+                AuxRequirement::CardChargeTime(cmp, time) => player.is_some_and(|player| {
+                    let max_charge_time = player.card_charge.max_charge_time();
+                    let charge_time = player.card_charge.charging_time();
+
+                    cmp.compare(charge_time.min(max_charge_time), *time)
+                }),
                 AuxRequirement::ChargedCard => player.is_some_and(|player| {
                     player.card_charge.fully_charged() || player.card_charged
                 }),

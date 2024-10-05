@@ -23,6 +23,8 @@ local req_list = {
   "require_emotion",
   "require_negative_tile_interaction",
   "require_action",
+  "require_charge_time",
+  "require_card_charge_time",
   "require_charged_card",
   "require_card_element",
   "require_card_not_element",
