@@ -246,7 +246,6 @@ impl State for CardSelectState {
             return;
         };
 
-        let globals = game_io.resource::<Globals>().unwrap();
         let selection = &self.player_selections[player.index];
         let selected_item = resolve_selected_item(player, selection);
 
@@ -398,19 +397,14 @@ impl State for CardSelectState {
             self.ui.draw_names(game_io, simulation, sprite_queue);
         }
 
-        // draw fade sprite
+        // update the fade sprite color
         if let Some(time) = selection.form_select_time {
             let elapsed = self.time - time;
             let progress =
                 inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
             let a = crate::ease::quadratic(progress);
 
-            let assets = &globals.assets;
-
-            let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-            fade_sprite.set_bounds(Rect::from_corners(Vec2::ZERO, RESOLUTION_F));
-            fade_sprite.set_color(Color::WHITE.multiply_alpha(a));
-            sprite_queue.draw_sprite(&fade_sprite);
+            resources.ui_fade_color.set(Color::WHITE.multiply_alpha(a));
         }
     }
 }
