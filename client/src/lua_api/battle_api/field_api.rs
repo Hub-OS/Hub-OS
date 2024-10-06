@@ -193,7 +193,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
                 let target_table = create_entity_table(lua, target_id)?;
                 let observer_table = create_entity_table(lua, observer_id)?;
-                callback.call((target_table, observer_table))?;
+                callback.call::<_, ()>((target_table, observer_table))?;
 
                 Ok(())
             });

@@ -131,7 +131,7 @@ impl DefenseRule {
             table.raw_set("#replaced", true)?;
 
             if let Ok(callback) = table.get::<_, LuaFunction>(REPLACE_FN) {
-                callback.call(())?;
+                callback.call::<_, ()>(())?;
             };
 
             Ok(())
