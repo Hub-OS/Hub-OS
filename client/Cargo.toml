@@ -28,7 +28,7 @@ symphonia = { version = "0.5", features = [
   "vorbis",
   "wav",
   "mp3"
-], default_features = false }
+], default-features = false }
 # let rodio restrict cpal's version, we just want to specify the feature
 cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
 roxmltree = "0.19"
