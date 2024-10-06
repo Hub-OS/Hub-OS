@@ -59,6 +59,10 @@ impl BattleSimulation {
 
         let field = Field::new(game_io, 8, 5);
 
+        let mut sprite_trees: SlotMap<Tree<SpriteNode>> = Default::default();
+        // root hud node
+        sprite_trees.insert(Tree::new(SpriteNode::new(game_io, Default::default())));
+
         Self {
             config: BattleConfig::new(globals, &field, props.player_setups.len()),
             statistics: BattleStatistics::new(),
@@ -76,7 +80,7 @@ impl BattleSimulation {
             ownership_tracking: Default::default(),
             queued_attacks: Vec::new(),
             defense: Defense::new(),
-            sprite_trees: Default::default(),
+            sprite_trees,
             animators: Default::default(),
             actions: Default::default(),
             time_freeze_tracker: TimeFreezeTracker::new(),
@@ -891,6 +895,11 @@ impl BattleSimulation {
         }
 
         render_pass.consume_queue(sprite_queue);
+    }
+
+    pub fn draw_hud_nodes(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        let sprite_tree = self.sprite_trees.values_mut().next().unwrap();
+        sprite_tree.draw(sprite_queue);
     }
 
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {

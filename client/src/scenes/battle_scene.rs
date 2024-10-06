@@ -829,6 +829,7 @@ impl Scene for BattleScene {
             &mut self.simulation,
             &mut sprite_queue,
         );
+        self.simulation.draw_hud_nodes(&mut sprite_queue);
 
         // draw ui fade color
         let fade_color = self.resources.ui_fade_color.get();
