@@ -76,7 +76,7 @@ impl TextboxInterface for TextboxQuestion {
         let input_util = InputUtil::new(game_io);
         self.input_tracker.update(game_io);
 
-        if self.input_tracker.is_active(Input::Left) || self.input_tracker.is_active(Input::Right) {
+        if self.input_tracker.pulsed(Input::Left) || self.input_tracker.pulsed(Input::Right) {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_move);
 

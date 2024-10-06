@@ -368,7 +368,7 @@ impl Scene for ServerListScene {
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
-        if self.ui_input_tracker.is_active(Input::Option) {
+        if self.ui_input_tracker.pulsed(Input::Option) {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
@@ -377,7 +377,7 @@ impl Scene for ServerListScene {
             self.context_menu.open();
         }
 
-        if !self.statuses.is_empty() && self.ui_input_tracker.is_active(Input::Confirm) {
+        if !self.statuses.is_empty() && self.ui_input_tracker.pulsed(Input::Confirm) {
             let globals = game_io.resource_mut::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
@@ -415,7 +415,7 @@ impl Scene for ServerListScene {
                     self.textbox.open();
                 }
             }
-        } else if self.ui_input_tracker.is_active(Input::Cancel) {
+        } else if self.ui_input_tracker.pulsed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
 
             if self.scroll_tracker.remembered_index().is_some() {

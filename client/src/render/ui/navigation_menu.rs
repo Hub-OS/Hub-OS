@@ -275,7 +275,7 @@ impl NavigationMenu {
             globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
-        if self.ui_input_tracker.is_active(Input::Confirm) {
+        if self.ui_input_tracker.pulsed(Input::Confirm) {
             return self.select_item(game_io, override_callback);
         }
 

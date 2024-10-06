@@ -43,7 +43,7 @@ impl TextboxQuiz {
 
         let old_selection = self.selection;
 
-        if self.input_tracker.is_active(Input::Up) {
+        if self.input_tracker.pulsed(Input::Up) {
             if self.selection == 0 {
                 self.selection = 2;
             } else {
@@ -51,7 +51,7 @@ impl TextboxQuiz {
             }
         }
 
-        if self.input_tracker.is_active(Input::Down) {
+        if self.input_tracker.pulsed(Input::Down) {
             if self.selection == 2 {
                 self.selection = 0;
             } else {

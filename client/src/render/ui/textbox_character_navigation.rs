@@ -33,11 +33,11 @@ impl TextboxCharacterNavigation {
             self.selection = TOTAL_OPTIONS;
         }
 
-        if self.input_tracker.is_active(Input::Up) {
+        if self.input_tracker.pulsed(Input::Up) {
             self.selection -= 1;
         }
 
-        if self.input_tracker.is_active(Input::Down) {
+        if self.input_tracker.pulsed(Input::Down) {
             self.selection += 1;
         }
 

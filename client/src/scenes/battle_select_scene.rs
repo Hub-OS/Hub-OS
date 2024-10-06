@@ -173,7 +173,7 @@ impl Scene for BattleSelectScene {
 
         let input_tracker = &self.ui_input_tracker;
 
-        if input_tracker.is_active(Input::Confirm) && !self.package_ids.is_empty() {
+        if input_tracker.pulsed(Input::Confirm) && !self.package_ids.is_empty() {
             let package_id = self.package_ids[index].clone();
             let encounter_package = Some((PackageNamespace::Local, package_id));
 
@@ -186,7 +186,7 @@ impl Scene for BattleSelectScene {
             return;
         }
 
-        if input_tracker.is_active(Input::Option2) && !self.package_ids.is_empty() {
+        if input_tracker.pulsed(Input::Option2) && !self.package_ids.is_empty() {
             // description
             let globals = game_io.resource::<Globals>().unwrap();
 
@@ -204,7 +204,7 @@ impl Scene for BattleSelectScene {
             return;
         }
 
-        if self.ui_input_tracker.is_active(Input::Cancel) {
+        if self.ui_input_tracker.pulsed(Input::Cancel) {
             // leave
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_cancel);

@@ -383,11 +383,11 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     if total_decks > 0 {
         let previous_deck_index = scene.deck_scroll_tracker.selected_index();
 
-        if scene.ui_input_tracker.is_active(Input::Left) {
+        if scene.ui_input_tracker.pulsed(Input::Left) {
             scene.deck_scroll_tracker.move_up();
         }
 
-        if scene.ui_input_tracker.is_active(Input::Right) {
+        if scene.ui_input_tracker.pulsed(Input::Right) {
             scene.deck_scroll_tracker.move_down();
         }
 
@@ -405,19 +405,19 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     // card scroll
     let previous_card_index = scene.card_scroll_tracker.selected_index();
 
-    if scene.ui_input_tracker.is_active(Input::Up) {
+    if scene.ui_input_tracker.pulsed(Input::Up) {
         scene.card_scroll_tracker.move_view_up();
     }
 
-    if scene.ui_input_tracker.is_active(Input::Down) {
+    if scene.ui_input_tracker.pulsed(Input::Down) {
         scene.card_scroll_tracker.move_view_down();
     }
 
-    if scene.ui_input_tracker.is_active(Input::ShoulderL) {
+    if scene.ui_input_tracker.pulsed(Input::ShoulderL) {
         scene.card_scroll_tracker.page_up();
     }
 
-    if scene.ui_input_tracker.is_active(Input::ShoulderR) {
+    if scene.ui_input_tracker.pulsed(Input::ShoulderR) {
         scene.card_scroll_tracker.page_down();
     }
 

@@ -492,7 +492,7 @@ impl CardSelectState {
         let prev_row = selection.form_row;
         let available_form_count = player.available_forms().count();
 
-        if input.is_active(Input::Up) {
+        if input.pulsed(Input::Up) {
             if selection.form_row == 0 {
                 selection.form_row = available_form_count.max(1) - 1;
             } else {
@@ -500,7 +500,7 @@ impl CardSelectState {
             }
         }
 
-        if input.is_active(Input::Down) {
+        if input.pulsed(Input::Down) {
             selection.form_row += 1;
 
             if selection.form_row >= available_form_count {
@@ -619,14 +619,13 @@ impl CardSelectState {
         let globals = game_io.resource::<Globals>().unwrap();
         let previous_item = resolve_selected_item(player, selection);
 
-        if input.is_active(Input::End) || previous_item == SelectedItem::None {
+        if input.pulsed(Input::End) || previous_item == SelectedItem::None {
             // select Confirm as a safety net
             selection.col = 5;
             selection.row = 0;
         }
 
-        if input.is_active(Input::Up) && selection.row == 0 && player.available_forms().count() > 0
-        {
+        if input.pulsed(Input::Up) && selection.row == 0 && player.available_forms().count() > 0 {
             // open form select
             selection.form_open_time = Some(self.time);
 
@@ -641,19 +640,19 @@ impl CardSelectState {
 
         // moving cursor
 
-        if input.is_active(Input::Left) {
+        if input.pulsed(Input::Left) {
             move_card_selection(player, selection, -1, 0);
         }
 
-        if input.is_active(Input::Right) {
+        if input.pulsed(Input::Right) {
             move_card_selection(player, selection, 1, 0);
         }
 
-        if input.is_active(Input::Up) {
+        if input.pulsed(Input::Up) {
             move_card_selection(player, selection, 0, -1);
         }
 
-        if input.is_active(Input::Down) {
+        if input.pulsed(Input::Down) {
             move_card_selection(player, selection, 0, 1);
         }
 

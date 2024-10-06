@@ -148,10 +148,10 @@ impl UiNode for UiConfigPercentage {
         locked_state.arrows.update();
 
         // test input
-        let left = self.ui_input_tracker.is_active(Input::Left);
-        let right = self.ui_input_tracker.is_active(Input::Right);
-        let up = self.ui_input_tracker.is_active(Input::Up);
-        let down = self.ui_input_tracker.is_active(Input::Down);
+        let left = self.ui_input_tracker.pulsed(Input::Left);
+        let right = self.ui_input_tracker.pulsed(Input::Right);
+        let up = self.ui_input_tracker.pulsed(Input::Up);
+        let down = self.ui_input_tracker.pulsed(Input::Down);
 
         // adjusting value
         let original_level = self.value;
@@ -166,7 +166,7 @@ impl UiNode for UiConfigPercentage {
         }
 
         // nudge by 10
-        if self.ui_input_tracker.is_active(Input::ShoulderL) {
+        if self.ui_input_tracker.pulsed(Input::ShoulderL) {
             if self.value >= self.lower_bound + 10 {
                 self.value -= 10;
             } else {
@@ -174,7 +174,7 @@ impl UiNode for UiConfigPercentage {
             }
         }
 
-        if self.ui_input_tracker.is_active(Input::ShoulderR) {
+        if self.ui_input_tracker.pulsed(Input::ShoulderR) {
             if self.value <= self.upper_bound - 10 {
                 self.value += 10;
             } else {

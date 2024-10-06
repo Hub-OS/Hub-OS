@@ -19,7 +19,7 @@ impl PlayerInput {
         Self::default()
     }
 
-    pub fn is_active(&self, input: Input) -> bool {
+    pub fn pulsed(&self, input: Input) -> bool {
         const LONG_DELAY: FrameTime = 15;
         const SHORT_DELAY: FrameTime = 5;
 

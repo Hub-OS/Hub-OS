@@ -237,11 +237,11 @@ impl Menu for Shop {
 
         let previous_index = self.scroll_tracker.selected_index();
 
-        if self.ui_input_tracker.is_active(Input::Up) {
+        if self.ui_input_tracker.pulsed(Input::Up) {
             self.scroll_tracker.move_up();
         }
 
-        if self.ui_input_tracker.is_active(Input::Down) {
+        if self.ui_input_tracker.pulsed(Input::Down) {
             self.scroll_tracker.move_down();
         }
 
@@ -251,7 +251,7 @@ impl Menu for Shop {
             audio.play_sound(&globals.sfx.cursor_move);
         }
 
-        if self.ui_input_tracker.is_active(Input::Confirm) {
+        if self.ui_input_tracker.pulsed(Input::Confirm) {
             if let Some(item) = self.items.get(selected_index) {
                 (self.on_select)(item.id());
                 audio.play_sound(&globals.sfx.cursor_select);
@@ -259,7 +259,7 @@ impl Menu for Shop {
             }
         }
 
-        if self.ui_input_tracker.is_active(Input::Info) {
+        if self.ui_input_tracker.pulsed(Input::Info) {
             if let Some(item) = self.items.get(selected_index) {
                 (self.on_description_request)(item.id());
                 audio.play_sound(&globals.sfx.cursor_move);
@@ -267,7 +267,7 @@ impl Menu for Shop {
             }
         }
 
-        if self.ui_input_tracker.is_active(Input::Cancel) {
+        if self.ui_input_tracker.pulsed(Input::Cancel) {
             audio.play_sound(&globals.sfx.cursor_cancel);
 
             let on_leave = self.on_leave.clone();
