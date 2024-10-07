@@ -83,6 +83,8 @@ pub enum AuxRequirement {
     ChargeTime(Comparison, FrameTime),
     CardChargeTime(Comparison, FrameTime),
     ChargedCard,
+    CardPrimaryElement(Element),
+    CardNotPrimaryElement(Element),
     CardElement(Element),
     CardNotElement(Element),
     CardDamage(Comparison, i32),
@@ -91,6 +93,7 @@ pub enum AuxRequirement {
     CardHitFlagsAbsent(HitFlags),
     CardCode(String),
     CardClass(CardClass),
+    CardNotClass(CardClass),
     CardTimeFreeze(bool),
     CardTag(String),
     ProjectedHPThreshold(MathExpr<f32, AuxVariable>, Comparison, f32),
@@ -132,6 +135,8 @@ impl AuxRequirement {
             | AuxRequirement::ChargeTime(..)
             | AuxRequirement::CardChargeTime(..)
             | AuxRequirement::ChargedCard
+            | AuxRequirement::CardPrimaryElement(_)
+            | AuxRequirement::CardNotPrimaryElement(_)
             | AuxRequirement::CardElement(_)
             | AuxRequirement::CardNotElement(_)
             | AuxRequirement::CardDamage(_, _)
@@ -140,6 +145,7 @@ impl AuxRequirement {
             | AuxRequirement::CardHitFlagsAbsent(_)
             | AuxRequirement::CardCode(_)
             | AuxRequirement::CardClass(_)
+            | AuxRequirement::CardNotClass(_)
             | AuxRequirement::CardTimeFreeze(_)
             | AuxRequirement::CardTag(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
@@ -190,6 +196,10 @@ impl AuxRequirement {
                 AuxRequirement::CardChargeTime(table.get(2)?, table.get(3)?)
             }
             "require_charged_card" => AuxRequirement::ChargedCard,
+            "require_card_primary_element" => AuxRequirement::CardPrimaryElement(table.get(2)?),
+            "require_card_not_primary_element" => {
+                AuxRequirement::CardNotPrimaryElement(table.get(2)?)
+            }
             "require_card_element" => AuxRequirement::CardElement(table.get(2)?),
             "require_card_not_element" => AuxRequirement::CardNotElement(table.get(2)?),
             "require_card_damage" => AuxRequirement::CardDamage(table.get(2)?, table.get(3)?),
@@ -198,6 +208,7 @@ impl AuxRequirement {
             "require_card_hit_flags_absent" => AuxRequirement::CardHitFlagsAbsent(table.get(2)?),
             "require_card_code" => AuxRequirement::CardCode(table.get(2)?),
             "require_card_class" => AuxRequirement::CardClass(table.get(2)?),
+            "require_card_not_class" => AuxRequirement::CardNotClass(table.get(2)?),
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
             "require_card_tag" => AuxRequirement::CardTag(table.get(2)?),
             "require_projected_health_threshold" => {
@@ -576,6 +587,12 @@ impl AuxProp {
                 AuxRequirement::ChargedCard => player.is_some_and(|player| {
                     player.card_charge.fully_charged() || player.card_charged
                 }),
+                AuxRequirement::CardPrimaryElement(elem) => {
+                    card.is_some_and(|card| card.element == *elem)
+                }
+                AuxRequirement::CardNotPrimaryElement(elem) => {
+                    card.is_some_and(|card| card.element != *elem)
+                }
                 AuxRequirement::CardElement(elem) => card
                     .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
                 AuxRequirement::CardNotElement(elem) => card
@@ -596,6 +613,9 @@ impl AuxProp {
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
                 }
+                AuxRequirement::CardNotClass(class) => {
+                    card.is_some_and(|card| card.card_class != *class)
+                }
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
@@ -614,6 +634,12 @@ impl AuxProp {
     pub fn process_card(&mut self, card: Option<&CardProperties>) {
         for (requirement, state) in &mut self.requirements {
             let result = match requirement {
+                AuxRequirement::CardPrimaryElement(elem) => {
+                    card.is_some_and(|card| card.element == *elem)
+                }
+                AuxRequirement::CardNotPrimaryElement(elem) => {
+                    card.is_some_and(|card| card.element != *elem)
+                }
                 AuxRequirement::CardElement(elem) => card
                     .is_some_and(|card| card.element == *elem || card.secondary_element == *elem),
                 AuxRequirement::CardNotElement(elem) => card
@@ -630,6 +656,9 @@ impl AuxProp {
                 AuxRequirement::CardCode(code) => card.is_some_and(|card| card.code == *code),
                 AuxRequirement::CardClass(class) => {
                     card.is_some_and(|card| card.card_class == *class)
+                }
+                AuxRequirement::CardNotClass(class) => {
+                    card.is_some_and(|card| card.card_class != *class)
                 }
                 AuxRequirement::CardTimeFreeze(time_freeze) => {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
