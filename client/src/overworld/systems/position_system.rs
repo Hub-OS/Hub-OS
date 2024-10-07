@@ -73,12 +73,12 @@ fn resolve_actor_point(animator: &Animator, name: &str) -> Vec2 {
                 .frame_list("IDLE_D")
                 .or_else(|| animator.frame_list("IDLE_DL"));
 
-            let point = frame_list
+            let point_y = frame_list
                 .and_then(|list| list.frames().first())
-                .map(|frame| frame.size() * Vec2::new(0.5, -1.0) - frame.origin)
-                .unwrap_or_default();
+                .map(|frame| -frame.origin.y)
+                .unwrap_or(-animator.origin().y);
 
-            point + Vec2::new(0.0, -16.0)
+            Vec2::new(0.0, point_y)
         }
         _ => -animator.origin(),
     }
