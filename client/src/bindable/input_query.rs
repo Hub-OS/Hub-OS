@@ -3,6 +3,7 @@ use crate::resources::Input;
 #[derive(Clone, Copy)]
 pub enum InputQuery {
     JustPressed(Input),
+    Pulsed(Input),
     Held(Input),
 }
 
@@ -10,12 +11,14 @@ impl InputQuery {
     pub fn input(self) -> Input {
         match self {
             InputQuery::JustPressed(input) => input,
+            InputQuery::Pulsed(input) => input,
             InputQuery::Held(input) => input,
         }
     }
 }
 
-const PRESSED_FLAG: u8 = 1 << 7;
+const VARIANT_SHIFT: u8 = 8 - 2;
+const INPUT_FLAGS: u8 = 0b111111;
 
 impl<'lua> rollback_mlua::FromLua<'lua> for InputQuery {
     fn from_lua(
@@ -24,7 +27,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for InputQuery {
     ) -> rollback_mlua::Result<Self> {
         use num_traits::FromPrimitive;
 
-        let input_flags = match lua_value {
+        let query_flags = match lua_value {
             rollback_mlua::Value::Integer(number) => number as u8,
             _ => {
                 return Err(rollback_mlua::Error::FromLuaConversionError {
@@ -35,8 +38,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for InputQuery {
             }
         };
 
-        let is_pressed = input_flags & PRESSED_FLAG != 0;
-        let input = Input::from_u8(input_flags & !PRESSED_FLAG).ok_or(
+        let input = Input::from_u8(query_flags & INPUT_FLAGS).ok_or(
             rollback_mlua::Error::FromLuaConversionError {
                 from: lua_value.type_name(),
                 to: "Input",
@@ -44,11 +46,13 @@ impl<'lua> rollback_mlua::FromLua<'lua> for InputQuery {
             },
         )?;
 
-        if is_pressed {
-            Ok(Self::JustPressed(input))
-        } else {
-            Ok(Self::Held(input))
-        }
+        let query = match query_flags >> VARIANT_SHIFT {
+            0 => Self::JustPressed(input),
+            1 => Self::Pulsed(input),
+            _ => Self::Held(input),
+        };
+
+        Ok(query)
     }
 }
 
@@ -57,12 +61,16 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for InputQuery {
         self,
         _lua: &'lua rollback_mlua::Lua,
     ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
-        let mut flags = self.input() as u8;
+        let mut query_flags = self.input() as u8;
 
-        if matches!(self, InputQuery::JustPressed(_)) {
-            flags |= PRESSED_FLAG;
+        let variant_flags = match self {
+            InputQuery::JustPressed(_) => 0,
+            InputQuery::Pulsed(_) => 1,
+            InputQuery::Held(_) => 2,
         };
 
-        Ok(rollback_mlua::Value::Integer(flags as i64))
+        query_flags |= variant_flags << VARIANT_SHIFT;
+
+        Ok(rollback_mlua::Value::Integer(query_flags as i64))
     }
 }

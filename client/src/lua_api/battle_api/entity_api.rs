@@ -1530,6 +1530,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let result = match input_query {
                 InputQuery::JustPressed(input) => player_input.was_just_pressed(input),
+                InputQuery::Pulsed(input) => player_input.pulsed(input),
                 InputQuery::Held(input) => player_input.is_down(input),
             };
 
