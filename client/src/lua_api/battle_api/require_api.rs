@@ -5,30 +5,33 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(GLOBAL_TABLE, "require", |api_ctx, lua, params| {
         let path: String = lua.unpack_multi(params)?;
 
-        let source_path: String;
+        let (source_path, source) = {
+            let api_ctx = api_ctx.borrow();
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
 
-        let api_ctx = api_ctx.borrow();
-        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            // try to resolve from library packages
+            let vms = api_ctx.resources.vm_manager.vms();
+            let ns = vms[api_ctx.vm_index].preferred_namespace();
 
-        // try to resolve from library packages
-        let vms = api_ctx.resources.vm_manager.vms();
-        let ns = vms[api_ctx.vm_index].preferred_namespace();
+            let package_id = path.into();
 
-        let package_id = path.into();
+            let source_path = if let Some(package) = globals
+                .library_packages
+                .package_or_fallback(ns, &package_id)
+            {
+                package.package_info.script_path.clone()
+            } else {
+                // resolve from file
+                let env = lua.environment()?;
+                let folder_path: String = env.get("_folder_path")?;
 
-        if let Some(package) = globals
-            .library_packages
-            .package_or_fallback(ns, &package_id)
-        {
-            source_path = package.package_info.script_path.clone();
-        } else {
-            // resolve from file
-            let env = lua.environment()?;
-            let folder_path: String = env.get("_folder_path")?;
-            source_path = ResourcePaths::clean(&(folder_path + package_id.as_str()));
-        }
+                ResourcePaths::clean(&(folder_path + package_id.as_str()))
+            };
 
-        let source = globals.assets.text(&source_path);
+            let source = globals.assets.text(&source_path);
+
+            (source_path, source)
+        };
 
         let metatable = lua.globals().get_metatable();
 

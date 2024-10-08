@@ -263,29 +263,29 @@ impl ScrollTracker {
     }
 
     pub fn handle_vertical_input(&mut self, ui_input_tracker: &UiInputTracker) {
-        if ui_input_tracker.is_active(Input::Up) {
+        if ui_input_tracker.pulsed(Input::Up) {
             self.move_up();
         }
 
-        if ui_input_tracker.is_active(Input::Down) {
+        if ui_input_tracker.pulsed(Input::Down) {
             self.move_down();
         }
 
-        if ui_input_tracker.is_active(Input::ShoulderL) {
+        if ui_input_tracker.pulsed(Input::ShoulderL) {
             self.page_up();
         }
 
-        if ui_input_tracker.is_active(Input::ShoulderR) {
+        if ui_input_tracker.pulsed(Input::ShoulderR) {
             self.page_down();
         }
     }
 
     pub fn handle_horizontal_input(&mut self, ui_input_tracker: &UiInputTracker) {
-        if ui_input_tracker.is_active(Input::Left) {
+        if ui_input_tracker.pulsed(Input::Left) {
             self.move_up();
         }
 
-        if ui_input_tracker.is_active(Input::Right) {
+        if ui_input_tracker.pulsed(Input::Right) {
             self.move_down();
         }
     }

@@ -232,12 +232,12 @@ impl PackageScene {
 
         let prev_top_index = self.list.top_index();
 
-        if self.ui_input_tracker.is_active(Input::Up) {
+        if self.ui_input_tracker.pulsed(Input::Up) {
             self.list
                 .set_selected_index(self.list.top_index().max(1) - 1);
         }
 
-        if self.ui_input_tracker.is_active(Input::Down) {
+        if self.ui_input_tracker.pulsed(Input::Down) {
             let len = self.list.total_children();
             let page_end = self.list.top_index() + self.list.view_size();
             let end_index = len.min(page_end);
@@ -245,11 +245,11 @@ impl PackageScene {
             self.list.set_selected_index(end_index);
         }
 
-        if self.ui_input_tracker.is_active(Input::ShoulderL) {
+        if self.ui_input_tracker.pulsed(Input::ShoulderL) {
             self.list.page_up();
         }
 
-        if self.ui_input_tracker.is_active(Input::ShoulderR) {
+        if self.ui_input_tracker.pulsed(Input::ShoulderR) {
             self.list.page_down();
         }
 

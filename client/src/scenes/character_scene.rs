@@ -390,11 +390,11 @@ impl StatusPage {
         for list in &mut self.lists {
             let prev_index = list.selected_index();
 
-            if input_tracker.is_active(Input::ShoulderL) {
+            if input_tracker.pulsed(Input::ShoulderL) {
                 list.page_up();
             }
 
-            if input_tracker.is_active(Input::ShoulderR) {
+            if input_tracker.pulsed(Input::ShoulderR) {
                 list.page_down();
             }
 

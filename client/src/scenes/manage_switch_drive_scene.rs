@@ -391,14 +391,14 @@ impl ManageSwitchDriveScene {
 
         match self.state {
             State::ListSelection => {
-                if self.input_tracker.is_active(Input::Cancel) {
+                if self.input_tracker.pulsed(Input::Cancel) {
                     if self.filtered_packages {
                         self.event_sender.send(Event::ApplyFilter(None)).unwrap();
                         globals.audio.play_sound(&globals.sfx.cursor_cancel);
                     } else {
                         self.request_leave();
                     }
-                } else if self.input_tracker.is_active(Input::Left) {
+                } else if self.input_tracker.pulsed(Input::Left) {
                     self.state = State::EquipmentSelection;
 
                     let index = self.equipment_scroll_tracker.selected_index();
@@ -408,7 +408,7 @@ impl ManageSwitchDriveScene {
                     let globals = game_io.resource::<Globals>().unwrap();
 
                     globals.audio.play_sound(&globals.sfx.cursor_select);
-                } else if self.input_tracker.is_active(Input::Confirm) {
+                } else if self.input_tracker.pulsed(Input::Confirm) {
                     // handle confirm
                     let success = self.add_drive_part(game_io, prev_list_index);
                     let globals = game_io.resource::<Globals>().unwrap();
@@ -423,14 +423,14 @@ impl ManageSwitchDriveScene {
                     self.list_scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
-                    if self.input_tracker.is_active(Input::End) {
+                    if self.input_tracker.pulsed(Input::End) {
                         let last_index = self.list_scroll_tracker.total_items() - 1;
                         self.list_scroll_tracker.set_selected_index(last_index);
                     }
                 }
             }
             State::EquipmentSelection => {
-                if self.input_tracker.is_active(Input::Confirm) {
+                if self.input_tracker.pulsed(Input::Confirm) {
                     let event_sender = self.event_sender.clone();
 
                     let slot = SwitchDriveSlot::from_usize(prev_slot_index);
@@ -460,7 +460,7 @@ impl ManageSwitchDriveScene {
 
                     self.textbox.push_interface(question);
                     self.textbox.open();
-                } else if self.input_tracker.is_active(Input::Right) {
+                } else if self.input_tracker.pulsed(Input::Right) {
                     let selected_index = self.equipment_scroll_tracker.selected_index();
 
                     if selected_index > 1 {
@@ -472,14 +472,14 @@ impl ManageSwitchDriveScene {
                         self.equipment_scroll_tracker
                             .set_selected_index(selected_index + 2);
                     }
-                } else if self.input_tracker.is_active(Input::Left) {
+                } else if self.input_tracker.pulsed(Input::Left) {
                     let selected_index = self.equipment_scroll_tracker.selected_index();
 
                     if selected_index > 1 {
                         self.equipment_scroll_tracker
                             .set_selected_index(selected_index - 2);
                     }
-                } else if self.input_tracker.is_active(Input::Cancel) {
+                } else if self.input_tracker.pulsed(Input::Cancel) {
                     if self.package_ids.is_empty() {
                         if self.filtered_packages {
                             // remove filter if there's no packages to return to
@@ -497,7 +497,7 @@ impl ManageSwitchDriveScene {
                     self.equipment_scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
-                    if self.input_tracker.is_active(Input::End) {
+                    if self.input_tracker.pulsed(Input::End) {
                         let last_index = self.equipment_scroll_tracker.total_items() - 1;
                         self.equipment_scroll_tracker.set_selected_index(last_index);
                     }

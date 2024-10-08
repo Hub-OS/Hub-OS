@@ -136,7 +136,7 @@ impl Scene for KeyItemsScene {
 
         self.ui_input_tracker.update(game_io);
 
-        if self.ui_input_tracker.is_active(Input::Cancel) {
+        if self.ui_input_tracker.pulsed(Input::Cancel) {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 

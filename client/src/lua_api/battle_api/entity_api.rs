@@ -1530,6 +1530,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             let result = match input_query {
                 InputQuery::JustPressed(input) => player_input.was_just_pressed(input),
+                InputQuery::Pulsed(input) => player_input.pulsed(input),
                 InputQuery::Held(input) => player_input.is_down(input),
             };
 
@@ -1557,7 +1558,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 .query_one_mut::<&mut Player>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            player.buster_charge.set_color(color.into());
+            player.attack_charge.set_color(color.into());
 
             lua.pack_multi(())
         },
@@ -1583,7 +1584,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
                 let offset = Vec2::new(x, y);
 
                 player.card_charge.update_sprite_offset(sprite_tree, offset);
-                (player.buster_charge).update_sprite_offset(sprite_tree, offset);
+                (player.attack_charge).update_sprite_offset(sprite_tree, offset);
             }
 
             lua.pack_multi(())

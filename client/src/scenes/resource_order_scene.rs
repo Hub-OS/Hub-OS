@@ -139,7 +139,7 @@ impl ResourceOrderScene {
         let globals = game_io.resource::<Globals>().unwrap();
 
         // handle cancel request
-        if self.ui_input_tracker.is_active(Input::Cancel) {
+        if self.ui_input_tracker.pulsed(Input::Cancel) {
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             if self.moving_package {
@@ -189,7 +189,7 @@ impl ResourceOrderScene {
         }
 
         // handle opening the context menu
-        if self.ui_input_tracker.is_active(Input::Option) {
+        if self.ui_input_tracker.pulsed(Input::Option) {
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if index == 0 {
@@ -206,7 +206,7 @@ impl ResourceOrderScene {
         }
 
         // handle selection
-        if self.ui_input_tracker.is_active(Input::Confirm) {
+        if self.ui_input_tracker.pulsed(Input::Confirm) {
             if index == 0 {
                 globals.audio.play_sound(&globals.sfx.cursor_error);
             } else {

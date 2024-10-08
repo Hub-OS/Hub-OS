@@ -206,7 +206,7 @@ impl Menu for EmoteMenu {
             return;
         }
 
-        if self.ui_input_tracker.is_active(Input::Confirm) {
+        if self.ui_input_tracker.pulsed(Input::Confirm) {
             if self.scroll_tracker.selected_index() == 0 {
                 self.open_search(game_io);
             } else {
@@ -222,8 +222,8 @@ impl Menu for EmoteMenu {
             return;
         }
 
-        if self.ui_input_tracker.is_active(Input::Cancel)
-            || self.ui_input_tracker.is_active(Input::Option2)
+        if self.ui_input_tracker.pulsed(Input::Cancel)
+            || self.ui_input_tracker.pulsed(Input::Option2)
         {
             self.open = false;
             return;

@@ -384,10 +384,10 @@ impl BlocksScene {
         if let Some(block) = &mut self.held_block {
             let prev_rotation = block.rotation;
 
-            if self.input_tracker.is_active(Input::ShoulderL) {
+            if self.input_tracker.pulsed(Input::ShoulderL) {
                 block.rotate_cc();
             }
-            if self.input_tracker.is_active(Input::ShoulderR) {
+            if self.input_tracker.pulsed(Input::ShoulderR) {
                 block.rotate_c();
             }
 
@@ -395,7 +395,7 @@ impl BlocksScene {
                 globals.audio.play_sound(&globals.sfx.cursor_move);
             }
 
-            if self.input_tracker.is_active(Input::Confirm) {
+            if self.input_tracker.pulsed(Input::Confirm) {
                 let mut clone = block.clone();
 
                 if let State::GridSelection { x, y } = self.state {
@@ -411,7 +411,7 @@ impl BlocksScene {
                 } else {
                     globals.audio.play_sound(&globals.sfx.cursor_error);
                 }
-            } else if self.input_tracker.is_active(Input::Cancel) {
+            } else if self.input_tracker.pulsed(Input::Cancel) {
                 let mut block = self.held_block.take().unwrap();
 
                 if self.block_returns_to_grid {
@@ -433,7 +433,7 @@ impl BlocksScene {
 
         match self.state {
             State::ListSelection => {
-                if self.input_tracker.is_active(Input::Cancel) && !prev_held {
+                if self.input_tracker.pulsed(Input::Cancel) && !prev_held {
                     let event_sender = self.event_sender.clone();
 
                     let question = TextboxQuestion::new(
@@ -447,7 +447,7 @@ impl BlocksScene {
 
                     self.textbox.push_interface(question);
                     self.textbox.open();
-                } else if self.input_tracker.is_active(Input::Left) {
+                } else if self.input_tracker.pulsed(Input::Left) {
                     let y = self.scroll_tracker.selected_index() - self.scroll_tracker.top_index();
 
                     self.state = State::GridSelection { x: 5, y: y.max(1) };
@@ -460,7 +460,7 @@ impl BlocksScene {
                     self.scroll_tracker
                         .handle_vertical_input(&self.input_tracker);
 
-                    if self.input_tracker.is_active(Input::End) {
+                    if self.input_tracker.pulsed(Input::End) {
                         let last_index = self.scroll_tracker.total_items() - 1;
                         self.scroll_tracker.set_selected_index(last_index);
                     }
@@ -475,7 +475,7 @@ impl BlocksScene {
                     }
 
                     // handle confirm
-                    if self.input_tracker.is_active(Input::Confirm) {
+                    if self.input_tracker.pulsed(Input::Confirm) {
                         if self.packages.get(selected_index).is_some() {
                             // selected a block
                             let package = self.packages.remove(selected_index);
@@ -512,9 +512,9 @@ impl BlocksScene {
                 }
             }
             State::GridSelection { x: old_x, y: old_y } => {
-                let cancel = self.input_tracker.is_active(Input::Cancel) && !prev_held;
-                let returned_to_list = self.input_tracker.is_active(Input::Right) && old_x == 6;
-                let pressed_end = self.input_tracker.is_active(Input::End);
+                let cancel = self.input_tracker.pulsed(Input::Cancel) && !prev_held;
+                let returned_to_list = self.input_tracker.pulsed(Input::Right) && old_x == 6;
+                let pressed_end = self.input_tracker.pulsed(Input::End);
                 let has_block = self.grid.get_block((old_x, old_y)).is_some();
 
                 if (cancel || returned_to_list || pressed_end) && self.held_block.is_none() {
@@ -526,7 +526,7 @@ impl BlocksScene {
                     }
 
                     globals.audio.play_sound(&globals.sfx.cursor_cancel);
-                } else if self.input_tracker.is_active(Input::Confirm) && !prev_held && has_block {
+                } else if self.input_tracker.pulsed(Input::Confirm) && !prev_held && has_block {
                     self.state = State::BlockContext { x: old_x, y: old_y };
 
                     self.block_context_menu.open();

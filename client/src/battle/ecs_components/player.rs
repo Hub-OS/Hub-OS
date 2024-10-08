@@ -26,7 +26,7 @@ pub struct Player {
     pub card_chargable_cache: ResultCacheSingle<Option<CardProperties>, bool>,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
-    pub buster_charge: AttackCharge,
+    pub attack_charge: AttackCharge,
     pub slide_when_moving: bool,
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
@@ -44,7 +44,7 @@ impl Player {
         player_package: &PlayerPackage,
         mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
-        buster_charge_sprite_index: TreeIndex,
+        attack_charge_sprite_index: TreeIndex,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
@@ -91,9 +91,9 @@ impl Player {
                 card_charge_sprite_index,
                 ResourcePaths::BATTLE_CARD_CHARGE_ANIMATION,
             ),
-            buster_charge: AttackCharge::new(
+            attack_charge: AttackCharge::new(
                 assets,
-                buster_charge_sprite_index,
+                attack_charge_sprite_index,
                 ResourcePaths::BATTLE_CHARGE_ANIMATION,
             )
             .with_color(Color::MAGENTA),
@@ -266,7 +266,7 @@ impl Player {
         let card_charge_sprite_index =
             AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CARD_CHARGE);
 
-        let buster_charge_sprite_index =
+        let attack_charge_sprite_index =
             AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CHARGE);
 
         let mut deck = setup.deck.clone();
@@ -278,7 +278,7 @@ impl Player {
             player_package,
             deck,
             card_charge_sprite_index,
-            buster_charge_sprite_index,
+            attack_charge_sprite_index,
         );
 
         simulation.entities.insert_one(id.into(), player).unwrap();
@@ -518,7 +518,7 @@ impl Player {
     }
 
     pub fn cancel_charge(&mut self) {
-        self.buster_charge.cancel();
+        self.attack_charge.cancel();
         self.card_charge.cancel();
     }
 
@@ -561,13 +561,13 @@ impl Player {
         let input = &simulation.inputs[player.index];
 
         if can_charge_card && input.was_just_pressed(Input::UseCard) {
-            // cancel buster charging
-            player.buster_charge.cancel();
+            // cancel attack charging
+            player.attack_charge.cancel();
             player.card_charge.set_charging(true);
         } else if input.was_just_pressed(Input::Shoot) {
             // cancel card charging
             player.card_charge.cancel();
-            player.buster_charge.set_charging(true);
+            player.attack_charge.set_charging(true);
         } else {
             // continue charging
 
@@ -575,16 +575,16 @@ impl Player {
             // prevents accidental charge tracking from a previous non charged card use
             let charging_card = input.is_down(Input::UseCard)
                 && can_charge_card
-                && !player.buster_charge.charging()
+                && !player.attack_charge.charging()
                 && player.card_charge.charging();
             player.card_charge.set_charging(charging_card);
 
-            let charging_buster = input.is_down(Input::Shoot) && !player.card_charge.charging();
-            player.buster_charge.set_charging(charging_buster);
+            let charging_attack = input.is_down(Input::Shoot) && !player.card_charge.charging();
+            player.attack_charge.set_charging(charging_attack);
         }
 
         player.card_charge.set_max_charge_time(max_charge_time);
-        player.buster_charge.set_max_charge_time(max_charge_time);
+        player.attack_charge.set_max_charge_time(max_charge_time);
 
         let card_used = if !can_charge_card && input.was_just_pressed(Input::UseCard) {
             Some(false)
@@ -592,7 +592,7 @@ impl Player {
             player.card_charge.update(game_io, play_sfx)
         };
 
-        let buster_fired = player.buster_charge.update(game_io, play_sfx);
+        let attack_fired = player.attack_charge.update(game_io, play_sfx);
 
         // update from results
 
@@ -602,7 +602,7 @@ impl Player {
         }
 
         if !character.card_use_requested {
-            if let Some(fully_charged) = buster_fired {
+            if let Some(fully_charged) = attack_fired {
                 if fully_charged {
                     Player::use_charged_attack(game_io, resources, simulation, entity_id);
                 } else {

@@ -706,7 +706,7 @@ impl BattleState {
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
                 player.card_charge.update_sprite(sprite_tree);
-                player.buster_charge.update_sprite(sprite_tree);
+                player.attack_charge.update_sprite(sprite_tree);
             }
         }
     }

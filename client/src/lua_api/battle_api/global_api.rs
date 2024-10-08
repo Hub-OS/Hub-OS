@@ -270,39 +270,43 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     use crate::bindable::InputQuery;
     use crate::resources::Input;
 
+    let input_pairs = [
+        ("Up", Input::Up),
+        ("Left", Input::Left),
+        ("Right", Input::Right),
+        ("Down", Input::Down),
+        ("Use", Input::UseCard),
+        ("Special", Input::Special),
+        ("Shoot", Input::Shoot),
+        ("FaceLeft", Input::FaceLeft),
+        ("FaceRight", Input::FaceRight),
+        ("LeftShoulder", Input::ShoulderL),
+        ("RightShoulder", Input::ShoulderR),
+        ("EndTurn", Input::EndTurn),
+        ("Ready", Input::End),
+        ("Confirm", Input::Confirm),
+        ("Cancel", Input::Cancel),
+    ];
+
     let input_table = lua.create_table()?;
 
     let held_table = lua.create_table()?;
-    held_table.set("Up", InputQuery::Held(Input::Up))?;
-    held_table.set("Left", InputQuery::Held(Input::Left))?;
-    held_table.set("Right", InputQuery::Held(Input::Right))?;
-    held_table.set("Down", InputQuery::Held(Input::Down))?;
-    held_table.set("Use", InputQuery::Held(Input::UseCard))?;
-    held_table.set("Special", InputQuery::Held(Input::Special))?;
-    held_table.set("Shoot", InputQuery::Held(Input::Shoot))?;
-    held_table.set("FaceLeft", InputQuery::Held(Input::FaceLeft))?;
-    held_table.set("FaceRight", InputQuery::Held(Input::FaceRight))?;
-    held_table.set("LeftShoulder", InputQuery::Held(Input::ShoulderL))?;
-    held_table.set("RightShoulder", InputQuery::Held(Input::ShoulderR))?;
-    held_table.set("EndTurn", InputQuery::Held(Input::EndTurn))?;
-    held_table.set("Ready", InputQuery::Held(Input::End))?;
+    for (name, input) in input_pairs {
+        held_table.set(name, InputQuery::Held(input))?;
+    }
     input_table.set("Held", held_table)?;
 
     let pressed_table = lua.create_table()?;
-    pressed_table.set("Up", InputQuery::JustPressed(Input::Up))?;
-    pressed_table.set("Left", InputQuery::JustPressed(Input::Left))?;
-    pressed_table.set("Right", InputQuery::JustPressed(Input::Right))?;
-    pressed_table.set("Down", InputQuery::JustPressed(Input::Down))?;
-    pressed_table.set("Use", InputQuery::JustPressed(Input::UseCard))?;
-    pressed_table.set("Special", InputQuery::JustPressed(Input::Special))?;
-    pressed_table.set("Shoot", InputQuery::JustPressed(Input::Shoot))?;
-    pressed_table.set("FaceLeft", InputQuery::JustPressed(Input::FaceLeft))?;
-    pressed_table.set("FaceRight", InputQuery::JustPressed(Input::FaceRight))?;
-    pressed_table.set("LeftShoulder", InputQuery::JustPressed(Input::ShoulderL))?;
-    pressed_table.set("RightShoulder", InputQuery::JustPressed(Input::ShoulderR))?;
-    pressed_table.set("EndTurn", InputQuery::JustPressed(Input::EndTurn))?;
-    pressed_table.set("Ready", InputQuery::JustPressed(Input::End))?;
+    for (name, input) in input_pairs {
+        pressed_table.set(name, InputQuery::JustPressed(input))?;
+    }
     input_table.set("Pressed", pressed_table)?;
+
+    let pulsed_table = lua.create_table()?;
+    for (name, input) in input_pairs {
+        pulsed_table.set(name, InputQuery::Pulsed(input))?;
+    }
+    input_table.set("Pulsed", pulsed_table)?;
 
     globals.set("Input", input_table)?;
 

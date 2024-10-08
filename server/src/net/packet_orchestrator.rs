@@ -632,7 +632,6 @@ mod tests {
         socket.take_error().unwrap();
 
         let config = ServerConfig {
-            public_ip: socket.local_addr().unwrap().ip(),
             max_silence_duration: 0.0,
             heartbeat_rate: 0.0,
             args: crate::args::Args {

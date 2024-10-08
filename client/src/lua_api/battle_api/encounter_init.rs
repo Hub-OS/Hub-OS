@@ -254,7 +254,7 @@ pub fn inject_mutator_api(lua_api: &mut BattleLuaApi) {
         let id: EntityId = table.get("#entity_id")?;
 
         let table = create_entity_table(lua, id)?;
-        callback.call(table)?;
+        callback.call::<_, ()>(table)?;
 
         lua.pack_multi(())
     });

@@ -17,7 +17,7 @@ impl UiInputTracker {
         }
     }
 
-    pub fn is_active(&self, input: Input) -> bool {
+    pub fn pulsed(&self, input: Input) -> bool {
         const LONG_DELAY: FrameTime = 15;
         const SHORT_DELAY: FrameTime = 5;
 
@@ -41,11 +41,11 @@ impl UiInputTracker {
     pub fn input_as_axis(&self, negative: Input, positive: Input) -> f32 {
         let mut value = 0.0;
 
-        if self.is_active(negative) {
+        if self.pulsed(negative) {
             value -= 1.0;
         }
 
-        if self.is_active(positive) {
+        if self.pulsed(positive) {
             value += 1.0;
         }
 
