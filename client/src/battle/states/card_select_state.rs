@@ -730,11 +730,22 @@ impl CardSelectState {
                 .query_one_mut::<&mut Player>(entity_id.into())
                 .unwrap();
 
-            // clear selection
-            player.staged_items.clear();
-
             // confirm
             selection.confirm_time = self.time;
+            player.staged_items.set_confirmed(true);
+
+            // clear selection
+            while let Some(popped) = player.staged_items.pop() {
+                if let StagedItemData::Form((index, ..)) = popped.data {
+                    if let Some(callback) = &player.forms[index].deselect_callback {
+                        simulation.pending_callbacks.push(callback.clone());
+                    }
+                }
+
+                if let Some(callback) = popped.undo_callback {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
         }
 
         if selection.local && !simulation.is_resimulation && selection.confirm_time == 0 {
