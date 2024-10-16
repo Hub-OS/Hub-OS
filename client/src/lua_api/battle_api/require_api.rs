@@ -25,7 +25,14 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
                 let env = lua.environment()?;
                 let folder_path: String = env.get("_folder_path")?;
 
-                ResourcePaths::clean(&(folder_path + package_id.as_str()))
+                let mut path = folder_path + package_id.as_str();
+
+                // append .lua if the path is missing the extension
+                if !path.ends_with(".lua") {
+                    path += ".lua";
+                }
+
+                ResourcePaths::clean(&path)
             };
 
             let source = globals.assets.text(&source_path);
