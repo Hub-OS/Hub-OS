@@ -424,7 +424,7 @@ fn parse_text_style(
     let texture_path = table.get::<_, Option<rollback_mlua::String>>("texture_path")?;
     let animation_path = table.get::<_, Option<rollback_mlua::String>>("animation_path")?;
 
-    let text_style =
+    let mut text_style =
         if let (Some(texture_path), Some(animation_path)) = (texture_path, animation_path) {
             // find or create glyph map
             let texture_path = texture_path.to_str()?;
@@ -460,6 +460,8 @@ fn parse_text_style(
         } else {
             TextStyle::new(game_io, font)
         };
+
+    text_style.monospace = table.get::<_, bool>("monospace").unwrap_or_default();
 
     // make sure the font name exists in the glyph map to reduce confusion
     if !text_style.glyph_atlas.contains_font(&text_style.font) {
