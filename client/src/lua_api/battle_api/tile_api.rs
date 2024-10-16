@@ -498,7 +498,7 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
             let mut tables: Vec<rollback_mlua::Table> = Vec::with_capacity(entities.len() as usize);
 
             for (id, entity) in entities.query_mut::<hecs::With<&Entity, Q>>() {
-                if entity.x == x && entity.y == y && !entity.deleted && entity.on_field {
+                if entity.x == x && entity.y == y && !entity.deleted && entity.spawned {
                     tables.push(create_entity_table(lua, id.into())?);
                 }
             }
