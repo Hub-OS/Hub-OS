@@ -310,7 +310,11 @@ impl Tree<SpriteNode> {
         let inherit = InheritedProperties {
             offset: root_offset,
             flipped,
-            scale: Vec2::ONE,
+            scale: if flipped {
+                Vec2::new(-1.0, 1.0)
+            } else {
+                Vec2::ONE
+            },
         };
 
         self.draw_subtree(sprite_queue, self.root_index(), &inherit);
@@ -332,12 +336,18 @@ impl Tree<SpriteNode> {
             return;
         }
 
+        let parent_flipped = inherited.flipped;
+
         // resolve inherited properties for child nodes
-        let inherited = InheritedProperties {
-            offset: inherited.offset + sprite_node.offset(),
+        let mut inherited = InheritedProperties {
+            offset: inherited.offset + sprite_node.offset() * inherited.scale,
             flipped: inherited.flipped && !sprite_node.never_flip,
             scale: inherited.scale * sprite_node.scale(),
         };
+
+        if parent_flipped && !inherited.flipped {
+            inherited.scale.x *= -1.0;
+        }
 
         // gather child indices
         type IndexVec<'a> = SmallVec<[TreeIndex; 5]>;
@@ -361,14 +371,8 @@ impl Tree<SpriteNode> {
         let original_offset = sprite_node.offset();
         let original_scale = sprite_node.scale();
 
-        let mut scale = inherited.scale;
-
-        if inherited.flipped {
-            scale.x *= -1.0;
-        }
-
         sprite_node.sprite.set_position(inherited.offset);
-        sprite_node.sprite.set_scale(scale);
+        sprite_node.sprite.set_scale(inherited.scale);
 
         // draw our node
         self.draw_index(sprite_queue, index);
