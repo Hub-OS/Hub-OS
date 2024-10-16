@@ -475,6 +475,36 @@ impl CardSelectState {
             }
         }
 
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return;
+        };
+
+        if player.card_select_blocked {
+            return;
+        }
+
+        // see if a script confirmed our selection for us
+        if player.staged_items.confirmed() {
+            selection.confirm_time = self.time;
+            selection.recipe_animation = CardRecipeAnimation::try_new(game_io, resources, player);
+
+            // activate card select close components
+            for (_, component) in &simulation.components {
+                if component.entity == entity_id
+                    && component.lifetime == ComponentLifetime::CardSelectClose
+                {
+                    let callback = component.update_callback.clone();
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            simulation.call_pending_callbacks(game_io, resources);
+
+            // ignore input
+            return;
+        }
+
         if selection.form_open_time.is_some() {
             self.handle_form_input(game_io, resources, simulation, entity_id);
         } else {
@@ -598,34 +628,9 @@ impl CardSelectState {
             return;
         };
 
-        if player.card_select_blocked {
-            return;
-        }
-
         let player_index = player.index;
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
-
-        // see if a script confirmed our selection for us
-        if player.staged_items.confirmed() {
-            selection.confirm_time = self.time;
-            selection.recipe_animation = CardRecipeAnimation::try_new(game_io, resources, player);
-
-            // activate card select close components
-            for (_, component) in &simulation.components {
-                if component.entity == entity_id
-                    && component.lifetime == ComponentLifetime::CardSelectClose
-                {
-                    let callback = component.update_callback.clone();
-                    simulation.pending_callbacks.push(callback);
-                }
-            }
-
-            simulation.call_pending_callbacks(game_io, resources);
-
-            // ignore input
-            return;
-        }
 
         let globals = game_io.resource::<Globals>().unwrap();
         let previous_item = resolve_selected_item(player, selection);
