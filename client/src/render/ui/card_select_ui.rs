@@ -60,6 +60,7 @@ impl CardSelectUi {
         animator.set_state("STANDARD_FRAME");
 
         let mut card_frame_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+        card_frame_node.set_layer(2);
         card_frame_node.set_texture_direct(texture.clone());
         card_frame_node.apply_animation(&animator);
         let card_frame_index = sprites.insert_root_child(card_frame_node);
@@ -68,6 +69,7 @@ impl CardSelectUi {
         animator.set_state("FORM_TAB");
 
         let mut form_list_node = SpriteNode::new(game_io, SpriteColorMode::Multiply);
+        form_list_node.set_layer(1);
         form_list_node.set_texture_direct(texture.clone());
         form_list_node.apply_animation(&animator);
         form_list_node.set_visible(false);
