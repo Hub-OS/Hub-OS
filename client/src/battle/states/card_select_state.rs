@@ -113,7 +113,7 @@ impl State for CardSelectState {
 
             // handle frame 0 scripted confirmation
             let mut pre_confirmed = false;
-            for (_, player) in simulation.entities.query_mut::<&mut Player>() {
+            for (id, player) in simulation.entities.query_mut::<&mut Player>() {
                 if !player.staged_items.confirmed() {
                     continue;
                 }
@@ -127,7 +127,18 @@ impl State for CardSelectState {
                 selection.confirm_time = -CardSelectUi::SLIDE_DURATION;
                 selection.recipe_animation =
                     CardRecipeAnimation::try_new(game_io, resources, player);
+
+                for (_, component) in &simulation.components {
+                    if component.entity == id.into()
+                        && component.lifetime == ComponentLifetime::CardSelectClose
+                    {
+                        let callback = component.update_callback.clone();
+                        simulation.pending_callbacks.push(callback);
+                    }
+                }
             }
+
+            simulation.call_pending_callbacks(game_io, resources);
 
             // sfx
             if !pre_confirmed {
