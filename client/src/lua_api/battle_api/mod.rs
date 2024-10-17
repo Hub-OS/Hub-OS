@@ -158,4 +158,4 @@ pub const END_FN: &str = "on_end_func";
 // naming conflicts with table names are avoided by using snake_case
 pub const VM_INDEX_REGISTRY_KEY: &str = "vm_index";
 const TILE_CACHE_REGISTRY_KEY: &str = "tiles";
-pub const GAME_FOLDER_KEY: &str = "game_folder";
+pub const GAME_FOLDER_REGISTRY_KEY: &str = "game_folder";

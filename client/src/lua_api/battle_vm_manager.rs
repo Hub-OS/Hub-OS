@@ -1,4 +1,4 @@
-use super::{inject_internal_scripts, GAME_FOLDER_KEY, VM_INDEX_REGISTRY_KEY};
+use super::{inject_internal_scripts, GAME_FOLDER_REGISTRY_KEY, VM_INDEX_REGISTRY_KEY};
 use crate::battle::{
     BattleCallback, BattleScriptContext, BattleSimulation, RollbackVM, SharedBattleResources,
 };
@@ -243,7 +243,7 @@ fn load_root_script(
         ResourcePaths::clean_folder(&package_info.base_path),
     )?;
 
-    lua.set_named_registry_value(GAME_FOLDER_KEY, ResourcePaths::game_folder())?;
+    lua.set_named_registry_value(GAME_FOLDER_REGISTRY_KEY, ResourcePaths::game_folder())?;
 
     let chunk = lua
         .load(&script_source)

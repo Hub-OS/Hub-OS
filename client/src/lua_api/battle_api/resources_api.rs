@@ -1,4 +1,4 @@
-use super::{BattleLuaApi, ENTITY_TABLE, GAME_FOLDER_KEY, RESOURCES_TABLE};
+use super::{BattleLuaApi, ENTITY_TABLE, GAME_FOLDER_REGISTRY_KEY, RESOURCES_TABLE};
 use crate::battle::Player;
 use crate::bindable::{AudioBehavior, EntityId};
 use crate::lua_api::helpers::absolute_path;
@@ -94,7 +94,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(RESOURCES_TABLE, "game_folder", |_, lua, _| {
-        let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_KEY)?;
+        let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_REGISTRY_KEY)?;
         lua.pack_multi(path_str)
     });
 }
