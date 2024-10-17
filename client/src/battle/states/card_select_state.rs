@@ -476,12 +476,38 @@ impl CardSelectState {
         }
 
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((entity, player)) =
+            entities.query_one_mut::<(&Entity, &mut Player)>(entity_id.into())
+        else {
             return;
         };
 
         if player.card_select_blocked {
             return;
+        }
+
+        let input = &simulation.inputs[player_index];
+
+        // test for deletion
+        if entity.deleted || input.fleeing() || input.disconnected() {
+            // confirm
+            selection.confirm_time = self.time;
+            player.staged_items.set_confirmed(true);
+
+            // clear selection
+            while let Some(popped) = player.staged_items.pop() {
+                if let StagedItemData::Form((index, ..)) = popped.data {
+                    if let Some(callback) = &player.forms[index].deselect_callback {
+                        simulation.pending_callbacks.push(callback.clone());
+                    }
+                }
+
+                if let Some(callback) = popped.undo_callback {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
+            // fall through for the script confirmation test
         }
 
         // see if a script confirmed our selection for us
@@ -739,30 +765,6 @@ impl CardSelectState {
 
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
-
-        if input.fleeing() || input.disconnected() {
-            let entities = &mut simulation.entities;
-            let player = entities
-                .query_one_mut::<&mut Player>(entity_id.into())
-                .unwrap();
-
-            // confirm
-            selection.confirm_time = self.time;
-            player.staged_items.set_confirmed(true);
-
-            // clear selection
-            while let Some(popped) = player.staged_items.pop() {
-                if let StagedItemData::Form((index, ..)) = popped.data {
-                    if let Some(callback) = &player.forms[index].deselect_callback {
-                        simulation.pending_callbacks.push(callback.clone());
-                    }
-                }
-
-                if let Some(callback) = popped.undo_callback {
-                    simulation.pending_callbacks.push(callback);
-                }
-            }
-        }
 
         if selection.local && !simulation.is_resimulation && selection.confirm_time == 0 {
             // dealing with signals
