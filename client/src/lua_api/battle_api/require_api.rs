@@ -1,21 +1,28 @@
-use super::{BattleLuaApi, GLOBAL_TABLE};
+use super::{BattleLuaApi, GLOBAL_TABLE, LOADED_REGISTRY_KEY, MODULES_REGISTRY_KEY};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 
 pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_static_injector(|lua| {
+        lua.set_named_registry_value(LOADED_REGISTRY_KEY, lua.create_table()?)?;
+        lua.set_named_registry_value(MODULES_REGISTRY_KEY, lua.create_table()?)?;
+
+        Ok(())
+    });
+
     lua_api.add_dynamic_function(GLOBAL_TABLE, "require", |api_ctx, lua, params| {
         let path: String = lua.unpack_multi(params)?;
 
-        let (source_path, source) = {
-            let api_ctx = api_ctx.borrow();
-            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+        let api_ctx = api_ctx.borrow();
+        let globals = api_ctx.game_io.resource::<Globals>().unwrap();
 
+        let path = {
             // try to resolve from library packages
             let vms = api_ctx.resources.vm_manager.vms();
             let ns = vms[api_ctx.vm_index].preferred_namespace();
 
             let package_id = path.into();
 
-            let source_path = if let Some(package) = globals
+            if let Some(package) = globals
                 .library_packages
                 .package_or_fallback(ns, &package_id)
             {
@@ -33,22 +40,51 @@ pub fn inject_require_api(lua_api: &mut BattleLuaApi) {
                 }
 
                 ResourcePaths::clean(&path)
-            };
-
-            let source = globals.assets.text(&source_path);
-
-            (source_path, source)
+            }
         };
+
+        // see if this module is already loaded
+        let loaded_table: rollback_mlua::Table = lua.named_registry_value(LOADED_REGISTRY_KEY)?;
+        let modules_table: rollback_mlua::Table = lua.named_registry_value(MODULES_REGISTRY_KEY)?;
+
+        if let Ok(true) = loaded_table.raw_get::<_, bool>(path.as_str()) {
+            // return existing module
+            let module = modules_table.raw_get::<_, rollback_mlua::Table>(path)?;
+            let mut multi = lua.pack_multi(())?;
+
+            for i in (1..=module.raw_len()).rev() {
+                multi.push_front(module.raw_get(i)?);
+            }
+
+            return lua.pack_multi(multi);
+        };
+
+        // mark as loaded
+        loaded_table.raw_set(path.as_str(), true)?;
+
+        let source = globals.assets.text(&path);
+
+        // drop api_ctx to allow the module to borrow it
+        std::mem::drop(api_ctx);
 
         let metatable = lua.globals().get_metatable();
 
         let env = lua.create_table()?;
         env.set_metatable(metatable);
-        env.set("_folder_path", ResourcePaths::parent(&source_path))?;
+        env.set("_folder_path", ResourcePaths::parent(&path))?;
 
-        lua.load(&source)
-            .set_name(ResourcePaths::shorten(&source_path))
+        let result: rollback_mlua::Result<rollback_mlua::MultiValue> = lua
+            .load(&source)
+            .set_name(ResourcePaths::shorten(&path))
             .set_environment(env)
-            .call(())
+            .call(());
+
+        if let Ok(multi) = &result {
+            // store module
+            let table = lua.create_sequence_from(multi.iter().cloned())?;
+            modules_table.raw_set(path.as_str(), table)?;
+        }
+
+        result
     });
 }
