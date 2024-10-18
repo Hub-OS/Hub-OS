@@ -463,6 +463,18 @@ fn parse_text_style(
 
     text_style.monospace = table.get::<_, bool>("monospace").unwrap_or_default();
 
+    if let Ok(width) = table.get("min_glyph_width") {
+        text_style.min_glyph_width = width;
+    }
+
+    if let Ok(spacing) = table.get("letter_spacing") {
+        text_style.letter_spacing = spacing;
+    }
+
+    if let Ok(spacing) = table.get("line_spacing") {
+        text_style.line_spacing = spacing;
+    }
+
     // make sure the font name exists in the glyph map to reduce confusion
     if !text_style.glyph_atlas.contains_font(&text_style.font) {
         return Err(invalid_font_name(font_name));
