@@ -436,7 +436,7 @@ impl Living {
             let entities = &mut simulation.entities;
             let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
                 // not Living, without any auxprops we can just skip this loop
-                return None;
+                return Some(index);
             };
 
             let mut intercept_callback = None;
