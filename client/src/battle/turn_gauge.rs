@@ -4,6 +4,7 @@ use framework::prelude::{GameIO, Rect, Sprite, Vec2};
 
 #[derive(Clone)]
 pub struct TurnGauge {
+    enabled: bool,
     time: FrameTime,
     max_time: FrameTime,
     animator: Animator,
@@ -27,6 +28,7 @@ impl TurnGauge {
         animator.apply(&mut container_sprite);
 
         Self {
+            enabled: true,
             time: 0,
             max_time: Self::DEFAULT_MAX_TIME,
             animator,
@@ -36,13 +38,24 @@ impl TurnGauge {
         }
     }
 
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+    }
+
     pub fn increment_time(&mut self) {
-        self.time = self.max_time.min(self.time + 1);
+        if self.enabled {
+            self.time = self.max_time.min(self.time + 1);
+        }
+
         self.animator.update();
     }
 
     pub fn set_completed_turn(&mut self, value: bool) {
-        self.completed_turn = value;
+        self.completed_turn = value && self.enabled;
     }
 
     pub fn completed_turn(&self) -> bool {
@@ -90,6 +103,10 @@ impl TurnGauge {
     }
 
     pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        if !self.enabled {
+            return;
+        }
+
         sprite_queue.draw_sprite(&self.container_sprite);
 
         // update animation

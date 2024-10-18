@@ -3,6 +3,20 @@ use crate::battle::TurnGauge;
 use crate::render::*;
 
 pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "enabled", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.turn_gauge.enabled())
+    });
+
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "set_enabled", |api_ctx, lua, params| {
+        let enabled = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        api_ctx.simulation.turn_gauge.set_enabled(enabled);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "frozen", |api_ctx, lua, _| {
         let api_ctx = api_ctx.borrow();
         let time_freeze_tracker = &api_ctx.simulation.time_freeze_tracker;
@@ -54,10 +68,20 @@ pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "current_turn", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.statistics.turns)
+    });
+
     lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "complete_turn", |api_ctx, lua, _| {
         let mut api_ctx = api_ctx.borrow_mut();
         api_ctx.simulation.turn_gauge.set_completed_turn(true);
 
         lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "turn_limit", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.config.turn_limit)
     });
 }
