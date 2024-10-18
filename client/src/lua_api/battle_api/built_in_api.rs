@@ -6,7 +6,7 @@ use crate::battle::{AttackBox, BattleCallback, Component, Entity, Spell};
 use crate::bindable::{ComponentLifetime, EntityId};
 use crate::lua_api::{
     create_entity_table, BattleVmManager, AUGMENT_TABLE, AUX_PROP_TABLE, ENTITY_TABLE,
-    PLAYER_FORM_TABLE, TEXT_STYLE_TABLE,
+    FORM_ELEMENT_WEAKNESS_AUX_TABLE, PLAYER_FORM_TABLE, TEXT_STYLE_TABLE,
 };
 use crate::render::FrameTime;
 
@@ -129,6 +129,11 @@ pub fn inject_internal_scripts(vm_manager: &mut BattleVmManager) -> rollback_mlu
 pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
     built_in_table!(lua_api, "buster", BUSTER_TABLE);
     built_in_table!(lua_api, "standard_enemy_aux", STANDARD_ENEMY_AUX_TABLE);
+    built_in_table!(
+        lua_api,
+        "form_elemental_weakness_aux",
+        FORM_ELEMENT_WEAKNESS_AUX_TABLE
+    );
     built_in_table!(lua_api, "hitbox", HITBOX_TABLE);
     built_in_table!(lua_api, "aux_prop", AUX_PROP_TABLE);
     built_in_table!(lua_api, "text_style", TEXT_STYLE_TABLE);

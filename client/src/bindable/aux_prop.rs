@@ -237,6 +237,7 @@ impl AuxRequirement {
 #[derive(Default, Clone)]
 pub enum AuxEffect {
     UpdateContext(BattleCallback<EntityId>),
+    DeactivateForm(),
     IncreaseCardDamage(i32),
     IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
@@ -262,19 +263,20 @@ impl AuxEffect {
     const fn priority(&self) -> usize {
         match self {
             AuxEffect::UpdateContext(..) => 0,
-            AuxEffect::IncreaseCardDamage(_) => 1,
-            AuxEffect::IncreaseCardMultiplier(_) => 2,
-            AuxEffect::InterceptAction(_) => 3,
-            AuxEffect::InterruptAction(_) => 4,
-            AuxEffect::StatusImmunity(_) => 5,
-            AuxEffect::ApplyStatus(_, _) => 6,
-            AuxEffect::RemoveStatus(_) => 7,
-            AuxEffect::IncreaseHitDamage(_) => 8,
-            AuxEffect::DecreaseHitDamage(_) => 9,
-            AuxEffect::DecreaseDamageSum(_) => 10,
-            AuxEffect::DrainHP(_) => 11,
-            AuxEffect::RecoverHP(_) => 12,
-            AuxEffect::None => 13,
+            AuxEffect::DeactivateForm() => 1,
+            AuxEffect::IncreaseCardDamage(_) => 2,
+            AuxEffect::IncreaseCardMultiplier(_) => 3,
+            AuxEffect::InterceptAction(_) => 4,
+            AuxEffect::InterruptAction(_) => 5,
+            AuxEffect::StatusImmunity(_) => 6,
+            AuxEffect::ApplyStatus(_, _) => 7,
+            AuxEffect::RemoveStatus(_) => 8,
+            AuxEffect::IncreaseHitDamage(_) => 9,
+            AuxEffect::DecreaseHitDamage(_) => 10,
+            AuxEffect::DecreaseDamageSum(_) => 11,
+            AuxEffect::DrainHP(_) => 12,
+            AuxEffect::RecoverHP(_) => 13,
+            AuxEffect::None => 14,
         }
     }
 
@@ -409,6 +411,7 @@ impl AuxEffect {
 
                 AuxEffect::UpdateContext(callback)
             }
+            "deactivate_form" => AuxEffect::DeactivateForm(),
             _ => {
                 return Err(rollback_mlua::Error::RuntimeError(String::from(
                     "invalid or missing AuxProp effect",

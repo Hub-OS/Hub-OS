@@ -54,6 +54,7 @@ end
 
 local eff_list = {
   "update_context",
+  "deactivate_form",
   "increase_card_multiplier",
   "increase_card_damage",
   "intercept_action",

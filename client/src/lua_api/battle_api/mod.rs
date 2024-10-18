@@ -79,6 +79,7 @@ pub const ALERT_TABLE: &str = "Alert";
 pub const TRAP_ALERT_TABLE: &str = "TrapAlert";
 pub const BUSTER_TABLE: &str = "Buster";
 pub const STANDARD_ENEMY_AUX_TABLE: &str = "StandardEnemyAux";
+pub const FORM_ELEMENT_WEAKNESS_AUX_TABLE: &str = "FormElementWeaknessAux";
 pub const HIT_PROPS_TABLE: &str = "HitProps";
 pub const HITBOX_TABLE: &str = "Hitbox";
 pub const SHARED_HITBOX_TABLE: &str = "SharedHitbox";
