@@ -10,4 +10,10 @@ function TextStyle.new(font, texture_path, animation_path)
   return t
 end
 
+function TextStyle.new_monospace(...)
+  local t = TextStyle.new(...)
+  t.monospace = true
+  return t
+end
+
 return TextStyle
