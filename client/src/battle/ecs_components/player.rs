@@ -192,8 +192,6 @@ impl Player {
                     return;
                 };
 
-                // let form = player.forms.get_mut(form_index);
-
                 PlayerForm::deactivate(simulation, id, form_index);
             }));
         living.add_aux_prop(decross_aux_prop);
