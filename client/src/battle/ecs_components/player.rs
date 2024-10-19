@@ -179,23 +179,6 @@ impl Player {
             }));
         living.add_aux_prop(statistics_aux_prop);
 
-        // AuxProp for decross
-        let decross_aux_prop = AuxProp::new()
-            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
-            .with_requirement(AuxRequirement::HitElementIsWeakness)
-            .with_callback(BattleCallback::new(move |_, _, simulation, _| {
-                let entities = &mut simulation.entities;
-                let player = entities.query_one_mut::<&Player>(id.into()).unwrap();
-
-                // deactivate form
-                let Some(form_index) = player.active_form else {
-                    return;
-                };
-
-                PlayerForm::deactivate(simulation, id, form_index);
-            }));
-        living.add_aux_prop(decross_aux_prop);
-
         // resolve health boost
         // todo: move to Augment?
         let grid = BlockGrid::new(namespace).with_blocks(game_io, blocks);

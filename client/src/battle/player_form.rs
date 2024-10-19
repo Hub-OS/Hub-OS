@@ -51,7 +51,6 @@ impl PlayerForm {
                 form.deactivated = true;
 
                 if let Some(callback) = form.deactivate_callback.clone() {
-                    println!("pushing form deactivate callback");
                     simulation.pending_callbacks.push(callback);
                 }
 
