@@ -554,6 +554,10 @@ impl CardSelectUi {
         sprite_queue.draw_sprite(&self.recycled_sprite);
     }
 
+    pub fn draw_final_turn_indicator(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        self.draw_state_at(sprite_queue, "FINAL_TURN", Vec2::ZERO);
+    }
+
     fn draw_state_at(&mut self, sprite_queue: &mut SpriteColorQueue, state: &str, position: Vec2) {
         self.animator.set_state(state);
         self.animator.set_loop_mode(AnimatorLoopMode::Loop);

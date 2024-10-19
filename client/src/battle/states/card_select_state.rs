@@ -383,7 +383,12 @@ impl State for CardSelectState {
             if let Some(animation) = &selection.recipe_animation {
                 // animate recipes
                 animation.draw(game_io, resources, sprite_queue, player);
-            } else if selection.confirm_time != 0 {
+            } else if selection.confirm_time == 0 {
+                // render indicators while the cust is open
+                if Some(simulation.statistics.turns) == simulation.config.turn_limit {
+                    self.ui.draw_final_turn_indicator(sprite_queue);
+                }
+            } else {
                 // render text to signal we're waiting on other players
                 const MARGIN_TOP: f32 = 38.0;
 

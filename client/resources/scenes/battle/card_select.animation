@@ -82,3 +82,7 @@ frame duration="50f" x="346" y="178" w="9" h="11" originx="9"
 animation state="REGULAR_FRAME"
 frame duration="8f" x="214" y="214" w="21" h="18" originx="-4" originy="-103"
 frame duration="8f" x="214" y="237" w="21" h="18" originx="-4" originy="-103"
+
+animation state="FINAL_TURN"
+frame duration="60f" x="235" y="131" w="54" h="12" originx="-121" originy="-36"
+blank duration="60f"

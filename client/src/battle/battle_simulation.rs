@@ -917,7 +917,7 @@ impl BattleSimulation {
             // draw emotion window relative to health ui
             let local_health_bounds = self.local_health_ui.bounds();
             let mut emotion_window_position = local_health_bounds.position();
-            emotion_window_position.y += local_health_bounds.height + 1.0;
+            emotion_window_position.y += local_health_bounds.height + 2.0;
 
             player.emotion_window.set_position(emotion_window_position);
             player.emotion_window.draw(sprite_queue);
