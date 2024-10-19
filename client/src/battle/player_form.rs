@@ -10,7 +10,6 @@ use std::sync::Arc;
 pub struct PlayerForm {
     pub activated: bool,
     pub deactivated: bool,
-    pub deactivate_on_weakness: bool,
     pub mug_texture: Option<Arc<Texture>>,
     pub description: Option<Arc<str>>,
     pub activate_callback: Option<BattleCallback>,

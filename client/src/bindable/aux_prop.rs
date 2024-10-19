@@ -409,7 +409,6 @@ impl AuxEffect {
 
                 AuxEffect::UpdateContext(callback)
             }
-
             _ => {
                 return Err(rollback_mlua::Error::RuntimeError(String::from(
                     "invalid or missing AuxProp effect",
