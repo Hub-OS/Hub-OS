@@ -23,6 +23,12 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     element_table.set("Summon", Element::Summon)?;
     element_table.set("Plus", Element::Plus)?;
     element_table.set("Break", Element::Break)?;
+
+    element_table.set(
+        "is_weak_to",
+        lua.create_function(|_, (a, b): (Element, Element)| Ok(a.is_weak_to(b)))?,
+    )?;
+
     globals.set("Element", element_table)?;
 
     use crate::bindable::Drag;
