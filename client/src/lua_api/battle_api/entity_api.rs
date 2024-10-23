@@ -69,12 +69,38 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(id)
     });
 
-    getter::<&Entity, _, _>(lua_api, "name", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(entity.name.clone())
+    lua_api.add_dynamic_function(ENTITY_TABLE, "name", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let name = simulation
+            .entities
+            .query_one_mut::<&EntityName>(id.into())
+            .map(|name| name.0.as_str())
+            .unwrap_or("");
+
+        lua.pack_multi(name)
     });
-    setter(lua_api, "set_name", |entity: &mut Entity, _, name| {
-        entity.name = name;
-        Ok(())
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "set_name", |api_ctx, lua, params| {
+        let (table, name): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        if name.is_empty() {
+            let _ = simulation.entities.remove_one::<EntityName>(id.into());
+        } else {
+            let _ = simulation.entities.insert_one(id.into(), EntityName(name));
+        }
+
+        lua.pack_multi(())
     });
 
     getter::<&Entity, _, _>(lua_api, "element", |entity: &Entity, lua, _: ()| {

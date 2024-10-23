@@ -125,6 +125,10 @@ impl Player {
         let namespace = setup.namespace();
         let id = Character::create(game_io, resources, simulation, CharacterRank::V1, namespace)?;
 
+        let _ = simulation
+            .entities
+            .insert_one(id.into(), EntityName(player_package.name.clone()));
+
         let (entity, living) = simulation
             .entities
             .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
@@ -141,7 +145,6 @@ impl Player {
 
         // use preloaded package properties
         entity.element = player_package.element;
-        entity.name.clone_from(&player_package.name);
 
         // idle callback
         entity.idle_callback = BattleCallback::new(move |_, _, simulation, _| {

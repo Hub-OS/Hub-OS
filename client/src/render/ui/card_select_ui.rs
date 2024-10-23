@@ -1,5 +1,7 @@
 use super::{FontName, TextStyle};
-use crate::battle::{BattleSimulation, CardSelectRestriction, Character, Entity, Player};
+use crate::battle::{
+    BattleSimulation, CardSelectRestriction, Character, Entity, EntityName, Player,
+};
 use crate::bindable::{CardClass, SpriteColorMode};
 use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::{
@@ -266,12 +268,15 @@ impl CardSelectUi {
         let mut y = 3.0;
 
         // draw names
-        for (_, (entity, character)) in simulation.entities.query_mut::<(&Entity, &Character)>() {
+        for (_, (entity, character, name)) in simulation
+            .entities
+            .query_mut::<(&Entity, &Character, &EntityName)>()
+        {
             if entity.team == simulation.local_team {
                 continue;
             }
 
-            let name = &entity.name;
+            let name = &name.0;
             let suffix = character.rank.suffix();
 
             // calculate size + position for text

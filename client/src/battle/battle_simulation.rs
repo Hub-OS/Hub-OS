@@ -134,6 +134,7 @@ impl BattleSimulation {
         clone_component!(Obstacle);
         clone_component!(Player);
         clone_component!(Spell);
+        clone_component!(EntityName);
         clone_component!(EntityShadow);
         clone_component!(EntityShadowVisible);
         clone_component!(HpDisplay);
@@ -207,27 +208,27 @@ impl BattleSimulation {
             self.statistics.health = living.health;
         }
 
-        for (_, (entity, living)) in entities.query_mut::<(&Entity, &Living)>() {
-            if entity.team == self.local_team && entity.id != self.local_player_id {
-                self.statistics.ally_survivors.push(BattleSurvivor {
-                    name: entity.name.clone(),
-                    health: living.health,
-                });
+        for (_, (entity, living, name)) in
+            entities.query_mut::<(&Entity, &Living, Option<&EntityName>)>()
+        {
+            if entity.id != self.local_player_id {
+                continue;
             }
 
-            if entity.team != self.local_team && entity.team != Team::Other {
-                self.statistics.enemy_survivors.push(BattleSurvivor {
-                    name: entity.name.clone(),
-                    health: living.health,
-                });
-            }
+            let survivor_list = if entity.team == self.local_team {
+                &mut self.statistics.ally_survivors
+            } else if entity.team != Team::Other {
+                &mut self.statistics.enemy_survivors
+            } else {
+                &mut self.statistics.neutral_survivors
+            };
 
-            if entity.team != self.local_team && entity.team == Team::Other {
-                self.statistics.neutral_survivors.push(BattleSurvivor {
-                    name: entity.name.clone(),
-                    health: living.health,
-                });
-            }
+            let name = name.map(|n| n.0.clone()).unwrap_or_default();
+
+            survivor_list.push(BattleSurvivor {
+                name,
+                health: living.health,
+            });
         }
 
         self.statistics.calculate_score();
