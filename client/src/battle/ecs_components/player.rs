@@ -717,11 +717,21 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
     ) {
-        // can't move if we're already moving
-        type Query<'a> = hecs::Without<(&'a mut Entity, &'a Living, &'a mut Player), &'a Movement>;
+        // exclude results with movement, since we can't move if we're already moving
+        type Query<'a> = hecs::Without<
+            (
+                &'a mut Entity,
+                &'a Living,
+                &'a mut Player,
+                Option<&'a ActionQueue>,
+            ),
+            &'a Movement,
+        >;
 
         let entities = &mut simulation.entities;
-        let Ok((entity, living, player)) = entities.query_one_mut::<Query>(entity_id.into()) else {
+        let Ok((entity, living, player, action_queue)) =
+            entities.query_one_mut::<Query>(entity_id.into())
+        else {
             return;
         };
 
@@ -732,10 +742,7 @@ impl Player {
 
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;
-        if entity.action_index.is_some()
-            || !entity.action_queue.is_empty()
-            || living.status_director.is_immobile(status_registry)
-        {
+        if action_queue.is_some() || living.status_director.is_immobile(status_registry) {
             return;
         }
 

@@ -3,7 +3,8 @@ use super::{
     HitFlags, HitProperties, MathExpr,
 };
 use crate::battle::{
-    ActionType, ActionTypes, BattleCallback, Character, Entity, Player, SharedBattleResources,
+    ActionQueue, ActionType, ActionTypes, BattleCallback, Character, Entity, Player,
+    SharedBattleResources,
 };
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
@@ -561,6 +562,7 @@ impl AuxProp {
         player: Option<&Player>,
         character: Option<&Character>,
         entity: &Entity,
+        action_queue: Option<&ActionQueue>,
     ) {
         let emotion = player.map(|player| player.emotion_window.emotion());
         let card = character.and_then(|character| character.cards.last());
@@ -621,7 +623,7 @@ impl AuxProp {
                 }
                 AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
                 AuxRequirement::Action(action_type_filter) => {
-                    *action_type_filter & entity.action_type != 0
+                    action_queue.is_some_and(|q| q.action_type & *action_type_filter != 0)
                 }
                 _ => continue,
             };

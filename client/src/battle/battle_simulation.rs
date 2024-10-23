@@ -138,6 +138,7 @@ impl BattleSimulation {
         clone_component!(EntityShadowVisible);
         clone_component!(HpDisplay);
         clone_component!(Movement);
+        clone_component!(ActionQueue);
 
         Self {
             config: self.config.clone(),
@@ -371,7 +372,9 @@ impl BattleSimulation {
     }
 
     fn spawn_pending(&mut self) {
-        for (_, entity) in self.entities.query_mut::<&mut Entity>() {
+        type Query<'a> = (&'a mut Entity, Option<&'a ActionQueue>);
+
+        for (_, (entity, action_queue)) in self.entities.query_mut::<Query>() {
             if !entity.pending_spawn {
                 continue;
             }
@@ -381,7 +384,7 @@ impl BattleSimulation {
             entity.on_field = true;
 
             let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-            tile.handle_auto_reservation_addition(&self.actions, entity);
+            tile.handle_auto_reservation_addition(&self.actions, entity, action_queue);
 
             if entity.team == Team::Unset {
                 entity.team = tile.team();
@@ -929,9 +932,9 @@ impl BattleSimulation {
         // make sure card actions are being deleted
         let held_action_count = self
             .entities
-            .query_mut::<&Entity>()
+            .query_mut::<&ActionQueue>()
             .into_iter()
-            .filter(|(_, entity)| entity.action_index.is_some())
+            .filter(|(_, queue)| queue.active.is_some())
             .count();
 
         let executed_action_count = self
@@ -947,5 +950,14 @@ impl BattleSimulation {
         // scripters don't need to attach card actions to entities
         // we also can ignore async actions and time freeze
         assert!(held_action_count >= executed_action_count || time_is_frozen);
+
+        // make sure empty action queues are cleaned up
+        assert!(
+            self.entities
+                .query_mut::<&ActionQueue>()
+                .into_iter()
+                .all(|(_, queue)| queue.active.is_some() || !queue.pending.is_empty())
+                || time_is_frozen
+        );
     }
 }

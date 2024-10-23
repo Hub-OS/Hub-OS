@@ -132,10 +132,14 @@ impl Living {
         let entities = &mut simulation.entities;
 
         // gather body properties for aux props
-        let Ok((entity, living, player, character)) =
-            entities.query_one_mut::<(&Entity, &mut Living, Option<&Player>, Option<&Character>)>(
-                entity_id.into(),
-            )
+        let Ok((entity, living, player, character, action_queue)) =
+            entities.query_one_mut::<(
+                &Entity,
+                &mut Living,
+                Option<&Player>,
+                Option<&Character>,
+                Option<&ActionQueue>,
+            )>(entity_id.into())
         else {
             return;
         };
@@ -150,7 +154,7 @@ impl Living {
             // thus can't depend on their own timers
             let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
             aux_prop.process_time(time_frozen, simulation.battle_time);
-            aux_prop.process_body(player, character, entity);
+            aux_prop.process_body(player, character, entity, action_queue);
 
             for hit_props in &mut hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
@@ -676,18 +680,22 @@ impl Living {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
+        let id = entity_id.into();
+
+        ActionQueue::ensure(entities, entity_id);
 
         // gather body properties for aux props
-        let Ok((entity, living, player, character)) = entities.query_one_mut::<(
+        let Ok((entity, living, player, character, action_queue)) = entities.query_one_mut::<(
             &mut Entity,
             &mut Living,
             Option<&Player>,
             Option<&Character>,
-        )>(entity_id.into()) else {
+            &mut ActionQueue,
+        )>(id) else {
             return;
         };
 
-        entity.action_type = action_type;
+        action_queue.action_type = action_type;
         entity.attack_context = AttackContext::default();
 
         if player.is_some() && action_type != ActionType::CARD {
@@ -702,7 +710,7 @@ impl Living {
         aux_props.sort_by_key(|aux_prop| aux_prop.priority());
 
         for aux_prop in aux_props {
-            aux_prop.process_body(player, character, entity);
+            aux_prop.process_body(player, character, entity, Some(action_queue));
 
             if !aux_prop.passed_all_tests() {
                 continue;

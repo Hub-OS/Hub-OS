@@ -1,6 +1,6 @@
 use super::{
-    BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character, Entity,
-    Field, Living, Movement, Player, SharedBattleResources,
+    ActionQueue, BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character,
+    Entity, Field, Living, Movement, Player, SharedBattleResources,
 };
 use crate::bindable::{
     ActionLockout, AttackContext, CardProperties, EntityId, GenerationalIndex, HitFlag,
@@ -289,8 +289,12 @@ impl Action {
         index: GenerationalIndex,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((entity, character)) =
-            entities.query_one_mut::<(&mut Entity, Option<&mut Character>)>(entity_id.into())
+        let id = entity_id.into();
+
+        ActionQueue::ensure(entities, entity_id);
+
+        let Ok((character, action_queue)) =
+            entities.query_one_mut::<(Option<&mut Character>, &mut ActionQueue)>(id)
         else {
             return;
         };
@@ -302,9 +306,9 @@ impl Action {
         let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
         if time_is_frozen && action.properties.time_freeze {
-            entity.action_queue.push_front(index);
+            action_queue.pending.push_front(index);
         } else {
-            entity.action_queue.push_back(index);
+            action_queue.pending.push_back(index);
         }
 
         if let Some(character) = character {
@@ -330,13 +334,20 @@ impl Action {
             return;
         };
 
-        // queue action
         let entities = &mut simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+        let id = entity_id.into();
+
+        // queue action
+        let Ok(action_queue) = entities.query_one_mut::<&mut ActionQueue>(id) else {
+            // create a new queue
+            let mut action_queue = ActionQueue::default();
+            action_queue.pending.push_back(action_index);
+            let _ = entities.insert_one(id, action_queue);
             return;
         };
 
-        entity.action_queue.push_back(action_index);
+        // push to existing queue
+        action_queue.pending.push_back(action_index);
     }
 
     pub fn cancel_all(
@@ -346,13 +357,13 @@ impl Action {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+        let Ok(action_queue) = entities.query_one_mut::<&mut ActionQueue>(entity_id.into()) else {
             return;
         };
 
-        let mut indices = std::mem::take(&mut entity.action_queue);
+        let mut indices = std::mem::take(&mut action_queue.pending);
 
-        if let Some(index) = entity.action_index {
+        if let Some(index) = action_queue.active {
             indices.push_back(index);
         }
 
@@ -382,10 +393,10 @@ impl Action {
         let polled_freezer = time_freeze_tracker.polled_entity();
 
         let ids: Vec<_> = entities
-            .query_mut::<&Entity>()
+            .query_mut::<(&Entity, &ActionQueue)>()
             .into_iter()
-            .filter(|(_, entity)| {
-                let Some(action_index) = entity.action_queue.front() else {
+            .filter(|(_, (entity, action_queue))| {
+                let Some(action_index) = action_queue.pending.front() else {
                     // no actions queued
                     return false;
                 };
@@ -408,7 +419,7 @@ impl Action {
 
                 // we can't process an action if the entity is already in an action
                 // unless we have a time freeze exception
-                let already_has_action = entity.action_index.is_some();
+                let already_has_action = action_queue.active.is_some();
                 let can_process = (!time_is_frozen && !already_has_action)
                     || time_freeze_counter
                     || freeze_continuation;
@@ -427,11 +438,11 @@ impl Action {
 
         for id in ids {
             let entities = &mut simulation.entities;
-            let Ok(entity) = entities.query_one_mut::<&mut Entity>(id) else {
+            let Ok(action_queue) = entities.query_one_mut::<&mut ActionQueue>(id) else {
                 continue;
             };
 
-            let Some(index) = entity.action_queue.pop_front() else {
+            let Some(index) = action_queue.pending.pop_front() else {
                 continue;
             };
 
@@ -453,7 +464,9 @@ impl Action {
             }
 
             let entities = &mut simulation.entities;
-            let entity = entities.query_one_mut::<&mut Entity>(id).unwrap();
+            let (entity, action_queue) = entities
+                .query_one_mut::<(&mut Entity, &mut ActionQueue)>(id)
+                .unwrap();
 
             if action.entity != entity.id {
                 continue;
@@ -471,7 +484,7 @@ impl Action {
                     Action::delete_multi(game_io, resources, simulation, [action_index]);
                 }
             } else {
-                entity.action_index = Some(index);
+                action_queue.active = Some(index);
             }
         }
 
@@ -516,8 +529,10 @@ impl Action {
             let entities = &mut simulation.entities;
             let entity_id = action.entity;
 
-            let Ok((entity, movement)) =
-                entities.query_one_mut::<(&mut Entity, Option<&Movement>)>(entity_id.into())
+            let Ok((entity, action_queue, movement)) =
+                entities.query_one_mut::<(&mut Entity, &mut ActionQueue, Option<&Movement>)>(
+                    entity_id.into(),
+                )
             else {
                 continue;
             };
@@ -534,9 +549,9 @@ impl Action {
                     continue;
                 }
 
-                if entity.action_type == ActionType::NONE {
+                if action_queue.action_type == ActionType::NONE {
                     // the action was prompted by script, not by the engine
-                    entity.action_type = ActionType::SCRIPT;
+                    action_queue.action_type = ActionType::SCRIPT;
                 }
 
                 if !simulation.is_entity_actionable(resources, entity_id) {
@@ -580,12 +595,12 @@ impl Action {
 
             let animation_completed = simulation.animators[animator_index].is_complete();
 
-            let entity = simulation
+            let action_queue = simulation
                 .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
+                .query_one_mut::<&mut ActionQueue>(action.entity.into())
                 .unwrap();
 
-            if action.is_async() && animation_completed && entity.action_index == Some(action_index)
+            if action.is_async() && animation_completed && action_queue.active == Some(action_index)
             {
                 // async action completed sync portion
                 action.complete_sync(
@@ -637,17 +652,17 @@ impl Action {
             action.deleted = true;
 
             // remove the index from the entity
-            let entity = simulation
+            if let Ok(action_queue) = simulation
                 .entities
-                .query_one_mut::<&mut Entity>(action.entity.into())
-                .unwrap();
-
-            if entity.action_index == Some(index) {
-                action.complete_sync(
-                    &mut simulation.entities,
-                    &mut simulation.pending_callbacks,
-                    &mut simulation.field,
-                );
+                .query_one_mut::<&mut ActionQueue>(action.entity.into())
+            {
+                if action_queue.active == Some(index) {
+                    action.complete_sync(
+                        &mut simulation.entities,
+                        &mut simulation.pending_callbacks,
+                        &mut simulation.field,
+                    );
+                }
             }
 
             // end callback
@@ -658,9 +673,11 @@ impl Action {
             let action = simulation.actions.get(index).unwrap();
 
             // remove attachments from the entity
-            let (entity, player) = simulation
+            let (entity, player, action_queue) = simulation
                 .entities
-                .query_one_mut::<(&mut Entity, Option<&Player>)>(action.entity.into())
+                .query_one_mut::<(&mut Entity, Option<&Player>, Option<&ActionQueue>)>(
+                    action.entity.into(),
+                )
                 .unwrap();
 
             if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
@@ -675,8 +692,7 @@ impl Action {
             simulation.actions.remove(index);
 
             // reset hit context
-            if entity.action_index.is_none() && entity.action_queue.is_empty() {
-                entity.action_type = ActionType::NONE;
+            if action_queue.is_none() {
                 entity.attack_context = AttackContext::default();
                 entity.attack_context.flags = if player.is_some() {
                     HitFlag::NO_COUNTER
@@ -695,11 +711,16 @@ impl Action {
         pending_callbacks: &mut Vec<BattleCallback>,
         field: &mut Field,
     ) {
-        let entity_id = self.entity.into();
-        let entity = entities.query_one_mut::<&mut Entity>(entity_id).unwrap();
+        let id = self.entity.into();
+        let Ok((entity, action_queue)) =
+            entities.query_one_mut::<(&mut Entity, &mut ActionQueue)>(id)
+        else {
+            log::error!("Entity or ActionQueue deleted before Action::complete_sync()?");
+            return;
+        };
 
         // unset action_index to allow other actions to be used
-        entity.action_index = None;
+        action_queue.active = None;
 
         // update reservations as they're ignored while in a sync action
         if self.executed && entity.auto_reserves_tiles {
@@ -711,6 +732,10 @@ impl Action {
         }
 
         pending_callbacks.push(entity.idle_callback.clone());
+
+        if action_queue.active.is_none() && action_queue.pending.is_empty() {
+            let _ = entities.remove_one::<ActionQueue>(id);
+        }
     }
 }
 

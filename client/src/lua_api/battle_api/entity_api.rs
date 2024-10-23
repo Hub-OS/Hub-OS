@@ -537,11 +537,12 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
 
         let id: EntityId = table.raw_get("#id")?;
-        let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
-            return lua.pack_multi(false);
-        };
+        let has_action_queue = simulation
+            .entities
+            .satisfies::<&ActionQueue>(id.into())
+            .unwrap_or_default();
 
-        lua.pack_multi(entity.action_index.is_some() || !entity.action_queue.is_empty())
+        lua.pack_multi(has_action_queue)
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {

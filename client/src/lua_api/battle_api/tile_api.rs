@@ -1,7 +1,8 @@
 use super::errors::{entity_not_found, invalid_tile};
 use super::{create_entity_table, BattleLuaApi, TILE_CACHE_REGISTRY_KEY, TILE_TABLE};
 use crate::battle::{
-    BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile, TileState,
+    ActionQueue, BattleScriptContext, Character, Entity, Field, Obstacle, Player, Spell, Tile,
+    TileState,
 };
 use crate::bindable::{Direction, EntityId, Team, TileHighlight};
 use crate::lua_api::helpers::inherit_metatable;
@@ -393,8 +394,8 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
+        let (entity, action_queue) = entities
+            .query_one_mut::<(&mut Entity, Option<&ActionQueue>)>(entity_id.into())
             .map_err(|_| entity_not_found())?;
 
         if !entity.spawned {
@@ -405,7 +406,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let field = &mut simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-        current_tile.handle_auto_reservation_removal(actions, entity);
+        current_tile.handle_auto_reservation_removal(actions, entity, action_queue);
 
         let old_x = entity.x;
         let old_y = entity.y;
@@ -419,7 +420,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         entity.y = y;
 
         let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.handle_auto_reservation_addition(actions, entity);
+        tile.handle_auto_reservation_addition(actions, entity, action_queue);
 
         let new_state = tile.state_index();
         let enter_callback = simulation.tile_states[new_state]

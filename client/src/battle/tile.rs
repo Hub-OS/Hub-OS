@@ -1,4 +1,4 @@
-use super::{Action, Entity, TileState};
+use super::{Action, ActionQueue, Entity, TileState};
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::resources::{TEMP_TEAM_DURATION, TILE_FLICKER_DURATION};
@@ -186,8 +186,9 @@ impl Tile {
         &mut self,
         actions: &DenseSlotMap<Action>,
         entity: &Entity,
+        action_queue: Option<&ActionQueue>,
     ) {
-        if !Self::can_auto_reserve(actions, entity) {
+        if !Self::can_auto_reserve(actions, entity, action_queue) {
             return;
         }
 
@@ -198,20 +199,25 @@ impl Tile {
         &mut self,
         actions: &DenseSlotMap<Action>,
         entity: &Entity,
+        action_queue: Option<&ActionQueue>,
     ) {
-        if !Self::can_auto_reserve(actions, entity) {
+        if !Self::can_auto_reserve(actions, entity, action_queue) {
             return;
         }
 
         self.remove_reservation_for(entity.id);
     }
 
-    fn can_auto_reserve(actions: &DenseSlotMap<Action>, entity: &Entity) -> bool {
+    fn can_auto_reserve(
+        actions: &DenseSlotMap<Action>,
+        entity: &Entity,
+        action_queue: Option<&ActionQueue>,
+    ) -> bool {
         if !entity.auto_reserves_tiles {
             return false;
         }
 
-        if let Some(index) = entity.action_index {
+        if let Some(index) = action_queue.and_then(|q| q.active) {
             // synchronous card action
             let action = &actions[index];
 

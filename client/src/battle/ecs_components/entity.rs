@@ -3,7 +3,6 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::structures::SlotMap;
 use framework::prelude::*;
-use std::collections::VecDeque;
 
 #[derive(Clone, Copy)]
 pub struct FullEntityPosition {
@@ -39,9 +38,6 @@ pub struct Entity {
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
-    pub action_queue: VecDeque<GenerationalIndex>,
-    pub action_index: Option<GenerationalIndex>,
-    pub action_type: ActionTypes,
     pub local_components: Vec<GenerationalIndex>,
     pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
     pub spawn_callback: BattleCallback,
@@ -95,9 +91,6 @@ impl Entity {
             time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
-            action_queue: VecDeque::new(),
-            action_index: None,
-            action_type: ActionType::NONE,
             local_components: Vec::new(),
             can_move_to_callback: BattleCallback::stub(false),
             update_callback: BattleCallback::stub(()),
@@ -140,12 +133,14 @@ impl Entity {
         position: (i32, i32),
     ) -> bool {
         let entities = &mut simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+        let Ok((entity, action_queue)) =
+            entities.query_one_mut::<(&Entity, Option<&ActionQueue>)>(entity_id.into())
+        else {
             return false;
         };
 
         let entity_callback = entity.can_move_to_callback.clone();
-        let Some(index) = entity.action_index else {
+        let Some(index) = action_queue.and_then(|q| q.active) else {
             return entity_callback.call(game_io, resources, simulation, position);
         };
 

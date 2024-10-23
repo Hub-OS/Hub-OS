@@ -1,5 +1,6 @@
 use super::{
-    Action, BattleAnimator, BattleSimulation, Entity, Living, Movement, SharedBattleResources,
+    Action, ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement,
+    SharedBattleResources,
 };
 use crate::bindable::{EntityId, HitFlags};
 use crate::render::FrameTime;
@@ -9,7 +10,7 @@ use framework::prelude::GameIO;
 #[derive(Clone)]
 pub struct TimeFreezeEntityBackup {
     pub entity_id: EntityId,
-    pub action_index: Option<GenerationalIndex>,
+    pub action_queue: ActionQueue,
     pub movement: Option<Movement>,
     pub animator: BattleAnimator,
     pub statuses: Vec<(HitFlags, FrameTime)>,
@@ -22,8 +23,13 @@ impl TimeFreezeEntityBackup {
         action_index: GenerationalIndex,
     ) -> Option<Self> {
         let entities = &mut simulation.entities;
-        let Ok((entity, living)) =
-            entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(entity_id.into())
+
+        ActionQueue::ensure(entities, entity_id);
+
+        let Ok((entity, living, action_queue)) =
+            entities.query_one_mut::<(&mut Entity, Option<&mut Living>, &mut ActionQueue)>(
+                entity_id.into(),
+            )
         else {
             return None;
         };
@@ -31,8 +37,8 @@ impl TimeFreezeEntityBackup {
         entity.time_frozen = false;
 
         // swap action index
-        let old_action_index = entity.action_index;
-        entity.action_index = Some(action_index);
+        let old_action_queue = std::mem::take(action_queue);
+        action_queue.active = Some(action_index);
 
         // back up animator
         let animator = &mut simulation.animators[entity.animator_index];
@@ -70,7 +76,7 @@ impl TimeFreezeEntityBackup {
 
         Some(Self {
             entity_id,
-            action_index: old_action_index,
+            action_queue: old_action_queue,
             movement,
             animator: animator_backup,
             statuses,
@@ -83,20 +89,18 @@ impl TimeFreezeEntityBackup {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        // delete action if it still exists
+        Action::cancel_all(game_io, resources, simulation, self.entity_id);
+
+        // restore action queue
+        let entities = &mut simulation.entities;
         let id = self.entity_id.into();
 
-        // delete action if it still exists
-        let entities = &mut simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&mut Entity>(id) else {
-            return;
-        };
-
-        if let Some(index) = entity.action_index {
-            Action::delete_multi(game_io, resources, simulation, [index]);
+        if self.action_queue.active.is_some() || !self.action_queue.pending.is_empty() {
+            let _ = entities.insert_one(id, self.action_queue);
         }
 
         // fully restore the entity
-        let entities = &mut simulation.entities;
         let Ok((entity, living)) = entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
         else {
             return;
@@ -104,9 +108,6 @@ impl TimeFreezeEntityBackup {
 
         // freeze the entity again
         entity.time_frozen = true;
-
-        // restore the action
-        entity.action_index = self.action_index;
 
         // restore animator
         simulation.animators[entity.animator_index] = self.animator;

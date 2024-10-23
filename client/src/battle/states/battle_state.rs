@@ -891,13 +891,15 @@ impl BattleState {
                 }
 
                 // refetch entity to satisfy lifetime requirements
-                let Ok(tuple) = simulation
-                    .entities
-                    .query_one_mut::<(&mut Entity, &mut Movement)>(id)
+                let Ok(tuple) =
+                    simulation
+                        .entities
+                        .query_one_mut::<(&mut Entity, &mut Movement, Option<&ActionQueue>)>(id)
                 else {
                     continue;
                 };
-                (entity, movement) = tuple;
+                (entity, movement, _) = tuple;
+                let action_queue = tuple.2;
 
                 // update tile position
                 entity.x = dest.0;
@@ -905,7 +907,11 @@ impl BattleState {
                 movement.success = true;
 
                 let start_tile = simulation.field.tile_at_mut(movement.source).unwrap();
-                start_tile.handle_auto_reservation_removal(&simulation.actions, entity);
+                start_tile.handle_auto_reservation_removal(
+                    &simulation.actions,
+                    entity,
+                    action_queue,
+                );
 
                 if !entity.ignore_negative_tile_effects {
                     let movement = movement.clone();
@@ -937,7 +943,11 @@ impl BattleState {
                 }
 
                 let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
-                current_tile.handle_auto_reservation_addition(&simulation.actions, entity);
+                current_tile.handle_auto_reservation_addition(
+                    &simulation.actions,
+                    entity,
+                    action_queue,
+                );
             }
 
             if movement.is_complete() {

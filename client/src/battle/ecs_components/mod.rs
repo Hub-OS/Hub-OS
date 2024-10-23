@@ -1,3 +1,4 @@
+mod action_queue;
 mod artifact;
 mod character;
 mod entity;
@@ -9,6 +10,7 @@ mod obstacle;
 mod player;
 mod spell;
 
+pub use action_queue::*;
 pub use artifact::*;
 pub use character::*;
 pub use entity::*;
