@@ -12,7 +12,12 @@ pub struct AttackBox {
 }
 
 impl AttackBox {
-    pub fn new_from((x, y): (i32, i32), entity: &Entity, spell: &Spell) -> Self {
+    pub fn new_from(
+        (x, y): (i32, i32),
+        entity_id: EntityId,
+        entity: &Entity,
+        spell: &Spell,
+    ) -> Self {
         let mut props = spell.hit_props.clone();
 
         // apply status durations from context
@@ -33,7 +38,7 @@ impl AttackBox {
         props.flags |= props.context.flags;
 
         Self {
-            attacker_id: entity.id,
+            attacker_id: entity_id,
             team: entity.team,
             x,
             y,

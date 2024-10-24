@@ -287,17 +287,17 @@ impl Character {
             // wait until movement ends before adding a card action
             // this is to prevent time freeze cards from applying during movement
             // process_action_queues only prevents non time freeze actions from starting until movements end
-            type Query<'a> =
-                hecs::Without<(&'a Entity, &'a mut Character, &'a mut Living), &'a Movement>;
+            type Query<'a> = hecs::Without<(&'a mut Character, &'a mut Living), &'a Movement>;
 
-            for (_, (entity, character, living)) in entities.query_mut::<Query>() {
+            for (id, (character, living)) in entities.query_mut::<Query>() {
                 if !character.card_use_requested {
                     continue;
                 }
 
+                let entity_id = id.into();
                 let action_processed = (simulation.actions)
                     .values()
-                    .any(|action| action.processed && action.entity == entity.id);
+                    .any(|action| action.processed && action.entity == entity_id);
 
                 if action_processed {
                     continue;
@@ -313,7 +313,7 @@ impl Character {
                 let callbacks = living.modify_used_card(card_properties);
                 simulation.pending_callbacks.extend(callbacks);
 
-                requesters.push(entity.id);
+                requesters.push(entity_id);
             }
 
             for requester in requesters {

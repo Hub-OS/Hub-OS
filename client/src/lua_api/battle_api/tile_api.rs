@@ -406,7 +406,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
         let field = &mut simulation.field;
         let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-        current_tile.handle_auto_reservation_removal(actions, entity, action_queue);
+        current_tile.handle_auto_reservation_removal(actions, entity_id, entity, action_queue);
 
         let old_x = entity.x;
         let old_y = entity.y;
@@ -420,7 +420,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         entity.y = y;
 
         let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.handle_auto_reservation_addition(actions, entity, action_queue);
+        tile.handle_auto_reservation_addition(actions, entity_id, entity, action_queue);
 
         let new_state = tile.state_index();
         let enter_callback = simulation.tile_states[new_state]

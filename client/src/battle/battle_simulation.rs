@@ -209,10 +209,12 @@ impl BattleSimulation {
             self.statistics.health = living.health;
         }
 
-        for (_, (entity, living, name)) in
+        for (id, (entity, living, name)) in
             entities.query_mut::<(&Entity, &Living, Option<&EntityName>)>()
         {
-            if entity.id != self.local_player_id {
+            let entity_id: EntityId = id.into();
+
+            if entity_id != self.local_player_id {
                 continue;
             }
 
@@ -376,17 +378,19 @@ impl BattleSimulation {
     fn spawn_pending(&mut self) {
         type Query<'a> = (&'a mut Entity, Option<&'a ActionQueue>);
 
-        for (_, (entity, action_queue)) in self.entities.query_mut::<Query>() {
+        for (id, (entity, action_queue)) in self.entities.query_mut::<Query>() {
             if !entity.pending_spawn {
                 continue;
             }
+
+            let entity_id = id.into();
 
             entity.pending_spawn = false;
             entity.spawned = true;
             entity.on_field = true;
 
             let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-            tile.handle_auto_reservation_addition(&self.actions, entity, action_queue);
+            tile.handle_auto_reservation_addition(&self.actions, entity_id, entity, action_queue);
 
             if entity.team == Team::Unset {
                 entity.team = tile.team();
@@ -400,7 +404,7 @@ impl BattleSimulation {
             self.pending_callbacks.push(entity.spawn_callback.clone());
 
             for component in self.components.values() {
-                if component.entity == entity.id {
+                if component.entity == entity_id {
                     self.pending_callbacks.push(component.init_callback.clone());
                 }
             }
@@ -412,7 +416,7 @@ impl BattleSimulation {
 
             let tile_state = &self.tile_states[tile.state_index()];
             let tile_callback = tile_state.entity_enter_callback.clone();
-            self.pending_callbacks.push(tile_callback.bind(entity.id));
+            self.pending_callbacks.push(tile_callback.bind(entity_id));
         }
     }
 
@@ -500,16 +504,17 @@ impl BattleSimulation {
                 continue;
             }
 
-            self.field.drop_entity(entity.id);
+            let entity_id = id.into();
+            self.field.drop_entity(entity_id);
 
             for (index, component) in &mut self.components {
-                if component.entity == entity.id {
+                if component.entity == entity_id {
                     components_pending_removal.push(index);
                 }
             }
 
             for (index, action) in &mut self.actions {
-                if action.entity == entity.id {
+                if action.entity == entity_id {
                     actions_pending_removal.push(index);
                 }
             }
@@ -781,12 +786,14 @@ impl BattleSimulation {
             hp_text.style.letter_spacing = 0.0;
             let tile_size = self.field.tile_size();
 
-            for (_, (hp_display, entity)) in self.entities.query_mut::<(&HpDisplay, &Entity)>() {
+            for (id, (hp_display, entity)) in self.entities.query_mut::<(&HpDisplay, &Entity)>() {
+                let entity_id: EntityId = id.into();
+
                 if entity.deleted
                     || !entity.on_field
                     || !hp_display.initialized
                     || hp_display.value <= 0
-                    || entity.id == self.local_player_id
+                    || entity_id == self.local_player_id
                 {
                     continue;
                 }

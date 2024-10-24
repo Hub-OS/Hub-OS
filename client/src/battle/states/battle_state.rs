@@ -432,7 +432,9 @@ impl BattleState {
         let mut all_living_ids = Vec::new();
 
         for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &Living)>() {
-            all_living_ids.push(id);
+            let entity_id = id.into();
+
+            all_living_ids.push(entity_id);
 
             if !entity.on_field || entity.deleted || !living.hitbox_enabled || living.health <= 0 {
                 // entity can't be hit
@@ -447,7 +449,7 @@ impl BattleState {
                     continue;
                 }
 
-                if attack_box.attacker_id == entity.id {
+                if attack_box.attacker_id == entity_id {
                     // can't hit self
                     continue;
                 }
@@ -541,8 +543,8 @@ impl BattleState {
             }
         }
 
-        for id in all_living_ids {
-            Living::process_hits(game_io, resources, simulation, id.into());
+        for entity_id in all_living_ids {
+            Living::process_hits(game_io, resources, simulation, entity_id);
         }
 
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
@@ -577,16 +579,16 @@ impl BattleState {
     ) {
         let mut pending_deletion = Vec::new();
 
-        for (_, (entity, living)) in simulation.entities.query_mut::<(&mut Entity, &Living)>() {
+        for (id, living) in simulation.entities.query_mut::<&Living>() {
             if living.max_health == 0 || living.health > 0 {
                 continue;
             }
 
-            pending_deletion.push(entity.id);
+            pending_deletion.push(id);
         }
 
         for id in pending_deletion {
-            Entity::delete(game_io, resources, simulation, id);
+            Entity::delete(game_io, resources, simulation, id.into());
         }
     }
 
@@ -654,6 +656,7 @@ impl BattleState {
             }
 
             let entities = &mut simulation.entities;
+            let entity_id = id.into();
 
             let (entity, player, living, character) = entities
                 .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
@@ -673,7 +676,7 @@ impl BattleState {
 
             let action_processed = (simulation.actions)
                 .values()
-                .any(|action| action.processed && action.entity == entity.id);
+                .any(|action| action.processed && action.entity == entity_id);
 
             if action_processed {
                 player.cancel_charge();
@@ -862,6 +865,8 @@ impl BattleState {
                 continue;
             };
 
+            let entity_id = id.into();
+
             if movement.elapsed == 0 {
                 movement.source = (entity.x, entity.y);
             }
@@ -909,6 +914,7 @@ impl BattleState {
                 let start_tile = simulation.field.tile_at_mut(movement.source).unwrap();
                 start_tile.handle_auto_reservation_removal(
                     &simulation.actions,
+                    entity_id,
                     entity,
                     action_queue,
                 );
@@ -919,7 +925,7 @@ impl BattleState {
                     // process stepping off the tile
                     let tile_state = &simulation.tile_states[start_tile.state_index()];
                     let tile_callback = tile_state.entity_leave_callback.clone();
-                    let params = (entity.id, movement.source.0, movement.source.1);
+                    let params = (entity_id, movement.source.0, movement.source.1);
 
                     let callback =
                         BattleCallback::new(move |game_io, resources, simulation, ()| {
@@ -932,7 +938,7 @@ impl BattleState {
                     let dest_tile = simulation.field.tile_at_mut(movement.dest).unwrap();
                     let tile_state = &simulation.tile_states[dest_tile.state_index()];
                     let tile_callback = tile_state.entity_enter_callback.clone();
-                    let params = entity.id;
+                    let params = entity_id;
 
                     let callback =
                         BattleCallback::new(move |game_io, resources, simulation, ()| {
@@ -945,6 +951,7 @@ impl BattleState {
                 let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
                 current_tile.handle_auto_reservation_addition(
                     &simulation.actions,
+                    entity_id,
                     entity,
                     action_queue,
                 );
@@ -957,7 +964,7 @@ impl BattleState {
                     let tile_state = &simulation.tile_states[current_tile.state_index()];
                     let tile_callback = tile_state.entity_stop_callback.clone();
 
-                    let params = (entity.id, movement.source.0, movement.source.1);
+                    let params = (entity_id, movement.source.0, movement.source.1);
 
                     let callback =
                         BattleCallback::new(move |game_io, resources, simulation, ()| {

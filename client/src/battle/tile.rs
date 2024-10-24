@@ -185,6 +185,7 @@ impl Tile {
     pub fn handle_auto_reservation_addition(
         &mut self,
         actions: &DenseSlotMap<Action>,
+        entity_id: EntityId,
         entity: &Entity,
         action_queue: Option<&ActionQueue>,
     ) {
@@ -192,12 +193,13 @@ impl Tile {
             return;
         }
 
-        self.reserve_for(entity.id);
+        self.reserve_for(entity_id);
     }
 
     pub fn handle_auto_reservation_removal(
         &mut self,
         actions: &DenseSlotMap<Action>,
+        entity_id: EntityId,
         entity: &Entity,
         action_queue: Option<&ActionQueue>,
     ) {
@@ -205,7 +207,7 @@ impl Tile {
             return;
         }
 
-        self.remove_reservation_for(entity.id);
+        self.remove_reservation_for(entity_id);
     }
 
     fn can_auto_reserve(

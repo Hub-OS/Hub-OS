@@ -552,17 +552,21 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter::<(&Entity, Option<&AttackContext>), _, _>(
-        lua_api,
-        "context",
-        |(entity, attack_context), lua, _: ()| {
-            if let Some(attack_context) = attack_context {
-                lua.pack_multi(attack_context)
-            } else {
-                lua.pack_multi(&AttackContext::new(entity.id))
-            }
-        },
-    );
+    lua_api.add_dynamic_function(ENTITY_TABLE, "context", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        if let Ok(attack_context) = entities.query_one_mut::<&AttackContext>(id.into()) {
+            lua.pack_multi(attack_context)
+        } else {
+            lua.pack_multi(&AttackContext::new(id))
+        }
+    });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "has_actions", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;

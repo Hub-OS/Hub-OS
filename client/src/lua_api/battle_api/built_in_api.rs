@@ -201,7 +201,7 @@ pub fn inject_built_in_api(lua_api: &mut BattleLuaApi) {
                 // attack the current tile
                 let (x, y) = (entity.x, entity.y);
 
-                let attack_box = AttackBox::new_from((x, y), entity, spell);
+                let attack_box = AttackBox::new_from((x, y), hitbox_id, entity, spell);
                 simulation.queued_attacks.push(attack_box);
             });
 

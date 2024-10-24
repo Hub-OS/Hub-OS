@@ -47,14 +47,14 @@ impl State for IntroState {
             use hecs::Without;
 
             let entities = &mut simulation.entities;
-            for (_, (entity, _)) in
+            for (id, (entity, _)) in
                 entities.query_mut::<Without<(&mut Entity, &Character), &Player>>()
             {
                 if !entity.spawned {
                     continue;
                 }
 
-                self.tracked_entities.push_back(entity.id);
+                self.tracked_entities.push_back(id.into());
 
                 if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
                 {

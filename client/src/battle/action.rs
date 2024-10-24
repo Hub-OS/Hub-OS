@@ -392,9 +392,9 @@ impl Action {
         let polled_freezer = time_freeze_tracker.polled_entity();
 
         let ids: Vec<_> = entities
-            .query_mut::<(&Entity, &ActionQueue)>()
+            .query_mut::<&ActionQueue>()
             .into_iter()
-            .filter(|(_, (entity, action_queue))| {
+            .filter(|(id, action_queue)| {
                 let Some(action_index) = action_queue.pending.front() else {
                     // no actions queued
                     return false;
@@ -414,7 +414,8 @@ impl Action {
                     any_can_counter_time_freeze && action_counters_time_freeze;
 
                 // continuing freeze from a previous action
-                let freeze_continuation = freezes_time && polled_freezer == Some(entity.id);
+                let entity_id: EntityId = (*id).into();
+                let freeze_continuation = freezes_time && polled_freezer == Some(entity_id);
 
                 // we can't process an action if the entity is already in an action
                 // unless we have a time freeze exception
@@ -467,7 +468,8 @@ impl Action {
                 .query_one_mut::<(&mut Entity, &mut ActionQueue)>(id)
                 .unwrap();
 
-            if action.entity != entity.id {
+            let entity_id = id.into();
+            if action.entity != entity_id {
                 continue;
             }
 
@@ -726,10 +728,10 @@ impl Action {
         // update reservations as they're ignored while in a sync action
         if self.executed && entity.auto_reserves_tiles {
             let old_tile = field.tile_at_mut(self.old_position).unwrap();
-            old_tile.remove_reservation_for(entity.id);
+            old_tile.remove_reservation_for(self.entity);
 
             let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-            current_tile.reserve_for(entity.id);
+            current_tile.reserve_for(self.entity);
         }
 
         pending_callbacks.push(entity.idle_callback.clone());
