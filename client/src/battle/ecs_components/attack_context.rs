@@ -1,4 +1,4 @@
-use super::{Drag, EntityId, HitFlag, HitFlags};
+use crate::bindable::{Drag, EntityId, HitFlag, HitFlags};
 use crate::{render::FrameTime, structures::VecMap};
 
 #[derive(Clone)]

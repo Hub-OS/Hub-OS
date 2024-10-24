@@ -552,9 +552,17 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    getter::<&Entity, _, _>(lua_api, "context", |entity: &Entity, lua, _: ()| {
-        lua.pack_multi(&entity.attack_context)
-    });
+    getter::<(&Entity, Option<&AttackContext>), _, _>(
+        lua_api,
+        "context",
+        |(entity, attack_context), lua, _: ()| {
+            if let Some(attack_context) = attack_context {
+                lua.pack_multi(attack_context)
+            } else {
+                lua.pack_multi(&AttackContext::new(entity.id))
+            }
+        },
+    );
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "has_actions", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
@@ -1149,13 +1157,16 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         let mut api_ctx = api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        let (entity, spell) = entities
-            .query_one_mut::<(&mut Entity, &mut Spell)>(id.into())
+        let spell = entities
+            .query_one_mut::<&mut Spell>(id.into())
             .map_err(|_| entity_not_found())?;
 
         // copy context into entity for entity:context()
-        entity.attack_context = props.context.clone();
+        let attack_context = props.context.clone();
+
         spell.hit_props = props;
+
+        let _ = entities.insert_one(id.into(), attack_context);
 
         lua.pack_multi(())
     });

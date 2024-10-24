@@ -1,6 +1,5 @@
 mod action_lockout;
 mod animator_playback_mode;
-mod attack_context;
 mod audio_behavior;
 mod aux_prop;
 mod card_class;
@@ -28,7 +27,6 @@ mod tile_highlight;
 
 pub use action_lockout::*;
 pub use animator_playback_mode::*;
-pub use attack_context::*;
 pub use audio_behavior::*;
 pub use aux_prop::*;
 pub use card_class::*;

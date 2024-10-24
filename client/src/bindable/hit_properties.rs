@@ -1,3 +1,4 @@
+use crate::battle::AttackContext;
 use crate::bindable::*;
 use crate::render::FrameTime;
 use crate::structures::VecMap;

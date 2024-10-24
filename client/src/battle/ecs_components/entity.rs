@@ -33,7 +33,6 @@ pub struct Entity {
     pub sprite_tree_index: GenerationalIndex,
     pub offset: Vec2,          // does not flip with teams, only perspective
     pub movement_offset: Vec2, // resets every frame, does not flip with teams, only perspective
-    pub attack_context: AttackContext,
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
@@ -85,7 +84,6 @@ impl Entity {
             sprite_tree_index,
             offset: Vec2::ZERO,
             movement_offset: Vec2::ZERO,
-            attack_context: AttackContext::new(id),
             time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,

@@ -684,6 +684,16 @@ impl Living {
 
         ActionQueue::ensure(entities, entity_id);
 
+        // reset attack context
+        let mut attack_context = AttackContext::new(entity_id);
+
+        if entities.satisfies::<&Player>(id).unwrap_or_default() && action_type != ActionType::CARD
+        {
+            attack_context.flags = HitFlag::NO_COUNTER;
+        }
+
+        let _ = entities.insert_one(id, attack_context);
+
         // gather body properties for aux props
         let Ok((entity, living, player, character, action_queue)) = entities.query_one_mut::<(
             &mut Entity,
@@ -696,11 +706,6 @@ impl Living {
         };
 
         action_queue.action_type = action_type;
-        entity.attack_context = AttackContext::default();
-
-        if player.is_some() && action_type != ActionType::CARD {
-            entity.attack_context.flags = HitFlag::NO_COUNTER;
-        }
 
         let mut aux_props: Vec<_> = living
             .aux_props

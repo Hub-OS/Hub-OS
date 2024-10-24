@@ -1,9 +1,9 @@
 use super::{
-    AttackContext, CardClass, CardProperties, Comparison, Element, EntityId, GenerationalIndex,
-    HitFlags, HitProperties, MathExpr,
+    CardClass, CardProperties, Comparison, Element, EntityId, GenerationalIndex, HitFlags,
+    HitProperties, MathExpr,
 };
 use crate::battle::{
-    ActionQueue, ActionType, ActionTypes, BattleCallback, Character, Entity, Player,
+    ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, Entity, Player,
     SharedBattleResources,
 };
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
@@ -385,26 +385,20 @@ impl AuxEffect {
                         |api_ctx, lua, entity_id| {
                             let mut api_ctx = api_ctx.borrow_mut();
                             let entities = &mut api_ctx.simulation.entities;
-                            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into())
+                            let Ok(attack_context) =
+                                entities.query_one_mut::<&AttackContext>(entity_id.into())
                             else {
-                                return lua.pack_multi(());
+                                return lua.pack_multi(&AttackContext::new(entity_id));
                             };
 
-                            lua.pack_multi(&entity.attack_context)
+                            lua.pack_multi(attack_context)
                         },
                     )?;
 
                 let callback = BattleCallback::new(
                     move |game_io, resources, simulation, entity_id: EntityId| {
                         let context = callback.call(game_io, resources, simulation, entity_id);
-
-                        let entities = &mut simulation.entities;
-                        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into())
-                        else {
-                            return;
-                        };
-
-                        entity.attack_context = context;
+                        let _ = simulation.entities.insert_one(entity_id.into(), context);
                     },
                 );
 

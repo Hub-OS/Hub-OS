@@ -1,10 +1,9 @@
 use super::{
-    ActionQueue, BattleAnimator, BattleCallback, BattleScriptContext, BattleSimulation, Character,
-    Entity, Field, Living, Movement, Player, SharedBattleResources,
+    ActionQueue, AttackContext, BattleAnimator, BattleCallback, BattleScriptContext,
+    BattleSimulation, Character, Entity, Field, Living, Movement, Player, SharedBattleResources,
 };
 use crate::bindable::{
-    ActionLockout, AttackContext, CardProperties, EntityId, GenerationalIndex, HitFlag,
-    SpriteColorMode,
+    ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
 };
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
@@ -671,12 +670,13 @@ impl Action {
             }
 
             let action = simulation.actions.get(index).unwrap();
+            let entity_id = action.entity;
 
             // remove attachments from the entity
-            let (entity, player, action_queue) = simulation
-                .entities
+            let entities = &mut simulation.entities;
+            let (entity, player, action_queue) = entities
                 .query_one_mut::<(&mut Entity, Option<&Player>, Option<&ActionQueue>)>(
-                    action.entity.into(),
+                    entity_id.into(),
                 )
                 .unwrap();
 
@@ -693,12 +693,13 @@ impl Action {
 
             // reset hit context
             if action_queue.is_none() {
-                entity.attack_context = AttackContext::default();
-                entity.attack_context.flags = if player.is_some() {
+                let mut attack_context = AttackContext::new(entity_id);
+                attack_context.flags = if player.is_some() {
                     HitFlag::NO_COUNTER
                 } else {
                     HitFlag::NONE
                 };
+                let _ = entities.insert_one(entity_id.into(), attack_context);
             }
         }
 

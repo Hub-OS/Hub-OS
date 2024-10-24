@@ -139,6 +139,7 @@ impl BattleSimulation {
         clone_component!(EntityShadowVisible);
         clone_component!(HpDisplay);
         clone_component!(Movement);
+        clone_component!(AttackContext);
         clone_component!(ActionQueue);
 
         Self {
