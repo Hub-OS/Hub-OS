@@ -1,5 +1,5 @@
 use super::errors::{invalid_font_name, sprite_not_found};
-use super::{BattleLuaApi, HUD_TABLE, SPRITE_TABLE};
+use super::{BattleLuaApi, HUD_TABLE, SPRITE_TABLE, TEXT_STYLE_TABLE};
 use crate::battle::SharedBattleResources;
 use crate::bindable::{GenerationalIndex, LuaColor, LuaVector, SpriteColorMode};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
@@ -11,6 +11,8 @@ use framework::prelude::{GameIO, Vec2};
 use std::sync::Arc;
 
 pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
+    inject_text_style_api(lua_api);
+
     lua_api.add_static_injector(|lua| {
         let mut slot_map = SlotMap::<()>::default();
         let root_slot_index = slot_map.insert(());
@@ -410,6 +412,55 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
             Ok(())
         },
     );
+}
+
+pub fn inject_text_style_api(lua_api: &mut BattleLuaApi) {
+    lua_api.add_dynamic_function(TEXT_STYLE_TABLE, "new", |_, lua, params| {
+        let (font, texture_path, animation_path): (
+            rollback_mlua::String,
+            Option<rollback_mlua::String>,
+            Option<rollback_mlua::String>,
+        ) = lua.unpack_multi(params)?;
+
+        let table = lua.create_table()?;
+        table.raw_set("font", font)?;
+        table.raw_set("texture_path", texture_path)?;
+        table.raw_set("animation_path", animation_path)?;
+
+        lua.pack_multi(table)
+    });
+
+    lua_api.add_dynamic_function(TEXT_STYLE_TABLE, "new_monospace", |_, lua, params| {
+        let (font, texture_path, animation_path): (
+            rollback_mlua::String,
+            Option<rollback_mlua::String>,
+            Option<rollback_mlua::String>,
+        ) = lua.unpack_multi(params)?;
+
+        let table = lua.create_table()?;
+        table.raw_set("font", font)?;
+        table.raw_set("texture_path", texture_path)?;
+        table.raw_set("animation_path", animation_path)?;
+        table.raw_set("monospace", true)?;
+
+        lua.pack_multi(table)
+    });
+
+    lua_api.add_dynamic_function(TEXT_STYLE_TABLE, "measure", |api_ctx, lua, params| {
+        let (table, text): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let api_ctx = api_ctx.borrow();
+
+        let text_style = parse_text_style(api_ctx.game_io, api_ctx.resources, table)?;
+        let metrics = text_style.measure(&text.to_string_lossy());
+
+        let output = lua.create_table()?;
+        output.set("width", metrics.size.x)?;
+        output.set("height", metrics.size.y)?;
+
+        lua.pack_multi(output)
+    });
 }
 
 fn parse_text_style(
