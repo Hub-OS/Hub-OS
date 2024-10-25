@@ -735,10 +735,6 @@ impl Action {
         }
 
         pending_callbacks.push(entity.idle_callback.clone());
-
-        if action_queue.active.is_none() && action_queue.pending.is_empty() {
-            let _ = entities.remove_one::<ActionQueue>(id);
-        }
     }
 }
 

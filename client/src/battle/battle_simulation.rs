@@ -959,14 +959,5 @@ impl BattleSimulation {
         // scripters don't need to attach card actions to entities
         // we also can ignore async actions and time freeze
         assert!(held_action_count >= executed_action_count || time_is_frozen);
-
-        // make sure empty action queues are cleaned up
-        assert!(
-            self.entities
-                .query_mut::<&ActionQueue>()
-                .into_iter()
-                .all(|(_, queue)| queue.active.is_some() || !queue.pending.is_empty())
-                || time_is_frozen
-        );
     }
 }

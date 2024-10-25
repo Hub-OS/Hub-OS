@@ -745,7 +745,9 @@ impl Player {
 
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;
-        if action_queue.is_some() || living.status_director.is_immobile(status_registry) {
+        if action_queue.is_some_and(|q| q.active.is_some() || !q.pending.is_empty())
+            || living.status_director.is_immobile(status_registry)
+        {
             return;
         }
 
