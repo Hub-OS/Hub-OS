@@ -10,6 +10,7 @@ use super::*;
 use crate::battle::*;
 use crate::bindable::{CardProperties, EntityId, GenerationalIndex, SpriteColorMode};
 use crate::lua_api::helpers::inherit_metatable;
+use crate::packages::CardPackage;
 use crate::render::{DerivedFrame, FrameTime, SpriteNode};
 use crate::resources::Globals;
 use packets::structures::PackageId;
@@ -57,6 +58,26 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             card_properties.namespace = Some(namespace);
 
             lua.pack_multi(card_properties)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_PROPERTIES_TABLE,
+        "icon_texture",
+        |api_ctx, lua, params| {
+            let card_props: CardProperties = lua.unpack_multi(params)?;
+
+            let api_ctx = api_ctx.borrow();
+
+            let namespace = card_props.namespace.unwrap_or_else(|| {
+                let vms = api_ctx.resources.vm_manager.vms();
+                vms[api_ctx.vm_index].preferred_namespace()
+            });
+
+            let (_, path) =
+                CardPackage::icon_texture(api_ctx.game_io, namespace, &card_props.package_id);
+
+            lua.pack_multi(path)
         },
     );
 
