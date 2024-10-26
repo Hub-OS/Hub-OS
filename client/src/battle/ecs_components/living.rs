@@ -434,11 +434,21 @@ impl Living {
         entity_id: EntityId,
         mut index: GenerationalIndex,
     ) -> Option<GenerationalIndex> {
+        type Query<'a> = (
+            &'a Entity,
+            &'a mut Living,
+            Option<&'a Character>,
+            Option<&'a Player>,
+            Option<&'a ActionQueue>,
+        );
+
         // handle aux props which intercept actions
         // loops until the action stops being replaced
         loop {
             let entities = &mut simulation.entities;
-            let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+            let Ok((entity, living, character, player, action_queue)) =
+                entities.query_one_mut::<Query>(entity_id.into())
+            else {
                 // not Living, without any auxprops we can just skip this loop
                 return Some(index);
             };
@@ -458,6 +468,7 @@ impl Living {
                     continue;
                 }
 
+                aux_prop.process_body(player, character, entity, action_queue);
                 aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
