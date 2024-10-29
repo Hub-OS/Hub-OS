@@ -1,7 +1,7 @@
 use super::errors::{augment_not_found, entity_not_found};
 use super::{
     create_card_select_button_and_table, create_entity_table, BattleLuaApi, AUGMENT_TABLE,
-    CAN_CHARGE_CARD_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN,
+    CARD_CHARGE_TIMING_FN, CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DELETE_FN,
     MOVEMENT_FN, NORMAL_ATTACK_FN, SPECIAL_ATTACK_FN,
 };
 use crate::battle::{Augment, BattleCallback, CardSelectButton, CardSelectButtonPath, Player};
@@ -122,9 +122,9 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        CAN_CHARGE_CARD_FN,
-        |augment: &mut Augment| &mut augment.overridables.can_charge_card,
-        |lua, _, card_props| lua.pack_multi(card_props),
+        CARD_CHARGE_TIMING_FN,
+        |augment: &mut Augment| &mut augment.overridables.calculate_card_charge_time,
+        |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 
     callback_setter(

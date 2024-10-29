@@ -1,6 +1,6 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{
-    create_card_select_button_and_table, BattleLuaApi, ACTIVATE_FN, CAN_CHARGE_CARD_FN,
+    create_card_select_button_and_table, BattleLuaApi, ACTIVATE_FN, CARD_CHARGE_TIMING_FN,
     CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN,
     NORMAL_ATTACK_FN, PLAYER_FORM_TABLE, SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
@@ -219,9 +219,9 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     callback_setter(
         lua_api,
-        CAN_CHARGE_CARD_FN,
-        |form| &mut form.overridables.can_charge_card,
-        |lua, _, card_props| lua.pack_multi(card_props),
+        CARD_CHARGE_TIMING_FN,
+        |form| &mut form.overridables.calculate_card_charge_time,
+        |lua, form_table, card_props| lua.pack_multi((form_table, card_props)),
     );
 
     callback_setter(

@@ -2139,9 +2139,9 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
     optional_callback_setter(
         lua_api,
-        CAN_CHARGE_CARD_FN,
-        |player: &mut Player| &mut player.overridables.can_charge_card,
-        |lua, _, card_props| lua.pack_multi(card_props),
+        CARD_CHARGE_TIMING_FN,
+        |player: &mut Player| &mut player.overridables.calculate_card_charge_time,
+        |lua, table, card_props| lua.pack_multi((table, card_props)),
     );
 
     optional_callback_setter(

@@ -23,7 +23,7 @@ pub struct Player {
     pub rapid_boost: u8,
     pub charge_boost: u8,
     pub hand_size_boost: i8,
-    pub card_chargable_cache: ResultCacheSingle<Option<CardProperties>, bool>,
+    pub card_charge_time_cache: ResultCacheSingle<Option<CardProperties>, Option<FrameTime>>,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
     pub attack_charge: AttackCharge,
@@ -84,7 +84,7 @@ impl Player {
             rapid_boost: 0,
             charge_boost: 0,
             hand_size_boost: 0,
-            card_chargable_cache: ResultCacheSingle::default(),
+            card_charge_time_cache: ResultCacheSingle::default(),
             card_charged: false,
             card_charge: AttackCharge::new(
                 assets,
@@ -474,15 +474,20 @@ impl Player {
             .query_one_mut::<(&mut Player, &Character)>(entity_id.into())
             .unwrap();
 
-        let mut card_chargable_cache = std::mem::take(&mut player.card_chargable_cache);
+        let mut card_chargable_cache = std::mem::take(&mut player.card_charge_time_cache);
         let card_props = character.cards.last().cloned();
-        let can_charge_card = card_chargable_cache.calculate(card_props, |card_props| {
-            if let Some(card_props) = card_props {
-                Self::resolve_card_charger(game_io, resources, simulation, entity_id, &card_props)
-                    .is_some()
-            } else {
-                false
-            }
+        let card_charge_time = card_chargable_cache.calculate(card_props, |card_props| {
+            card_props
+                .and_then(|card_props| {
+                    Self::resolve_card_charger(
+                        game_io,
+                        resources,
+                        simulation,
+                        entity_id,
+                        &card_props,
+                    )
+                })
+                .map(|(time, _)| time)
         });
 
         // update AttackCharge structs
@@ -491,12 +496,12 @@ impl Player {
             .query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
-        player.card_chargable_cache = card_chargable_cache;
+        player.card_charge_time_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
         let input = &simulation.inputs[player.index];
 
-        if can_charge_card && input.was_just_pressed(Input::UseCard) {
+        if card_charge_time.is_some() && input.was_just_pressed(Input::UseCard) {
             // cancel attack charging
             player.attack_charge.cancel();
             player.card_charge.set_charging(true);
@@ -510,7 +515,7 @@ impl Player {
             // block charging card if we weren't already
             // prevents accidental charge tracking from a previous non charged card use
             let charging_card = input.is_down(Input::UseCard)
-                && can_charge_card
+                && card_charge_time.is_some()
                 && !player.attack_charge.charging()
                 && player.card_charge.charging();
             player.card_charge.set_charging(charging_card);
@@ -519,10 +524,13 @@ impl Player {
             player.attack_charge.set_charging(charging_attack);
         }
 
-        player.card_charge.set_max_charge_time(max_charge_time);
+        if let Some(time) = card_charge_time {
+            player.card_charge.set_max_charge_time(time);
+        }
+
         player.attack_charge.set_max_charge_time(max_charge_time);
 
-        let card_used = if !can_charge_card && input.was_just_pressed(Input::UseCard) {
+        let card_used = if card_charge_time.is_none() && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
             player.card_charge.update(game_io, play_sfx)
@@ -635,7 +643,10 @@ impl Player {
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         card_props: &CardProperties,
-    ) -> Option<BattleCallback<CardProperties, Option<GenerationalIndex>>> {
+    ) -> Option<(
+        FrameTime,
+        BattleCallback<CardProperties, Option<GenerationalIndex>>,
+    )> {
         let entities = &mut simulation.entities;
         let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
             return None;
@@ -643,7 +654,7 @@ impl Player {
 
         let callbacks: Vec<_> = PlayerOverridables::flat_map_mut_for(player, |callbacks| {
             Some((
-                callbacks.can_charge_card.clone()?,
+                callbacks.calculate_card_charge_time.clone()?,
                 callbacks.charged_card.clone()?,
             ))
         })
@@ -651,10 +662,11 @@ impl Player {
 
         callbacks
             .into_iter()
-            .find(|(support_test, _)| {
-                support_test.call(game_io, resources, simulation, card_props.clone())
+            .flat_map(|(support_test, callback)| {
+                let time = support_test.call(game_io, resources, simulation, card_props.clone())?;
+                Some((time, callback))
             })
-            .map(|(_, callback)| callback)
+            .next()
     }
 
     // setup context before + after calling this
@@ -665,7 +677,7 @@ impl Player {
         entity_id: EntityId,
         card_props: CardProperties,
     ) -> Option<GenerationalIndex> {
-        let callback =
+        let (_, callback) =
             Self::resolve_card_charger(game_io, resources, simulation, entity_id, &card_props)?;
 
         callback
