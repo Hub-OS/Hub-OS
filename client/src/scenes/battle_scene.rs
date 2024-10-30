@@ -676,15 +676,6 @@ impl BattleScene {
             self.resources.vm_manager.print_memory_usage();
         }
 
-        // save recording
-        if game_io.input().was_key_just_pressed(Key::S) {
-            if let Some(recording) = &mut self.recording {
-                recording.save(game_io, &self.props);
-            } else {
-                log::error!("Recording is disabled");
-            }
-        }
-
         if game_io.input().was_key_just_pressed(Key::I) {
             self.draw_player_indices = !self.draw_player_indices;
         }
@@ -797,6 +788,25 @@ impl Scene for BattleScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.push_music_stack();
+    }
+
+    fn destroy(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.battle_recording = self.recording.take().map(|recording| {
+            let props = BattleProps {
+                encounter_package_pair: self.props.encounter_package_pair.clone(),
+                data: std::mem::take(&mut self.props.data),
+                seed: self.props.seed,
+                background: self.props.background.clone(),
+                player_setups: std::mem::take(&mut self.props.player_setups),
+                senders: Default::default(),
+                receivers: Default::default(),
+                statistics_callback: None,
+                recording_enabled: true,
+            };
+
+            (props, recording)
+        });
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

@@ -1,5 +1,6 @@
 use crate::resources::Globals;
 use crate::{packages::PackageNamespace, TRUE_RESOLUTION};
+use framework::input::Key;
 use framework::prelude::{GameIO, GameService};
 use packets::structures::PackageCategory;
 
@@ -62,6 +63,17 @@ impl GameService for SupportingService {
 
             if target_size != window.size() {
                 window.request_size(target_size);
+            }
+        }
+
+        // save recording
+        if game_io.input().is_key_down(Key::F3) && game_io.input().was_key_just_pressed(Key::S) {
+            let globals = game_io.resource_mut::<Globals>().unwrap();
+
+            if let Some((props, mut recording)) = globals.battle_recording.take() {
+                recording.save(game_io, &props);
+            } else {
+                log::error!("No recording. Try again after a battle or check settings.");
             }
         }
     }

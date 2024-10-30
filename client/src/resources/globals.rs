@@ -8,7 +8,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
-use crate::saves::{BlockGrid, Config, GlobalSave};
+use crate::saves::{BattleRecording, BlockGrid, Config, GlobalSave};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
@@ -36,6 +36,9 @@ pub struct Globals {
     pub library_packages: PackageManager<LibraryPackage>,
     pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
+
+    // recording
+    pub battle_recording: Option<(BattleProps, BattleRecording)>,
 
     // sounds
     pub audio: AudioManager,
@@ -133,6 +136,9 @@ impl Globals {
             library_packages: PackageManager::new(PackageCategory::Library),
             resource_packages,
             battle_api: BattleLuaApi::new(),
+
+            // recording
+            battle_recording: None,
 
             // sounds
             audio,
