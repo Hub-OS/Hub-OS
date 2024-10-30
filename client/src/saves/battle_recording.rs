@@ -5,6 +5,7 @@ use crate::{SupportingServiceComm, SupportingServiceEvent};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -13,7 +14,8 @@ pub struct BattleRecording {
     pub data: Option<String>,
     pub seed: u64,
     pub player_setups: Vec<PlayerSetup>,
-    pub package_zips: Vec<(PackageCategory, PackageNamespace, Vec<u8>)>,
+    pub package_map: HashMap<(PackageCategory, FileHash), Vec<u8>>,
+    pub required_packages: Vec<(PackageCategory, PackageNamespace, FileHash)>,
 }
 
 impl BattleRecording {
@@ -35,7 +37,8 @@ impl BattleRecording {
             data: props.data.clone(),
             seed: props.seed,
             player_setups: setups,
-            package_zips: Default::default(),
+            package_map: Default::default(),
+            required_packages: Default::default(),
         }
     }
 
@@ -45,20 +48,24 @@ impl BattleRecording {
         let nickname = globals.global_save.nickname.clone();
 
         // collect package zips
-        if self.package_zips.is_empty() {
+        if self.package_map.is_empty() {
             for (info, namespace) in globals.battle_dependencies(game_io, props) {
                 let category = info.category;
                 let namespace = namespace.prefix_recording();
-                let hash = &info.hash;
+                let hash = info.hash;
 
-                if let Some(bytes) = globals.assets.virtual_zip_bytes(hash) {
-                    self.package_zips.push((category, namespace, bytes));
-                } else if *hash != FileHash::ZERO {
-                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
-                    let bytes = globals.assets.binary(&path);
-
-                    self.package_zips.push((category, namespace, bytes));
+                if hash == FileHash::ZERO {
+                    continue;
                 }
+
+                self.package_map.entry((category, hash)).or_insert_with(|| {
+                    globals.assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
+                        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                        globals.assets.binary(&path)
+                    })
+                });
+
+                self.required_packages.push((category, namespace, hash));
 
                 log::debug!("Saving package: {:?} {:?}", info.id, namespace);
             }
@@ -164,20 +171,20 @@ impl BattleRecording {
         }
 
         // load zips
-        for (category, namespace, bytes) in &self.package_zips {
-            let hash = FileHash::hash(bytes);
-
+        for &(category, namespace, hash) in &self.required_packages {
             // load zip if it's not already loaded
             let globals = game_io.resource::<Globals>().unwrap();
             let assets = &globals.assets;
 
             if !assets.contains_virtual_zip(&hash) {
-                assets.load_virtual_zip(game_io, hash, bytes.clone());
+                if let Some(bytes) = self.package_map.get(&(category, hash)) {
+                    assets.load_virtual_zip(game_io, hash, bytes.clone());
+                }
             }
 
             // load package through virtual zip
             let globals = game_io.resource_mut::<Globals>().unwrap();
-            let package_info = globals.load_virtual_package(*category, *namespace, hash);
+            let package_info = globals.load_virtual_package(category, namespace, hash);
 
             // unloading ignored packages
             let Some(package_info) = package_info else {
@@ -192,11 +199,10 @@ impl BattleRecording {
 
             // unload the package
             let id = package_info.id.clone();
-            globals.unload_package(*category, *namespace, &id);
+            globals.unload_package(category, namespace, &id);
 
             // find the local package to reload in the new namespace
-            if let Some(package_info) =
-                globals.package_info(*category, PackageNamespace::Local, &id)
+            if let Some(package_info) = globals.package_info(category, PackageNamespace::Local, &id)
             {
                 let hash = package_info.hash;
                 let zip_path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
@@ -206,7 +212,7 @@ impl BattleRecording {
                 globals.assets.load_virtual_zip(game_io, hash, bytes);
 
                 let globals = game_io.resource_mut::<Globals>().unwrap();
-                globals.load_virtual_package(*category, *namespace, hash);
+                globals.load_virtual_package(category, namespace, hash);
             }
         }
 
