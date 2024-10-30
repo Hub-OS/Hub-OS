@@ -594,7 +594,8 @@ impl Action {
                 continue;
             };
 
-            let animation_completed = simulation.animators[animator_index].is_complete();
+            let animator = &simulation.animators[animator_index];
+            let animation_completed = animator.is_complete() || !animator.has_state(&action.state);
 
             let action_queue = simulation
                 .entities
