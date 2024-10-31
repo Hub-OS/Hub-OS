@@ -649,12 +649,6 @@ impl BattleState {
             .collect();
 
         for &id in &player_ids {
-            if simulation.time_freeze_tracker.time_is_frozen() {
-                // stop adding card actions if time freeze is starting
-                // this way time freeze cards aren't eaten
-                break;
-            }
-
             let entities = &mut simulation.entities;
             let entity_id = id.into();
 
@@ -689,6 +683,12 @@ impl BattleState {
 
             // ignore other actions if we're waiting on a card
             if character.card_use_requested {
+                continue;
+            }
+
+            if simulation.time_freeze_tracker.time_is_frozen() {
+                // stop adding card actions if time freeze is starting
+                // this way time freeze cards aren't eaten
                 continue;
             }
 
