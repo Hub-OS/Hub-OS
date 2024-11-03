@@ -575,12 +575,24 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
 
         let id: EntityId = table.raw_get("#id")?;
-        let has_action_queue = simulation
-            .entities
-            .satisfies::<&ActionQueue>(id.into())
-            .unwrap_or_default();
 
-        lua.pack_multi(has_action_queue)
+        // check for async or active actions
+        let has_processed_action = simulation
+            .actions
+            .iter()
+            .any(|(_, action)| action.processed && action.entity == id);
+
+        if has_processed_action {
+            return lua.pack_multi(true);
+        }
+
+        // check for pending actions
+        let entities = &mut simulation.entities;
+        let Ok(action_queue) = entities.query_one_mut::<&ActionQueue>(id.into()) else {
+            return lua.pack_multi(false);
+        };
+
+        lua.pack_multi(!action_queue.pending.is_empty())
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "queue_action", |api_ctx, lua, params| {
