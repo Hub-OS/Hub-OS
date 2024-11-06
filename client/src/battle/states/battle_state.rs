@@ -560,11 +560,13 @@ impl BattleState {
 
             let tile_state = &simulation.tile_states[state_index];
             let request_change = tile_state.can_replace_callback.clone();
+            let replace_callback = tile_state.replace_callback.clone();
 
             if request_change.call(game_io, resources, simulation, (x, y, TileState::NORMAL)) {
                 // revert to NORMAL with permission
                 let tile = simulation.field.tile_at_mut((x, y)).unwrap();
                 tile.set_state_index(TileState::NORMAL, None);
+                replace_callback.call(game_io, resources, simulation, (x, y));
             }
         }
 
