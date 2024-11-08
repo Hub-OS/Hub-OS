@@ -200,7 +200,10 @@ impl Entity {
         simulation: &mut BattleSimulation,
         id: EntityId,
     ) {
-        let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(id.into()) else {
+        let Ok((entity, action_queue)) = simulation
+            .entities
+            .query_one_mut::<(&mut Entity, Option<&ActionQueue>)>(id.into())
+        else {
             return;
         };
 
@@ -208,14 +211,21 @@ impl Entity {
             return;
         }
 
-        let card_indices: Vec<_> = (simulation.actions)
+        // gather action indices for deletion
+        let mut action_indices: Vec<_> = (simulation.actions)
             .iter()
             .filter(|(_, action)| action.entity == id && action.processed)
             .map(|(index, _)| index)
             .collect();
 
+        if let Some(action_queue) = action_queue {
+            action_indices.extend(&action_queue.pending);
+        }
+
+        // mark deleted
         entity.deleted = true;
 
+        // gather delete callbacks
         let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
         let delete_callback = entity.delete_callback.clone();
 
@@ -230,7 +240,7 @@ impl Entity {
         }
 
         // delete card actions
-        Action::delete_multi(game_io, resources, simulation, true, card_indices);
+        Action::delete_multi(game_io, resources, simulation, true, action_indices);
 
         // call delete callbacks after
         simulation.pending_callbacks.extend(listener_callbacks);
