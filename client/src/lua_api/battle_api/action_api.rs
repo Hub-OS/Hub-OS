@@ -196,7 +196,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             return Err(action_not_found());
         }
 
-        Action::delete_multi(api_ctx.game_io, api_ctx.resources, simulation, [id]);
+        Action::delete_multi(api_ctx.game_io, api_ctx.resources, simulation, true, [id]);
 
         lua.pack_multi(())
     });

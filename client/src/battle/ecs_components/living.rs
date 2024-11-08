@@ -508,7 +508,7 @@ impl Living {
 
             if new_index != Some(index) {
                 // delete the old action if we're not using it
-                Action::delete_multi(game_io, resources, simulation, [index]);
+                Action::delete_multi(game_io, resources, simulation, false, [index]);
             }
 
             if let Some(new_index) = new_index {
@@ -674,7 +674,7 @@ impl Living {
                     let callback = callback.clone();
                     callback.call(game_io, resources, simulation, action_index);
 
-                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                    Action::delete_multi(game_io, resources, simulation, true, [action_index]);
                 }
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }

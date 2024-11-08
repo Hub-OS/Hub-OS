@@ -253,7 +253,7 @@ impl Action {
                 };
 
                 if matches!(action.lockout_type, ActionLockout::Animation) {
-                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                    Action::delete_multi(game_io, resources, simulation, true, [action_index]);
                 }
             });
 
@@ -366,7 +366,7 @@ impl Action {
             indices.push_back(index);
         }
 
-        Action::delete_multi(game_io, resources, simulation, indices);
+        Action::delete_multi(game_io, resources, simulation, true, indices);
     }
 
     pub fn process_queues(
@@ -482,7 +482,7 @@ impl Action {
 
                 if let Some(action_index) = dropped_action_index {
                     // delete previous action
-                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                    Action::delete_multi(game_io, resources, simulation, false, [action_index]);
                 }
             } else {
                 action_queue.active = Some(index);
@@ -632,13 +632,20 @@ impl Action {
             effect.executes_on_current_action() || effect.resolves_action_context()
         });
 
-        Action::delete_multi(game_io, resources, simulation, actions_pending_deletion);
+        Action::delete_multi(
+            game_io,
+            resources,
+            simulation,
+            true,
+            actions_pending_deletion,
+        );
     }
 
     pub fn delete_multi(
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
+        reset_context: bool,
         delete_indices: impl IntoIterator<Item = GenerationalIndex>,
     ) {
         for index in delete_indices {
@@ -678,7 +685,7 @@ impl Action {
             // remove attachments from the entity
             let entities = &mut simulation.entities;
             let (entity, player, action_queue) = entities
-                .query_one_mut::<(&mut Entity, Option<&Player>, Option<&ActionQueue>)>(
+                .query_one_mut::<(&mut Entity, Option<&Player>, Option<&mut ActionQueue>)>(
                     entity_id.into(),
                 )
                 .unwrap();
@@ -694,15 +701,28 @@ impl Action {
             // finally remove the action
             simulation.actions.remove(index);
 
-            // reset hit context
-            if action_queue.is_none() {
-                let mut attack_context = AttackContext::new(entity_id);
-                attack_context.flags = if player.is_some() {
-                    HitFlag::NO_COUNTER
-                } else {
-                    HitFlag::NONE
-                };
-                let _ = entities.insert_one(entity_id.into(), attack_context);
+            // reset action and hit context
+            if reset_context {
+                let mut has_pending_actions = false;
+
+                if let Some(action_queue) = action_queue {
+                    has_pending_actions = !action_queue.pending.is_empty();
+
+                    // reset action type
+                    if !has_pending_actions {
+                        action_queue.action_type = ActionType::NONE;
+                    }
+                }
+
+                // reset hit context
+                if !has_pending_actions {
+                    let mut attack_context = AttackContext::new(entity_id);
+                    attack_context.flags = if player.is_some() {
+                        HitFlag::NO_COUNTER
+                    } else {
+                        HitFlag::NONE
+                    };
+                }
             }
         }
 

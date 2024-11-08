@@ -241,7 +241,7 @@ pub enum AuxEffect {
     IncreaseCardDamage(i32),
     IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
-    InterruptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
+    InterruptAction(BattleCallback<GenerationalIndex>),
     StatusImmunity(HitFlags),
     ApplyStatus(HitFlags, FrameTime),
     RemoveStatus(HitFlags),

@@ -230,7 +230,7 @@ impl Entity {
         }
 
         // delete card actions
-        Action::delete_multi(game_io, resources, simulation, card_indices);
+        Action::delete_multi(game_io, resources, simulation, true, card_indices);
 
         // call delete callbacks after
         simulation.pending_callbacks.extend(listener_callbacks);

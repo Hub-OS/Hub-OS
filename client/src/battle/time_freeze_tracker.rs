@@ -442,7 +442,7 @@ impl TimeFreezeTracker {
             ActionFreezeState::ActionCleanup => {
                 if let Some(action_index) = simulation.time_freeze_tracker.active_action_index() {
                     // try deleting, just in case we only timed out
-                    Action::delete_multi(game_io, resources, simulation, [action_index]);
+                    Action::delete_multi(game_io, resources, simulation, true, [action_index]);
                 }
 
                 if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
