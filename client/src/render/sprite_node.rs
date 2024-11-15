@@ -355,13 +355,12 @@ impl Tree<SpriteNode> {
         children.extend(tree_node.children().iter().cloned());
         children.sort_by_cached_key(|i| -self.get(*i).unwrap().layer);
 
-        let positive_end = tree_node
-            .children()
+        let positive_end = children
             .iter()
             .take_while(|i| self.get(**i).unwrap().layer > 0)
             .count();
 
-        // draw children with layer >= 0
+        // draw children with layer > 0
         for &child_index in &children[..positive_end] {
             self.draw_subtree(sprite_queue, child_index, &inherited);
         }
@@ -382,7 +381,7 @@ impl Tree<SpriteNode> {
         sprite_node.set_offset(original_offset);
         sprite_node.set_scale(original_scale);
 
-        // draw children with layer < 0
+        // draw children with layer <= 0
         for &child_index in &children[positive_end..] {
             self.draw_subtree(sprite_queue, child_index, &inherited);
         }
