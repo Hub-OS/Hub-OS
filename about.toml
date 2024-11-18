@@ -14,5 +14,7 @@ accepted = [
     "Unicode-DFS-2016",
     "BSL-1.0",
     "OpenSSL",
+    "OpenSSL-standalone",
+    "SSLeay-standalone",
     "NOASSERTION",
 ]
