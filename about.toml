@@ -18,3 +18,4 @@ accepted = [
     "SSLeay-standalone",
     "NOASSERTION",
 ]
+workarounds = ["ring"]
