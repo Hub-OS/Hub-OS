@@ -176,12 +176,6 @@ impl BattleSimulation {
         }
     }
 
-    pub fn initialize_uninitialized(&mut self) {
-        self.field.initialize_uninitialized();
-
-        Player::initialize_uninitialized(self);
-    }
-
     pub fn play_sound(&self, game_io: &GameIO, sound_buffer: &SoundBuffer) {
         if !self.is_resimulation {
             let globals = game_io.resource::<Globals>().unwrap();

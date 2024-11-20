@@ -135,6 +135,8 @@ impl BattleScene {
             encounter_init(context, props.data.as_deref());
         }
 
+        simulation.field.initialize_uninitialized();
+
         // load the players in the correct order
         let player_setups = &props.player_setups;
         let mut player_controllers = Vec::with_capacity(player_setups.len());
@@ -162,7 +164,7 @@ impl BattleScene {
             }
         }
 
-        simulation.initialize_uninitialized();
+        Player::initialize_uninitialized(&mut simulation);
 
         Self {
             props,
