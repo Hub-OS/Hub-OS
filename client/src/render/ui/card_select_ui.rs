@@ -1,6 +1,7 @@
 use super::{FontName, TextStyle};
 use crate::battle::{
-    BattleSimulation, CardSelectRestriction, Character, Entity, EntityName, Player,
+    BattleSimulation, CardSelectRestriction, CardSelectSelection, Character, Entity, EntityName,
+    Player,
 };
 use crate::bindable::{CardClass, SpriteColorMode};
 use crate::packages::{CardPackage, PackageNamespace};
@@ -139,28 +140,12 @@ impl CardSelectUi {
         self.time += 1;
     }
 
-    pub fn hide(&mut self, simulation: &mut BattleSimulation) {
-        let root_node = self.sprites.root_mut();
-        root_node.set_visible(false);
-
-        // note: moving health ui also moves emotion ui
-        (simulation.local_health_ui).set_position(Vec2::new(BATTLE_UI_MARGIN, 0.0));
-    }
-
-    pub fn reveal(&mut self, simulation: &mut BattleSimulation) {
-        let root_node = self.sprites.root_mut();
-        root_node.set_visible(true);
-
-        // note: moving health ui also moves emotion ui
-        let width = root_node.size().x;
-        (simulation.local_health_ui).set_position(Vec2::new(width + BATTLE_UI_MARGIN, 0.0));
-    }
-
     pub fn animate_form_list(
         &mut self,
         simulation: &mut BattleSimulation,
-        form_open_time: Option<FrameTime>,
+        selection: &CardSelectSelection,
     ) {
+        let form_open_time = selection.form_open_time;
         let form_list_node = &mut self.sprites[self.form_list_index];
 
         // make visible if there's forms available
@@ -203,18 +188,29 @@ impl CardSelectUi {
         progress.clamp(0.0, 1.0)
     }
 
-    pub fn animate_slide(&mut self, simulation: &mut BattleSimulation, confirm_time: FrameTime) {
-        let progress = self.slide_progress(confirm_time);
+    pub fn animate_slide(
+        &mut self,
+        simulation: &mut BattleSimulation,
+        selection: &CardSelectSelection,
+    ) {
+        let progress = self.slide_progress(selection.confirm_time);
 
         let root_node = self.sprites.root_mut();
         let width = root_node.size().x;
 
         root_node.set_offset(Vec2::new((1.0 - progress) * -width, 0.0));
 
-        // note: moving health ui also moves emotion ui
-        (simulation.local_health_ui)
-            .set_position(Vec2::new(progress * width + BATTLE_UI_MARGIN, 0.0));
+        // update health ui position
+        let mut health_position = Vec2::new(BATTLE_UI_MARGIN, 0.0);
 
+        if selection.visible {
+            health_position.x += progress * width;
+        }
+
+        // note: moving health ui also moves emotion ui
+        simulation.local_health_ui.set_position(health_position);
+
+        // update camera position
         let camera_start = BATTLE_CAMERA_OFFSET;
         let camera_end = BATTLE_CARD_SELECT_CAMERA_OFFSET;
         let camera_position = camera_start.lerp(camera_end, progress).floor();

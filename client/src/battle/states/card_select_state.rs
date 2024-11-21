@@ -12,35 +12,37 @@ const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
 const CARD_COLS: usize = CARD_SELECT_CARD_COLS;
 
-#[derive(Clone, Default)]
-struct Selection {
-    col: i32,
-    row: i32,
-    form_row: usize,
-    has_special_button: bool,
-    form_select_time: Option<FrameTime>,
-    form_open_time: Option<FrameTime>,
-    confirm_time: FrameTime,
-    animating_slide: bool,
-    recipe_animation: Option<CardRecipeAnimation>,
-    erased: bool,
-    local: bool,
+#[derive(Clone)]
+pub struct CardSelectSelection {
+    pub col: i32,
+    pub row: i32,
+    pub form_row: usize,
+    pub has_special_button: bool,
+    pub form_select_time: Option<FrameTime>,
+    pub form_open_time: Option<FrameTime>,
+    pub confirm_time: FrameTime,
+    pub animating_slide: bool,
+    pub recipe_animation: Option<CardRecipeAnimation>,
+    pub visible: bool,
+    pub erased: bool,
+    pub local: bool,
 }
 
-impl Selection {
-    fn new() -> Self {
+impl CardSelectSelection {
+    fn default() -> Self {
         Self {
             col: 0,
             row: 0,
             form_row: 0,
             has_special_button: false,
-            form_select_time: Some(0),
-            form_open_time: Some(0),
+            form_select_time: None,
+            form_open_time: None,
             confirm_time: 0,
             animating_slide: false,
             recipe_animation: None,
+            visible: true,
             erased: false,
-            local: true,
+            local: false,
         }
     }
 }
@@ -66,7 +68,7 @@ impl SelectedItem {
 #[derive(Clone)]
 pub struct CardSelectState {
     ui: CardSelectUi,
-    player_selections: Vec<Selection>,
+    player_selections: Vec<CardSelectSelection>,
     time: FrameTime,
     completed: bool,
 }
@@ -100,7 +102,7 @@ impl State for CardSelectState {
 
                 if player.index >= self.player_selections.len() {
                     self.player_selections
-                        .resize_with(player.index + 1, Selection::default);
+                        .resize_with(player.index + 1, CardSelectSelection::default);
                 }
 
                 // initialize selection
@@ -213,9 +215,8 @@ impl State for CardSelectState {
 
             // update the ui for just the local player
 
-            self.ui.animate_slide(simulation, selection.confirm_time);
-            self.ui
-                .animate_form_list(simulation, selection.form_open_time);
+            self.ui.animate_slide(simulation, selection);
+            self.ui.animate_form_list(simulation, selection);
         }
 
         self.update_buttons(simulation);
@@ -258,6 +259,13 @@ impl State for CardSelectState {
         };
 
         let selection = &self.player_selections[player.index];
+
+        let fully_closed = selection.confirm_time > 0 && !selection.animating_slide;
+
+        if !selection.visible && !fully_closed {
+            return;
+        }
+
         let selected_item = resolve_selected_item(player, selection);
 
         // update frame
@@ -533,6 +541,20 @@ impl CardSelectState {
             simulation.call_pending_callbacks(game_io, resources);
 
             // ignore input
+            return;
+        }
+
+        // toggle ui visibility
+        if input.was_just_pressed(Input::Option2) {
+            selection.visible = !selection.visible;
+
+            if selection.local {
+                let globals = game_io.resource::<Globals>().unwrap();
+                simulation.play_sound(game_io, &globals.sfx.card_select_toggle);
+            }
+        }
+
+        if !selection.visible {
             return;
         }
 
@@ -1104,7 +1126,7 @@ impl CardSelectState {
     }
 }
 
-fn resolve_selected_item(player: &Player, selection: &Selection) -> SelectedItem {
+fn resolve_selected_item(player: &Player, selection: &CardSelectSelection) -> SelectedItem {
     let col = selection.col as usize;
     let row = selection.row as usize;
 
@@ -1151,7 +1173,12 @@ fn can_player_select(player: &Player, index: usize) -> bool {
     restriction.allows_card(card)
 }
 
-fn move_card_selection(player: &Player, selection: &mut Selection, col_diff: i32, row_diff: i32) {
+fn move_card_selection(
+    player: &Player,
+    selection: &mut CardSelectSelection,
+    col_diff: i32,
+    row_diff: i32,
+) {
     let previous_item = resolve_selected_item(player, selection);
 
     // move row

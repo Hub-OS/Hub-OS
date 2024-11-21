@@ -38,6 +38,7 @@ impl ResourcePaths {
     pub const APPEAR_SFX: &'static str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &'static str = "resources/sfx/card_select_open.ogg";
     pub const CARD_SELECT_CONFIRM_SFX: &'static str = "resources/sfx/card_select_confirm.ogg";
+    pub const CARD_SELECT_TOGGLE_SFX: &'static str = "resources/sfx/card_select_toggle.ogg";
     pub const FORM_SELECT_OPEN_SFX: &'static str = "resources/sfx/page_open.ogg";
     pub const FORM_SELECT_CLOSE_SFX: &'static str = "resources/sfx/page_close.ogg";
     pub const TURN_GAUGE_SFX: &'static str = "resources/sfx/turn_gauge_full.ogg";
