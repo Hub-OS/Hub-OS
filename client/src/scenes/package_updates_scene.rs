@@ -188,19 +188,16 @@ impl PackageUpdatesScene {
         let input_util = InputUtil::new(game_io);
 
         if input_util.was_just_pressed(Input::Cancel) {
-            let globals = game_io.resource::<Globals>().unwrap();
-
             if self.list.focused() {
                 self.list.set_focused(false);
                 self.buttons.set_focused(true);
-
-                globals.audio.play_sound(&globals.sfx.cursor_cancel);
             } else {
                 let transition = crate::transitions::new_sub_scene_pop(game_io);
                 self.next_scene = NextScene::new_pop().with_transition(transition);
-
-                globals.audio.play_sound(&globals.sfx.menu_close);
             }
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
 

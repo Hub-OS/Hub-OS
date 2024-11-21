@@ -298,7 +298,7 @@ impl PackagesScene {
         let transition = crate::transitions::new_sub_scene_pop(game_io);
         self.next_scene = NextScene::new_pop().with_transition(transition);
 
-        globals.audio.play_sound(&globals.sfx.menu_close);
+        globals.audio.play_sound(&globals.sfx.cursor_cancel);
     }
 
     fn handle_events(&mut self, game_io: &GameIO) {

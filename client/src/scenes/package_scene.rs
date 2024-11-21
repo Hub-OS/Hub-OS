@@ -268,7 +268,7 @@ impl PackageScene {
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.menu_close);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
         }
     }
 

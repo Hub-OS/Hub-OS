@@ -186,7 +186,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         if input_util.was_just_pressed(Input::Cancel) {
             // closed
             let globals = game_io.resource::<Globals>().unwrap();
-            globals.audio.play_sound(&globals.sfx.menu_close);
+            globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
             self.open = false;
             return None;
