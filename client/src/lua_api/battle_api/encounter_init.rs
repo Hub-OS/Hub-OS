@@ -134,6 +134,19 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_field_size", |api_ctx, lua, params| {
+        let (_, width, height): (rollback_mlua::Table, u8, u8) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation
+            .field
+            .resize(width.max(1) as _, height.max(1) as _);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "field", |_, lua, _| {
         let field_table = get_field_table(lua)?;
 

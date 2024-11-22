@@ -6,6 +6,7 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use itertools::Itertools;
 
 const FRAME_ANIMATION_SUPPORT: TileStateAnimationSupport = TileStateAnimationSupport::TeamRows;
 
@@ -61,6 +62,33 @@ impl Field {
 
     pub fn rows(&self) -> usize {
         self.rows
+    }
+
+    pub fn resize(&mut self, cols: usize, rows: usize) {
+        let mut old_tiles = Vec::with_capacity(cols * rows);
+        std::mem::swap(&mut self.tiles, &mut old_tiles);
+
+        let old_rows = old_tiles.into_iter().chunks(self.cols.min(cols));
+        let mut old_rows = old_rows.into_iter();
+
+        for row in 0..rows {
+            let mut col_start = 0;
+
+            if let Some(chunk) = old_rows.next() {
+                self.tiles.extend(chunk);
+                col_start += self.cols;
+            }
+
+            for col in col_start..cols {
+                let position = (col as i32, row as i32);
+                let immutable_team = col <= 1 || col + 2 >= cols;
+
+                self.tiles.push(Tile::new(position, immutable_team));
+            }
+        }
+
+        self.cols = cols;
+        self.rows = rows;
     }
 
     pub fn tile_size(&self) -> Vec2 {
@@ -296,7 +324,7 @@ impl Field {
         let mut highlight_positions = Vec::new();
 
         for row in 0..self.rows {
-            let state_row = row * 3 / (self.rows - 1) + 1;
+            let state_row = (row * 3).checked_div(self.rows - 1).unwrap_or(0) + 1;
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];
