@@ -551,7 +551,9 @@ impl BattleState {
 
         // resolve wash
         for (state_index, (x, y)) in washed_tiles {
-            let tile = simulation.field.tile_at_mut((x, y)).unwrap();
+            let Some(tile) = simulation.field.tile_at_mut((x, y)) else {
+                continue;
+            };
 
             if tile.state_index() != state_index {
                 // already modified
@@ -564,9 +566,10 @@ impl BattleState {
 
             if request_change.call(game_io, resources, simulation, (x, y, TileState::NORMAL)) {
                 // revert to NORMAL with permission
-                let tile = simulation.field.tile_at_mut((x, y)).unwrap();
-                tile.set_state_index(TileState::NORMAL, None);
-                replace_callback.call(game_io, resources, simulation, (x, y));
+                if let Some(tile) = simulation.field.tile_at_mut((x, y)) {
+                    tile.set_state_index(TileState::NORMAL, None);
+                    replace_callback.call(game_io, resources, simulation, (x, y));
+                }
             }
         }
 
@@ -913,67 +916,57 @@ impl BattleState {
                 entity.y = dest.1;
                 movement.success = true;
 
-                let start_tile = simulation.field.tile_at_mut(movement.source).unwrap();
-                start_tile.handle_auto_reservation_removal(
-                    &simulation.actions,
-                    entity_id,
-                    entity,
-                    action_queue,
-                );
+                let mut start_tile = simulation.field.tile_at_mut(movement.source);
 
-                if !entity.ignore_negative_tile_effects {
-                    let movement = movement.clone();
+                if let Some(start_tile) = &mut start_tile {
+                    start_tile.handle_auto_reservation_removal(
+                        &simulation.actions,
+                        entity_id,
+                        entity,
+                        action_queue,
+                    );
+                }
 
-                    // process stepping off the tile
+                let movement = movement.clone();
+
+                // process stepping off the tile
+                if let Some(start_tile) = start_tile {
                     let tile_state = &simulation.tile_states[start_tile.state_index()];
                     let tile_callback = tile_state.entity_leave_callback.clone();
                     let params = (entity_id, movement.source.0, movement.source.1);
-
-                    let callback =
-                        BattleCallback::new(move |game_io, resources, simulation, ()| {
-                            tile_callback.call(game_io, resources, simulation, params);
-                        });
-
-                    simulation.pending_callbacks.push(callback);
-
-                    // process stepping onto the new tile
-                    let dest_tile = simulation.field.tile_at_mut(movement.dest).unwrap();
-                    let tile_state = &simulation.tile_states[dest_tile.state_index()];
-                    let tile_callback = tile_state.entity_enter_callback.clone();
-                    let params = entity_id;
-
-                    let callback =
-                        BattleCallback::new(move |game_io, resources, simulation, ()| {
-                            tile_callback.call(game_io, resources, simulation, params);
-                        });
+                    let callback = tile_callback.bind(params);
 
                     simulation.pending_callbacks.push(callback);
                 }
 
-                let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
-                current_tile.handle_auto_reservation_addition(
-                    &simulation.actions,
-                    entity_id,
-                    entity,
-                    action_queue,
-                );
+                // process stepping onto the new tile
+                if let Some(dest_tile) = simulation.field.tile_at_mut(movement.dest) {
+                    let tile_state = &simulation.tile_states[dest_tile.state_index()];
+                    let tile_callback = tile_state.entity_enter_callback.clone();
+                    let callback = tile_callback.bind(entity_id);
+                    simulation.pending_callbacks.push(callback);
+                }
+
+                if let Some(current_tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
+                    current_tile.handle_auto_reservation_addition(
+                        &simulation.actions,
+                        entity_id,
+                        entity,
+                        action_queue,
+                    );
+                }
             }
 
             if movement.is_complete() {
-                if movement.success && !entity.ignore_negative_tile_effects {
-                    let current_tile = simulation.field.tile_at_mut((entity.x, entity.y)).unwrap();
+                if movement.success {
+                    if let Some(current_tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
+                        let tile_state = &simulation.tile_states[current_tile.state_index()];
+                        let tile_callback = tile_state.entity_stop_callback.clone();
+                        let params = (entity_id, movement.source.0, movement.source.1);
+                        let callback = tile_callback.bind(params);
 
-                    let tile_state = &simulation.tile_states[current_tile.state_index()];
-                    let tile_callback = tile_state.entity_stop_callback.clone();
-
-                    let params = (entity_id, movement.source.0, movement.source.1);
-
-                    let callback =
-                        BattleCallback::new(move |game_io, resources, simulation, ()| {
-                            tile_callback.call(game_io, resources, simulation, params);
-                        });
-
-                    simulation.pending_callbacks.push(callback);
+                        simulation.pending_callbacks.push(callback);
+                    }
                 }
 
                 if let Ok(movement) = simulation.entities.remove_one::<Movement>(id) {

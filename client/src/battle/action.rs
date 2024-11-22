@@ -748,11 +748,13 @@ impl Action {
 
         // update reservations as they're ignored while in a sync action
         if self.executed && entity.auto_reserves_tiles {
-            let old_tile = field.tile_at_mut(self.old_position).unwrap();
-            old_tile.remove_reservation_for(self.entity);
+            if let Some(old_tile) = field.tile_at_mut(self.old_position) {
+                old_tile.remove_reservation_for(self.entity);
+            }
 
-            let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-            current_tile.reserve_for(self.entity);
+            if let Some(current_tile) = field.tile_at_mut((entity.x, entity.y)) {
+                current_tile.reserve_for(self.entity);
+            }
         }
 
         pending_callbacks.push(entity.idle_callback.clone());

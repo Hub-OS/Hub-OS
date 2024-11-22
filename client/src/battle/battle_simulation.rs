@@ -383,17 +383,6 @@ impl BattleSimulation {
             entity.spawned = true;
             entity.on_field = true;
 
-            let tile = self.field.tile_at_mut((entity.x, entity.y)).unwrap();
-            tile.handle_auto_reservation_addition(&self.actions, entity_id, entity, action_queue);
-
-            if entity.team == Team::Unset {
-                entity.team = tile.team();
-            }
-
-            if entity.facing == Direction::None {
-                entity.facing = tile.direction();
-            }
-
             self.animators[entity.animator_index].enable();
             self.pending_callbacks.push(entity.spawn_callback.clone());
 
@@ -406,11 +395,28 @@ impl BattleSimulation {
             if self.battle_started {
                 self.pending_callbacks
                     .push(entity.battle_start_callback.clone())
-            }
+            };
 
-            let tile_state = &self.tile_states[tile.state_index()];
-            let tile_callback = tile_state.entity_enter_callback.clone();
-            self.pending_callbacks.push(tile_callback.bind(entity_id));
+            if let Some(tile) = self.field.tile_at_mut((entity.x, entity.y)) {
+                tile.handle_auto_reservation_addition(
+                    &self.actions,
+                    entity_id,
+                    entity,
+                    action_queue,
+                );
+
+                if entity.team == Team::Unset {
+                    entity.team = tile.team();
+                }
+
+                if entity.facing == Direction::None {
+                    entity.facing = tile.direction();
+                }
+
+                let tile_state = &self.tile_states[tile.state_index()];
+                let tile_callback = tile_state.entity_enter_callback.clone();
+                self.pending_callbacks.push(tile_callback.bind(entity_id));
+            }
         }
     }
 

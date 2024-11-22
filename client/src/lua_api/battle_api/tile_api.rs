@@ -405,32 +405,47 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let actions = &simulation.actions;
 
         let field = &mut simulation.field;
-        let current_tile = field.tile_at_mut((entity.x, entity.y)).unwrap();
-        current_tile.handle_auto_reservation_removal(actions, entity_id, entity, action_queue);
-
         let old_x = entity.x;
         let old_y = entity.y;
-        let old_state = current_tile.state_index();
-        let leave_callback = simulation.tile_states[old_state]
-            .entity_leave_callback
-            .clone();
+        let mut leave_callback = None;
+
+        if let Some(current_tile) = field.tile_at_mut((entity.x, entity.y)) {
+            current_tile.handle_auto_reservation_removal(actions, entity_id, entity, action_queue);
+
+            let old_state = current_tile.state_index();
+            leave_callback = Some(
+                simulation.tile_states[old_state]
+                    .entity_leave_callback
+                    .clone(),
+            );
+        }
 
         entity.on_field = true;
         entity.x = x;
         entity.y = y;
+        let mut enter_callback = None;
 
-        let tile = field.tile_at_mut((x, y)).unwrap();
-        tile.handle_auto_reservation_addition(actions, entity_id, entity, action_queue);
+        if let Some(tile) = field.tile_at_mut((x, y)) {
+            tile.handle_auto_reservation_addition(actions, entity_id, entity, action_queue);
 
-        let new_state = tile.state_index();
-        let enter_callback = simulation.tile_states[new_state]
-            .entity_enter_callback
-            .clone();
+            let new_state = tile.state_index();
+            enter_callback = Some(
+                simulation.tile_states[new_state]
+                    .entity_enter_callback
+                    .clone(),
+            );
+        }
 
         let game_io = api_ctx.game_io;
         let resources = api_ctx.resources;
-        leave_callback.call(game_io, resources, simulation, (entity_id, old_x, old_y));
-        enter_callback.call(game_io, resources, simulation, entity_id);
+
+        if let Some(leave_callback) = leave_callback {
+            leave_callback.call(game_io, resources, simulation, (entity_id, old_x, old_y));
+        }
+
+        if let Some(enter_callback) = enter_callback {
+            enter_callback.call(game_io, resources, simulation, entity_id);
+        }
 
         lua.pack_multi(())
     });
