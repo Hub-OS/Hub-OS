@@ -144,7 +144,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         ENCOUNTER_TABLE,
         "enable_automatic_turn_end",
         |api_ctx, lua, params| {
-            let enabled: Option<bool> = lua.unpack_multi(params)?;
+            let (_, enabled): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
 
             let mut api_ctx = api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
