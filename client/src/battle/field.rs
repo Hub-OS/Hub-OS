@@ -123,13 +123,9 @@ impl Field {
     }
 
     pub fn calc_tile_center(&self, (col, row): (i32, i32), flip: bool) -> Vec2 {
-        let start = Vec2::new(
-            self.cols as f32 * 0.5 * -self.tile_size.x,
-            -self.tile_size.y,
-        );
-
-        let mut center =
-            start + self.tile_size * 0.5 + Vec2::new(col as f32, row as f32) * self.tile_size;
+        let mut center = self.top_left()
+            + self.tile_size * 0.5
+            + Vec2::new(col as f32, row as f32) * self.tile_size;
 
         if flip {
             center.x *= -1.0
@@ -306,6 +302,13 @@ impl Field {
         }
     }
 
+    pub fn top_left(&self) -> Vec2 {
+        Vec2::new(
+            self.cols as f32 * 0.5 * -self.tile_size.x,
+            -self.tile_size.y,
+        )
+    }
+
     pub fn draw(
         &mut self,
         game_io: &GameIO,
@@ -316,8 +319,7 @@ impl Field {
         sprite_queue.set_color_mode(SpriteColorMode::Add);
 
         let sprite_origin = Vec2::new(self.tile_size.x * 0.5, 0.0);
-        let x_start = self.cols as f32 * 0.5 * -self.tile_size.x + sprite_origin.x;
-        let y_start = -self.tile_size.y;
+        let top_left = self.top_left() + sprite_origin;
 
         let flip_multiplier = if flipped { -1.0 } else { 1.0 };
 
@@ -348,8 +350,8 @@ impl Field {
 
                 // resolve position
                 let position = Vec2::new(
-                    (x_start + col as f32 * self.tile_size.x) * flip_multiplier,
-                    y_start + row as f32 * self.tile_size.y,
+                    (top_left.x + col as f32 * self.tile_size.x) * flip_multiplier,
+                    top_left.y + row as f32 * self.tile_size.y,
                 );
 
                 // draw frame
