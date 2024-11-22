@@ -6,7 +6,6 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use itertools::Itertools;
 
 const FRAME_ANIMATION_SUPPORT: TileStateAnimationSupport = TileStateAnimationSupport::TeamRows;
 
@@ -65,21 +64,10 @@ impl Field {
     }
 
     pub fn resize(&mut self, cols: usize, rows: usize) {
-        let mut old_tiles = Vec::with_capacity(cols * rows);
-        std::mem::swap(&mut self.tiles, &mut old_tiles);
-
-        let old_rows = old_tiles.into_iter().chunks(self.cols.min(cols));
-        let mut old_rows = old_rows.into_iter();
+        self.tiles.clear();
 
         for row in 0..rows {
-            let mut col_start = 0;
-
-            if let Some(chunk) = old_rows.next() {
-                self.tiles.extend(chunk);
-                col_start += self.cols;
-            }
-
-            for col in col_start..cols {
+            for col in 0..cols {
                 let position = (col as i32, row as i32);
                 let immutable_team = col <= 1 || col + 2 >= cols;
 
