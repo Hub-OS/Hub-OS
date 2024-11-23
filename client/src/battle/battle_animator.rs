@@ -1,8 +1,6 @@
-use super::BattleCallback;
+use super::{BattleCallback, DerivedAnimationFrame, DerivedAnimationState};
 use crate::bindable::{AnimatorPlaybackMode, GenerationalIndex};
-use crate::render::{
-    Animator, AnimatorLoopMode, DerivedFrame, DerivedState, FrameList, FrameTime, SpriteNode,
-};
+use crate::render::{Animator, AnimatorLoopMode, FrameList, FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::structures::{SlotMap, Tree, TreeIndex};
 use framework::prelude::{GameIO, Vec2};
@@ -12,6 +10,7 @@ use std::collections::HashMap;
 pub struct BattleAnimator {
     // (tree_slot_index, sprite_index)
     target: Option<(GenerationalIndex, TreeIndex)>,
+    derived_states: Vec<DerivedAnimationState>,
     synced_animators: Vec<GenerationalIndex>,
     complete_callbacks: Vec<BattleCallback>,
     interrupt_callbacks: Vec<BattleCallback>,
@@ -25,6 +24,7 @@ impl BattleAnimator {
     pub fn new() -> Self {
         Self {
             target: None,
+            derived_states: Vec::new(),
             synced_animators: Vec::new(),
             complete_callbacks: Vec::new(),
             interrupt_callbacks: Vec::new(),
@@ -112,44 +112,40 @@ impl BattleAnimator {
         }
     }
 
-    pub fn derived_states(&self) -> &[DerivedState] {
-        self.animator.derived_states()
+    pub fn derived_states(&self) -> &[DerivedAnimationState] {
+        &self.derived_states
     }
 
-    pub fn copy_derive_states(&mut self, derived_states: Vec<DerivedState>) {
-        for derived_state in derived_states {
-            self.animator.derive_state(
-                &derived_state.state,
-                &derived_state.original_state,
-                derived_state.frame_derivation,
-            );
+    pub fn copy_derive_states(&mut self, derived_states: Vec<DerivedAnimationState>) {
+        for derived_state in &derived_states {
+            derived_state.apply(&mut self.animator);
         }
+
+        self.derived_states.extend(derived_states);
     }
 
     pub fn derive_state(
         battle_animators: &mut SlotMap<BattleAnimator>,
         original_state: &str,
-        frame_derivation: Vec<DerivedFrame>,
+        frame_derivation: Vec<DerivedAnimationFrame>,
         animator_index: GenerationalIndex,
     ) -> String {
-        let new_state = Animator::generate_state_id(original_state);
+        let derived_state = DerivedAnimationState::new(original_state, frame_derivation);
+        let new_state = derived_state.state.clone();
 
         let battle_animator = &mut battle_animators[animator_index];
 
-        (battle_animator.animator).derive_state(
-            &new_state,
-            original_state,
-            frame_derivation.clone(),
-        );
-
+        // apply to synced animators first to avoid an extra clone
         for index in battle_animator.synced_animators.clone() {
             let battle_animator = &mut battle_animators[index];
-            (battle_animator.animator).derive_state(
-                &new_state,
-                original_state,
-                frame_derivation.clone(),
-            );
+            derived_state.apply(&mut battle_animator.animator);
+            battle_animator.derived_states.push(derived_state.clone());
         }
+
+        // apply to the primary animator
+        let battle_animator = &mut battle_animators[animator_index];
+        derived_state.apply(&mut battle_animator.animator);
+        battle_animator.derived_states.push(derived_state);
 
         new_state
     }
@@ -170,14 +166,23 @@ impl BattleAnimator {
 
     #[must_use]
     pub fn load(&mut self, game_io: &GameIO, path: &str) -> Vec<BattleCallback> {
-        let had_state = self.animator.current_state().is_some();
         let completed = self.animator.is_complete();
+        let old_state = self.animator.current_state().map(|s| s.to_string());
+        let loop_mode = self.animator.loop_mode();
+        let reversed = self.animator.reversed();
 
         self.animator
             .load(&game_io.resource::<Globals>().unwrap().assets, path);
-        self.animator.sync_time(self.time);
 
-        if !completed && had_state && self.animator.current_state().is_none() {
+        if let Some(state) = &old_state {
+            // reapply old settings
+            self.animator.set_state(state);
+            self.animator.set_loop_mode(loop_mode);
+            self.animator.set_reversed(reversed);
+            self.animator.sync_time(self.time);
+        }
+
+        if !completed && old_state.is_some() && self.animator.current_state().is_none() {
             // lost state, treat as interrupted
             self.complete_callbacks.clear();
             self.frame_callbacks.clear();

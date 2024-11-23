@@ -14,28 +14,6 @@ pub enum AnimatorLoopMode {
 }
 
 #[derive(Clone)]
-pub struct DerivedFrame {
-    pub frame_index: usize,
-    pub duration: FrameTime,
-}
-
-impl DerivedFrame {
-    pub const fn new(frame_index: usize, duration: FrameTime) -> Self {
-        Self {
-            frame_index,
-            duration,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct DerivedState {
-    pub state: String,
-    pub original_state: String,
-    pub frame_derivation: Vec<DerivedFrame>,
-}
-
-#[derive(Clone)]
 pub struct Animator {
     current_state: Option<Uncased<'static>>,
     frame_index: usize,
@@ -46,7 +24,6 @@ pub struct Animator {
     bounced: bool,
     reversed: bool,
     states: IndexMap<Uncased<'static>, FrameList>,
-    derived_states: Vec<DerivedState>,
 }
 
 impl Animator {
@@ -61,7 +38,6 @@ impl Animator {
             bounced: false,
             reversed: false,
             states: IndexMap::new(),
-            derived_states: Vec::new(),
         }
     }
 
@@ -91,7 +67,6 @@ impl Animator {
         self.bounced = other.bounced;
         self.reversed = other.reversed;
         self.states.clone_from(&other.states);
-        self.rederive_states();
     }
 
     pub fn load(&mut self, assets: &impl AssetManager, path: &str) {
@@ -247,8 +222,6 @@ impl Animator {
             self.states.insert(Uncased::from(state_name), frame_list);
         }
 
-        self.rederive_states();
-
         if let Some(current_state) = self.current_state.take() {
             // retain previous settings
             let loop_mode = self.loop_mode;
@@ -354,74 +327,6 @@ impl Animator {
         *view = &view[end_index..];
 
         value
-    }
-
-    pub fn derived_states(&self) -> &[DerivedState] {
-        &self.derived_states
-    }
-
-    fn rederive_states(&mut self) {
-        for data in &self.derived_states {
-            let frame_list = self
-                .derive_frames(&data.original_state, &data.frame_derivation)
-                .unwrap_or_default();
-
-            let state = data.state.clone().into();
-            self.states.insert(state, frame_list);
-        }
-    }
-
-    pub fn generate_state_id(state: &str) -> String {
-        use std::time::{SystemTime, UNIX_EPOCH};
-
-        let time_string = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_nanos()
-            .to_string();
-
-        state.to_owned() + "@" + &time_string
-    }
-
-    pub fn derive_state(
-        &mut self,
-        new_state: &str,
-        original_state: &str,
-        frame_derivation: Vec<DerivedFrame>,
-    ) {
-        let original_state = &original_state.to_ascii_uppercase();
-        let frames = self
-            .derive_frames(original_state, &frame_derivation)
-            .unwrap_or_default();
-
-        let derivation = DerivedState {
-            state: new_state.to_ascii_uppercase(),
-            original_state: original_state.to_owned(),
-            frame_derivation,
-        };
-
-        let state = derivation.state.clone().into();
-        self.states.insert(state, frames);
-        self.derived_states.push(derivation);
-    }
-
-    /// Assumes state is uppercase
-    fn derive_frames(&self, state: &str, frame_derivation: &[DerivedFrame]) -> Option<FrameList> {
-        let original_frame_list = self.states.get(&Uncased::from_borrowed(state))?;
-        let mut frame_list = FrameList::default();
-
-        for data in frame_derivation {
-            let mut frame = original_frame_list
-                .frame(data.frame_index)
-                .cloned()
-                .unwrap_or_default();
-
-            frame.duration = data.duration;
-
-            frame_list.add_frame(frame);
-        }
-
-        Some(frame_list)
     }
 
     pub fn add_state<S: AsRef<str>>(&mut self, state: S, frame_list: FrameList) {

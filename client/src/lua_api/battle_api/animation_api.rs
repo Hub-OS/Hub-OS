@@ -1,9 +1,9 @@
 use super::errors::{animator_not_found, sprite_not_found};
 use super::{BattleLuaApi, ANIMATION_TABLE};
-use crate::battle::{BattleAnimator, BattleCallback};
+use crate::battle::{BattleAnimator, BattleCallback, DerivedAnimationFrame};
 use crate::bindable::{GenerationalIndex, LuaVector};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::render::{DerivedFrame, FrameTime};
+use crate::render::FrameTime;
 use crate::structures::TreeIndex;
 use framework::prelude::GameIO;
 
@@ -150,7 +150,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
                     let frame_index = *item.first()?;
                     let duration = *item.get(1)? as FrameTime;
 
-                    Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
+                    Some(DerivedAnimationFrame::new(frame_index.max(1) - 1, duration))
                 })
                 .collect();
 

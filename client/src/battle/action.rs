@@ -1,13 +1,14 @@
 use super::{
     ActionQueue, AttackContext, BattleAnimator, BattleCallback, BattleScriptContext,
-    BattleSimulation, Character, Entity, Field, Living, Movement, Player, SharedBattleResources,
+    BattleSimulation, Character, DerivedAnimationFrame, Entity, Field, Living, Movement, Player,
+    SharedBattleResources,
 };
 use crate::bindable::{
     ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
 };
 use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
-use crate::render::{DerivedFrame, FrameTime, SpriteNode, Tree};
+use crate::render::{FrameTime, SpriteNode, Tree};
 use crate::resources::Globals;
 use crate::structures::SlotMap;
 use framework::prelude::GameIO;
@@ -40,7 +41,7 @@ pub struct Action {
     pub frame_callbacks: Vec<(usize, BattleCallback)>,
     pub sprite_index: GenerationalIndex,
     pub properties: CardProperties,
-    pub derived_frames: Option<Vec<DerivedFrame>>,
+    pub derived_frames: Option<Vec<DerivedAnimationFrame>>,
     pub steps: Vec<ActionStep>,
     pub step_index: usize,
     pub attachments: Vec<ActionAttachment>,

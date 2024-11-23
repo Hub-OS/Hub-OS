@@ -11,7 +11,7 @@ use crate::battle::*;
 use crate::bindable::{CardProperties, EntityId, GenerationalIndex, SpriteColorMode};
 use crate::lua_api::helpers::inherit_metatable;
 use crate::packages::CardPackage;
-use crate::render::{DerivedFrame, FrameTime, SpriteNode};
+use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use packets::structures::PackageId;
 use rollback_mlua::LuaSerdeExt;
@@ -153,7 +153,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
                     let frame_index = *item.first()?;
                     let duration = *item.get(1)? as FrameTime;
 
-                    Some(DerivedFrame::new(frame_index.max(1) - 1, duration))
+                    Some(DerivedAnimationFrame::new(frame_index.max(1) - 1, duration))
                 })
                 .collect();
 
