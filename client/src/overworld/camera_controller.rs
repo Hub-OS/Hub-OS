@@ -1,5 +1,5 @@
 use super::Map;
-use crate::render::Camera;
+use crate::render::{Camera, CameraMotion};
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -114,12 +114,23 @@ impl CameraController {
 
             match action {
                 CameraAction::Snap { target, .. } => camera.snap(target),
-                CameraAction::Slide { target, duration } => camera.slide(target, duration),
+                CameraAction::Slide { target, duration } => camera.slide(
+                    target,
+                    CameraMotion::Lerp {
+                        duration: (duration * 60.0) as _,
+                    },
+                ),
                 CameraAction::Wane {
                     target,
                     duration,
                     factor,
-                } => camera.wane(target, duration, factor),
+                } => camera.slide(
+                    target,
+                    CameraMotion::Wane {
+                        duration: (duration * 60.0) as _,
+                        factor,
+                    },
+                ),
                 CameraAction::Shake { strength, duration } => camera.shake(strength, duration),
                 CameraAction::Fade { color, duration } => camera.fade(color, duration),
                 CameraAction::TrackEntity { entity } => self.tracked_entity = Some(entity),

@@ -1,15 +1,78 @@
+use super::FrameTime;
 use crate::resources::*;
 use framework::prelude::*;
 use rand::Rng;
+
+trait IsCloseEnough {
+    fn is_close_enough(&self, other: &Self) -> bool;
+}
+
+impl IsCloseEnough for f32 {
+    fn is_close_enough(&self, other: &Self) -> bool {
+        (*other - *self).abs() < 1.0
+    }
+}
+
+impl IsCloseEnough for Vec2 {
+    fn is_close_enough(&self, other: &Self) -> bool {
+        (*other - *self).max_element() < 1.0
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum CameraMotion {
+    Lerp { duration: FrameTime },
+    Wane { duration: FrameTime, factor: f32 },
+    Multiply { factor: f32 },
+    None,
+}
+
+impl CameraMotion {
+    fn interpolate<T>(&self, start: T, end: T, elapsed: FrameTime) -> (T, bool)
+    where
+        T: IsCloseEnough
+            + std::ops::Mul<f32, Output = T>
+            + std::ops::Sub<Output = T>
+            + std::ops::Add<Output = T>
+            + Copy,
+    {
+        match *self {
+            CameraMotion::Lerp { duration } => {
+                if elapsed > duration {
+                    return (end, true);
+                }
+
+                let progress = elapsed as f32 / duration as f32;
+
+                ((end - start) * progress + start, false)
+            }
+            CameraMotion::Wane { duration, factor } => {
+                if elapsed > duration {
+                    return (end, true);
+                }
+
+                let progress = elapsed as f32 / duration as f32;
+
+                let x = wane(progress, factor);
+
+                ((end - start) * x + start, false)
+            }
+            CameraMotion::Multiply { factor } => {
+                let value = (end - start) * factor + start;
+
+                (value, value.is_close_enough(&end))
+            }
+            CameraMotion::None => (end, true),
+        }
+    }
+}
 
 pub struct Camera {
     internal_camera: OrthoCamera,
     origin: Vec2,
     destination: Vec2,
-    slide_progress: f32,
-    slide_duration: f32,
-    waning: bool,
-    wane_factor: f32,
+    motion: CameraMotion,
+    slide_elapsed: FrameTime,
     shaking: bool,
     shake_stress: f32,
     shake_progress: f32,
@@ -30,10 +93,8 @@ impl Camera {
             internal_camera,
             origin: Vec2::ZERO,
             destination: Vec2::ZERO,
-            slide_progress: 0.0,
-            slide_duration: 0.0,
-            wane_factor: 0.0,
-            waning: false,
+            slide_elapsed: 0,
+            motion: CameraMotion::None,
             shaking: false,
             shake_stress: 0.0,
             shake_progress: 0.0,
@@ -76,7 +137,7 @@ impl Camera {
 
     pub fn update(&mut self, game_io: &GameIO) {
         let last_frame_secs = (game_io.frame_duration() + game_io.sleep_duration()).as_secs_f32();
-        self.slide_progress += last_frame_secs;
+        self.slide_elapsed += 1;
         self.shake_progress += last_frame_secs;
         self.fade_progress += last_frame_secs;
 
@@ -84,27 +145,16 @@ impl Camera {
 
         self.current_color = Color::lerp(self.start_color, self.fade_color, x);
 
-        // If progress is over, update position to the destination
-        if self.slide_progress >= self.slide_duration {
-            self.internal_camera
-                .set_position(self.destination.extend(0.0));
+        let (position, slide_completed) =
+            self.motion
+                .interpolate(self.origin, self.destination, self.slide_elapsed);
 
-            // reset wane params
-            self.waning = false;
-        } else {
-            // Otherwise calculate the delta
-            let delta = if self.waning {
-                let x = wane(self.slide_progress, self.slide_duration, self.wane_factor);
-
-                (self.destination - self.origin) * x + self.origin
-            } else {
-                let progress_percent = self.slide_progress / self.slide_duration;
-
-                (self.destination - self.origin) * progress_percent + self.origin
-            };
-
-            self.internal_camera.set_position(delta.floor().extend(0.0));
+        if slide_completed {
+            self.motion = CameraMotion::None;
         }
+
+        self.internal_camera
+            .set_position(position.floor().extend(0.0));
 
         if self.shaking {
             if self.shake_progress <= self.shake_duration {
@@ -123,18 +173,11 @@ impl Camera {
         }
     }
 
-    pub fn slide(&mut self, destination: Vec2, duration: f32) {
+    pub fn slide(&mut self, destination: Vec2, motion: CameraMotion) {
         self.origin = Vec2::new(self.internal_camera.x(), self.internal_camera.y());
-        self.slide_progress = 0.0;
+        self.slide_elapsed = 0;
         self.destination = destination;
-        self.slide_duration = duration;
-        self.waning = false;
-    }
-
-    pub fn wane(&mut self, destination: Vec2, duration: f32, factor: f32) {
-        self.slide(destination, duration);
-        self.waning = true;
-        self.wane_factor = factor;
+        self.motion = motion;
     }
 
     pub fn snap(&mut self, mut destination: Vec2) {
@@ -142,7 +185,7 @@ impl Camera {
 
         self.internal_camera.set_position(destination.extend(0.0));
 
-        self.slide(destination, 0.0);
+        self.slide(destination, CameraMotion::None);
     }
 
     fn offset(&mut self, offset: Vec2) {
@@ -180,10 +223,8 @@ impl Camera {
             internal_camera,
             origin: self.origin,
             destination: self.destination,
-            slide_progress: self.slide_progress,
-            slide_duration: self.slide_duration,
-            waning: self.waning,
-            wane_factor: self.wane_factor,
+            slide_elapsed: self.slide_elapsed,
+            motion: CameraMotion::None,
             shaking: self.shaking,
             shake_stress: self.shake_stress,
             shake_progress: self.shake_progress,
@@ -203,7 +244,7 @@ impl AsBinding for Camera {
     }
 }
 
-fn wane(x: f32, length: f32, factor: f32) -> f32 {
-    let result = (2.0 + (factor * (x / length).ln())) * 0.5;
+fn wane(progress: f32, factor: f32) -> f32 {
+    let result = (2.0 + (factor * progress.ln())) * 0.5;
     result.min(1.0)
 }
