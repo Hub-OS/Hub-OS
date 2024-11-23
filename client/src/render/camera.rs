@@ -73,14 +73,13 @@ pub struct Camera {
     destination: Vec2,
     motion: CameraMotion,
     slide_elapsed: FrameTime,
-    shaking: bool,
     shake_stress: f32,
-    shake_progress: f32,
-    shake_duration: f32,
+    shake_elapsed: FrameTime,
+    shake_duration: FrameTime,
     start_color: Color,
     fade_color: Color,
-    fade_progress: f32,
-    fade_duration: f32,
+    fade_elapsed: FrameTime,
+    fade_duration: FrameTime,
     current_color: Color,
 }
 
@@ -95,14 +94,13 @@ impl Camera {
             destination: Vec2::ZERO,
             slide_elapsed: 0,
             motion: CameraMotion::None,
-            shaking: false,
             shake_stress: 0.0,
-            shake_progress: 0.0,
-            shake_duration: 0.0,
+            shake_elapsed: 0,
+            shake_duration: 0,
             start_color: Color::TRANSPARENT,
             fade_color: Color::TRANSPARENT,
-            fade_progress: 0.0,
-            fade_duration: 0.0,
+            fade_elapsed: 0,
+            fade_duration: 0,
             current_color: Color::TRANSPARENT,
         }
     }
@@ -135,13 +133,12 @@ impl Camera {
         self.internal_camera.set_scale(scale);
     }
 
-    pub fn update(&mut self, game_io: &GameIO) {
-        let last_frame_secs = (game_io.frame_duration() + game_io.sleep_duration()).as_secs_f32();
+    pub fn update(&mut self) {
         self.slide_elapsed += 1;
-        self.shake_progress += last_frame_secs;
-        self.fade_progress += last_frame_secs;
+        self.shake_elapsed += 1;
+        self.fade_elapsed += 1;
 
-        let x = (self.fade_progress / self.fade_duration).min(1.0);
+        let x = (self.fade_elapsed as f32 / self.fade_duration as f32).min(1.0);
 
         self.current_color = Color::lerp(self.start_color, self.fade_color, x);
 
@@ -156,20 +153,17 @@ impl Camera {
         self.internal_camera
             .set_position(position.floor().extend(0.0));
 
-        if self.shaking {
-            if self.shake_progress <= self.shake_duration {
-                // Drop off to zero by end of shake
-                let curr_stress =
-                    self.shake_stress * (1.0 - (self.shake_progress / self.shake_duration));
+        if self.shake_elapsed <= self.shake_duration {
+            let progress = self.shake_elapsed as f32 / self.shake_duration as f32;
 
-                let angle = rand::thread_rng().gen::<f32>() * std::f32::consts::TAU;
+            // Drop off to zero by end of shake
+            let curr_stress = self.shake_stress * (1.0 - progress);
 
-                let offset = Vec2::new(angle.sin() * curr_stress, angle.cos() * curr_stress);
+            let angle = rand::thread_rng().gen::<f32>() * std::f32::consts::TAU;
 
-                self.offset(offset);
-            } else {
-                self.shaking = false;
-            }
+            let offset = Vec2::new(angle.sin() * curr_stress, angle.cos() * curr_stress);
+
+            self.offset(offset);
         }
     }
 
@@ -193,20 +187,21 @@ impl Camera {
         self.internal_camera.set_position(position.floor());
     }
 
-    pub fn shake(&mut self, stress: f32, duration: f32) {
-        if self.shaking && duration < self.shake_duration - self.shake_progress {
+    pub fn shake(&mut self, stress: f32, duration: FrameTime) {
+        let shaking = self.shake_elapsed < self.shake_duration;
+
+        if shaking && duration < self.shake_duration - self.shake_elapsed {
             return;
         }
 
-        self.shaking = true;
         self.shake_stress = stress;
         self.shake_duration = duration;
-        self.shake_progress = 0.0;
+        self.shake_elapsed = 0;
     }
 
-    pub fn fade(&mut self, color: Color, duration: f32) {
+    pub fn fade(&mut self, color: Color, duration: FrameTime) {
         self.start_color = self.current_color;
-        self.fade_progress = 0.0;
+        self.fade_elapsed = 0;
         self.fade_color = color;
         self.fade_duration = duration;
     }
@@ -225,13 +220,12 @@ impl Camera {
             destination: self.destination,
             slide_elapsed: self.slide_elapsed,
             motion: CameraMotion::None,
-            shaking: self.shaking,
             shake_stress: self.shake_stress,
-            shake_progress: self.shake_progress,
+            shake_elapsed: self.shake_elapsed,
             shake_duration: self.shake_duration,
             start_color: self.start_color,
             fade_color: self.fade_color,
-            fade_progress: self.fade_progress,
+            fade_elapsed: self.fade_elapsed,
             fade_duration: self.fade_duration,
             current_color: self.current_color,
         }

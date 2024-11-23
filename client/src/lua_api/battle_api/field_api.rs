@@ -141,7 +141,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         let mut api_ctx = api_ctx.borrow_mut();
 
         let camera = &mut api_ctx.simulation.camera;
-        camera.shake(power, duration as f32 / 60.0);
+        camera.shake(power, duration);
 
         lua.pack_multi(())
     });

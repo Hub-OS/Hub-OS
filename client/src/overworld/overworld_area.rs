@@ -224,7 +224,7 @@ impl OverworldArea {
         self.map.update(self.world_time);
         self.update_backgrounds();
 
-        self.ui_camera.update(game_io);
+        self.ui_camera.update();
         self.camera_controller.update(
             game_io,
             &self.map,

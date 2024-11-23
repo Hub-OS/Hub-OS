@@ -817,7 +817,7 @@ impl Scene for BattleScene {
         self.core_update(game_io);
         self.detect_debug_hotkeys(game_io);
         self.handle_exit_requests(game_io);
-        self.simulation.camera.update(game_io);
+        self.simulation.camera.update();
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

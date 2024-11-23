@@ -204,7 +204,7 @@ impl Scene for DeckListScene {
 
     fn update(&mut self, game_io: &mut GameIO) {
         self.scene_time += 1;
-        self.camera.update(game_io);
+        self.camera.update();
         self.background.update();
 
         if game_io.is_in_transition() {

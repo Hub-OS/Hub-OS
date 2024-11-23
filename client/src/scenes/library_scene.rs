@@ -146,7 +146,7 @@ impl Scene for LibraryScene {
 
     fn update(&mut self, game_io: &mut GameIO) {
         // update camera
-        self.camera.update(game_io);
+        self.camera.update();
         self.background.update();
 
         // update page_tracker

@@ -93,7 +93,7 @@ impl CameraController {
             }
         }
 
-        camera.update(game_io);
+        camera.update();
 
         let last_frame_secs = (game_io.frame_duration() + game_io.sleep_duration()).as_secs_f32();
 
@@ -131,8 +131,12 @@ impl CameraController {
                         factor,
                     },
                 ),
-                CameraAction::Shake { strength, duration } => camera.shake(strength, duration),
-                CameraAction::Fade { color, duration } => camera.fade(color, duration),
+                CameraAction::Shake { strength, duration } => {
+                    camera.shake(strength, (duration * 60.0) as _)
+                }
+                CameraAction::Fade { color, duration } => {
+                    camera.fade(color, (duration * 60.0) as _)
+                }
                 CameraAction::TrackEntity { entity } => self.tracked_entity = Some(entity),
                 CameraAction::Unlock => {
                     // unlock as long as nothing else is queued

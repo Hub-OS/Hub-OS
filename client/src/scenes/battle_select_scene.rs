@@ -136,7 +136,7 @@ impl Scene for BattleSelectScene {
 
     fn update(&mut self, game_io: &mut GameIO) {
         self.background.update();
-        self.camera.update(game_io);
+        self.camera.update();
         self.ui_input_tracker.update(game_io);
         self.cursor_animator.update();
         self.cursor_animator.apply(&mut self.cursor_sprite);
