@@ -297,6 +297,26 @@ impl Field {
         )
     }
 
+    pub fn best_fitting_scale(&self) -> Vec2 {
+        // field tile size with edges trimmed off
+        let field_tile_size =
+            (Vec2::new((self.cols - 2) as _, (self.rows - 2) as _)).max(Vec2::ONE);
+        let field_size = self.tile_size * field_tile_size;
+
+        let allocated_space = Vec2::new(
+            RESOLUTION_F.x,
+            RESOLUTION_F.y * 0.5 + BATTLE_CARD_SELECT_CAMERA_OFFSET.y,
+        );
+
+        let scale = (allocated_space / field_size).min_element();
+
+        if scale >= 1.0 {
+            Vec2::ONE
+        } else {
+            Vec2::splat(scale)
+        }
+    }
+
     pub fn draw(
         &mut self,
         game_io: &GameIO,
@@ -314,7 +334,13 @@ impl Field {
         let mut highlight_positions = Vec::new();
 
         for row in 0..self.rows {
-            let state_row = (row * 3).checked_div(self.rows - 1).unwrap_or(0) + 1;
+            let state_row = if row + 2 >= self.rows {
+                3
+            } else if row <= 1 {
+                1
+            } else {
+                2
+            };
 
             for col in 0..self.cols {
                 let tile = &self.tiles[row * self.cols + col];

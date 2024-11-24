@@ -215,6 +215,31 @@ impl State for CardSelectState {
 
             // update the ui for just the local player
 
+            let scale = simulation.field.best_fitting_scale();
+
+            if scale.x < 1.0 {
+                // special camera handling for large fields
+                simulation.camera.zoom(scale, BATTLE_ZOOM_MOTION);
+
+                if selection.confirm_time == 0 {
+                    simulation
+                        .camera
+                        .slide(BATTLE_CARD_SELECT_CAMERA_OFFSET, BATTLE_ZOOM_MOTION);
+                } else {
+                    simulation
+                        .camera
+                        .slide(BATTLE_CAMERA_OFFSET, BATTLE_ZOOM_MOTION);
+                }
+            } else {
+                // regular camera handling
+                let progress = self.ui.slide_progress(selection.confirm_time);
+
+                let camera_start = BATTLE_CAMERA_OFFSET;
+                let camera_end = BATTLE_CARD_SELECT_CAMERA_OFFSET;
+                let camera_position = camera_start.lerp(camera_end, progress).floor();
+                simulation.camera.snap(camera_position);
+            }
+
             self.ui.animate_slide(simulation, selection);
             self.ui.animate_form_list(simulation, selection);
         }

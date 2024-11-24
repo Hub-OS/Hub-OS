@@ -1,9 +1,9 @@
 use super::State;
-use crate::battle::*;
 use crate::bindable::EntityId;
 use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::BATTLE_FADE_DURATION;
+use crate::{battle::*, BATTLE_CAMERA_OFFSET};
 use framework::prelude::*;
 use std::collections::VecDeque;
 
@@ -63,6 +63,10 @@ impl State for IntroState {
                 }
             }
         }
+
+        let scale = simulation.field.best_fitting_scale();
+        simulation.camera.set_scale(scale);
+        simulation.camera.snap(BATTLE_CAMERA_OFFSET);
 
         // wait for the transition to end
         let transition_frames =

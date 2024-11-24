@@ -259,6 +259,8 @@ impl BattleSimulation {
         // update background
         self.background.update();
 
+        self.update_camera();
+
         // reset fade colors
         resources.ui_fade_color.set(Color::TRANSPARENT);
         resources.battle_fade_color.set(Color::TRANSPARENT);
@@ -492,6 +494,61 @@ impl BattleSimulation {
         for callback in callbacks {
             callback.call(game_io, resources, self, ());
         }
+    }
+
+    fn update_camera(&mut self) {
+        self.camera.update();
+
+        let scale = self.field.best_fitting_scale();
+
+        if scale == Vec2::ONE {
+            // no need to manage the camera if we can fit everything on screen
+            return;
+        }
+
+        let entities = &mut self.entities;
+        let perspective_flipped = self.local_team.flips_perspective();
+
+        // calculate center and gather information for calculating zoom
+        let mut min_x = 0.0;
+        let mut max_x = 0.0;
+        let mut min_y = 0.0;
+        let mut max_y = 0.0;
+
+        for (_, (entity, _)) in entities.query_mut::<(&Entity, &Character)>() {
+            if entity.spawned {
+                let position = entity.screen_position(&self.field, perspective_flipped);
+                min_x = position.x.min(min_x);
+                max_x = position.x.max(max_x);
+                min_y = position.y.min(min_y);
+                max_y = position.y.max(max_y);
+            }
+        }
+
+        let tile_size = self.field.tile_size();
+        min_x -= tile_size.x;
+        max_x += tile_size.x;
+        min_y -= tile_size.y;
+        max_y += tile_size.y;
+
+        // subtracting cols by two to exclude the invisible edge tiles
+        let field_width = tile_size.x * (self.field.cols() as f32 - 2.0).max(1.0);
+        let half_field_width = field_width * 0.5;
+        min_x = min_x.max(-half_field_width);
+        max_x = max_x.min(half_field_width);
+
+        let fit_width = max_x - min_x;
+        let fit_height = max_y - min_y;
+
+        let center = Vec2::new(min_x + fit_width * 0.5, min_y + fit_height * 0.5);
+
+        // calculate zoom
+        let fit_zoom = (RESOLUTION_F / Vec2::new(fit_width, fit_height))
+            .min_element()
+            .min(1.0);
+
+        self.camera.slide(center, BATTLE_PAN_MOTION);
+        self.camera.zoom(Vec2::splat(fit_zoom), BATTLE_ZOOM_MOTION);
     }
 
     fn cleanup_erased_entities(&mut self) {
