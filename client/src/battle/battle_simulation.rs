@@ -506,14 +506,45 @@ impl BattleSimulation {
             return;
         }
 
+        // resolve field size
+        let tile_size = self.field.tile_size();
+        let field_visible_tile_count =
+            (Vec2::new(self.field.cols() as _, self.field.rows() as _) - 2.0).max(Vec2::ONE);
+        let field_size = field_visible_tile_count * tile_size;
+        let half_field_width = field_size.x * 0.5;
+
+        // prevent the camera from escaping the field if we can
+        let shift_for_zoom = |mut position: Vec2, zoom: f32| {
+            let half_zoom_width = RESOLUTION_F.x * 0.5 / zoom;
+
+            let lower_bound = (-half_field_width + half_zoom_width).ceil();
+            let higher_bound = (half_field_width - half_zoom_width).floor();
+
+            if lower_bound > higher_bound {
+                position.x = 0.0;
+            } else {
+                position.x = position.x.clamp(lower_bound, higher_bound);
+            }
+
+            position
+        };
+
+        if field_size.x >= RESOLUTION_F.x {
+            let current_position = self.camera.position();
+            let current_zoom = self.camera.scale().x;
+            let position = shift_for_zoom(current_position, current_zoom);
+            self.camera.snap(position);
+        };
+
+        // resolve the smallest box that can fit every character
+        let mut min_x = f32::INFINITY;
+        let mut max_x = f32::NEG_INFINITY;
+        let mut min_y = f32::INFINITY;
+        let mut max_y = f32::NEG_INFINITY;
+
         let entities = &mut self.entities;
         let perspective_flipped = self.local_team.flips_perspective();
-
-        // calculate center and gather information for calculating zoom
-        let mut min_x = 0.0;
-        let mut max_x = 0.0;
-        let mut min_y = 0.0;
-        let mut max_y = 0.0;
+        let mut count = 0;
 
         for (_, (entity, _)) in entities.query_mut::<(&Entity, &Character)>() {
             if entity.spawned {
@@ -522,31 +553,42 @@ impl BattleSimulation {
                 max_x = position.x.max(max_x);
                 min_y = position.y.min(min_y);
                 max_y = position.y.max(max_y);
+                count += 1;
             }
         }
 
-        let tile_size = self.field.tile_size();
+        if count == 0 {
+            let scale = self.field.best_fitting_scale();
+            self.camera.slide(scale, BATTLE_PAN_MOTION);
+            self.camera.zoom(BATTLE_CAMERA_OFFSET, BATTLE_ZOOM_MOTION);
+            return;
+        }
+
+        // pad the box
         let padding = tile_size * BATTLE_CAMERA_TILE_PADDING;
         min_x -= padding.x;
         max_x += padding.x;
         min_y -= padding.y;
         max_y += padding.y;
 
-        // subtracting cols by two to exclude the invisible edge tiles
-        let field_width = tile_size.x * (self.field.cols() as f32 - 2.0).max(1.0);
-        let half_field_width = field_width * 0.5;
+        // clip the box to the field (only on the x axis)
         min_x = min_x.max(-half_field_width);
         max_x = max_x.min(half_field_width);
 
+        // calculate center
         let fit_width = max_x - min_x;
         let fit_height = max_y - min_y;
-
-        let center = Vec2::new(min_x + fit_width * 0.5, min_y + fit_height * 0.5);
+        let mut center = Vec2::new(min_x + fit_width * 0.5, min_y + fit_height * 0.5);
 
         // calculate zoom
         let fit_zoom = (RESOLUTION_F / Vec2::new(fit_width, fit_height))
             .min_element()
             .min(1.0);
+
+        // adjust center
+        if field_size.x >= RESOLUTION_F.x {
+            center = shift_for_zoom(center, fit_zoom);
+        };
 
         self.camera.slide(center, BATTLE_PAN_MOTION);
         self.camera.zoom(Vec2::splat(fit_zoom), BATTLE_ZOOM_MOTION);
