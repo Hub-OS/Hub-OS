@@ -25,8 +25,9 @@ pub const CARD_SELECT_ROWS: usize = 2;
 pub const LOW_HP_SFX_RATE: FrameTime = 45;
 pub const BATTLE_CAMERA_OFFSET: Vec2 = Vec2::new(0.0, 8.0);
 pub const BATTLE_CARD_SELECT_CAMERA_OFFSET: Vec2 = Vec2::new(0.0, -7.0);
-pub const BATTLE_ZOOM_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.2 };
-pub const BATTLE_PAN_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.25 };
+pub const BATTLE_ZOOM_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.1 };
+pub const BATTLE_PAN_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.1 };
+pub const BATTLE_CAMERA_TILE_PADDING: f32 = 1.0;
 
 // tile states
 pub const POISON_INTERVAL: FrameTime = 7;

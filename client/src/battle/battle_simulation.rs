@@ -526,10 +526,11 @@ impl BattleSimulation {
         }
 
         let tile_size = self.field.tile_size();
-        min_x -= tile_size.x;
-        max_x += tile_size.x;
-        min_y -= tile_size.y;
-        max_y += tile_size.y;
+        let padding = tile_size * BATTLE_CAMERA_TILE_PADDING;
+        min_x -= padding.x;
+        max_x += padding.x;
+        min_y -= padding.y;
+        max_y += padding.y;
 
         // subtracting cols by two to exclude the invisible edge tiles
         let field_width = tile_size.x * (self.field.cols() as f32 - 2.0).max(1.0);
