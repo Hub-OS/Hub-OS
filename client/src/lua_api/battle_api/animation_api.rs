@@ -200,6 +200,20 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(LuaVector::from(animator.point(&name).unwrap_or_default()))
     });
 
+    getter(
+        lua_api,
+        "relative_point",
+        |animator, lua, (point_name, origin_name): (String, Option<String>)| {
+            let point = animator.point(&point_name).unwrap_or_default();
+            let origin = origin_name
+                .and_then(|name| animator.point(&name))
+                .unwrap_or_else(|| animator.origin());
+            let relative_point = point - origin;
+
+            lua.pack_multi(LuaVector::from(relative_point))
+        },
+    );
+
     setter(lua_api, "set_playback", |animator, lua, mode| {
         animator.set_playback_mode(mode);
         lua.pack_multi(())
