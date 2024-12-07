@@ -335,9 +335,8 @@ impl Animator {
     }
 
     pub fn remove_state(&mut self, state: &str) {
-        // todo: avoid clone
-        let q = Uncased::from_owned(state.to_string());
-        self.states.shift_remove(&q);
+        let q: &UncasedStr = state.into();
+        self.states.shift_remove(q);
     }
 
     pub fn loop_mode(&self) -> AnimatorLoopMode {
