@@ -649,7 +649,7 @@ impl PluginInterface for LuaPluginInterface {
     fn handle_shop_leave(&mut self, net: &mut Net, player_id: ActorId) {
         let tracker = self.widget_trackers.get_mut(&player_id).unwrap();
 
-        let Some(script_index) = tracker.close_shop() else {
+        let Some(&script_index) = tracker.current_shop() else {
             // protect against attackers
             return;
         };
