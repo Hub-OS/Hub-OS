@@ -268,7 +268,7 @@ impl BattleState {
             .any(|(_, (entity, _))| entity.team != local_team);
 
         if !enemies_alive {
-            self.succeed();
+            self.succeed(simulation);
         }
     }
 
@@ -277,9 +277,10 @@ impl BattleState {
         self.end_message.show_for(TOTAL_MESSAGE_TIME);
     }
 
-    fn succeed(&mut self) {
+    fn succeed(&mut self, simulation: &mut BattleSimulation) {
         self.end_message.set_message(Cow::Borrowed("<_SUCCESS_>"));
         self.end_message.show_for(TOTAL_MESSAGE_TIME);
+        simulation.statistics.won = true;
     }
 
     fn detect_battle_start(

@@ -796,6 +796,7 @@ impl PluginInterface for LuaPluginInterface {
             |lua, callback| {
                 let event = lua.create_table()?;
                 event.set("player_id", player_id)?;
+                event.set("won", battle_stats.won)?;
                 event.set("health", battle_stats.health)?;
                 event.set("score", battle_stats.score)?;
                 event.set("time", battle_stats.time)?;
