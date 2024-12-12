@@ -338,5 +338,19 @@ impl OverworldArea {
 
         // draw foreground
         self.foreground.draw(game_io, render_pass);
+
+        // draw fade
+        if self.world_camera.lens_tint().a != 0.0 {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let assets = &globals.assets;
+
+            let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            fade_sprite.set_color(self.world_camera.lens_tint());
+            fade_sprite.set_size(RESOLUTION_F);
+            fade_sprite.set_origin(Vec2::new(0.5, 0.5));
+            fade_sprite.set_position(self.world_camera.position());
+
+            sprite_queue.draw_sprite(&fade_sprite);
+        }
     }
 }
