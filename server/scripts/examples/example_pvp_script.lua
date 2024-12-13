@@ -1,4 +1,6 @@
-local Emotes = require("scripts/libs/emotes");
+--- Move this file into the scripts folder to run this example
+
+local Emotes = require("scripts/libs/emotes")
 
 local requests = {}
 local questioned_requests = {}

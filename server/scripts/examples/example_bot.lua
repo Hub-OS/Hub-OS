@@ -1,3 +1,5 @@
+--- Move this file into the scripts folder and add a Point object named "Bot Spawn" to run this example
+
 local Direction = require("scripts/libs/direction")
 
 local area_id = "default"

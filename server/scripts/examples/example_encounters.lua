@@ -1,3 +1,5 @@
+--- Move this file into the scripts folder to run this example
+
 local Encounters = require("scripts/libs/encounters")
 
 -- Setup the default area's encounters
