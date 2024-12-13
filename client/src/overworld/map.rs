@@ -245,21 +245,21 @@ impl Map {
     }
 
     pub fn screen_to_world(&self, point: Vec2) -> Vec2 {
-        Vec2::new(
-            (2.0 * point.y + point.x) * 0.5,
-            (2.0 * point.y - point.x) * 0.5,
-        )
+        self.projection
+            .screen_to_world(self.tile_size.as_vec2().into(), point.into())
+            .into()
     }
 
     pub fn world_to_screen(&self, point: Vec2) -> Vec2 {
-        Vec2::new(point.x - point.y, (point.x + point.y) * 0.5)
+        self.projection
+            .world_to_screen(self.tile_size.as_vec2().into(), point.into())
+            .into()
     }
 
     pub fn world_3d_to_screen(&self, point: Vec3) -> Vec2 {
-        let mut screen_point = self.world_to_screen(point.xy());
-        screen_point.y -= point.z * self.tile_size.y as f32 * 0.5;
-
-        screen_point
+        self.projection
+            .world_3d_to_screen(self.tile_size.as_vec2().into(), point.into())
+            .into()
     }
 
     pub fn world_to_tile_space(&self, point: Vec2) -> Vec2 {

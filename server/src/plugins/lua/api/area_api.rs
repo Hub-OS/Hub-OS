@@ -147,6 +147,42 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function("Net", "world_to_screen_multi", |api_ctx, lua, params| {
+        let (area_id, x, y, z): (mlua::String, f32, f32, Option<f32>) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(area) = net.get_area_mut(area_id_str) {
+            let map = area.map();
+            let tile_size = (map.tile_width() as f32, map.tile_height() as f32);
+
+            if let Some(z) = z {
+                lua.pack_multi(map.projection().world_3d_to_screen(tile_size, (x, y, z)))
+            } else {
+                lua.pack_multi(map.projection().world_to_screen(tile_size, (x, y)))
+            }
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "screen_to_world_multi", |api_ctx, lua, params| {
+        let (area_id, x, y): (mlua::String, f32, f32) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(area) = net.get_area_mut(area_id_str) {
+            let map = area.map_mut();
+            let tile_size = (map.tile_width() as f32, map.tile_height() as f32);
+
+            lua.pack_multi(map.projection().screen_to_world(tile_size, (x, y)))
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
     lua_api.add_dynamic_function(
         "Net",
         "get_area_custom_properties",

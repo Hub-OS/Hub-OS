@@ -3,6 +3,7 @@ use super::map_layer::MapLayer;
 use super::map_object::{MapObject, MapObjectData, MapObjectSpecification};
 use super::Tile;
 use crate::helpers::unwrap_and_parse_or_default;
+use packets::structures::Projection;
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -30,6 +31,7 @@ pub struct Map {
     height: usize,
     tile_width: u32,
     tile_height: u32,
+    projection: Projection,
     spawn_x: f32,
     spawn_y: f32,
     spawn_z: f32,
@@ -64,6 +66,7 @@ impl Map {
             height: 0,
             tile_width: 0,
             tile_height: 0,
+            projection: Projection::Isometric,
             spawn_x: 0.0,
             spawn_y: 0.0,
             spawn_z: 0.0,
@@ -89,6 +92,14 @@ impl Map {
         map.height = unwrap_and_parse_or_default(map_element.attribute("height"));
         map.tile_width = unwrap_and_parse_or_default(map_element.attribute("tilewidth"));
         map.tile_height = unwrap_and_parse_or_default(map_element.attribute("tileheight"));
+        map.projection = if map_element
+            .attribute("orientation")
+            .is_some_and(|s| s == "isometric")
+        {
+            Projection::Isometric
+        } else {
+            Projection::Orthographic
+        };
 
         map.next_layer_id = unwrap_and_parse_or_default(map_element.attribute("nextlayerid"));
         map.next_object_id = unwrap_and_parse_or_default(map_element.attribute("nextobjectid"));
@@ -460,6 +471,10 @@ impl Map {
 
     pub fn tile_height(&self) -> u32 {
         self.tile_height
+    }
+
+    pub fn projection(&self) -> Projection {
+        self.projection
     }
 
     pub fn spawn_position(&self) -> (f32, f32, f32) {
