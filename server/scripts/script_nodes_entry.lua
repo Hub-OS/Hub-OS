@@ -21,6 +21,10 @@ scripts:on_inventory_update(function(player_id, item_id)
 end)
 
 -- create custom script nodes
--- scripts:implement_script_node("custom node", function(context, object)
+-- scripts:implement_node("custom", function(context, object)
 --   scripts:execute_next_node(context, context.area_id, object)
+-- end)
+
+-- listen to areas added by :load(), including dynamically instanced areas
+-- scripts:on_load(function(area_id)
 -- end)

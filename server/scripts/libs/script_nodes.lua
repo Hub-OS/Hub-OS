@@ -251,7 +251,7 @@ end
 ---Used to create new script nodes
 ---@param node_type string
 ---@param callback fun(context: table, object: Net.Object)
-function ScriptNodes:implement_script_node(node_type, callback)
+function ScriptNodes:implement_node(node_type, callback)
   self._node_types[node_type:lower()] = callback
 end
 
@@ -827,13 +827,13 @@ end
 ---
 ---Note: `Remove Area` does not support any custom properties
 function ScriptNodes:implement_area_api()
-  self:implement_script_node("set area name", function(context, object)
+  self:implement_node("set area name", function(context, object)
     Net.set_area_name(context.area_id, object.custom_properties.Name)
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("set area background", function(context, object)
+  self:implement_node("set area background", function(context, object)
     local texture = object.custom_properties.Texture
     local animation = object.custom_properties.Animation
 
@@ -849,7 +849,7 @@ function ScriptNodes:implement_area_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("set area foreground", function(context, object)
+  self:implement_node("set area foreground", function(context, object)
     local texture = object.custom_properties.Texture
     local animation = object.custom_properties.Animation
 
@@ -865,7 +865,7 @@ function ScriptNodes:implement_area_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("set area music", function(context, object)
+  self:implement_node("set area music", function(context, object)
     Net.set_music(context.area_id, object.custom_properties.Music)
 
     self:execute_next_node(context, context.area_id, object)
@@ -874,7 +874,7 @@ function ScriptNodes:implement_area_api()
   ---@type table<string, { areas: table<string>, player_count: number }>
   local instances = {}
 
-  self:implement_script_node("transfer to area", function(context, object)
+  self:implement_node("transfer to area", function(context, object)
     local area_id = object.custom_properties.Area
     local x, y, z
     local warp_in
@@ -909,7 +909,7 @@ function ScriptNodes:implement_area_api()
     end
   end
 
-  self:implement_script_node("transfer to instance", function(context, object)
+  self:implement_node("transfer to instance", function(context, object)
     local template_id = object.custom_properties.Area or context.area_id
     local instance_id = tostring(Net.system_random())
     local new_area_id = template_id .. self.INSTANCE_MARKER .. instance_id
@@ -934,7 +934,7 @@ function ScriptNodes:implement_area_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("transfer in instance", function(context, object)
+  self:implement_node("transfer in instance", function(context, object)
     local instance_id = self:resolve_instance_id(context.area_id)
 
     if not instance_id then
@@ -1067,7 +1067,7 @@ function ScriptNodes:implement_area_api()
     end
   end)
 
-  self:implement_script_node("remove area", function(context)
+  self:implement_node("remove area", function(context)
     for _, bot_id in ipairs(Net.list_bots(context.area_id)) do
       self:emit_bot_removed(bot_id)
       Net.remove_bot(bot_id)
@@ -1147,7 +1147,7 @@ function ScriptNodes:implement_object_api()
     Net:remove_listener("custom_warp", warp_listener)
   end)
 
-  self:implement_script_node("move object", function(context, object)
+  self:implement_node("move object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     local target_id = object.custom_properties.Target
     local target_object = (target_id and self:resolve_object(context.area_id, target_id)) or object
@@ -1156,7 +1156,7 @@ function ScriptNodes:implement_object_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("clone object", function(context, object)
+  self:implement_node("clone object", function(context, object)
     local source_id = object.custom_properties.Source
     local dest_id = object.custom_properties.Destination
     local source_object = (source_id and self:resolve_object(context.area_id, source_id)) or object
@@ -1172,21 +1172,21 @@ function ScriptNodes:implement_object_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("hide object", function(context, object)
+  self:implement_node("hide object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     Net.set_object_visibility(context.area_id, object_id, false)
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("show object", function(context, object)
+  self:implement_node("show object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     Net.set_object_visibility(context.area_id, object_id, true)
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("remove object", function(context, object)
+  self:implement_node("remove object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     Net.remove_object(context.area_id, object_id)
 
@@ -1228,7 +1228,7 @@ function ScriptNodes:implement_textbox_api()
   end
 
 
-  self:implement_script_node("auto message", function(context, object)
+  self:implement_node("auto message", function(context, object)
     local mug_texture, mug_animation = self:resolve_mug(context, object)
 
     local promise = single_response_for_all(context, function(player_id)
@@ -1254,7 +1254,7 @@ function ScriptNodes:implement_textbox_api()
     end)
   end)
 
-  self:implement_script_node("message", function(context, object)
+  self:implement_node("message", function(context, object)
     local mug_texture, mug_animation = self:resolve_mug(context, object)
 
     local promise = single_response_for_all(context, function(player_id)
@@ -1279,7 +1279,7 @@ function ScriptNodes:implement_textbox_api()
     end)
   end)
 
-  self:implement_script_node("question", function(context, object)
+  self:implement_node("question", function(context, object)
     local mug_texture, mug_animation = self:resolve_mug(context, object)
 
     local promise = single_response_for_all(context, function(player_id)
@@ -1304,7 +1304,7 @@ function ScriptNodes:implement_textbox_api()
     end)
   end)
 
-  self:implement_script_node("quiz", function(context, object)
+  self:implement_node("quiz", function(context, object)
     local mug_texture, mug_animation = self:resolve_mug(context, object)
 
     local promise = single_response_for_all(context, function(player_id)
@@ -1352,7 +1352,7 @@ end
 --- - `Text` string (optional)
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_bbs_api()
-  self:implement_script_node("bbs", function(context, object)
+  self:implement_node("bbs", function(context, object)
     if context.player_ids then
       error("the BBS node does not support parties. Use a Disband Party node before using")
     end
@@ -1446,7 +1446,7 @@ end
 --- - `Description` string (optional)
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_shop_api()
-  self:implement_script_node("shop", function(context, object)
+  self:implement_node("shop", function(context, object)
     if context.player_ids then
       error("the Shop node does not support parties. Use a Disband Party node before using")
     end
@@ -1538,7 +1538,7 @@ end
 --- - `Target` "Player [1+]" (optional)
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_sound_api()
-  self:implement_script_node("play sound", function(context, object)
+  self:implement_node("play sound", function(context, object)
     local sound_path = self.ASSET_PREFIX .. object.custom_properties.Sound
 
     if not object.custom_properties.Target then
@@ -1631,7 +1631,7 @@ function ScriptNodes:implement_camera_api()
     end
   end
 
-  self:implement_script_node("camera", function(context, object)
+  self:implement_node("camera", function(context, object)
     local properties = parse_properties(context, object)
 
     Net.synchronize(function()
@@ -1677,7 +1677,7 @@ end
 --- - `On Win` a link to a node, threads per player (optional)
 --- - `On Lose` a link to a node, threads per player (optional)
 function ScriptNodes:implement_encounter_api()
-  self:implement_script_node("encounter", function(context, object)
+  self:implement_node("encounter", function(context, object)
     local resolve
     local promise = Async.create_promise(function(r)
       resolve = r
@@ -1794,7 +1794,7 @@ end
 --- - `Next [1]` a link to the default node (optional)
 --- - `Next 2` a link to the passing node (optional)
 function ScriptNodes:implement_inventory_api()
-  self:implement_script_node("give money", function(context, object)
+  self:implement_node("give money", function(context, object)
     local amount = tonumber(object.custom_properties.Amount)
 
     for_each_player_safe(context, function(player_id)
@@ -1805,7 +1805,7 @@ function ScriptNodes:implement_inventory_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("take money", function(context, object)
+  self:implement_node("take money", function(context, object)
     local amount = tonumber(object.custom_properties.Amount)
     local pass = true
 
@@ -1823,7 +1823,7 @@ function ScriptNodes:implement_inventory_api()
     end
   end)
 
-  self:implement_script_node("has money", function(context, object)
+  self:implement_node("has money", function(context, object)
     local amount = tonumber(object.custom_properties.Amount)
     local pass = true
 
@@ -1838,7 +1838,7 @@ function ScriptNodes:implement_inventory_api()
     end
   end)
 
-  self:implement_script_node("give item", function(context, object)
+  self:implement_node("give item", function(context, object)
     local item_id = object.custom_properties.Item
     local amount = tonumber(object.custom_properties.Amount) or 1
 
@@ -1850,7 +1850,7 @@ function ScriptNodes:implement_inventory_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("take item", function(context, object)
+  self:implement_node("take item", function(context, object)
     local item_id = object.custom_properties.Item
     local amount = tonumber(object.custom_properties.Amount) or 1
     local pass = true
@@ -1869,7 +1869,7 @@ function ScriptNodes:implement_inventory_api()
     end
   end)
 
-  self:implement_script_node("has item", function(context, object)
+  self:implement_node("has item", function(context, object)
     local item_id = object.custom_properties.Item
     local amount = tonumber(object.custom_properties.Amount) or 1
     local pass = true
@@ -1968,7 +1968,7 @@ function ScriptNodes:implement_actor_api()
     Net:remove_listener("actor_interaction", interaction_listener)
   end)
 
-  self:implement_script_node("spawn bot", function(context, object)
+  self:implement_node("spawn bot", function(context, object)
     local options = {}
     options.name = object.custom_properties.Name
     options.area_id = context.area_id
@@ -2018,7 +2018,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("remove bot", function(context, object)
+  self:implement_node("remove bot", function(context, object)
     local bot_id = context.bot_id
 
     if object.custom_properties.Id then
@@ -2031,7 +2031,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("emote", function(context, object)
+  self:implement_node("emote", function(context, object)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
 
@@ -2054,7 +2054,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("face", function(context, object)
+  self:implement_node("face", function(context, object)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
 
@@ -2119,7 +2119,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("animate", function(context, object)
+  self:implement_node("animate", function(context, object)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
 
@@ -2143,7 +2143,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("teleport", function(context, object)
+  self:implement_node("teleport", function(context, object)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
 
@@ -2174,7 +2174,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("lock input", function(context, object)
+  self:implement_node("lock input", function(context, object)
     if context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
         Net.lock_player_input(player_id)
@@ -2186,7 +2186,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("unlock input", function(context, object)
+  self:implement_node("unlock input", function(context, object)
     if context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
         Net.unlock_player_input(player_id)
@@ -2217,7 +2217,7 @@ end
 --- - `Tag` the tag to clear
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_tag_api()
-  self:implement_script_node("tag", function(context, object)
+  self:implement_node("tag", function(context, object)
     local tag_group = self:get_tag_actors(object.custom_properties.Tag)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
@@ -2240,7 +2240,7 @@ function ScriptNodes:implement_tag_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("untag", function(context, object)
+  self:implement_node("untag", function(context, object)
     local tag = object.custom_properties.Tag
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
@@ -2260,7 +2260,7 @@ function ScriptNodes:implement_tag_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("clear tag", function(context, object)
+  self:implement_node("clear tag", function(context, object)
     self._tagged[object.custom_properties.Tag] = nil
 
     self:execute_next_node(context, context.area_id, object)
@@ -2327,7 +2327,7 @@ function ScriptNodes:implement_path_api()
   ---}>
   local bot_paths = {}
 
-  self:implement_script_node("pause path", function(context, object)
+  self:implement_node("pause path", function(context, object)
     local actor_string = object.custom_properties.Actor
     local bot_id = context.bot_id
 
@@ -2361,7 +2361,7 @@ function ScriptNodes:implement_path_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("resume path", function(context, object)
+  self:implement_node("resume path", function(context, object)
     local actor_string = object.custom_properties.Actor
     local bot_id = context.bot_id
 
@@ -2478,7 +2478,7 @@ function ScriptNodes:implement_path_api()
     return duration
   end
 
-  self:implement_script_node("set path", function(context, object)
+  self:implement_node("set path", function(context, object)
     local actor_string = object.custom_properties.Actor
     local actor_id = context.bot_id or context.player_id
 
@@ -2736,7 +2736,7 @@ end
 --- - `Duration` the duration of the delay in seconds (optional)
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_delay_api()
-  self:implement_script_node("delay", function(context, object)
+  self:implement_node("delay", function(context, object)
     Async.sleep(tonumber(object.custom_properties.Duration) or 0).and_then(function()
       self:execute_next_node(context, context.area_id, object)
     end)
@@ -2751,7 +2751,7 @@ end
 --- - `Weight [1+]` a weight for the next node (optional)
 --- - `Next [1+]` a link to the next node (optional)
 function ScriptNodes:implement_random_api()
-  self:implement_script_node("random", function(context, object)
+  self:implement_node("random", function(context, object)
     -- resolve next_ids and weights
     local next_ids = {}
     local weights = {}
@@ -2806,7 +2806,7 @@ end
 ---Supported custom properties:
 --- - `Next [1+]` a link to the next node (optional)
 function ScriptNodes:implement_thread_api()
-  self:implement_script_node("thread", function(context, object)
+  self:implement_node("thread", function(context, object)
     local next_id = object.custom_properties["Next 1"] or object.custom_properties["Next"]
 
     if not next_id then
@@ -2886,7 +2886,7 @@ function ScriptNodes:implement_party_api()
     end
   end
 
-  self:implement_script_node("party all", function(context, object)
+  self:implement_node("party all", function(context, object)
     local player_ids = {}
 
     for _, area_id in ipairs(Net.list_areas()) do
@@ -2903,7 +2903,7 @@ function ScriptNodes:implement_party_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("party loaded", function(context, object)
+  self:implement_node("party loaded", function(context, object)
     local player_ids = {}
 
     for area_id in pairs(self._loaded_areas) do
@@ -2920,7 +2920,7 @@ function ScriptNodes:implement_party_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("party instance", function(context, object)
+  self:implement_node("party instance", function(context, object)
     local player_ids = {}
     local instance_id = self:resolve_instance_id(context.area_id)
     local instance_tag = self.INSTANCE_MARKER .. instance_id
@@ -2951,7 +2951,7 @@ function ScriptNodes:implement_party_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("party area", function(context, object)
+  self:implement_node("party area", function(context, object)
     local player_ids = Net.list_players(context.area_id)
     bring_player_id_to_front(context, player_ids)
 
@@ -2962,7 +2962,7 @@ function ScriptNodes:implement_party_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("party tag", function(context, object)
+  self:implement_node("party tag", function(context, object)
     local tag = object.custom_properties.Tag
     local player_ids = {}
 
@@ -2981,7 +2981,7 @@ function ScriptNodes:implement_party_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("disband party", function(party_context, object)
+  self:implement_node("disband party", function(party_context, object)
     for i, player_id in ipairs(party_context.player_ids) do
       local next = self:resolve_next_node(party_context.area_id, object, i)
 
@@ -2996,7 +2996,7 @@ function ScriptNodes:implement_party_api()
     end
   end)
 
-  self:implement_script_node("reunite party", function(context, object)
+  self:implement_node("reunite party", function(context, object)
     context = clone_table(context)
     context.player_id = nil
     context.player_ids = context.disbanded_party
@@ -3015,13 +3015,13 @@ end
 ---Supported custom properties for `Print Context`:
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_debug_api()
-  self:implement_script_node("print", function(context, object)
+  self:implement_node("print", function(context, object)
     print(object.custom_properties.Text or object.custom_properties["Text 1"])
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  self:implement_script_node("print context", function(context, object)
+  self:implement_node("print context", function(context, object)
     print(context)
 
     self:execute_next_node(context, context.area_id, object)
