@@ -20,7 +20,7 @@ scripts:on_inventory_update(function(player_id, item_id)
   -- update save data
 end)
 
--- create custom nodes
--- scripts:implement_node("custom node", function(context, object)
+-- create custom script nodes
+-- scripts:implement_script_node("custom node", function(context, object)
 --   scripts:execute_next_node(context, context.area_id, object)
 -- end)
