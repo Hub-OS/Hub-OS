@@ -84,6 +84,7 @@ end
 ---@field private _bot_script_ids_reversed table<Net.ActorId, string>
 ---@field private _tagged table<string, Net.ActorId[]>
 ---@field private _protected_object_map table<string, table<number, Net.Object>>
+---@field private _instances table<string, { areas: table<string>, player_count: number }>
 ---@field private _loaded_areas table<string, boolean>
 ---@field private _load_start_callbacks fun(area_id: string)[]
 ---@field private _load_callbacks fun(area_id: string)[]
@@ -110,6 +111,7 @@ function ScriptNodes:new_empty()
     _bot_script_ids_reversed = {},
     _tagged = {},
     _protected_object_map = {},
+    _instances = {},
     _loaded_areas = {},
     _load_start_callbacks = {},
     _load_callbacks = {},
@@ -123,6 +125,8 @@ function ScriptNodes:new_empty()
   }
   setmetatable(s, self)
   self.__index = self
+
+  s:_implement_instance_tracking()
 
   return s
 end
@@ -152,6 +156,140 @@ function ScriptNodes:new()
   s:implement_debug_api()
 
   return s
+end
+
+---@private
+function ScriptNodes:_implement_instance_tracking()
+  -- tracking to delete empty instances
+  local player_areas = {}
+
+  self:on_unload(function(area_id)
+    -- handle the area getting removed while the instance is alive
+    local instance_id = self:resolve_instance_id(area_id)
+    local instance = self._instances[instance_id]
+
+    if instance and instance.areas[area_id] then
+      instance.areas[area_id] = nil
+    end
+  end)
+
+  local function check_transfer(event_name, event)
+    local previous_area = player_areas[event.player_id]
+    ---@type string | nil
+    local current_area = Net.get_player_area(event.player_id)
+
+    if event_name == "player_disconnect" then
+      current_area = nil
+    end
+
+    -- update area
+    player_areas[event.player_id] = current_area
+
+    if current_area == previous_area then
+      -- no difference
+      return
+    end
+
+    -- decrement player count
+    if previous_area then
+      local instance_id = self:resolve_instance_id(previous_area)
+      local instance = self._instances[instance_id]
+
+      if instance_id and instance then
+        instance.player_count = instance.player_count - 1
+
+        if instance.player_count <= 0 then
+          self:destroy_instance(instance_id)
+        end
+      end
+    end
+
+    -- increment player count
+    if current_area then
+      local instance_id = self:resolve_instance_id(current_area)
+      local instance = self._instances[instance_id]
+
+      if instance then
+        instance.player_count = instance.player_count + 1
+      end
+    end
+  end
+
+  local transfer_events = {
+    "player_connect",
+    "player_join",
+    "player_area_transfer",
+    "player_disconnect",
+  }
+
+  local transfer_listeners = {}
+
+  for i, event_name in ipairs(transfer_events) do
+    transfer_listeners[i] = function(event)
+      check_transfer(event_name, event)
+    end
+    Net:on(event_name, transfer_listeners[i])
+  end
+
+  self:on_destroy(function()
+    for i, event_name in ipairs(transfer_events) do
+      Net:remove_listener(event_name, transfer_listeners[i])
+    end
+
+    for _, instance in pairs(self._instances) do
+      for area_id in pairs(instance.areas) do
+        for _, bot_id in ipairs(Net.list_bots(area_id)) do
+          Net.remove_bot(bot_id)
+        end
+
+        Net.remove_area(area_id)
+      end
+    end
+  end)
+end
+
+---Used to create an instance, which contains isolated copies of areas.
+---@param instance_id string
+function ScriptNodes:instance_player_count(instance_id)
+  local instance = self._instances[instance_id]
+
+  if not instance then
+    return 0
+  end
+
+  return instance.player_count
+end
+
+---Used to create an instance, which contains isolated copies of areas.
+function ScriptNodes:create_instance()
+  local instance_id = tostring(Net.system_random())
+  self._instances[instance_id] = {
+    areas = {},
+    player_count = 0
+  }
+
+  return instance_id
+end
+
+---@param instance_id string
+function ScriptNodes:destroy_instance(instance_id)
+  local instance = self._instances[instance_id]
+
+  if not instance then
+    return
+  end
+
+  self._instances[instance_id] = nil
+
+  for area_id in pairs(instance.areas) do
+    for _, bot_id in ipairs(Net.list_bots(area_id)) do
+      self:emit_bot_removed(bot_id)
+      Net.remove_bot(bot_id)
+    end
+
+    self:unload(area_id)
+    Net.remove_area(area_id)
+  end
 end
 
 ---Adds a :destroy() listener, used to clean up Net:on() event listeners.
@@ -216,6 +354,13 @@ function ScriptNodes:is_loaded(area_id)
   return self._loaded_areas[area_id] == true
 end
 
+---@param instance_id string
+---@param area_id string
+function ScriptNodes:is_loaded_in_instance(instance_id, area_id)
+  area_id = area_id .. self.INSTANCE_MARKER .. instance_id
+  return self._loaded_areas[area_id] == true
+end
+
 ---@param callback_map table<string, fun(area_id: string, object: Net.Object)[]>
 local function call_node_load_callbacks(area_id, object, prefix, callback_map)
   local entry_type = object.type:sub(#prefix + 1):lower()
@@ -260,6 +405,41 @@ function ScriptNodes:load(area_id)
       call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
     end
   end
+end
+
+---Clones an area and loads it in the instance
+---@param instance_id string
+---@param template_area_id string
+function ScriptNodes:load_in_instance(instance_id, template_area_id)
+  -- similar to :load but with :protect_object calls skipped
+
+  local new_area_id = template_area_id .. self.INSTANCE_MARKER .. instance_id
+
+  local instance = self._instances[instance_id]
+  instance.areas[new_area_id] = template_area_id
+
+  Net.clone_area(template_area_id, new_area_id)
+  self._loaded_areas[new_area_id] = true
+  local protected_object = self._protected_object_map[template_area_id]
+  self._protected_object_map[new_area_id] = protected_object
+
+  for _, callback in ipairs(self._load_start_callbacks) do
+    callback(new_area_id)
+  end
+
+  for _, object in pairs(protected_object) do
+    if self:is_script_node(object) then
+      call_node_load_callbacks(new_area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+    elseif self:is_entry_node(object) then
+      call_node_load_callbacks(new_area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+    end
+  end
+
+  for _, callback in ipairs(self._load_callbacks) do
+    callback(new_area_id)
+  end
+
+  return new_area_id
 end
 
 ---Used to perform cleanup on removed areas. Call before removing an area.
@@ -957,10 +1137,7 @@ function ScriptNodes:implement_area_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  ---@type table<string, { areas: table<string>, player_count: number }>
-  local instances = {}
-
-  self:implement_node("transfer to area", function(context, object)
+  local function transfer_to_area(context, object)
     local area_id = object.custom_properties.Area
     local x, y, z
     local warp_in
@@ -981,44 +1158,14 @@ function ScriptNodes:implement_area_api()
     end
 
     self:execute_next_node(context, context.area_id, object)
-  end)
-
-  local function clone_area(template_id, new_area_id)
-    -- similar to :load but with :protect_object calls skipped
-
-    Net.clone_area(template_id, new_area_id)
-    self._loaded_areas[new_area_id] = true
-    local protected_object = self._protected_object_map[template_id]
-    self._protected_object_map[new_area_id] = protected_object
-
-    for _, callback in ipairs(self._load_start_callbacks) do
-      callback(new_area_id)
-    end
-
-    for _, object in pairs(protected_object) do
-      if self:is_script_node(object) then
-        call_node_load_callbacks(new_area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
-      elseif self:is_entry_node(object) then
-        call_node_load_callbacks(new_area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
-      end
-    end
-
-    for _, callback in ipairs(self._load_callbacks) do
-      callback(new_area_id)
-    end
   end
+
+  self:implement_node("transfer to area", transfer_to_area)
 
   self:implement_node("transfer to instance", function(context, object)
     local template_id = object.custom_properties.Area or context.area_id
-    local instance_id = tostring(Net.system_random())
-    local new_area_id = template_id .. self.INSTANCE_MARKER .. instance_id
-
-    instances[instance_id] = {
-      areas = { [new_area_id] = template_id },
-      player_count = 0,
-    }
-
-    clone_area(template_id, new_area_id)
+    local instance_id = self:create_instance()
+    local new_area_id = self:load_in_instance(instance_id, template_id)
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
 
@@ -1037,18 +1184,16 @@ function ScriptNodes:implement_area_api()
     local instance_id = self:resolve_instance_id(context.area_id)
 
     if not instance_id then
-      error("not in an instanced area")
+      transfer_to_area(context, object)
+      return
     end
 
     local template_id = object.custom_properties.Area or context.area_id
     local new_area_id = template_id .. self.INSTANCE_MARKER .. instance_id
 
-    local instance = instances[instance_id]
-
-    if not instance.areas[new_area_id] then
+    if not self:is_loaded_in_instance(instance_id, template_id) then
       -- create an instance of the template area
-      instance.areas[new_area_id] = template_id
-      clone_area(template_id, new_area_id)
+      self:load_in_instance(instance_id, new_area_id)
     end
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
@@ -1062,108 +1207,6 @@ function ScriptNodes:implement_area_api()
     end)
 
     self:execute_next_node(context, context.area_id, object)
-  end)
-
-  -- tracking to delete empty instances
-  local player_areas = {}
-
-  local function destroy_instance(instance_id)
-    local instance = instances[instance_id]
-    instances[instance_id] = nil
-
-    for area_id in pairs(instance.areas) do
-      for _, bot_id in ipairs(Net.list_bots(area_id)) do
-        self:emit_bot_removed(bot_id)
-        Net.remove_bot(bot_id)
-      end
-
-      self:unload(area_id)
-      Net.remove_area(area_id)
-    end
-  end
-
-  self:on_unload(function(area_id)
-    -- handle the area getting removed while the instance is alive
-    local instance_id = self:resolve_instance_id(area_id)
-    local instance = instances[instance_id]
-
-    if instance and instance.areas[area_id] then
-      instance.areas[area_id] = nil
-    end
-  end)
-
-  local function check_transfer(event_name, event)
-    local previous_area = player_areas[event.player_id]
-    ---@type string | nil
-    local current_area = Net.get_player_area(event.player_id)
-
-    if event_name == "player_disconnect" then
-      current_area = nil
-    end
-
-    -- update area
-    player_areas[event.player_id] = current_area
-
-    if current_area == previous_area then
-      -- no difference
-      return
-    end
-
-    -- decrement player count
-    if previous_area then
-      local instance_id = self:resolve_instance_id(previous_area)
-      local instance = instances[instance_id]
-
-      if instance then
-        instance.player_count = instance.player_count - 1
-
-        if instance.player_count <= 0 then
-          destroy_instance(instance_id)
-        end
-      end
-    end
-
-    -- increment player count
-    if current_area then
-      local instance_id = self:resolve_instance_id(current_area)
-      local instance = instances[instance_id]
-
-      if instance then
-        instance.player_count = instance.player_count + 1
-      end
-    end
-  end
-
-  local transfer_events = {
-    "player_connect",
-    "player_join",
-    "player_area_transfer",
-    "player_disconnect",
-  }
-
-  local transfer_listeners = {}
-
-  for i, event_name in ipairs(transfer_events) do
-    transfer_listeners[i] = function(event)
-      check_transfer(event_name, event)
-    end
-    Net:on(event_name, transfer_listeners[i])
-  end
-
-  self:on_destroy(function()
-    for i, event_name in ipairs(transfer_events) do
-      Net:remove_listener(event_name, transfer_listeners[i])
-    end
-
-    for _, instance in pairs(instances) do
-      for area_id in pairs(instance.areas) do
-        for _, bot_id in ipairs(Net.list_bots(area_id)) do
-          Net.remove_bot(bot_id)
-        end
-
-        Net.remove_area(area_id)
-      end
-    end
   end)
 
   self:implement_node("remove area", function(context)
