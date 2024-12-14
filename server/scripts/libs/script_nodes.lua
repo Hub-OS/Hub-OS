@@ -2857,7 +2857,14 @@ function ScriptNodes:implement_party_api()
 
   self:implement_node("party tag", function(context, object)
     local tag = object.custom_properties.Tag
-    local player_ids = clone_table(self:get_tag_actors(tag))
+    local player_ids = {}
+
+    for _, actor_id in ipairs(self:get_tag_actors(tag)) do
+      if Net.is_player(actor_id) then
+        player_ids[#player_ids + 1] = actor_id
+      end
+    end
+
     bring_player_id_to_front(context, player_ids)
 
     context = clone_table(context)
