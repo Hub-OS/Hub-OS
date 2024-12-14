@@ -85,7 +85,10 @@ end
 ---@field private _tagged table<string, Net.ActorId[]>
 ---@field private _protected_object_map table<string, table<number, Net.Object>>
 ---@field private _loaded_areas table<string, boolean>
+---@field private _load_start_callbacks fun(area_id: string)[]
 ---@field private _load_callbacks fun(area_id: string)[]
+---@field private _entry_load_callbacks table<string, fun(area_id: string, object: Net.Object)[]>
+---@field private _script_load_callbacks table<string, fun(area_id: string, object: Net.Object)[]>
 ---@field private _unload_callbacks fun(area_id: string)[]
 ---@field private _inventory_callbacks fun(player_id: Net.ActorId, item_id: string?)[]
 ---@field private _encounter_callbacks fun(results: Net.BattleResults)[]
@@ -108,7 +111,10 @@ function ScriptNodes:new_empty()
     _tagged = {},
     _protected_object_map = {},
     _loaded_areas = {},
+    _load_start_callbacks = {},
     _load_callbacks = {},
+    _entry_load_callbacks = {},
+    _script_load_callbacks = {},
     _unload_callbacks = {},
     _inventory_callbacks = {},
     _encounter_callbacks = {},
@@ -159,10 +165,44 @@ function ScriptNodes:destroy()
   end
 end
 
----Adds a :load() listener, used to begin processing new areas.
+---Adds a :load() listener, called before nodes are loaded.
+---@param callback fun(area_id: string)
+function ScriptNodes:on_load_start(callback)
+  self._load_start_callbacks[#self._load_start_callbacks + 1] = callback
+end
+
+---Adds a :load() listener, called after script nodes are loaded, but before entry nodes are loaded.
 ---@param callback fun(area_id: string)
 function ScriptNodes:on_load(callback)
   self._load_callbacks[#self._load_callbacks + 1] = callback
+end
+
+---Adds a listener to detect script nodes found during :load().
+---@param node_type string
+---@param callback fun(area_id: string, object: Net.Object)
+function ScriptNodes:on_script_node_load(node_type, callback)
+  local type = node_type:lower()
+  local callbacks = self._script_load_callbacks[type]
+
+  if callbacks then
+    callback[#callback + 1] = callback
+  else
+    self._script_load_callbacks[type] = { callback }
+  end
+end
+
+---Adds a listener to detect entry nodes found during :load().
+---@param node_type string
+---@param callback fun(area_id: string, object: Net.Object)
+function ScriptNodes:on_entry_node_load(node_type, callback)
+  local type = node_type:lower()
+  local callbacks = self._entry_load_callbacks[type]
+
+  if callbacks then
+    callback[#callback + 1] = callback
+  else
+    self._entry_load_callbacks[type] = { callback }
+  end
 end
 
 ---Adds an :unload() listener, used to clean up data for removed areas.
@@ -176,23 +216,49 @@ function ScriptNodes:is_loaded(area_id)
   return self._loaded_areas[area_id] == true
 end
 
+---@param callback_map table<string, fun(area_id: string, object: Net.Object)[]>
+local function call_node_load_callbacks(area_id, object, prefix, callback_map)
+  local entry_type = object.type:sub(#prefix + 1):lower()
+  local callbacks = callback_map[entry_type]
+
+  if callbacks then
+    for _, callback in ipairs(callbacks) do
+      callback(area_id, object)
+    end
+  end
+end
+
 ---Used to begin processing new areas.
 ---Calls :protect_object() for detected script and entry nodes.
 ---@param area_id string
 function ScriptNodes:load(area_id)
   self._loaded_areas[area_id] = true
-  self._protected_object_map[area_id] = {}
+  local protected_objects = {}
+  self._protected_object_map[area_id] = protected_objects
+
+  for _, callback in ipairs(self._load_start_callbacks) do
+    callback(area_id)
+  end
 
   for _, object_id in ipairs(self:list_objects(area_id)) do
-    local object = Net.get_object_by_id(area_id, object_id)
+    local object = self:resolve_object(area_id, object_id)
 
-    if self:is_script_node(object) or self:is_entry_node(object) then
+    if self:is_script_node(object) then
+      self:protect_object(area_id, object)
+      call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+    elseif self:is_entry_node(object) then
       self:protect_object(area_id, object)
     end
   end
 
   for _, callback in ipairs(self._load_callbacks) do
     callback(area_id)
+  end
+
+  for _, object in pairs(protected_objects) do
+    if self:is_entry_node(object) then
+      call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+    end
   end
 end
 
@@ -645,75 +711,68 @@ function ScriptNodes:implement_event_entry_api()
 
       local object = self:resolve_object(area_id, object_id)
 
-      if self:is_script_node(object) then
-        if object.custom_properties["On Load"] == "true" then
-          self:execute_node(context, object)
-        end
-
-        goto continue
-      end
-
-      if not self:is_entry_node(object) then
-        goto continue
-      end
-
-      local entry_type = object.type:sub(#self.ENTRY_TYPE_PREFIX + 1):lower()
-
-      if entry_type == "load" then
-        -- Script Entry: Load
-        self:execute_next_node(context, area_id, object)
-      elseif entry_type == "server event" then
-        -- Script Entry: Server Event
-        local next_id = self:resolve_next_id(object)
-
-        if object.custom_properties.Event then
-          add_listening_node(object.custom_properties.Event, area_id, next_id)
-        end
-
-        local events_string = object.custom_properties.Events
-
-        if events_string then
-          local start = 1
-
-          while true do
-            local match_start, match_end = events_string:find(", ", start)
-
-            if match_start then
-              local event_name = events_string:sub(start, match_start - 1)
-              add_listening_node(event_name, area_id, next_id)
-
-              start = match_end + 1
-            else
-              local event_name = events_string:sub(start)
-              add_listening_node(event_name, area_id, next_id)
-              break
-            end
-          end
-        end
-      elseif entry_type == "player interaction" then
-        -- Script Entry: Player Interaction
-        local object_ids = player_interaction_event_map[area_id]
-
-        if not object_ids then
-          object_ids = {}
-          player_interaction_event_map[area_id] = object_ids
-        end
-
-        object_ids[#object_ids + 1] = self:resolve_next_id(object)
-      elseif entry_type == "help" then
-        -- Script Entry: Help
-        local object_ids = help_event_map[area_id]
-
-        if not object_ids then
-          object_ids = {}
-          help_event_map[area_id] = object_ids
-        end
-
-        object_ids[#object_ids + 1] = self:resolve_next_id(object)
+      if self:is_script_node(object) and object.custom_properties["On Load"] == "true" then
+        self:execute_node(context, object)
       end
 
       ::continue::
     end
+  end)
+
+  self:on_entry_node_load("load", function(area_id, object)
+    local context = { area_id = area_id }
+    self:execute_next_node(context, area_id, object)
+  end)
+
+  self:on_entry_node_load("server event", function(area_id, object)
+    local next_id = self:resolve_next_id(object)
+
+    if object.custom_properties.Event then
+      add_listening_node(object.custom_properties.Event, area_id, next_id)
+    end
+
+    local events_string = object.custom_properties.Events
+
+    if events_string then
+      local start = 1
+
+      while true do
+        local match_start, match_end = events_string:find(", ", start)
+
+        if match_start then
+          local event_name = events_string:sub(start, match_start - 1)
+          add_listening_node(event_name, area_id, next_id)
+
+          start = match_end + 1
+        else
+          local event_name = events_string:sub(start)
+          add_listening_node(event_name, area_id, next_id)
+          break
+        end
+      end
+    end
+  end)
+
+  self:on_entry_node_load("player interaction", function(area_id, object)
+    local object_ids = player_interaction_event_map[area_id]
+
+    if not object_ids then
+      object_ids = {}
+      player_interaction_event_map[area_id] = object_ids
+    end
+
+    object_ids[#object_ids + 1] = self:resolve_next_id(object)
+  end)
+
+  self:on_entry_node_load("help", function(area_id, object)
+    local object_ids = help_event_map[area_id]
+
+    if not object_ids then
+      object_ids = {}
+      help_event_map[area_id] = object_ids
+    end
+
+    object_ids[#object_ids + 1] = self:resolve_next_id(object)
   end)
 
   self:on_unload(function(area_id)
@@ -929,7 +988,20 @@ function ScriptNodes:implement_area_api()
 
     Net.clone_area(template_id, new_area_id)
     self._loaded_areas[new_area_id] = true
-    self._protected_object_map[new_area_id] = self._protected_object_map[template_id]
+    local protected_object = self._protected_object_map[template_id]
+    self._protected_object_map[new_area_id] = protected_object
+
+    for _, callback in ipairs(self._load_start_callbacks) do
+      callback(new_area_id)
+    end
+
+    for _, object in pairs(protected_object) do
+      if self:is_script_node(object) then
+        call_node_load_callbacks(new_area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+      elseif self:is_entry_node(object) then
+        call_node_load_callbacks(new_area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+      end
+    end
 
     for _, callback in ipairs(self._load_callbacks) do
       callback(new_area_id)
@@ -1380,14 +1452,14 @@ end
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_bbs_api()
   ---@type table<string, table<number, Net.BoardPost[]>>
-  local area_map = {}
+  local area_posts_map = {}
 
   self:implement_node("bbs", function(context, object)
     if context.player_ids then
       error("the BBS node does not support parties. Use a Disband Party node before using")
     end
 
-    local posts = area_map[context.area_id][object.id]
+    local posts = area_posts_map[context.area_id][object.id]
 
     local emitter = Net.open_board(
       context.player_id,
@@ -1426,63 +1498,45 @@ function ScriptNodes:implement_bbs_api()
     end)
   end)
 
-  self:on_load(function(area_id)
+  self:on_load_start(function(area_id)
     local posts_map = {}
-    area_map[area_id] = posts_map
+    area_posts_map[area_id] = posts_map
+  end)
 
-    for _, object_id in ipairs(self:list_objects(area_id)) do
-      if not self:is_object_protected(area_id, object_id) then
-        goto continue
+  self:on_script_node_load("bbs", function(area_id, object)
+    local posts = {}
+
+    local i = 1
+
+    while true do
+      local post_id = object.custom_properties["Post " .. i]
+
+      if not post_id then
+        break
       end
 
-      local object = self:resolve_object(area_id, object_id)
+      local post_object = self:resolve_object(area_id, post_id)
+      self:protect_object(area_id, post_object)
 
-      if not self:is_script_node(object) then
-        goto continue
+      if not post_object then
+        break
       end
 
-      local script_type = object.type:sub(#self.NODE_TYPE_PREFIX + 1):lower()
+      posts[#posts + 1] = {
+        id = post_id,
+        read = true,
+        title = post_object.custom_properties.Title or "",
+        author = post_object.custom_properties.Author or "",
+      }
 
-      if script_type ~= "bbs" then
-        goto continue
-      end
-
-      local posts = {}
-
-      local i = 1
-
-      while true do
-        local post_id = object.custom_properties["Post " .. i]
-
-        if not post_id then
-          break
-        end
-
-        local post_object = self:resolve_object(area_id, post_id)
-        self:protect_object(area_id, post_object)
-
-        if not post_object then
-          break
-        end
-
-        posts[#posts + 1] = {
-          id = post_id,
-          read = true,
-          title = post_object.custom_properties.Title or "",
-          author = post_object.custom_properties.Author or "",
-        }
-
-        i = i + 1
-      end
-
-      posts_map[object.id] = posts
-
-      ::continue::
+      i = i + 1
     end
+
+    area_posts_map[area_id][object.id] = posts
   end)
 
   self:on_unload(function(area_id)
-    area_map[area_id] = nil
+    area_posts_map[area_id] = nil
   end)
 end
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="98">
+<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="99">
  <properties>
   <property name="Background Animation" value="/server/assets/bg.animation"/>
   <property name="Background Texture" value="/server/assets/bg.png"/>
@@ -43,7 +43,7 @@
    </properties>
    <point/>
   </object>
-  <object id="4" type="Script Node: Question" x="-48" y="336">
+  <object id="4" type="Script Node: Question" x="-48" y="360">
    <properties>
     <property name="Mug" value="bots/prog_mug"/>
     <property name="Next 1" type="object" value="71"/>
@@ -52,17 +52,17 @@
    </properties>
    <point/>
   </object>
-  <object id="5" type="Script Node: Camera" x="-48" y="120">
+  <object id="5" type="Script Node: Camera" x="-48" y="144">
    <properties>
     <property name="Duration" type="float" value="0.5"/>
     <property name="Motion" value="Slide"/>
-    <property name="Next" type="object" value="53"/>
+    <property name="Next" type="object" value="98"/>
     <property name="Target" type="object" value="50"/>
     <property name="Unlocks" type="bool" value="false"/>
    </properties>
    <point/>
   </object>
-  <object id="7" type="Script Node: Party Area" x="-48" y="312">
+  <object id="7" type="Script Node: Party Area" x="-48" y="336">
    <properties>
     <property name="Next" type="object" value="97"/>
    </properties>
@@ -110,14 +110,14 @@
    </properties>
    <point/>
   </object>
-  <object id="16" type="Script Node: Face" x="-48" y="384">
+  <object id="16" type="Script Node: Face" x="-48" y="408">
    <properties>
     <property name="Next" type="object" value="91"/>
     <property name="Target" value="Player"/>
    </properties>
    <point/>
   </object>
-  <object id="17" type="Script Node: Require Party Size" x="-48" y="264">
+  <object id="17" type="Script Node: Require Party Size" x="-48" y="288">
    <properties>
     <property name="Min" type="int" value="2"/>
     <property name="Next" type="object" value="93"/>
@@ -251,7 +251,7 @@
    </properties>
    <point/>
   </object>
-  <object id="44" type="Script Node: Disband Party" x="-48" y="168">
+  <object id="44" type="Script Node: Disband Party" x="-48" y="192">
    <properties>
     <property name="Next 1" type="object" value="10"/>
     <property name="Next 2" type="object" value="43"/>
@@ -276,7 +276,7 @@
    </properties>
    <point/>
   </object>
-  <object id="49" type="Script Node: Reunite Party" x="-48" y="144">
+  <object id="49" type="Script Node: Reunite Party" x="-48" y="168">
    <properties>
     <property name="Next" type="object" value="5"/>
    </properties>
@@ -324,7 +324,7 @@
    </properties>
    <point/>
   </object>
-  <object id="60" type="Script Node: Thread" x="-48" y="192">
+  <object id="60" type="Script Node: Thread" x="-48" y="216">
    <properties>
     <property name="Next" type="object" value="44"/>
     <property name="Next 2" type="object" value="61"/>
@@ -360,7 +360,7 @@
    </properties>
    <point/>
   </object>
-  <object id="71" type="Script Node: Resume Path" x="-88" y="320">
+  <object id="71" type="Script Node: Resume Path" x="-88" y="344">
    <properties>
     <property name="Next" type="object" value="0"/>
    </properties>
@@ -473,13 +473,13 @@
    </properties>
    <point/>
   </object>
-  <object id="91" type="Script Node: Pause Path" x="-48" y="360">
+  <object id="91" type="Script Node: Pause Path" x="-48" y="384">
    <properties>
     <property name="Next" type="object" value="4"/>
    </properties>
    <point/>
   </object>
-  <object id="93" type="Script Node: Message" x="-88" y="248">
+  <object id="93" type="Script Node: Message" x="-88" y="272">
    <properties>
     <property name="Mug" value="bots/prog_mug"/>
     <property name="Next" type="object" value="71"/>
@@ -487,14 +487,14 @@
    </properties>
    <point/>
   </object>
-  <object id="95" type="Script Node: Shuffle Party" x="-48" y="240">
+  <object id="95" type="Script Node: Shuffle Party" x="-48" y="264">
    <properties>
     <property name="Next" type="object" value="96"/>
     <property name="Start" type="int" value="2"/>
    </properties>
    <point/>
   </object>
-  <object id="96" type="Script Node: Split Party" x="-48" y="216">
+  <object id="96" type="Script Node: Split Party" x="-48" y="240">
    <properties>
     <property name="Next" type="object" value="60"/>
     <property name="Next 2" type="object" value="0"/>
@@ -502,9 +502,16 @@
    </properties>
    <point/>
   </object>
-  <object id="97" type="Script Node: Exclude Busy" x="-48" y="288">
+  <object id="97" type="Script Node: Exclude Busy" x="-48" y="312">
    <properties>
     <property name="Next" type="object" value="17"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="98" type="Script Node: Delay" x="-48" y="120">
+   <properties>
+    <property name="Duration" type="float" value="1"/>
+    <property name="Next" type="object" value="53"/>
    </properties>
    <point/>
   </object>
