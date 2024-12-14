@@ -1,6 +1,11 @@
 -- todo:
 -- - collider nodes / On Collision Enter (object)?
--- Script Entry: Rectangle Collider
+-- Script Entry: Rectangle Collider, Shape?
+-- - On Enter
+-- - On Exit
+-- - On Empty
+-- - Ignore Transfer
+-- Party Shape?
 -- tile api
 -- tile object api
 -- functions
@@ -72,6 +77,7 @@ end
 ---@field private _bot_script_ids table<string, Net.ActorId>
 ---@field private _bot_script_ids_reversed table<Net.ActorId, string>
 ---@field private _tagged table<string, Net.ActorId[]>
+---@field private _protected_object_map table<string, table<number, Net.Object>>
 ---@field private _loaded_areas table<string, boolean>
 ---@field private _load_callbacks fun(area_id: string)[]
 ---@field private _unload_callbacks fun(area_id: string)[]
@@ -94,6 +100,7 @@ function ScriptNodes:new_empty()
     _bot_script_ids = {},
     _bot_script_ids_reversed = {},
     _tagged = {},
+    _protected_object_map = {},
     _loaded_areas = {},
     _load_callbacks = {},
     _unload_callbacks = {},
@@ -164,9 +171,19 @@ function ScriptNodes:is_loaded(area_id)
 end
 
 ---Used to begin processing new areas.
+---Calls :protect_object() for detected script and entry nodes.
 ---@param area_id string
 function ScriptNodes:load(area_id)
   self._loaded_areas[area_id] = true
+  self._protected_object_map[area_id] = {}
+
+  for _, object_id in ipairs(self:list_objects(area_id)) do
+    local object = Net.get_object_by_id(area_id, object_id)
+
+    if self:is_script_node(object) or self:is_entry_node(object) then
+      self:protect_object(area_id, object)
+    end
+  end
 
   for _, callback in ipairs(self._load_callbacks) do
     callback(area_id)
@@ -174,6 +191,7 @@ function ScriptNodes:load(area_id)
 end
 
 ---Used to perform cleanup on removed areas. Call before removing an area.
+---Clears protected objects for the area.
 ---@param area_id string
 function ScriptNodes:unload(area_id)
   self._loaded_areas[area_id] = nil
@@ -181,6 +199,8 @@ function ScriptNodes:unload(area_id)
   for _, callback in ipairs(self._unload_callbacks) do
     callback(area_id)
   end
+
+  self._protected_object_map[area_id] = nil
 end
 
 ---Adds a listener for inventory changes.
@@ -235,22 +255,27 @@ function ScriptNodes:implement_node(node_type, callback)
   self._node_types[node_type:lower()] = callback
 end
 
+---@param object Net.Object
+function ScriptNodes:is_script_node(object)
+  return object.type:sub(1, #self.NODE_TYPE_PREFIX) == self.NODE_TYPE_PREFIX
+end
+
+---@param object Net.Object
+function ScriptNodes:is_entry_node(object)
+  return object.type:sub(1, #self.ENTRY_TYPE_PREFIX) == self.ENTRY_TYPE_PREFIX
+end
+
 ---@param context table
 ---@param area_id string
 ---@param object_id string|number
 function ScriptNodes:execute_by_id(context, area_id, object_id)
-  local object = Net.get_object_by_id(area_id, object_id)
+  local object = self:resolve_object(area_id, object_id)
 
   if not object then
     return
   end
 
   self:execute_node(context, object)
-end
-
----@param object Net.Object
-function ScriptNodes:is_script_node(object)
-  return object.type:sub(1, #self.NODE_TYPE_PREFIX) == self.NODE_TYPE_PREFIX
 end
 
 ---@param context table
@@ -291,7 +316,7 @@ function ScriptNodes:resolve_next_node(area_id, object, n)
   local id = self:resolve_next_id(object, n)
 
   if id then
-    return Net.get_object_by_id(area_id, id)
+    return self:resolve_object(area_id, id)
   end
 end
 
@@ -307,6 +332,44 @@ function ScriptNodes:execute_next_node(context, area_id, object, n)
   if next then
     self:execute_node(context, next)
   end
+end
+
+---Lists objects in the area by id, including protected objects
+---@param area_id string
+function ScriptNodes:list_objects(area_id)
+  local list = Net.list_objects(area_id)
+
+  local object_map = self._protected_object_map[area_id]
+
+  for object_id in pairs(object_map) do
+    list[#list + 1] = object_id
+  end
+
+  return list
+end
+
+---Removes the object from the area to prevent clients from reading script nodes.
+---
+---Use :resolve_object() to access protected objects.
+---@param area_id string
+---@param object Net.Object
+function ScriptNodes:protect_object(area_id, object)
+  Net.remove_object(area_id, object.id)
+
+  self._protected_object_map[area_id][object.id] = object
+end
+
+---Resolves objects that may be protected by :protect_object()
+---@param area_id string
+---@param object_id number|string
+function ScriptNodes:resolve_object(area_id, object_id)
+  local object = Net.get_object_by_id(area_id, object_id)
+
+  if object then
+    return object
+  end
+
+  return self._protected_object_map[area_id][tonumber(object_id)]
 end
 
 ---@param actor_id Net.ActorId
@@ -469,15 +532,15 @@ function ScriptNodes:resolve_mug(context, object)
   return texture, animation
 end
 
----@param area_id string?
+---@param target_area_id string
 ---@param object Net.Object
-function ScriptNodes:resolve_area_transfer_properties(object, area_id)
-  local x, y, z
+function ScriptNodes:resolve_teleport_properties(object, target_area_id)
+  local x, y, z = Net.get_spawn_position_multi(target_area_id)
   local warp_in
   local direction
 
   if object.custom_properties.Target then
-    local target_object = Net.get_object_by_id(area_id or "", object.custom_properties.Target)
+    local target_object = self:resolve_object(target_area_id, object.custom_properties.Target)
 
     if target_object then
       -- adopt from target object
@@ -496,7 +559,7 @@ function ScriptNodes:resolve_area_transfer_properties(object, area_id)
     direction = object.custom_properties.Direction
   end
 
-  return area_id, warp_in, x, y, z, direction
+  return warp_in, x, y, z, direction
 end
 
 ---Implements support for the `Load`, `Server Event`, and `Player Interaction` entry types
@@ -566,8 +629,8 @@ function ScriptNodes:implement_event_entry_api()
   self:on_load(function(area_id)
     local context = { area_id = area_id }
 
-    for _, object_id in ipairs(Net.list_objects(area_id)) do
-      local object = Net.get_object_by_id(area_id, object_id)
+    for _, object_id in ipairs(self:list_objects(area_id)) do
+      local object = self:resolve_object(area_id, object_id)
 
       if self:is_script_node(object) and object.custom_properties["On Load"] == "true" then
         self:execute_node(context, object)
@@ -817,7 +880,11 @@ function ScriptNodes:implement_area_api()
     local warp_in
     local direction
 
-    area_id, warp_in, x, y, z, direction = self:resolve_area_transfer_properties(object, area_id)
+    warp_in, x, y, z, direction = self:resolve_teleport_properties(object, area_id)
+
+    if not direction then
+      direction = Net.get_spawn_direction(area_id)
+    end
 
     if context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
@@ -830,25 +897,39 @@ function ScriptNodes:implement_area_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
+  local function clone_area(template_id, new_area_id)
+    -- similar to :load but with :protect_object calls skipped
+
+    Net.clone_area(template_id, new_area_id)
+    self._loaded_areas[new_area_id] = true
+    self._protected_object_map[new_area_id] = self._protected_object_map[template_id]
+
+    for _, callback in ipairs(self._load_callbacks) do
+      callback(new_area_id)
+    end
+  end
+
   self:implement_node("transfer to instance", function(context, object)
     local template_id = object.custom_properties.Area or context.area_id
     local instance_id = tostring(Net.system_random())
     local new_area_id = template_id .. self.INSTANCE_MARKER .. instance_id
-
-    Net.clone_area(template_id, new_area_id)
 
     instances[instance_id] = {
       areas = { [new_area_id] = template_id },
       player_count = 0,
     }
 
-    local dest_area_id, warp_in, x, y, z, direction = self:resolve_area_transfer_properties(object, new_area_id)
+    clone_area(template_id, new_area_id)
+
+    local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
+
+    if not direction then
+      direction = Net.get_spawn_direction(new_area_id)
+    end
 
     for_each_player(context, function(player_id)
-      Net.transfer_player(player_id, dest_area_id, warp_in, x, y, z, direction)
+      Net.transfer_player(player_id, new_area_id, warp_in, x, y, z, direction)
     end)
-
-    self:load(new_area_id)
 
     self:execute_next_node(context, context.area_id, object)
   end)
@@ -867,15 +948,18 @@ function ScriptNodes:implement_area_api()
 
     if not instance.areas[new_area_id] then
       -- create an instance of the template area
-      Net.clone_area(template_id, new_area_id)
       instance.areas[new_area_id] = template_id
-      self:load(new_area_id)
+      clone_area(template_id, new_area_id)
     end
 
-    local dest_area_id, warp_in, x, y, z, direction = self:resolve_area_transfer_properties(object, new_area_id)
+    local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
+
+    if not direction then
+      direction = Net.get_spawn_direction(new_area_id)
+    end
 
     for_each_player(context, function(player_id)
-      Net.transfer_player(player_id, dest_area_id, warp_in, x, y, z, direction)
+      Net.transfer_player(player_id, new_area_id, warp_in, x, y, z, direction)
     end)
 
     self:execute_next_node(context, context.area_id, object)
@@ -1066,7 +1150,7 @@ function ScriptNodes:implement_object_api()
   self:implement_node("move object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     local target_id = object.custom_properties.Target
-    local target_object = (target_id and Net.get_object_by_id(context.area_id, target_id)) or object
+    local target_object = (target_id and self:resolve_object(context.area_id, target_id)) or object
     Net.move_object(context.area_id, object_id, target_object.x, target_object.y, target_object.z)
 
     self:execute_next_node(context, context.area_id, object)
@@ -1075,9 +1159,10 @@ function ScriptNodes:implement_object_api()
   self:implement_node("clone object", function(context, object)
     local source_id = object.custom_properties.Source
     local dest_id = object.custom_properties.Destination
-    local source_object = (source_id and Net.get_object_by_id(context.area_id, source_id)) or clone_table(object)
-    local dest_object = (dest_id and Net.get_object_by_id(context.area_id, dest_id)) or object
+    local source_object = (source_id and self:resolve_object(context.area_id, source_id)) or object
+    local dest_object = (dest_id and self:resolve_object(context.area_id, dest_id)) or object
 
+    source_object = clone_table(source_object)
     source_object.x = dest_object.x
     source_object.y = dest_object.y
     source_object.z = dest_object.z
@@ -1273,7 +1358,7 @@ function ScriptNodes:implement_bbs_api()
     end
 
     local posts = {}
-    local post_data = {}
+    local post_objects = {}
 
     local i = 1
 
@@ -1284,7 +1369,7 @@ function ScriptNodes:implement_bbs_api()
         break
       end
 
-      local post_object = Net.get_object_by_id(context.area_id, post_id)
+      local post_object = self:resolve_object(context.area_id, post_id)
 
       if not post_object then
         break
@@ -1297,18 +1382,7 @@ function ScriptNodes:implement_bbs_api()
         author = post_object.custom_properties.Author or "",
       }
 
-      local mug_texture, mug_animation
-
-      if post_object.custom_properties.Text then
-        self:resolve_mug(context, object)
-      end
-
-      post_data[post_id] = {
-        mug_texture = mug_texture,
-        mug_animation = mug_animation,
-        text = post_object.custom_properties.Text,
-        next = post_object.custom_properties["On Interact"]
-      }
+      post_objects[post_id] = post_object
 
       i = i + 1
     end
@@ -1328,14 +1402,19 @@ function ScriptNodes:implement_bbs_api()
 
     Async.create_scope(function()
       for event in Async.await(emitter:async_iter("post_selection")) do
-        local post = post_data[event.post_id]
+        local post_object = post_objects[event.post_id]
 
-        if post.text then
-          Net.message_player(context.player_id, post.text, post.mug_texture or "", post.mug_animation or "")
+        local text = post_object.custom_properties.Text
+
+        if text then
+          local mug_texture, mug_animation = self:resolve_mug(context, object)
+          Net.message_player(context.player_id, text, mug_texture, mug_animation)
         end
 
-        if post.next then
-          self:execute_by_id(context, context.area_id, post.next)
+        local next_id = post_object.custom_properties["On Interact"]
+
+        if next_id then
+          self:execute_by_id(context, context.area_id, next_id)
         end
       end
 
@@ -1373,7 +1452,7 @@ function ScriptNodes:implement_shop_api()
     end
 
     local items = {}
-    local item_data = {}
+    local next_ids = {}
 
     local i = 1
 
@@ -1384,7 +1463,7 @@ function ScriptNodes:implement_shop_api()
         break
       end
 
-      local item_object = Net.get_object_by_id(context.area_id, item_id)
+      local item_object = self:resolve_object(context.area_id, item_id)
 
       if not item_object then
         break
@@ -1396,9 +1475,7 @@ function ScriptNodes:implement_shop_api()
         price = tonumber(item_object.custom_properties.Price) or 0,
       }
 
-      item_data[item_id] = {
-        next = item_object.custom_properties["On Interact"]
-      }
+      next_ids[item_id] = item_object.custom_properties["On Interact"]
 
       i = i + 1
     end
@@ -1427,17 +1504,17 @@ function ScriptNodes:implement_shop_api()
     Async.create_scope(function()
       for event_name, event in Async.await(emitter:async_iter_all()) do
         if event_name == "shop_purchase" then
-          local item = item_data[event.item_id]
+          local next_id = next_ids[event.item_id]
 
           if purchase_question then
             local promise = Async.question_player(context.player_id, purchase_question, mug_texture, mug_animation)
             local response = Async.await(promise)
 
-            if response == 1 and item.next then
-              self:execute_by_id(context, context.area_id, item.next)
+            if response == 1 and next_id then
+              self:execute_by_id(context, context.area_id, next_id)
             end
-          elseif item.next then
-            self:execute_by_id(context, context.area_id, item.next)
+          elseif next_id then
+            self:execute_by_id(context, context.area_id, next_id)
           end
 
           Net.set_shop_message(context.player_id, default_message)
@@ -1514,7 +1591,7 @@ function ScriptNodes:implement_camera_api()
       local actor_id = self:resolve_actor_id(context, object.custom_properties.Target)
 
       if not actor_id then
-        local target_object = Net.get_object_by_id(context.area_id, object.custom_properties.Target)
+        local target_object = self:resolve_object(context.area_id, object.custom_properties.Target)
         properties.x = target_object.x
         properties.y = target_object.y
         properties.z = target_object.z
@@ -1609,9 +1686,9 @@ function ScriptNodes:implement_encounter_api()
     local remember_results = object.custom_properties["Forget Results"] ~= "true"
 
     local win_id = object.custom_properties["On Win"]
-    local win_node = win_id and Net.get_object_by_id(context.area_id, win_id)
+    local win_node = win_id and self:resolve_object(context.area_id, win_id)
     local lose_id = object.custom_properties["On Lose"]
-    local lose_node = lose_id and Net.get_object_by_id(context.area_id, lose_id)
+    local lose_node = lose_id and self:resolve_object(context.area_id, lose_id)
 
     if context.player_ids then
       local promises = Async.initiate_netplay(
@@ -1997,7 +2074,7 @@ function ScriptNodes:implement_actor_api()
       local target_actor_id = self:resolve_actor_id(context, object.custom_properties.Target)
 
       if not target_actor_id then
-        target_position = Net.get_object_by_id(context.area_id, object.custom_properties.Target)
+        target_position = self:resolve_object(context.area_id, object.custom_properties.Target)
       elseif Net.is_player(target_actor_id) then
         target_position = Net.get_player_position(target_actor_id)
       elseif Net.is_bot(target_actor_id) then
@@ -2078,13 +2155,7 @@ function ScriptNodes:implement_actor_api()
     local warp_in
     local direction
 
-    area_id, warp_in, x, y, z, direction = self:resolve_area_transfer_properties(object, area_id)
-
-    if area_id ~= context.area_id then
-      -- stick to the same area
-      self:execute_next_node(context, context.area_id, object)
-      return
-    end
+    warp_in, x, y, z, direction = self:resolve_teleport_properties(object, context.area_id)
 
     if ((not context.bot_id and not actor_string) or actor_string == "Player") and context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
@@ -2403,7 +2474,7 @@ function ScriptNodes:implement_path_api()
     local path = {}
 
     while next_id ~= nil and not visited[next_id] do
-      local path_object = Net.get_object_by_id(context.area_id, next_id)
+      local path_object = self:resolve_object(context.area_id, next_id)
 
       if not path_object then
         break
