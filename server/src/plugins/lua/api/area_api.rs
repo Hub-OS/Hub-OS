@@ -484,6 +484,20 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function("Net", "get_spawn_position_multi", |api_ctx, lua, params| {
+        let area_id: mlua::String = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        if let Some(area) = net.get_area(area_id_str) {
+            let position = area.map().spawn_position();
+            lua.pack_multi(position)
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
     lua_api.add_dynamic_function("Net", "set_spawn_position", |api_ctx, lua, params| {
         let (area_id, x, y, z): (mlua::String, f32, f32, f32) = lua.unpack_multi(params)?;
         let area_id_str = area_id.to_str()?;
