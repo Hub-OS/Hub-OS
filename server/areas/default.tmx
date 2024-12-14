@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="99">
+<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="105">
  <properties>
   <property name="Background Animation" value="/server/assets/bg.animation"/>
   <property name="Background Texture" value="/server/assets/bg.png"/>
@@ -159,11 +159,12 @@
    </properties>
    <point/>
   </object>
-  <object id="22" name="Prog" type="Script Node: Spawn Bot" x="400" y="176">
+  <object id="22" name="Shop Prog" type="Script Node: Spawn Bot" x="400" y="176">
    <properties>
     <property name="Asset" value="bots/prog"/>
     <property name="Direction" value="Down Right"/>
     <property name="Next" type="object" value="24"/>
+    <property name="On Interact" type="object" value="99"/>
     <property name="On Load" type="bool" value="true"/>
     <property name="Solid" type="bool" value="true"/>
    </properties>
@@ -512,6 +513,54 @@
    <properties>
     <property name="Duration" type="float" value="1"/>
     <property name="Next" type="object" value="53"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="99" name="Shop" type="Script Node: Shop" x="408" y="88">
+   <properties>
+    <property name="Item 1" type="object" value="101"/>
+    <property name="Item 2" type="object" value="102"/>
+    <property name="Item 3" type="object" value="103"/>
+    <property name="Leave Text" value="THANKS FOR VISITING!"/>
+    <property name="Mug" value="bots/prog_mug"/>
+    <property name="Next" type="object" value="0"/>
+    <property name="Purchase Question" value="READY TO PURCHASE?"/>
+    <property name="Text" value="SEE ANYTHING YOU LIKE?"/>
+    <property name="Welcome Text" value="WELCOME!"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="101" x="384" y="24">
+   <properties>
+    <property name="Description" value="Item A's description."/>
+    <property name="Name" value="Item A"/>
+    <property name="On Interact" type="object" value="104"/>
+    <property name="Price" type="int" value="50"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="102" x="424" y="64">
+   <properties>
+    <property name="Description" value="Item B's description."/>
+    <property name="Name" value="Item B"/>
+    <property name="On Interact" type="object" value="104"/>
+    <property name="Price" type="int" value="100"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="103" x="464" y="104">
+   <properties>
+    <property name="Description" value="Item C's description."/>
+    <property name="Name" value="Item C"/>
+    <property name="On Interact" type="object" value="104"/>
+    <property name="Price" type="int" value="75"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="104" type="Script Node: Message" x="448" y="48">
+   <properties>
+    <property name="Mug" value="bots/prog_mug"/>
+    <property name="Text" value="NOT ENOUGH MONEY!"/>
    </properties>
    <point/>
   </object>

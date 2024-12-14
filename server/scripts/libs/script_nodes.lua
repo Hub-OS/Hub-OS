@@ -752,6 +752,18 @@ function ScriptNodes:resolve_instance_id(area_id)
   end
 end
 
+---Reads the template area id from the area id, or returns the area id
+---@param area_id string
+function ScriptNodes:resolve_base_area_id(area_id)
+  local match_start = area_id:find(self.INSTANCE_MARKER)
+
+  if match_start then
+    return area_id:sub(1, match_start - 1)
+  else
+    return area_id
+  end
+end
+
 ---@param object Net.Object
 function ScriptNodes:resolve_mug(context, object)
   local mug_path = object.custom_properties["Mug"]
@@ -1496,13 +1508,15 @@ end
 function ScriptNodes:implement_bbs_api()
   ---@type table<string, table<number, Net.BoardPost[]>>
   local area_posts_map = {}
+  local areas_completed = {}
 
   self:implement_node("bbs", function(context, object)
     if context.player_ids then
       error("the BBS node does not support parties. Use a Disband Party node before using")
     end
 
-    local posts = area_posts_map[context.area_id][object.id]
+    local base_area_id = self:resolve_base_area_id(context.area_id)
+    local posts = area_posts_map[base_area_id][object.id]
 
     local emitter = Net.open_board(
       context.player_id,
@@ -1542,13 +1556,21 @@ function ScriptNodes:implement_bbs_api()
   end)
 
   self:on_load_start(function(area_id)
-    local posts_map = {}
-    area_posts_map[area_id] = posts_map
+    local base_area_id = self:resolve_base_area_id(area_id)
+
+    if not area_posts_map[base_area_id] then
+      area_posts_map[base_area_id] = {}
+    end
+  end)
+
+  self:on_load(function(area_id)
+    local base_area_id = self:resolve_base_area_id(area_id)
+    areas_completed[base_area_id] = true
   end)
 
   self:on_script_node_load("bbs", function(area_id, object)
+    local base_area_id = self:resolve_base_area_id(area_id)
     local posts = {}
-
     local i = 1
 
     while true do
@@ -1559,27 +1581,28 @@ function ScriptNodes:implement_bbs_api()
       end
 
       local post_object = self:resolve_object(area_id, post_id)
-      self:protect_object(area_id, post_object)
 
       if not post_object then
         break
       end
 
-      posts[#posts + 1] = {
-        id = post_id,
-        read = true,
-        title = post_object.custom_properties.Title or "",
-        author = post_object.custom_properties.Author or "",
-      }
+      self:protect_object(area_id, post_object)
+
+      if not areas_completed[base_area_id] then
+        posts[#posts + 1] = {
+          id = post_id,
+          read = true,
+          title = post_object.custom_properties.Title or "",
+          author = post_object.custom_properties.Author or "",
+        }
+      end
 
       i = i + 1
     end
 
-    area_posts_map[area_id][object.id] = posts
-  end)
-
-  self:on_unload(function(area_id)
-    area_posts_map[area_id] = nil
+    if not areas_completed[base_area_id] then
+      area_posts_map[area_id][object.id] = posts
+    end
   end)
 end
 
@@ -1604,39 +1627,17 @@ end
 --- - `Description` string (optional)
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_shop_api()
+  ---@type table<string, table<number, Net.ShopItem[]>>
+  local area_shop_map = {}
+  local areas_completed = {}
+
   self:implement_node("shop", function(context, object)
     if context.player_ids then
       error("the Shop node does not support parties. Use a Disband Party node before using")
     end
 
-    local items = {}
-    local next_ids = {}
-
-    local i = 1
-
-    while true do
-      local item_id = object.custom_properties["Item " .. i]
-
-      if not item_id then
-        break
-      end
-
-      local item_object = self:resolve_object(context.area_id, item_id)
-
-      if not item_object then
-        break
-      end
-
-      items[#items + 1] = {
-        id = item_id,
-        name = item_object.custom_properties.Name or "",
-        price = tonumber(item_object.custom_properties.Price) or 0,
-      }
-
-      next_ids[item_id] = item_object.custom_properties["On Interact"]
-
-      i = i + 1
-    end
+    local base_area_id = self:resolve_base_area_id(context.area_id)
+    local items = area_shop_map[base_area_id][object.id]
 
     local mug_texture, mug_animation = self:resolve_mug(context, object)
 
@@ -1652,17 +1653,20 @@ function ScriptNodes:implement_shop_api()
       return
     end
 
-    local welcome_message = object.custom_properties["Welcome Text"]
     local default_message = object.custom_properties["Text"]
+    local welcome_message = object.custom_properties["Welcome Text"] or default_message
     local purchase_question = object.custom_properties["Purchase Question"]
     local leave_message = object.custom_properties["Leave Text"]
 
-    Net.set_shop_message(context.player_id, welcome_message or default_message)
+    if welcome_message then
+      Net.set_shop_message(context.player_id, welcome_message)
+    end
 
     Async.create_scope(function()
       for event_name, event in Async.await(emitter:async_iter_all()) do
         if event_name == "shop_purchase" then
-          local next_id = next_ids[event.item_id]
+          local item_object = self:resolve_object(context.area_id, event.item_id)
+          local next_id = item_object.custom_properties["On Interact"]
 
           if purchase_question then
             local promise = Async.question_player(context.player_id, purchase_question, mug_texture, mug_animation)
@@ -1675,7 +1679,9 @@ function ScriptNodes:implement_shop_api()
             self:execute_by_id(context, context.area_id, next_id)
           end
 
-          Net.set_shop_message(context.player_id, default_message)
+          if default_message then
+            Net.set_shop_message(context.player_id, default_message)
+          end
         elseif event_name == "shop_leave" and leave_message then
           Net.set_shop_message(context.player_id, leave_message)
         end
@@ -1685,6 +1691,56 @@ function ScriptNodes:implement_shop_api()
 
       return nil
     end)
+  end)
+
+  self:on_load_start(function(area_id)
+    local base_area_id = self:resolve_base_area_id(area_id)
+
+    if not area_shop_map[base_area_id] then
+      area_shop_map[base_area_id] = {}
+    end
+  end)
+
+  self:on_load(function(area_id)
+    local base_area_id = self:resolve_base_area_id(area_id)
+    areas_completed[base_area_id] = true
+  end)
+
+  self:on_script_node_load("shop", function(area_id, object)
+    local base_area_id = self:resolve_base_area_id(area_id)
+
+    local items = {}
+    local i = 1
+
+    while true do
+      local item_id = object.custom_properties["Item " .. i]
+
+      if not item_id then
+        break
+      end
+
+      local item_object = self:resolve_object(area_id, item_id)
+
+      if not item_object then
+        break
+      end
+
+      self:protect_object(area_id, item_object)
+
+      if not areas_completed[base_area_id] then
+        items[#items + 1] = {
+          id = item_id,
+          name = item_object.custom_properties.Name or "",
+          price = tonumber(item_object.custom_properties.Price) or 0,
+        }
+      end
+
+      i = i + 1
+    end
+
+    if not areas_completed[base_area_id] then
+      area_shop_map[base_area_id][object.id] = items
+    end
   end)
 end
 
