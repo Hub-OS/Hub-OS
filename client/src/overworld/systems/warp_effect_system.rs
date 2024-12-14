@@ -138,6 +138,10 @@ fn handle_walk_out(
 
     if direction.is_none() {
         direction = *player_direction;
+
+        if direction.is_none() {
+            direction = Direction::Down;
+        }
     }
 
     if let Some(object_entity) = map.tile_object_at(position.xy(), position.z as i32, false) {
