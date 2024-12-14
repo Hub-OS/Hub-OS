@@ -2932,6 +2932,15 @@ end
 ---Supported custom properties for `Reunite Party`:
 --- - `Next [1]` a link to the next node (optional)
 ---
+---### `Exclude Busy`
+---
+---Expects `area_id` and `player_id` or `player_ids` to be defined on the context table.
+---
+---Filters out busy players from the party.
+---
+---Supported custom properties for `Exclude Busy`:
+--- - `Next [1]` a link to the next node (optional)
+---
 ---### `Shuffle Party`
 ---
 ---Expects `area_id` and optionally `player_id` or `player_ids` to be defined on the context table.
@@ -3099,6 +3108,26 @@ function ScriptNodes:implement_party_api()
     context.player_id = nil
     context.player_ids = context.disbanded_party
     context.disbanded_party = nil
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("exclude busy", function(context, object)
+    local player_ids = {}
+
+    if context.player_ids then
+      for _, player_id in ipairs(context.player_ids) do
+        if not Net.is_player_busy(player_id) then
+          player_ids[#player_ids + 1] = player_id
+        end
+      end
+    else
+      player_ids[1] = context.player_id
+    end
+
+    context = clone_table(context)
+    context.player_id = nil
+    context.player_ids = player_ids
 
     self:execute_next_node(context, context.area_id, object)
   end)
