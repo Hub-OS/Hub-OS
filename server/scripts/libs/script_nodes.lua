@@ -12,6 +12,13 @@
 -- variables with scoping / conflict resolution (functions, area, script, instance, global)
 -- - maybe prefix: `Local: X` (tied to function / script), `Out: X` (used in functions to access locals in calling script), `Instance: X`, `X` (global)
 -- :on_instance_destroyed()
+-- `Attach Sprite`
+-- - `Id`
+-- - `Target` "Player [1+]" "Bot" "Widget" "Hud"
+-- - `Private` boolean, displays only to players in the current context
+-- `Remove Sprite`
+-- - `Id`
+-- - `Target`
 
 local Direction = require("scripts/libs/direction")
 
@@ -1373,40 +1380,15 @@ end
 --- - `Text` string (optional)
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_bbs_api()
+  ---@type table<string, table<number, Net.BoardPost[]>>
+  local area_map = {}
+
   self:implement_node("bbs", function(context, object)
     if context.player_ids then
       error("the BBS node does not support parties. Use a Disband Party node before using")
     end
 
-    local posts = {}
-    local post_objects = {}
-
-    local i = 1
-
-    while true do
-      local post_id = object.custom_properties["Post " .. i]
-
-      if not post_id then
-        break
-      end
-
-      local post_object = self:resolve_object(context.area_id, post_id)
-
-      if not post_object then
-        break
-      end
-
-      posts[#posts + 1] = {
-        id = post_id,
-        read = true,
-        title = post_object.custom_properties.Title or "",
-        author = post_object.custom_properties.Author or "",
-      }
-
-      post_objects[post_id] = post_object
-
-      i = i + 1
-    end
+    local posts = area_map[context.area_id][object.id]
 
     local emitter = Net.open_board(
       context.player_id,
@@ -1423,7 +1405,7 @@ function ScriptNodes:implement_bbs_api()
 
     Async.create_scope(function()
       for event in Async.await(emitter:async_iter("post_selection")) do
-        local post_object = post_objects[event.post_id]
+        local post_object = self:resolve_object(context.area_id, event.post_id)
 
         local text = post_object.custom_properties.Text
 
@@ -1443,6 +1425,65 @@ function ScriptNodes:implement_bbs_api()
 
       return nil
     end)
+  end)
+
+  self:on_load(function(area_id)
+    local posts_map = {}
+    area_map[area_id] = posts_map
+
+    for _, object_id in ipairs(self:list_objects(area_id)) do
+      if not self:is_object_protected(area_id, object_id) then
+        goto continue
+      end
+
+      local object = self:resolve_object(area_id, object_id)
+
+      if not self:is_script_node(object) then
+        goto continue
+      end
+
+      local script_type = object.type:sub(#self.NODE_TYPE_PREFIX + 1):lower()
+
+      if script_type ~= "bbs" then
+        goto continue
+      end
+
+      local posts = {}
+
+      local i = 1
+
+      while true do
+        local post_id = object.custom_properties["Post " .. i]
+
+        if not post_id then
+          break
+        end
+
+        local post_object = self:resolve_object(area_id, post_id)
+        self:protect_object(area_id, post_object)
+
+        if not post_object then
+          break
+        end
+
+        posts[#posts + 1] = {
+          id = post_id,
+          read = true,
+          title = post_object.custom_properties.Title or "",
+          author = post_object.custom_properties.Author or "",
+        }
+
+        i = i + 1
+      end
+
+      posts_map[object.id] = posts
+
+      ::continue::
+    end
+  end)
+
+  self:on_unload(function(area_id)
+    area_map[area_id] = nil
   end)
 end
 

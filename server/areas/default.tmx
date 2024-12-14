@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="79">
+<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="91">
  <properties>
   <property name="Background Animation" value="/server/assets/bg.animation"/>
   <property name="Background Texture" value="/server/assets/bg.png"/>
@@ -10,6 +10,7 @@
  </properties>
  <tileset firstgid="1" source="../assets/tiles/floor.tsx"/>
  <tileset firstgid="3" source="../assets/tiles/spawn_warp.tsx"/>
+ <tileset firstgid="8" source="../assets/tiles/bbs.tsx"/>
  <layer id="1" name="Floor" width="19" height="15">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,
@@ -31,7 +32,7 @@
  </layer>
  <objectgroup id="5" name="Object Layer">
   <object id="2" type="Home Warp" gid="4" x="282" y="218" width="92" height="51"/>
-  <object id="3" name="Prog" type="Script Node: Spawn Bot" x="240.3" y="214.731">
+  <object id="3" name="Cutscene Prog" type="Script Node: Spawn Bot" x="240" y="208">
    <properties>
     <property name="Asset" value="bots/prog"/>
     <property name="Direction" value="Down Right"/>
@@ -129,7 +130,7 @@
    </properties>
    <point/>
   </object>
-  <object id="19" name="Prog" type="Script Node: Spawn Bot" x="288" y="352">
+  <object id="19" name="Instance Prog" type="Script Node: Spawn Bot" x="288" y="352">
    <properties>
     <property name="Asset" value="bots/prog"/>
     <property name="Direction" value="Down Right"/>
@@ -407,6 +408,66 @@
   <object id="78" type="Script Node: Resume Path" x="416" y="464">
    <properties>
     <property name="Next" type="object" value="0"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="81" name="BBS" type="Board" gid="2147483656" x="168.5" y="123.5" width="40" height="53">
+   <properties>
+    <property name="On Interact" type="object" value="84"/>
+   </properties>
+  </object>
+  <object id="84" type="Script Node: BBS" x="160" y="64">
+   <properties>
+    <property name="Color" type="color" value="#ffd06981"/>
+    <property name="Name" value="Example BBS"/>
+    <property name="Next" type="object" value="0"/>
+    <property name="Post 1" type="object" value="86"/>
+    <property name="Post 2" type="object" value="85"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="85" x="192" y="48">
+   <properties>
+    <property name="Author" value="Anon"/>
+    <property name="On Interact" type="object" value="89"/>
+    <property name="Title" value="Mind Blown"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="86" x="160" y="32">
+   <properties>
+    <property name="Author" value="Anon"/>
+    <property name="On Interact" type="object" value="90"/>
+    <property name="Text" value="This BBS was made with the BBS script node."/>
+    <property name="Title" value="Welcome"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="87" type="Script Node: Message" x="192" y="-24">
+   <properties>
+    <property name="Next" type="object" value="0"/>
+    <property name="Text" value="BBS posts aren't limited to text, pretty cool right?"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="88" type="Script Node: Message" x="192" y="0">
+   <properties>
+    <property name="Next" type="object" value="87"/>
+    <property name="Text" value=""/>
+   </properties>
+   <point/>
+  </object>
+  <object id="89" type="Script Node: Play Sound" x="192" y="24">
+   <properties>
+    <property name="Next" type="object" value="88"/>
+    <property name="Sound" value="sfx/explode.ogg"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="90" type="Script Node: Message" x="160" y="8">
+   <properties>
+    <property name="Next" type="object" value="0"/>
+    <property name="Text" value="It only supports static posts, but you can create your own scripts and script nodes for something more dynamic!"/>
    </properties>
    <point/>
   </object>
