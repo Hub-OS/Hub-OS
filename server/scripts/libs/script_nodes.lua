@@ -359,6 +359,14 @@ function ScriptNodes:protect_object(area_id, object)
   self._protected_object_map[area_id][object.id] = object
 end
 
+---@param area_id string
+---@param object_id string|number
+function ScriptNodes:is_object_protected(area_id, object_id)
+  local map = self._protected_object_map[area_id]
+
+  return (map and map[tonumber(object_id)]) ~= nil
+end
+
 ---Resolves objects that may be protected by :protect_object()
 ---@param area_id string
 ---@param object_id number|string
@@ -591,11 +599,6 @@ end
 ---
 ---Supplies a context with `player_ids` and `area_id`
 function ScriptNodes:implement_event_entry_api()
-  local load_entry_type = self.ENTRY_TYPE_PREFIX .. "Load"
-  local event_entry_type = self.ENTRY_TYPE_PREFIX .. "Server Event"
-  local player_interaction_entry_type = self.ENTRY_TYPE_PREFIX .. "Player Interaction"
-  local help_entry_type = self.ENTRY_TYPE_PREFIX .. "Help"
-
   ---table<event_name, table<area_id, object_id[]>>
   ---@type table<string, table<string, (string|number)[]>>
   local event_map = {}
@@ -630,14 +633,30 @@ function ScriptNodes:implement_event_entry_api()
     local context = { area_id = area_id }
 
     for _, object_id in ipairs(self:list_objects(area_id)) do
+      if not self:is_object_protected(area_id, object_id) then
+        goto continue
+      end
+
       local object = self:resolve_object(area_id, object_id)
 
-      if self:is_script_node(object) and object.custom_properties["On Load"] == "true" then
-        self:execute_node(context, object)
-      elseif object.type == load_entry_type then
+      if self:is_script_node(object) then
+        if object.custom_properties["On Load"] == "true" then
+          self:execute_node(context, object)
+        end
+
+        goto continue
+      end
+
+      if not self:is_entry_node(object) then
+        goto continue
+      end
+
+      local entry_type = object.type:sub(#self.ENTRY_TYPE_PREFIX + 1):lower()
+
+      if entry_type == "load" then
         -- Script Entry: Load
         self:execute_next_node(context, area_id, object)
-      elseif object.type == event_entry_type then
+      elseif entry_type == "server event" then
         -- Script Entry: Server Event
         local next_id = self:resolve_next_id(object)
 
@@ -665,7 +684,7 @@ function ScriptNodes:implement_event_entry_api()
             end
           end
         end
-      elseif object.type == player_interaction_entry_type then
+      elseif entry_type == "player interaction" then
         -- Script Entry: Player Interaction
         local object_ids = player_interaction_event_map[area_id]
 
@@ -675,7 +694,7 @@ function ScriptNodes:implement_event_entry_api()
         end
 
         object_ids[#object_ids + 1] = self:resolve_next_id(object)
-      elseif object.type == help_entry_type then
+      elseif entry_type == "help" then
         -- Script Entry: Help
         local object_ids = help_event_map[area_id]
 
@@ -686,6 +705,8 @@ function ScriptNodes:implement_event_entry_api()
 
         object_ids[#object_ids + 1] = self:resolve_next_id(object)
       end
+
+      ::continue::
     end
   end)
 

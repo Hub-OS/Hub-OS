@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="75">
+<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="79">
  <properties>
   <property name="Background Animation" value="/server/assets/bg.animation"/>
   <property name="Background Texture" value="/server/assets/bg.png"/>
@@ -129,12 +129,12 @@
    </properties>
    <point/>
   </object>
-  <object id="19" name="Prog" type="Script Node: Spawn Bot" x="304" y="336">
+  <object id="19" name="Prog" type="Script Node: Spawn Bot" x="288" y="352">
    <properties>
     <property name="Asset" value="bots/prog"/>
     <property name="Direction" value="Down Right"/>
     <property name="Next" type="object" value="21"/>
-    <property name="On Interact" type="object" value="63"/>
+    <property name="On Interact" type="object" value="76"/>
     <property name="On Load" type="bool" value="true"/>
     <property name="Solid" type="bool" value="true"/>
    </properties>
@@ -143,14 +143,16 @@
   <object id="20" x="272" y="368">
    <properties>
     <property name="Path Next" type="object" value="72"/>
+    <property name="Wait" type="float" value="1"/>
    </properties>
    <point/>
   </object>
-  <object id="21" type="Script Node: Set Path" x="336" y="304">
+  <object id="21" type="Script Node: Set Path" x="304" y="336">
    <properties>
     <property name="Loop" type="bool" value="true"/>
     <property name="Path Next" type="object" value="20"/>
     <property name="Path Start" type="object" value="21"/>
+    <property name="Wait" type="float" value="1"/>
    </properties>
    <point/>
   </object>
@@ -335,7 +337,10 @@
   <object id="62" x="200" y="240">
    <point/>
   </object>
-  <object id="63" type="Script Node: Transfer to Instance" x="345.97" y="369.832">
+  <object id="63" type="Script Node: Transfer to Instance" x="440" y="432">
+   <properties>
+    <property name="Next" type="object" value="78"/>
+   </properties>
    <point/>
   </object>
   <object id="64" type="Script Entry: Help" x="168" y="536">
@@ -358,9 +363,10 @@
    </properties>
    <point/>
   </object>
-  <object id="72" x="271.756" y="326.094">
+  <object id="72" x="272" y="304">
    <properties>
     <property name="Path Next" type="object" value="0"/>
+    <property name="Wait" type="float" value="1"/>
    </properties>
    <point/>
   </object>
@@ -373,6 +379,34 @@
   <object id="74" x="432" y="176">
    <properties>
     <property name="Path Next" type="object" value="24"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="75" type="Script Node: Question" x="416" y="432">
+   <properties>
+    <property name="Mug" value="bots/prog_mug"/>
+    <property name="Next 1" type="object" value="78"/>
+    <property name="Next 2" type="object" value="63"/>
+    <property name="Text" value="CREATE A PRIVATE INSTANCE OF THIS AREA?"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="76" type="Script Node: Face" x="368" y="432">
+   <properties>
+    <property name="Next" type="object" value="77"/>
+    <property name="Target" value="Player"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="77" type="Script Node: Pause Path" x="392" y="432">
+   <properties>
+    <property name="Next" type="object" value="75"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="78" type="Script Node: Resume Path" x="416" y="464">
+   <properties>
+    <property name="Next" type="object" value="0"/>
    </properties>
    <point/>
   </object>
