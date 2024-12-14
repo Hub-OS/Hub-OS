@@ -3,7 +3,6 @@
 -- Script Entry: Rectangle Collider, Shape?
 -- - On Enter
 -- - On Exit
--- - On Empty
 -- - Ignore Transfer
 -- Party Shape?
 -- tile api
@@ -1983,7 +1982,7 @@ end
 --- - `Direction` string (optional)
 --- - `Target` "Player [1+]" | "Bot [id]" | object (optional)
 --- - `Target Diagonally` boolean, when true the `Target` will resolve to a diagonal direction (optional)
---- - `Target Diagonal` (same as `Target Diagonally`, optional)
+--- - `Target Diagonal` (alias for `Target Diagonally`, optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Custom properties supported by `Animate`:
@@ -2893,13 +2892,17 @@ function ScriptNodes:implement_thread_api()
 end
 
 ---Implements support for the `Party All`, `Party Loaded`, `Party Instance`,
---- `Party Area`, `Party Tag`, `Disband Party`, and `Reunite Party` nodes.
+--- `Party Area`, `Party Tag`, `Disband Party`, `Reunite Party`,
+--- `Shuffle Party`, `Split Party`, and `Require Party Size` nodes.
 ---
 ---### `Party All`, `Party Loaded`, `Party Instance`, `Party Area`
 ---
 ---Expects `area_id` to be defined on the context table.
 ---
 ---Clears `player_id` and sets `player_ids` on the context.
+---
+---Supported custom properties:
+--- - `Next [1]` a link to the next node (optional)
 ---
 ---### `Party Tag`
 ---
@@ -2927,7 +2930,40 @@ end
 ---Clears `player_id` and renames `disbanded_party` to `player_ids` on the context.
 ---
 ---Supported custom properties for `Reunite Party`:
+--- - `Next [1]` a link to the next node (optional)
+---
+---### `Shuffle Party`
+---
+---Expects `area_id` and optionally `player_id` or `player_ids` to be defined on the context table.
+---
+---Supported custom properties for `Shuffle Party`:
+--- - `Start` integer, every player at and after the matching index will be shuffled (optional)
+--- - `Next [1]` a link to the next node (optional)
+---
+---### `Split Party`
+---
+---Expects `area_id` and optionally `player_id` or `player_ids` to be defined on the context table.
+---
+---Attempts to split the party in two.
+---
+---Supported custom properties for `Split Party`:
+--- - `Start` integer, the players at and after the matching index will be moved to a second party (optional)
+--- - `Start Fraction` number, splits the party using a value between `0` and `1`
+---    to decide what fraction of the party should be in the first party (an alternative to `Start`, optional)
 --- - `Next [1]` a link to the default node (optional)
+--- - `Next 2` a link to the next node for the second party (optional)
+---
+---### `Require Party Size`
+---
+---Expects `area_id` and optionally `player_id` or `player_ids` to be defined on the context table.
+---
+---Supported custom properties for `Require Party Size`:
+--- - `Minimum` integer (optional)
+--- - `Min` integer (alias for `Minimum`, optional)
+--- - `Maximum` integer (optional)
+--- - `Max` integer (alias for `Maximum`, optional)
+--- - `Next [1]` a link to the default node (optional)
+--- - `Next 2` a link to the passing node (optional)
 function ScriptNodes:implement_party_api()
   local function append_to(dest, src)
     table.move(src, 1, #src, #dest + 1, dest)
@@ -3065,6 +3101,96 @@ function ScriptNodes:implement_party_api()
     context.disbanded_party = nil
 
     self:execute_next_node(context, context.area_id, object)
+  end)
+
+  -- modified to shuffle everything at or after `start`
+  -- https://stackoverflow.com/questions/35572435/how-do-you-do-the-fisher-yates-shuffle-in-lua
+  local function shuffle(t, start)
+    local s = {}
+    for i = 1, #t do s[i] = t[i] end
+    for i = #t, 1 + start, -1 do
+      local j = math.random(start, i)
+      s[i], s[j] = s[j], s[i]
+    end
+    return s
+  end
+
+  self:implement_node("shuffle party", function(context, object)
+    if context.player_ids then
+      local start = tonumber(object.custom_properties.Start) or 1
+
+      context = clone_table(context)
+      context.player_ids = shuffle(context.player_ids, start)
+    end
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("split party", function(context, object)
+    if not context.player_ids then
+      self:execute_next_node(context, context.area_id, object)
+      return
+    end
+
+    local a = {}
+    local b = {}
+
+    local start = tonumber(object.custom_properties.Start)
+
+    if not start then
+      start = tonumber(object.custom_properties["Start Fraction"])
+
+      if start then
+        start = math.max(math.floor(start * #context.player_ids), 1)
+      else
+        start = #context.player_ids // 2
+      end
+    end
+
+    start = math.max(start, 1)
+
+
+    for i, player_id in ipairs(context.player_ids) do
+      if i < start then
+        a[i] = player_id
+      else
+        b[#b + 1] = player_id
+      end
+    end
+
+    local context_a = clone_table(context)
+    context_a.player_ids = a
+    self:execute_next_node(context_a, context.area_id, object)
+
+    local context_b = clone_table(context)
+    context_b.player_ids = a
+    self:execute_next_node(context_b, context.area_id, object, 2)
+  end)
+
+  self:implement_node("require party size", function(context, object)
+    local count = 0
+
+    if context.player_ids then
+      for _, player_id in ipairs(context.player_ids) do
+        if Net.is_player(player_id) then
+          count = count + 1
+        end
+      end
+    elseif context.player_id then
+      count = 1
+    end
+
+    local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
+    local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
+
+    local pass_min = not min or count >= min
+    local pass_max = not max or count <= max
+
+    if pass_min and pass_max then
+      self:execute_next_node(context, context.area_id, object, 2)
+    else
+      self:execute_next_node(context, context.area_id, object)
+    end
   end)
 end
 
