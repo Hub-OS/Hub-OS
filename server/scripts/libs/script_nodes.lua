@@ -1,6 +1,8 @@
 -- todo:
 -- - collider nodes / On Collision Enter (object)?
 -- Script Entry: Rectangle Collider
+-- tile api
+-- tile object api
 -- functions
 -- variables with scoping / conflict resolution (functions, area, script, instance, global)
 -- - maybe prefix: `Local: X` (tied to function / script), `Out: X` (used in functions to access locals in calling script), `Instance: X`, `X` (global)
@@ -497,7 +499,8 @@ function ScriptNodes:resolve_area_transfer_properties(object, area_id)
   return area_id, warp_in, x, y, z, direction
 end
 
----Implements support for the `Load`, `Server Event`, and `Player Interaction` entry types and the `On Load` property on all script nodes.
+---Implements support for the `Load`, `Server Event`, and `Player Interaction` entry types
+---and the `On Load` property on all script nodes.
 ---
 ---When :load() is called on an area, any script nodes with `On Load` set to true will execute using a context containing `area_id`.
 ---
@@ -991,11 +994,15 @@ function ScriptNodes:implement_area_api()
   end)
 end
 
----Implements support for the `On Interact` property on objects, as well as
----support for the `Move Object`, `Hide Object`, `Show Object`, and `Remove Object` nodes
+---Implements support for the `On Interact` property on objects,
+---the `On Warp` property on `Custom Warp` objects,
+---and support for the `Move Object`, `Hide Object`, `Show Object`, and `Remove Object` nodes
 ---
 ---`On Interact` should be applied on an interactable object, and the value should be an object usable as a script node.
----When players interact with the object the node will execute using a context populated with `area_id`, `player_id`, and `object_id`.
+---When players interact with the object, the node will execute using a context containing `area_id`, `player_id`, and `object_id`.
+---
+---`On Warp` should be applied on a `Custom Warp` object, and the value should be an object usable as a script node.
+---When players warp using this object, the node will execute using a context containing `area_id`, `player_id`, and `object_id`.
 ---
 ---All nodes expect `area_id` and optionally `object_id` on the context table.
 ---
@@ -1028,8 +1035,32 @@ function ScriptNodes:implement_object_api()
 
   Net:on("object_interaction", interact_listener)
 
+  local function warp_listener(event)
+    local area_id = Net.get_player_area(event.player_id)
+
+    if not self:is_loaded(area_id) then
+      return
+    end
+
+    local object = Net.get_object_by_id(area_id, event.object_id)
+    local next_id = object.custom_properties["On Warp"]
+
+    if next_id then
+      local context = {
+        area_id = area_id,
+        player_id = event.player_id,
+        object_id = event.object_id
+      }
+
+      self:execute_by_id(context, area_id, next_id)
+    end
+  end
+
+  Net:on("custom_warp", warp_listener)
+
   self:on_destroy(function()
     Net:remove_listener("object_interaction", interact_listener)
+    Net:remove_listener("custom_warp", warp_listener)
   end)
 
   self:implement_node("move object", function(context, object)
@@ -1326,7 +1357,7 @@ end
 --- - `Text` string, the shop keeper's default message (optional)
 --- - `Welcome Text` string, shop keeper's welcome message (optional)
 --- - `Leave Text` string, the shop keeper's goodbye message (optional)
---- - `Purchase Question` string, the shop keeper's confirmation text  (optional)
+--- - `Purchase Question` string, the shop keeper's confirmation text (optional)
 --- - `Item 1+` object (optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
