@@ -2289,6 +2289,7 @@ end
 ---    Path nodes support optional `Path Next` and `Speed Multiplier` properties.
 --- - `Speed Multiplier` number (optional)
 --- - `Interrupt Radius` number, if a player enters this radius, movement will be blocked (optional, bot specific)
+--- - `Wait` number, how long the actor should wait at this point before continuing movement (optional)
 --- - `Loop` boolean (optional, bot specific)
 ---
 ---   If the path doesn't contain a loop it will be played in reverse when the path ends.
@@ -2314,9 +2315,11 @@ function ScriptNodes:implement_path_api()
   ---    next: number?,
   ---    id: string?,
   ---    speed: number?,
+  ---    wait: number,
   ---  }[],
   ---  path_index: number,
   ---  speed: number,
+  ---  wait: number,
   ---  interrupt_radius: number,
   ---  pause_count: number,
   ---  paused_by: table<Net.ActorId>,
@@ -2415,6 +2418,14 @@ function ScriptNodes:implement_path_api()
       }
     }
 
+    if first_node.wait then
+      total_duration = total_duration + first_node.wait
+      keyframes[2] = {
+        properties = keyframes[1].properties,
+        duration = first_node.wait
+      }
+    end
+
     for i = 2, #path do
       local prev_node = path[i - 1]
       local path_node = path[i]
@@ -2428,14 +2439,24 @@ function ScriptNodes:implement_path_api()
       local duration = dist / (prev_node.speed * 20)
       total_duration = total_duration + duration
 
+      local properties = {
+        { property = "X", ease = "Linear", value = path_node.x },
+        { property = "Y", ease = "Linear", value = path_node.y },
+        { property = "Z", ease = "Linear", value = path_node.z },
+      }
+
       keyframes[#keyframes + 1] = {
-        properties = {
-          { property = "X", ease = "Linear", value = path_node.x },
-          { property = "Y", ease = "Linear", value = path_node.y },
-          { property = "Z", ease = "Linear", value = path_node.z },
-        },
+        properties = properties,
         duration = duration,
       }
+
+      if path_node.wait then
+        total_duration = total_duration + path_node.wait
+        keyframes[#keyframes + 1] = {
+          properties = properties,
+          duration = path_node.wait
+        }
+      end
     end
 
     return keyframes, total_duration
@@ -2480,8 +2501,14 @@ function ScriptNodes:implement_path_api()
         break
       end
 
-      local path_node = { x = path_object.x, y = path_object.y, z = path_object.z, id = next_id }
-      path_node.speed = base_speed * (tonumber(path_object.custom_properties["Speed Multiplier"]) or 1)
+      local path_node = {
+        id = next_id,
+        x = path_object.x,
+        y = path_object.y,
+        z = path_object.z,
+        speed = base_speed * (tonumber(path_object.custom_properties["Speed Multiplier"]) or 1),
+        wait = tonumber(path_object.custom_properties["Wait"]),
+      }
 
       if path[#path] then
         path[#path].next = #path + 1
@@ -2515,7 +2542,7 @@ function ScriptNodes:implement_path_api()
           end
         elseif #path > 1 then
           -- bounce the path by appending reversed nodes
-          for i = #path, 2, -1 do
+          for i = #path - 1, 2, -1 do
             local template = path[i]
 
             path[#path].next = #path + 1
@@ -2524,6 +2551,7 @@ function ScriptNodes:implement_path_api()
               y = template.y,
               z = template.z,
               speed = path[i - 1].speed,
+              wait = template.wait,
             }
           end
 
@@ -2550,6 +2578,7 @@ function ScriptNodes:implement_path_api()
         path = path,
         path_index = 1,
         speed = base_speed,
+        wait = 0,
         interrupt_radius = tonumber(object.custom_properties["Interrupt Radius"]) or 0.3,
         pause_count = pause_count,
         paused_by = paused_by,
@@ -2591,6 +2620,12 @@ function ScriptNodes:implement_path_api()
       end
 
       if bot_path.pause_count > 0 then
+        goto continue
+      end
+
+
+      if bot_path.wait > 0 then
+        bot_path.wait = bot_path.wait - 1 / 20
         goto continue
       end
 
@@ -2650,6 +2685,7 @@ function ScriptNodes:implement_path_api()
         -- reached point, snap to it, and pick next target
         bot_path.path_index = path_node.next
         bot_path.speed = path_node.speed
+        bot_path.wait = path_node.wait or 0
         x = path_node.x
         y = path_node.y
         z = path_node.z
