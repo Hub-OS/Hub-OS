@@ -691,7 +691,7 @@ end
 --- - `Events` string, a list of event names separated by a comma and space ", " (optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
----Supplies a context with `area_id` and `player_id` when possible.
+---Supplies a context with `area_id`, `player_id`, and `object_id` when possible.
 ---
 ---Custom properties supported by `Player Interaction`:
 --- - `Next [1]` a link to the next node (optional)
@@ -836,7 +836,8 @@ function ScriptNodes:implement_event_entry_api()
       if object_ids then
         execute_object_ids(area_id, object_ids, {
           area_id = area_id,
-          player_id = event.player_id
+          player_id = event.player_id,
+          object_id = event.object_id,
         })
       end
     else
