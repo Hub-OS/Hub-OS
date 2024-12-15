@@ -10,7 +10,6 @@
 -- functions
 -- variables with scoping / conflict resolution (functions, area, script, instance, global)
 -- - maybe prefix: `Local: X` (tied to function / script), `Out: X` (used in functions to access locals in calling script), `Instance: X`, `X` (global)
--- :on_instance_destroyed()
 -- `Attach Sprite`
 -- - `Id`
 -- - `Target` "Player [1+]" "Bot" "Widget" "Hud"
@@ -19,6 +18,7 @@
 -- - `Id`
 -- - `Target`
 
+local Instancer = require("scripts/libs/instancer")
 local Direction = require("scripts/libs/direction")
 
 local function clone_table(t)
@@ -79,12 +79,12 @@ end
 ---
 ---Call :execute_by_id() or :execute_node() to execute or continue a script.
 ---@class ScriptNodes
+---@field private _instancer Instancer,
 ---@field private _node_types table<string, fun(context: table, object: Net.Object)>
 ---@field private _bot_script_ids table<string, Net.ActorId>
 ---@field private _bot_script_ids_reversed table<Net.ActorId, string>
 ---@field private _tagged table<string, Net.ActorId[]>
 ---@field private _protected_object_map table<string, table<number, Net.Object>>
----@field private _instances table<string, { areas: table<string>, player_count: number }>
 ---@field private _loaded_areas table<string, boolean>
 ---@field private _load_start_callbacks fun(area_id: string)[]
 ---@field private _load_callbacks fun(area_id: string)[]
@@ -93,25 +93,25 @@ end
 ---@field private _unload_callbacks fun(area_id: string)[]
 ---@field private _inventory_callbacks fun(player_id: Net.ActorId, item_id: string?)[]
 ---@field private _encounter_callbacks fun(results: Net.BattleResults)[]
----@field private _bot_removed_callbacks fun(results: Net.ActorId)[]
+---@field private _bot_remove_callbacks fun(results: Net.ActorId)[]
 ---@field private _destroy_callbacks fun()[]
 local ScriptNodes = {
   NODE_TYPE_PREFIX = "Script Node: ",
   ENTRY_TYPE_PREFIX = "Script Entry: ",
-  INSTANCE_MARKER = ";instance:",
   ASSET_PREFIX = "/server/assets/",
 }
 
 ---Creates a new script interpreter with no default api.
 ---@return ScriptNodes
 function ScriptNodes:new_empty()
+  local instancer = Instancer:new()
   local s = {
+    _instancer = instancer,
     _node_types = {},
     _bot_script_ids = {},
     _bot_script_ids_reversed = {},
     _tagged = {},
     _protected_object_map = {},
-    _instances = {},
     _loaded_areas = {},
     _load_start_callbacks = {},
     _load_callbacks = {},
@@ -120,13 +120,20 @@ function ScriptNodes:new_empty()
     _unload_callbacks = {},
     _inventory_callbacks = {},
     _encounter_callbacks = {},
-    _bot_removed_callbacks = {},
+    _bot_remove_callbacks = {},
     _destroy_callbacks = {}
   }
   setmetatable(s, self)
   self.__index = self
 
-  s:_implement_instance_tracking()
+  instancer:on_area_remove(function(area_id)
+    for _, bot_id in ipairs(Net.list_bots(area_id)) do
+      s:emit_bot_remove(bot_id)
+      Net.remove_bot(bot_id)
+    end
+
+    s:unload(area_id)
+  end)
 
   return s
 end
@@ -158,138 +165,8 @@ function ScriptNodes:new()
   return s
 end
 
----@private
-function ScriptNodes:_implement_instance_tracking()
-  -- tracking to delete empty instances
-  local player_areas = {}
-
-  self:on_unload(function(area_id)
-    -- handle the area getting removed while the instance is alive
-    local instance_id = self:resolve_instance_id(area_id)
-    local instance = self._instances[instance_id]
-
-    if instance and instance.areas[area_id] then
-      instance.areas[area_id] = nil
-    end
-  end)
-
-  local function check_transfer(event_name, event)
-    local previous_area = player_areas[event.player_id]
-    ---@type string | nil
-    local current_area = Net.get_player_area(event.player_id)
-
-    if event_name == "player_disconnect" then
-      current_area = nil
-    end
-
-    -- update area
-    player_areas[event.player_id] = current_area
-
-    if current_area == previous_area then
-      -- no difference
-      return
-    end
-
-    -- decrement player count
-    if previous_area then
-      local instance_id = self:resolve_instance_id(previous_area)
-      local instance = self._instances[instance_id]
-
-      if instance_id and instance then
-        instance.player_count = instance.player_count - 1
-
-        if instance.player_count <= 0 then
-          self:destroy_instance(instance_id)
-        end
-      end
-    end
-
-    -- increment player count
-    if current_area then
-      local instance_id = self:resolve_instance_id(current_area)
-      local instance = self._instances[instance_id]
-
-      if instance then
-        instance.player_count = instance.player_count + 1
-      end
-    end
-  end
-
-  local transfer_events = {
-    "player_connect",
-    "player_join",
-    "player_area_transfer",
-    "player_disconnect",
-  }
-
-  local transfer_listeners = {}
-
-  for i, event_name in ipairs(transfer_events) do
-    transfer_listeners[i] = function(event)
-      check_transfer(event_name, event)
-    end
-    Net:on(event_name, transfer_listeners[i])
-  end
-
-  self:on_destroy(function()
-    for i, event_name in ipairs(transfer_events) do
-      Net:remove_listener(event_name, transfer_listeners[i])
-    end
-
-    for _, instance in pairs(self._instances) do
-      for area_id in pairs(instance.areas) do
-        for _, bot_id in ipairs(Net.list_bots(area_id)) do
-          Net.remove_bot(bot_id)
-        end
-
-        Net.remove_area(area_id)
-      end
-    end
-  end)
-end
-
----Used to create an instance, which contains isolated copies of areas.
----@param instance_id string
-function ScriptNodes:instance_player_count(instance_id)
-  local instance = self._instances[instance_id]
-
-  if not instance then
-    return 0
-  end
-
-  return instance.player_count
-end
-
----Used to create an instance, which contains isolated copies of areas.
-function ScriptNodes:create_instance()
-  local instance_id = tostring(Net.system_random())
-  self._instances[instance_id] = {
-    areas = {},
-    player_count = 0
-  }
-
-  return instance_id
-end
-
----@param instance_id string
-function ScriptNodes:destroy_instance(instance_id)
-  local instance = self._instances[instance_id]
-
-  if not instance then
-    return
-  end
-
-  self._instances[instance_id] = nil
-
-  for area_id in pairs(instance.areas) do
-    for _, bot_id in ipairs(Net.list_bots(area_id)) do
-      self:emit_bot_removed(bot_id)
-      Net.remove_bot(bot_id)
-    end
-
-    self:unload(area_id)
-    Net.remove_area(area_id)
-  end
+function ScriptNodes:instancer()
+  return self._instancer
 end
 
 ---Adds a :destroy() listener, used to clean up Net:on() event listeners.
@@ -343,7 +220,7 @@ function ScriptNodes:on_entry_node_load(node_type, callback)
   end
 end
 
----Adds an :unload() listener, used to clean up data for removed areas.
+---Adds an :unload() listener, used to clean up data before removing an area.
 ---@param callback fun(area_id: string)
 function ScriptNodes:on_unload(callback)
   self._unload_callbacks[#self._unload_callbacks + 1] = callback
@@ -351,13 +228,6 @@ end
 
 ---@param area_id string
 function ScriptNodes:is_loaded(area_id)
-  return self._loaded_areas[area_id] == true
-end
-
----@param instance_id string
----@param area_id string
-function ScriptNodes:is_loaded_in_instance(instance_id, area_id)
-  area_id = area_id .. self.INSTANCE_MARKER .. instance_id
   return self._loaded_areas[area_id] == true
 end
 
@@ -378,6 +248,34 @@ end
 ---@param area_id string
 function ScriptNodes:load(area_id)
   self._loaded_areas[area_id] = true
+  local template_area_id = self._instancer:resolve_base_area_id(area_id)
+
+  if template_area_id then
+    local protected_objects = self._protected_object_map[template_area_id]
+
+    if protected_objects then
+      self._protected_object_map[area_id] = protected_objects
+
+      for _, callback in ipairs(self._load_start_callbacks) do
+        callback(area_id)
+      end
+
+      for _, object in pairs(protected_objects) do
+        if self:is_script_node(object) then
+          call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
+        elseif self:is_entry_node(object) then
+          call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
+        end
+      end
+
+      for _, callback in ipairs(self._load_callbacks) do
+        callback(area_id)
+      end
+
+      return
+    end
+  end
+
   local protected_objects = {}
   self._protected_object_map[area_id] = protected_objects
 
@@ -407,42 +305,7 @@ function ScriptNodes:load(area_id)
   end
 end
 
----Clones an area and loads it in the instance
----@param instance_id string
----@param template_area_id string
-function ScriptNodes:load_in_instance(instance_id, template_area_id)
-  -- similar to :load but with :protect_object calls skipped
-
-  local new_area_id = template_area_id .. self.INSTANCE_MARKER .. instance_id
-
-  local instance = self._instances[instance_id]
-  instance.areas[new_area_id] = template_area_id
-
-  Net.clone_area(template_area_id, new_area_id)
-  self._loaded_areas[new_area_id] = true
-  local protected_object = self._protected_object_map[template_area_id]
-  self._protected_object_map[new_area_id] = protected_object
-
-  for _, callback in ipairs(self._load_start_callbacks) do
-    callback(new_area_id)
-  end
-
-  for _, object in pairs(protected_object) do
-    if self:is_script_node(object) then
-      call_node_load_callbacks(new_area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
-    elseif self:is_entry_node(object) then
-      call_node_load_callbacks(new_area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
-    end
-  end
-
-  for _, callback in ipairs(self._load_callbacks) do
-    callback(new_area_id)
-  end
-
-  return new_area_id
-end
-
----Used to perform cleanup on removed areas. Call before removing an area.
+---Used to perform cleanup before removing an area.
 ---Clears protected objects for the area.
 ---@param area_id string
 function ScriptNodes:unload(area_id)
@@ -486,16 +349,16 @@ function ScriptNodes:emit_encounter_result(result)
   end
 end
 
----Adds a listener for bot removal.
+---Adds a listener for bot removal, called before a bot is removed.
 ---@param callback fun(bot_id: Net.ActorId)
-function ScriptNodes:on_bot_removed(callback)
-  self._bot_removed_callbacks[#self._bot_removed_callbacks + 1] = callback
+function ScriptNodes:on_bot_remove(callback)
+  self._bot_remove_callbacks[#self._bot_remove_callbacks + 1] = callback
 end
 
----Emit an encounter result for bot removal.
+---Emit a bot removal event, call before removing a bot.
 ---@param bot_id Net.ActorId
-function ScriptNodes:emit_bot_removed(bot_id)
-  for _, callback in ipairs(self._bot_removed_callbacks) do
+function ScriptNodes:emit_bot_remove(bot_id)
+  for _, callback in ipairs(self._bot_remove_callbacks) do
     callback(bot_id)
   end
 end
@@ -698,10 +561,10 @@ function ScriptNodes:resolve_bot_id(context, bot_id_property)
   if context.area_id then
     -- prefer bots within the same instance
 
-    local instance_id = self:resolve_instance_id(context.area_id)
+    local instance_id = self:instancer():resolve_instance_id(context.area_id)
 
     if instance_id then
-      local bot_id = self._bot_script_ids[bot_script_id .. self.INSTANCE_MARKER .. instance_id]
+      local bot_id = self._bot_script_ids[bot_script_id .. self._instancer.INSTANCE_MARKER .. instance_id]
 
       if bot_id then
         return bot_id
@@ -739,29 +602,6 @@ function ScriptNodes:resolve_actor_id(context, value)
   end
 
   return self:resolve_bot_id(context, value) or self:resolve_player_id(context, value)
-end
-
----Reads the instance id from the area id
----@param area_id string
----@return string?
-function ScriptNodes:resolve_instance_id(area_id)
-  local _, match_end = area_id:find(self.INSTANCE_MARKER)
-
-  if match_end then
-    return area_id:sub(match_end + 1)
-  end
-end
-
----Reads the template area id from the area id, or returns the area id
----@param area_id string
-function ScriptNodes:resolve_base_area_id(area_id)
-  local match_start = area_id:find(self.INSTANCE_MARKER)
-
-  if match_start then
-    return area_id:sub(1, match_start - 1)
-  else
-    return area_id
-  end
 end
 
 ---@param object Net.Object
@@ -1176,8 +1016,10 @@ function ScriptNodes:implement_area_api()
 
   self:implement_node("transfer to instance", function(context, object)
     local template_id = object.custom_properties.Area or context.area_id
-    local instance_id = self:create_instance()
-    local new_area_id = self:load_in_instance(instance_id, template_id)
+    local instancer = self:instancer()
+    local instance_id = instancer:create_instance()
+    local new_area_id = instancer:clone_area_to_instance(instance_id, template_id) --[[@as string]]
+    self:load(new_area_id)
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
 
@@ -1193,7 +1035,7 @@ function ScriptNodes:implement_area_api()
   end)
 
   self:implement_node("transfer in instance", function(context, object)
-    local instance_id = self:resolve_instance_id(context.area_id)
+    local instance_id = self:instancer():resolve_instance_id(context.area_id)
 
     if not instance_id then
       transfer_to_area(context, object)
@@ -1201,11 +1043,11 @@ function ScriptNodes:implement_area_api()
     end
 
     local template_id = object.custom_properties.Area or context.area_id
-    local new_area_id = template_id .. self.INSTANCE_MARKER .. instance_id
+    local new_area_id = template_id .. self._instancer.INSTANCE_MARKER .. instance_id
 
-    if not self:is_loaded_in_instance(instance_id, template_id) then
+    if not self:is_loaded(new_area_id) then
       -- create an instance of the template area
-      self:load_in_instance(instance_id, new_area_id)
+      self:instancer():clone_area_to_instance(instance_id, template_id)
     end
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
@@ -1222,8 +1064,12 @@ function ScriptNodes:implement_area_api()
   end)
 
   self:implement_node("remove area", function(context)
+    if self:instancer():remove_area(context.area_id) then
+      return
+    end
+
     for _, bot_id in ipairs(Net.list_bots(context.area_id)) do
-      self:emit_bot_removed(bot_id)
+      self:emit_bot_remove(bot_id)
       Net.remove_bot(bot_id)
     end
 
@@ -1515,7 +1361,7 @@ function ScriptNodes:implement_bbs_api()
       error("the BBS node does not support parties. Use a Disband Party node before using")
     end
 
-    local base_area_id = self:resolve_base_area_id(context.area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(context.area_id)
     local posts = area_posts_map[base_area_id][object.id]
 
     local emitter = Net.open_board(
@@ -1556,7 +1402,7 @@ function ScriptNodes:implement_bbs_api()
   end)
 
   self:on_load_start(function(area_id)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
 
     if not area_posts_map[base_area_id] then
       area_posts_map[base_area_id] = {}
@@ -1564,12 +1410,12 @@ function ScriptNodes:implement_bbs_api()
   end)
 
   self:on_load(function(area_id)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
     areas_completed[base_area_id] = true
   end)
 
   self:on_script_node_load("bbs", function(area_id, object)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
     local posts = {}
     local i = 1
 
@@ -1636,7 +1482,7 @@ function ScriptNodes:implement_shop_api()
       error("the Shop node does not support parties. Use a Disband Party node before using")
     end
 
-    local base_area_id = self:resolve_base_area_id(context.area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(context.area_id)
     local items = area_shop_map[base_area_id][object.id]
 
     local mug_texture, mug_animation = self:resolve_mug(context, object)
@@ -1694,7 +1540,7 @@ function ScriptNodes:implement_shop_api()
   end)
 
   self:on_load_start(function(area_id)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
 
     if not area_shop_map[base_area_id] then
       area_shop_map[base_area_id] = {}
@@ -1702,12 +1548,12 @@ function ScriptNodes:implement_shop_api()
   end)
 
   self:on_load(function(area_id)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
     areas_completed[base_area_id] = true
   end)
 
   self:on_script_node_load("shop", function(area_id, object)
-    local base_area_id = self:resolve_base_area_id(area_id)
+    local base_area_id = self:instancer():resolve_base_area_id(area_id)
 
     local items = {}
     local i = 1
@@ -2172,7 +2018,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_by_id(context, area_id, object_id)
   end
 
-  self:on_bot_removed(function(bot_id)
+  self:on_bot_remove(function(bot_id)
     interaction_map[bot_id] = nil
   end)
 
@@ -2216,10 +2062,10 @@ function ScriptNodes:implement_actor_api()
 
     if object.custom_properties.Id then
       local bot_script_id = object.custom_properties.Id
-      local instance_id = self:resolve_instance_id(context.area_id)
+      local instance_id = self:instancer():resolve_instance_id(context.area_id)
 
       if instance_id then
-        bot_script_id = bot_script_id .. self.INSTANCE_MARKER .. instance_id
+        bot_script_id = bot_script_id .. self._instancer.INSTANCE_MARKER .. instance_id
       end
 
       self:track_bot(context.bot_id, bot_script_id)
@@ -2239,7 +2085,7 @@ function ScriptNodes:implement_actor_api()
       self:resolve_bot_id(context, object.custom_properties.Id) --[[@as Net.ActorId]]
     end
 
-    self:emit_bot_removed(bot_id)
+    self:emit_bot_remove(bot_id)
     Net.remove_bot(bot_id, object.custom_properties["Warp Out"] == "true")
 
     self:execute_next_node(context, context.area_id, object)
@@ -2937,7 +2783,7 @@ function ScriptNodes:implement_path_api()
     Net:remove_listener("player_disconnect", disconnect_listener)
   end)
 
-  self:on_bot_removed(function(bot_id)
+  self:on_bot_remove(function(bot_id)
     bot_paths[bot_id] = nil
   end)
 end
@@ -3182,8 +3028,8 @@ function ScriptNodes:implement_party_api()
 
   self:implement_node("party instance", function(context, object)
     local player_ids = {}
-    local instance_id = self:resolve_instance_id(context.area_id)
-    local instance_tag = self.INSTANCE_MARKER .. instance_id
+    local instance_id = self:instancer():resolve_instance_id(context.area_id)
+    local instance_tag = self._instancer.INSTANCE_MARKER .. instance_id
 
     for area_id in pairs(self._loaded_areas) do
       if #area_id < #instance_tag then
