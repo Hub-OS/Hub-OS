@@ -3027,25 +3027,18 @@ function ScriptNodes:implement_party_api()
   end)
 
   self:implement_node("party instance", function(context, object)
-    local player_ids = {}
-    local instance_id = self:instancer():resolve_instance_id(context.area_id)
-    local instance_tag = self._instancer.INSTANCE_MARKER .. instance_id
+    local instancer = self:instancer()
+    local instance_id = instancer:resolve_instance_id(context.area_id)
+    local player_ids = instance_id and clone_table(instancer:instance_player_list(instance_id))
 
-    for area_id in pairs(self._loaded_areas) do
-      if #area_id < #instance_tag then
-        -- area id couldn't fit the instance tag
-        goto continue
+    if not player_ids then
+      player_ids = {}
+
+      -- fallback to party all, consider it the primary instance
+      for _, area_id in ipairs(Net.list_areas()) do
+        local area_player_list = Net.list_players(area_id)
+        table.move(area_player_list, 1, #area_player_list, #player_ids + 1, player_ids)
       end
-
-      if area_id:sub(#area_id - #instance_tag + 1) ~= instance_tag then
-        -- area_id does not contain the instance tag
-        goto continue
-      end
-
-      local area_player_list = Net.list_players(area_id)
-      append_to(player_ids, area_player_list)
-
-      ::continue::
     end
 
     bring_player_id_to_front(context, player_ids)
