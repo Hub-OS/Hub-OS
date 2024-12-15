@@ -181,7 +181,7 @@ end
 
 ---Adds :create_instance() listener
 ---@param callback fun(instance_id: string)
-function Instancer:on_create_instance(callback)
+function Instancer:on_instance_created(callback)
   self._instance_create_callbacks[#self._instance_create_callbacks + 1] = callback
 end
 
@@ -211,7 +211,7 @@ end
 
 ---Adds :remove_instance() listener, called before the instance is dropped and areas are removed.
 ---@param callback fun(instance_id: string)
-function Instancer:on_remove_instance(callback)
+function Instancer:on_instance_removed(callback)
   self._instance_remove_callbacks[#self._instance_remove_callbacks + 1] = callback
 end
 

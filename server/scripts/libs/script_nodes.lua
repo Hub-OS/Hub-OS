@@ -7,9 +7,6 @@
 -- Party Shape?
 -- tile api
 -- tile object api
--- functions
--- variables with scoping / conflict resolution (functions, area, script, instance, global)
--- - maybe prefix: `Local: X` (tied to function / script), `Out: X` (used in functions to access locals in calling script), `Instance: X`, `X` (global)
 -- `Attach Sprite`
 -- - `Id`
 -- - `Target` "Player [1+]" "Bot" "Widget" "Hud"
@@ -18,6 +15,7 @@
 -- - `Id`
 -- - `Target`
 
+local ScriptNodeVariables = require("scripts/libs/script_node_variables")
 local Instancer = require("scripts/libs/instancer")
 local Direction = require("scripts/libs/direction")
 
@@ -33,6 +31,12 @@ local function clone_table(t)
   end
 
   return clone
+end
+
+---@param s string
+---@param value string
+local function starts_with(s, value)
+  return s:sub(1, #value) == value
 end
 
 local function parse_color(color_string)
@@ -79,7 +83,8 @@ end
 ---
 ---Call :execute_by_id() or :execute_node() to execute or continue a script.
 ---@class ScriptNodes
----@field private _instancer Instancer,
+---@field private _instancer Instancer
+---@field private _variables ScriptNodeVariables
 ---@field private _node_types table<string, fun(context: table, object: Net.Object)>
 ---@field private _bot_script_ids table<string, Net.ActorId>
 ---@field private _bot_script_ids_reversed table<Net.ActorId, string>
@@ -105,8 +110,11 @@ local ScriptNodes = {
 ---@return ScriptNodes
 function ScriptNodes:new_empty()
   local instancer = Instancer:new()
+  local variables = ScriptNodeVariables:new()
+
   local s = {
     _instancer = instancer,
+    _variables = variables,
     _node_types = {},
     _bot_script_ids = {},
     _bot_script_ids_reversed = {},
@@ -125,6 +133,14 @@ function ScriptNodes:new_empty()
   }
   setmetatable(s, self)
   self.__index = self
+
+  s:on_unload(function(area_id)
+    variables:clear_area(area_id)
+  end)
+
+  instancer:on_instance_removed(function(instance_id)
+    variables:clear_instance(instance_id)
+  end)
 
   instancer:on_area_remove(function(area_id)
     for _, bot_id in ipairs(Net.list_bots(area_id)) do
@@ -160,6 +176,7 @@ function ScriptNodes:new()
   s:implement_random_api()
   s:implement_thread_api()
   s:implement_party_api()
+  s:implement_variable_api()
   s:implement_debug_api()
 
   return s
@@ -169,15 +186,23 @@ function ScriptNodes:instancer()
   return self._instancer
 end
 
+function ScriptNodes:variables()
+  return self._variables
+end
+
 ---Adds a :destroy() listener, used to clean up Net:on() event listeners.
 function ScriptNodes:on_destroy(callback)
   self._destroy_callbacks[#self._destroy_callbacks + 1] = callback
 end
 
 function ScriptNodes:destroy()
+  self._instancer:destroy()
+
   for _, callback in ipairs(self._destroy_callbacks) do
     callback()
   end
+
+  self._variables:destroy()
 end
 
 ---Adds a :load() listener, called before nodes are loaded.
@@ -351,7 +376,7 @@ end
 
 ---Adds a listener for bot removal, called before a bot is removed.
 ---@param callback fun(bot_id: Net.ActorId)
-function ScriptNodes:on_bot_remove(callback)
+function ScriptNodes:on_bot_removed(callback)
   self._bot_remove_callbacks[#self._bot_remove_callbacks + 1] = callback
 end
 
@@ -372,12 +397,12 @@ end
 
 ---@param object Net.Object
 function ScriptNodes:is_script_node(object)
-  return object.type:sub(1, #self.NODE_TYPE_PREFIX) == self.NODE_TYPE_PREFIX
+  return starts_with(object.type, self.NODE_TYPE_PREFIX)
 end
 
 ---@param object Net.Object
 function ScriptNodes:is_entry_node(object)
-  return object.type:sub(1, #self.ENTRY_TYPE_PREFIX) == self.ENTRY_TYPE_PREFIX
+  return starts_with(object.type, self.ENTRY_TYPE_PREFIX)
 end
 
 ---@param context table
@@ -548,7 +573,7 @@ end
 ---@param bot_id_property string?
 ---@return Net.ActorId?
 function ScriptNodes:resolve_bot_id(context, bot_id_property)
-  if not bot_id_property or not bot_id_property:sub(1, 3) == "Bot" then
+  if not bot_id_property or not starts_with(bot_id_property, "Bot") then
     return
   end
 
@@ -579,7 +604,7 @@ end
 ---@param value string?
 ---@return Net.ActorId?
 function ScriptNodes:resolve_player_id(context, value)
-  if not value or value:sub(1, 6) ~= "Player" then
+  if not value or not starts_with(value, "Player") then
     return
   end
 
@@ -734,8 +759,6 @@ function ScriptNodes:implement_event_entry_api()
   end
 
   self:on_load(function(area_id)
-    local context = { area_id = area_id }
-
     for _, object_id in ipairs(self:list_objects(area_id)) do
       if not self:is_object_protected(area_id, object_id) then
         goto continue
@@ -744,6 +767,7 @@ function ScriptNodes:implement_event_entry_api()
       local object = self:resolve_object(area_id, object_id)
 
       if self:is_script_node(object) and object.custom_properties["On Load"] == "true" then
+        local context = { area_id = area_id }
         self:execute_node(context, object)
       end
 
@@ -817,7 +841,7 @@ function ScriptNodes:implement_event_entry_api()
 
   local function execute_object_ids(area_id, object_ids, context)
     for _, object_id in ipairs(object_ids) do
-      self:execute_by_id(context, area_id, object_id)
+      self:execute_by_id(clone_table(context), area_id, object_id)
     end
   end
 
@@ -2019,7 +2043,7 @@ function ScriptNodes:implement_actor_api()
     self:execute_by_id(context, area_id, object_id)
   end
 
-  self:on_bot_remove(function(bot_id)
+  self:on_bot_removed(function(bot_id)
     interaction_map[bot_id] = nil
   end)
 
@@ -2784,7 +2808,7 @@ function ScriptNodes:implement_path_api()
     Net:remove_listener("player_disconnect", disconnect_listener)
   end)
 
-  self:on_bot_remove(function(bot_id)
+  self:on_bot_removed(function(bot_id)
     bot_paths[bot_id] = nil
   end)
 end
@@ -3213,6 +3237,245 @@ function ScriptNodes:implement_party_api()
     else
       self:execute_next_node(context, context.area_id, object)
     end
+  end)
+end
+
+---Implements support for the `Set Variable`, `Increment Variable`, `Require Variable Value`,
+---`Push Variable Scope`, `Pop Variable Scope`, `Push Function`, `Pop Function`,  and `Print Variables` nodes.
+---
+---Variable names have the following format: `[scope: ]Name`. (Example `Local: X`, `Global: X`, or `X`)
+---
+---Supported scopes:
+--- - `Local` tied to the current context, used for temporary variables.
+--- - `Up` tied to the current context, allows access to the previous local scope after pushing a scope.
+--- - `Self` tied to an object, bot, or player.
+--- - `Area` tied to the area.
+--- - `Instance` tied to the instance or global scope when outside of an instance (the default)
+--- - `Global`
+---
+---Note: Unless a function or variable scope is pushed, local variables will be shared between threads
+---when `Thread` nodes are used. Variables stored in `Up` after a scope is pushed will still be shared between threads.
+---
+---Supported custom properties for `Set Variable`:
+--- - `Variable` string
+--- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Value` number
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Increment Variable`:
+--- - `Variable` string
+--- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Value` number (optional)
+--- - `Amount` number (alias for `Value`, optional)
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Require Variable Value`:
+--- - `Variable` string
+--- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Minimum` number (optional)
+--- - `Min` number (alias for `Minimum`, optional)
+--- - `Maximum` number (optional)
+--- - `Max` number (alias for `Maximum`, optional)
+--- - `Value` number (optional)
+--- - `Next [1]` a link to the default node (optional)
+--- - `Next 2` a link to the passing node (optional)
+---
+---Supported custom properties for `Push Variable Scope`:
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Pop Variable Scope`:
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Push Function`:
+--- - `Function` a link to a script node
+--- - `Next [1]` a link to node to run after the function script node finishes (optional)
+---
+---   Note: the next node will never run if `Pop Function` is never called.
+---
+---Automatically pushes a variable scope.
+---
+---Supported custom properties for `Pop Function`:
+--- - None
+---
+---Automatically pops a variable scope.
+---
+---Supported custom properties for `Print Variables`:
+--- - `Scope` string (optional)
+--- - `Next [1]` a link to the next node (optional)
+function ScriptNodes:implement_variable_api()
+  local function resolve_self_context(context, object)
+    local target = object.custom_properties.Target
+
+    if not target then
+      return context
+    end
+
+    local original_context = context
+
+    context = clone_table(context)
+    context.player_ids = nil
+    context.player_id = nil
+    context.bot_id = nil
+    context.object_id = nil
+
+    if target == "Player" then
+      context.player_ids = original_context.player_ids
+      context.player_id = original_context.player_id
+    else
+      context.player_id = self:resolve_player_id(original_context, target)
+      context.bot_id = self:resolve_bot_id(original_context, target)
+      context.object_id = target
+    end
+
+    return context
+  end
+
+  self:implement_node("set variable", function(context, object)
+    local self_context = resolve_self_context(context, object)
+
+    local value = tonumber(object.custom_properties.Value) or 0
+    local variable = object.custom_properties.Variable
+    self:variables():set_variable(self_context, variable, value)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("increment variable", function(context, object)
+    local self_context = resolve_self_context(context, object)
+    local variables = self:variables()
+
+    local value = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
+    local variable = object.custom_properties.Variable
+    value = value + (variables:resolve_variable(self_context, variable) or 0)
+    variables:set_variable(self_context, variable, value)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("require variable value", function(context, object)
+    local self_context = resolve_self_context(context, object)
+
+    local variable = object.custom_properties.Variable
+    local value = self:variables():resolve_variable(self_context, variable)
+    local pass = false
+
+    if value then
+      local required_value = object.custom_properties.Value
+
+      if required_value then
+        pass = required_value == value or tonumber(required_value) == value
+      else
+        local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
+        local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
+
+        local pass_min = not min or value >= min
+        local pass_max = not max or value <= max
+
+        pass = pass_min and pass_max
+      end
+    end
+
+    if pass then
+      self:execute_next_node(context, context.area_id, object, 2)
+    else
+      self:execute_next_node(context, context.area_id, object)
+    end
+  end)
+
+  local function clone_context_and_scope_list(context)
+    context = clone_table(context)
+
+    if context.variable_scopes then
+      context.variable_scopes = clone_table(context.variable_scopes)
+    end
+
+    return context
+  end
+
+  self:implement_node("push variable scope", function(context, object)
+    context = clone_context_and_scope_list(context)
+    self:variables():push_variable_scope(context)
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("pop variable scope", function(context, object)
+    context = clone_context_and_scope_list(context)
+    self:variables():pop_variable_scope(context)
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("push function", function(context, object)
+    context = clone_context_and_scope_list(context)
+
+    if context.function_return_list then
+      context.function_return_list = clone_table(context.function_return_list)
+    else
+      context.function_return_list = {}
+    end
+
+    context.function_return_list[#context.function_return_list + 1] = self:resolve_next_id(object)
+
+    self:variables():push_variable_scope(context)
+
+    self:execute_by_id(context, context.area_id, object.custom_properties.Function)
+  end)
+
+  self:implement_node("pop function", function(context)
+    context = clone_context_and_scope_list(context)
+
+    if not context.function_return_list then
+      return
+    end
+
+    context.function_return_list = clone_table(context.function_return_list)
+    self:variables():pop_variable_scope(context)
+
+    local i = #context.function_return_list
+    local next_id = context.function_return_list[i]
+    context.function_return_list[i] = nil
+
+    if next_id then
+      self:execute_by_id(context, context.area_id, next_id)
+    end
+  end)
+
+  self:implement_node("print variables", function(context, object)
+    local scope_name = object.custom_properties.Scope
+    local variables = self:variables()
+    local scope_callbacks = {
+      Local = function()
+        print(context.variable_scopes[#context.variable_scopes])
+      end,
+      Up = function()
+        print(context.variable_scopes[#context.variable_scopes - 1])
+      end,
+      Self = function()
+        print(variables:self_variables(context.area_id))
+      end,
+      Area = function()
+        print(variables:area_variables(context.area_id))
+      end,
+      Instance = function()
+        local instance_id = Instancer:resolve_instance_id(context.area_id)
+
+        if instance_id then
+          print(variables:instance_variables(instance_id))
+        else
+          print(variables:global_variables())
+        end
+      end,
+      Global = function()
+        print(variables:global_variables())
+      end
+    }
+
+    if not scope_name or scope_name == "" then
+      scope_name = variables.DEFAULT_SCOPE
+    end
+
+    scope_callbacks[scope_name]()
+
+    self:execute_next_node(context, context.area_id, object)
   end)
 end
 
