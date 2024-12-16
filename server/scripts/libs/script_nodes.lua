@@ -17,6 +17,7 @@
 
 local ScriptNodeVariables = require("scripts/libs/script_node_variables")
 local Instancer = require("scripts/libs/instancer")
+local BotPaths = require("scripts/libs/bot_paths")
 local Direction = require("scripts/libs/direction")
 
 local function clone_table(t)
@@ -2392,25 +2393,7 @@ function ScriptNodes:implement_path_api()
   local DEFAULT_SPEED = 6 / 64
   local DEFAULT_TILE_WIDTH = 64
 
-  ---@type table<Net.ActorId, {
-  ---  path: {
-  ---    x: number,
-  ---    y: number,
-  ---    z: number,
-  ---    next: number?,
-  ---    id: string?,
-  ---    speed: number?,
-  ---    wait: number,
-  ---  }[],
-  ---  path_index: number,
-  ---  speed: number,
-  ---  wait: number,
-  ---  interrupt_radius: number,
-  ---  pause_count: number,
-  ---  paused_by: table<Net.ActorId>,
-  ---  callback: fun()?,
-  ---}>
-  local bot_paths = {}
+  local bot_paths = BotPaths:new()
 
   self:implement_node("pause path", function(context, object)
     local actor_string = object.custom_properties.Actor
@@ -2420,26 +2403,17 @@ function ScriptNodes:implement_path_api()
       bot_id = self:resolve_bot_id(context, actor_string)
     end
 
-    local bot_path = bot_paths[bot_id]
-
-    if bot_path then
+    if bot_id and bot_paths:bot_initialized(bot_id) then
       local has_players = false
 
       for_each_player(context, function(player_id)
-        if not bot_path.paused_by[player_id] and Net.is_player(player_id) then
-          bot_path.paused_by[player_id] = true
-          bot_path.pause_count = bot_path.pause_count + 1
-        end
-
+        bot_paths:pause_path_for(bot_id, player_id)
         has_players = true
       end)
 
       if not has_players then
         -- treat as if the area is the pauser
-        if not bot_path.paused_by[context.area_id] then
-          bot_path.paused_by[context.area_id] = true
-          bot_path.pause_count = bot_path.pause_count + 1
-        end
+        bot_paths:pause_path_for(bot_id, context.area_id)
       end
     end
 
@@ -2454,26 +2428,17 @@ function ScriptNodes:implement_path_api()
       bot_id = self:resolve_bot_id(context, actor_string)
     end
 
-    local bot_path = bot_paths[bot_id]
-
-    if bot_path then
+    if bot_id and bot_paths:bot_initialized(bot_id) then
       local has_players = false
 
       for_each_player(context, function(player_id)
-        if bot_path.paused_by[player_id] then
-          bot_path.paused_by[player_id] = nil
-          bot_path.pause_count = bot_path.pause_count - 1
-        end
-
+        bot_paths:resume_path_for(bot_id, player_id)
         has_players = true
       end)
 
-      if has_players then
+      if not has_players then
         -- treat as if the area is the pauser
-        if bot_path.paused_by[context.area_id] then
-          bot_path.paused_by[context.area_id] = nil
-          bot_path.pause_count = bot_path.pause_count - 1
-        end
+        bot_paths:resume_path_for(bot_id, context.area_id)
       end
     end
 
@@ -2608,7 +2573,7 @@ function ScriptNodes:implement_path_api()
     if #path == 0 then
       -- empty path, clear data and avoid building new paths
       if actor_id and Net.is_bot(actor_id) then
-        bot_paths[actor_id] = nil
+        bot_paths:set_path(actor_id, {})
       end
 
       self:execute_next_node(context, context.area_id, object)
@@ -2643,32 +2608,21 @@ function ScriptNodes:implement_path_api()
           path[#path].next = 1
         end
       else
-        callback = function()
+        path[#path].callback = function()
           self:execute_next_node(context, context.area_id, object)
         end
       end
 
-      local old_path = bot_paths[actor_id]
-      local pause_count, paused_by
+      local interrupt_radius = tonumber(object.custom_properties["Interrupt Radius"])
 
-      if old_path then
-        pause_count = old_path.pause_count
-        paused_by = old_path.paused_by
-      else
-        pause_count = 0
-        paused_by = {}
+      if not bot_paths:bot_initialized(actor_id) then
+        bot_paths:init_bot(actor_id)
       end
 
-      bot_paths[actor_id] = {
-        path = path,
-        path_index = 1,
-        speed = base_speed,
-        wait = 0,
-        interrupt_radius = tonumber(object.custom_properties["Interrupt Radius"]) or 0.3,
-        pause_count = pause_count,
-        paused_by = paused_by,
-        callback = callback
-      }
+      bot_paths:set_speed(actor_id, base_speed)
+      bot_paths:set_path(actor_id, path)
+      bot_paths:set_interrupt_radius(actor_id, interrupt_radius or bot_paths.DEFAULT_INTERRUPT_RADIUS)
+      bot_paths:resume_path(actor_id)
 
       if object.custom_properties.Loop ~= "true" then
         self:execute_next_node(context, context.area_id, object)
@@ -2695,121 +2649,12 @@ function ScriptNodes:implement_path_api()
     end
   end)
 
-  local tick_listener = function()
-    local pending_removal = {}
-
-    for id, bot_path in pairs(bot_paths) do
-      if not Net.is_bot(id) or not bot_path.path_index then
-        pending_removal[#pending_removal + 1] = id
-        goto continue
-      end
-
-      if bot_path.pause_count > 0 then
-        goto continue
-      end
-
-
-      if bot_path.wait > 0 then
-        bot_path.wait = bot_path.wait - 1 / 20
-        goto continue
-      end
-
-      local area_id = Net.get_bot_area(id)
-      local x, y, z = Net.get_bot_position_multi(id)
-
-      -- todo: use some type of spatial map
-      if bot_path.interrupt_radius > 0 then
-        local radius_sqr = bot_path.interrupt_radius * bot_path.interrupt_radius
-
-        -- see if a player is in the way
-        for _, player_id in ipairs(Net.list_players(area_id)) do
-          local player_x, player_y, player_z = Net.get_player_position_multi(player_id)
-          local player_diff_x = player_x - x
-          local player_diff_y = player_y - y
-          local player_diff_z = player_z - z
-          local player_sqr_dist =
-              player_diff_x * player_diff_x +
-              player_diff_y * player_diff_y +
-              player_diff_z * player_diff_z
-
-          if player_sqr_dist < radius_sqr then
-            -- block movement
-            goto continue
-          end
-        end
-      end
-
-      local path_node = bot_path.path[bot_path.path_index]
-
-      local diff_x = path_node.x - x
-      local diff_y = path_node.y - y
-      local diff_z = path_node.z - z
-      local speed = bot_path.speed
-
-      local movement_x, movement_y, movement_z
-
-      if diff_z < 0 then
-        movement_z = -1
-      elseif diff_z > 0 then
-        movement_z = 1
-      else
-        movement_z = 0
-      end
-
-      diff_x, diff_y = Net.world_to_screen_multi(area_id, diff_x, diff_y)
-      local diff_magnitude = math.sqrt(diff_x * diff_x + diff_y * diff_y)
-      movement_x = diff_x / diff_magnitude
-      movement_y = diff_y / diff_magnitude
-      movement_x, movement_y = Net.screen_to_world_multi(area_id, movement_x, movement_y)
-
-      x = x + movement_x * speed
-      y = y + movement_y * speed
-      z = z + movement_z * speed
-
-      if diff_x * diff_x + diff_y * diff_y + diff_z * diff_z < speed * speed * 2 then
-        -- reached point, snap to it, and pick next target
-        bot_path.path_index = path_node.next
-        bot_path.speed = path_node.speed
-        bot_path.wait = path_node.wait or 0
-        x = path_node.x
-        y = path_node.y
-        z = path_node.z
-
-        if not bot_path.path_index and bot_path.callback then
-          bot_path.callback()
-        end
-      end
-
-      Net.move_bot(id, x, y, z)
-
-      ::continue::
-    end
-
-    for i = #pending_removal, 1, -1 do
-      bot_paths[pending_removal[i]] = nil
-    end
-  end
-
-  Net:on("tick", tick_listener)
-
-  local disconnect_listener = function(event)
-    for _, bot_path in pairs(bot_paths) do
-      if bot_path.paused_by[event.player_id] then
-        bot_path.paused_by[event.player_id] = nil
-        bot_path.pause_count = bot_path.pause_count - 1
-      end
-    end
-  end
-
-  Net:on("player_disconnect", disconnect_listener)
-
   self:on_destroy(function()
-    Net:remove_listener("tick", tick_listener)
-    Net:remove_listener("player_disconnect", disconnect_listener)
+    bot_paths:destroy()
   end)
 
   self:on_bot_removed(function(bot_id)
-    bot_paths[bot_id] = nil
+    bot_paths:remove_bot(bot_id)
   end)
 end
 
