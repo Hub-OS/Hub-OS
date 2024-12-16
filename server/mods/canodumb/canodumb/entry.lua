@@ -258,7 +258,7 @@ function character_init(canodumb)
   anim:set_playback(Playback.Once)
 
   -- setup defense rules
-  canodumb:add_defense_rule(DefenseVirusBody.new())
+  canodumb:add_aux_prop(StandardEnemyAux.new())
 
   -- setup event hanlders
   canodumb.on_update_func = idle_update
