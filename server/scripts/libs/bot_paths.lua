@@ -2,7 +2,7 @@
 ---@field x number
 ---@field y number
 ---@field z number
----@field next number?
+---@field next number? index to the next node
 ---@field id string?
 ---@field speed number?
 ---@field wait number
