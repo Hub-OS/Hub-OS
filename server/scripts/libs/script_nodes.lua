@@ -270,7 +270,7 @@ local function call_node_load_callbacks(area_id, object, prefix, callback_map)
 end
 
 ---Used to begin processing new areas.
----Calls :cache_object() for detected script and entry nodes.
+---Calls :cache_object() and `Net.set_object_privacy()` for detected script and entry nodes.
 ---@param area_id string
 function ScriptNodes:load(area_id)
   self._loaded_areas[area_id] = true
