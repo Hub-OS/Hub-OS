@@ -100,6 +100,7 @@ end
 ---@field private _inventory_callbacks fun(player_id: Net.ActorId, item_id: string?)[]
 ---@field private _encounter_callbacks fun(results: Net.BattleResults)[]
 ---@field private _bot_remove_callbacks fun(results: Net.ActorId)[]
+---@field private _server_listeners [string, fun()][]
 ---@field private _destroy_callbacks fun()[]
 local ScriptNodes = {
   NODE_TYPE_PREFIX = "Script Node: ",
@@ -130,6 +131,7 @@ function ScriptNodes:new_empty()
     _inventory_callbacks = {},
     _encounter_callbacks = {},
     _bot_remove_callbacks = {},
+    _server_listeners = {},
     _destroy_callbacks = {}
   }
   setmetatable(s, self)
@@ -199,11 +201,23 @@ end
 function ScriptNodes:destroy()
   self._instancer:destroy()
 
+  for _, pair in ipairs(self._server_listeners) do
+    Net:remove_listener(pair[1], pair[2])
+  end
+
   for _, callback in ipairs(self._destroy_callbacks) do
     callback()
   end
 
   self._variables:destroy()
+end
+
+---Calls Net:on(event_name, callback), automatically cleans up the listener when :destroy() is called.
+---@param event_name string
+---@param callback fun(...: any)
+function ScriptNodes:on_server_event(event_name, callback)
+  Net:on(event_name, callback)
+  self._server_listeners[#self._server_listeners + 1] = { event_name, callback }
 end
 
 ---Adds a :load() listener, called before nodes are loaded.
@@ -876,7 +890,7 @@ function ScriptNodes:implement_event_entry_api()
 
   Net:on_any(any_listener)
 
-  local actor_interact_listener = function(event)
+  self:on_server_event("actor_interaction", function(event)
     if not Net.is_player(event.actor_id) or event.button ~= 0 then
       return
     end
@@ -892,9 +906,7 @@ function ScriptNodes:implement_event_entry_api()
       area_id = area_id,
       player_ids = { event.player_id, event.actor_id }
     })
-  end
-
-  Net:on("actor_interaction", actor_interact_listener)
+  end)
 
   local function help_listener(event)
     if event.button ~= 1 then
@@ -914,16 +926,12 @@ function ScriptNodes:implement_event_entry_api()
     })
   end
 
-  Net:on("actor_interaction", help_listener)
-  Net:on("object_interaction", help_listener)
-  Net:on("tile_interaction", help_listener)
+  self:on_server_event("actor_interaction", help_listener)
+  self:on_server_event("object_interaction", help_listener)
+  self:on_server_event("tile_interaction", help_listener)
 
   self:on_destroy(function()
     Net:remove_on_any_listener(any_listener)
-    Net:remove_listener("actor_interaction", actor_interact_listener)
-    Net:remove_listener("actor_interaction", help_listener)
-    Net:remove_listener("object_interaction", help_listener)
-    Net:remove_listener("tile_interaction", help_listener)
   end)
 end
 
@@ -1123,7 +1131,7 @@ end
 ---Custom properties supported by `Hide Object`, `Show Object`, and `Remove Object`:
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_object_api()
-  local interact_listener = function(event)
+  self:on_server_event("object_interaction", function(event)
     local area_id = Net.get_player_area(event.player_id)
 
     if not self:is_loaded(area_id) then
@@ -1141,11 +1149,9 @@ function ScriptNodes:implement_object_api()
       }
       self:execute_by_id(context, area_id, interact_id)
     end
-  end
+  end)
 
-  Net:on("object_interaction", interact_listener)
-
-  local function warp_listener(event)
+  self:on_server_event("custom_warp", function(event)
     local area_id = Net.get_player_area(event.player_id)
 
     if not self:is_loaded(area_id) then
@@ -1164,13 +1170,6 @@ function ScriptNodes:implement_object_api()
 
       self:execute_by_id(context, area_id, next_id)
     end
-  end
-
-  Net:on("custom_warp", warp_listener)
-
-  self:on_destroy(function()
-    Net:remove_listener("object_interaction", interact_listener)
-    Net:remove_listener("custom_warp", warp_listener)
   end)
 
   self:implement_node("move object", function(context, object)
@@ -2029,7 +2028,7 @@ end
 function ScriptNodes:implement_actor_api()
   local interaction_map = {}
 
-  local interaction_listener = function(event)
+  self:on_server_event("actor_interaction", function(event)
     local bot_id = event.actor_id
     local object_id = interaction_map[bot_id]
 
@@ -2044,16 +2043,10 @@ function ScriptNodes:implement_actor_api()
       bot_id = bot_id
     }
     self:execute_by_id(context, area_id, object_id)
-  end
+  end)
 
   self:on_bot_removed(function(bot_id)
     interaction_map[bot_id] = nil
-  end)
-
-  Net:on("actor_interaction", interaction_listener)
-
-  self:on_destroy(function()
-    Net:remove_listener("actor_interaction", interaction_listener)
   end)
 
   self:implement_node("spawn bot", function(context, object)
@@ -2354,15 +2347,10 @@ function ScriptNodes:implement_tag_api()
     self:execute_next_node(context, context.area_id, object)
   end)
 
-  local disconnect_listener = function(event)
+  self:on_server_event("player_disconnect", function(event)
     for tag in pairs(self._tagged) do
       self:untag_actor(event.player_id, tag)
     end
-  end
-
-  Net:on("player_disconnect", disconnect_listener)
-  self:on_destroy(function()
-    Net:remove_listener("player_disconnect", disconnect_listener)
   end)
 end
 
