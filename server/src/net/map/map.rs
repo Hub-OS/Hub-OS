@@ -636,26 +636,31 @@ impl Map {
         use super::render_helpers::render_custom_properties;
 
         if !self.cached {
-            let mut text = vec![format!(
-                "\
-        <?xml version=\"1.0\" encoding=\"UTF-8\"?>\
-          <map version=\"1.4\" tiledversion=\"1.4.1\" orientation=\"isometric\" \
-               renderorder=\"right-down\" compressionlevel=\"0\" \
-               width=\"{}\" height=\"{}\" tilewidth=\"{}\" tileheight=\"{}\" \
-               infinite=\"0\" nextlayerid=\"{}\" nextobjectid=\"{}\">\
-            {}
-        ",
-                self.width,
-                self.height,
-                self.tile_width,
-                self.tile_height,
-                self.next_layer_id,
-                self.next_object_id,
-                render_custom_properties(&self.custom_properties)
-            )];
+            self.cached_string.clear();
+
+            let initial_lines = [
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<map version=\"1.4\" tiledversion=\"1.4.1\" orientation=\"isometric\" ",
+                "renderorder=\"right-down\" compressionlevel=\"0\" ",
+            ];
+
+            for line in initial_lines {
+                self.cached_string.push_str(line);
+            }
+
+            self.cached_string.push_str(&format!(
+                "width=\"{}\" height=\"{}\" tilewidth=\"{}\" tileheight=\"{}\" ",
+                self.width, self.height, self.tile_width, self.tile_height,
+            ));
+            self.cached_string.push_str(&format!(
+                "infinite=\"0\" nextlayerid=\"{}\" nextobjectid=\"{}\">",
+                self.next_layer_id, self.next_object_id
+            ));
+            self.cached_string
+                .push_str(&render_custom_properties(&self.custom_properties));
 
             for tileset in &self.tilesets {
-                text.push(format!(
+                self.cached_string.push_str(&format!(
                     "<tileset firstgid=\"{}\" source={:?}/>",
                     tileset.first_gid, tileset.path
                 ));
@@ -665,20 +670,20 @@ impl Map {
             let scale_y = 1.0 / self.tile_height as f32;
 
             for layer_index in 0..self.layers.len() {
-                text.push(self.layers[layer_index].render());
+                self.cached_string
+                    .push_str(&self.layers[layer_index].render());
 
-                text.push(String::from("<objectgroup>"));
+                self.cached_string.push_str("<objectgroup>");
                 for object in &mut self.objects {
                     if object.layer >= layer_index && object.layer < layer_index + 1 {
-                        text.push(object.render(scale_x, scale_y));
+                        self.cached_string
+                            .push_str(&object.render(scale_x, scale_y));
                     }
                 }
-                text.push(String::from("</objectgroup>"));
+                self.cached_string.push_str("</objectgroup>");
             }
 
-            text.push(String::from("</map>"));
-
-            self.cached_string = text.join("");
+            self.cached_string.push_str("</map>");
             self.cached = true;
         }
 
