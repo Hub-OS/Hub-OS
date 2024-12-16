@@ -2,6 +2,9 @@
 members = ["client", "packets", "scripts", "server"]
 resolver = "2"
 
+[workspace.package]
+version = "0.34.0"
+
 [profile.dev]
 opt-level = 1
 
