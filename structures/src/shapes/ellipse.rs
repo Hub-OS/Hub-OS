@@ -45,6 +45,11 @@ impl Shape for Ellipse {
         self.rotate_around(&mut point);
         let (x, y) = point;
 
+        if x < self.x || y < self.y || x > self.x + self.width || y > self.y + self.height {
+            // quick fail, see if the point is in the bounding box of the shape
+            return false;
+        }
+
         // add half size as tiled centers ellipse at the top left
         let distance_x = x - (self.x + self.width * 0.5);
         let distance_y = y - (self.y + self.height * 0.5);

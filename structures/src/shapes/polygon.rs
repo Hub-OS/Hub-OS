@@ -94,7 +94,7 @@ impl Shape for Polygon {
         self.rotate_around(&mut point);
         let (x, y) = point;
 
-        if x > self.x || y < self.y || x > self.x + self.width || y > self.y + self.height {
+        if x < self.x || y < self.y || x > self.x + self.width || y > self.y + self.height {
             // quick fail, see if the point is in the bounding box of the shape
             return false;
         }
