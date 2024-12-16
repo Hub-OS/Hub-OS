@@ -1,10 +1,3 @@
-pub fn unwrap_and_parse_or_default<A>(option: Option<&str>) -> A
-where
-    A: Default + std::str::FromStr,
-{
-    option.unwrap_or_default().parse().unwrap_or_default()
-}
-
 pub fn normalize_path(path: &std::path::Path) -> std::path::PathBuf {
     let mut normalized_path: std::path::PathBuf = std::path::PathBuf::new();
 

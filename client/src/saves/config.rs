@@ -264,8 +264,8 @@ impl Default for Config {
 
 impl From<&str> for Config {
     fn from(s: &str) -> Self {
-        use crate::parse_util::*;
         use std::str::FromStr;
+        use structures::parse_util::*;
         use strum::IntoEnumIterator;
 
         let mut config = Config {

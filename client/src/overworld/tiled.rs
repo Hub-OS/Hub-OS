@@ -1,10 +1,11 @@
-use super::shapes::shape_from_xml;
+use super::objects::shape_from_xml;
 use super::*;
-use crate::parse_util::parse_or_default;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::{GameIO, Rect, Vec2};
 use std::rc::Rc;
+use structures::parse_util::parse_or_default;
+use structures::shapes::Projection;
 
 pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Option<Map> {
     let doc = match roxmltree::Document::parse(data) {

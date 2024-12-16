@@ -2,10 +2,10 @@
 
 use super::ObjectData;
 use crate::overworld::{Map, Tile};
-use crate::parse_util::parse_or_default;
 use framework::graphics::Sprite;
 use framework::math::Vec2;
 use framework::prelude::GameIO;
+use structures::parse_util::parse_or_default;
 
 pub struct TileObject {
     pub data: ObjectData,

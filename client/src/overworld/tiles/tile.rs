@@ -1,6 +1,7 @@
-use crate::overworld::{Map, Projection};
+use crate::overworld::Map;
 use crate::render::Direction;
 use framework::prelude::*;
+use structures::shapes::Projection;
 
 use super::*;
 

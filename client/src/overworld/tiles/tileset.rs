@@ -1,8 +1,9 @@
-use crate::overworld::{CustomProperties, Projection};
+use crate::overworld::CustomProperties;
 use crate::render::Animator;
 use framework::graphics::Texture;
 use framework::prelude::Vec2;
 use std::sync::Arc;
+use structures::shapes::Projection;
 
 pub struct Tileset {
     pub name: String,

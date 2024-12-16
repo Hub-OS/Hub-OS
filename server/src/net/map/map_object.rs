@@ -1,6 +1,6 @@
 use super::Tile;
-use crate::helpers::unwrap_and_parse_or_default;
 use std::collections::HashMap;
+use structures::parse_util::parse_or_default;
 
 pub struct MapObjectSpecification {
     pub name: String,
@@ -51,13 +51,13 @@ impl MapObject {
             .unwrap_or_default()
             .to_string();
         let visible: bool = element.attribute("visible").unwrap_or_default() != "0";
-        let id: u32 = unwrap_and_parse_or_default(element.attribute("id"));
-        let gid: u32 = unwrap_and_parse_or_default(element.attribute("gid"));
-        let x = unwrap_and_parse_or_default::<f32>(element.attribute("x")) * scale_x;
-        let y = unwrap_and_parse_or_default::<f32>(element.attribute("y")) * scale_y;
-        let width = unwrap_and_parse_or_default::<f32>(element.attribute("width")) * scale_x;
-        let height = unwrap_and_parse_or_default::<f32>(element.attribute("height")) * scale_y;
-        let rotation: f32 = unwrap_and_parse_or_default(element.attribute("rotation"));
+        let id: u32 = parse_or_default(element.attribute("id"));
+        let gid: u32 = parse_or_default(element.attribute("gid"));
+        let x = parse_or_default::<f32>(element.attribute("x")) * scale_x;
+        let y = parse_or_default::<f32>(element.attribute("y")) * scale_y;
+        let width = parse_or_default::<f32>(element.attribute("width")) * scale_x;
+        let height = parse_or_default::<f32>(element.attribute("height")) * scale_y;
+        let rotation: f32 = parse_or_default(element.attribute("rotation"));
 
         let mut custom_properties = HashMap::new();
 

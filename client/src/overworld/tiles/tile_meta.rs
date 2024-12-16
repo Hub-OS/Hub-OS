@@ -1,9 +1,9 @@
 use super::{TileClass, TileShadow, Tileset};
-use crate::overworld::shapes::Shape;
 use crate::overworld::CustomProperties;
 use crate::render::{Animator, AnimatorLoopMode, Direction};
 use framework::prelude::Vec2;
 use std::rc::Rc;
+use structures::shapes::Shape;
 
 pub struct TileMeta {
     pub tileset: Rc<Tileset>,

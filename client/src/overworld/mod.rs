@@ -12,7 +12,6 @@ mod overworld_event;
 mod overworld_player_data;
 mod overworld_sprite_layer;
 mod shadow_map;
-pub mod shapes;
 mod systems;
 mod tile_layer;
 mod tiled;
@@ -35,5 +34,3 @@ pub use systems::*;
 pub use tile_layer::*;
 pub use tiled::*;
 pub use tiles::*;
-
-pub use packets::structures::Projection;

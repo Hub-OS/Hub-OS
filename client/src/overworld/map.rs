@@ -5,6 +5,7 @@ use framework::prelude::*;
 use hecs::Entity;
 use std::collections::HashMap;
 use std::rc::Rc;
+use structures::shapes::Projection;
 
 pub struct Map {
     cols: u32,

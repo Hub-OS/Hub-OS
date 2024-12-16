@@ -2,9 +2,9 @@ use super::super::{Asset, Direction};
 use super::map_layer::MapLayer;
 use super::map_object::{MapObject, MapObjectData, MapObjectSpecification};
 use super::Tile;
-use crate::helpers::unwrap_and_parse_or_default;
-use packets::structures::Projection;
 use std::collections::HashMap;
+use structures::parse_util::parse_or_default;
+use structures::shapes::Projection;
 
 #[derive(Clone)]
 pub struct TilesetInfo {
@@ -88,10 +88,10 @@ impl Map {
 
         let map_element = map_document.root_element();
 
-        map.width = unwrap_and_parse_or_default(map_element.attribute("width"));
-        map.height = unwrap_and_parse_or_default(map_element.attribute("height"));
-        map.tile_width = unwrap_and_parse_or_default(map_element.attribute("tilewidth"));
-        map.tile_height = unwrap_and_parse_or_default(map_element.attribute("tileheight"));
+        map.width = parse_or_default(map_element.attribute("width"));
+        map.height = parse_or_default(map_element.attribute("height"));
+        map.tile_width = parse_or_default(map_element.attribute("tilewidth"));
+        map.tile_height = parse_or_default(map_element.attribute("tileheight"));
         map.projection = if map_element
             .attribute("orientation")
             .is_some_and(|s| s == "isometric")
@@ -101,8 +101,8 @@ impl Map {
             Projection::Orthographic
         };
 
-        map.next_layer_id = unwrap_and_parse_or_default(map_element.attribute("nextlayerid"));
-        map.next_object_id = unwrap_and_parse_or_default(map_element.attribute("nextobjectid"));
+        map.next_layer_id = parse_or_default(map_element.attribute("nextlayerid"));
+        map.next_object_id = parse_or_default(map_element.attribute("nextobjectid"));
 
         let scale_x = 1.0 / (map.tile_width as f32 * 0.5);
         let scale_y = 1.0 / map.tile_height as f32;
@@ -127,7 +127,7 @@ impl Map {
                     }
                 }
                 "tileset" => {
-                    let first_gid: u32 = unwrap_and_parse_or_default(child.attribute("firstgid"));
+                    let first_gid: u32 = parse_or_default(child.attribute("firstgid"));
                     let mut path = child.attribute("source").unwrap_or_default().to_string();
 
                     const ASSETS_RELATIVE_PATH: &str = "../assets/";
@@ -140,7 +140,7 @@ impl Map {
                     map.tilesets.push(TilesetInfo { first_gid, path });
                 }
                 "layer" => {
-                    let id: u32 = unwrap_and_parse_or_default(child.attribute("id"));
+                    let id: u32 = parse_or_default(child.attribute("id"));
                     let name: String = child.attribute("name").unwrap_or_default().to_string();
 
                     // map name might be missing if the file wasn't generated
@@ -246,10 +246,8 @@ impl Map {
         layer_element: roxmltree::Node,
     ) {
         // warnings
-        let manual_horizontal_offset: i32 =
-            unwrap_and_parse_or_default(layer_element.attribute("offsetx"));
-        let manual_vertical_offset: i32 =
-            unwrap_and_parse_or_default(layer_element.attribute("offsety"));
+        let manual_horizontal_offset: i32 = parse_or_default(layer_element.attribute("offsetx"));
+        let manual_vertical_offset: i32 = parse_or_default(layer_element.attribute("offsety"));
         let correct_vertical_offset = layer_index as i32 * -((self.tile_height / 2) as i32);
 
         if manual_horizontal_offset != 0 {

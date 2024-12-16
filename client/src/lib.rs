@@ -24,7 +24,6 @@ mod memoize;
 mod overlays;
 mod overworld;
 mod packages;
-mod parse_util;
 mod render;
 mod resources;
 mod saves;

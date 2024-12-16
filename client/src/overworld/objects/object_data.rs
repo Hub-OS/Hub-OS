@@ -1,7 +1,7 @@
 use super::ObjectType;
 use crate::overworld::CustomProperties;
-use crate::parse_util::parse_or_default;
 use framework::prelude::Vec2;
+use structures::parse_util::parse_or_default;
 
 pub struct ObjectData {
     pub id: u32,

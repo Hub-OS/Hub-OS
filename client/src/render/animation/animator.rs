@@ -1,9 +1,9 @@
 use super::{AnimationFrame, FrameList, FrameTime};
-use crate::parse_util::parse_or_default;
 use crate::resources::AssetManager;
 use framework::graphics::Sprite;
 use framework::prelude::{Rect, Vec2};
 use indexmap::IndexMap;
+use structures::parse_util::parse_or_default;
 use uncased::{Uncased, UncasedStr};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
