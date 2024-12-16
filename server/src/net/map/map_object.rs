@@ -130,7 +130,6 @@ impl MapObject {
         };
 
         let class_string = if !self.class.is_empty() {
-            // todo: update to class when the client properly supports it
             format!(" type={:?}", self.class)
         } else {
             String::default()

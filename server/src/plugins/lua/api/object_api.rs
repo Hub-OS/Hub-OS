@@ -132,7 +132,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         }
     });
 
-    lua_api.add_dynamic_function("Net", "set_object_class", |api_ctx, lua, params| {
+    lua_api.add_dynamic_function("Net", "set_object_type", |api_ctx, lua, params| {
         let (area_id, id, class): (mlua::String, u32, String) = lua.unpack_multi(params)?;
         let area_id_str = area_id.to_str()?;
 
@@ -323,7 +323,7 @@ fn map_optional_object_to_table<'lua>(
 
     table.set("id", object.id).ok()?;
     table.set("name", object.name.as_str()).ok()?;
-    table.set("type", object.class.as_str()).ok()?; // todo: remove after deprecation ends
+    table.set("type", object.class.as_str()).ok()?;
     table.set("class", object.class.as_str()).ok()?;
     table.set("visible", object.visible).ok()?;
     table.set("x", object.x).ok()?;
