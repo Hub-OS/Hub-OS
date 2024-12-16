@@ -1,3 +1,5 @@
+---@diagnostic disable: duplicate-set-field
+
 local tasks = {}
 
 Net:on("tick", function(event)
@@ -130,7 +132,7 @@ function Async.sleep(duration)
       time = time + delta
 
       if time >= duration then
-        resolve()
+        resolve(nil)
         return true
       end
 
