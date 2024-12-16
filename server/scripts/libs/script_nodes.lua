@@ -90,7 +90,7 @@ end
 ---@field private _bot_script_ids table<string, Net.ActorId>
 ---@field private _bot_script_ids_reversed table<Net.ActorId, string>
 ---@field private _tagged table<string, Net.ActorId[]>
----@field private _protected_object_map table<string, table<number, Net.Object>>
+---@field private _cached_object_map table<string, table<number, Net.Object>>
 ---@field private _loaded_areas table<string, boolean>
 ---@field private _load_start_callbacks fun(area_id: string)[]
 ---@field private _load_callbacks fun(area_id: string)[]
@@ -120,7 +120,7 @@ function ScriptNodes:new_empty()
     _bot_script_ids = {},
     _bot_script_ids_reversed = {},
     _tagged = {},
-    _protected_object_map = {},
+    _cached_object_map = {},
     _loaded_areas = {},
     _load_start_callbacks = {},
     _load_callbacks = {},
@@ -270,23 +270,23 @@ local function call_node_load_callbacks(area_id, object, prefix, callback_map)
 end
 
 ---Used to begin processing new areas.
----Calls :protect_object() for detected script and entry nodes.
+---Calls :cache_object() for detected script and entry nodes.
 ---@param area_id string
 function ScriptNodes:load(area_id)
   self._loaded_areas[area_id] = true
   local template_area_id = self._instancer:resolve_base_area_id(area_id)
 
   if template_area_id then
-    local protected_objects = self._protected_object_map[template_area_id]
+    local cached_objects = self._cached_object_map[template_area_id]
 
-    if protected_objects then
-      self._protected_object_map[area_id] = protected_objects
+    if cached_objects then
+      self._cached_object_map[area_id] = cached_objects
 
       for _, callback in ipairs(self._load_start_callbacks) do
         callback(area_id)
       end
 
-      for _, object in pairs(protected_objects) do
+      for _, object in pairs(cached_objects) do
         if self:is_script_node(object) then
           call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
         elseif self:is_entry_node(object) then
@@ -302,8 +302,8 @@ function ScriptNodes:load(area_id)
     end
   end
 
-  local protected_objects = {}
-  self._protected_object_map[area_id] = protected_objects
+  local cached_objects = {}
+  self._cached_object_map[area_id] = cached_objects
 
   for _, callback in ipairs(self._load_start_callbacks) do
     callback(area_id)
@@ -313,10 +313,12 @@ function ScriptNodes:load(area_id)
     local object = self:resolve_object(area_id, object_id)
 
     if self:is_script_node(object) then
-      self:protect_object(area_id, object)
+      self:cache_object(area_id, object)
+      Net.set_object_privacy(area_id, object.id, true)
       call_node_load_callbacks(area_id, object, self.NODE_TYPE_PREFIX, self._script_load_callbacks)
     elseif self:is_entry_node(object) then
-      self:protect_object(area_id, object)
+      self:cache_object(area_id, object)
+      Net.set_object_privacy(area_id, object.id, true)
     end
   end
 
@@ -324,7 +326,7 @@ function ScriptNodes:load(area_id)
     callback(area_id)
   end
 
-  for _, object in pairs(protected_objects) do
+  for _, object in pairs(cached_objects) do
     if self:is_entry_node(object) then
       call_node_load_callbacks(area_id, object, self.ENTRY_TYPE_PREFIX, self._entry_load_callbacks)
     end
@@ -332,7 +334,7 @@ function ScriptNodes:load(area_id)
 end
 
 ---Used to perform cleanup before removing an area.
----Clears protected objects for the area.
+---Clears cached objects for the area.
 ---@param area_id string
 function ScriptNodes:unload(area_id)
   self._loaded_areas[area_id] = nil
@@ -341,7 +343,7 @@ function ScriptNodes:unload(area_id)
     callback(area_id)
   end
 
-  self._protected_object_map[area_id] = nil
+  self._cached_object_map[area_id] = nil
 end
 
 ---Adds a listener for inventory changes.
@@ -475,12 +477,12 @@ function ScriptNodes:execute_next_node(context, area_id, object, n)
   end
 end
 
----Lists objects in the area by id, including protected objects
+---Lists objects in the area by id, including cached objects
 ---@param area_id string
 function ScriptNodes:list_objects(area_id)
   local list = Net.list_objects(area_id)
 
-  local object_map = self._protected_object_map[area_id]
+  local object_map = self._cached_object_map[area_id]
 
   for object_id in pairs(object_map) do
     list[#list + 1] = object_id
@@ -489,26 +491,24 @@ function ScriptNodes:list_objects(area_id)
   return list
 end
 
----Removes the object from the area to prevent clients from reading script nodes.
+---Caches objects to reduce generated garbage.
 ---
----Use :resolve_object() to access protected objects.
+---Use :resolve_object() to access cached objects.
 ---@param area_id string
 ---@param object Net.Object
-function ScriptNodes:protect_object(area_id, object)
-  Net.remove_object(area_id, object.id)
-
-  self._protected_object_map[area_id][object.id] = object
+function ScriptNodes:cache_object(area_id, object)
+  self._cached_object_map[area_id][object.id] = object
 end
 
 ---@param area_id string
 ---@param object_id string|number
-function ScriptNodes:is_object_protected(area_id, object_id)
-  local map = self._protected_object_map[area_id]
+function ScriptNodes:is_object_cached(area_id, object_id)
+  local map = self._cached_object_map[area_id]
 
   return (map and map[tonumber(object_id)]) ~= nil
 end
 
----Resolves objects that may be protected by :protect_object()
+---Resolves objects that may be cached by :cache_object()
 ---@param area_id string
 ---@param object_id number|string
 function ScriptNodes:resolve_object(area_id, object_id)
@@ -518,7 +518,7 @@ function ScriptNodes:resolve_object(area_id, object_id)
     return object
   end
 
-  return self._protected_object_map[area_id][tonumber(object_id)]
+  return self._cached_object_map[area_id][tonumber(object_id)]
 end
 
 ---@param actor_id Net.ActorId
@@ -761,7 +761,7 @@ function ScriptNodes:implement_event_entry_api()
 
   self:on_load(function(area_id)
     for _, object_id in ipairs(self:list_objects(area_id)) do
-      if not self:is_object_protected(area_id, object_id) then
+      if not self:is_object_cached(area_id, object_id) then
         goto continue
       end
 
@@ -1458,7 +1458,8 @@ function ScriptNodes:implement_bbs_api()
         break
       end
 
-      self:protect_object(area_id, post_object)
+      self:cache_object(area_id, post_object)
+      Net.set_object_privacy(area_id, post_object.id, true)
 
       if not areas_completed[base_area_id] then
         posts[#posts + 1] = {
@@ -1597,7 +1598,8 @@ function ScriptNodes:implement_shop_api()
         break
       end
 
-      self:protect_object(area_id, item_object)
+      self:cache_object(area_id, item_object)
+      Net.set_object_privacy(area_id, item_object.id, true)
 
       if not areas_completed[base_area_id] then
         items[#items + 1] = {

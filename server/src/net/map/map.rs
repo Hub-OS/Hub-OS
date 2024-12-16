@@ -533,6 +533,7 @@ impl Map {
             id,
             name: specification.name,
             class: specification.class,
+            private: specification.private,
             x: specification.x,
             y: specification.y,
             visible: specification.visible,
@@ -547,7 +548,10 @@ impl Map {
         self.objects.push(map_object);
 
         self.next_object_id += 1;
-        self.mark_dirty();
+
+        if !specification.private {
+            self.mark_dirty();
+        }
 
         id
     }
@@ -614,6 +618,12 @@ impl Map {
         }
     }
 
+    pub fn set_object_privacy(&mut self, id: u32, private: bool) {
+        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
+            object.private = private;
+        }
+    }
+
     pub fn move_object(&mut self, id: u32, x: f32, y: f32, layer: usize) {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.x = x;
@@ -675,7 +685,10 @@ impl Map {
 
                 self.cached_string.push_str("<objectgroup>");
                 for object in &mut self.objects {
-                    if object.layer >= layer_index && object.layer < layer_index + 1 {
+                    if !object.private
+                        && object.layer >= layer_index
+                        && object.layer < layer_index + 1
+                    {
                         self.cached_string
                             .push_str(&object.render(scale_x, scale_y));
                     }

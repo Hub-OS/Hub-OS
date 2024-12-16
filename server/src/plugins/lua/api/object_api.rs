@@ -68,6 +68,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let name: Option<String> = table.get("name")?;
         let class: Option<String> = table.get("type").or_else(|_| table.get("class"))?;
         let visible: Option<bool> = table.get("visible")?;
+        let private: Option<bool> = table.get("privated")?;
         let x: Option<f32> = table.get("x")?;
         let y: Option<f32> = table.get("y")?;
         let layer: Option<usize> = table.get("z")?;
@@ -85,6 +86,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             name: name.unwrap_or_default(),
             class: class.unwrap_or_default(),
             visible: visible.unwrap_or(true),
+            private: private.unwrap_or(true),
             x: x.unwrap_or_default(),
             y: y.unwrap_or_default(),
             layer: layer.unwrap_or_default(),
@@ -216,6 +218,23 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let map = area.map_mut();
 
             map.set_object_visibility(id, visibility);
+
+            lua.pack_multi(())
+        } else {
+            Err(create_area_error(area_id_str))
+        }
+    });
+
+    lua_api.add_dynamic_function("Net", "set_object_privacy", |api_ctx, lua, params| {
+        let (area_id, id, private): (mlua::String, u32, bool) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        if let Some(area) = net.get_area_mut(area_id_str) {
+            let map = area.map_mut();
+
+            map.set_object_privacy(id, private);
 
             lua.pack_multi(())
         } else {
