@@ -240,6 +240,12 @@ function BotPaths:resume_path_for(bot_id, pause_key)
 end
 
 ---@param bot_id Net.ActorId
+function BotPaths:is_paused(bot_id)
+  local bot = self._bots[bot_id]
+  return bot.pause_count > 0
+end
+
+---@param bot_id Net.ActorId
 ---@param pause_key string|number|table
 function BotPaths:is_paused_by(bot_id, pause_key)
   local bot = self._bots[bot_id]

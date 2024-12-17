@@ -2338,7 +2338,7 @@ function ScriptNodes:implement_tag_api()
   end)
 end
 
----Implements support for `Set Path`, `Pause Path`, and `Resume Path` nodes.
+---Implements support for `Set Path`, `Paused Path`, `Pause Path`, and `Resume Path` nodes.
 ---
 ---Expects `area_id` and optionally `bot_id`, `player_id`, or `player_ids` to be defined on the context table.
 ---
@@ -2355,6 +2355,11 @@ end
 ---   If the path doesn't contain a loop it will be played in reverse when the path ends.
 ---   If `Loop` is false or unspecified, paths with a loop will end at the loop.
 --- - `Next [1]` a link to the next node, executes immediately if `Loop` is set to true. (optional)
+---
+---Custom properties supported by `Paused Path`:
+--- - `Actor` "Bot [id]" (optional)
+--- - `Next [1]` a link to the next node (optional)
+--- - `Next 2` a link to the passing node (optional)
 ---
 ---Custom properties supported by `Pause Path`:
 --- - `Actor` "Bot [id]" (optional)
@@ -2388,6 +2393,24 @@ function ScriptNodes:implement_path_api()
       if not has_players then
         -- treat as if the area is the pauser
         bot_paths:pause_path_for(bot_id, context.area_id)
+      end
+    end
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("paused path", function(context, object)
+    local actor_string = object.custom_properties.Actor
+    local bot_id = context.bot_id
+
+    if actor_string then
+      bot_id = self:resolve_bot_id(context, actor_string)
+    end
+
+    if bot_id and bot_paths:bot_initialized(bot_id) then
+      if bot_paths:is_paused(bot_id) then
+        self:execute_next_node(context, context.area_id, object, 2)
+        return
       end
     end
 
