@@ -1763,7 +1763,7 @@ function ScriptNodes:implement_encounter_api()
     local lose_id = object.custom_properties["On Lose"]
     local lose_node = lose_id and self:resolve_object(context.area_id, lose_id)
 
-    if context.player_ids then
+    if context.player_ids and #context.player_ids > 0 then
       local promises = Async.initiate_netplay(
         context.player_ids,
         object.custom_properties.Encounter,
@@ -1800,7 +1800,7 @@ function ScriptNodes:implement_encounter_api()
           end
         end)
       end
-    else
+    elseif context.player_id then
       local player_promise = Async.initiate_encounter(
         context.player_id,
         object.custom_properties.Encounter,
@@ -1823,6 +1823,8 @@ function ScriptNodes:implement_encounter_api()
           end
         end
       end)
+    else
+      resolve()
     end
 
     promise.and_then(function()
