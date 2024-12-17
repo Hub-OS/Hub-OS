@@ -70,10 +70,10 @@ function ScriptNodeVariables:object_variables(area_id, object_id)
 end
 
 function ScriptNodeVariables:self_variables(context)
-  if context.bot_id then
-    return self:bot_variables(context.bot_id)
-  elseif context.object_id then
+  if context.object_id then
     return self:object_variables(context.area_id, context.object_id)
+  elseif context.bot_id then
+    return self:bot_variables(context.bot_id)
   elseif context.player_id then
     return self:player_variables(context.player_id)
   end
@@ -115,10 +115,10 @@ function ScriptNodeVariables:resolve_player_variable(player_id, variable)
   return player_variables and player_variables[variable]
 end
 
----@param player_id Net.ActorId
+---@param bot_id Net.ActorId
 ---@param variable string
-function ScriptNodeVariables:resolve_bot_variable(player_id, variable)
-  local bot_variables = self._bot_variables[player_id]
+function ScriptNodeVariables:resolve_bot_variable(bot_id, variable)
+  local bot_variables = self._bot_variables[bot_id]
 
   return bot_variables and bot_variables[variable]
 end
@@ -144,10 +144,10 @@ end
 
 ---@param variable string
 function ScriptNodeVariables:resolve_self_variable(context, variable)
-  if context.bot_id then
-    return self:resolve_bot_variable(context.bot_id, variable)
-  elseif context.object_id then
+  if context.object_id then
     return self:resolve_object_variable(context.area_id, context.object_id, variable)
+  elseif context.bot_id then
+    return self:resolve_bot_variable(context.bot_id, variable)
   elseif context.player_id then
     return self:resolve_player_variable(context.player_id, variable)
   end
@@ -204,7 +204,7 @@ function ScriptNodeVariables:resolve_variable(context, tagged_variable)
       return self:resolve_local_variable(context, variable, 1)
     end,
     Self = function()
-      self:resolve_self_variable(context, variable)
+      return self:resolve_self_variable(context, variable)
     end,
     Area = function()
       return self:resolve_area_variable(context.area_id, variable)
@@ -308,10 +308,10 @@ end
 
 ---@param variable string
 function ScriptNodeVariables:set_self_variable(context, variable, value)
-  if context.bot_id then
-    return self:resolve_bot_variable(context.bot_id, variable)
-  elseif context.object_id then
-    return self:resolve_object_variable(context.area_id, context.object_id, variable)
+  if context.object_id then
+    return self:set_object_variable(context.area_id, context.object_id, variable, value)
+  elseif context.bot_id then
+    return self:set_bot_variable(context.bot_id, variable, value)
   elseif context.player_ids then
     for _, player_id in ipairs(context.player_ids) do
       self:set_player_variable(player_id, variable, value)
@@ -384,12 +384,6 @@ function ScriptNodeVariables:set_variable(context, tagged_variable, value)
     end,
     Self = function()
       self:set_self_variable(context, variable, value)
-    end,
-    Bot = function()
-      self:set_bot_variable(context.bot_id, variable, value)
-    end,
-    Object = function()
-      self:set_object_variable(context.area_id, context.object_id, variable, value)
     end,
     Area = function()
       self:set_area_variable(context.area_id, variable, value)
