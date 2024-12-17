@@ -1,6 +1,7 @@
 use super::lua_errors::create_area_error;
 use super::LuaApi;
 use crate::net::map::{MapObject, MapObjectData, MapObjectSpecification, Tile};
+use structures::shapes::{Ellipse, Polygon, Rect, Shape};
 
 pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Net", "list_objects", |api_ctx, lua, params| {
@@ -271,6 +272,59 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         } else {
             Err(create_area_error(area_id_str))
         }
+    });
+
+    lua_api.add_dynamic_function("Net", "is_inside_object", |api_ctx, lua, params| {
+        let (area_id, id, x, y): (mlua::String, u32, f32, f32) = lua.unpack_multi(params)?;
+        let area_id_str = area_id.to_str()?;
+
+        let net = api_ctx.net_ref.borrow();
+
+        let Some(area) = net.get_area(area_id_str) else {
+            return Err(create_area_error(area_id_str));
+        };
+
+        let map = area.map();
+        let Some(object) = map.get_object_by_id(id) else {
+            return lua.pack_multi(false);
+        };
+
+        let res = match &object.data {
+            MapObjectData::Point => false,
+            MapObjectData::Rect => {
+                let rect = Rect::new(
+                    object.x,
+                    object.y,
+                    object.width,
+                    object.height,
+                    object.rotation,
+                );
+                rect.intersects((x, y))
+            }
+            MapObjectData::Ellipse => {
+                let ellipse = Ellipse::new(
+                    object.x,
+                    object.y,
+                    object.width,
+                    object.height,
+                    object.rotation,
+                );
+                ellipse.intersects((x, y))
+            }
+            MapObjectData::Polyline { .. } => false,
+            MapObjectData::Polygon { points } => {
+                let mut polygon = Polygon::new(object.x, object.y, object.rotation);
+
+                for point in points {
+                    polygon.add_point(*point);
+                }
+
+                polygon.intersects((x, y))
+            }
+            MapObjectData::TileObject { .. } => false,
+        };
+
+        lua.pack_multi(res)
     });
 }
 
