@@ -9,7 +9,7 @@
 -- tile object api
 -- `Attach Sprite`
 -- - `Id`
--- - `Target` "Player [1+]" "Bot" "Widget" "Hud"
+-- - `Target` "Player [1+]" "Bot [id]" "Widget" "Hud"
 -- - `Private` boolean, displays only to players in the current context
 -- `Remove Sprite`
 -- - `Id`
@@ -3093,20 +3093,20 @@ end
 ---
 ---Supported custom properties for `Set Variable`:
 --- - `Variable` string
---- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
 --- - `Value` number
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Supported custom properties for `Increment Variable`:
 --- - `Variable` string
---- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
 --- - `Value` number (optional)
 --- - `Amount` number (alias for `Value`, optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Supported custom properties for `Require Variable Value`:
 --- - `Variable` string
---- - `Target` "Player [1+]" | "Bot" | object, allows specification for the `Self` scope (optional)
+--- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
 --- - `Minimum` number (optional)
 --- - `Min` number (alias for `Minimum`, optional)
 --- - `Maximum` number (optional)
