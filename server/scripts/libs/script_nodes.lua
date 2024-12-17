@@ -1,10 +1,5 @@
 -- todo:
--- - collider nodes / On Collision Enter (object)?
--- Script Entry: Rectangle Collider, Shape?
--- - On Enter
--- - On Exit
--- - Ignore Transfer
--- Party Shape?
+-- track bot ids in variables instead?
 -- tile api
 -- tile object api
 -- `Attach Sprite`
@@ -18,6 +13,7 @@
 local ScriptNodeVariables = require("scripts/libs/script_node_variables")
 local Instancer = require("scripts/libs/instancer")
 local BotPaths = require("scripts/libs/bot_paths")
+local ObjectColliders = require("scripts/libs/object_colliders")
 local Direction = require("scripts/libs/direction")
 
 local function clone_table(t)
@@ -175,6 +171,7 @@ function ScriptNodes:new()
   s:implement_actor_api()
   s:implement_tag_api()
   s:implement_path_api()
+  s:implement_collision_api()
   s:implement_delay_api()
   s:implement_random_api()
   s:implement_thread_api()
@@ -1177,7 +1174,6 @@ function ScriptNodes:implement_object_api()
     source_object.x = dest_object.x
     source_object.y = dest_object.y
     source_object.z = dest_object.z
-    source_object.id = nil
     Net.create_object(context.area_id, source_object --[[@as Net.ObjectOptions]])
 
     self:execute_next_node(context, context.area_id, object)
@@ -2636,6 +2632,150 @@ function ScriptNodes:implement_path_api()
   end)
 end
 
+---Implements support for the `Collision` entry node, and the `Set Collider` script node.
+---
+---As a reminder: entry nodes have a type starting with `Script Entry: ` such as `Script Entry: Collision`
+---
+---Custom properties supported by `Collision`:
+--- - `On Enter` a link to a script node (optional)
+--- - `On Exit` a link to a script node (optional)
+--- - `Ignore Transfer` boolean, whether collision changes should be detected when players transfer areas (optional)
+---
+---Custom properties supported by `Set Collider:
+--- - `Target` "Player [id]" | "Bot [id]" (optional)
+--- - `On Enter` a link to a script node (optional)
+--- - `On Exit` a link to a script node (optional)
+--- - `Radius` number (optional)
+--- - `Ignore Transfer` boolean, whether collision changes should be detected when players transfer areas (optional)
+function ScriptNodes:implement_collision_api()
+  local object_colliders = ObjectColliders:new()
+
+  self:on_entry_node_load("collision", function(area_id, object)
+    local enter_id = tonumber(object.custom_properties["On Enter"])
+    local exit_id = tonumber(object.custom_properties["On Exit"])
+
+    object_colliders:register_collider({
+      object_id = object.id,
+      area_id = area_id,
+      z = object.z,
+      on_enter = enter_id and function(player_id)
+        local context = { area_id = area_id, player_id = player_id }
+        self:execute_by_id(context, area_id, enter_id)
+      end,
+      on_exit = exit_id and function(player_id)
+        local context = { area_id = area_id, player_id = player_id }
+        self:execute_by_id(context, area_id, exit_id)
+      end,
+      ignore_transfer = object.custom_properties["Ignore Transfer"] == "true",
+    })
+  end)
+
+  self:implement_node("set collider", function(context, object)
+    local actor_id = context.bot_id or context.player_id
+    local target_string = object.custom_properties.Target
+
+    if object.custom_properties.Target then
+      actor_id = self:resolve_actor_id(context, object.custom_properties.Target)
+    end
+
+    local area_id = context.area_id
+    local radius = tonumber(object.custom_properties.Radius)
+    local diameter = radius and radius * 2
+    local object_options = {
+      width = diameter,
+      height = diameter,
+      privacy = true,
+      data = {
+        type = "ellipse"
+      },
+    }
+    local collider_options = {
+      area_id = area_id,
+      z = object.z,
+      ignore_transfer = object.custom_properties["Ignore Transfer"] == "true",
+    }
+
+    local enter_id = tonumber(object.custom_properties["On Enter"])
+    local exit_id = tonumber(object.custom_properties["On Exit"])
+
+    local function set_collider_for_player(player_id)
+      object_colliders:remove_all_on_actor(player_id)
+
+      if not radius then
+        return
+      end
+
+      local x, y, z = Net.get_player_position_multi(player_id)
+      object_options.x = x - radius
+      object_options.y = y - radius
+      object_options.z = z
+      collider_options.object_id = Net.create_object(area_id, object_options)
+
+      collider_options.on_enter = enter_id and function(other_player_id)
+        local context = { area_id = area_id, player_ids = { player_id, other_player_id } }
+        self:execute_by_id(context, area_id, enter_id)
+      end
+      collider_options.on_exit = exit_id and function(other_player_id)
+        local context = { area_id = area_id, player_ids = { player_id, other_player_id } }
+        self:execute_by_id(context, area_id, exit_id)
+      end
+
+      object_colliders:register_collider(collider_options)
+      object_colliders:attach_to_actor(area_id, collider_options.object_id, player_id, -radius, -radius)
+    end
+
+    if (not target_string or target_string == "Player") and context.player_ids then
+      for _, player_id in ipairs(context.player_ids) do
+        set_collider_for_player(player_id)
+      end
+    elseif actor_id and Net.is_player(actor_id) then
+      set_collider_for_player(actor_id)
+    elseif actor_id and Net.is_bot(actor_id) then
+      object_colliders:remove_all_on_actor(actor_id)
+
+      if radius then
+        local x, y, z = Net.get_bot_position_multi(actor_id)
+        object_options.x = x - radius
+        object_options.y = y - radius
+        object_options.z = z
+        collider_options.object_id = Net.create_object(area_id, object_options)
+
+        collider_options.on_enter = enter_id and function(player_id)
+          local context = { area_id = area_id, bot_id = actor_id, player_id = player_id }
+          self:execute_by_id(context, area_id, enter_id)
+        end
+        collider_options.on_exit = exit_id and function(player_id)
+          local context = { area_id = area_id, bot_id = actor_id, player_id = player_id }
+          self:execute_by_id(context, area_id, exit_id)
+        end
+
+        object_colliders:register_collider(collider_options)
+        object_colliders:attach_to_actor(area_id, collider_options.object_id, actor_id, -radius, -radius)
+      end
+    end
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:on_unload(function(area_id)
+    object_colliders:drop_colliders_for_area(area_id)
+  end)
+
+  self:on_bot_removed(function(bot_id)
+    object_colliders:remove_all_on_actor(bot_id)
+    object_colliders:drop_actor(bot_id)
+  end)
+
+  self:on_server_event("player_disconnect", function(event)
+    object_colliders:remove_all_on_actor(event.actor_id)
+    object_colliders:drop_actor(event.actor_id)
+  end)
+
+  self:on_destroy(function()
+    object_colliders:destroy()
+  end)
+end
+
 ---Implements support for the `Delay` node.
 ---
 ---Expects `area_id` to be defined on the context table.
@@ -2739,7 +2879,7 @@ function ScriptNodes:implement_thread_api()
 end
 
 ---Implements support for the `Party All`, `Party Loaded`, `Party Instance`,
---- `Party Area`, `Party Tag`, `Disband Party`, `Reunite Party`,
+--- `Party Area`, `Party Near`, `Party Inside`, `Party Tag`, `Clear Party`, `Disband Party`, `Reunite Party`,
 --- `Shuffle Party`, `Split Party`, and `Require Party Size` nodes.
 ---
 ---### `Party All`, `Party Loaded`, `Party Instance`, `Party Area`
@@ -2751,6 +2891,27 @@ end
 ---Supported custom properties:
 --- - `Next [1]` a link to the next node (optional)
 ---
+---### `Party Near`
+---
+---Expects `area_id` to be defined on the context table.
+---
+---Clears `player_id` and sets `player_ids` on the context.
+---
+---Supported custom properties for `Party Near`:
+--- - `Target` "Player [1+]" | "Bot [id]" | object (optional)
+--- - `Radius` number
+--- - `Next [1]` a link to the next node (optional)
+---
+---### `Party Inside`
+---
+---Expects `area_id` to be defined on the context table.
+---
+---Clears `player_id` and sets `player_ids` on the context.
+---
+---Supported custom properties for `Party Inside`:
+--- - `Target` the object to build the party from (optional)
+--- - `Next [1]` a link to the next node (optional)
+---
 ---### `Party Tag`
 ---
 ---Expects `area_id` to be defined on the context table.
@@ -2760,6 +2921,15 @@ end
 ---Supported custom properties for `Party Tag`:
 --- - `Tag` the tag to build the party from
 --- - `Next [1]` a link to the next node (optional)
+---
+---### `Clear Party`
+---
+---Expects `area_id` to be defined on the context table.
+---
+---Removes `player_ids` and `player_id` from the context table.
+---
+---Supported custom properties for `Clear Party`:
+--- - `Next [1+]` a link to the next node for each player (optional)
 ---
 ---### `Disband Party`
 ---
@@ -2821,34 +2991,32 @@ end
 --- - `Next [1]` a link to the default node (optional)
 --- - `Next 2` a link to the passing node (optional)
 function ScriptNodes:implement_party_api()
-  local function append_to(dest, src)
-    table.move(src, 1, #src, #dest + 1, dest)
+  local function party_prep(context)
+    local player_ids = context.player_ids or { context.player_id }
+    local exists_map = {}
+
+    for _, player_id in ipairs(player_ids) do
+      exists_map[player_id] = true
+    end
+
+    return player_ids, exists_map
   end
 
-  ---@param player_ids Net.ActorId[]
-  local function bring_player_id_to_front(context, player_ids)
-    if context.player_id then
-      -- move our player id to the front
-      for i, player_id in ipairs(player_ids) do
-        if context.player_id == player_id then
-          local temp = player_ids[i]
-          player_ids[i] = player_ids[1]
-          player_ids[1] = temp
-          break
-        end
+  local function add_list_to_party(player_ids, exists_map, add_list)
+    for _, player_id in ipairs(add_list) do
+      if not exists_map[player_id] then
+        player_ids[#player_ids + 1] = player_id
       end
     end
   end
 
   self:implement_node("party all", function(context, object)
-    local player_ids = {}
+    local player_ids, exists_map = party_prep(context)
 
     for _, area_id in ipairs(Net.list_areas()) do
-      local area_player_list = Net.list_players(area_id)
-      table.move(area_player_list, 1, #area_player_list, #player_ids + 1, player_ids)
+      local add_list = Net.list_players(area_id)
+      add_list_to_party(player_ids, exists_map, add_list)
     end
-
-    bring_player_id_to_front(context, player_ids)
 
     context = clone_table(context)
     context.player_id = nil
@@ -2858,14 +3026,12 @@ function ScriptNodes:implement_party_api()
   end)
 
   self:implement_node("party loaded", function(context, object)
-    local player_ids = {}
+    local player_ids, exists_map = party_prep(context)
 
     for area_id in pairs(self._loaded_areas) do
-      local area_player_list = Net.list_players(area_id)
-      append_to(player_ids, area_player_list)
+      local add_list = Net.list_players(area_id)
+      add_list_to_party(player_ids, exists_map, add_list)
     end
-
-    bring_player_id_to_front(context, player_ids)
 
     context = clone_table(context)
     context.player_id = nil
@@ -2875,21 +3041,21 @@ function ScriptNodes:implement_party_api()
   end)
 
   self:implement_node("party instance", function(context, object)
+    local player_ids, exists_map = party_prep(context)
+
     local instancer = self:instancer()
     local instance_id = instancer:resolve_instance_id(context.area_id)
-    local player_ids = instance_id and clone_table(instancer:instance_player_list(instance_id))
+    local add_list = instance_id and instancer:instance_player_list(instance_id)
 
-    if not player_ids then
-      player_ids = {}
-
+    if add_list then
+      add_list_to_party(player_ids, exists_map, add_list)
+    else
       -- fallback to party all, consider it the primary instance
       for _, area_id in ipairs(Net.list_areas()) do
-        local area_player_list = Net.list_players(area_id)
-        table.move(area_player_list, 1, #area_player_list, #player_ids + 1, player_ids)
+        add_list = Net.list_players(area_id)
+        add_list_to_party(player_ids, exists_map, add_list)
       end
     end
-
-    bring_player_id_to_front(context, player_ids)
 
     context = clone_table(context)
     context.player_id = nil
@@ -2899,8 +3065,94 @@ function ScriptNodes:implement_party_api()
   end)
 
   self:implement_node("party area", function(context, object)
-    local player_ids = Net.list_players(context.area_id)
-    bring_player_id_to_front(context, player_ids)
+    local player_ids, exists_map = party_prep(context)
+    local add_list = Net.list_players(context.area_id)
+    add_list_to_party(player_ids, exists_map, add_list)
+
+    context = clone_table(context)
+    context.player_id = nil
+    context.player_ids = player_ids
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("party near", function(context, object)
+    local player_ids, exists_map = party_prep(context)
+    local radius = tonumber(object.custom_properties.Radius)
+    ---@type Net.ActorId
+    local target_id = context.bot_id or context.player_id or context.object_id
+    local target_string = object.custom_properties.Target
+
+    if object.custom_properties.Target then
+      target_id = self:resolve_actor_id(context, target_string) or tonumber(target_string) --[[@as Net.ActorId]]
+    end
+
+    local radius_sqr = radius * radius
+    local center_x, center_y, center_z
+
+    if target_id and Net.is_player(target_id) then
+      center_x, center_y, center_z = Net.get_player_position_multi(target_id)
+    elseif target_id and Net.is_bot(target_id) then
+      center_x, center_y, center_z = Net.get_player_position_multi(target_id)
+    else
+      local target_object = self:resolve_object(context.area_id, target_id --[[@as number]])
+
+      if target_object then
+        center_x = target_object.x
+        center_y = target_object.y
+        center_z = target_object.z
+      else
+        radius_sqr = 0
+      end
+    end
+
+    if radius_sqr > 0 then
+      for _, player_id in ipairs(Net.list_players(context.area_id)) do
+        if exists_map[player_id] then
+          goto continue
+        end
+
+        local x, y, z = Net.get_player_position_multi(player_id)
+        local x_diff = x - center_x
+        local y_diff = y - center_y
+        local z_diff = z - center_z
+
+        if x_diff * x_diff + y_diff * y_diff + z_diff * z_diff <= radius_sqr then
+          player_ids[#player_ids + 1] = player_id
+        end
+
+        ::continue::
+      end
+    end
+
+    context = clone_table(context)
+    context.player_id = nil
+    context.player_ids = player_ids
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("party inside", function(context, object)
+    local player_ids, exists_map = party_prep(context)
+    local object_id = tonumber(object.custom_properties.Target) or context.object_id
+
+    for _, player_id in ipairs(Net.list_players(context.area_id)) do
+      if exists_map[player_id] then
+        goto continue
+      end
+
+      local x, y, z = Net.get_player_position_multi(player_id)
+
+      if object.z ~= z then
+        goto continue
+      end
+
+      if Net.is_inside_object(context.area_id, object_id, x, y) then
+        player_ids[#player_ids + 1] = player_id
+      end
+
+      ::continue::
+    end
 
     context = clone_table(context)
     context.player_id = nil
@@ -2911,19 +3163,25 @@ function ScriptNodes:implement_party_api()
 
   self:implement_node("party tag", function(context, object)
     local tag = object.custom_properties.Tag
-    local player_ids = {}
+    local player_ids, exists_map = party_prep(context)
 
     for _, actor_id in ipairs(self:get_tag_actors(tag)) do
-      if Net.is_player(actor_id) then
+      if not exists_map[actor_id] and Net.is_player(actor_id) then
         player_ids[#player_ids + 1] = actor_id
       end
     end
 
-    bring_player_id_to_front(context, player_ids)
-
     context = clone_table(context)
     context.player_id = nil
     context.player_ids = player_ids
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("clear party", function(context, object)
+    context = clone_table(context)
+    context.player_id = nil
+    context.player_ids = nil
 
     self:execute_next_node(context, context.area_id, object)
   end)
