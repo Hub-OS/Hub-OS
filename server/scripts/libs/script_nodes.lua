@@ -2959,7 +2959,7 @@ function ScriptNodes:implement_party_api()
           player_ids[#player_ids + 1] = player_id
         end
       end
-    else
+    elseif context.player_id and not Net.is_player_busy(context.player_id) then
       player_ids[1] = context.player_id
     end
 
