@@ -242,9 +242,9 @@ function BotPaths:is_paused_by(bot_id, pause_key)
   return bot.paused_by[pause_key] ~= nil
 end
 
----Removes tracking for this bot, requiring :init_bot() to be called again for future uses fo this bot.
+---Removes tracking for this bot, requiring :init_bot() to be called again for future uses for this bot.
 ---@param bot_id Net.ActorId
-function BotPaths:remove_bot(bot_id)
+function BotPaths:drop_bot(bot_id)
   self._bots[bot_id] = nil
 end
 

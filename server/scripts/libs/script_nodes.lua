@@ -2630,7 +2630,7 @@ function ScriptNodes:implement_path_api()
   end)
 
   self:on_bot_removed(function(bot_id)
-    bot_paths:remove_bot(bot_id)
+    bot_paths:drop_bot(bot_id)
   end)
 end
 
