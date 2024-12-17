@@ -3180,20 +3180,18 @@ function ScriptNodes:implement_variable_api()
     local value = self:variables():resolve_variable(self_context, variable) or 0
     local pass = false
 
-    if value then
-      local required_value = object.custom_properties.Value
+    local required_value = object.custom_properties.Value
 
-      if required_value then
-        pass = required_value == value or tonumber(required_value) == value
-      else
-        local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
-        local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
+    if required_value then
+      pass = required_value == value or tonumber(required_value) == value
+    else
+      local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
+      local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
 
-        local pass_min = not min or value >= min
-        local pass_max = not max or value <= max
+      local pass_min = not min or value >= min
+      local pass_max = not max or value <= max
 
-        pass = pass_min and pass_max
-      end
+      pass = pass_min and pass_max
     end
 
     if pass then
