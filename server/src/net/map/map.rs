@@ -558,9 +558,11 @@ impl Map {
 
     pub fn remove_object(&mut self, id: u32) {
         if let Some(index) = self.objects.iter().position(|object| object.id == id) {
-            self.objects.remove(index);
+            let object = self.objects.remove(index);
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -568,7 +570,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.name = name;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -576,7 +580,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.class = class;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -584,7 +590,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.custom_properties.insert(name, value);
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -598,7 +606,9 @@ impl Map {
             object.width = width;
             object.height = height;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -606,7 +616,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.rotation = rotation;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -614,7 +626,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.visible = visibility;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -630,7 +644,9 @@ impl Map {
             object.y = y;
             object.layer = layer;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
@@ -638,7 +654,9 @@ impl Map {
         if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
             object.data = data;
 
-            self.mark_dirty();
+            if !object.private {
+                self.mark_dirty();
+            }
         }
     }
 
