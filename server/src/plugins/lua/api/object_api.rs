@@ -10,12 +10,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         let net = api_ctx.net_ref.borrow();
 
         if let Some(area) = net.get_area(area_id_str) {
-            let result: Vec<u32> = area
-                .map()
-                .objects()
-                .iter()
-                .map(|object| object.id)
-                .collect();
+            let result: Vec<u32> = area.map().objects().map(|object| object.id).collect();
 
             lua.pack_multi(result)
         } else {

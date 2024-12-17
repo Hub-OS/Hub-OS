@@ -2201,6 +2201,7 @@ dependencies = [
  "futures",
  "getrandom 0.2.15",
  "htmlentity",
+ "indexmap",
  "isahc 1.7.2",
  "itertools",
  "log",

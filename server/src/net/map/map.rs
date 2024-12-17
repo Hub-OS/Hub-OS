@@ -2,6 +2,7 @@ use super::super::{Asset, Direction};
 use super::map_layer::MapLayer;
 use super::map_object::{MapObject, MapObjectData, MapObjectSpecification};
 use super::Tile;
+use indexmap::IndexMap;
 use std::collections::HashMap;
 use structures::parse_util::parse_or_default;
 use structures::shapes::Projection;
@@ -39,7 +40,7 @@ pub struct Map {
     tilesets: Vec<TilesetInfo>,
     layers: Vec<MapLayer>,
     next_layer_id: u32,
-    objects: Vec<MapObject>,
+    objects: IndexMap<u32, MapObject>,
     next_object_id: u32,
     asset_stale: bool,
     cached: bool,
@@ -74,7 +75,7 @@ impl Map {
             tilesets: Vec::new(),
             layers: Vec::new(),
             next_layer_id: 0,
-            objects: Vec::new(),
+            objects: Default::default(),
             next_object_id: 0,
             asset_stale: true,
             cached: false,
@@ -215,7 +216,7 @@ impl Map {
                             }
                         }
 
-                        map.objects.push(map_object);
+                        map.objects.insert(map_object.id, map_object);
                     }
 
                     object_layers += 1;
@@ -514,16 +515,16 @@ impl Map {
         }
     }
 
-    pub fn objects(&self) -> &Vec<MapObject> {
-        &self.objects
+    pub fn objects(&self) -> impl Iterator<Item = &MapObject> {
+        self.objects.values()
     }
 
     pub fn get_object_by_id(&self, id: u32) -> Option<&MapObject> {
-        self.objects.iter().find(|&o| o.id == id)
+        self.objects.get(&id)
     }
 
     pub fn get_object_by_name(&self, name: &str) -> Option<&MapObject> {
-        self.objects.iter().find(|&o| o.name == name)
+        self.objects.values().find(|&o| o.name == name)
     }
 
     pub fn create_object(&mut self, specification: MapObjectSpecification) -> u32 {
@@ -545,7 +546,7 @@ impl Map {
             custom_properties: specification.custom_properties,
         };
 
-        self.objects.push(map_object);
+        self.objects.insert(id, map_object);
 
         self.next_object_id += 1;
 
@@ -557,106 +558,124 @@ impl Map {
     }
 
     pub fn remove_object(&mut self, id: u32) {
-        if let Some(index) = self.objects.iter().position(|object| object.id == id) {
-            let object = self.objects.remove(index);
+        let Some(object) = self.objects.swap_remove(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_name(&mut self, id: u32, name: String) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.name = name;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.name = name;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_class(&mut self, id: u32, class: String) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.class = class;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.class = class;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_custom_property(&mut self, id: u32, name: String, value: String) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.custom_properties.insert(name, value);
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.custom_properties.insert(name, value);
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn resize_object(&mut self, id: u32, width: f32, height: f32) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            if matches!(object.data, MapObjectData::Point) {
-                // cant resize a point
-                return;
-            }
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            object.width = width;
-            object.height = height;
+        if matches!(object.data, MapObjectData::Point) {
+            // cant resize a point
+            return;
+        }
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.width = width;
+        object.height = height;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_rotation(&mut self, id: u32, rotation: f32) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.rotation = rotation;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.rotation = rotation;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_visibility(&mut self, id: u32, visibility: bool) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.visible = visibility;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.visible = visibility;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_privacy(&mut self, id: u32, private: bool) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.private = private;
-        }
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
+
+        object.private = private;
     }
 
     pub fn move_object(&mut self, id: u32, x: f32, y: f32, layer: usize) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.x = x;
-            object.y = y;
-            object.layer = layer;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.x = x;
+        object.y = y;
+        object.layer = layer;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
     pub fn set_object_data(&mut self, id: u32, data: MapObjectData) {
-        if let Some(object) = self.objects.iter_mut().find(|object| object.id == id) {
-            object.data = data;
+        let Some(object) = self.objects.get_mut(&id) else {
+            return;
+        };
 
-            if !object.private {
-                self.mark_dirty();
-            }
+        object.data = data;
+
+        if !object.private {
+            self.mark_dirty();
         }
     }
 
@@ -702,7 +721,7 @@ impl Map {
                     .push_str(&self.layers[layer_index].render());
 
                 self.cached_string.push_str("<objectgroup>");
-                for object in &mut self.objects {
+                for object in self.objects.values_mut() {
                     if !object.private
                         && object.layer >= layer_index
                         && object.layer < layer_index + 1
