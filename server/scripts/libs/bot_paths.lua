@@ -49,6 +49,12 @@ function BotPaths:new()
         goto continue
       end
 
+      local path_node = bot.path[bot.path_index]
+
+      if not path_node then
+        goto continue
+      end
+
       local area_id = Net.get_bot_area(id)
       local x, y, z = Net.get_bot_position_multi(id)
 
@@ -73,8 +79,6 @@ function BotPaths:new()
           end
         end
       end
-
-      local path_node = bot.path[bot.path_index]
 
       local diff_x = path_node.x - x
       local diff_y = path_node.y - y
