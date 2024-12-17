@@ -3177,7 +3177,7 @@ function ScriptNodes:implement_variable_api()
     local self_context = resolve_self_context(context, object)
 
     local variable = object.custom_properties.Variable
-    local value = self:variables():resolve_variable(self_context, variable)
+    local value = self:variables():resolve_variable(self_context, variable) or 0
     local pass = false
 
     if value then
