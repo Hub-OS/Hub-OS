@@ -323,7 +323,7 @@ function ScriptNodes:load(area_id)
     callback(area_id)
   end
 
-  for _, object_id in ipairs(self:list_objects(area_id)) do
+  for _, object_id in ipairs(Net.list_objects(area_id)) do
     local object = self:resolve_object(area_id, object_id)
 
     if self:is_script_node(object) then
@@ -489,20 +489,6 @@ function ScriptNodes:execute_next_node(context, area_id, object, n)
   if next then
     self:execute_node(context, next)
   end
-end
-
----Lists objects in the area by id, including cached objects
----@param area_id string
-function ScriptNodes:list_objects(area_id)
-  local list = Net.list_objects(area_id)
-
-  local object_map = self._cached_object_map[area_id]
-
-  for object_id in pairs(object_map) do
-    list[#list + 1] = object_id
-  end
-
-  return list
 end
 
 ---Caches objects to reduce generated garbage.
@@ -774,7 +760,7 @@ function ScriptNodes:implement_event_entry_api()
   end
 
   self:on_load(function(area_id)
-    for _, object_id in ipairs(self:list_objects(area_id)) do
+    for _, object_id in ipairs(Net.list_objects(area_id)) do
       if not self:is_object_cached(area_id, object_id) then
         goto continue
       end
