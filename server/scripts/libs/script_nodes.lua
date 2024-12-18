@@ -1479,6 +1479,7 @@ end
 --- - `Name` string (optional)
 --- - `Price` number (optional)
 --- - `Description` string (optional)
+--- - `Item` string, an item id, used to populate a name and description for this shop item (optional)
 --- - `On Interact` a link to a script node (optional)
 function ScriptNodes:implement_shop_api()
   ---@type table<string, table<number, Net.ShopItem[]>>
@@ -1518,7 +1519,18 @@ function ScriptNodes:implement_shop_api()
 
     Async.create_scope(function()
       for event_name, event in Async.await(emitter:async_iter_all()) do
-        if event_name == "shop_purchase" then
+        if event_name == "shop_description_request" then
+          local item_object = self:resolve_object(context.area_id, event.item_id)
+          local description = item_object.custom_properties.Description
+
+          if not description and item_object.custom_properties.Item then
+            description = Net.get_item_description(item_object.custom_properties.Item)
+          end
+
+          if description then
+            Net.message_player(event.player_id, description)
+          end
+        elseif event_name == "shop_purchase" then
           local item_object = self:resolve_object(context.area_id, event.item_id)
           local next_id = item_object.custom_properties["On Interact"]
 
@@ -1583,9 +1595,15 @@ function ScriptNodes:implement_shop_api()
       Net.set_object_privacy(area_id, item_object.id, true)
 
       if not areas_completed[base_area_id] then
+        local name = item_object.custom_properties.Name
+
+        if not name and item_object.custom_properties.Item then
+          name = Net.get_item_name(item_object.custom_properties.Item)
+        end
+
         items[#items + 1] = {
           id = item_id,
-          name = item_object.custom_properties.Name or "",
+          name = name or "",
           price = tonumber(item_object.custom_properties.Price) or 0,
         }
       end
