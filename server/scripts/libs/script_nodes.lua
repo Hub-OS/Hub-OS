@@ -1857,7 +1857,7 @@ end
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Supported custom properties for `Take Money`:
---- - `Amount` the amount of money to take, will take remaining money on failure
+--- - `Amount` the amount of money to take, no money will be taken on failure
 --- - `Next [1]` a link to the default node (optional)
 --- - `Next 2` a link to the passing node (optional)
 ---
@@ -1873,7 +1873,7 @@ end
 ---
 ---Supported custom properties for `Take Item`:
 --- - `Item` the ID of the item
---- - `Amount` the amount of items to take, will take remaining items on failure (optional)
+--- - `Amount` the amount of items to take, no items will be taken on failure (optional)
 --- - `Next [1]` a link to the default node (optional)
 --- - `Next 2` a link to the passing node (optional)
 ---
@@ -1900,12 +1900,22 @@ function ScriptNodes:implement_inventory_api()
 
     for_each_player_safe(context, function(player_id)
       local money = Net.get_player_money(player_id)
-      pass = pass and money >= amount
-      Net.set_player_money(player_id, math.max(0, money - amount))
-      self:emit_inventory_update(player_id)
+
+      if money then
+        pass = pass and money >= amount
+      end
     end)
 
     if pass then
+      for_each_player_safe(context, function(player_id)
+        local money = Net.get_player_money(player_id)
+
+        if money then
+          Net.set_player_money(player_id, math.max(0, money - amount))
+          self:emit_inventory_update(player_id)
+        end
+      end)
+
       self:execute_next_node(context, context.area_id, object, 2)
     else
       self:execute_next_node(context, context.area_id, object)
@@ -1946,12 +1956,22 @@ function ScriptNodes:implement_inventory_api()
 
     for_each_player_safe(context, function(player_id)
       local count = Net.get_player_item_count(player_id, item_id)
-      pass = pass and count >= amount
-      Net.give_player_item(player_id, item_id, amount)
-      self:emit_inventory_update(player_id, item_id)
+
+      if count then
+        pass = pass and count >= amount
+      end
     end)
 
     if pass then
+      for_each_player_safe(context, function(player_id)
+        local count = Net.get_player_item_count(player_id, item_id)
+
+        if count then
+          Net.give_player_item(player_id, item_id, amount)
+          self:emit_inventory_update(player_id, item_id)
+        end
+      end)
+
       self:execute_next_node(context, context.area_id, object, 2)
     else
       self:execute_next_node(context, context.area_id, object)
