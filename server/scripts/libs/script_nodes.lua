@@ -724,7 +724,13 @@ end
 ---Custom properties supported by `Help`:
 --- - `Next [1]` a link to the next node (optional)
 ---
----Supplies a context with `player_ids` and `area_id`
+---Supplies a context with `player_id` and `area_id`
+---
+---Custom properties supported by `Item Use`:
+--- - `Item` string, item id
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supplies a context with `player_id` and `area_id`
 function ScriptNodes:implement_event_entry_api()
   ---table<event_name, table<area_id, object_id[]>>
   ---@type table<string, table<string, (string|number)[]>>
@@ -912,6 +918,34 @@ function ScriptNodes:implement_event_entry_api()
   self:on_server_event("actor_interaction", help_listener)
   self:on_server_event("object_interaction", help_listener)
   self:on_server_event("tile_interaction", help_listener)
+
+
+  local item_event_map = {}
+
+  self:on_entry_node_load("item use", function(area_id, object)
+    local item_map = item_event_map[area_id]
+
+    if not item_map then
+      item_map = {}
+      item_event_map[area_id] = item_map
+    end
+
+    local next_id = self:resolve_next_id(object)
+    item_map[object.custom_properties.Item] = next_id
+  end)
+
+  self:on_server_event("item_use", function(event)
+    local area_id = Net.get_player_area(event.player_id)
+    local item_map = item_event_map[area_id]
+    local next_id = item_map and item_map[event.item_id]
+
+    if not next_id then
+      return
+    end
+
+    local context = { area_id = area_id, player_id = event.player_id }
+    self:execute_by_id(context, area_id, next_id)
+  end)
 
   self:on_destroy(function()
     Net:remove_on_any_listener(any_listener)
