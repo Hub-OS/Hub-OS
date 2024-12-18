@@ -93,7 +93,8 @@ end
 ---@field private _entry_load_callbacks table<string, fun(area_id: string, object: Net.Object)[]>
 ---@field private _script_load_callbacks table<string, fun(area_id: string, object: Net.Object)[]>
 ---@field private _unload_callbacks fun(area_id: string)[]
----@field private _inventory_callbacks fun(player_id: Net.ActorId, item_id: string?)[]
+---@field private _inventory_callbacks fun(player_id: Net.ActorId, item_id: string)[]
+---@field private _money_callbacks fun(player_id: Net.ActorId)[]
 ---@field private _encounter_callbacks fun(results: Net.BattleResults)[]
 ---@field private _bot_remove_callbacks fun(results: Net.ActorId)[]
 ---@field private _server_listeners [string, fun()][]
@@ -125,6 +126,7 @@ function ScriptNodes:new_empty()
     _script_load_callbacks = {},
     _unload_callbacks = {},
     _inventory_callbacks = {},
+    _money_callbacks = {},
     _encounter_callbacks = {},
     _bot_remove_callbacks = {},
     _server_listeners = {},
@@ -358,19 +360,31 @@ function ScriptNodes:unload(area_id)
 end
 
 ---Adds a listener for inventory changes.
----A nil item represents a money update.
 ---@param callback fun(player_id: Net.ActorId, item_id: string?)
 function ScriptNodes:on_inventory_update(callback)
   self._inventory_callbacks[#self._inventory_callbacks + 1] = callback
 end
 
 ---Emit an inventory update for listeners.
----A nil item represents a money update.
----@param player_id Net.ActorId,
----@param item_id string?
+---@param player_id Net.ActorId
+---@param item_id string
 function ScriptNodes:emit_inventory_update(player_id, item_id)
   for _, callback in ipairs(self._inventory_callbacks) do
     callback(player_id, item_id)
+  end
+end
+
+---Adds a listener for money changes.
+---@param callback fun(player_id: Net.ActorId, item_id: string?)
+function ScriptNodes:on_money_update(callback)
+  self._money_callbacks[#self._money_callbacks + 1] = callback
+end
+
+---Emit a money update for listeners.
+---@param player_id Net.ActorId
+function ScriptNodes:emit_money_update(player_id)
+  for _, callback in ipairs(self._money_callbacks) do
+    callback(player_id)
   end
 end
 
@@ -1922,7 +1936,7 @@ function ScriptNodes:implement_inventory_api()
 
     for_each_player_safe(context, function(player_id)
       Net.set_player_money(player_id, Net.get_player_money(player_id) + amount)
-      self:emit_inventory_update(player_id)
+      self:emit_money_update(player_id)
     end)
 
     self:execute_next_node(context, context.area_id, object)
@@ -1946,7 +1960,7 @@ function ScriptNodes:implement_inventory_api()
 
         if money then
           Net.set_player_money(player_id, math.max(0, money - amount))
-          self:emit_inventory_update(player_id)
+          self:emit_money_update(player_id)
         end
       end)
 

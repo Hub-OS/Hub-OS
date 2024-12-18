@@ -6,17 +6,20 @@ for _, area_id in ipairs(Net.list_areas()) do
   scripts:load(area_id)
 end
 
+-- handle battle results (never called if `Forget Results` is set to true on `Encounter` nodes)
 scripts:on_encounter_result(function(result)
   local player_id = result.player_id
 
   local health = math.min(Net.get_player_max_health(player_id), result.health)
   Net.set_player_health(player_id, health)
   Net.set_player_emotion(player_id, result.emotion)
-
-  -- update save data
 end)
 
 scripts:on_inventory_update(function(player_id, item_id)
+  -- update save data
+end)
+
+scripts:on_money_update(function(player_id)
   -- update save data
 end)
 
