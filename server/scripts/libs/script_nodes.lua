@@ -1163,6 +1163,10 @@ end
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_object_api()
   self:on_server_event("object_interaction", function(event)
+    if event.button ~= 0 then
+      return
+    end
+
     local area_id = Net.get_player_area(event.player_id)
 
     if not self:is_loaded(area_id) then
@@ -2099,6 +2103,10 @@ function ScriptNodes:implement_actor_api()
   local interaction_map = {}
 
   self:on_server_event("actor_interaction", function(event)
+    if event.button ~= 0 then
+      return
+    end
+
     local bot_id = event.actor_id
     local object_id = interaction_map[bot_id]
 
