@@ -1,4 +1,4 @@
-use packets::structures::{ActorId, AssetData, PackageCategory};
+use packets::structures::{ActorId, AssetData, FileHash, PackageCategory};
 
 #[derive(Clone, Debug)]
 pub struct PackageInfo {
@@ -12,6 +12,7 @@ pub struct Asset {
     pub data: AssetData,
     pub alternate_names: Vec<AssetId>,
     pub dependencies: Vec<AssetId>,
+    pub hash: FileHash,
     pub last_modified: u64,
     pub cachable: bool, // allows the server to know if it should update other clients with this asset, clients will cache in memory
     pub cache_to_disk: bool, // allows the client to know if they should cache this asset for rejoins or if it's dynamic
@@ -39,6 +40,7 @@ pub enum AssetId {
 
 impl Asset {
     pub fn load_from_memory(path: &std::path::Path, data: Vec<u8>) -> Asset {
+        let hash = FileHash::hash(&data);
         let asset_data = resolve_asset_data(path, data);
 
         let last_modified = std::time::SystemTime::now()
@@ -50,6 +52,7 @@ impl Asset {
             data: asset_data,
             alternate_names: Vec::new(),
             dependencies: Vec::new(),
+            hash,
             last_modified,
             cachable: true,
             cache_to_disk: true,
@@ -68,6 +71,7 @@ impl Asset {
         use std::fs;
 
         let data = fs::read(path).unwrap_or_default();
+        let hash = FileHash::hash(&data);
         let asset_data = resolve_asset_data(path, data);
 
         let mut last_modified = 0;
@@ -85,6 +89,7 @@ impl Asset {
             data: asset_data,
             alternate_names: Vec::new(),
             dependencies: Vec::new(),
+            hash,
             last_modified,
             cachable: true,
             cache_to_disk: true,

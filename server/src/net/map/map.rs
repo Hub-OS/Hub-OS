@@ -3,6 +3,7 @@ use super::map_layer::MapLayer;
 use super::map_object::{MapObject, MapObjectData, MapObjectSpecification};
 use super::Tile;
 use indexmap::IndexMap;
+use packets::structures::FileHash;
 use std::collections::HashMap;
 use structures::parse_util::parse_or_default;
 use structures::shapes::Projection;
@@ -767,10 +768,14 @@ impl Map {
             .map(AssetId::AssetPath)
             .collect();
 
+        let text = self.render();
+        let hash = FileHash::hash(text.as_bytes());
+
         Asset {
-            data: AssetData::compress_text(self.render()),
+            data: AssetData::compress_text(text),
             alternate_names: Vec::new(),
             dependencies,
+            hash,
             last_modified: 0,
             cachable: true,
             cache_to_disk: false,

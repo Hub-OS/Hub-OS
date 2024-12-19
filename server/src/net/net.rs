@@ -1686,28 +1686,36 @@ impl Net {
         let mugshot_animation_path = asset::get_player_mugshot_animation_path(player_id);
 
         let player_assets = [
-            (texture_path.clone(), AssetData::Texture(texture_data)),
+            (
+                texture_path.clone(),
+                FileHash::hash(&texture_data),
+                AssetData::Texture(texture_data),
+            ),
             (
                 animation_path.clone(),
+                FileHash::hash(animation_data.as_bytes()),
                 AssetData::compress_text(animation_data),
             ),
             (
                 mugshot_texture_path,
+                FileHash::hash(&mugshot_texture_data),
                 AssetData::Texture(mugshot_texture_data),
             ),
             (
                 mugshot_animation_path,
+                FileHash::hash(mugshot_animation_data.as_bytes()),
                 AssetData::compress_text(mugshot_animation_data),
             ),
         ];
 
-        for (path, data) in player_assets.into_iter() {
+        for (path, hash, data) in player_assets.into_iter() {
             self.set_asset(
                 path,
                 Asset {
                     data,
                     alternate_names: Vec::new(),
                     dependencies: Vec::new(),
+                    hash,
                     last_modified: 0,
                     cachable: true,
                     cache_to_disk: false,
