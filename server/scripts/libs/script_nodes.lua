@@ -3320,21 +3320,22 @@ function ScriptNodes:implement_party_api()
   end)
 
   self:implement_node("exclude busy", function(context, object)
-    local player_ids = {}
-
     if context.player_ids then
+      local player_ids = {}
+
       for _, player_id in ipairs(context.player_ids) do
         if not Net.is_player_busy(player_id) then
           player_ids[#player_ids + 1] = player_id
         end
       end
-    elseif context.player_id and not Net.is_player_busy(context.player_id) then
-      player_ids[1] = context.player_id
-    end
 
-    context = clone_table(context)
-    context.player_id = nil
-    context.player_ids = player_ids
+      context = clone_table(context)
+      context.player_ids = player_ids
+    elseif context.player_id and Net.is_player_busy(context.player_id) then
+      context = clone_table(context)
+      context.player_id = nil
+      context.player_ids = {}
+    end
 
     self:execute_next_node(context, context.area_id, object)
   end)
@@ -3384,7 +3385,6 @@ function ScriptNodes:implement_party_api()
     end
 
     start = math.max(start, 1)
-
 
     for i, player_id in ipairs(context.player_ids) do
       if i < start then
