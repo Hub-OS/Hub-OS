@@ -1,0 +1,45 @@
+imagePath="D:/EverythingOpenBN/ClientServer_4_14_2021/Server_10_5_2021/assets/ezlibs-assets/eznpcs/sheet/mettaur-bn45.png"
+
+animation state="IDLE_UR"
+frame duration="0.05" x="107" y="2" w="19" h="22" originx="9" originy="19"
+
+animation state="IDLE_DR"
+frame duration="0.05" x="135" y="2" w="19" h="22" originx="9" originy="19"
+
+animation state="WALK_UR"
+frame duration="0.15" x="2" y="35" w="21" h="22" originx="9" originy="21"
+frame duration="0.15" x="28" y="35" w="22" h="22" originx="11" originy="21"
+frame duration="0.15" x="56" y="35" w="21" h="22" originx="9" originy="21"
+frame duration="0.15" x="83" y="36" w="21" h="22" originx="9" originy="20"
+frame duration="0.15" x="112" y="36" w="21" h="22" originx="10" originy="20"
+frame duration="0.15" x="135" y="35" w="21" h="22" originx="11" originy="21"
+
+animation state="WALK_DR"
+frame duration="0.15" x="2" y="66" w="23" h="24" originx="9" originy="22"
+frame duration="0.15" x="28" y="66" w="23" h="24" originx="11" originy="22"
+frame duration="0.15" x="57" y="66" w="23" h="24" originx="10" originy="22"
+frame duration="0.15" x="82" y="66" w="23" h="24" originx="9" originy="22"
+frame duration="0.15" x="107" y="66" w="23" h="24" originx="9" originy="22"
+frame duration="0.15" x="133" y="66" w="23" h="24" originx="9" originy="22"
+
+animation state="IDLE_UL"
+frame duration="0.05" x="107" y="2" w="19" h="22" originx="9" originy="19" flipx="1"
+
+animation state="IDLE_DL"
+frame duration="0.05" x="135" y="2" w="19" h="22" originx="9" originy="19" flipx="1"
+
+animation state="WALK_UL"
+frame duration="0.15" x="2" y="35" w="21" h="22" originx="9" originy="21" flipx="1"
+frame duration="0.15" x="28" y="35" w="22" h="22" originx="11" originy="21" flipx="1"
+frame duration="0.15" x="56" y="35" w="21" h="22" originx="9" originy="21" flipx="1"
+frame duration="0.15" x="83" y="36" w="21" h="22" originx="9" originy="20" flipx="1"
+frame duration="0.15" x="112" y="36" w="21" h="22" originx="10" originy="20" flipx="1"
+frame duration="0.15" x="135" y="35" w="21" h="22" originx="11" originy="21" flipx="1"
+
+animation state="WALK_DL"
+frame duration="0.15" x="2" y="66" w="23" h="24" originx="9" originy="22" flipx="1"
+frame duration="0.15" x="28" y="66" w="23" h="24" originx="11" originy="22" flipx="1"
+frame duration="0.15" x="57" y="66" w="23" h="24" originx="10" originy="22" flipx="1"
+frame duration="0.15" x="82" y="66" w="23" h="24" originx="9" originy="22" flipx="1"
+frame duration="0.15" x="107" y="66" w="23" h="24" originx="9" originy="22" flipx="1"
+frame duration="0.15" x="133" y="66" w="23" h="24" originx="9" originy="22" flipx="1"

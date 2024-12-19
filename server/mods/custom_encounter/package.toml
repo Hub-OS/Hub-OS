@@ -1,0 +1,6 @@
+[package]
+category = "encounter"
+id = "MyServer.CustomEncounter"
+
+[dependencies]
+characters = ["BattleNetwork3.Canodumb.Enemy", "BattleNetwork6.Mettaur.Enemy"]
