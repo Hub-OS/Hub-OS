@@ -3509,11 +3509,7 @@ function ScriptNodes:implement_variable_api()
 
     local original_context = context
 
-    context = clone_table(context)
-    context.player_ids = nil
-    context.player_id = nil
-    context.bot_id = nil
-    context.object_id = nil
+    context = { variable_scopes = original_context.variable_scopes }
 
     if target == "Player" then
       context.player_ids = original_context.player_ids
@@ -3527,6 +3523,28 @@ function ScriptNodes:implement_variable_api()
     return context
   end
 
+  local function for_each_self_scope(context, object, callback)
+    local targetting_party = context.player_ids
+        and (
+          (not context.bot_id and not context.object_id)
+          or (object.custom_properties.Target and object.custom_properties.Target == "Player")
+        )
+
+    if not targetting_party then
+      local self_context = resolve_self_context(context, object)
+      callback(self_context)
+    else
+      local self_context = {
+        variable_scopes = context.variable_scopes
+      }
+
+      for _, player_id in ipairs(context.player_ids) do
+        self_context.player_id = player_id
+        callback(self_context)
+      end
+    end
+  end
+
   self:implement_node("set variable", function(context, object)
     local self_context = resolve_self_context(context, object)
 
@@ -3538,51 +3556,57 @@ function ScriptNodes:implement_variable_api()
   end)
 
   self:implement_node("increment variable", function(context, object)
-    local self_context = resolve_self_context(context, object)
     local variables = self:variables()
 
-    local value = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
     local variable = object.custom_properties.Variable
-    value = value + (variables:resolve_variable(self_context, variable) or 0)
-    variables:set_variable(self_context, variable, value)
+    local amount = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
+
+    for_each_self_scope(context, object, function(self_context)
+      local value = (variables:resolve_variable(self_context, variable) or 0) + amount
+      variables:set_variable(self_context, variable, value)
+    end)
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
   self:implement_node("decrement variable", function(context, object)
-    local self_context = resolve_self_context(context, object)
     local variables = self:variables()
 
-    local value = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
     local variable = object.custom_properties.Variable
-    value = value + (variables:resolve_variable(self_context, variable) or 0)
-    variables:set_variable(self_context, variable, value)
+    local amount = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
+
+    for_each_self_scope(context, object, function(self_context)
+      local value = (variables:resolve_variable(self_context, variable) or 0) - amount
+      variables:set_variable(self_context, variable, value)
+    end)
 
     self:execute_next_node(context, context.area_id, object)
   end)
 
   self:implement_node("require variable value", function(context, object)
-    local self_context = resolve_self_context(context, object)
-
     local variable = object.custom_properties.Variable
-    local value = self:variables():resolve_variable(self_context, variable) or 0
-    local pass = false
-
     local required_value = object.custom_properties.Value
+    local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
+    local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
 
-    if required_value then
-      pass = required_value == value or tonumber(required_value) == value
-    else
-      local min = tonumber(object.custom_properties.Minimum or object.custom_properties.Min)
-      local max = tonumber(object.custom_properties.Maximum or object.custom_properties.Max)
+    local pass = true
+    local at_least_one = false
 
-      local pass_min = not min or value >= min
-      local pass_max = not max or value <= max
+    for_each_self_scope(context, object, function(self_context)
+      local value = self:variables():resolve_variable(self_context, variable) or 0
+      at_least_one = true
 
-      pass = pass_min and pass_max
-    end
+      if required_value then
+        pass = pass and (required_value == value or tonumber(required_value) == value)
+      else
+        local pass_min = not min or value >= min
+        local pass_max = not max or value <= max
 
-    if pass then
+        pass = pass and pass_min and pass_max
+      end
+    end)
+
+    if pass and at_least_one then
       self:execute_next_node(context, context.area_id, object, 2)
     else
       self:execute_next_node(context, context.area_id, object)
@@ -3657,7 +3681,17 @@ function ScriptNodes:implement_variable_api()
         print(context.variable_scopes[#context.variable_scopes - 1])
       end,
       Self = function()
-        print(variables:self_variables(context.area_id))
+        local self_list = {}
+
+        for_each_self_scope(context, object, function(self_context)
+          self_list[#self_list + 1] = variables:self_variables(self_context)
+        end)
+
+        if #self_list == 1 then
+          print(self_list[1])
+        else
+          print(self_list)
+        end
       end,
       Area = function()
         print(variables:area_variables(context.area_id))
