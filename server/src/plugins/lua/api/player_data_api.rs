@@ -152,7 +152,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             let item_iter = player_data
                 .inventory
                 .items()
-                .filter(|(_, count)| *count > 0)
+                .filter(|(_, &count)| count > 0)
                 .enumerate()
                 .map(|(i, (id, _))| (i + 1, id.as_str()));
 
@@ -210,6 +210,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
             name: item_table.get("name")?,
             description: item_table.get("description")?,
             consumable: item_table.get("consumable").unwrap_or_default(),
+            sort_key: net.total_items(),
         };
 
         net.set_item(item_id, item);

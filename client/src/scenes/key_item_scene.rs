@@ -6,8 +6,8 @@ use crate::render::ui::{
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
 use crate::resources::{Globals, Input, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
+use indexmap::IndexMap;
 use packets::structures::{Inventory, ItemDefinition, TextureAnimPathPair};
-use std::collections::HashMap;
 
 const LINE_HEIGHT: f32 = 16.0;
 
@@ -30,7 +30,7 @@ pub struct KeyItemsScene {
 impl KeyItemsScene {
     pub fn new(
         game_io: &GameIO,
-        item_registry: &HashMap<String, ItemDefinition>,
+        item_registry: &IndexMap<String, ItemDefinition>,
         inventory: &Inventory,
     ) -> Self {
         // key items

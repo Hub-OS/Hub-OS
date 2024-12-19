@@ -1331,6 +1331,10 @@ impl Net {
         self.item_registry.insert(item_id, item);
     }
 
+    pub fn total_items(&mut self) -> usize {
+        self.item_registry.len()
+    }
+
     pub fn give_player_item(&mut self, player_id: ActorId, item_id: String, count: isize) {
         let Some(client) = self.clients.get_mut(&player_id) else {
             return;

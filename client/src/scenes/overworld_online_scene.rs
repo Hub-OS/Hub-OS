@@ -503,6 +503,9 @@ impl OverworldOnlineScene {
                 item_definition,
             } => {
                 self.area.item_registry.insert(id, item_definition);
+                self.area
+                    .item_registry
+                    .sort_by(|_, a, _, b| a.sort_key.cmp(&b.sort_key));
             }
             ServerPacket::AddItem { id, count } => {
                 self.area.player_data.inventory.give_item(&id, count);

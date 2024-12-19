@@ -3300,6 +3300,7 @@ dependencies = [
  "flate2",
  "hex",
  "hmac-sha256",
+ "indexmap",
  "itertools",
  "log",
  "mlua",

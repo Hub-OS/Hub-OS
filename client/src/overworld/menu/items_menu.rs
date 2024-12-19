@@ -125,11 +125,16 @@ impl ItemsMenu {
     fn consumables_iter(
         area: &OverworldArea,
     ) -> impl Iterator<Item = (&String, &ItemDefinition, usize)> {
-        let item_iter = area.player_data.inventory.items();
-
-        item_iter
-            .flat_map(|(item_id, count)| Some((item_id, area.item_registry.get(item_id)?, *count)))
-            .filter(|(_, item_definition, _)| item_definition.consumable)
+        area.item_registry
+            .iter()
+            .filter(|(_, item_definition)| item_definition.consumable)
+            .map(|(key, item_definition)| {
+                (
+                    key,
+                    item_definition,
+                    area.player_data.inventory.count_item(key),
+                )
+            })
     }
 
     fn update_health(&mut self, area: &OverworldArea) {
