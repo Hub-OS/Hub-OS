@@ -173,7 +173,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     });
 
     lua_api.add_dynamic_function("Async", "read_file", |api_ctx, lua, params| {
-        use crate::jobs::read_file::read_file;
+        use crate::jobs::files::read_file;
 
         let path: String = lua.unpack_multi(params)?;
 
@@ -187,9 +187,21 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
     lua_api.add_dynamic_function("Async", "write_file", |api_ctx, lua, params| {
         let (path, content): (String, mlua::String) = lua.unpack_multi(params)?;
 
-        use crate::jobs::write_file::write_file;
+        use crate::jobs::files::write_file;
 
         let promise = write_file(path, content.as_bytes());
+
+        let lua_promise = create_lua_promise(lua, api_ctx.promise_manager_ref, promise);
+
+        lua.pack_multi(lua_promise)
+    });
+
+    lua_api.add_dynamic_function("Async", "ensure_dir", |api_ctx, lua, params| {
+        let path: String = lua.unpack_multi(params)?;
+
+        use crate::jobs::files::ensure_folder;
+
+        let promise = ensure_folder(path);
 
         let lua_promise = create_lua_promise(lua, api_ctx.promise_manager_ref, promise);
 
