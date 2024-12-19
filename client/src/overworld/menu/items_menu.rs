@@ -132,6 +132,12 @@ impl ItemsMenu {
             .filter(|(_, item_definition, _)| item_definition.consumable)
     }
 
+    fn update_health(&mut self, area: &OverworldArea) {
+        self.health_ui.set_health(area.player_data.health);
+        self.health_ui.set_max_health(area.player_data.max_health());
+        self.health_ui.update();
+    }
+
     fn update_item_count(&mut self, area: &OverworldArea) {
         let registered_count = area.item_registry.len();
 
@@ -192,9 +198,9 @@ impl Menu for ItemsMenu {
     fn update(&mut self, game_io: &mut GameIO, area: &mut OverworldArea) {
         self.background.update();
         self.ui_input_tracker.update(game_io);
+        self.update_health(area);
         self.update_item_count(area);
         self.update_player_sprite(area);
-        self.health_ui.set_health(area.player_data.health);
     }
 
     fn handle_input(
