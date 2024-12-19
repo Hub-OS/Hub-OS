@@ -279,8 +279,8 @@ impl Menu for ItemsMenu {
             .skip(range.start)
             .take(range.end - range.start);
 
-        let mut text_style =
-            TextStyle::new(game_io, FontName::Thick).with_shadow_color(TEXT_DARK_SHADOW_COLOR);
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick)
+            .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
 
         let mut patch_bounds = Rect::new(
             self.items_start.x,
