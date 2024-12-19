@@ -3459,6 +3459,13 @@ end
 --- - `Amount` number (alias for `Value`, optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
+---Supported custom properties for `Decrement Variable`:
+--- - `Variable` string
+--- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
+--- - `Value` number (optional)
+--- - `Amount` number (alias for `Value`, optional)
+--- - `Next [1]` a link to the next node (optional)
+---
 ---Supported custom properties for `Require Variable Value`:
 --- - `Variable` string
 --- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
@@ -3531,6 +3538,18 @@ function ScriptNodes:implement_variable_api()
   end)
 
   self:implement_node("increment variable", function(context, object)
+    local self_context = resolve_self_context(context, object)
+    local variables = self:variables()
+
+    local value = tonumber(object.custom_properties.Value) or tonumber(object.custom_properties.Amount) or 1
+    local variable = object.custom_properties.Variable
+    value = value + (variables:resolve_variable(self_context, variable) or 0)
+    variables:set_variable(self_context, variable, value)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("decrement variable", function(context, object)
     local self_context = resolve_self_context(context, object)
     local variables = self:variables()
 
