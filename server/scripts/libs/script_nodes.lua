@@ -2015,7 +2015,7 @@ function ScriptNodes:implement_inventory_api()
         local count = Net.get_player_item_count(player_id, item_id)
 
         if count then
-          Net.give_player_item(player_id, item_id, amount)
+          Net.give_player_item(player_id, item_id, -amount)
           self:emit_inventory_update(player_id, item_id)
         end
       end)
