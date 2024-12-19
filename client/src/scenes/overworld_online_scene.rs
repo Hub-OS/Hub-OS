@@ -1022,6 +1022,8 @@ impl OverworldOnlineScene {
                     let transition = crate::transitions::new_battle(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
                     self.next_scene_queue.push_back(next_scene);
+                } else {
+                    log::error!("Failed to initiate encounter: no package for {package_path:?}")
                 }
             }
             ServerPacket::InitiateNetplay {
