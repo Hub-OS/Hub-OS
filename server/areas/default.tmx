@@ -581,17 +581,6 @@
    </properties>
    <point/>
   </object>
-  <object id="115" type="Script Entry: Collision" x="254.624" y="139.674" width="87.0389" height="67.1958">
-   <properties>
-    <property name="On Enter" type="object" value="116"/>
-   </properties>
-  </object>
-  <object id="116" type="Script Node: Print" x="307.714" y="175.736">
-   <properties>
-    <property name="Text" value="Hi"/>
-   </properties>
-   <point/>
-  </object>
   <object id="120" type="Script Node: Paused Path" x="560" y="336">
    <properties>
     <property name="Next" type="object" value="112"/>
