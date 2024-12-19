@@ -1,6 +1,7 @@
 # output
 /target
 dist
+*.zip
 
 # editors
 *.code-workspace
