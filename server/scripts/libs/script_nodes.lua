@@ -83,8 +83,8 @@ end
 ---@field private _instancer Instancer
 ---@field private _variables ScriptNodeVariables
 ---@field private _node_types table<string, fun(context: table, object: Net.Object)>
----@field private _bot_script_ids table<string, Net.ActorId>
----@field private _bot_script_ids_reversed table<Net.ActorId, string>
+---@field private _bot_script_ids table<string, table<string, Net.ActorId>>
+---@field private _bot_script_ids_reversed table<Net.ActorId, [string, string]>
 ---@field private _tagged table<string, Net.ActorId[]>
 ---@field private _cached_object_map table<string, table<number, Net.Object>>
 ---@field private _loaded_areas table<string, boolean>
@@ -357,6 +357,7 @@ function ScriptNodes:unload(area_id)
   end
 
   self._cached_object_map[area_id] = nil
+  self._bot_script_ids[area_id] = nil
 end
 
 ---Adds a listener for inventory changes.
@@ -565,58 +566,62 @@ function ScriptNodes:get_tag_actors(tag)
   return tag_group
 end
 
+---@param area_id string
 ---@param bot_id Net.ActorId
 ---@param bot_script_id string A human readable ID for the bot
-function ScriptNodes:track_bot(bot_id, bot_script_id)
-  self._bot_script_ids[bot_script_id] = bot_id
-  self._bot_script_ids_reversed[bot_id] = bot_script_id
+function ScriptNodes:track_bot(area_id, bot_id, bot_script_id)
+  local area_map = self._bot_script_ids[area_id]
+
+  if not area_map then
+    area_map = {}
+    self._bot_script_ids[area_id] = area_map
+  end
+
+  area_map[bot_script_id] = bot_id
+  self._bot_script_ids_reversed[bot_id] = { area_id, bot_script_id }
 end
 
 ---@param bot_id Net.ActorId
 function ScriptNodes:untrack_bot(bot_id)
-  local bot_script_id = self._bot_script_ids_reversed[bot_id]
+  local area_id_script_id_pair = self._bot_script_ids_reversed[bot_id]
 
-  if bot_script_id then
-    self._bot_script_ids[bot_script_id] = nil
-  end
-end
-
----@param context table
----@param bot_id_property string?
----@return Net.ActorId?
-function ScriptNodes:resolve_bot_id(context, bot_id_property)
-  if not bot_id_property or not starts_with(bot_id_property, "Bot") then
+  if not area_id_script_id_pair then
     return
   end
 
-  if bot_id_property == "Bot" then
-    return context.bot_id
-  end
-
-  local bot_script_id = bot_id_property:sub(4)
-
-  if context.area_id then
-    -- prefer bots within the same instance
-
-    local instance_id = self:instancer():resolve_instance_id(context.area_id)
-
-    if instance_id then
-      local bot_id = self._bot_script_ids[bot_script_id .. self._instancer.INSTANCE_MARKER .. instance_id]
-
-      if bot_id then
-        return bot_id
-      end
-    end
-  end
-
-  return self._bot_script_ids[bot_script_id]
+  self._bot_script_ids_reversed[bot_id] = nil
+  local area_id, bot_script_id = area_id_script_id_pair[1], area_id_script_id_pair[2]
+  self._bot_script_ids[area_id][bot_script_id] = nil
 end
 
 ---@param context table
----@param value string?
+---@param actor_id_property string?
 ---@return Net.ActorId?
-function ScriptNodes:resolve_player_id(context, value)
-  if not value or not starts_with(value, "Player") then
+function ScriptNodes:resolve_bot_id(context, actor_id_property)
+  if not actor_id_property or not starts_with(actor_id_property, "Bot") then
+    return
+  end
+
+  if actor_id_property == "Bot" then
+    return context.bot_id
+  end
+
+  local bot_script_id = actor_id_property:sub(5)
+
+  local area_map = self._bot_script_ids[context.area_id]
+
+  if not area_map then
+    return
+  end
+
+  return area_map[bot_script_id]
+end
+
+---@param context table
+---@param actor_id_property string?
+---@return Net.ActorId?
+function ScriptNodes:resolve_player_id(context, actor_id_property)
+  if not actor_id_property or not starts_with(actor_id_property, "Player") then
     return
   end
 
@@ -624,7 +629,7 @@ function ScriptNodes:resolve_player_id(context, value)
 
   if context.player_ids then
     -- resolve player index
-    local n = tonumber(value:sub(7)) or 1
+    local n = tonumber(actor_id_property:sub(8)) or 1
     player_id = context.player_ids[n]
   end
 
@@ -2054,7 +2059,7 @@ end
 ---Some nodes may also require `bot_id` and `player_id` or `player_ids` to be defined on the context table.
 ---
 ---Custom properties supported by `Spawn Bot`:
---- - `Id` the identifer for the bot for use in nodes matching "Bot [id]" (optional, tied to instance)
+--- - `Id` the identifer for the bot for use in nodes matching "Bot [id]" (optional, tied to area)
 --- - `Name` the displayed name of the bot (optional)
 --- - `Warp In` boolean, whether the bot should warp in or not (optional)
 --- - `Asset` the extensionless path to the texture and animation for the bot (optional if `Texture` and `Animation` are set)
@@ -2070,6 +2075,7 @@ end
 ---
 ---Custom properties supported by `Remove Bot`:
 --- - `Id` the identifier for the bot (optional)
+--- - `Warp Out` boolean (optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Custom properties supported by `Emote`:
@@ -2161,13 +2167,7 @@ function ScriptNodes:implement_actor_api()
 
     if object.custom_properties.Id then
       local bot_script_id = object.custom_properties.Id
-      local instance_id = self:instancer():resolve_instance_id(context.area_id)
-
-      if instance_id then
-        bot_script_id = bot_script_id .. self._instancer.INSTANCE_MARKER .. instance_id
-      end
-
-      self:track_bot(context.bot_id, bot_script_id)
+      self:track_bot(context.area_id, context.bot_id, bot_script_id)
     end
 
     if object.custom_properties["On Interact"] then
@@ -2181,11 +2181,13 @@ function ScriptNodes:implement_actor_api()
     local bot_id = context.bot_id
 
     if object.custom_properties.Id then
-      self:resolve_bot_id(context, object.custom_properties.Id) --[[@as Net.ActorId]]
+      bot_id = self:resolve_bot_id(context, "Bot " .. object.custom_properties.Id) --[[@as Net.ActorId]]
     end
 
-    self:emit_bot_remove(bot_id)
-    Net.remove_bot(bot_id, object.custom_properties["Warp Out"] == "true")
+    if bot_id then
+      self:emit_bot_remove(bot_id)
+      Net.remove_bot(bot_id, object.custom_properties["Warp Out"] == "true")
+    end
 
     self:execute_next_node(context, context.area_id, object)
   end)
@@ -2759,7 +2761,7 @@ end
 --- - `Ignore Transfer` boolean, whether collision changes should be detected when players transfer areas (optional)
 ---
 ---Custom properties supported by `Set Collider:
---- - `Target` "Player [id]" | "Bot [id]" (optional)
+--- - `Target` "Player [1+]" | "Bot [id]" (optional)
 --- - `On Enter` a link to a script node (optional)
 --- - `On Exit` a link to a script node (optional)
 --- - `Radius` number (optional)
