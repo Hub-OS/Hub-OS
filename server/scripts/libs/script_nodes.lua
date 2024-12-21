@@ -2478,7 +2478,11 @@ function ScriptNodes:implement_path_api()
       bot_id = self:resolve_bot_id(context, actor_string)
     end
 
-    if bot_id and bot_paths:bot_initialized(bot_id) then
+    if bot_id then
+      if not bot_paths:bot_initialized(bot_id) then
+        bot_paths:init_bot(bot_id)
+      end
+
       local has_players = false
 
       for_each_player(context, function(player_id)
@@ -2521,7 +2525,11 @@ function ScriptNodes:implement_path_api()
       bot_id = self:resolve_bot_id(context, actor_string)
     end
 
-    if bot_id and bot_paths:bot_initialized(bot_id) then
+    if bot_id then
+      if not bot_paths:bot_initialized(bot_id) then
+        bot_paths:init_bot(bot_id)
+      end
+
       local has_players = false
 
       for_each_player(context, function(player_id)
