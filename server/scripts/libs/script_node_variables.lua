@@ -362,7 +362,7 @@ end
 --- - `Instance` tied to the instance or global scope when outside of an instance (the default). Resolves using `context.area_id`.
 --- - `Global`
 ---@param tagged_variable string
----@param value number
+---@param value any
 function ScriptNodeVariables:set_variable(context, tagged_variable, value)
   local match_start, match_end = tagged_variable:find(": ")
 

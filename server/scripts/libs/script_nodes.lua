@@ -3459,7 +3459,7 @@ end
 ---Supported custom properties for `Set Variable`:
 --- - `Variable` string
 --- - `Target` "Player [1+]" | "Bot [id]" | object, allows specification for the `Self` scope (optional)
---- - `Value` number
+--- - `Value` number | string
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Supported custom properties for `Increment Variable`:
@@ -3483,7 +3483,7 @@ end
 --- - `Min` number (alias for `Minimum`, optional)
 --- - `Maximum` number (optional)
 --- - `Max` number (alias for `Maximum`, optional)
---- - `Value` number (optional)
+--- - `Value` number | string (optional)
 --- - `Next [1]` a link to the default node (optional)
 --- - `Next 2` a link to the passing node (optional)
 ---
@@ -3558,7 +3558,7 @@ function ScriptNodes:implement_variable_api()
   self:implement_node("set variable", function(context, object)
     local self_context = resolve_self_context(context, object)
 
-    local value = tonumber(object.custom_properties.Value) or 0
+    local value = tonumber(object.custom_properties.Value) or object.custom_properties.Value
     local variable = object.custom_properties.Variable
     self:variables():set_variable(self_context, variable, value)
 
