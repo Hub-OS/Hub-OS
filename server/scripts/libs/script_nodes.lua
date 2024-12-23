@@ -1,7 +1,4 @@
 -- todo:
--- track bot ids in variables instead?
--- tile api
--- tile object api
 -- `Attach Sprite`
 -- - `Id`
 -- - `Target` "Player [1+]" "Bot [id]" "Widget" "Hud"
@@ -163,6 +160,7 @@ function ScriptNodes:new()
   s:implement_event_entry_api()
   s:implement_area_api()
   s:implement_object_api()
+  s:implement_tile_api()
   s:implement_textbox_api()
   s:implement_bbs_api()
   s:implement_shop_api()
@@ -733,12 +731,17 @@ end
 --- - `Events` string, a list of event names separated by a comma and space ", " (optional)
 --- - `Next [1]` a link to the next node (optional)
 ---
----Supplies a context with `area_id`, `player_id`, and `object_id` when possible.
+---Supplies a context with `area_id`, `player_id`, `object_id`, `x`, `y`, `z` when possible.
 ---
 ---Custom properties supported by `Player Interaction`:
 --- - `Next [1]` a link to the next node (optional)
 ---
 ---Supplies a context with `player_ids` and `area_id`
+---
+---Custom properties supported by `Tile Interaction`:
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supplies a context with `area_id`, `player_id`, `x`, `y`, and `z`.
 ---
 ---Custom properties supported by `Help`:
 --- - `Next [1]` a link to the next node (optional)
@@ -756,6 +759,8 @@ function ScriptNodes:implement_event_entry_api()
   local event_map = {}
   ---@type table<string, (string|number)[]>
   local player_interaction_event_map = {}
+  ---@type table<string, (string|number)[]>
+  local tile_interaction_event_map = {}
   ---@type table<string, (string|number)[]>
   local help_event_map = {}
 
@@ -843,6 +848,17 @@ function ScriptNodes:implement_event_entry_api()
     object_ids[#object_ids + 1] = self:resolve_next_id(object)
   end)
 
+  self:on_entry_node_load("tile interaction", function(area_id, object)
+    local object_ids = tile_interaction_event_map[area_id]
+
+    if not object_ids then
+      object_ids = {}
+      tile_interaction_event_map[area_id] = object_ids
+    end
+
+    object_ids[#object_ids + 1] = self:resolve_next_id(object)
+  end)
+
   self:on_entry_node_load("help", function(area_id, object)
     local object_ids = help_event_map[area_id]
 
@@ -885,6 +901,9 @@ function ScriptNodes:implement_event_entry_api()
           area_id = area_id,
           player_id = event.player_id,
           object_id = event.object_id,
+          x = event.x,
+          y = event.y,
+          z = event.z,
         })
       end
     else
@@ -913,6 +932,27 @@ function ScriptNodes:implement_event_entry_api()
     execute_object_ids(area_id, object_ids, {
       area_id = area_id,
       player_ids = { event.player_id, event.actor_id }
+    })
+  end)
+
+  self:on_server_event("tile_interaction", function(event)
+    if event.button ~= 0 then
+      return
+    end
+
+    local area_id = Net.get_player_area(event.player_id)
+    local object_ids = tile_interaction_event_map[area_id]
+
+    if not object_ids then
+      return
+    end
+
+    execute_object_ids(area_id, object_ids, {
+      area_id = area_id,
+      player_id = event.player_id,
+      x = event.x,
+      y = event.y,
+      z = event.z
     })
   end)
 
@@ -1253,6 +1293,78 @@ function ScriptNodes:implement_object_api()
   self:implement_node("remove object", function(context, object)
     local object_id = object.custom_properties.Object or context.object_id
     Net.remove_object(context.area_id, object_id)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+end
+
+function ScriptNodes:implement_tile_api()
+  local function resolve_gid(area_id, tileset_path, id)
+    local gid = tonumber(id)
+
+    if tileset_path then
+      local tileset = Net.get_tileset(area_id, tileset_path)
+
+      if not tileset then
+        error('no tileset matching "' .. tileset .. '" in ' .. area_id)
+      end
+
+      gid = tileset.first_gid + gid
+    end
+
+    return gid
+  end
+
+  local function object_or_tile(context, object, object_callback, tile_callback)
+    local target = object.custom_properties.Target or context.object_id
+
+    if target then
+      local target_object = self:resolve_object(context.area_id, target)
+
+      if target_object then
+        if target_object.data.type == "tile" then
+          object_callback(target_object)
+        else
+          tile_callback(target_object.x, target_object.y, target_object.z)
+        end
+      end
+    elseif context.x then
+      tile_callback(context.x, context.y, context.z)
+    end
+  end
+
+  self:implement_node("has tile id", function(context, object)
+    local gid = resolve_gid(context.area_id, object.custom_properties.Tileset, object.custom_properties.Id)
+    local pass = false
+
+    object_or_tile(context, object,
+      function(target_object)
+        pass = target_object and target_object.data.gid == gid
+      end,
+      function(x, y, z)
+        pass = Net.get_tile(context.area_id, x, y, z) == gid
+      end
+    )
+
+    if pass then
+      self:execute_next_node(context, context.area_id, object, 2)
+    else
+      self:execute_next_node(context, context.area_id, object)
+    end
+  end)
+
+  self:implement_node("set tile id", function(context, object)
+    local gid = resolve_gid(context.area_id, object.custom_properties.Tileset, object.custom_properties.Id)
+
+    object_or_tile(context, object,
+      function(target_object)
+        target_object.data.gid = gid
+        Net.set_object_data(context.area_id, target_object.id, target_object.data)
+      end,
+      function(x, y, z)
+        Net.set_tile(context.area_id, x, y, z, gid)
+      end
+    )
 
     self:execute_next_node(context, context.area_id, object)
   end)
