@@ -77,7 +77,7 @@ resources = "android_res"
 [package.metadata.android.sdk]
 target_sdk_version = 30
 min_sdk_version = 30
-max_sdk_version = 30
+max_sdk_version = 35
 
 [package.metadata.android.signing.release]
 path = "debug.keystore"
