@@ -168,6 +168,7 @@ function ScriptNodes:new()
   s:implement_camera_api()
   s:implement_encounter_api()
   s:implement_inventory_api()
+  s:implement_link_api()
   s:implement_actor_api()
   s:implement_tag_api()
   s:implement_path_api()
@@ -2161,6 +2162,41 @@ function ScriptNodes:implement_inventory_api()
     else
       self:execute_next_node(context, context.area_id, object)
     end
+  end)
+end
+
+---Implements support for the `Refer Server` and `Refer Package` nodes
+---
+---Expects `area_id` and `player_id` or `player_ids` to be defined on the context table.
+---
+---Supported custom properties for `Refer Server`:
+--- - `Name` string
+--- - `Address` string
+--- - `Next [1]` a link to the next node (optional)
+---
+---Supported custom properties for `Refer Package`:
+--- - `Id` string
+--- - `Next [1]` a link to the next node (optional)
+function ScriptNodes:implement_link_api()
+  self:implement_node("refer server", function(context, object)
+    local name = object.custom_properties.Name
+    local address = object.custom_properties.Address
+
+    for_each_player_safe(context, function(player_id)
+      Net.refer_server(player_id, name, address)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
+  self:implement_node("refer package", function(context, object)
+    local id = object.custom_properties.Id
+
+    for_each_player_safe(context, function(player_id)
+      Net.refer_package(player_id, id)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
   end)
 end
 
