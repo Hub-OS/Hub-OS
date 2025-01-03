@@ -16,7 +16,7 @@ fn to_srgb(v: f32) -> f32 {
 
 fn sample_palette(uv: vec2<f32>) -> vec4<f32> {
     let sample = textureSample(txture, smplr, uv);
-    let i = to_srgb(sample.x);
+    let i = to_srgb(sample.x) + 0.5 / f32(textureDimensions(palette).x);
     return textureSample(palette, smplr, vec2<f32>(i, 0.5));
 }
 
