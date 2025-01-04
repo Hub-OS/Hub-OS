@@ -233,6 +233,8 @@ impl ActorPropertyAnimator {
             (property_animator, position, direction, sprite, animator, movement_animator),
         ) in entities.query_mut::<Query>()
         {
+            property_animator.time += elapsed;
+
             let previous_position = *position;
 
             let mut property_remove_list = Vec::new();
@@ -379,9 +381,6 @@ impl ActorPropertyAnimator {
             }
 
             movement_animator.set_animation_enabled(!property_animator.animating_sprite);
-
-            // update time
-            property_animator.time += elapsed;
             property_animator.sprite_animation_time += 1;
 
             if property_animator.relevant_properties.is_empty() {
