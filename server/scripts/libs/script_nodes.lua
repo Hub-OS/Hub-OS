@@ -171,6 +171,7 @@ function ScriptNodes:new()
   s:implement_link_api()
   s:implement_actor_api()
   s:implement_tag_api()
+  s:implement_common_animations_api()
   s:implement_path_api()
   s:implement_collision_api()
   s:implement_delay_api()
@@ -688,8 +689,8 @@ end
 ---@param target_area_id string
 ---@param object Net.Object
 function ScriptNodes:resolve_teleport_properties(object, target_area_id)
-  local x, y, z = Net.get_spawn_position_multi(target_area_id)
   local warp_in
+  local x, y, z
   local direction
 
   if object.custom_properties.Target then
@@ -1108,6 +1109,10 @@ function ScriptNodes:implement_area_api()
 
     warp_in, x, y, z, direction = self:resolve_teleport_properties(object, area_id)
 
+    if not x then
+      x, y, z = Net.get_spawn_position_multi(area_id)
+    end
+
     if not direction then
       direction = Net.get_spawn_direction(area_id)
     end
@@ -1133,6 +1138,10 @@ function ScriptNodes:implement_area_api()
     self:load(new_area_id)
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
+
+    if not x then
+      x, y, z = Net.get_spawn_position_multi(new_area_id)
+    end
 
     if not direction then
       direction = Net.get_spawn_direction(new_area_id)
@@ -1162,6 +1171,10 @@ function ScriptNodes:implement_area_api()
     end
 
     local warp_in, x, y, z, direction = self:resolve_teleport_properties(object, new_area_id)
+
+    if not x then
+      x, y, z = Net.get_spawn_position_multi(new_area_id)
+    end
 
     if not direction then
       direction = Net.get_spawn_direction(new_area_id)
@@ -2466,6 +2479,10 @@ function ScriptNodes:implement_actor_api()
 
     warp_in, x, y, z, direction = self:resolve_teleport_properties(object, context.area_id)
 
+    if not x then
+      x, y, z = object.x, object.y, object.z
+    end
+
     if ((not context.bot_id and not actor_string) or actor_string == "Player") and context.player_ids then
       for _, player_id in ipairs(context.player_ids) do
         Net.teleport_player(player_id, warp_in, x, y, z, direction)
@@ -2579,6 +2596,78 @@ function ScriptNodes:implement_tag_api()
     for tag in pairs(self._tagged) do
       self:untag_actor(event.player_id, tag)
     end
+  end)
+end
+
+---Implements support for the `Area Transition` node.
+---
+---Expects `area_id` and optionally `player_id`, or `player_ids` to be defined on the context table.
+---
+---Custom properties supported by `Area Transition`:
+--- - `Fade` a color to fade to (optional)
+--- - `Direction` number, the direction players should walk or face during the transition (optional)
+--- - `Walk Distance` number, how far players should walk during the transition (optional)
+--- - `Next [1]` a link to the next node, executes before the screen fades back in. (optional)
+function ScriptNodes:implement_common_animations_api()
+  self:implement_node("area transition", function(context, object)
+    local FULL_DURATION = 45 / 60
+    local HALF_DURATION = FULL_DURATION / 2
+    local fade_color = parse_color(object.custom_properties.Fade) or { r = 0, g = 0, b = 0 }
+
+    local direction = object.custom_properties.Direction and string.upper(object.custom_properties.Direction)
+    local walk_distance = tonumber(object.custom_properties["Walk Distance"])
+
+    local keyframe_properties = {}
+
+    ---@type Net.ActorKeyframe[]
+    local keyframes = {
+      {
+        properties = keyframe_properties,
+        duration = HALF_DURATION,
+      }
+    }
+
+    if walk_distance then
+      keyframe_properties[1] = { property = "X", ease = "Linear", value = 0 }
+      keyframe_properties[2] = { property = "Y", ease = "Linear", value = 0 }
+    else
+      keyframe_properties[1] = { property = "Direction", value = direction }
+    end
+
+    -- animate player and fade out
+    for_each_player_safe(context, function(player_id)
+      if walk_distance then
+        local x, y = Net.get_player_position_multi(player_id)
+        local offset_x, offset_y = Direction.unit_vector_multi(
+          direction or Net.get_player_direction(player_id)
+        )
+
+        keyframe_properties[1].value = x + offset_x * walk_distance
+        keyframe_properties[2].value = y + offset_y * walk_distance
+      end
+
+      Net.animate_player_properties(player_id, keyframes)
+      Net.lock_player_input(player_id)
+      Net.fade_player_camera(player_id, fade_color, HALF_DURATION)
+    end)
+
+    -- execute next node and fade in
+    Async.sleep(HALF_DURATION).and_then(function()
+      self:execute_next_node(context, context.area_id, object)
+
+      local TRANSPARENT = { r = 0, g = 0, b = 0, a = 0 }
+
+      for_each_player_safe(context, function(player_id)
+        Net.fade_player_camera(player_id, TRANSPARENT, HALF_DURATION)
+      end)
+    end)
+
+    -- transition complete, unlock input
+    Async.sleep(FULL_DURATION).and_then(function()
+      for_each_player_safe(context, function(player_id)
+        Net.unlock_player_input(player_id)
+      end)
+    end)
   end)
 end
 
