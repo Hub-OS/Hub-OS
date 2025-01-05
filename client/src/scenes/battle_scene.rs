@@ -13,11 +13,11 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
-const BUFFER_TOLERANCE: f32 = 2.0;
-const BUFFER_AVERAGE_PERIOD: f32 = SLOW_COOLDOWN as _;
+const LEAD_TOLERANCE: f32 = 2.0;
+const LEAD_AVERAGE_PERIOD: f32 = SLOW_COOLDOWN as _;
 
 fn simple_rolling_average(average: &mut f32, new_data: f32) {
-    *average = (*average * (BUFFER_AVERAGE_PERIOD - 1.0) + new_data) / BUFFER_AVERAGE_PERIOD;
+    *average = (*average * (LEAD_AVERAGE_PERIOD - 1.0) + new_data) / LEAD_AVERAGE_PERIOD;
 }
 
 pub enum BattleEvent {
@@ -454,7 +454,7 @@ impl BattleScene {
             simple_rolling_average(&mut controller.local_average, lead);
 
             let has_substantial_diff = controller.connected
-                && controller.local_average > controller.remote_average + BUFFER_TOLERANCE;
+                && controller.local_average > controller.remote_average + LEAD_TOLERANCE;
 
             if self.slow_cooldown == 0 && has_substantial_diff {
                 self.slow_cooldown = SLOW_COOLDOWN;
@@ -505,9 +505,9 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
+        // calculate our lead against each remote for them to know if they should slow down
         let sync_dist = (self.simulation.time - self.synced_time) as i16;
 
-        // gather buffer sizes for remotes to know if they should slow down
         let lead = self
             .player_controllers
             .iter()
