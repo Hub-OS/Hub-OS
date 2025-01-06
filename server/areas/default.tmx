@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="151">
+<map version="1.8" tiledversion="1.8.2" orientation="isometric" renderorder="right-down" compressionlevel="0" width="19" height="15" tilewidth="64" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="155">
  <properties>
   <property name="Background Animation" value="/server/assets/bg.animation"/>
   <property name="Background Texture" value="/server/assets/bg.png"/>
@@ -746,6 +746,25 @@
    <properties>
     <property name="Next" type="object" value="123"/>
    </properties>
+   <point/>
+  </object>
+  <object id="151" type="Script Entry: Collision" x="261.696" y="-28.1686" width="78.9729" height="63.469">
+   <properties>
+    <property name="On Enter" type="object" value="153"/>
+   </properties>
+  </object>
+  <object id="152" type="Script Node: Teleport" x="304" y="176">
+   <point/>
+  </object>
+  <object id="153" type="Script Node: Area Transition" x="248" y="-56">
+   <properties>
+    <property name="Direction" value="Up Right"/>
+    <property name="Next" type="object" value="152"/>
+    <property name="Walk Distance" type="float" value="1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="154" name="Shop Map Marker" type="Shop" x="408" y="120">
    <point/>
   </object>
  </objectgroup>
