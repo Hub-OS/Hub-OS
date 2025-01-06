@@ -1312,6 +1312,18 @@ function ScriptNodes:implement_object_api()
   end)
 end
 
+---Implements support for the `Has Tile Id` and `Set Tile Id` nodes
+---
+---All nodes expect `area_id` and optionally `object_id` on the context table.
+---
+---Custom properties supported by `Has Tile Id`:
+--- - `Target` object, expects a tile object or a tile under the object (optional)
+--- - `Next [1]` a link to the default node (optional)
+--- - `Next [1]` a link to the passing node (optional)
+---
+---Custom properties supported by `Set Tile Id`:
+--- - `Target` object, expects a tile object or a tile under the object (optional)
+--- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_tile_api()
   local function resolve_gid(area_id, tileset_path, id)
     local gid = tonumber(id)
@@ -3005,7 +3017,7 @@ end
 --- - `On Exit` a link to a script node (optional)
 --- - `Ignore Transfer` boolean, whether collision changes should be detected when players transfer areas (optional)
 ---
----Custom properties supported by `Set Collider:
+---Custom properties supported by `Set Collider`:
 --- - `Target` "Player [1+]" | "Bot [id]" (optional)
 --- - `On Enter` a link to a script node (optional)
 --- - `On Exit` a link to a script node (optional)
