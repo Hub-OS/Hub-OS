@@ -108,7 +108,7 @@ function BotPaths:new()
       if diff_x * diff_x + diff_y * diff_y + diff_z * diff_z < speed * speed * 2 then
         -- reached point, snap to it, and pick next target
         bot.path_index = path_node.next
-        bot.speed = path_node.speed
+        bot.speed = path_node.speed or bot.speed
         bot.wait = path_node.wait or 0
         x = path_node.x
         y = path_node.y
