@@ -12,6 +12,7 @@ use packets::structures::Direction;
 pub struct PlayerOverridables {
     pub buttons: Vec<Option<CardSelectButton>>,
     pub calculate_charge_time: Option<BattleCallback<u8, FrameTime>>,
+    pub charges_with_shoot: Option<bool>,
     pub normal_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub special_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,

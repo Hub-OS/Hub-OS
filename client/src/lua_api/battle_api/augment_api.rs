@@ -92,6 +92,15 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    setter(
+        lua_api,
+        "set_charge_with_shoot",
+        |augment, _, charge: Option<bool>| {
+            augment.overridables.charges_with_shoot = charge;
+            Ok(())
+        },
+    );
+
     callback_setter(
         lua_api,
         CHARGE_TIMING_FN,

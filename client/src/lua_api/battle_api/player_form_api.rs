@@ -133,6 +133,28 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         PLAYER_FORM_TABLE,
+        "set_charge_with_shoot",
+        |api_ctx, lua, params| {
+            let (table, charge): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = table.raw_get("#entity_id")?;
+            let index: usize = table.raw_get("#index")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let entities = &mut api_ctx.simulation.entities;
+            let player = entities
+                .query_one_mut::<&mut Player>(entity_id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+            form.overridables.charges_with_shoot = charge;
+
+            lua.pack_multi(table)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        PLAYER_FORM_TABLE,
         "deactivate",
         move |api_ctx, lua, params| {
             let table: rollback_mlua::Table = lua.unpack_multi(params)?;

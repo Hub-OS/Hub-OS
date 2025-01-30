@@ -24,6 +24,7 @@ pub struct Player {
     pub charge_boost: u8,
     pub hand_size_boost: i8,
     pub card_charge_time_cache: ResultCacheSingle<Option<CardProperties>, Option<FrameTime>>,
+    pub marked_charging: bool,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
     pub attack_charge: AttackCharge,
@@ -85,6 +86,7 @@ impl Player {
             charge_boost: 0,
             hand_size_boost: 0,
             card_charge_time_cache: ResultCacheSingle::default(),
+            marked_charging: false,
             card_charged: false,
             card_charge: AttackCharge::new(
                 assets,
@@ -453,6 +455,12 @@ impl Player {
         }
     }
 
+    pub fn charges_with_shoot(&self) -> bool {
+        PlayerOverridables::flat_map_for(self, |o| o.charges_with_shoot)
+            .next()
+            .unwrap_or(true)
+    }
+
     pub fn cancel_charge(&mut self) {
         self.attack_charge.cancel();
         self.card_charge.cancel();
@@ -501,11 +509,16 @@ impl Player {
         let play_sfx = !simulation.is_resimulation;
         let input = &simulation.inputs[player.index];
 
+        // try to charge with shoot
+        player.marked_charging |= player.charges_with_shoot() && input.is_down(Input::Shoot);
+
         if card_charge_time.is_some() && input.was_just_pressed(Input::UseCard) {
             // cancel attack charging
             player.attack_charge.cancel();
             player.card_charge.set_charging(true);
-        } else if input.was_just_pressed(Input::Shoot) {
+        } else if player.marked_charging
+            && (player.card_charge.charging() || !player.attack_charge.charging())
+        {
             // cancel card charging
             player.card_charge.cancel();
             player.attack_charge.set_charging(true);
@@ -520,9 +533,12 @@ impl Player {
                 && player.card_charge.charging();
             player.card_charge.set_charging(charging_card);
 
-            let charging_attack = input.is_down(Input::Shoot) && !player.card_charge.charging();
+            let charging_attack = player.marked_charging && !player.card_charge.charging();
             player.attack_charge.set_charging(charging_attack);
         }
+
+        // reset flag
+        player.marked_charging = false;
 
         if let Some(time) = card_charge_time {
             player.card_charge.set_max_charge_time(time);

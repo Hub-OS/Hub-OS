@@ -2079,6 +2079,30 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    setter(
+        lua_api,
+        "set_charge_with_shoot",
+        |player: &mut Player, _, charge: Option<bool>| {
+            player.overridables.charges_with_shoot = charge;
+            Ok(())
+        },
+    );
+
+    getter::<&Player, _, _>(
+        lua_api,
+        "charges_with_shoot",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.charges_with_shoot()),
+    );
+
+    setter(
+        lua_api,
+        "mark_charging",
+        |player: &mut Player, _, charge: Option<bool>| {
+            player.marked_charging = charge.unwrap_or(true);
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "calculate_default_charge_time",
