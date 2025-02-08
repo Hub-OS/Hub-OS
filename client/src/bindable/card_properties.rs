@@ -66,6 +66,9 @@ impl<L, F> CardProperties<L, F> {
         scale: Vec2,
         center: bool,
     ) -> TextStyle {
+        const NAME_SPACING: f32 = 2.0;
+        const DAMAGE_SPACING: f32 = 1.0;
+
         let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.monospace = true;
         text_style.bounds.set_position(position);
@@ -95,29 +98,34 @@ impl<L, F> CardProperties<L, F> {
         };
 
         // measure text
+        text_style.letter_spacing = NAME_SPACING;
         let name_width = text_style.measure(name_text).size.x;
 
         text_style.font = FontName::Damage;
+        text_style.letter_spacing = DAMAGE_SPACING;
         let damage_width = text_style.measure(&damage_text).size.x;
 
         if center {
-            let final_width = name_width + text_style.letter_spacing + damage_width;
+            let final_width = name_width + NAME_SPACING + damage_width;
             text_style.bounds.x -= final_width * 0.5;
         }
 
         // draw name
+        text_style.letter_spacing = NAME_SPACING;
         text_style.shadow_color = Color::BLACK;
         text_style.font = FontName::Thick;
         text_style.draw(game_io, sprite_queue, name_text);
 
         // draw damage
+        text_style.letter_spacing = DAMAGE_SPACING;
         text_style.shadow_color = Color::TRANSPARENT;
         text_style.font = FontName::Damage;
-        text_style.bounds.x += name_width + text_style.letter_spacing;
+        text_style.bounds.x += name_width + NAME_SPACING;
         text_style.draw(game_io, sprite_queue, &damage_text);
 
         text_style.bounds.x += damage_width + text_style.letter_spacing;
 
+        text_style.letter_spacing = NAME_SPACING;
         text_style
     }
 
