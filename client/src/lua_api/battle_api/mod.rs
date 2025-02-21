@@ -100,6 +100,7 @@ const ACTION_END_FN: &str = "on_action_end_func";
 const EXECUTE_FN: &str = "on_execute_func";
 
 // all entities
+const SPAWN_FN: &str = "on_spawn_func";
 const IDLE_FN: &str = "on_idle_func";
 const DELETE_FN: &str = "on_delete_func";
 const BATTLE_START_FN: &str = "on_battle_start_func";
@@ -109,10 +110,12 @@ const COUNTER_FN: &str = "on_counter_func";
 // living
 const COUNTERED_FN: &str = "on_countered_func";
 
+// characters
+const INTRO_FN: &str = "intro_func";
+
 // spells
 const COLLISION_FN: &str = "on_collision_func";
 const ATTACK_FN: &str = "on_attack_func";
-const SPAWN_FN: &str = "on_spawn_func";
 
 // players
 const MOVEMENT_FN: &str = "movement_func";

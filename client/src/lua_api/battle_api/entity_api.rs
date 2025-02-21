@@ -1091,6 +1091,13 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
     getter::<&Character, _, _>(lua_api, "rank", |character: &Character, lua, _: ()| {
         lua.pack_multi(character.rank)
     });
+
+    callback_setter(
+        lua_api,
+        INTRO_FN,
+        |character: &mut Character| &mut character.intro_callback,
+        |lua, table, _| lua.pack_multi(table),
+    );
 }
 
 fn inject_spell_api(lua_api: &mut BattleLuaApi) {

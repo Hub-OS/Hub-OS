@@ -19,6 +19,7 @@ pub struct Character {
     pub cards: Vec<CardProperties>, // stores cards reversed
     pub card_use_requested: bool,
     pub next_card_mutation: Option<usize>, // stores card index, invert to get a usable index
+    pub intro_callback: BattleCallback<(), Option<GenerationalIndex>>,
 }
 
 impl Character {
@@ -29,6 +30,7 @@ impl Character {
             cards: Vec::new(),
             card_use_requested: false,
             next_card_mutation: None,
+            intro_callback: BattleCallback::stub(None),
         }
     }
 

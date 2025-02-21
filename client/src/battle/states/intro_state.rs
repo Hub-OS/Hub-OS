@@ -1,11 +1,10 @@
 use super::State;
-use crate::bindable::EntityId;
+use crate::bindable::{ActionLockout, EntityId, GenerationalIndex};
 use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::BATTLE_FADE_DURATION;
 use crate::{battle::*, BATTLE_CAMERA_OFFSET};
 use framework::prelude::*;
-use std::collections::VecDeque;
 
 #[derive(Clone)]
 pub struct BattleInitMusic {
@@ -19,8 +18,8 @@ const MAX_ANIMATION_TIME: FrameTime = 32;
 #[derive(Clone)]
 pub struct IntroState {
     completed: bool,
-    animation_time: FrameTime, // animation time for the current entity
-    tracked_entities: VecDeque<EntityId>,
+    // (entity_id, action_index)
+    tracked_intros: Vec<(EntityId, GenerationalIndex)>,
 }
 
 impl State for IntroState {
@@ -39,29 +38,35 @@ impl State for IntroState {
     fn update(
         &mut self,
         game_io: &GameIO,
-        _resources: &SharedBattleResources,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
         // first frame setup
         if simulation.time == 0 {
-            use hecs::Without;
-
             let entities = &mut simulation.entities;
-            for (id, (entity, _)) in
-                entities.query_mut::<Without<(&mut Entity, &Character), &Player>>()
-            {
+            let mut entity_ids = Vec::new();
+
+            for (id, (entity, _)) in entities.query_mut::<(&mut Entity, &Character)>() {
                 if !entity.spawned {
                     continue;
                 }
 
-                self.tracked_entities.push_back(id.into());
-
-                if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
-                {
-                    let root_node = sprite_tree.root_mut();
-                    root_node.set_alpha(0.0);
-                }
+                entity_ids.push(id);
             }
+
+            // get intros for entities
+            // built in reverse to allow us to pop from the end to get the next value
+            self.tracked_intros = entity_ids
+                .into_iter()
+                .rev()
+                .flat_map(|id| {
+                    let entity_id = id.into();
+                    let action_index =
+                        self.resolve_intro_action(game_io, resources, simulation, entity_id)?;
+
+                    Some((entity_id, action_index))
+                })
+                .collect();
         }
 
         let scale = simulation.field.best_fitting_scale();
@@ -72,66 +77,45 @@ impl State for IntroState {
         let transition_frames =
             BATTLE_FADE_DURATION.as_secs_f32() / game_io.target_duration().as_secs_f32();
 
-        if simulation.time < transition_frames.round() as FrameTime {
-            return;
-        }
+        match simulation
+            .time
+            .cmp(&(transition_frames.round() as FrameTime))
+        {
+            std::cmp::Ordering::Less => return,
+            std::cmp::Ordering::Equal => {
+                // start music
+                if let Some(init_music) = simulation.config.battle_init_music.take() {
+                    simulation.play_music(game_io, &init_music.buffer, init_music.loops);
+                }
 
-        // start music
-        if let Some(init_music) = simulation.config.battle_init_music.take() {
-            simulation.play_music(game_io, &init_music.buffer, init_music.loops);
+                self.queue_next_intro(simulation);
+            }
+            std::cmp::Ordering::Greater => {}
         }
 
         let entities = &mut simulation.entities;
 
-        for (i, id) in self.tracked_entities.iter().cloned().enumerate() {
-            let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) else {
-                continue;
-            };
+        // see if the active entity's action queue is empty in order to remove it from our queue
+        if let Some((id, _)) = self.tracked_intros.last().cloned() {
+            let pop = entities
+                .query_one_mut::<&mut ActionQueue>(id.into())
+                .map(|queue| queue.active.is_none() && queue.pending.is_empty())
+                .unwrap_or(true);
 
-            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
-            else {
-                continue;
-            };
-
-            let root_node = sprite_tree.root_mut();
-
-            let alpha = if i == 0 {
-                let max_time = MAX_ANIMATION_TIME / 2;
-                let time = (self.animation_time + 1) / 2;
-
-                time as f32 / max_time as f32
-            } else {
-                0.0
-            };
-
-            root_node.set_shader_effect(if alpha < 1.0 {
-                SpriteShaderEffect::Pixelate
-            } else {
-                SpriteShaderEffect::Default
-            });
-
-            root_node.set_alpha(alpha);
-        }
-
-        // play a sound if this is the first frame of the entity's introduction
-        if self.animation_time == 0 {
-            let sfx = &game_io.resource::<Globals>().unwrap().sfx;
-            simulation.play_sound(game_io, &sfx.appear);
-        }
-
-        self.animation_time += 1;
-
-        // move on to the next entity if we passed the max animation time
-        if self.animation_time >= MAX_ANIMATION_TIME {
-            self.animation_time = 0;
-            self.tracked_entities.pop_front();
+            if pop {
+                self.tracked_intros.pop();
+                self.queue_next_intro(simulation);
+            }
         }
 
         // mark completion if there's no more entities to introduce
-        if self.tracked_entities.is_empty() {
+        if self.tracked_intros.is_empty() {
             self.completed = true;
             simulation.intro_complete = true;
         }
+
+        Action::process_queues(game_io, resources, simulation);
+        Action::process_actions(game_io, resources, simulation);
     }
 }
 
@@ -139,8 +123,119 @@ impl IntroState {
     pub fn new() -> Self {
         Self {
             completed: false,
-            animation_time: 0,
-            tracked_entities: VecDeque::new(),
+            tracked_intros: Default::default(),
         }
+    }
+
+    fn queue_next_intro(&self, simulation: &mut BattleSimulation) {
+        let Some(&(entity_id, index)) = self.tracked_intros.last() else {
+            return;
+        };
+
+        ActionQueue::ensure(&mut simulation.entities, entity_id);
+        Action::queue_action(simulation, entity_id, index);
+    }
+
+    fn resolve_intro_action(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+    ) -> Option<GenerationalIndex> {
+        let entities = &mut simulation.entities;
+        let Ok((character, player)) =
+            entities.query_one_mut::<(&mut Character, Option<&Player>)>(entity_id.into())
+        else {
+            return None;
+        };
+
+        let is_player = player.is_some();
+
+        // see if the entity provides an intro action
+        let intro_callback = character.intro_callback.clone();
+        let action_index = intro_callback.call(game_io, resources, simulation, ());
+
+        if let Some(index) = action_index {
+            return Some(index);
+        }
+
+        if is_player {
+            // players have no intro by default
+            return None;
+        }
+
+        // create the default intro action
+        let action_index = Action::create(game_io, simulation, String::new(), entity_id)?;
+
+        // grab the entity to build the intro
+        let entities = &mut simulation.entities;
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+            return None;
+        };
+
+        // hide the entity
+        if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+            let root_node = sprite_tree.root_mut();
+            root_node.set_alpha(0.0);
+        }
+
+        // build the action
+        let action = &mut simulation.actions[action_index];
+        action.lockout_type = ActionLockout::Sequence;
+
+        action.execute_callback = Some(BattleCallback::new(move |game_io, _, simulation, _| {
+            // play a sound to start
+            let sfx = &game_io.resource::<Globals>().unwrap().sfx;
+            simulation.play_sound(game_io, &sfx.appear);
+
+            // create action step now that we know our start time
+            let start_time = simulation.time;
+            let action = &mut simulation.actions[action_index];
+
+            let mut action_step = ActionStep::default();
+            action_step.callback = BattleCallback::new(move |_, _, simulation, ()| {
+                let Some(action) = &mut simulation.actions.get_mut(action_index) else {
+                    return;
+                };
+                let Some(action_step) = action.steps.get_mut(0) else {
+                    return;
+                };
+                let Ok(entity) = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(action.entity.into())
+                else {
+                    action_step.completed = true;
+                    return;
+                };
+                let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+                else {
+                    action_step.completed = true;
+                    return;
+                };
+
+                let elapsed = simulation.time - start_time;
+
+                let max_time = MAX_ANIMATION_TIME / 2;
+                let time = (elapsed + 1) / 2;
+
+                let alpha = time as f32 / max_time as f32;
+
+                let root_sprite = sprite_tree.root_mut();
+
+                if alpha < 1.0 {
+                    root_sprite.set_alpha(alpha);
+                    root_sprite.set_shader_effect(SpriteShaderEffect::Pixelate)
+                } else {
+                    root_sprite.set_alpha(1.0);
+                    root_sprite.set_shader_effect(SpriteShaderEffect::Default);
+                    action_step.completed = true;
+                }
+            });
+
+            action.steps.push(action_step);
+        }));
+
+        Some(action_index)
     }
 }
