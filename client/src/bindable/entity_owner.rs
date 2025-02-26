@@ -34,7 +34,7 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for EntityOwner {
     fn into_lua(
         self,
         lua: &'lua rollback_mlua::Lua,
-    ) -> rollback_mlua::Result<rollback_mlua::Value> {
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>> {
         match self {
             EntityOwner::Team(team) => team.into_lua(lua),
             EntityOwner::Entity(id) => create_entity_table(lua, id)?.into_lua(lua),

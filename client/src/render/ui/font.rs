@@ -190,7 +190,7 @@ impl GlyphAtlas {
         &'a self,
         font: &'a FontName,
         character: &'a str,
-    ) -> Option<&AnimationFrame> {
+    ) -> Option<&'a AnimationFrame> {
         self.map
             .get(&(Cow::Borrowed(font), Cow::Borrowed(character)))
     }

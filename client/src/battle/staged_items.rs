@@ -151,7 +151,7 @@ impl StagedItems {
     pub fn resolve_card_ids_and_codes<'a>(
         &'a self,
         deck: &'a [Card],
-    ) -> impl DoubleEndedIterator<Item = (&PackageId, &str)> {
+    ) -> impl DoubleEndedIterator<Item = (&'a PackageId, &'a str)> {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
                 let card = deck.get(*i)?;

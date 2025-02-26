@@ -428,7 +428,7 @@ impl<'a, 'b> DynamicApiCtx<'a, 'b> {
         table_index: usize,
         callback_type: u8,
         function_name: &'c str,
-    ) -> Option<&LuaApiFunction> {
+    ) -> Option<&'c LuaApiFunction> {
         let table_functions = self.dynamic_functions.get(table_index)?;
 
         table_functions.get(&(callback_type, Cow::Borrowed(function_name)))

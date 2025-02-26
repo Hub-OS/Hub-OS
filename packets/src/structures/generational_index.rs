@@ -80,7 +80,7 @@ macro_rules! create_generational_index {
         }
 
         impl<'lua> mlua::IntoLua<'lua> for $name {
-            fn into_lua(self, _lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value> {
+            fn into_lua(self, _lua: &'lua mlua::Lua) -> mlua::Result<mlua::Value<'lua>> {
                 let n = self.into();
                 Ok(mlua::Value::Integer(n))
             }
