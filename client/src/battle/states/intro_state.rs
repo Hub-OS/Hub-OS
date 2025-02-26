@@ -1,5 +1,5 @@
 use super::State;
-use crate::bindable::{ActionLockout, EntityId, GenerationalIndex};
+use crate::bindable::{ActionLockout, ComponentLifetime, EntityId, GenerationalIndex};
 use crate::render::{FrameTime, SpriteShaderEffect};
 use crate::resources::{Globals, SoundBuffer};
 use crate::transitions::BATTLE_FADE_DURATION;
@@ -25,6 +25,10 @@ pub struct IntroState {
 impl State for IntroState {
     fn clone_box(&self) -> Box<dyn State> {
         Box::new(self.clone())
+    }
+
+    fn allows_animation_updates(&self) -> bool {
+        true
     }
 
     fn next_state(&self, game_io: &GameIO) -> Option<Box<dyn State>> {
@@ -180,6 +184,13 @@ impl IntroState {
             root_node.set_alpha(0.0);
         }
 
+        // pause sprite animations
+        let animator_index = entity.animator_index;
+
+        if let Some(animator) = simulation.animators.get_mut(animator_index) {
+            animator.disable();
+        };
+
         // build the action
         let action = &mut simulation.actions[action_index];
         action.lockout_type = ActionLockout::Sequence;
@@ -235,6 +246,16 @@ impl IntroState {
 
             action.steps.push(action_step);
         }));
+
+        // resume sprite animations when battle begins
+        let mut component = Component::new(entity_id, ComponentLifetime::Battle);
+        component.update_callback = BattleCallback::new(move |_, _, simulation, _| {
+            if let Some(animator) = simulation.animators.get_mut(animator_index) {
+                animator.enable();
+            };
+        });
+
+        simulation.components.insert(component);
 
         Some(action_index)
     }
