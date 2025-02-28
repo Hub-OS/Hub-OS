@@ -1497,8 +1497,20 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
-    getter::<&Player, _, _>(lua_api, "is_local", |player: &Player, lua, ()| {
-        lua.pack_multi(player.local)
+    lua_api.add_dynamic_function(ENTITY_TABLE, "is_local", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        lua.pack_multi(player.index == simulation.local_player_index)
     });
 
     getter::<&Player, _, _>(lua_api, "emotions", |player: &Player, lua, ()| {

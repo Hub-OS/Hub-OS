@@ -107,7 +107,7 @@ impl State for CardSelectState {
 
                 // initialize selection
                 let selection = &mut self.player_selections[player.index];
-                selection.local = player.local;
+                selection.local = player.index == simulation.local_player_index;
                 selection.animating_slide = true;
             }
 
@@ -120,7 +120,7 @@ impl State for CardSelectState {
                     continue;
                 }
 
-                if player.local {
+                if player.index == simulation.local_player_index {
                     pre_confirmed = true;
                 }
 
@@ -922,7 +922,7 @@ impl CardSelectState {
         };
 
         let globals = game_io.resource::<Globals>().unwrap();
-        let local = player.local;
+        let local = player.index == simulation.local_player_index;
         let mut applied = false;
 
         if let Some(popped) = player.staged_items.pop() {

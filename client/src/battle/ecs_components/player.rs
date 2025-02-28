@@ -12,7 +12,6 @@ use packets::structures::PackageId;
 #[derive(Clone)]
 pub struct Player {
     pub index: usize,
-    pub local: bool,
     pub deck: Vec<Card>,
     pub staged_items: StagedItems,
     pub used_recipes: Vec<PackageId>,
@@ -74,7 +73,6 @@ impl Player {
 
         Self {
             index: setup.index,
-            local: setup.local,
             deck: deck.cards,
             staged_items: Default::default(),
             used_recipes: Default::default(),
@@ -325,7 +323,7 @@ impl Player {
 
         for (id, (entity, player, living)) in simulation.entities.query_mut::<PlayerQuery>() {
             // track the local player's health
-            if player.local {
+            if player.index == simulation.local_player_index {
                 simulation.local_player_id = id.into();
                 simulation.local_health_ui.set_max_health(living.max_health);
                 simulation.local_health_ui.snap_health(living.health);

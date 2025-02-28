@@ -1,6 +1,6 @@
 use super::{BattleLuaApi, ENTITY_TABLE, GAME_FOLDER_REGISTRY_KEY, RESOURCES_TABLE};
 use crate::battle::Player;
-use crate::bindable::{AudioBehavior, EntityId};
+use crate::bindable::{AudioBehavior, EntityId, InputQuery};
 use crate::lua_api::helpers::absolute_path;
 use crate::resources::{AssetManager, Globals};
 
@@ -65,7 +65,9 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         let player = entities.query_one_mut::<&Player>(entity_id.into()).ok();
 
-        if player.is_some_and(|player| player.local) && !simulation.is_resimulation {
+        if player.is_some_and(|player| player.index == simulation.local_player_index)
+            && !simulation.is_resimulation
+        {
             let globals = game_io.resource::<Globals>().unwrap();
             let sound_buffer = globals.assets.audio(game_io, &path);
             let audio = &globals.audio;
@@ -96,5 +98,31 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(RESOURCES_TABLE, "game_folder", |_, lua, _| {
         let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_REGISTRY_KEY)?;
         lua.pack_multi(path_str)
+    });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "is_local", |api_ctx, lua, params| {
+        let index: usize = lua.unpack_multi(params)?;
+
+        let api_ctx = api_ctx.borrow_mut();
+        lua.pack_multi(api_ctx.simulation.local_player_index == index)
+    });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "input_has", |api_ctx, lua, params| {
+        let (index, input_query): (usize, InputQuery) = lua.unpack_multi(params)?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        let Some(player_input) = &simulation.inputs.get(index) else {
+            return lua.pack_multi(false);
+        };
+
+        let result = match input_query {
+            InputQuery::JustPressed(input) => player_input.was_just_pressed(input),
+            InputQuery::Pulsed(input) => player_input.pulsed(input),
+            InputQuery::Held(input) => player_input.is_down(input),
+        };
+
+        lua.pack_multi(result)
     });
 }

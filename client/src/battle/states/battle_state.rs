@@ -3,6 +3,7 @@ use crate::battle::*;
 use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::structures::VecSet;
 use framework::prelude::*;
 use std::borrow::Cow;
 use ui::BattleBannerMessage;
@@ -244,25 +245,45 @@ impl BattleState {
         // detect failure + find team for success detection
         let local_team;
 
-        if let Ok(entity) =
-            (simulation.entities).query_one_mut::<&Entity>(simulation.local_player_id.into())
+        let entities = &mut simulation.entities;
+
+        if simulation.local_player_id == EntityId::default() {
+            // spectator
+            let mut player_teams = VecSet::default();
+
+            for (_, (entity, _)) in entities.query_mut::<(&Entity, &Player)>() {
+                player_teams.insert(entity.team);
+            }
+
+            let Some(team) = player_teams.iter().next() else {
+                // no one left to spectate
+                self.fail(simulation);
+                return;
+            };
+
+            if player_teams.len() > 1 {
+                // opponents exist
+                return;
+            }
+
+            local_team = *team;
+        } else if let Ok(entity) =
+            entities.query_one_mut::<&Entity>(simulation.local_player_id.into())
         {
             if entity.deleted {
-                self.fail();
+                self.fail(simulation);
                 return;
             }
 
             local_team = entity.team;
         } else {
-            self.fail();
+            // assume the entity was erased
+            self.fail(simulation);
             return;
         }
 
         // detect success
-        // todo: score screen
-
-        let enemies_alive = simulation
-            .entities
+        let enemies_alive = entities
             .query_mut::<(&Entity, &Character)>()
             .into_iter()
             .any(|(_, (entity, _))| entity.team != local_team);
@@ -272,15 +293,33 @@ impl BattleState {
         }
     }
 
-    fn fail(&mut self) {
+    fn complete_spectating(&mut self) {
+        self.end_message
+            .set_message(Cow::Borrowed("<_BATTLE_OVER_>"));
+        self.end_message.show_for(TOTAL_MESSAGE_TIME);
+    }
+
+    fn fail(&mut self, simulation: &mut BattleSimulation) {
+        if simulation.local_player_id == EntityId::default() {
+            self.complete_spectating();
+            return;
+        }
+
         self.end_message.set_message(Cow::Borrowed("<_FAILED_>"));
         self.end_message.show_for(TOTAL_MESSAGE_TIME);
     }
 
     fn succeed(&mut self, simulation: &mut BattleSimulation) {
+        if simulation.local_player_id == EntityId::default() {
+            self.complete_spectating();
+            return;
+        }
+
         self.end_message.set_message(Cow::Borrowed("<_SUCCESS_>"));
         self.end_message.show_for(TOTAL_MESSAGE_TIME);
         simulation.statistics.won = true;
+
+        // todo: score screen
     }
 
     fn detect_battle_start(

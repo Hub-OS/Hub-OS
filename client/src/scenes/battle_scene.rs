@@ -9,7 +9,7 @@ use crate::saves::{BattleRecording, PlayerInputBuffer};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
@@ -149,6 +149,9 @@ impl BattleScene {
                 .map(|setup| setup.index)
         };
 
+        let spectator_set: HashSet<_> =
+            HashSet::from_iter(std::mem::take(&mut simulation.config.spectators));
+
         for setup in player_setups {
             player_controllers.push(PlayerController {
                 connected: true,
@@ -157,10 +160,12 @@ impl BattleScene {
                 remote_average: 0.0,
             });
 
-            let result = Player::load(game_io, &resources, &mut simulation, setup);
+            if !spectator_set.contains(&setup.index) {
+                let result = Player::load(game_io, &resources, &mut simulation, setup);
 
-            if let Err(e) = result {
-                log::error!("{e}");
+                if let Err(e) = result {
+                    log::error!("{e}");
+                }
             }
         }
 

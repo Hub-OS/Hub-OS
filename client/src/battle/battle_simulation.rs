@@ -36,6 +36,7 @@ pub struct BattleSimulation {
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
+    pub local_player_index: usize,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
@@ -86,6 +87,13 @@ impl BattleSimulation {
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Default::default(),
             pending_callbacks: Vec::new(),
+            local_player_index: props
+                .player_setups
+                .iter()
+                .enumerate()
+                .find(|(_, setup)| setup.local)
+                .map(|(i, _)| i)
+                .unwrap_or_default(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
@@ -165,6 +173,7 @@ impl BattleSimulation {
             time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
+            local_player_index: self.local_player_index,
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             local_team: self.local_team,

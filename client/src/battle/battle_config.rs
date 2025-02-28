@@ -16,6 +16,7 @@ const DEFAULT_PLAYER_LAYOUTS: [(i32, i32); 9] = [
 #[derive(Clone)]
 pub struct BattleConfig {
     pub player_spawn_positions: Vec<(i32, i32)>,
+    pub spectators: Vec<usize>,
     pub player_flippable: Vec<Option<bool>>,
     pub turn_limit: Option<u32>,
     pub automatic_turn_end: bool,
@@ -42,6 +43,7 @@ impl BattleConfig {
         }
 
         Self {
+            spectators: Default::default(),
             player_spawn_positions,
             player_flippable: vec![None; player_count],
             turn_limit: None,
