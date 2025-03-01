@@ -22,7 +22,7 @@ pub(crate) enum Packet<'a, ChannelLabel> {
     },
 }
 
-impl<'a, ChannelLabel: Label> Packet<'a, ChannelLabel> {
+impl<ChannelLabel: Label> Packet<'_, ChannelLabel> {
     pub(crate) fn channel(&self) -> ChannelLabel {
         match self {
             Packet::Message { header, .. } => header.channel,

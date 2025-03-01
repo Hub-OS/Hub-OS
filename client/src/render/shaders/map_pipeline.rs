@@ -113,7 +113,7 @@ impl<'a> MapTileSpriteQueue<'a> {
     }
 }
 
-impl<'a> RenderQueueTrait for MapTileSpriteQueue<'a> {
+impl RenderQueueTrait for MapTileSpriteQueue<'_> {
     fn into_operation_vec(self) -> Vec<RenderOperation> {
         self.sprite_queue.into_operation_vec()
     }
@@ -142,7 +142,7 @@ impl<'a> MapSpriteQueue<'a> {
     }
 }
 
-impl<'a> RenderQueueTrait for MapSpriteQueue<'a> {
+impl RenderQueueTrait for MapSpriteQueue<'_> {
     fn into_operation_vec(self) -> Vec<RenderOperation> {
         self.sprite_queue.into_operation_vec()
     }

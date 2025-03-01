@@ -7,7 +7,7 @@ pub struct TextureAnimPathPair<'a> {
     pub animation: Cow<'a, str>,
 }
 
-impl<'a> TextureAnimPathPair<'a> {
+impl TextureAnimPathPair<'_> {
     pub fn own(self) -> TextureAnimPathPair<'static> {
         TextureAnimPathPair {
             texture: Cow::Owned(self.texture.into_owned()),

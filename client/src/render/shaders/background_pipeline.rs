@@ -70,7 +70,7 @@ impl<'a> BackgroundQueue<'a> {
     }
 }
 
-impl<'a> RenderQueueTrait for BackgroundQueue<'a> {
+impl RenderQueueTrait for BackgroundQueue<'_> {
     fn into_operation_vec(self) -> Vec<RenderOperation> {
         self.render_queue.into_operation_vec()
     }

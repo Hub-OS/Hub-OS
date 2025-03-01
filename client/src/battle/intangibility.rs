@@ -90,9 +90,8 @@ impl Intangibility {
         }
 
         // test for any elem weakness
-        return self
-            .element_weaknesses
+        self.element_weaknesses
             .iter()
-            .any(|element| *element == statuses.element || *element == statuses.secondary_element);
+            .any(|element| *element == statuses.element || *element == statuses.secondary_element)
     }
 }

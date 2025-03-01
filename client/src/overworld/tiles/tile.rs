@@ -18,9 +18,9 @@ pub struct Tile {
 impl Tile {
     pub const fn new(gid: u32) -> Tile {
         // https://doc.mapeditor.org/en/stable/reference/tmx-world-format/#tile-flipping
-        let flipped_horizontal = (gid >> 31 & 1) == 1;
-        let flipped_vertical = (gid >> 30 & 1) == 1;
-        let flipped_anti_diagonal = (gid >> 29 & 1) == 1;
+        let flipped_horizontal = ((gid >> 31) & 1) == 1;
+        let flipped_vertical = ((gid >> 30) & 1) == 1;
+        let flipped_anti_diagonal = ((gid >> 29) & 1) == 1;
 
         let gid = gid << 3 >> 3;
         let rotated = flipped_anti_diagonal;

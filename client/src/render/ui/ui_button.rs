@@ -10,7 +10,7 @@ pub struct UiButton<'a, T> {
     was_focused: bool,
 }
 
-impl<'a> UiButton<'a, Text> {
+impl UiButton<'_, Text> {
     pub fn new_text(game_io: &GameIO, font: FontName, text: &str) -> Self {
         Self::new(
             Text::new(game_io, font)
@@ -41,7 +41,7 @@ impl<'a, T> UiButton<'a, T> {
     }
 }
 
-impl<'a, T> UiNode for UiButton<'a, T>
+impl<T> UiNode for UiButton<'_, T>
 where
     T: UiNode,
 {

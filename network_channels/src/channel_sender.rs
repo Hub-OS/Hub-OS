@@ -29,7 +29,7 @@ impl<ChannelLabel: Label> ChannelSender<ChannelLabel> {
 
         let mut i = 0;
 
-        let fragment_count = ((data.len() + self.mtu - 1) / self.mtu) as u64;
+        let fragment_count = data.len().div_ceil(self.mtu) as u64;
         let mut fragment_id = 0;
 
         while i < data.len() {

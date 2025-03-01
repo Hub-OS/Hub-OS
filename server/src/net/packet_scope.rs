@@ -8,7 +8,7 @@ pub enum PacketScope<'a> {
     Client(ActorId),
 }
 
-impl<'a> PacketScope<'a> {
+impl PacketScope<'_> {
     pub fn into_owned(self) -> PacketScope<'static> {
         match self {
             PacketScope::All => PacketScope::All,

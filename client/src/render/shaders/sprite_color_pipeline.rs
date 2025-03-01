@@ -326,7 +326,7 @@ impl<'a> SpriteColorQueue<'a> {
     }
 }
 
-impl<'a> RenderQueueTrait for SpriteColorQueue<'a> {
+impl RenderQueueTrait for SpriteColorQueue<'_> {
     fn into_operation_vec(self) -> Vec<RenderOperation> {
         let mut operation_vec = self.operation_vec;
 
