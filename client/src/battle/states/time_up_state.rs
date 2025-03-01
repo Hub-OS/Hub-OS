@@ -1,20 +1,19 @@
 use super::State;
 use crate::battle::{BattleSimulation, SharedBattleResources};
-use crate::render::ui::BattleBannerMessage;
+use crate::render::ui::{BattleBannerMessage, BattleBannerPopup};
 use crate::render::{FrameTime, SpriteColorQueue};
 use framework::prelude::GameIO;
-use std::borrow::Cow;
 
 const DISPLAY_DURATION: FrameTime = 120;
 
 #[derive(Clone)]
 pub struct TimeUpState {
-    banner: BattleBannerMessage,
+    banner: BattleBannerPopup,
 }
 
 impl TimeUpState {
     pub fn new() -> Self {
-        let mut banner = BattleBannerMessage::new(Cow::Borrowed("<_TIME_UP!_>"));
+        let mut banner = BattleBannerPopup::new(BattleBannerMessage::TimeUp);
         banner.show_for(DISPLAY_DURATION);
 
         Self { banner }

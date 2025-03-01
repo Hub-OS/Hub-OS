@@ -1,7 +1,7 @@
 use super::*;
 use crate::bindable::*;
 use crate::packages::{CardPackage, PackageNamespace};
-use crate::render::ui::{FontName, PlayerHealthUi, Text};
+use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleEvent;
@@ -23,6 +23,7 @@ pub struct BattleSimulation {
     pub camera: Camera,
     pub background: Background,
     pub turn_gauge: TurnGauge,
+    pub banner_popups: SlotMap<BattleBannerPopup>,
     pub field: Field,
     pub tile_states: Vec<TileState>,
     pub entities: hecs::World,
@@ -73,6 +74,7 @@ impl BattleSimulation {
             camera,
             background: props.background.clone(),
             turn_gauge: TurnGauge::new(game_io),
+            banner_popups: Default::default(),
             field,
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
@@ -158,6 +160,7 @@ impl BattleSimulation {
             camera: self.camera.clone(game_io),
             background: self.background.clone(),
             turn_gauge: self.turn_gauge.clone(),
+            banner_popups: self.banner_popups.clone(),
             field: self.field.clone(),
             tile_states: self.tile_states.clone(),
             entities,
@@ -673,6 +676,12 @@ impl BattleSimulation {
 
         // update battle hp displays
         HpDisplay::update(self);
+
+        // update banners
+        self.banner_popups.retain(|_, banner| {
+            banner.update();
+            banner.remaining_time() != Some(0)
+        });
     }
 
     pub fn is_entity_actionable(
@@ -1029,22 +1038,26 @@ impl BattleSimulation {
     pub fn draw_ui(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         let local_id: hecs::Entity = self.local_player_id.into();
 
-        if local_id == hecs::Entity::DANGLING {
-            return;
+        if local_id != hecs::Entity::DANGLING {
+            // draw player ui
+            self.local_health_ui.draw(game_io, sprite_queue);
+
+            let entities = &mut self.entities;
+
+            if let Ok(player) = entities.query_one_mut::<&mut Player>(local_id) {
+                // draw emotion window relative to health ui
+                let local_health_bounds = self.local_health_ui.bounds();
+                let mut emotion_window_position = local_health_bounds.position();
+                emotion_window_position.y += local_health_bounds.height + 2.0;
+
+                player.emotion_window.set_position(emotion_window_position);
+                player.emotion_window.draw(sprite_queue);
+            }
         }
 
-        self.local_health_ui.draw(game_io, sprite_queue);
-
-        let entities = &mut self.entities;
-
-        if let Ok(player) = entities.query_one_mut::<&mut Player>(local_id) {
-            // draw emotion window relative to health ui
-            let local_health_bounds = self.local_health_ui.bounds();
-            let mut emotion_window_position = local_health_bounds.position();
-            emotion_window_position.y += local_health_bounds.height + 2.0;
-
-            player.emotion_window.set_position(emotion_window_position);
-            player.emotion_window.draw(sprite_queue);
+        // draw banners
+        for (_, banner) in self.banner_popups.iter_mut() {
+            banner.draw(game_io, sprite_queue);
         }
     }
 

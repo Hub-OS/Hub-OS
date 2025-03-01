@@ -1,19 +1,19 @@
 use super::State;
 use crate::battle::*;
 use crate::bindable::*;
+use crate::render::ui::BattleBannerMessage;
+use crate::render::ui::BattleBannerPopup;
 use crate::render::*;
 use crate::resources::*;
 use crate::structures::VecSet;
 use framework::prelude::*;
-use std::borrow::Cow;
-use ui::BattleBannerMessage;
 
 const TOTAL_MESSAGE_TIME: FrameTime = 3 * 60;
 
 #[derive(Clone)]
 pub struct BattleState {
     time: FrameTime,
-    end_message: BattleBannerMessage,
+    end_timer: Option<FrameTime>,
     complete: bool,
     out_of_time: bool,
 }
@@ -43,8 +43,6 @@ impl State for BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        self.end_message.update();
-
         self.detect_battle_start(game_io, resources, simulation);
 
         // reset frame temporary variables
@@ -101,9 +99,7 @@ impl State for BattleState {
 
         self.apply_status_vfx(game_io, resources, simulation);
 
-        if self.end_message.remaining_time().is_none()
-            && !simulation.time_freeze_tracker.time_is_frozen()
-        {
+        if self.end_timer.is_none() && !simulation.time_freeze_tracker.time_is_frozen() {
             // only update the time statistic if the battle is still going for the local player
             // and if time is not frozen
             simulation.statistics.time += 1;
@@ -126,9 +122,7 @@ impl State for BattleState {
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
         // win / lose message
-        if self.end_message.remaining_time().is_some() {
-            self.end_message.draw(game_io, sprite_queue);
-        } else {
+        if self.end_timer.is_none() {
             // turn gauge
             simulation.turn_gauge.draw(sprite_queue);
         }
@@ -155,7 +149,7 @@ impl BattleState {
     pub fn new() -> Self {
         Self {
             time: 0,
-            end_message: BattleBannerMessage::default(),
+            end_timer: None,
             complete: false,
             out_of_time: false,
         }
@@ -192,7 +186,7 @@ impl BattleState {
 
         simulation.turn_gauge.increment_time();
 
-        if !simulation.turn_gauge.is_complete() || self.end_message.remaining_time().is_some() {
+        if !simulation.turn_gauge.is_complete() || self.end_timer.is_some() {
             // don't check for input if the battle has ended, or if the turn guage isn't complete
             return;
         }
@@ -235,10 +229,13 @@ impl BattleState {
             return;
         }
 
-        if let Some(t) = self.end_message.remaining_time() {
-            if t == 0 {
+        if let Some(t) = &mut self.end_timer {
+            *t -= 1;
+
+            if *t == 0 {
                 simulation.exit = true;
             }
+
             return;
         }
 
@@ -271,13 +268,13 @@ impl BattleState {
             entities.query_one_mut::<&Entity>(simulation.local_player_id.into())
         {
             if entity.deleted {
-                self.fail(simulation);
+                // wait until the entity has been erased
                 return;
             }
 
             local_team = entity.team;
         } else {
-            // assume the entity was erased
+            // the entity was erased
             self.fail(simulation);
             return;
         }
@@ -293,35 +290,51 @@ impl BattleState {
         }
     }
 
-    fn complete_spectating(&mut self) {
-        self.end_message
-            .set_message(Cow::Borrowed("<_BATTLE_OVER_>"));
-        self.end_message.show_for(TOTAL_MESSAGE_TIME);
+    fn complete_spectating(&mut self, simulation: &mut BattleSimulation) {
+        let mut banner = BattleBannerPopup::new(BattleBannerMessage::BattleOver);
+        banner.show_for(TOTAL_MESSAGE_TIME);
+        simulation.banner_popups.insert(banner);
+
+        self.end_timer = Some(TOTAL_MESSAGE_TIME);
     }
 
     fn fail(&mut self, simulation: &mut BattleSimulation) {
         if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating();
+            self.complete_spectating(simulation);
             return;
         }
 
         if simulation.config.spectate_on_delete {
             simulation.local_player_id = EntityId::default();
-            return;
+
+            // check again
+            self.detect_success_or_failure(simulation);
+
+            if self.end_timer.is_some() {
+                // avoid displaying failed banner if the battle will end
+                return;
+            }
+        } else {
+            self.end_timer = Some(TOTAL_MESSAGE_TIME);
         }
 
-        self.end_message.set_message(Cow::Borrowed("<_FAILED_>"));
-        self.end_message.show_for(TOTAL_MESSAGE_TIME);
+        let mut banner = BattleBannerPopup::new(BattleBannerMessage::Failed);
+        banner.show_for(TOTAL_MESSAGE_TIME);
+        simulation.banner_popups.insert(banner);
     }
 
     fn succeed(&mut self, simulation: &mut BattleSimulation) {
         if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating();
+            self.complete_spectating(simulation);
             return;
         }
 
-        self.end_message.set_message(Cow::Borrowed("<_SUCCESS_>"));
-        self.end_message.show_for(TOTAL_MESSAGE_TIME);
+        // create banner
+        let mut banner = BattleBannerPopup::new(BattleBannerMessage::Success);
+        banner.show_for(TOTAL_MESSAGE_TIME);
+        simulation.banner_popups.insert(banner);
+
+        self.end_timer = Some(TOTAL_MESSAGE_TIME);
         simulation.statistics.won = true;
 
         // todo: score screen

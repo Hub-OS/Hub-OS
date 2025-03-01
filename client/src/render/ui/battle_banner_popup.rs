@@ -3,7 +3,7 @@ use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::RESOLUTION_F;
 use framework::common::GameIO;
-use std::borrow::Cow;
+use std::rc::Rc;
 
 const REVEAL_DURATION: FrameTime = 7;
 const BOUNCE_BACK_DURATION: FrameTime = 3;
@@ -17,40 +17,54 @@ enum Mode {
     Timed(FrameTime),
 }
 
+#[derive(Clone, Copy)]
+pub enum BattleBannerMessage {
+    TimeUp,
+    TurnStart,
+    TurnNumberStart(u32),
+    FinalTurn,
+    Failed,
+    Success,
+    BattleOver,
+}
+
+impl BattleBannerMessage {
+    fn resolve_text(self) -> Rc<str> {
+        match self {
+            BattleBannerMessage::TimeUp => Rc::from("<_TIME_UP!_>"),
+            BattleBannerMessage::TurnStart => Rc::from("<_TURN_START!_>"),
+            BattleBannerMessage::TurnNumberStart(number) => {
+                Rc::from(format!("<_TURN_{number}_START!_>"))
+            }
+            BattleBannerMessage::FinalTurn => Rc::from("<_FINAL_TURN!_>"),
+            BattleBannerMessage::Failed => Rc::from("<_FAILED_>"),
+            BattleBannerMessage::Success => Rc::from("<_SUCCESS_>"),
+            BattleBannerMessage::BattleOver => Rc::from("<_BATTLE_OVER_>"),
+        }
+    }
+}
+
 #[derive(Clone)]
-pub struct BattleBannerMessage {
-    message: Cow<'static, str>,
+pub struct BattleBannerPopup {
+    message: Rc<str>,
     time: FrameTime,
     mode: Mode,
     bottom: f32,
 }
 
-impl Default for BattleBannerMessage {
-    fn default() -> Self {
+impl BattleBannerPopup {
+    pub fn new(message: BattleBannerMessage) -> Self {
         Self {
-            message: Default::default(),
+            message: message.resolve_text(),
             time: 0,
             mode: Mode::Hidden,
-            bottom: RESOLUTION_F.y * 0.5,
-        }
-    }
-}
-
-impl BattleBannerMessage {
-    pub fn new(message: Cow<'static, str>) -> Self {
-        Self {
-            message,
-            ..Default::default()
+            bottom: 0.0,
         }
     }
 
     pub fn with_bottom_position(mut self, bottom: f32) -> Self {
         self.bottom = bottom;
         self
-    }
-
-    pub fn set_message(&mut self, message: Cow<'static, str>) {
-        self.message = message;
     }
 
     pub fn show(&mut self) {

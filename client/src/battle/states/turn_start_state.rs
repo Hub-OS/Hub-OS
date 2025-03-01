@@ -1,40 +1,44 @@
 use super::{BattleState, State};
 use crate::battle::{BattleSimulation, SharedBattleResources};
-use crate::render::ui::BattleBannerMessage;
+use crate::bindable::GenerationalIndex;
+use crate::render::ui::{BattleBannerMessage, BattleBannerPopup};
 use crate::render::{FrameTime, SpriteColorQueue};
 use framework::prelude::GameIO;
-use std::borrow::Cow;
 
 const DELAY: FrameTime = 45;
 const DISPLAY_DURATION: FrameTime = 60;
 
 #[derive(Clone)]
 pub struct TurnStartState {
-    banner: BattleBannerMessage,
     time: FrameTime,
+    banner_key: Option<GenerationalIndex>,
     complete: bool,
 }
 
 impl TurnStartState {
     pub fn new() -> Self {
         Self {
-            banner: BattleBannerMessage::default(),
-            complete: false,
             time: 0,
+            banner_key: None,
+            complete: false,
         }
     }
 
-    fn init_message(&mut self, simulation: &BattleSimulation) {
+    fn spawn_banner(&mut self, simulation: &mut BattleSimulation) {
         let turn_number = simulation.statistics.turns;
         let message = if simulation.config.turn_limit == Some(turn_number) {
-            Cow::Borrowed("<_FINAL_TURN!_>")
+            BattleBannerMessage::FinalTurn
         } else if simulation.config.turn_limit.is_some() {
-            Cow::Owned(format!("<_TURN_{}_START!_>", turn_number))
+            BattleBannerMessage::TurnNumberStart(turn_number)
         } else {
-            Cow::Borrowed("<_TURN_START!_>")
+            BattleBannerMessage::TurnStart
         };
 
-        self.banner.set_message(message);
+        let mut banner = BattleBannerPopup::new(message);
+        banner.show_for(DISPLAY_DURATION);
+
+        let key = simulation.banner_popups.insert(banner);
+        self.banner_key = Some(key);
     }
 }
 
@@ -62,13 +66,10 @@ impl State for TurnStartState {
             return;
         }
 
-        if self.time == 0 {
-            self.init_message(simulation);
-        } else if self.time == DELAY {
-            self.banner.show_for(DISPLAY_DURATION);
-        } else if let Some(t) = self.banner.remaining_time() {
-            self.complete = t == 0;
-            self.banner.update();
+        if self.time == DELAY {
+            self.spawn_banner(simulation);
+        } else if let Some(key) = self.banner_key {
+            self.complete = simulation.banner_popups.contains_key(key);
         }
 
         self.time += 1;
@@ -76,13 +77,12 @@ impl State for TurnStartState {
 
     fn draw_ui<'a>(
         &mut self,
-        game_io: &'a GameIO,
+        _game_io: &'a GameIO,
         _resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
         // turn gauge
         simulation.turn_gauge.draw(sprite_queue);
-        self.banner.draw(game_io, sprite_queue);
     }
 }

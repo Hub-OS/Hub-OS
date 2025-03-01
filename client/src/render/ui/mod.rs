@@ -1,4 +1,4 @@
-mod battle_banner_message;
+mod battle_banner_popup;
 mod block_preview;
 mod card_recipe_animation;
 mod card_select_ui;
@@ -46,7 +46,7 @@ mod ui_config_toggle;
 mod ui_input_tracker;
 mod ui_layout;
 
-pub use battle_banner_message::*;
+pub use battle_banner_popup::*;
 pub use block_preview::*;
 pub use card_recipe_animation::*;
 pub use card_select_ui::*;
