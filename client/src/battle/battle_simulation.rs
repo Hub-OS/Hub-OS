@@ -40,7 +40,6 @@ pub struct BattleSimulation {
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
-    pub music_stack_depth: usize,
     pub battle_started: bool,
     pub intro_complete: bool,
     pub is_resimulation: bool,
@@ -97,7 +96,6 @@ impl BattleSimulation {
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
-            music_stack_depth: globals.audio.music_stack_len() + 1,
             battle_started: false,
             intro_complete: false,
             is_resimulation: false,
@@ -177,7 +175,6 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             local_team: self.local_team,
-            music_stack_depth: self.music_stack_depth,
             battle_started: self.battle_started,
             intro_complete: self.intro_complete,
             is_resimulation: self.is_resimulation,
@@ -192,10 +189,16 @@ impl BattleSimulation {
         }
     }
 
-    pub fn play_music(&self, game_io: &GameIO, sound_buffer: &SoundBuffer, loops: bool) {
+    pub fn play_music(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        sound_buffer: &SoundBuffer,
+        loops: bool,
+    ) {
         let globals = game_io.resource::<Globals>().unwrap();
 
-        if globals.audio.music_stack_len() != self.music_stack_depth {
+        if globals.audio.music_stack_len() != resources.music_stack_depth {
             return;
         }
 

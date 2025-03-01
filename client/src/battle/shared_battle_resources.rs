@@ -30,6 +30,7 @@ pub struct SharedBattleResources {
     pub battle_fade_color: Cell<Color>,
     pub ui_fade_color: Cell<Color>,
     pub fade_sprite: RefCell<Sprite>,
+    pub music_stack_depth: usize,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
 }
@@ -41,7 +42,8 @@ impl SharedBattleResources {
         player_setups: &[PlayerSetup],
         dependencies: &[(&PackageInfo, PackageNamespace)],
     ) -> Self {
-        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
 
         let (event_sender, event_receiver) = flume::unbounded();
 
@@ -70,6 +72,7 @@ impl SharedBattleResources {
             battle_fade_color: Default::default(),
             ui_fade_color: Default::default(),
             fade_sprite: fade_sprite.into(),
+            music_stack_depth: globals.audio.music_stack_len() + 1,
             event_sender,
             event_receiver,
         };

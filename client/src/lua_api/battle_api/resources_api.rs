@@ -86,11 +86,12 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = api_ctx.borrow();
         let simulation = &api_ctx.simulation;
+        let resources = &api_ctx.resources;
         let game_io = api_ctx.game_io;
         let globals = game_io.resource::<Globals>().unwrap();
 
         let sound_buffer = globals.assets.audio(game_io, &path);
-        simulation.play_music(game_io, &sound_buffer, loops);
+        simulation.play_music(game_io, resources, &sound_buffer, loops);
 
         lua.pack_multi(())
     });
