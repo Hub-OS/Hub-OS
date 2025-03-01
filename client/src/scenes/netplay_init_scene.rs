@@ -425,6 +425,7 @@ impl NetplayInitScene {
                 // todo: prevent seed manipulation
                 self.seed = self.seed.max(seed);
                 connection.ready = true;
+                connection.ready_for_packages = true;
             }
             NetplayPacket::Buffer { data, .. } => {
                 if data.signals.contains(&NetplaySignal::Disconnect) {
