@@ -247,15 +247,21 @@ impl BattleSimulation {
     }
 
     pub fn handle_local_signals(&mut self, local_index: usize, resources: &SharedBattleResources) {
-        let input = &self.inputs[local_index];
+        let input = &mut self.inputs[local_index];
 
         // handle flee
         if !self.is_resimulation && input.has_signal(NetplaySignal::AttemptingFlee) {
-            // todo: check for success using some method in battle_init
+            // todo: check for success using some method in battle_init, as long as the player is not a spectator
             resources
                 .event_sender
                 .send(BattleEvent::FleeResult(true))
                 .unwrap();
+        }
+
+        // allow spectators to flee
+        if self.local_player_id == EntityId::default() && input.was_just_pressed(Input::Pause) {
+            let event = BattleEvent::RequestFlee;
+            resources.event_sender.send(event).unwrap();
         }
     }
 

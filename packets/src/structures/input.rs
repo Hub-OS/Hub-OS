@@ -72,7 +72,7 @@ impl Input {
         Input::ShoulderR,
     ];
 
-    pub const BATTLE: [Input; 18] = [
+    pub const BATTLE: [Input; 19] = [
         Input::Up,
         Input::Down,
         Input::Left,
@@ -91,6 +91,7 @@ impl Input {
         Input::Info,
         Input::Flee,
         Input::Option2,
+        Input::Pause,
     ];
 
     pub const REPEATABLE: [Input; 6] = [
