@@ -305,6 +305,11 @@ impl BattleState {
             return;
         }
 
+        if simulation.config.spectate_on_delete {
+            simulation.local_player_id = EntityId::default();
+            return;
+        }
+
         self.end_message.set_message(Cow::Borrowed("<_FAILED_>"));
         self.end_message.show_for(TOTAL_MESSAGE_TIME);
     }
