@@ -1513,6 +1513,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(player.index == simulation.local_player_index)
     });
 
+    getter::<&Player, _, _>(lua_api, "player_index", |player: &Player, lua, ()| {
+        lua.pack_multi(player.index)
+    });
+
     getter::<&Player, _, _>(lua_api, "emotions", |player: &Player, lua, ()| {
         let emotions = player.emotion_window.emotions();
         let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
