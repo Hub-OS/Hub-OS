@@ -69,7 +69,7 @@ impl State for TurnStartState {
         if self.time == DELAY {
             self.spawn_banner(simulation);
         } else if let Some(key) = self.banner_key {
-            self.complete = simulation.banner_popups.contains_key(key);
+            self.complete = !simulation.banner_popups.contains_key(key);
         }
 
         self.time += 1;
