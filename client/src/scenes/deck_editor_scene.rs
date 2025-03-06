@@ -1,4 +1,5 @@
 use crate::bindable::CardClass;
+use crate::bindable::CardProperties;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
 use crate::render::ui::*;
@@ -486,34 +487,30 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
             item.card.package_id.clone()
         }),
         Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
-            let package = card_manager
+            card_manager
                 .package(NAMESPACE, &item.card.package_id)
-                .unwrap();
-
-            package.card_properties.short_name.clone()
+                .map(|package| package.card_properties.short_name.clone())
+                .unwrap_or_else(|| CardProperties::<i32>::default().short_name.clone())
         }),
         Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
         Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
-            let package = card_manager
+            card_manager
                 .package(NAMESPACE, &item.card.package_id)
-                .unwrap();
-
-            -package.card_properties.damage
+                .map(|package| -package.card_properties.damage)
+                .unwrap_or_default()
         }),
         Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
-            let package = card_manager
+            card_manager
                 .package(NAMESPACE, &item.card.package_id)
-                .unwrap();
-
-            package.card_properties.element as u8
+                .map(|package| package.card_properties.element as u8)
+                .unwrap_or_default()
         }),
         Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
         Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
-            let package = card_manager
+            card_manager
                 .package(NAMESPACE, &item.card.package_id)
-                .unwrap();
-
-            package.card_properties.card_class as u8
+                .map(|package| package.card_properties.card_class as u8)
+                .unwrap_or_default();
         }),
     }
 
