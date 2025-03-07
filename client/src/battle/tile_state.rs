@@ -32,14 +32,14 @@ impl TileStateAnimationSupport {
             Self::RowsFlip
         } else if animator.has_state("2") {
             Self::Rows
-        } else if animator.has_state("RED") {
-            Self::Team
         } else if animator.has_state("RED_FLIPPED") {
             Self::TeamFlip
-        } else if animator.has_state("RED_2") {
-            Self::TeamRows
+        } else if animator.has_state("RED") {
+            Self::Team
         } else if animator.has_state("RED_2_FLIPPED") {
             Self::TeamRowsFlip
+        } else if animator.has_state("RED_2") {
+            Self::TeamRows
         } else {
             Self::None
         }
