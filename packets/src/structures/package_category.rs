@@ -32,7 +32,9 @@ impl PackageCategory {
     pub fn built_in_path(&self) -> &'static str {
         match self {
             PackageCategory::Augment => "resources/packages/augments/",
-            PackageCategory::Character | PackageCategory::Encounter => "mods/encounters/",
+            PackageCategory::Character | PackageCategory::Encounter => {
+                "resources/packages/encounters/"
+            }
             PackageCategory::Card => "resources/packages/cards/",
             PackageCategory::Library => "resources/packages/libraries/",
             PackageCategory::Player => "resources/packages/players/",
