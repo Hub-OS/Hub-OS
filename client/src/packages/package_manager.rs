@@ -241,7 +241,7 @@ impl<T: Package> PackageManager<T> {
 
         let hash = FileHash::hash(&data);
 
-        if package_info.category.local_only() {
+        if package_info.local_only() {
             // file won't be sent, no need to save a zipped copy
             return Some(hash);
         }

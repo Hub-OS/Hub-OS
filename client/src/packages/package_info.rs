@@ -24,6 +24,13 @@ pub struct PackageInfo {
 }
 
 impl PackageInfo {
+    pub fn local_only(&self) -> bool {
+        matches!(
+            self.category,
+            PackageCategory::Resource | PackageCategory::Encounter
+        ) && !self.child_id_path_pairs.is_empty()
+    }
+
     pub fn triplet(&self) -> (PackageCategory, PackageNamespace, PackageId) {
         (self.category, self.namespace, self.id.clone())
     }
