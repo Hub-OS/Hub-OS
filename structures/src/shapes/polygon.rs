@@ -1,3 +1,5 @@
+use core::f32;
+
 use super::Shape;
 
 pub struct Polygon {
@@ -41,21 +43,10 @@ impl Polygon {
             return;
         }
 
-        if x < self.smallest_x {
-            self.smallest_x = x;
-        }
-
-        if x > self.largest_x {
-            self.largest_x = x;
-        }
-
-        if y < self.smallest_y {
-            self.smallest_y = y;
-        }
-
-        if y > self.largest_y {
-            self.largest_y = y;
-        }
+        self.smallest_x = self.smallest_x.min(x);
+        self.smallest_y = self.smallest_y.min(y);
+        self.largest_x = self.largest_x.max(x);
+        self.largest_y = self.largest_y.max(y);
 
         self.width = self.largest_x - self.smallest_x;
         self.height = self.largest_y - self.smallest_y;
@@ -92,9 +83,10 @@ impl Shape for Polygon {
         };
 
         self.rotate_around(&mut point);
-        let (x, y) = point;
+        let x = point.0 - self.x;
+        let y = point.1 - self.y;
 
-        if x < self.x || y < self.y || x > self.x + self.width || y > self.y + self.height {
+        if x < self.smallest_x || y < self.smallest_y || x > self.largest_x || y > self.largest_y {
             // quick fail, see if the point is in the bounding box of the shape
             return false;
         }
@@ -103,10 +95,10 @@ impl Shape for Polygon {
 
         for point in &self.points {
             // note: converting to doubles for math to avoid precision issues
-            let ax = last_point.0 + self.x;
-            let ay = last_point.1 + self.y;
-            let bx = point.0 + self.x;
-            let by = point.1 + self.y;
+            let ax = last_point.0;
+            let ay = last_point.1;
+            let bx = point.0;
+            let by = point.1;
             last_point = *point;
 
             let run: f64 = (bx - ax) as f64;
@@ -149,5 +141,43 @@ impl Shape for Polygon {
 
         // odd = inside
         intersections % 2 == 1
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn empty_polygon() {
+        let polygon = Polygon::new(0.0, 0.0, 0.0);
+        debug_assert!(!polygon.intersects((0.0, 0.0)));
+    }
+
+    #[test]
+    fn shifted_polygon() {
+        let mut polygon = Polygon::new(10.0, 10.0, 0.0);
+        polygon.add_point((0.0, 0.0));
+        polygon.add_point((10.0, 0.0));
+        polygon.add_point((10.0, 10.0));
+        polygon.add_point((0.0, 10.0));
+
+        debug_assert!(!polygon.intersects((0.0, 0.0)));
+        debug_assert!(!polygon.intersects((5.0, 5.0)));
+        debug_assert!(polygon.intersects((15.0, 15.0)));
+        debug_assert!(!polygon.intersects((25.0, 25.0)));
+    }
+
+    #[test]
+    fn negative_points() {
+        let mut polygon = Polygon::new(0.0, 0.0, 0.0);
+        polygon.add_point((0.0, 0.0));
+        polygon.add_point((-10.0, 0.0));
+        polygon.add_point((-10.0, -10.0));
+        polygon.add_point((0.0, -10.0));
+
+        debug_assert!(!polygon.intersects((0.0, 0.0)));
+        debug_assert!(polygon.intersects((-5.0, -5.0)));
+        debug_assert!(!polygon.intersects((-15.0, -15.0)));
     }
 }
