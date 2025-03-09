@@ -134,13 +134,36 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_owner", |api_ctx, lua, params| {
-        let (table, owner): (rollback_mlua::Table, Option<EntityOwner>) =
+        let (table, owner_value): (rollback_mlua::Table, Option<rollback_mlua::Value>) =
             lua.unpack_multi(params)?;
-
-        let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
+
+        let owner = owner_value
+            .map(|value| {
+                if let Ok(team) = lua.unpack(value.clone()) {
+                    Ok(EntityOwner::Team(team))
+                } else if let rollback_mlua::Value::Table(table) = value {
+                    let entity_id: EntityId = table.raw_get("#id")?;
+
+                    let entities = &mut simulation.entities;
+                    let Ok(entity) = entities.query_one_mut::<&mut Entity>(entity_id.into()) else {
+                        return Err(entity_not_found());
+                    };
+
+                    Ok(EntityOwner::Entity(entity.team, entity_id))
+                } else {
+                    Err(rollback_mlua::Error::FromLuaConversionError {
+                        from: value.type_name(),
+                        to: "Entity or Team",
+                        message: None,
+                    })
+                }
+            })
+            .transpose()?;
+
+        let id: EntityId = table.raw_get("#id")?;
 
         let Some(owner) = owner else {
             simulation.ownership_tracking.untrack(id);
@@ -2004,7 +2027,8 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             // create
             let globals = game_io.resource::<Globals>().unwrap();
             let package_id = PackageId::from(augment_id);
-            let namespace = player.namespace();
+            let vms = api_ctx.resources.vm_manager.vms();
+            let namespace = vms[api_ctx.vm_index].preferred_namespace();
             let package = globals
                 .augment_packages
                 .package_or_fallback(namespace, &package_id)
