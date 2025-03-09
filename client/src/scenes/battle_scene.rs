@@ -710,6 +710,22 @@ impl BattleScene {
     fn core_update(&mut self, game_io: &GameIO) {
         let input_util = InputUtil::new(game_io);
 
+        // normal update
+        let can_simulate = if self.is_playing_back_recording {
+            let controller_iter = self.player_controllers.iter();
+            let total_frames = controller_iter
+                .map(|controller| controller.buffer.len() as FrameTime)
+                .max()
+                .unwrap_or_default();
+
+            // simulate as long as we have input
+            self.simulation.time < total_frames
+        } else {
+            // simulate as long as we can roll back to the synced time
+            self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
+                || self.input_synced()
+        };
+
         if self.frame_by_frame_debug {
             let rewind = input_util.was_just_pressed(Input::RewindFrame);
 
@@ -719,7 +735,7 @@ impl BattleScene {
 
             let advance = input_util.was_just_pressed(Input::AdvanceFrame);
 
-            if advance {
+            if can_simulate && advance {
                 self.handle_local_input(game_io);
                 self.simulate(game_io);
             }
@@ -727,21 +743,6 @@ impl BattleScene {
             // exit from frame_by_frame_debug with pause
             self.frame_by_frame_debug = !input_util.was_just_pressed(Input::Pause);
         } else {
-            // normal update
-            let can_simulate = if self.is_playing_back_recording {
-                let controller_iter = self.player_controllers.iter();
-                let total_frames = controller_iter
-                    .map(|controller| controller.buffer.len() as FrameTime)
-                    .max()
-                    .unwrap_or_default();
-
-                // simulate as long as we have input
-                self.simulation.time < total_frames
-            } else {
-                // simulate as long as we can roll back to the synced time
-                self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
-                    || self.input_synced()
-            };
             let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
             if !should_slow_down && can_simulate {
@@ -753,18 +754,18 @@ impl BattleScene {
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
+
+        // 2x speed while holding confirm in a replay
+        if self.is_playing_back_recording && can_simulate && input_util.is_down(Input::Confirm) {
+            self.handle_local_input(game_io);
+            self.simulate(game_io);
+        }
     }
 
     fn handle_exit_requests(&mut self, game_io: &GameIO) {
         let requested_exit = if self.is_playing_back_recording {
-            // pressing confirm or cancel, without pressing pause
-            // as pause is used to exit frame_by_frame_debug
-            // and the same input may also be binded to Confirm or Cancel
             let input_util = InputUtil::new(game_io);
-
-            !input_util.was_just_pressed(Input::Pause)
-                && (input_util.was_just_pressed(Input::Cancel)
-                    || input_util.was_just_pressed(Input::Confirm))
+            input_util.was_just_pressed(Input::Cancel)
         } else {
             // use the oldest backup, as we can still rewind and end up not exitting otherwise
             let oldest_backup = self.backups.front();
