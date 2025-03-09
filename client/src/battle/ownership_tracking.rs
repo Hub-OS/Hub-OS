@@ -20,7 +20,13 @@ impl OwnershipTracking {
                 updated_ownership = true;
             }
 
-            if *existing_ownership != ownership {
+            let same_team_and_type = match (existing_ownership, ownership) {
+                (EntityOwner::Team(a), EntityOwner::Team(b))
+                | (EntityOwner::Entity(a, _), EntityOwner::Entity(b, _)) => *a == b,
+                _ => false,
+            };
+
+            if !same_team_and_type {
                 continue;
             }
 
@@ -33,7 +39,7 @@ impl OwnershipTracking {
 
         let limit = match ownership {
             EntityOwner::Team(_) => 2,
-            EntityOwner::Entity(_) => 1,
+            EntityOwner::Entity(_, _) => 1,
         };
 
         let pending_deletion = if count >= limit {
