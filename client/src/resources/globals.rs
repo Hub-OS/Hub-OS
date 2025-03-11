@@ -766,34 +766,43 @@ impl Globals {
             .map(|id| uri_encode(id.as_str()))
             .collect();
 
-        let repo = &self.config.package_repo;
-        let uri = format!("{repo}/api/mods/hashes?id={}", package_ids.join("&id="));
+        let repo = self.config.package_repo.clone();
 
         async move {
-            let Some(json) = crate::http::request_json(&uri).await else {
-                return Vec::new();
-            };
+            let mut hash_list = Vec::new();
 
-            let Some(arr) = json.as_array() else {
-                return Vec::new();
-            };
+            for chunk in package_ids.chunks(20) {
+                let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join("&id="));
 
-            arr.iter()
-                .flat_map(|value| {
-                    Some((
-                        value.get("category")?.as_str()?,
-                        value.get("id")?.as_str()?,
-                        value.get("hash")?.as_str()?,
-                    ))
-                })
-                .flat_map(|(category, id, hash)| {
-                    Some((
-                        PackageCategory::from(category),
-                        PackageId::from(id),
-                        FileHash::from_hex(hash)?,
-                    ))
-                })
-                .collect()
+                let Some(json) = crate::http::request_json(&uri).await else {
+                    continue;
+                };
+
+                let Some(arr) = json.as_array() else {
+                    continue;
+                };
+
+                let transform_iter = arr
+                    .iter()
+                    .flat_map(|value| {
+                        Some((
+                            value.get("category")?.as_str()?,
+                            value.get("id")?.as_str()?,
+                            value.get("hash")?.as_str()?,
+                        ))
+                    })
+                    .flat_map(|(category, id, hash)| {
+                        Some((
+                            PackageCategory::from(category),
+                            PackageId::from(id),
+                            FileHash::from_hex(hash)?,
+                        ))
+                    });
+
+                hash_list.extend(transform_iter);
+            }
+
+            hash_list
         }
     }
 }
