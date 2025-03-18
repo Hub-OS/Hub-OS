@@ -91,7 +91,7 @@ impl BattleScene {
         props.player_setups.sort_by_key(|setup| setup.index);
 
         // init recording struct
-        let recording = if props.recording_enabled {
+        let mut recording = if props.recording_enabled {
             Some(BattleRecording::new(&props))
         } else {
             None
@@ -138,7 +138,7 @@ impl BattleScene {
         simulation.field.initialize_uninitialized();
 
         // load the players in the correct order
-        let player_setups = &props.player_setups;
+        let player_setups = &mut props.player_setups;
         let mut player_controllers = Vec::with_capacity(player_setups.len());
         let local_index = if is_playing_back_recording {
             None
@@ -160,7 +160,11 @@ impl BattleScene {
                 remote_average: 0.0,
             });
 
-            if !spectator_set.contains(&setup.index) {
+            if spectator_set.contains(&setup.index) {
+                if let Some(recording) = &mut recording {
+                    recording.mark_spectator(setup.index);
+                }
+            } else {
                 let result = Player::load(game_io, &resources, &mut simulation, setup);
 
                 if let Err(e) = result {

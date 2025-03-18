@@ -42,6 +42,16 @@ impl BattleRecording {
         }
     }
 
+    pub fn mark_spectator(&mut self, index: usize) {
+        // clear out spectator setup for a smaller recording, and to just reduce memory usage
+        let setup = &mut self.player_setups[index];
+        setup.package_id = Default::default();
+        setup.recipes = Default::default();
+        setup.drives = Default::default();
+        setup.deck = Default::default();
+        setup.blocks = Default::default();
+    }
+
     pub fn save(&mut self, game_io: &GameIO, props: &BattleProps) {
         let service_comm = game_io.resource::<SupportingServiceComm>().unwrap().clone();
         let globals = game_io.resource::<Globals>().unwrap();
