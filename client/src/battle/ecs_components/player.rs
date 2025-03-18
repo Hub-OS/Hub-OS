@@ -502,6 +502,10 @@ impl Player {
             .query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
             .unwrap();
 
+        if card_charge_time.is_none() {
+            player.card_charge.cancel();
+        }
+
         player.card_charge_time_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
