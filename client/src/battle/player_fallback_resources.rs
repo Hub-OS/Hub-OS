@@ -1,11 +1,9 @@
-use crate::battle::{
-    BattleProps, BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources,
-};
-use crate::packages::{PackageNamespace, PlayerPackage};
+use crate::battle::{BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources};
+use crate::packages::PlayerPackage;
 use crate::render::Animator;
-use crate::resources::Globals;
 use framework::prelude::GameIO;
-use packets::structures::PackageCategory;
+
+use super::BattleMeta;
 
 #[derive(Default)]
 pub struct PlayerFallbackResources {
@@ -16,34 +14,25 @@ pub struct PlayerFallbackResources {
 
 impl PlayerFallbackResources {
     pub fn resolve(game_io: &GameIO, package: &PlayerPackage) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
-        let package_info = &package.package_info;
-
         // create simulation
-        let setup = PlayerSetup::new_dummy(package, 0, true);
-        let mut props = BattleProps {
-            player_setups: vec![setup],
-            ..BattleProps::new_with_defaults(game_io, None)
+        let setup = PlayerSetup {
+            package_id: package.package_info.id.clone(),
+            ..PlayerSetup::new_empty(0, true)
         };
-        let mut simulation = BattleSimulation::new(game_io, &props);
+
+        let mut meta = BattleMeta {
+            player_setups: vec![setup],
+            ..BattleMeta::new_with_defaults(game_io, None)
+        };
+        let mut simulation = BattleSimulation::new(game_io, &meta);
 
         // load vms
-        let inital_iter = std::iter::once((
-            PackageCategory::Player,
-            PackageNamespace::Netplay(0),
-            package_info.id.clone(),
-        ));
-
-        let dependencies = globals.package_dependency_iter(inital_iter);
-        let resources = SharedBattleResources::new(
-            game_io,
-            &mut simulation,
-            &props.player_setups,
-            &dependencies,
-        );
+        let mut resources = SharedBattleResources::new(game_io, &meta);
+        resources.load_encounter_vms(game_io, &mut simulation, &meta);
+        resources.load_player_vms(game_io, &mut simulation, &meta);
 
         // load player into the simulation
-        let setup = props.player_setups.pop().unwrap();
+        let setup = meta.player_setups.pop().unwrap();
         let Ok(entity_id) = Player::load(game_io, &resources, &mut simulation, &setup) else {
             return Default::default();
         };

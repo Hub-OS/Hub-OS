@@ -418,7 +418,7 @@ impl State for CardSelectState {
                 animation.draw(game_io, resources, sprite_queue, player);
             } else if selection.confirm_time == 0 {
                 // render indicators while the cust is open
-                if Some(simulation.statistics.turns) == simulation.config.turn_limit {
+                if Some(simulation.statistics.turns) == resources.config.borrow().turn_limit {
                     self.ui.draw_final_turn_indicator(sprite_queue);
                 }
             } else {

@@ -1,5 +1,6 @@
-use super::{BattleInitMusic, Field};
-use crate::resources::Globals;
+use super::BattleInitMusic;
+use crate::resources::{Globals, FIELD_DEFAULT_WIDTH};
+use std::collections::HashSet;
 
 const DEFAULT_PLAYER_LAYOUTS: [(i32, i32); 9] = [
     (2, 2), // center
@@ -13,10 +14,9 @@ const DEFAULT_PLAYER_LAYOUTS: [(i32, i32); 9] = [
     (2, 3), // bottom
 ];
 
-#[derive(Clone)]
 pub struct BattleConfig {
     pub player_spawn_positions: Vec<(i32, i32)>,
-    pub spectators: Vec<usize>,
+    pub spectators: HashSet<usize>,
     pub spectate_on_delete: bool,
     pub player_flippable: Vec<Option<bool>>,
     pub turn_limit: Option<u32>,
@@ -29,7 +29,7 @@ pub struct BattleConfig {
 }
 
 impl BattleConfig {
-    pub fn new(globals: &Globals, field: &Field, player_count: usize) -> Self {
+    pub fn new(globals: &Globals, player_count: usize) -> Self {
         let mut player_spawn_positions = Vec::with_capacity(player_count);
 
         for i in 0..player_count {
@@ -37,7 +37,7 @@ impl BattleConfig {
             let mut position = DEFAULT_PLAYER_LAYOUTS[layout_index];
 
             if i % 2 == 1 {
-                position.0 = field.cols() as i32 - position.0 - 1;
+                position.0 = FIELD_DEFAULT_WIDTH as i32 - position.0 - 1;
             }
 
             player_spawn_positions.push(position);

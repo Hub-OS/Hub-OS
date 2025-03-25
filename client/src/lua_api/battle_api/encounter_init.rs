@@ -1,3 +1,4 @@
+use super::errors::encounter_method_called_after_start;
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
 use crate::battle::{BattleInitMusic, BattleScriptContext, Character, Entity};
@@ -67,14 +68,17 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let (_, player_index, x, y): (rollback_mlua::Table, usize, i32, i32) =
             lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
+        let api_ctx = api_ctx.borrow();
 
-        if !simulation.field.in_bounds((x, y)) {
+        if api_ctx.simulation.time > 0 {
+            return Err(encounter_method_called_after_start());
+        }
+
+        if !api_ctx.simulation.field.in_bounds((x, y)) {
             return lua.pack_multi(());
         }
 
-        let config = &mut simulation.config;
+        let config = &mut *api_ctx.resources.config.borrow_mut();
         let spawn_pos = config.player_spawn_positions.get_mut(player_index);
 
         if let Some(spawn_pos) = spawn_pos {
@@ -87,9 +91,14 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "mark_spectator", |api_ctx, lua, params| {
         let (_, player_index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        simulation.config.spectators.push(player_index);
+        let api_ctx = api_ctx.borrow();
+
+        if api_ctx.simulation.time > 0 {
+            return Err(encounter_method_called_after_start());
+        }
+
+        let config = &mut *api_ctx.resources.config.borrow_mut();
+        config.spectators.insert(player_index);
 
         lua.pack_multi(())
     });
@@ -100,9 +109,14 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let (_, spectate): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
 
-            let mut api_ctx = api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
-            simulation.config.spectate_on_delete = spectate.unwrap_or(true);
+            let api_ctx = api_ctx.borrow();
+
+            if api_ctx.simulation.time > 0 {
+                return Err(encounter_method_called_after_start());
+            }
+
+            let config = &mut *api_ctx.resources.config.borrow_mut();
+            config.spectate_on_delete = spectate.unwrap_or(true);
 
             lua.pack_multi(())
         },
@@ -146,11 +160,15 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let loops = loops.unwrap_or(true);
 
         let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
         let game_io = api_ctx.game_io;
         let globals = game_io.resource::<Globals>().unwrap();
 
-        simulation.config.battle_init_music = Some(BattleInitMusic {
+        if api_ctx.simulation.time > 0 {
+            return Err(encounter_method_called_after_start());
+        }
+
+        let config = &mut *api_ctx.resources.config.borrow_mut();
+        config.battle_init_music = Some(BattleInitMusic {
             buffer: globals.assets.audio(game_io, &path),
             loops,
         });
@@ -161,7 +179,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_field_size", |api_ctx, lua, params| {
         let (_, width, height): (rollback_mlua::Table, u8, u8) = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
         simulation
@@ -183,9 +201,14 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         |api_ctx, lua, params| {
             let (_, enabled): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
 
-            let mut api_ctx = api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
-            simulation.config.automatic_turn_end = enabled.unwrap_or(true);
+            let api_ctx = api_ctx.borrow();
+
+            if api_ctx.simulation.time > 0 {
+                return Err(encounter_method_called_after_start());
+            }
+
+            let config = &mut *api_ctx.resources.config.borrow_mut();
+            config.automatic_turn_end = enabled.unwrap_or(true);
 
             lua.pack_multi(())
         },
@@ -194,9 +217,14 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_turn_limit", |api_ctx, lua, params| {
         let (_, turn_limit): (rollback_mlua::Table, u32) = lua.unpack_multi(params)?;
 
-        let mut api_ctx = api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-        simulation.config.turn_limit = Some(turn_limit);
+        let api_ctx = api_ctx.borrow();
+
+        if api_ctx.simulation.time > 0 {
+            return Err(encounter_method_called_after_start());
+        }
+
+        let config = &mut *api_ctx.resources.config.borrow_mut();
+        config.turn_limit = Some(turn_limit);
 
         lua.pack_multi(())
     });
@@ -210,15 +238,20 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
             let enable = enable.unwrap_or(true);
 
-            let mut api_ctx = api_ctx.borrow_mut();
-            let simulation = &mut api_ctx.simulation;
+            let api_ctx = api_ctx.borrow();
+
+            if api_ctx.simulation.time > 0 {
+                return Err(encounter_method_called_after_start());
+            }
+
+            let config = &mut *api_ctx.resources.config.borrow_mut();
 
             if let Some(index) = player_index {
-                if let Some(flippable) = simulation.config.player_flippable.get_mut(index) {
+                if let Some(flippable) = config.player_flippable.get_mut(index) {
                     *flippable = Some(enable);
                 }
             } else {
-                simulation.config.player_flippable.fill(Some(enable));
+                config.player_flippable.fill(Some(enable));
             }
 
             lua.pack_multi(())
@@ -226,7 +259,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     );
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "enable_boss_battle", |api_ctx, lua, _| {
-        let mut api_ctx = api_ctx.borrow_mut();
+        let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
         simulation.statistics.boss_battle = true;

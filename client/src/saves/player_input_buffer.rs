@@ -2,10 +2,16 @@ use packets::NetplayBufferItem;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PlayerInputBuffer {
     buffer: VecDeque<(NetplayBufferItem, usize)>,
     len: usize,
+}
+
+impl Default for PlayerInputBuffer {
+    fn default() -> Self {
+        Self::new_with_delay(5)
+    }
 }
 
 impl PlayerInputBuffer {

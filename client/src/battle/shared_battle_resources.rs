@@ -1,4 +1,4 @@
-use super::{BattleSimulation, PlayerSetup, StatusRegistry, TileState};
+use super::{BattleConfig, BattleMeta, BattleSimulation, StatusRegistry, TileState};
 use crate::bindable::{AuxVariable, MathExpr};
 use crate::lua_api::BattleVmManager;
 use crate::packages::{PackageInfo, PackageNamespace};
@@ -17,6 +17,7 @@ use std::sync::Arc;
 
 /// Resources that are shared between battle snapshots
 pub struct SharedBattleResources {
+    pub config: RefCell<BattleConfig>,
     pub vm_manager: BattleVmManager,
     pub status_registry: StatusRegistry,
     pub statuses_texture: Arc<Texture>,
@@ -36,12 +37,7 @@ pub struct SharedBattleResources {
 }
 
 impl SharedBattleResources {
-    pub fn new(
-        game_io: &GameIO,
-        simulation: &mut BattleSimulation,
-        player_setups: &[PlayerSetup],
-        dependencies: &[(&PackageInfo, PackageNamespace)],
-    ) -> Self {
+    pub fn new(game_io: &GameIO, meta: &BattleMeta) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
@@ -53,7 +49,8 @@ impl SharedBattleResources {
         let mut fade_sprite = Sprite::new(game_io, fade_sprite_texture);
         fade_sprite.set_bounds(Rect::from_corners(-RESOLUTION_F, RESOLUTION_F));
 
-        let mut resources = Self {
+        Self {
+            config: RefCell::new(BattleConfig::new(globals, meta.player_count)),
             vm_manager: BattleVmManager::new(),
             status_registry: StatusRegistry::new(),
             statuses_texture: assets.texture(game_io, ResourcePaths::BATTLE_STATUSES),
@@ -75,24 +72,39 @@ impl SharedBattleResources {
             music_stack_depth: globals.audio.music_stack_len() + 1,
             event_sender,
             event_receiver,
-        };
-
-        resources.init(game_io, simulation, player_setups, dependencies);
-
-        resources
+        }
     }
 
-    fn init(
+    pub fn load_encounter_vms(
         &mut self,
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
-        player_setups: &[PlayerSetup],
-        dependencies: &[(&PackageInfo, PackageNamespace)],
+        meta: &BattleMeta,
     ) {
+        let mut dependencies = meta.encounter_dependencies(game_io);
+
+        // sort by namespace, ensuring proper load order
+        dependencies.sort_by_key(|(_, ns)| *ns);
+
+        BattleVmManager::init_internal_vm(game_io, self, simulation);
+        self.init_dependencies(game_io, simulation, &dependencies);
+    }
+
+    pub fn load_player_vms(
+        &mut self,
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        meta: &BattleMeta,
+    ) {
+        let mut dependencies = meta.player_dependencies(game_io);
+
+        // sort by namespace, ensuring proper load order
+        dependencies.sort_by_key(|(_, ns)| *ns);
+
         let globals = game_io.resource::<Globals>().unwrap();
 
         // load recipes
-        for setup in player_setups {
+        for setup in &meta.player_setups {
             let ns = setup.namespace();
 
             for output in &setup.recipes {
@@ -102,8 +114,15 @@ impl SharedBattleResources {
             }
         }
 
-        BattleVmManager::init_internal_vm(game_io, self, simulation);
+        self.init_dependencies(game_io, simulation, &dependencies);
+    }
 
+    fn init_dependencies(
+        &mut self,
+        game_io: &GameIO,
+        simulation: &mut BattleSimulation,
+        dependencies: &[(&PackageInfo, PackageNamespace)],
+    ) {
         // load tile states + statuses first
         BattleVmManager::init_dependency_vms(
             game_io,

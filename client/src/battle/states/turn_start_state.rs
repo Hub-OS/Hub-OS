@@ -24,11 +24,16 @@ impl TurnStartState {
         }
     }
 
-    fn spawn_banner(&mut self, simulation: &mut BattleSimulation) {
+    fn spawn_banner(
+        &mut self,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         let turn_number = simulation.statistics.turns;
-        let message = if simulation.config.turn_limit == Some(turn_number) {
+        let config = resources.config.borrow();
+        let message = if config.turn_limit == Some(turn_number) {
             BattleBannerMessage::FinalTurn
-        } else if simulation.config.turn_limit.is_some() {
+        } else if config.turn_limit.is_some() {
             BattleBannerMessage::TurnNumberStart(turn_number)
         } else {
             BattleBannerMessage::TurnStart
@@ -58,7 +63,7 @@ impl State for TurnStartState {
     fn update(
         &mut self,
         _game_io: &GameIO,
-        _resources: &SharedBattleResources,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
         if simulation.inputs.iter().any(|input| input.fleeing()) {
@@ -67,7 +72,7 @@ impl State for TurnStartState {
         }
 
         if self.time == DELAY {
-            self.spawn_banner(simulation);
+            self.spawn_banner(resources, simulation);
         } else if let Some(key) = self.banner_key {
             self.complete = !simulation.banner_popups.contains_key(key);
         }

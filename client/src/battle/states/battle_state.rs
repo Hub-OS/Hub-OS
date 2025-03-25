@@ -109,8 +109,8 @@ impl State for BattleState {
         simulation.battle_time += 1;
         self.time += 1;
 
-        self.detect_success_or_failure(simulation);
-        self.update_turn_gauge(game_io, simulation);
+        self.detect_success_or_failure(resources, simulation);
+        self.update_turn_gauge(game_io, resources, simulation);
         self.play_low_hp_sfx(game_io, simulation);
     }
 
@@ -177,7 +177,12 @@ impl BattleState {
         audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
     }
 
-    fn update_turn_gauge(&mut self, game_io: &GameIO, simulation: &mut BattleSimulation) {
+    fn update_turn_gauge(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         if simulation.time_freeze_tracker.time_is_frozen() {
             return;
         }
@@ -197,12 +202,14 @@ impl BattleState {
             simulation.play_sound(game_io, &globals.sfx.turn_gauge);
         }
 
-        if simulation.config.turn_limit == Some(simulation.statistics.turns) {
+        let config = resources.config.borrow();
+
+        if config.turn_limit == Some(simulation.statistics.turns) {
             self.out_of_time = true;
             return;
         }
 
-        if simulation.config.automatic_turn_end || simulation.turn_gauge.completed_turn() {
+        if config.automatic_turn_end || simulation.turn_gauge.completed_turn() {
             simulation.turn_gauge.set_completed_turn(false);
             self.complete = true;
             return;
@@ -223,7 +230,11 @@ impl BattleState {
         });
     }
 
-    fn detect_success_or_failure(&mut self, simulation: &mut BattleSimulation) {
+    fn detect_success_or_failure(
+        &mut self,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         if simulation.time_freeze_tracker.time_is_frozen() {
             // allow the time freeze action to finish
             return;
@@ -254,7 +265,7 @@ impl BattleState {
 
             let Some(team) = player_teams.iter().next() else {
                 // no one left to spectate
-                self.fail(simulation);
+                self.fail(resources, simulation);
                 return;
             };
 
@@ -275,7 +286,7 @@ impl BattleState {
             local_team = entity.team;
         } else {
             // the entity was erased
-            self.fail(simulation);
+            self.fail(resources, simulation);
             return;
         }
 
@@ -298,17 +309,17 @@ impl BattleState {
         self.end_timer = Some(TOTAL_MESSAGE_TIME);
     }
 
-    fn fail(&mut self, simulation: &mut BattleSimulation) {
+    fn fail(&mut self, resources: &SharedBattleResources, simulation: &mut BattleSimulation) {
         if simulation.local_player_id == EntityId::default() {
             self.complete_spectating(simulation);
             return;
         }
 
-        if simulation.config.spectate_on_delete {
+        if resources.config.borrow().spectate_on_delete {
             simulation.local_player_id = EntityId::default();
 
             // check again
-            self.detect_success_or_failure(simulation);
+            self.detect_success_or_failure(resources, simulation);
 
             if self.end_timer.is_some() {
                 // avoid displaying failed banner if the battle will end

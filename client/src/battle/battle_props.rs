@@ -1,3 +1,4 @@
+use crate::lua_api::encounter_init;
 use crate::packages::*;
 use crate::render::*;
 use crate::resources::*;
@@ -9,6 +10,10 @@ use framework::prelude::*;
 use packets::structures::InstalledSwitchDrive;
 use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
 use serde::{Deserialize, Serialize};
+
+use super::BattleScriptContext;
+use super::BattleSimulation;
+use super::SharedBattleResources;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PlayerSetup {
@@ -27,17 +32,17 @@ pub struct PlayerSetup {
 }
 
 impl PlayerSetup {
-    pub fn new_dummy(player_package: &PlayerPackage, index: usize, local: bool) -> Self {
+    pub fn new_empty(index: usize, local: bool) -> Self {
         Self {
-            package_id: player_package.package_info.id.clone(),
+            package_id: Default::default(),
             script_enabled: true,
-            health: 9999,
-            base_health: 9999,
-            emotion: Emotion::default(),
-            deck: Deck::new(String::new()),
-            recipes: Vec::new(),
-            blocks: Vec::new(),
-            drives: Vec::new(),
+            health: 0,
+            base_health: 0,
+            emotion: Default::default(),
+            deck: Default::default(),
+            recipes: Default::default(),
+            blocks: Default::default(),
+            drives: Default::default(),
             index,
             local,
             buffer: PlayerInputBuffer::default(),
@@ -137,23 +142,66 @@ impl PlayerSetup {
             .player_packages
             .package_or_fallback(self.namespace(), &self.package_id)
     }
+
+    pub fn direct_dependency_triplets<'a>(
+        &'a self,
+        game_io: &'a GameIO,
+    ) -> impl Iterator<Item = (PackageCategory, PackageNamespace, PackageId)> + 'a {
+        let ns = self.namespace();
+
+        let player_triplet = (PackageCategory::Player, ns, self.package_id.clone());
+
+        let card_triplet_iter = self
+            .deck
+            .cards
+            .iter()
+            .map(move |card| (PackageCategory::Card, ns, card.package_id.clone()));
+
+        let recipe_triplet_iter = self
+            .recipes
+            .iter()
+            .map(move |id| (PackageCategory::Card, ns, id.clone()));
+
+        let block_triplet_iter = BlockGrid::new(ns)
+            .with_blocks(game_io, self.blocks.clone())
+            .augments(game_io)
+            .map(move |(augment, _)| {
+                (
+                    PackageCategory::Augment,
+                    ns,
+                    augment.package_info.id.clone(),
+                )
+            });
+
+        let drive_triplet_iter = self.drives_augment_iter(game_io).map(move |augment| {
+            (
+                PackageCategory::Augment,
+                ns,
+                augment.package_info.id.clone(),
+            )
+        });
+
+        std::iter::once(player_triplet)
+            .chain(card_triplet_iter)
+            .chain(recipe_triplet_iter)
+            .chain(block_triplet_iter)
+            .chain(drive_triplet_iter)
+    }
 }
 
 pub type BattleStatisticsCallback = Box<dyn FnOnce(Option<BattleStatistics>)>;
 
-pub struct BattleProps {
+pub struct BattleMeta {
     pub encounter_package_pair: Option<(PackageNamespace, PackageId)>,
     pub data: Option<String>,
     pub seed: u64,
     pub background: Background,
     pub player_setups: Vec<PlayerSetup>,
-    pub senders: Vec<NetplayPacketSender>,
-    pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
-    pub statistics_callback: Option<BattleStatisticsCallback>,
+    pub player_count: usize,
     pub recording_enabled: bool,
 }
 
-impl BattleProps {
+impl BattleMeta {
     pub fn new_with_defaults(
         game_io: &GameIO,
         encounter_package_pair: Option<(PackageNamespace, PackageId)>,
@@ -166,11 +214,52 @@ impl BattleProps {
             seed: game_run_duration.as_secs(),
             background: Background::new_battle(game_io),
             player_setups: vec![PlayerSetup::from_globals(game_io)],
-            senders: Vec::new(),
-            receivers: Vec::new(),
-            statistics_callback: None,
+            player_count: 1,
             recording_enabled: true,
         }
+    }
+
+    // returns package info, and the namespace the package should be loaded with
+    pub fn encounter_dependencies<'a>(
+        &self,
+        game_io: &'a GameIO,
+    ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let encounter_triplet_iter = std::iter::once(self.encounter_package(game_io))
+            .flatten()
+            .map(|package| package.package_info().triplet());
+
+        let status_triplet_iter = globals
+            .status_packages
+            .packages(PackageNamespace::BuiltIn)
+            .map(|package| package.package_info.triplet());
+
+        let tile_state_triplet_iter = globals
+            .tile_state_packages
+            .packages(PackageNamespace::BuiltIn)
+            .map(|package| package.package_info.triplet());
+
+        let triplet_iter = encounter_triplet_iter
+            .chain(status_triplet_iter)
+            .chain(tile_state_triplet_iter);
+
+        globals.package_dependency_iter(triplet_iter)
+    }
+
+    // returns package info, and the namespace the package should be loaded with
+    pub fn player_dependencies<'a>(
+        &self,
+        game_io: &'a GameIO,
+    ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let triplet_iter = self
+            .player_setups
+            .iter()
+            .flat_map(|setup| setup.direct_dependency_triplets(game_io));
+
+        globals.package_dependency_iter(triplet_iter)
     }
 
     pub fn encounter_package<'a>(&self, game_io: &'a GameIO) -> Option<&'a EncounterPackage> {
@@ -187,9 +276,7 @@ impl BattleProps {
             seed: recording.seed,
             background: Background::new_battle(game_io),
             player_setups: recording.player_setups.clone(),
-            senders: Vec::new(),
-            receivers: Vec::new(),
-            statistics_callback: None,
+            player_count: recording.player_setups.len(),
             recording_enabled: false,
         }
     }
@@ -207,5 +294,61 @@ impl BattleProps {
         recording.load_packages(game_io, ignored_package_ids);
 
         Some(recording)
+    }
+}
+
+#[derive(Default)]
+pub struct BattleComms {
+    pub senders: Vec<NetplayPacketSender>,
+    pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
+}
+
+pub struct BattleProps {
+    pub simulation_and_resources: Option<(BattleSimulation, SharedBattleResources)>,
+    pub meta: BattleMeta,
+    pub comms: BattleComms,
+    pub statistics_callback: Option<BattleStatisticsCallback>,
+}
+
+impl BattleProps {
+    pub fn new_with_defaults(
+        game_io: &GameIO,
+        encounter_package_pair: Option<(PackageNamespace, PackageId)>,
+    ) -> Self {
+        Self {
+            simulation_and_resources: None,
+            meta: BattleMeta::new_with_defaults(game_io, encounter_package_pair),
+            comms: BattleComms::default(),
+            statistics_callback: None,
+        }
+    }
+
+    pub fn load_encounter(&mut self, game_io: &GameIO) {
+        // create initial simulation
+        let mut simulation = BattleSimulation::new(game_io, &self.meta);
+
+        let mut resources = SharedBattleResources::new(game_io, &self.meta);
+        resources.load_encounter_vms(game_io, &mut simulation, &self.meta);
+
+        // load battle package
+        if let Some(encounter_package) = self.meta.encounter_package(game_io) {
+            let vm_manager = &mut resources.vm_manager;
+            let vm_index = vm_manager
+                .find_vm_from_info(encounter_package.package_info())
+                .unwrap();
+
+            let context = BattleScriptContext {
+                vm_index,
+                resources: &mut resources,
+                game_io,
+                simulation: &mut simulation,
+            };
+
+            encounter_init(context, self.meta.data.as_deref());
+        }
+
+        simulation.field.initialize_uninitialized();
+
+        self.simulation_and_resources = Some((simulation, resources));
     }
 }

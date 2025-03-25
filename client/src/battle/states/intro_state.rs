@@ -88,7 +88,7 @@ impl State for IntroState {
             std::cmp::Ordering::Less => return,
             std::cmp::Ordering::Equal => {
                 // start music
-                if let Some(init_music) = simulation.config.battle_init_music.take() {
+                if let Some(init_music) = resources.config.borrow().battle_init_music.clone() {
                     simulation.play_music(game_io, resources, &init_music.buffer, init_music.loops);
                 }
 

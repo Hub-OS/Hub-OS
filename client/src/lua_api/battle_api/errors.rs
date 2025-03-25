@@ -4,6 +4,12 @@ pub fn package_not_loaded(package_id: &PackageId) -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(format!("{package_id:?} is not loaded"))
 }
 
+pub fn encounter_method_called_after_start() -> rollback_mlua::Error {
+    rollback_mlua::Error::RuntimeError(String::from(
+        "this method can only be called on the first frame",
+    ))
+}
+
 pub fn entity_not_found() -> rollback_mlua::Error {
     rollback_mlua::Error::RuntimeError(String::from("entity deleted or incompatible"))
 }

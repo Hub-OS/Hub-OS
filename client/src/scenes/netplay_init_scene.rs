@@ -1,16 +1,14 @@
 use super::BattleScene;
-use crate::battle::{BattleProps, BattleStatisticsCallback, PlayerSetup};
+use crate::battle::{BattleProps, PlayerSetup};
 use crate::bindable::SpriteColorMode;
-use crate::packages::{PackageId, PackageNamespace};
+use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{Card, Deck, PlayerInputBuffer};
+use crate::saves::Card;
 use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
-use packets::structures::{
-    Emotion, FileHash, InstalledBlock, InstalledSwitchDrive, PackageCategory, RemotePlayerInfo,
-};
+use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -20,15 +18,10 @@ use std::pin::Pin;
 const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
 
 pub struct NetplayProps {
-    pub background: Option<Background>,
-    pub encounter_package: Option<(PackageNamespace, PackageId)>,
-    pub data: Option<String>,
-    pub health: i32,
-    pub base_health: i32,
-    pub emotion: Emotion,
+    /// Partially configured battle props, should only contain the local player and server sent encounter information
+    pub battle_props: BattleProps,
     pub remote_players: Vec<RemotePlayerInfo>,
     pub fallback_address: String,
-    pub statistics_callback: Option<BattleStatisticsCallback>,
 }
 
 enum Event {
@@ -41,39 +34,55 @@ enum Event {
     },
 }
 
+#[derive(Default)]
+enum ConnectionStage {
+    #[default]
+    ResolvingAddresses,
+    SharingSeed,
+    SharingPackageList,
+    WaitingToSharePackages,
+    SharingPackages,
+    Ready,
+    HeadingToBattle,
+    Failed,
+    Complete,
+}
+
+impl ConnectionStage {
+    fn advance(&mut self) {
+        *self = match self {
+            ConnectionStage::ResolvingAddresses => ConnectionStage::SharingSeed,
+            ConnectionStage::SharingSeed => ConnectionStage::SharingPackageList,
+            ConnectionStage::SharingPackageList => ConnectionStage::WaitingToSharePackages,
+            ConnectionStage::WaitingToSharePackages => ConnectionStage::SharingPackages,
+            ConnectionStage::SharingPackages => ConnectionStage::Ready,
+            ConnectionStage::Ready => ConnectionStage::HeadingToBattle,
+            ConnectionStage::HeadingToBattle => ConnectionStage::Complete,
+            ConnectionStage::Failed => ConnectionStage::Complete,
+            ConnectionStage::Complete => ConnectionStage::Complete,
+        };
+    }
+}
+
 struct RemotePlayerConnection {
-    index: usize,
-    player_package: PackageId,
-    script_enabled: bool,
-    health: i32,
-    base_health: i32,
-    emotion: Emotion,
-    deck: Deck,
-    recipes: Vec<PackageId>,
-    blocks: Vec<InstalledBlock>,
-    drives: Vec<InstalledSwitchDrive>,
+    player_setup: PlayerSetup,
+    spectating: bool,
     load_map: HashMap<FileHash, PackageCategory>,
     requested_packages: Option<Vec<FileHash>>,
     ready_for_packages: bool,
+    received_seed: bool,
     received_package_list: bool,
     ready: bool,
     send: Option<NetplayPacketSender>,
     receiver: Option<NetplayPacketReceiver>,
-    buffer: PlayerInputBuffer,
 }
 
 pub struct NetplayInitScene {
+    stage: ConnectionStage,
     local_index: usize,
-    local_health: i32,
-    local_base_health: i32,
-    local_emotion: Emotion,
-    encounter_package: Option<(PackageNamespace, PackageId)>,
-    data: Option<String>,
-    background: Option<Background>,
-    statistics_callback: Option<BattleStatisticsCallback>,
+    battle_props: Option<BattleProps>,
     last_heartbeat: Instant,
-    failed: bool,
-    seed: u64,
+    spectating: bool,
     missing_packages: HashSet<FileHash>,
     player_connections: Vec<RemotePlayerConnection>,
     last_fallback_instant: Instant,
@@ -89,18 +98,16 @@ pub struct NetplayInitScene {
 impl NetplayInitScene {
     pub fn new(game_io: &GameIO, props: NetplayProps) -> Self {
         let NetplayProps {
-            background,
-            encounter_package,
-            data,
-            health,
-            base_health,
-            emotion,
+            mut battle_props,
             remote_players,
             fallback_address,
-            statistics_callback,
         } = props;
 
+        battle_props.meta.seed = 0;
+
         let local_index = Self::resolve_local_index(&remote_players);
+        let player_setup = &mut battle_props.meta.player_setups[0];
+        player_setup.index = local_index;
 
         log::debug!("Assigned player index {}", local_index);
 
@@ -159,40 +166,39 @@ impl NetplayInitScene {
 
         let remote_player_connections: Vec<_> = remote_players
             .into_iter()
-            .map(|info| RemotePlayerConnection {
-                index: info.index,
-                player_package: PackageId::new_blank(),
-                script_enabled: true,
-                health: info.health,
-                base_health: info.base_health,
-                emotion: info.emotion,
-                deck: Deck::default(),
-                recipes: Vec::new(),
-                blocks: Vec::new(),
-                drives: Vec::new(),
-                load_map: HashMap::new(),
-                requested_packages: None,
-                ready_for_packages: false,
-                received_package_list: false,
-                ready: false,
-                send: None,
-                receiver: None,
-                buffer: PlayerInputBuffer::new_with_delay(INPUT_DELAY),
-            })
+            .map(
+                |RemotePlayerInfo {
+                     address: _,
+                     index,
+                     health,
+                     base_health,
+                     emotion,
+                 }| RemotePlayerConnection {
+                    player_setup: PlayerSetup {
+                        health,
+                        base_health,
+                        emotion,
+                        ..PlayerSetup::new_empty(index, false)
+                    },
+                    spectating: false,
+                    load_map: HashMap::new(),
+                    requested_packages: None,
+                    received_seed: false,
+                    ready_for_packages: false,
+                    received_package_list: false,
+                    ready: false,
+                    send: None,
+                    receiver: None,
+                },
+            )
             .collect();
 
         Self {
+            stage: Default::default(),
             local_index,
-            local_health: health,
-            local_base_health: base_health,
-            local_emotion: emotion,
-            encounter_package,
-            data,
-            background,
-            statistics_callback,
+            battle_props: Some(battle_props),
             last_heartbeat: game_io.frame_start_instant(),
-            failed: false,
-            seed: 0,
+            spectating: false,
             missing_packages: HashSet::new(),
             player_connections: remote_player_connections,
             last_fallback_instant: game_io.frame_start_instant(),
@@ -210,10 +216,7 @@ impl NetplayInitScene {
         let mut possible_indexes = Vec::from_iter(0..remote_players.len() + 1);
 
         for info in remote_players {
-            if let Some(p_index) = possible_indexes
-                .iter()
-                .position(|index| *index == info.index)
-            {
+            if let Ok(p_index) = possible_indexes.binary_search(&info.index) {
                 possible_indexes.remove(p_index);
             }
         }
@@ -238,7 +241,7 @@ impl NetplayInitScene {
 
         if let Some((_, receiver)) = &self.fallback_sender_receiver {
             if receiver.is_disconnected() {
-                self.failed = true;
+                self.stage = ConnectionStage::Failed;
                 return;
             }
 
@@ -252,24 +255,34 @@ impl NetplayInitScene {
 
             if game_io.frame_start_instant() - self.last_fallback_instant > MAX_FALLBACK_SILENCE {
                 // remote must've disconnected in some edge case, such as leaving before connection even starts
-                self.failed = true;
+                self.stage = ConnectionStage::Failed;
             }
         } else {
-            for connection in &self.player_connections {
-                if let Some(receiver) = &connection.receiver {
-                    if receiver.is_disconnected() {
-                        self.failed = true;
-                        return;
-                    }
+            self.player_connections.retain(|connection| {
+                let Some(receiver) = &connection.receiver else {
+                    return true;
+                };
 
-                    while let Ok(packet) = receiver.try_recv() {
-                        packets.push(packet);
+                if receiver.is_disconnected() {
+                    if connection.spectating {
+                        // we're safe to drop spectators
+                        return false;
+                    } else {
+                        // fail entirely if this player is involved in the battle
+                        self.stage = ConnectionStage::Failed;
+                        return false;
                     }
                 }
-            }
+
+                while let Ok(packet) = receiver.try_recv() {
+                    packets.push(packet);
+                }
+
+                true
+            });
         }
 
-        if self.failed {
+        if matches!(self.stage, ConnectionStage::Failed) {
             return;
         }
 
@@ -284,7 +297,7 @@ impl NetplayInitScene {
         let Some(connection) = self
             .player_connections
             .iter_mut()
-            .find(|connection| connection.index == index)
+            .find(|connection| connection.player_setup.index == index)
         else {
             return;
         };
@@ -304,6 +317,9 @@ impl NetplayInitScene {
             NetplayPacket::HelloAck { .. } | NetplayPacket::Heartbeat { .. } => {
                 // response unnecessary
             }
+            NetplayPacket::Seed { seed, .. } => {
+                self.integrate_seed(index, seed);
+            }
             NetplayPacket::PlayerSetup {
                 player_package,
                 script_enabled,
@@ -314,58 +330,57 @@ impl NetplayInitScene {
                 drives,
                 ..
             } => {
-                connection.player_package = player_package;
-                connection.script_enabled = script_enabled;
-                connection.deck.cards = cards
+                let setup = &mut connection.player_setup;
+                setup.package_id = player_package;
+                setup.script_enabled = script_enabled;
+                setup.deck.cards = cards
                     .into_iter()
                     .map(|(package_id, code)| Card { package_id, code })
                     .collect();
-                connection.deck.regular_index = regular_card;
-                connection.recipes = recipes;
-                connection.blocks = blocks;
-                connection.drives = drives;
+                setup.deck.regular_index = regular_card;
+                setup.recipes = recipes;
+                setup.blocks = blocks;
+                setup.drives = drives;
             }
             NetplayPacket::PackageList { index, packages } => {
-                connection.received_package_list = true;
+                if !connection.spectating {
+                    connection.received_package_list = true;
 
-                let globals = game_io.resource::<Globals>().unwrap();
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-                // track what needs to be loaded once downloaded
-                let load_list: Vec<_> = packages
-                    .into_iter()
-                    .filter(|(category, id, hash)| {
-                        globals
-                            .package_or_fallback_info(*category, PackageNamespace::Local, id)
-                            .map(|package_info| package_info.hash != *hash) // hashes differ
-                            .unwrap_or(true) // non existent
-                    })
-                    .collect();
+                    // track what needs to be loaded once downloaded
+                    let load_list: Vec<_> = packages
+                        .into_iter()
+                        .filter(|(category, id, hash)| {
+                            globals
+                                .package_or_fallback_info(*category, PackageNamespace::Local, id)
+                                .map(|package_info| package_info.hash != *hash) // hashes differ
+                                .unwrap_or(true) // non existent
+                        })
+                        .collect();
 
-                for (category, _, hash) in &load_list {
-                    connection.load_map.insert(*hash, *category);
+                    for (category, _, hash) in &load_list {
+                        connection.load_map.insert(*hash, *category);
+                    }
+
+                    // track files we need to download
+                    let missing_packages: Vec<_> = load_list
+                        .into_iter()
+                        .map(|(_, _, hash)| hash)
+                        .filter(|hash| self.missing_packages.insert(*hash))
+                        .collect();
+
+                    // request missing packages, even if that list is empty
+                    // allows other clients to advance to the next connection stage
+                    self.send(
+                        index,
+                        NetplayPacket::MissingPackages {
+                            index: self.local_index,
+                            recipient_index: index,
+                            list: missing_packages,
+                        },
+                    );
                 }
-
-                // track files we need to download
-                let missing_packages: Vec<_> = load_list
-                    .into_iter()
-                    .map(|(_, _, hash)| hash)
-                    .filter(|hash| self.missing_packages.insert(*hash))
-                    .collect();
-
-                if missing_packages.is_empty() && self.received_every_zip() {
-                    self.broadcast_ready();
-                }
-
-                // request missing packages, even if that list is empty
-                // check next block to see why
-                self.send(
-                    index,
-                    NetplayPacket::MissingPackages {
-                        index: self.local_index,
-                        recipient_index: index,
-                        list: missing_packages,
-                    },
-                );
             }
             NetplayPacket::MissingPackages {
                 recipient_index,
@@ -374,20 +389,10 @@ impl NetplayInitScene {
             } => {
                 if self.local_index == recipient_index {
                     connection.requested_packages = Some(list);
-
-                    if self.received_every_missing_list() && !self.received_every_zip() {
-                        self.broadcast(NetplayPacket::ReadyForPackages {
-                            index: self.local_index,
-                        });
-                    }
                 }
             }
             NetplayPacket::ReadyForPackages { .. } => {
                 connection.ready_for_packages = true;
-
-                if self.all_ready_for_packages() {
-                    self.share_packages(game_io);
-                }
             }
             NetplayPacket::PackageZip { data, .. } => {
                 let hash = FileHash::hash(&data);
@@ -403,68 +408,37 @@ impl NetplayInitScene {
 
                     for connection in &mut self.player_connections {
                         if let Some(category) = connection.load_map.remove(&hash) {
-                            let namespace = PackageNamespace::Netplay(connection.index as u8);
+                            let namespace =
+                                PackageNamespace::Netplay(connection.player_setup.index as u8);
                             let optional_package =
                                 globals.load_virtual_package(category, namespace, hash);
 
                             if let Some(package) = optional_package {
-                                log::debug!("Loaded {:?} for {}", package.id, connection.index);
+                                log::debug!(
+                                    "Loaded {:?} for {}",
+                                    package.id,
+                                    connection.player_setup.index
+                                );
                             }
                         }
                     }
-
-                    if self.received_every_zip() {
-                        self.broadcast_ready();
-                    }
                 } else if self.fallback_sender_receiver.is_none() {
                     log::error!("Received data for package that wasn't requested: {hash}");
-                    self.failed = true;
+                    self.stage = ConnectionStage::Failed;
                 }
             }
-            NetplayPacket::Ready { seed, .. } => {
-                // todo: prevent seed manipulation
-                self.seed = self.seed.max(seed);
+            NetplayPacket::Ready { .. } => {
                 connection.ready = true;
                 connection.ready_for_packages = true;
             }
             NetplayPacket::Buffer { data, .. } => {
                 if data.signals.contains(&NetplaySignal::Disconnect) {
-                    self.failed = true;
+                    self.stage = ConnectionStage::Failed;
                 }
 
-                connection.buffer.push_last(data);
+                connection.player_setup.buffer.push_last(data);
             }
         }
-    }
-
-    fn all_ready(&self) -> bool {
-        self.received_every_zip()
-            && self
-                .player_connections
-                .iter()
-                .all(|connection| connection.ready)
-    }
-
-    fn received_every_missing_list(&self) -> bool {
-        self.player_connections
-            .iter()
-            .all(|connection| connection.requested_packages.is_some())
-    }
-
-    fn all_ready_for_packages(&self) -> bool {
-        self.player_connections
-            .iter()
-            .all(|connection| connection.ready_for_packages)
-    }
-
-    fn received_every_package_list(&self) -> bool {
-        self.player_connections
-            .iter()
-            .all(|connection| connection.received_package_list)
-    }
-
-    fn received_every_zip(&self) -> bool {
-        self.missing_packages.is_empty() && self.received_every_package_list()
     }
 
     fn send(&self, remote_index: usize, packet: NetplayPacket) {
@@ -474,7 +448,7 @@ impl NetplayInitScene {
             let connection = self
                 .player_connections
                 .iter()
-                .find(|conn| conn.index == remote_index);
+                .find(|conn| conn.player_setup.index == remote_index);
 
             if let Some(connection) = connection {
                 if let Some(send) = connection.send.as_ref() {
@@ -496,12 +470,68 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast_package_list(&self, game_io: &GameIO) {
-        let props = BattleProps::new_with_defaults(game_io, None);
-        let globals = game_io.resource::<Globals>().unwrap();
-        let dependencies = globals.battle_dependencies(game_io, &props);
+    fn broadcast_seed(&mut self) {
+        let seed = OsRng.next_u64();
 
-        let packages = dependencies
+        self.broadcast(NetplayPacket::Seed {
+            index: self.local_index,
+            seed,
+        });
+
+        self.integrate_seed(self.local_index, seed);
+    }
+
+    fn integrate_seed(&mut self, index: usize, seed: u64) {
+        if let Some(connection) = self
+            .player_connections
+            .iter_mut()
+            .find(|connection| connection.player_setup.index == index)
+        {
+            if connection.received_seed {
+                return;
+            }
+
+            connection.received_seed = true;
+        };
+
+        // todo: prevent seed manipulation
+        if let Some(props) = &mut self.battle_props {
+            if props.meta.seed < seed {
+                props.meta.seed = seed;
+            }
+        }
+    }
+
+    fn identify_spectators(&mut self, game_io: &GameIO) {
+        let Some(props) = &mut self.battle_props else {
+            return;
+        };
+
+        props.meta.player_count = self.player_connections.len() + 1;
+        props.load_encounter(game_io);
+
+        let Some((_, resources)) = &props.simulation_and_resources else {
+            return;
+        };
+
+        let config = resources.config.borrow();
+
+        for connection in &mut self.player_connections {
+            if config.spectators.contains(&connection.player_setup.index) {
+                connection.spectating = true;
+                connection.received_package_list = true;
+            }
+        }
+
+        self.spectating = config.spectators.contains(&self.local_index);
+    }
+
+    fn broadcast_package_list(&mut self, game_io: &GameIO) {
+        let player_setup = PlayerSetup::from_globals(game_io);
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let packages = globals
+            .package_dependency_iter(player_setup.direct_dependency_triplets(game_io))
             .iter()
             .map(|(package_info, _)| {
                 (
@@ -517,27 +547,25 @@ impl NetplayInitScene {
             packages,
         });
 
-        let player_setup = &props.player_setups[0];
-        let cards = (player_setup.deck.cards.iter())
-            .map(|card| (card.package_id.clone(), card.code.clone()))
-            .collect();
-        let recipes = player_setup.recipes.clone();
-        let blocks = player_setup.blocks.clone();
-        let drives = player_setup.drives.clone();
-
         self.broadcast(NetplayPacket::PlayerSetup {
             index: self.local_index,
             player_package: player_setup.package_id.clone(),
             script_enabled: player_setup.script_enabled,
-            cards,
-            recipes,
+            cards: (player_setup.deck.cards.iter())
+                .map(|card| (card.package_id.clone(), card.code.clone()))
+                .collect(),
+            recipes: player_setup.recipes.clone(),
             regular_card: player_setup.deck.regular_index,
-            blocks,
-            drives,
+            blocks: player_setup.blocks.clone(),
+            drives: player_setup.drives.clone(),
         })
     }
 
     fn share_packages(&mut self, game_io: &GameIO) {
+        if self.spectating {
+            return;
+        }
+
         let broadcasting = self.fallback_sender_receiver.is_some();
 
         if broadcasting {
@@ -569,7 +597,7 @@ impl NetplayInitScene {
         // send individually to each client
         for i in 0..self.player_connections.len() {
             let connection = &mut self.player_connections[i];
-            let connection_index = connection.index;
+            let connection_index = connection.player_setup.index;
 
             for hash in connection.requested_packages.take().unwrap() {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
@@ -591,128 +619,142 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast_ready(&mut self) {
-        let seed = OsRng.next_u64();
-
-        self.broadcast(NetplayPacket::Ready {
-            index: self.local_index,
-            seed,
-        });
-
-        if self.seed < seed {
-            self.seed = seed;
-        }
+    fn check_peers(&mut self, f: impl FnMut(&RemotePlayerConnection) -> bool) -> bool {
+        self.player_connections.iter().all(f)
     }
 
-    fn handle_transition(&mut self, game_io: &mut GameIO) {
-        if self.failed {
-            // let other player's know we're giving up on them
-            self.broadcast(NetplayPacket::Buffer {
-                index: self.local_index,
-                data: NetplayBufferItem {
-                    pressed: Vec::new(),
-                    signals: vec![NetplaySignal::Disconnect],
-                },
-                lead: Vec::new(),
-            });
+    fn handle_stage(&mut self, game_io: &mut GameIO) {
+        match self.stage {
+            ConnectionStage::ResolvingAddresses | ConnectionStage::Complete => {}
+            ConnectionStage::SharingSeed => {
+                if self.check_peers(|c| c.received_seed) {
+                    self.stage.advance();
+                    self.identify_spectators(game_io);
 
-            // make sure the statistics callback gets called
-            if let Some(callback) = self.statistics_callback.take() {
-                callback(None);
-            }
-
-            // move on
-            let transition = crate::transitions::new_battle_pop(game_io);
-            self.next_scene = NextScene::new_pop().with_transition(transition);
-            return;
-        }
-
-        if self.all_ready() {
-            let globals = game_io.resource::<Globals>().unwrap();
-
-            // clean up zips
-            globals.assets.remove_unused_virtual_zips();
-
-            // get package
-            let encounter_package = self.encounter_package.take();
-            let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
-
-            props.data = self.data.take();
-            props.seed = self.seed;
-
-            // copy background
-            if let Some(background) = self.background.take() {
-                props.background = background;
-            }
-
-            // correct index and health
-            let local_setup = &mut props.player_setups[0];
-            local_setup.index = self.local_index;
-            local_setup.health = self.local_health;
-            local_setup.base_health = self.local_base_health;
-            local_setup.emotion = self.local_emotion.clone();
-
-            // setup other players
-            for mut connection in std::mem::take(&mut self.player_connections) {
-                let namespace = PackageNamespace::Netplay(connection.index as u8);
-                let package = globals
-                    .player_packages
-                    .package_or_fallback(namespace, &connection.player_package);
-
-                let Some(player_package) = package else {
-                    log::error!(
-                        "Never received player package ({}) for player {}",
-                        connection.player_package,
-                        connection.index
-                    );
-                    self.failed = true;
-                    return;
-                };
-
-                props.player_setups.push(PlayerSetup {
-                    package_id: player_package.package_info.id.clone(),
-                    script_enabled: connection.script_enabled,
-                    health: connection.health,
-                    base_health: connection.base_health,
-                    emotion: connection.emotion,
-                    deck: connection.deck.clone(),
-                    recipes: connection.recipes.clone(),
-                    blocks: connection.blocks.clone(),
-                    drives: connection.drives.clone(),
-                    index: connection.index,
-                    local: false,
-                    buffer: connection.buffer,
-                });
-
-                if let Some(send) = connection.send.take() {
-                    props.senders.push(send);
-                }
-
-                if let Some(receiver) = connection.receiver.take() {
-                    props.receivers.push((Some(connection.index), receiver));
+                    if !self.spectating {
+                        self.broadcast_package_list(game_io);
+                    }
                 }
             }
-
-            if let Some((send, receiver)) = self.fallback_sender_receiver.take() {
-                props.senders.push(send);
-                props.receivers.push((None, receiver));
+            ConnectionStage::SharingPackageList => {
+                if self.spectating || self.check_peers(|c| c.requested_packages.is_some()) {
+                    self.stage.advance();
+                    self.broadcast(NetplayPacket::ReadyForPackages {
+                        index: self.local_index,
+                    });
+                }
             }
+            ConnectionStage::WaitingToSharePackages => {
+                if self.check_peers(|c| c.ready_for_packages) {
+                    self.stage.advance();
+                    self.share_packages(game_io);
+                }
+            }
+            ConnectionStage::SharingPackages => {
+                if self.check_peers(|c| c.received_package_list) && self.missing_packages.is_empty()
+                {
+                    self.stage.advance();
+                    self.broadcast(NetplayPacket::Ready {
+                        index: self.local_index,
+                    });
+                }
+            }
+            ConnectionStage::Ready => {
+                if self.check_peers(|c| c.ready) {
+                    self.stage.advance();
+                }
+            }
+            ConnectionStage::HeadingToBattle => {
+                if !game_io.is_in_transition() {
+                    let globals = game_io.resource::<Globals>().unwrap();
 
-            props.statistics_callback = self.statistics_callback.take();
+                    // clean up zips
+                    globals.assets.remove_unused_virtual_zips();
 
-            // create scene
-            let battle_scene = BattleScene::new(game_io, props);
-            let hold_duration = crate::transitions::BATTLE_HOLD_DURATION
-                .checked_sub(self.start_instant.elapsed())
-                .unwrap_or_default();
+                    let mut props = self.battle_props.take().unwrap();
 
-            let scene = HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
-                let transition = crate::transitions::new_battle(game_io);
-                NextScene::new_swap(battle_scene).with_transition(transition)
-            });
+                    // set up other players
+                    for mut connection in std::mem::take(&mut self.player_connections) {
+                        let setup = connection.player_setup;
+                        let index = setup.index;
 
-            let transition = crate::transitions::new_battle(game_io);
-            self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+                        if !connection.spectating {
+                            let namespace = PackageNamespace::Netplay(setup.index as u8);
+                            let package = globals
+                                .player_packages
+                                .package_or_fallback(namespace, &setup.package_id);
+
+                            if package.is_none() {
+                                log::error!(
+                                    "Never received player package ({}) for player {}",
+                                    setup.package_id,
+                                    index
+                                );
+                                self.stage = ConnectionStage::Failed;
+                                // put the props back so ConnectionStage::Failed can access the statistics callback
+                                self.battle_props = Some(props);
+                                return;
+                            }
+                        }
+
+                        props.meta.player_setups.push(setup);
+
+                        if let Some(send) = connection.send.take() {
+                            props.comms.senders.push(send);
+                        }
+
+                        if let Some(receiver) = connection.receiver.take() {
+                            props.comms.receivers.push((Some(index), receiver));
+                        }
+                    }
+
+                    if let Some((send, receiver)) = self.fallback_sender_receiver.take() {
+                        props.comms.senders.push(send);
+                        props.comms.receivers.push((None, receiver));
+                    }
+
+                    // create scene
+                    let battle_scene = BattleScene::new(game_io, props);
+                    let hold_duration = crate::transitions::BATTLE_HOLD_DURATION
+                        .checked_sub(self.start_instant.elapsed())
+                        .unwrap_or_default();
+
+                    let scene =
+                        HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
+                            let transition = crate::transitions::new_battle(game_io);
+                            NextScene::new_swap(battle_scene).with_transition(transition)
+                        });
+
+                    let transition = crate::transitions::new_battle(game_io);
+                    self.next_scene = NextScene::new_swap(scene).with_transition(transition);
+                    self.stage.advance();
+                }
+            }
+            ConnectionStage::Failed => {
+                if !game_io.is_in_transition() {
+                    // let other players know we're giving up on them
+                    self.broadcast(NetplayPacket::Buffer {
+                        index: self.local_index,
+                        data: NetplayBufferItem {
+                            pressed: Vec::new(),
+                            signals: vec![NetplaySignal::Disconnect],
+                        },
+                        lead: Vec::new(),
+                    });
+
+                    // make sure the statistics callback gets called
+                    if let Some(props) = self.battle_props.take() {
+                        if let Some(callback) = props.statistics_callback {
+                            callback(None);
+                        }
+                    }
+
+                    // move on
+                    let transition = crate::transitions::new_battle_pop(game_io);
+                    self.next_scene = NextScene::new_pop().with_transition(transition);
+                    self.stage.advance();
+                }
+            }
         }
     }
 }
@@ -746,7 +788,7 @@ impl Scene for NetplayInitScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::AddressesFailed => {
-                    self.failed = true;
+                    self.stage = ConnectionStage::Failed;
                 }
                 Event::ResolvedAddresses { players } => {
                     for (i, (send, receiver)) in players.into_iter().enumerate() {
@@ -755,24 +797,24 @@ impl Scene for NetplayInitScene {
                         connection.receiver = Some(receiver);
                     }
 
-                    self.broadcast_package_list(game_io);
+                    self.stage.advance();
+                    self.broadcast_seed()
                 }
                 Event::Fallback { fallback } => {
                     self.last_fallback_instant = game_io.frame_start_instant();
                     self.fallback_sender_receiver = Some(fallback);
-                    self.broadcast_package_list(game_io);
+                    self.stage.advance();
+                    self.broadcast_seed();
                 }
             }
         }
 
-        if !game_io.is_in_transition() {
-            self.handle_transition(game_io);
-        }
-
-        if !self.failed {
+        if !matches!(self.stage, ConnectionStage::Failed) {
             self.handle_heartbeat();
             self.handle_packets(game_io);
         }
+
+        self.handle_stage(game_io);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {

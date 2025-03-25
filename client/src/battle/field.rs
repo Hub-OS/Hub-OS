@@ -22,7 +22,10 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new(game_io: &GameIO, cols: usize, rows: usize) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
+        let cols = FIELD_DEFAULT_WIDTH;
+        let rows = FIELD_DEFAULT_HEIGHT;
+
         let mut tiles = Vec::with_capacity(cols * rows);
 
         for row in 0..rows as i32 {

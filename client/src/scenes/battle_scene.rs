@@ -1,7 +1,6 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
-use crate::lua_api::encounter_init;
-use crate::packages::{Package, PackageNamespace};
+use crate::packages::PackageNamespace;
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
@@ -9,7 +8,7 @@ use crate::saves::{BattleRecording, PlayerInputBuffer};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
@@ -43,7 +42,9 @@ struct Backup {
 }
 
 pub struct BattleScene {
-    props: BattleProps,
+    meta: BattleMeta,
+    comms: BattleComms,
+    statistics_callback: Option<BattleStatisticsCallback>,
     recording: Option<BattleRecording>,
     ui_camera: Camera,
     textbox: Textbox,
@@ -70,8 +71,8 @@ impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
         let mut is_playing_back_recording = false;
 
-        if let Some(recording) = props.try_load_recording(game_io) {
-            props = BattleProps::from_recording(game_io, &recording);
+        if let Some(recording) = props.meta.try_load_recording(game_io) {
+            props.meta = BattleMeta::from_recording(game_io, &recording);
             is_playing_back_recording = true;
         } else {
             // remove recording namespaces to prevent interference with other namespaces
@@ -80,65 +81,37 @@ impl BattleScene {
             globals.remove_namespace(PackageNamespace::RecordingServer);
 
             // prevent unused netplay packages from overriding local packages
-            if let Some(local_setup) = props.player_setups.iter().find(|s| s.local) {
+            if let Some(local_setup) = props.meta.player_setups.iter().find(|s| s.local) {
                 globals.remove_namespace(local_setup.namespace());
             }
 
             globals.assets.remove_unused_virtual_zips();
         }
 
+        if props.simulation_and_resources.is_none() {
+            // init simulation
+            props.load_encounter(game_io);
+        }
+
+        // take simulation and resources
+        let (mut simulation, mut resources) = props.simulation_and_resources.unwrap();
+
+        let mut meta = props.meta;
+        let comms = props.comms;
+
         // sort player setups for consistent execution order on every client
-        props.player_setups.sort_by_key(|setup| setup.index);
+        meta.player_setups.sort_by_key(|setup| setup.index);
+        resources.load_player_vms(game_io, &mut simulation, &meta);
 
         // init recording struct
-        let mut recording = if props.recording_enabled {
-            Some(BattleRecording::new(&props))
+        let recording = if meta.recording_enabled {
+            Some(BattleRecording::new(&meta))
         } else {
             None
         };
 
-        // resolve dependencies for loading vms
-        let globals = game_io.resource::<Globals>().unwrap();
-        let mut dependencies = globals.battle_dependencies(game_io, &props);
-
-        // sort by namespace, ensuring proper load order
-        dependencies.sort_by_key(|(_, ns)| *ns);
-
-        // create initial simulation
-        let mut simulation = BattleSimulation::new(game_io, &props);
-
-        // seed before running any vm
-        simulation.seed_random(props.seed);
-
-        // create shared resources
-        let mut resources = SharedBattleResources::new(
-            game_io,
-            &mut simulation,
-            &props.player_setups,
-            &dependencies,
-        );
-
-        // load battle package
-        if let Some(encounter_package) = props.encounter_package(game_io) {
-            let vm_manager = &mut resources.vm_manager;
-            let vm_index = vm_manager
-                .find_vm_from_info(encounter_package.package_info())
-                .unwrap();
-
-            let context = BattleScriptContext {
-                vm_index,
-                resources: &mut resources,
-                game_io,
-                simulation: &mut simulation,
-            };
-
-            encounter_init(context, props.data.as_deref());
-        }
-
-        simulation.field.initialize_uninitialized();
-
         // load the players in the correct order
-        let player_setups = &mut props.player_setups;
+        let player_setups = &meta.player_setups;
         let mut player_controllers = Vec::with_capacity(player_setups.len());
         let local_index = if is_playing_back_recording {
             None
@@ -149,8 +122,7 @@ impl BattleScene {
                 .map(|setup| setup.index)
         };
 
-        let spectator_set: HashSet<_> =
-            HashSet::from_iter(std::mem::take(&mut simulation.config.spectators));
+        let config = resources.config.borrow();
 
         for setup in player_setups {
             player_controllers.push(PlayerController {
@@ -160,11 +132,7 @@ impl BattleScene {
                 remote_average: 0.0,
             });
 
-            if spectator_set.contains(&setup.index) {
-                if let Some(recording) = &mut recording {
-                    recording.mark_spectator(setup.index);
-                }
-            } else {
+            if !config.spectators.contains(&setup.index) {
                 let result = Player::load(game_io, &resources, &mut simulation, setup);
 
                 if let Err(e) = result {
@@ -173,10 +141,14 @@ impl BattleScene {
             }
         }
 
-        Player::initialize_uninitialized(&mut simulation);
+        std::mem::drop(config);
+
+        Player::initialize_uninitialized(&resources, &mut simulation);
 
         Self {
-            props,
+            meta,
+            comms,
+            statistics_callback: props.statistics_callback,
             recording,
             ui_camera: Camera::new_ui(game_io),
             textbox: Textbox::new_overworld(game_io)
@@ -336,7 +308,7 @@ impl BattleScene {
 
         let mut connected_count = self.count_connected_players();
 
-        'main_loop: for (i, (index, receiver)) in self.props.receivers.iter().enumerate() {
+        'main_loop: for (i, (index, receiver)) in self.comms.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
                 if index.is_some() && Some(packet.index()) != *index {
                     // ignore obvious impersonation cheat
@@ -368,7 +340,7 @@ impl BattleScene {
 
         // remove disconnected receivers
         for i in pending_removal.into_iter().rev() {
-            let (player_index, _) = self.props.receivers.remove(i);
+            let (player_index, _) = self.comms.receivers.remove(i);
 
             let Some(index) = player_index else {
                 continue;
@@ -388,7 +360,7 @@ impl BattleScene {
 
         if connected_count == 0 {
             // no need to store these, helps prevent reading too many packets from the fallback receiver
-            self.props.receivers.clear();
+            self.comms.receivers.clear();
         }
 
         for packet in packets {
@@ -472,7 +444,7 @@ impl BattleScene {
     }
 
     fn broadcast(&self, packet: NetplayPacket) {
-        for send in &self.props.senders {
+        for send in &self.comms.senders {
             send(packet.clone());
         }
     }
@@ -699,7 +671,7 @@ impl BattleScene {
             self.pending_signals.push(NetplaySignal::Disconnect);
         }
 
-        if let Some(statistics_callback) = self.props.statistics_callback.take() {
+        if let Some(statistics_callback) = self.statistics_callback.take() {
             self.simulation.wrap_up_statistics();
             let mut statistics = self.simulation.statistics.clone();
             statistics.ran = fleeing;
@@ -805,19 +777,17 @@ impl Scene for BattleScene {
     fn destroy(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
         globals.battle_recording = self.recording.take().map(|recording| {
-            let props = BattleProps {
-                encounter_package_pair: self.props.encounter_package_pair.clone(),
-                data: std::mem::take(&mut self.props.data),
-                seed: self.props.seed,
-                background: self.props.background.clone(),
-                player_setups: std::mem::take(&mut self.props.player_setups),
-                senders: Default::default(),
-                receivers: Default::default(),
-                statistics_callback: None,
-                recording_enabled: true,
+            let meta = BattleMeta {
+                encounter_package_pair: self.meta.encounter_package_pair.clone(),
+                data: std::mem::take(&mut self.meta.data),
+                seed: self.meta.seed,
+                background: self.meta.background.clone(),
+                player_setups: std::mem::take(&mut self.meta.player_setups),
+                player_count: self.meta.player_count,
+                recording_enabled: false,
             };
 
-            (props, recording)
+            (meta, recording)
         });
     }
 

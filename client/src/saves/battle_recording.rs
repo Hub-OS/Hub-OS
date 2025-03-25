@@ -1,4 +1,4 @@
-use crate::battle::{BattleProps, PlayerSetup};
+use crate::battle::{BattleMeta, PlayerSetup};
 use crate::packages::PackageNamespace;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::{SupportingServiceComm, SupportingServiceEvent};
@@ -19,9 +19,9 @@ pub struct BattleRecording {
 }
 
 impl BattleRecording {
-    pub fn new(props: &BattleProps) -> Self {
+    pub fn new(meta: &BattleMeta) -> Self {
         // clear setup buffers
-        let mut setups = props.player_setups.clone();
+        let mut setups = meta.player_setups.clone();
 
         for setup in &mut setups {
             // we'll put this data back in during battle
@@ -29,13 +29,13 @@ impl BattleRecording {
         }
 
         Self {
-            encounter_package_pair: if let Some((ns, id)) = &props.encounter_package_pair {
+            encounter_package_pair: if let Some((ns, id)) = &meta.encounter_package_pair {
                 Some((ns.prefix_recording(), id.clone()))
             } else {
                 None
             },
-            data: props.data.clone(),
-            seed: props.seed,
+            data: meta.data.clone(),
+            seed: meta.seed,
             player_setups: setups,
             package_map: Default::default(),
             required_packages: Default::default(),
@@ -52,14 +52,17 @@ impl BattleRecording {
         setup.blocks = Default::default();
     }
 
-    pub fn save(&mut self, game_io: &GameIO, props: &BattleProps) {
+    pub fn save(&mut self, game_io: &GameIO, meta: &BattleMeta) {
         let service_comm = game_io.resource::<SupportingServiceComm>().unwrap().clone();
         let globals = game_io.resource::<Globals>().unwrap();
         let nickname = globals.global_save.nickname.clone();
 
         // collect package zips
         if self.package_map.is_empty() {
-            for (info, namespace) in globals.battle_dependencies(game_io, props) {
+            let mut dependency_iter = meta.encounter_dependencies(game_io);
+            dependency_iter.extend(meta.player_dependencies(game_io));
+
+            for (info, namespace) in dependency_iter {
                 let category = info.category;
                 let namespace = namespace.prefix_recording();
                 let hash = info.hash;

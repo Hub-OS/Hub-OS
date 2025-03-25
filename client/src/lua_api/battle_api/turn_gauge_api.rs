@@ -82,6 +82,6 @@ pub fn inject_turn_gauge_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(TURN_GAUGE_TABLE, "turn_limit", |api_ctx, lua, _| {
         let api_ctx = api_ctx.borrow();
-        lua.pack_multi(api_ctx.simulation.config.turn_limit)
+        lua.pack_multi(api_ctx.resources.config.borrow().turn_limit)
     });
 }

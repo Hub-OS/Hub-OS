@@ -28,9 +28,10 @@ pub const BATTLE_CARD_SELECT_CAMERA_OFFSET: Vec2 = Vec2::new(0.0, -7.0);
 pub const BATTLE_ZOOM_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.08 };
 pub const BATTLE_PAN_MOTION: CameraMotion = CameraMotion::Multiply { factor: 0.08 };
 pub const BATTLE_CAMERA_TILE_PADDING: f32 = 1.0;
+pub const FIELD_DEFAULT_WIDTH: usize = 8;
+pub const FIELD_DEFAULT_HEIGHT: usize = 5;
 
 // tile states
-pub const POISON_INTERVAL: FrameTime = 7;
 pub const BROKEN_LIFETIME: FrameTime = 600;
 pub const TILE_FLICKER_DURATION: FrameTime = 60;
 pub const TEMP_TEAM_DURATION: FrameTime = 1800;

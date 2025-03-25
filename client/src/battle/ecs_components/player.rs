@@ -299,7 +299,10 @@ impl Player {
         Ok(id)
     }
 
-    pub fn initialize_uninitialized(simulation: &mut BattleSimulation) {
+    pub fn initialize_uninitialized(
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         // resolve flippable defaults by team (Team::Other will always be true)
         let mut default_red_flippable = false;
         let mut default_blue_flippable = false;
@@ -317,7 +320,7 @@ impl Player {
         }
 
         // initialize uninitalized
-        let config = &simulation.config;
+        let config = resources.config.borrow();
 
         type PlayerQuery<'a> = (&'a mut Entity, &'a mut Player, &'a Living);
 

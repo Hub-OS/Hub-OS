@@ -1,5 +1,5 @@
 use crate::args::Args;
-use crate::battle::BattleProps;
+use crate::battle::BattleMeta;
 use crate::lua_api::BattleLuaApi;
 use crate::packages::*;
 use crate::render::ui::{GlyphAtlas, PackageListing};
@@ -8,7 +8,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
-use crate::saves::{BattleRecording, BlockGrid, Config, GlobalSave};
+use crate::saves::{BattleRecording, Config, GlobalSave};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
@@ -38,7 +38,7 @@ pub struct Globals {
     pub battle_api: BattleLuaApi,
 
     // recording
-    pub battle_recording: Option<(BattleProps, BattleRecording)>,
+    pub battle_recording: Option<(BattleMeta, BattleRecording)>,
 
     // sounds
     pub audio: AudioManager,
@@ -417,93 +417,6 @@ impl Globals {
             self.character_packages
                 .unload_package(&self.assets, namespace, id);
         }
-    }
-
-    // returns package info, and the namespace the package should be loaded with
-    pub fn battle_dependencies<'a>(
-        &'a self,
-        game_io: &GameIO,
-        props: &BattleProps,
-    ) -> Vec<(&'a PackageInfo, PackageNamespace)> {
-        let player_triplet_iter = props.player_setups.iter().map(|setup| {
-            (
-                PackageCategory::Player,
-                setup.namespace(),
-                setup.package_id.clone(),
-            )
-        });
-
-        let card_triplet_iter = props.player_setups.iter().flat_map(|setup| {
-            let ns = setup.namespace();
-
-            let card_iter = setup
-                .deck
-                .cards
-                .iter()
-                .map(move |card| (PackageCategory::Card, ns, card.package_id.clone()));
-
-            let recipes_iter = setup
-                .recipes
-                .iter()
-                .map(move |id| (PackageCategory::Card, ns, id.clone()));
-
-            card_iter.chain(recipes_iter)
-        });
-
-        let block_triplet_iter = props.player_setups.iter().flat_map(|setup| {
-            let ns = setup.namespace();
-
-            BlockGrid::new(ns)
-                .with_blocks(game_io, setup.blocks.clone())
-                .augments(game_io)
-                .map(move |(augment, _)| {
-                    (
-                        PackageCategory::Augment,
-                        ns,
-                        augment.package_info.id.clone(),
-                    )
-                })
-                .collect::<Vec<_>>()
-        });
-
-        let drive_triplet_iter = props.player_setups.iter().flat_map(|setup| {
-            let ns = setup.namespace();
-
-            setup
-                .drives_augment_iter(game_io)
-                .map(move |augment| {
-                    (
-                        PackageCategory::Augment,
-                        ns,
-                        augment.package_info.id.clone(),
-                    )
-                })
-                .collect::<Vec<_>>()
-        });
-
-        let encounter_triplet_iter = std::iter::once(props.encounter_package(game_io))
-            .flatten()
-            .map(|package| package.package_info().triplet());
-
-        let status_triplet_iter = self
-            .status_packages
-            .packages(PackageNamespace::BuiltIn)
-            .map(|package| package.package_info.triplet());
-
-        let tile_state_triplet_iter = self
-            .tile_state_packages
-            .packages(PackageNamespace::BuiltIn)
-            .map(|package| package.package_info.triplet());
-
-        let triplet_iter = player_triplet_iter
-            .chain(card_triplet_iter)
-            .chain(block_triplet_iter)
-            .chain(drive_triplet_iter)
-            .chain(encounter_triplet_iter)
-            .chain(status_triplet_iter)
-            .chain(tile_state_triplet_iter);
-
-        self.package_dependency_iter(triplet_iter)
     }
 
     // returns package info, and the namespace the package should be loaded with

@@ -30,6 +30,10 @@ pub enum NetplayPacket {
     HelloAck {
         index: usize,
     },
+    Seed {
+        index: usize,
+        seed: u64,
+    },
     PlayerSetup {
         index: usize,
         player_package: PackageId,
@@ -60,7 +64,6 @@ pub enum NetplayPacket {
     },
     Ready {
         index: usize,
-        seed: u64,
     },
     Buffer {
         index: usize,
@@ -83,9 +86,10 @@ impl NetplayPacket {
 
     pub fn index(&self) -> usize {
         match self {
+            NetplayPacket::Heartbeat { index } => *index,
             NetplayPacket::Hello { index } => *index,
             NetplayPacket::HelloAck { index } => *index,
-            NetplayPacket::Heartbeat { index } => *index,
+            NetplayPacket::Seed { index, .. } => *index,
             NetplayPacket::PlayerSetup { index, .. } => *index,
             NetplayPacket::PackageList { index, .. } => *index,
             NetplayPacket::MissingPackages { index, .. } => *index,

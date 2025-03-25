@@ -998,9 +998,9 @@ impl OverworldOnlineScene {
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
                     let encounter_package = Some((PackageNamespace::Server, package_id.clone()));
                     let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
-                    props.data = data;
+                    props.meta.data = data;
 
-                    let player_setup = &mut props.player_setups[0];
+                    let player_setup = &mut props.meta.player_setups[0];
                     let player_data = &self.area.player_data;
                     player_setup.health = player_data.health;
                     player_setup.base_health = player_data.base_health;
@@ -1013,7 +1013,7 @@ impl OverworldOnlineScene {
                     }));
 
                     // copy background
-                    props.background = self
+                    props.meta.background = self
                         .area
                         .map
                         .background_properties()
@@ -1055,17 +1055,21 @@ impl OverworldOnlineScene {
                     .map(|id| (PackageNamespace::Server, id.clone()));
 
                 // create scene
+                let mut battle_props = BattleProps::new_with_defaults(game_io, encounter_package);
+                battle_props.meta.data = data;
+                battle_props.meta.background = background;
+                battle_props.statistics_callback = Some(statistics_callback);
+
                 let player_data = &self.area.player_data;
+                let player_setup = &mut battle_props.meta.player_setups[0];
+                player_setup.emotion = player_data.emotion.clone();
+                player_setup.health = player_data.health;
+                player_setup.base_health = player_data.base_health;
+
                 let props = NetplayProps {
-                    background: Some(background),
-                    encounter_package,
-                    data,
-                    health: player_data.health,
-                    base_health: player_data.base_health,
-                    emotion: player_data.emotion.clone(),
+                    battle_props,
                     remote_players,
                     fallback_address: self.server_address.clone(),
-                    statistics_callback: Some(statistics_callback),
                 };
 
                 let scene = NetplayInitScene::new(game_io, props);

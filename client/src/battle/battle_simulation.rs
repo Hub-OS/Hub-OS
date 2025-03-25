@@ -14,7 +14,6 @@ use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
 pub struct BattleSimulation {
-    pub config: BattleConfig,
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
     pub inputs: Vec<PlayerInput>,
@@ -48,7 +47,7 @@ pub struct BattleSimulation {
 }
 
 impl BattleSimulation {
-    pub fn new(game_io: &GameIO, props: &BattleProps) -> Self {
+    pub fn new(game_io: &GameIO, meta: &BattleMeta) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(BATTLE_CAMERA_OFFSET);
 
@@ -58,24 +57,21 @@ impl BattleSimulation {
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
         fade_sprite.set_color(Color::TRANSPARENT);
 
-        let field = Field::new(game_io, 8, 5);
-
         let mut sprite_trees: SlotMap<Tree<SpriteNode>> = Default::default();
         // root hud node
         sprite_trees.insert(Tree::new(SpriteNode::new(game_io, Default::default())));
 
         Self {
-            config: BattleConfig::new(globals, &field, props.player_setups.len()),
             statistics: BattleStatistics::new(),
-            rng: Xoshiro256PlusPlus::seed_from_u64(props.seed),
+            rng: Xoshiro256PlusPlus::seed_from_u64(meta.seed),
             time: 0,
             battle_time: 0,
-            inputs: vec![PlayerInput::new(); props.player_setups.len()],
+            inputs: vec![PlayerInput::new(); meta.player_count],
             camera,
-            background: props.background.clone(),
+            background: meta.background.clone(),
             turn_gauge: TurnGauge::new(game_io),
             banner_popups: Default::default(),
-            field,
+            field: Field::new(game_io),
             tile_states: TileState::create_registry(game_io),
             entities: hecs::World::new(),
             generation_tracking: Vec::new(),
@@ -88,12 +84,11 @@ impl BattleSimulation {
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Default::default(),
             pending_callbacks: Vec::new(),
-            local_player_index: props
+            local_player_index: meta
                 .player_setups
                 .iter()
-                .enumerate()
-                .find(|(_, setup)| setup.local)
-                .map(|(i, _)| i)
+                .find(|setup| setup.local)
+                .map(|setup| setup.index)
                 .unwrap_or_default(),
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
@@ -103,10 +98,6 @@ impl BattleSimulation {
             is_resimulation: false,
             exit: false,
         }
-    }
-
-    pub fn seed_random(&mut self, seed: u64) {
-        self.rng = Xoshiro256PlusPlus::seed_from_u64(seed);
     }
 
     pub fn clone(&mut self, game_io: &GameIO) -> Self {
@@ -151,7 +142,6 @@ impl BattleSimulation {
         clone_component!(ActionQueue);
 
         Self {
-            config: self.config.clone(),
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
             rng: self.rng.clone(),
