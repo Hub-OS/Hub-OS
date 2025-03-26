@@ -30,9 +30,6 @@ pub enum NetplayPacketData {
     Heartbeat,
     Hello,
     HelloAck,
-    Seed {
-        seed: u64,
-    },
     PlayerSetup {
         player_package: PackageId,
         script_enabled: bool,

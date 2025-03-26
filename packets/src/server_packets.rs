@@ -236,6 +236,7 @@ pub enum ServerPacket {
     InitiateNetplay {
         package_path: Option<String>,
         data: Option<String>,
+        seed: u64,
         remote_players: Vec<RemotePlayerInfo>,
     },
     ActorConnected {

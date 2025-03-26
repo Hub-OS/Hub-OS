@@ -7,6 +7,7 @@ use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
 use packets::{Reliability, ServerPacket, MAX_IDLE_DURATION};
+use rand::{thread_rng, RngCore};
 use slotmap::HopSlotMap;
 use std::borrow::Cow;
 use std::cell::RefCell;
@@ -1067,6 +1068,7 @@ impl Net {
                     ServerPacket::InitiateNetplay {
                         package_path: package_path.clone(),
                         data: data.clone(),
+                        seed: thread_rng().next_u64(),
                         remote_players,
                     },
                 );

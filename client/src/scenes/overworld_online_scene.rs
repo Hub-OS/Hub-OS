@@ -1032,6 +1032,7 @@ impl OverworldOnlineScene {
             ServerPacket::InitiateNetplay {
                 package_path,
                 data,
+                seed,
                 remote_players,
             } => {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
@@ -1057,6 +1058,7 @@ impl OverworldOnlineScene {
                 // create scene
                 let mut battle_props = BattleProps::new_with_defaults(game_io, encounter_package);
                 battle_props.meta.data = data;
+                battle_props.meta.seed = seed;
                 battle_props.meta.background = background;
                 battle_props.statistics_callback = Some(statistics_callback);
 

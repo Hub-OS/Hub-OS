@@ -12,8 +12,6 @@ use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
 use packets::{
     NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, SERVER_TICK_RATE,
 };
-use rand::rngs::OsRng;
-use rand::RngCore;
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 
@@ -40,7 +38,7 @@ enum Event {
 enum ConnectionStage {
     #[default]
     ResolvingAddresses,
-    SharingSeed,
+    ResolvingSpectators,
     SharingPackageList,
     WaitingToSharePackages,
     SharingPackages,
@@ -53,8 +51,8 @@ enum ConnectionStage {
 impl ConnectionStage {
     fn advance(&mut self) {
         *self = match self {
-            ConnectionStage::ResolvingAddresses => ConnectionStage::SharingSeed,
-            ConnectionStage::SharingSeed => ConnectionStage::SharingPackageList,
+            ConnectionStage::ResolvingAddresses => ConnectionStage::ResolvingSpectators,
+            ConnectionStage::ResolvingSpectators => ConnectionStage::SharingPackageList,
             ConnectionStage::SharingPackageList => ConnectionStage::WaitingToSharePackages,
             ConnectionStage::WaitingToSharePackages => ConnectionStage::SharingPackages,
             ConnectionStage::SharingPackages => ConnectionStage::Ready,
@@ -72,7 +70,6 @@ struct RemotePlayerConnection {
     load_map: HashMap<FileHash, PackageCategory>,
     requested_packages: Option<Vec<FileHash>>,
     ready_for_packages: bool,
-    received_seed: bool,
     received_package_list: bool,
     ready: bool,
     send: Option<NetplayPacketSender>,
@@ -104,8 +101,6 @@ impl NetplayInitScene {
             remote_players,
             fallback_address,
         } = props;
-
-        battle_props.meta.seed = 0;
 
         let local_index = Self::resolve_local_index(&remote_players);
         let player_setup = &mut battle_props.meta.player_setups[0];
@@ -185,7 +180,6 @@ impl NetplayInitScene {
                     spectating: false,
                     load_map: HashMap::new(),
                     requested_packages: None,
-                    received_seed: false,
                     ready_for_packages: false,
                     received_package_list: false,
                     ready: false,
@@ -258,28 +252,46 @@ impl NetplayInitScene {
                 self.stage = ConnectionStage::Failed;
             }
         } else {
-            self.player_connections.retain(|connection| {
-                let Some(receiver) = &connection.receiver else {
-                    return true;
-                };
+            let mut player_disconnected = false;
 
-                if receiver.is_disconnected() {
-                    if connection.spectating {
-                        // we're safe to drop spectators
-                        return false;
-                    } else {
-                        // fail entirely if this player is involved in the battle
-                        self.stage = ConnectionStage::Failed;
-                        return false;
-                    }
-                }
+            for connection in &self.player_connections {
+                let Some(receiver) = &connection.receiver else {
+                    continue;
+                };
 
                 while let Ok(packet) = receiver.try_recv() {
                     packets.push(packet);
                 }
 
-                true
-            });
+                if receiver.is_disconnected() {
+                    player_disconnected = true;
+                }
+            }
+
+            if player_disconnected {
+                // identify spectators early if we need to
+                self.identify_spectators(game_io);
+
+                // see if it's a spectator or fail
+                self.player_connections.retain(|connection| {
+                    let Some(receiver) = &connection.receiver else {
+                        // receiver was taken, we're done listening to this one already
+                        return true;
+                    };
+
+                    if !receiver.is_disconnected() {
+                        // didn't disconnect
+                        return true;
+                    }
+
+                    if !connection.spectating {
+                        // fail entirely if this player is involved in the battle
+                        self.stage = ConnectionStage::Failed;
+                    }
+
+                    false
+                });
+            }
         }
 
         if matches!(self.stage, ConnectionStage::Failed) {
@@ -316,9 +328,6 @@ impl NetplayInitScene {
             }
             NetplayPacketData::HelloAck | NetplayPacketData::Heartbeat => {
                 // response unnecessary
-            }
-            NetplayPacketData::Seed { seed } => {
-                self.integrate_seed(index, seed);
             }
             NetplayPacketData::PlayerSetup {
                 player_package,
@@ -430,7 +439,17 @@ impl NetplayInitScene {
                 connection.ready_for_packages = true;
             }
             NetplayPacketData::Buffer { data, .. } => {
-                if data.signals.contains(&NetplaySignal::Disconnect) {
+                self.identify_spectators(game_io);
+
+                let Some(connection) = self
+                    .player_connections
+                    .iter_mut()
+                    .find(|connection| connection.player_setup.index == index)
+                else {
+                    return;
+                };
+
+                if !connection.spectating && data.signals.contains(&NetplaySignal::Disconnect) {
                     self.stage = ConnectionStage::Failed;
                 }
 
@@ -478,36 +497,17 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast_seed(&mut self) {
-        let seed = OsRng.next_u64();
-
-        self.broadcast(NetplayPacketData::Seed { seed });
-
-        self.integrate_seed(self.local_index, seed);
-    }
-
-    fn integrate_seed(&mut self, index: usize, seed: u64) {
-        if let Some(connection) = self
-            .player_connections
-            .iter_mut()
-            .find(|connection| connection.player_setup.index == index)
-        {
-            if connection.received_seed {
-                return;
-            }
-
-            connection.received_seed = true;
-        };
-
-        // todo: prevent seed manipulation
-        if let Some(props) = &mut self.battle_props {
-            if props.meta.seed < seed {
-                props.meta.seed = seed;
-            }
-        }
+    fn identified_spectators(&self) -> bool {
+        self.battle_props
+            .as_ref()
+            .is_some_and(|p| p.simulation_and_resources.is_some())
     }
 
     fn identify_spectators(&mut self, game_io: &GameIO) {
+        if self.identified_spectators() {
+            return;
+        }
+
         let Some(props) = &mut self.battle_props else {
             return;
         };
@@ -618,8 +618,12 @@ impl NetplayInitScene {
     fn handle_stage(&mut self, game_io: &mut GameIO) {
         match self.stage {
             ConnectionStage::ResolvingAddresses | ConnectionStage::Complete => {}
-            ConnectionStage::SharingSeed => {
-                if self.check_peers(|c| c.received_seed) {
+            ConnectionStage::ResolvingSpectators => {
+                // identify spectators when the transition ends to avoid loading hiccups
+                // identification might happen early if a player disconnects
+                let identified_spectators = self.identified_spectators();
+
+                if identified_spectators || !game_io.is_in_transition() {
                     self.stage.advance();
                     self.identify_spectators(game_io);
 
@@ -785,13 +789,11 @@ impl Scene for NetplayInitScene {
                     }
 
                     self.stage.advance();
-                    self.broadcast_seed()
                 }
                 Event::Fallback { fallback } => {
                     self.last_fallback_instant = game_io.frame_start_instant();
                     self.fallback_sender_receiver = Some(fallback);
                     self.stage.advance();
-                    self.broadcast_seed();
                 }
             }
         }
