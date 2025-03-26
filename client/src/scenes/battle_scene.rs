@@ -7,7 +7,7 @@ use crate::resources::*;
 use crate::saves::{BattleRecording, PlayerInputBuffer};
 use framework::prelude::*;
 use packets::structures::PackageId;
-use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal};
+use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal};
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -310,14 +310,14 @@ impl BattleScene {
 
         'main_loop: for (i, (index, receiver)) in self.comms.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
-                if index.is_some() && Some(packet.index()) != *index {
+                if index.is_some() && Some(packet.index) != *index {
                     // ignore obvious impersonation cheat
                     continue;
                 }
 
                 let is_disconnect = matches!(
-                    &packet,
-                    NetplayPacket::Buffer { data, .. } if data.signals.contains(&NetplaySignal::Disconnect)
+                    &packet.data,
+                    NetplayPacketData::Buffer { data, .. } if data.signals.contains(&NetplaySignal::Disconnect)
                 );
 
                 packets.push(packet);
@@ -373,8 +373,10 @@ impl BattleScene {
     }
 
     fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
-        match packet {
-            NetplayPacket::Buffer { index, data, lead } => {
+        let index = packet.index;
+
+        match packet.data {
+            NetplayPacketData::Buffer { data, lead } => {
                 let mut resimulation_time = self.simulation.time;
 
                 if let Some(controller) = self.player_controllers.get_mut(index) {
@@ -406,10 +408,9 @@ impl BattleScene {
                     self.resimulate(game_io, resimulation_time);
                 }
             }
-            NetplayPacket::Heartbeat { .. } => {}
-            packet => {
-                let name: &'static str = (&packet).into();
-                let index = packet.index();
+            NetplayPacketData::Heartbeat => {}
+            data => {
+                let name: &'static str = (&data).into();
 
                 log::error!("Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
             }
@@ -443,9 +444,16 @@ impl BattleScene {
         }
     }
 
-    fn broadcast(&self, packet: NetplayPacket) {
-        for send in &self.comms.senders {
-            send(packet.clone());
+    fn broadcast(&self, data: NetplayPacketData) {
+        if let Some(index) = self.local_index {
+            for send in &self.comms.senders {
+                let packet = NetplayPacket {
+                    index,
+                    data: data.clone(),
+                };
+
+                send(packet);
+            }
         }
     }
 
@@ -495,11 +503,7 @@ impl BattleScene {
             .map(|controller| sync_dist - controller.buffer.len() as i16)
             .collect();
 
-        self.broadcast(NetplayPacket::Buffer {
-            index: local_index,
-            data,
-            lead,
-        });
+        self.broadcast(NetplayPacketData::Buffer { data, lead });
     }
 
     fn load_input(&mut self) {

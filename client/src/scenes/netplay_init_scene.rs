@@ -9,7 +9,9 @@ use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
-use packets::{NetplayBufferItem, NetplayPacket, NetplaySignal, SERVER_TICK_RATE};
+use packets::{
+    NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, SERVER_TICK_RATE,
+};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use std::collections::{HashMap, HashSet};
@@ -230,9 +232,7 @@ impl NetplayInitScene {
         if now - self.last_heartbeat >= SERVER_TICK_RATE {
             self.last_heartbeat = now;
 
-            self.broadcast(NetplayPacket::Heartbeat {
-                index: self.local_index,
-            });
+            self.broadcast(NetplayPacketData::Heartbeat);
         }
     }
 
@@ -292,7 +292,7 @@ impl NetplayInitScene {
     }
 
     fn handle_packet(&mut self, game_io: &mut GameIO, packet: NetplayPacket) {
-        let index = packet.index();
+        let index = packet.index;
 
         let Some(connection) = self
             .player_connections
@@ -303,24 +303,24 @@ impl NetplayInitScene {
         };
 
         if !matches!(
-            packet,
-            NetplayPacket::Buffer { .. } | NetplayPacket::Heartbeat { .. }
+            packet.data,
+            NetplayPacketData::Buffer { .. } | NetplayPacketData::Heartbeat
         ) {
-            let packet_name: &'static str = (&packet).into();
+            let packet_name: &'static str = (&packet.data).into();
             log::debug!("Received {packet_name} from {index}");
         }
 
-        match packet {
-            NetplayPacket::Hello { .. } => {
+        match packet.data {
+            NetplayPacketData::Hello => {
                 // handled earlier
             }
-            NetplayPacket::HelloAck { .. } | NetplayPacket::Heartbeat { .. } => {
+            NetplayPacketData::HelloAck | NetplayPacketData::Heartbeat => {
                 // response unnecessary
             }
-            NetplayPacket::Seed { seed, .. } => {
+            NetplayPacketData::Seed { seed } => {
                 self.integrate_seed(index, seed);
             }
-            NetplayPacket::PlayerSetup {
+            NetplayPacketData::PlayerSetup {
                 player_package,
                 script_enabled,
                 cards,
@@ -342,7 +342,7 @@ impl NetplayInitScene {
                 setup.blocks = blocks;
                 setup.drives = drives;
             }
-            NetplayPacket::PackageList { index, packages } => {
+            NetplayPacketData::PackageList { packages } => {
                 if !connection.spectating {
                     connection.received_package_list = true;
 
@@ -374,27 +374,25 @@ impl NetplayInitScene {
                     // allows other clients to advance to the next connection stage
                     self.send(
                         index,
-                        NetplayPacket::MissingPackages {
-                            index: self.local_index,
+                        NetplayPacketData::MissingPackages {
                             recipient_index: index,
                             list: missing_packages,
                         },
                     );
                 }
             }
-            NetplayPacket::MissingPackages {
+            NetplayPacketData::MissingPackages {
                 recipient_index,
                 list,
-                ..
             } => {
                 if self.local_index == recipient_index {
                     connection.requested_packages = Some(list);
                 }
             }
-            NetplayPacket::ReadyForPackages { .. } => {
+            NetplayPacketData::ReadyForPackages => {
                 connection.ready_for_packages = true;
             }
-            NetplayPacket::PackageZip { data, .. } => {
+            NetplayPacketData::PackageZip { data } => {
                 let hash = FileHash::hash(&data);
 
                 log::debug!("Received zip for {hash}");
@@ -427,11 +425,11 @@ impl NetplayInitScene {
                     self.stage = ConnectionStage::Failed;
                 }
             }
-            NetplayPacket::Ready { .. } => {
+            NetplayPacketData::Ready => {
                 connection.ready = true;
                 connection.ready_for_packages = true;
             }
-            NetplayPacket::Buffer { data, .. } => {
+            NetplayPacketData::Buffer { data, .. } => {
                 if data.signals.contains(&NetplaySignal::Disconnect) {
                     self.stage = ConnectionStage::Failed;
                 }
@@ -441,7 +439,12 @@ impl NetplayInitScene {
         }
     }
 
-    fn send(&self, remote_index: usize, packet: NetplayPacket) {
+    fn send(&self, remote_index: usize, data: NetplayPacketData) {
+        let packet = NetplayPacket {
+            index: self.local_index,
+            data,
+        };
+
         if let Some((send, _)) = &self.fallback_sender_receiver {
             send(packet);
         } else {
@@ -458,7 +461,12 @@ impl NetplayInitScene {
         }
     }
 
-    fn broadcast(&self, packet: NetplayPacket) {
+    fn broadcast(&self, data: NetplayPacketData) {
+        let packet = NetplayPacket {
+            index: self.local_index,
+            data,
+        };
+
         if let Some((send, _)) = &self.fallback_sender_receiver {
             send(packet);
         } else {
@@ -473,10 +481,7 @@ impl NetplayInitScene {
     fn broadcast_seed(&mut self) {
         let seed = OsRng.next_u64();
 
-        self.broadcast(NetplayPacket::Seed {
-            index: self.local_index,
-            seed,
-        });
+        self.broadcast(NetplayPacketData::Seed { seed });
 
         self.integrate_seed(self.local_index, seed);
     }
@@ -542,13 +547,9 @@ impl NetplayInitScene {
             })
             .collect();
 
-        self.broadcast(NetplayPacket::PackageList {
-            index: self.local_index,
-            packages,
-        });
+        self.broadcast(NetplayPacketData::PackageList { packages });
 
-        self.broadcast(NetplayPacket::PlayerSetup {
-            index: self.local_index,
+        self.broadcast(NetplayPacketData::PlayerSetup {
             player_package: player_setup.package_id.clone(),
             script_enabled: player_setup.script_enabled,
             cards: (player_setup.deck.cards.iter())
@@ -585,10 +586,7 @@ impl NetplayInitScene {
                     assets.binary(&path)
                 });
 
-                self.broadcast(NetplayPacket::PackageZip {
-                    index: self.local_index,
-                    data,
-                });
+                self.broadcast(NetplayPacketData::PackageZip { data });
             }
 
             return;
@@ -608,13 +606,7 @@ impl NetplayInitScene {
                     assets.binary(&path)
                 });
 
-                self.send(
-                    connection_index,
-                    NetplayPacket::PackageZip {
-                        index: self.local_index,
-                        data,
-                    },
-                );
+                self.send(connection_index, NetplayPacketData::PackageZip { data });
             }
         }
     }
@@ -639,9 +631,7 @@ impl NetplayInitScene {
             ConnectionStage::SharingPackageList => {
                 if self.spectating || self.check_peers(|c| c.requested_packages.is_some()) {
                     self.stage.advance();
-                    self.broadcast(NetplayPacket::ReadyForPackages {
-                        index: self.local_index,
-                    });
+                    self.broadcast(NetplayPacketData::ReadyForPackages);
                 }
             }
             ConnectionStage::WaitingToSharePackages => {
@@ -654,9 +644,7 @@ impl NetplayInitScene {
                 if self.check_peers(|c| c.received_package_list) && self.missing_packages.is_empty()
                 {
                     self.stage.advance();
-                    self.broadcast(NetplayPacket::Ready {
-                        index: self.local_index,
-                    });
+                    self.broadcast(NetplayPacketData::Ready);
                 }
             }
             ConnectionStage::Ready => {
@@ -733,8 +721,7 @@ impl NetplayInitScene {
             ConnectionStage::Failed => {
                 if !game_io.is_in_transition() {
                     // let other players know we're giving up on them
-                    self.broadcast(NetplayPacket::Buffer {
-                        index: self.local_index,
+                    self.broadcast(NetplayPacketData::Buffer {
                         data: NetplayBufferItem {
                             pressed: Vec::new(),
                             signals: vec![NetplaySignal::Disconnect],
@@ -838,7 +825,10 @@ async fn punch_holes(
     use futures::StreamExt;
 
     for (send, _) in senders_and_receivers {
-        send(NetplayPacket::Hello { index: local_index });
+        send(NetplayPacket {
+            index: local_index,
+            data: NetplayPacketData::Hello,
+        });
     }
 
     // expecting the first message from everyone to be Hello and the second is a HelloAck
@@ -848,7 +838,7 @@ async fn punch_holes(
                 .stream()
                 .skip_while(|packet| {
                     // skip non hello packets as those are leftovers from a previous match
-                    let out = !matches!(packet, NetplayPacket::Hello { .. });
+                    let out = !matches!(packet.data, NetplayPacketData::Hello);
                     async move { out }
                 })
                 .take(2),
@@ -861,7 +851,7 @@ async fn punch_holes(
     // if we receive anything from the fallback future we'll switch to it
     let fallback_stream = fallback_sender_receiver.1.stream().skip_while(|packet| {
         // skip non hello packets as those are leftovers from a previous match
-        let out = !matches!(packet, NetplayPacket::Hello { .. });
+        let out = !matches!(packet.data, NetplayPacketData::Hello);
         async move { out }
     });
 
@@ -871,19 +861,22 @@ async fn punch_holes(
 
     loop {
         futures::select! {
-            result = hello_stream.select_next_some() => {
-                match result {
-                    NetplayPacket::Hello { index } => {
+            packet = hello_stream.select_next_some() => {
+                match packet.data {
+                    NetplayPacketData::Hello => {
                         log::debug!("Received Hello");
 
-                        if let Some(slice_index) = remote_index_map.iter().position(|i| *i == index) {
+                        if let Some(slice_index) = remote_index_map.iter().position(|i| *i == packet.index) {
                             log::debug!("Sending HelloAck");
 
                             let send = &senders_and_receivers[slice_index].0;
-                            send(NetplayPacket::HelloAck { index: local_index });
+                            send(NetplayPacket {
+                                index: local_index,
+                                data: NetplayPacketData::HelloAck
+                            });
                         }
                     }
-                    NetplayPacket::HelloAck {..} => {
+                    NetplayPacketData::HelloAck => {
                         log::debug!("Received HelloAck");
 
                         total_responses += 1;
@@ -893,16 +886,16 @@ async fn punch_holes(
                             return true;
                         }
                     }
-                    packet => {
-                        let name: &'static str = (&packet).into();
-                        let index = packet.index();
+                    _ => {
+                        let name: &'static str = (&packet.data).into();
+                        let index = packet.index;
 
                         log::error!("Expecting Hello or HelloAck during hole punching phase, received: {name} from {index}");
                     }
                 }
             }
-            result = fallback_stream.select_next_some() => {
-                if let NetplayPacket::Hello { .. } = result {
+            packet = fallback_stream.select_next_some() => {
+                if let NetplayPacketData::Hello = packet.data {
                     log::debug!("Received Hello through fallback channel");
                     return false;
                 }
@@ -913,9 +906,9 @@ async fn punch_holes(
                 // out of time, we'll assume hole punching failed
 
                 // send a hello message on the fallback channel to force wait timers on other players to end
-                fallback_sender_receiver.0(NetplayPacket::Hello {
+                fallback_sender_receiver.0(NetplayPacket{
                     index: local_index,
-                });
+                    data: NetplayPacketData::Hello });
 
                 return false;
             }

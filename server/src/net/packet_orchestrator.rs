@@ -221,7 +221,7 @@ impl PacketOrchestrator {
 
     pub fn forward_netplay_packet(&self, socket_address: SocketAddr, packet: NetplayPacket) {
         if let Some(index) = self.connection_map.get(&socket_address) {
-            if self.connections[*index].netplay_index != packet.index() {
+            if self.connections[*index].netplay_index != packet.index {
                 // client is attempting to impersonate another player, reject the packet
                 return;
             }
