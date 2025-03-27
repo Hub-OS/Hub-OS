@@ -12,5 +12,5 @@ pub fn serialize_into<W: bincode::enc::write::Writer>(buf: &mut W, value: impl s
 }
 
 pub fn deserialize<'de, V: serde::Deserialize<'de>>(bytes: &'de [u8]) -> Result<V, DecodeError> {
-    bincode::serde::decode_borrowed_from_slice(bytes, BINCODE_CONFIG)
+    bincode::serde::borrow_decode_from_slice(bytes, BINCODE_CONFIG).map(|(v, _)| v)
 }
