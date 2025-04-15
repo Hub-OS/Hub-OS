@@ -230,7 +230,9 @@ local function tick(self)
   for _, data in ipairs(self._player_tracking.list) do
     data.collisions, data.prev_collisions = data.prev_collisions, data.collisions
 
-    if data.prev_area_id ~= data.area_id then
+    local prev_area_id = data.prev_area_id
+
+    if prev_area_id ~= data.area_id then
       clear_each_prev_collision(data, function(_, collider)
         if not collider.ignore_transfer and collider.on_exit then
           collider.on_exit(data.player_id)
@@ -244,7 +246,7 @@ local function tick(self)
     local still_colliders = self._still_collider_map[data.area_id]
 
     local collision_enter_callback = function(collider)
-      if (not collider.ignore_transfer or data.area_id == data.prev_area_id) and collider.on_enter then
+      if (not collider.ignore_transfer or data.area_id == prev_area_id) and collider.on_enter then
         collider.on_enter(data.player_id)
       end
     end
