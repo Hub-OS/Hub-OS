@@ -36,6 +36,7 @@ pub struct StatusRegistry {
     next_shift: HitFlags,
     list: Vec<RegisteredStatus>,
     mutual_exclusions: HashMap<HitFlags, VecSet<HitFlags>>,
+    overrides: HashMap<HitFlags, HitFlags>,
     immobilizing_flags: Vec<HitFlags>,
     inactionable_flags: Vec<HitFlags>,
 }
@@ -46,6 +47,7 @@ impl StatusRegistry {
             next_shift: HitFlag::NEXT_SHIFT,
             list: Vec::new(),
             mutual_exclusions: Default::default(),
+            overrides: Default::default(),
             immobilizing_flags: vec![],
             inactionable_flags: vec![],
         }
@@ -163,6 +165,18 @@ impl StatusRegistry {
                 let set = self.mutual_exclusions.entry(flag).or_default();
                 set.insert(item.flag);
             }
+
+            for name in &package.blocked_by {
+                let flag = HitFlag::from_str(self, name);
+                let overrides = self.overrides.entry(item.flag).or_default();
+                *overrides |= flag;
+            }
+
+            for name in &package.blocks_flags {
+                let flag = HitFlag::from_str(self, name);
+                let overrides = self.overrides.entry(flag).or_default();
+                *overrides |= item.flag;
+            }
         }
     }
 
@@ -196,6 +210,10 @@ impl StatusRegistry {
         };
 
         set
+    }
+
+    pub fn overrides_for(&self, flag: HitFlags) -> HitFlags {
+        self.overrides.get(&flag).cloned().unwrap_or_default()
     }
 
     pub fn immobilizing_flags(&self) -> &[HitFlags] {

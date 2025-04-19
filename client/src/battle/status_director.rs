@@ -344,6 +344,18 @@ impl StatusDirector {
     fn resolve_conflicts(&mut self, registry: &StatusRegistry) {
         let mut cancelled_statuses = Vec::new();
 
+        // handle blocked_by / blocks_flags
+        self.new_statuses.retain({
+            let new_status_iter = self.new_statuses.iter();
+            let pending_flags = new_status_iter.fold(0, |flags, status| flags | status.status_flag);
+
+            move |status| {
+                let flag = status.status_flag;
+
+                (registry.overrides_for(flag) & pending_flags) == 0
+            }
+        });
+
         // reverse to preserve the newest statuses
         self.new_statuses.reverse();
         self.new_statuses.retain(|status| {
