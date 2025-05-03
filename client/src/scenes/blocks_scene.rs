@@ -115,12 +115,14 @@ impl BlocksScene {
                     let placed_count = block_counts.get(&(id, color)).cloned().unwrap_or(0);
                     let list_count = max_count.max(placed_count) - placed_count;
 
-                    std::iter::repeat(CompactPackageInfo {
-                        id: package.package_info.id.clone(),
-                        name: package.name.clone(),
-                        color,
-                    })
-                    .take(list_count)
+                    std::iter::repeat_n(
+                        CompactPackageInfo {
+                            id: package.package_info.id.clone(),
+                            name: package.name.clone(),
+                            color,
+                        },
+                        list_count,
+                    )
                 })
             })
             .collect();

@@ -216,7 +216,7 @@ impl<'a> StatusData<'a> {
         let visible_augments = augments
             .iter()
             .filter(|(augment, _)| augment.has_shape)
-            .flat_map(|(augment, level)| std::iter::repeat(augment.name.clone()).take(*level))
+            .flat_map(|(augment, level)| std::iter::repeat_n(augment.name.clone(), *level))
             .collect();
 
         // resolve deck restrictions

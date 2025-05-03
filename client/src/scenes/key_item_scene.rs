@@ -38,7 +38,7 @@ impl KeyItemsScene {
             .items()
             .flat_map(|(item_id, count)| Some((item_registry.get(item_id)?, *count)))
             .filter(|(item_definition, _)| !item_definition.consumable)
-            .flat_map(|(item_definition, count)| std::iter::repeat(item_definition).take(count))
+            .flat_map(|(item_definition, count)| std::iter::repeat_n(item_definition, count))
             .cloned()
             .collect();
 
@@ -66,7 +66,7 @@ impl KeyItemsScene {
         let mut h_scroll_tracker = ScrollTracker::new(game_io, 2).with_wrap(true);
 
         // add 1 to total items to round division up instead of down
-        v_scroll_tracker.set_total_items((key_items.len() + 1) / 2);
+        v_scroll_tracker.set_total_items(key_items.len().div_ceil(2));
         h_scroll_tracker.set_total_items(if key_items.len() > 1 {
             2
         } else {

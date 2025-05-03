@@ -260,7 +260,7 @@ impl TextInput {
             .iter()
             .enumerate()
             .filter(|(_, range)| range.start <= self.caret_index)
-            .last()
+            .next_back()
             .map(|(i, range)| (i, range.clone()))
             .unwrap_or_default();
 

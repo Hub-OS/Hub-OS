@@ -117,8 +117,8 @@ pub fn load_map<A: AssetManager>(game_io: &GameIO, assets: &A, data: &str) -> Op
         if !source.starts_with("/server") {
             // client path
             // todo: hardcoded path oof, this will only be fine if all of our tiles are in this folder
-            source =
-                "resources/scenes/overworld/tiles/".to_string() + source.split('/').last().unwrap();
+            source = "resources/scenes/overworld/tiles/".to_string()
+                + source.split('/').next_back().unwrap();
         }
 
         let document_text = assets.text(&source);
