@@ -279,10 +279,7 @@ impl TextStyle {
 
         let range_start = insert_tracker.line_start_index;
         let range_end = text.len().min(last_index + 1);
-
-        if range_start < range_end {
-            insert_tracker.line_ranges.push(range_start..range_end);
-        }
+        insert_tracker.line_ranges.push(range_start..range_end);
 
         TextMetrics {
             line_ranges: insert_tracker.line_ranges,
