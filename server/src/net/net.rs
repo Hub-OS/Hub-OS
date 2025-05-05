@@ -1039,6 +1039,7 @@ impl Net {
             .collect();
 
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
+        let seed = thread_rng().next_u64();
 
         for (player_index, id) in ids.iter().enumerate() {
             if let Some(client) = self.clients.get_mut(id) {
@@ -1068,7 +1069,7 @@ impl Net {
                     ServerPacket::InitiateNetplay {
                         package_path: package_path.clone(),
                         data: data.clone(),
-                        seed: thread_rng().next_u64(),
+                        seed,
                         remote_players,
                     },
                 );
