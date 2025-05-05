@@ -350,22 +350,27 @@ impl BattleScene {
             self.comms.receivers.clear();
         }
 
+        let mut resimulation_time = self.simulation.time;
+
         for packet in packets {
-            self.handle_packet(game_io, packet);
+            if let Some(resim_time) = self.handle_packet(packet) {
+                resimulation_time = resimulation_time.min(resim_time);
+            }
         }
+
+        self.resimulate(game_io, resimulation_time);
 
         // after resolving packets we should see if we're too far ahead of other players
         // and decide whether we should slow down
         self.resolve_slowdown();
     }
 
-    fn handle_packet(&mut self, game_io: &GameIO, packet: NetplayPacket) {
+    fn handle_packet(&mut self, packet: NetplayPacket) -> Option<FrameTime> {
         let index = packet.index;
+        let mut resimulation_time = None;
 
         match packet.data {
             NetplayPacketData::Buffer { data, lead } => {
-                let mut resimulation_time = self.simulation.time;
-
                 if let Some(controller) = self.player_controllers.get_mut(index) {
                     // check disconnect
                     if data.signals.contains(&NetplaySignal::Disconnect) {
@@ -383,7 +388,7 @@ impl BattleScene {
                         if !input.matches(&data) {
                             // resolve the time of the input if it differs from our simulation
                             resimulation_time =
-                                self.synced_time + controller.buffer.len() as FrameTime;
+                                Some(self.synced_time + controller.buffer.len() as FrameTime);
                         }
                     }
 
@@ -392,7 +397,6 @@ impl BattleScene {
                     }
 
                     controller.buffer.push_last(data);
-                    self.resimulate(game_io, resimulation_time);
                 }
             }
             NetplayPacketData::Heartbeat => {}
@@ -402,6 +406,8 @@ impl BattleScene {
                 log::error!("Expecting Input, Heartbeat, or Disconnect during battle, received: {name} from {index}");
             }
         }
+
+        resimulation_time
     }
 
     fn resolve_slowdown(&mut self) {
