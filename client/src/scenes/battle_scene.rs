@@ -264,19 +264,6 @@ impl BattleScene {
             }
         }
 
-        if self.is_playing_back_recording {
-            // prevent the textbox from opening and signals from being created
-            // the textbox currently can't make use of recorded inputs
-            // and we should be using signals from the recording
-
-            self.pending_signals.clear();
-
-            // note: will trigger TextboxInterface::handle_completed()
-            while !self.textbox.is_complete() {
-                self.textbox.advance_interface(game_io);
-            }
-        }
-
         if self.textbox.is_complete() {
             self.textbox.close()
         }
@@ -796,8 +783,11 @@ impl Scene for BattleScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
-        self.update_textbox(game_io);
-        self.handle_packets(game_io);
+        if !self.is_playing_back_recording {
+            self.update_textbox(game_io);
+            self.handle_packets(game_io);
+        }
+
         self.core_update(game_io);
         self.detect_debug_hotkeys(game_io);
         self.handle_exit_requests(game_io);
