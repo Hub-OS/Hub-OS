@@ -1152,27 +1152,23 @@ impl Net {
         Some(battle_id)
     }
 
-    pub fn send_battle_message(&mut self, battle_id: BattleId, message: String) {
+    pub fn send_battle_message(&mut self, battle_id: BattleId, data: String) {
         let Some(players) = self.active_battles.get(battle_id) else {
             return;
         };
 
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
 
-        for player_id in players {
-            let Some(client) = self.clients.get(player_id) else {
-                continue;
-            };
+        let addresses = players
+            .iter()
+            .flat_map(|player_id| self.clients.get(player_id))
+            .map(|client| client.socket_address);
 
-            orchestrator.send(
-                client.socket_address,
-                Reliability::ReliableOrdered,
-                ServerPacket::BattleMessage {
-                    battle_id,
-                    data: message.clone(),
-                },
-            );
-        }
+        orchestrator.send_to_many(
+            addresses,
+            Reliability::ReliableOrdered,
+            ServerPacket::BattleMessage { battle_id, data },
+        );
     }
 
     pub(super) fn end_battle_for_player(&mut self, battle_id: BattleId, id: ActorId) {

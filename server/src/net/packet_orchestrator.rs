@@ -329,6 +329,32 @@ impl PacketOrchestrator {
         }
     }
 
+    pub fn send_to_many(
+        &mut self,
+        socket_addresses: impl IntoIterator<Item = SocketAddr>,
+        reliability: Reliability,
+        packet: ServerPacket,
+    ) {
+        let data = Arc::new(serialize(packet));
+
+        for address in socket_addresses.into_iter() {
+            if let Some(index) = self.connection_map.get_mut(&address) {
+                let connection = &mut self.connections[*index];
+
+                let reliability = handle_synchronization(
+                    self.synchronize_updates,
+                    &mut self.synchronize_locked_clients,
+                    connection,
+                    reliability,
+                );
+
+                connection
+                    .server_channel
+                    .send_shared_bytes(reliability, data.clone());
+            }
+        }
+    }
+
     pub fn send_packets(
         &mut self,
         socket_address: SocketAddr,
