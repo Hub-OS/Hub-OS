@@ -28,7 +28,7 @@ pub struct BattleSimulation {
     pub field: Field,
     pub tile_states: Vec<TileState>,
     pub entities: hecs::World,
-    pub generation_tracking: Vec<hecs::Entity>,
+    pub generation_tracking: Vec<u32>,
     pub ownership_tracking: OwnershipTracking,
     pub queued_attacks: Vec<AttackBox>,
     pub defense: Defense,
@@ -112,7 +112,8 @@ impl BattleSimulation {
         // a new entity can spawn reusing an id a script may be tracking
         // the most obvious sign of this is seeing the camera flip after a player dies and enemy spawns
         // (enemy reuses the player id, making the engine think the player changed teams)
-        for id in self.generation_tracking.iter().cloned() {
+        for (i, generation) in self.generation_tracking.iter().cloned().enumerate() {
+            let id = hecs::Entity::from_bits(((generation as u64) << 32) | i as u64).unwrap();
             entities.spawn_at(id, ());
             let _ = entities.despawn(id);
         }

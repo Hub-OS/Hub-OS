@@ -108,12 +108,13 @@ impl Entity {
     fn reserve(simulation: &mut BattleSimulation) -> EntityId {
         let id = simulation.entities.reserve_entity();
 
-        let match_id = |stored: &&mut hecs::Entity| stored.id() == id.id();
+        let index = id.id() as usize;
+        let generation = (id.to_bits().get() >> 32) as u32;
 
-        if let Some(stored) = simulation.generation_tracking.iter_mut().find(match_id) {
-            *stored = id;
+        if index < simulation.generation_tracking.len() {
+            simulation.generation_tracking[index] = generation;
         } else {
-            simulation.generation_tracking.push(id);
+            simulation.generation_tracking.push(generation);
         }
 
         id.into()
