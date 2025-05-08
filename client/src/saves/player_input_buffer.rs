@@ -1,3 +1,4 @@
+use crate::resources::INPUT_DELAY;
 use packets::NetplayBufferItem;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -10,7 +11,7 @@ pub struct PlayerInputBuffer {
 
 impl Default for PlayerInputBuffer {
     fn default() -> Self {
-        Self::new_with_delay(5)
+        Self::new_with_delay(INPUT_DELAY)
     }
 }
 
