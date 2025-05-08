@@ -115,3 +115,5 @@ create_generational_index!(ActorId);
 impl_serde_for_generational_index!(ActorId);
 create_generational_index!(SpriteId);
 impl_serde_for_generational_index!(SpriteId);
+create_generational_index!(BattleId);
+impl_serde_for_generational_index!(BattleId);

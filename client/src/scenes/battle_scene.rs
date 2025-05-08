@@ -7,7 +7,9 @@ use crate::resources::*;
 use crate::saves::{BattleRecording, PlayerInputBuffer};
 use framework::prelude::*;
 use packets::structures::PackageId;
-use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal};
+use packets::{
+    ClientPacket, NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, Reliability,
+};
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -44,6 +46,7 @@ struct Backup {
 pub struct BattleScene {
     meta: BattleMeta,
     comms: BattleComms,
+    server_messages: usize,
     statistics_callback: Option<BattleStatisticsCallback>,
     recording: Option<BattleRecording>,
     ui_camera: Camera,
@@ -56,6 +59,7 @@ pub struct BattleScene {
     state: Box<dyn State>,
     backups: VecDeque<Backup>,
     player_controllers: Vec<PlayerController>,
+    connected_count: usize,
     local_index: Option<usize>,
     slow_cooldown: FrameTime,
     frame_by_frame_debug: bool,
@@ -141,6 +145,12 @@ impl BattleScene {
             }
         }
 
+        let connected_count = player_controllers
+            .iter()
+            .enumerate()
+            .filter(|(i, controller)| controller.connected && Some(*i) != local_index)
+            .count();
+
         std::mem::drop(config);
 
         Player::initialize_uninitialized(&resources, &mut simulation);
@@ -148,6 +158,7 @@ impl BattleScene {
         Self {
             meta,
             comms,
+            server_messages: 0,
             statistics_callback: props.statistics_callback,
             recording,
             ui_camera: Camera::new_ui(game_io),
@@ -161,6 +172,7 @@ impl BattleScene {
             state: Box::new(IntroState::new()),
             backups: VecDeque::new(),
             player_controllers,
+            connected_count,
             local_index,
             slow_cooldown: 0,
             frame_by_frame_debug: false,
@@ -281,19 +293,31 @@ impl BattleScene {
         self.textbox.update(game_io);
     }
 
-    fn count_connected_players(&self) -> usize {
-        self.player_controllers
-            .iter()
-            .enumerate()
-            .filter(|(i, controller)| controller.connected && Some(*i) != self.local_index)
-            .count()
+    fn handle_server_messages(&mut self) {
+        let Some((_, receiver)) = self.comms.server.as_ref() else {
+            return;
+        };
+
+        while let Ok((battle_id, message)) = receiver.try_recv() {
+            if battle_id != self.comms.remote_id {
+                // ignore messages meant for other battles
+                continue;
+            }
+
+            let server_events = &mut self.resources.external_events.server;
+
+            server_events.update_event(self.server_messages, message);
+
+            let ack_signal = NetplaySignal::AcknowledgeServerMessage(self.server_messages);
+            self.pending_signals.push(ack_signal);
+
+            self.server_messages += 1;
+        }
     }
 
     fn handle_packets(&mut self, game_io: &GameIO) {
         let mut packets = Vec::new();
         let mut pending_removal = Vec::new();
-
-        let mut connected_count = self.count_connected_players();
 
         'main_loop: for (i, (index, receiver)) in self.comms.receivers.iter().enumerate() {
             while let Ok(packet) = receiver.try_recv() {
@@ -310,9 +334,9 @@ impl BattleScene {
                 packets.push(packet);
 
                 if is_disconnect {
-                    connected_count -= 1;
+                    self.connected_count -= 1;
 
-                    if connected_count == 0 {
+                    if self.connected_count == 0 {
                         // break to prevent receiving extra packets from the fallback receiver
                         // these extra packets are likely for future scenes
                         break 'main_loop;
@@ -345,7 +369,7 @@ impl BattleScene {
             }
         }
 
-        if connected_count == 0 {
+        if self.connected_count == 0 {
             // no need to store these, helps prevent reading too many packets from the fallback receiver
             self.comms.receivers.clear();
         }
@@ -375,6 +399,7 @@ impl BattleScene {
                     // check disconnect
                     if data.signals.contains(&NetplaySignal::Disconnect) {
                         controller.connected = false;
+                        self.resources.external_events.dropped_player(index);
                     }
 
                     // track data for resolving if we should slow down
@@ -512,18 +537,29 @@ impl BattleScene {
             }
         }
 
-        if !self.resimulating && self.input_synced() && !self.is_playing_back_recording {
+        if !self.resimulating && self.input_synced() {
             // prevent buffers from infinitely growing
             for (i, controller) in self.player_controllers.iter_mut().enumerate() {
                 let Some(buffer_item) = controller.buffer.pop_next() else {
                     continue;
                 };
 
+                for signal in &buffer_item.signals {
+                    if let NetplaySignal::AcknowledgeServerMessage(id) = signal {
+                        let server_events = &mut self.resources.external_events.server;
+                        server_events.acknowledge_event(*id, i);
+                    }
+                }
+
                 // record input
                 if let Some(recording) = &mut self.recording {
                     recording.player_setups[i].buffer.push_last(buffer_item);
                 }
             }
+
+            self.resources
+                .external_events
+                .tick(self.synced_time, self.connected_count + 1);
 
             self.synced_time += 1;
         }
@@ -637,12 +673,27 @@ impl BattleScene {
             simulation.handle_local_signals(index, resources);
         }
 
+        simulation.handle_external_signals(&self.meta, game_io, resources);
+
         simulation.pre_update(game_io, resources, state);
         state.update(game_io, resources, simulation);
         simulation.post_update(game_io, resources);
 
+        // drop synced / canonicalized backups, additionally send any associated external messages
         if self.backups.len() > INPUT_BUFFER_LIMIT {
-            self.backups.pop_front();
+            let backup = self.backups.pop_front();
+            let server_comms = self.comms.server.as_ref();
+
+            if let (Some(backup), Some((send, _))) = (backup, server_comms) {
+                let messages = backup.simulation.external_outbox;
+
+                for message in messages {
+                    send(
+                        Reliability::ReliableOrdered,
+                        ClientPacket::BattleMessage { message },
+                    );
+                }
+            }
         }
     }
 
@@ -740,7 +791,7 @@ impl BattleScene {
             let input_util = InputUtil::new(game_io);
             input_util.was_just_pressed(Input::Cancel)
         } else {
-            // use the oldest backup, as we can still rewind and end up not exitting otherwise
+            // use the oldest backup, as we can still rewind and end up not exiting otherwise
             let oldest_backup = self.backups.front();
 
             oldest_backup
@@ -792,6 +843,7 @@ impl Scene for BattleScene {
         if !self.is_playing_back_recording {
             self.update_textbox(game_io);
             self.handle_packets(game_io);
+            self.handle_server_messages();
         }
 
         self.core_update(game_io);

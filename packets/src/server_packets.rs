@@ -230,14 +230,20 @@ pub enum ServerPacket {
         restrictions_path: Option<String>,
     },
     InitiateEncounter {
+        battle_id: BattleId,
         package_path: String,
         data: Option<String>,
     },
     InitiateNetplay {
+        battle_id: BattleId,
         package_path: Option<String>,
         data: Option<String>,
         seed: u64,
         remote_players: Vec<RemotePlayerInfo>,
+    },
+    BattleMessage {
+        battle_id: BattleId,
+        data: String,
     },
     ActorConnected {
         actor_id: ActorId,

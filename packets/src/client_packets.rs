@@ -102,6 +102,9 @@ pub enum ClientPacket {
         item_id: String,
     },
     EncounterStart,
+    BattleMessage {
+        message: String,
+    },
     BattleResults {
         battle_stats: BattleStatistics,
     },

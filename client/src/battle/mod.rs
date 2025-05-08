@@ -15,6 +15,7 @@ mod defense_rule;
 mod derived_animation_state;
 mod ecs_components;
 mod emotion_ui;
+mod external_events;
 mod field;
 mod intangibility;
 mod ownership_tracking;

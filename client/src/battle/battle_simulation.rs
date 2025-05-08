@@ -1,5 +1,7 @@
+use super::external_events::ExternalEvent;
 use super::*;
 use crate::bindable::*;
+use crate::lua_api::pass_server_message;
 use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
@@ -36,6 +38,7 @@ pub struct BattleSimulation {
     pub time_freeze_tracker: TimeFreezeTracker,
     pub components: DenseSlotMap<Component>,
     pub pending_callbacks: Vec<BattleCallback>,
+    pub external_outbox: Vec<String>,
     pub local_player_index: usize,
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
@@ -84,6 +87,7 @@ impl BattleSimulation {
             time_freeze_tracker: TimeFreezeTracker::new(),
             components: Default::default(),
             pending_callbacks: Vec::new(),
+            external_outbox: Default::default(),
             local_player_index: meta
                 .player_setups
                 .iter()
@@ -164,6 +168,8 @@ impl BattleSimulation {
             time_freeze_tracker: self.time_freeze_tracker.clone(),
             components: self.components.clone(),
             pending_callbacks: self.pending_callbacks.clone(),
+            // the outbox isn't shared between frames, and is used once canonicalized / synced
+            external_outbox: Default::default(),
             local_player_index: self.local_player_index,
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
@@ -252,6 +258,38 @@ impl BattleSimulation {
         if self.local_player_id == EntityId::default() && input.was_just_pressed(Input::Pause) {
             let event = BattleEvent::RequestFlee;
             resources.event_sender.send(event).unwrap();
+        }
+    }
+
+    pub fn handle_external_signals(
+        &mut self,
+        meta: &BattleMeta,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+    ) {
+        let Some((namespace, id)) = &meta.encounter_package_pair else {
+            return;
+        };
+
+        let Ok(vm_index) = resources.vm_manager.find_vm(id, *namespace) else {
+            return;
+        };
+
+        for event in resources.external_events.events_for_time(self.time) {
+            match event {
+                ExternalEvent::ServerMessage(message) => {
+                    let api_ctx = BattleScriptContext {
+                        vm_index,
+                        game_io,
+                        resources,
+                        simulation: self,
+                    };
+
+                    if let Err(err) = pass_server_message(api_ctx, message) {
+                        log::error!("{err:?}");
+                    }
+                }
+            }
         }
     }
 

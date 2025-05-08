@@ -1,5 +1,7 @@
 use crate::resources::ResourcePaths;
 
+packets::impl_lua_helpers! { rollback_mlua }
+
 pub fn absolute_path(
     lua: &rollback_mlua::Lua,
     mut path_string: String,

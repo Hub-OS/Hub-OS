@@ -1,12 +1,12 @@
-use packets::structures::ActorId;
-
 use super::{Actor, Direction, PlayerData, WidgetTracker};
+use packets::structures::{ActorId, BattleId};
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::net::SocketAddr;
 
 #[derive(Default)]
 pub(super) struct BattleTrackingInfo {
+    pub battle_id: BattleId,
     pub plugin_index: usize,
     pub player_index: usize,
     pub remote_addresses: Vec<SocketAddr>,

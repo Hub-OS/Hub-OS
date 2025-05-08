@@ -188,6 +188,16 @@ function AsyncifiedTracker:create_promise()
   end)
 end
 
+function AsyncifiedTracker:is_resolve_next()
+  local next_promise = self.next_promise
+
+  if next_promise[1] == 0 then
+    return self.resolvers[1] ~= nil
+  else
+    return false
+  end
+end
+
 function AsyncifiedTracker:resolve(value)
   local next_promise = self.next_promise
 
@@ -195,7 +205,7 @@ function AsyncifiedTracker:resolve(value)
     local resolve = table.remove(self.resolvers, 1)
 
     if resolve == nil then
-      return
+      return false
     end
 
     if #next_promise > 1 then
@@ -203,8 +213,10 @@ function AsyncifiedTracker:resolve(value)
     end
 
     resolve(value)
+    return true
   else
     next_promise[1] = next_promise[1] - 1
+    return false
   end
 end
 
@@ -235,7 +247,8 @@ Net:on("player_request", function(event)
   battle_trackers[player_id] = AsyncifiedTracker.new()
 end)
 
-local function create_asyncified_api(function_name, trackers)
+
+local function create_asyncified_async_only(function_name, trackers)
   local delegate_name = "Net._" .. function_name
 
   Async[function_name] = function(player_id, ...)
@@ -250,6 +263,12 @@ local function create_asyncified_api(function_name, trackers)
 
     return tracker:create_promise()
   end
+end
+
+local function create_asyncified_api(function_name, trackers)
+  local delegate_name = "Net._" .. function_name
+
+  create_asyncified_async_only(function_name, trackers)
 
   Net[function_name] = function(player_id, ...)
     local tracker = trackers[player_id]
@@ -262,41 +281,6 @@ local function create_asyncified_api(function_name, trackers)
     tracker:increment_count()
 
     Net._delegate(delegate_name, player_id, ...)
-  end
-end
-
-local function create_asyncified_netplay_api(function_name, trackers)
-  local delegate_name = "Net._" .. function_name
-
-  Async[function_name] = function(player_ids, ...)
-    local promises = {}
-
-    for _, player_id in ipairs(player_ids) do
-      local tracker = trackers[player_id]
-
-      if tracker then
-        promises[#promises + 1] = tracker:create_promise()
-      else
-        -- player has disconnected or never existed
-        promises[#promises + 1] = Async.create_promise(function(resolve) resolve(nil) end)
-      end
-    end
-
-    Net._delegate(delegate_name, player_ids, ...)
-
-    return promises
-  end
-
-  Net[function_name] = function(player_ids, ...)
-    for _, player_id in ipairs(player_ids) do
-      local tracker = trackers[player_id]
-
-      if tracker then
-        tracker:increment_count()
-      end
-    end
-
-    Net._delegate(delegate_name, player_ids, ...)
   end
 end
 
@@ -316,17 +300,114 @@ end)
 
 -- asyncified battles
 
-create_asyncified_api("initiate_encounter", battle_trackers)
-create_asyncified_netplay_api("initiate_netplay", battle_trackers)
+local battle_emitters = {}
+
+Net:on("player_request", function(event)
+  battle_emitters[event.player_id] = {}
+end)
 
 function Async.initiate_pvp(player1_id, player2_id, ...)
   return Async.initiate_netplay({ player1_id, player2_id }, ...)
 end
 
+function Net.initiate_pvp(player_1, player_2, ...)
+  return Net.initiate_netplay({ player_1, player_2 }, ...)
+end
+
+function Async.initiate_netplay(player_ids, ...)
+  local promises = {}
+
+  for _, player_id in ipairs(player_ids) do
+    local tracker = battle_trackers[player_id]
+
+    if tracker then
+      promises[#promises + 1] = tracker:create_promise()
+    else
+      -- player has disconnected or never existed
+      promises[#promises + 1] = Async.create_promise(function(resolve) resolve(nil) end)
+    end
+  end
+
+  Net._delegate("Net._initiate_netplay", player_ids, ...)
+
+  return promises
+end
+
+function Net.initiate_netplay(player_ids, ...)
+  local emitter = Net.EventEmitter.new()
+  local player_count = 0
+
+  for _, player_id in ipairs(player_ids) do
+    local emitters = battle_emitters[player_id]
+    local tracker = battle_trackers[player_id]
+
+    if emitters then
+      emitters[#emitters + 1] = emitter
+    end
+
+    tracker:increment_count()
+    player_count = player_count + 1
+  end
+
+  emitter["#player_count"] = player_count
+
+  local battle_id = Net._delegate("Net._initiate_netplay", player_ids, ...)
+
+  return emitter, battle_id
+end
+
+create_asyncified_async_only("initiate_encounter", battle_trackers)
+
+function Net.initiate_encounter(player_id, ...)
+  local emitters = battle_emitters[player_id]
+
+  if not emitters then
+    -- player must have disconnected
+    return
+  end
+
+  local emitter = Net.EventEmitter.new()
+  emitter["#player_count"] = 1
+  emitters[#emitters + 1] = emitter
+
+  local battle_id = Net._delegate("Net._initiate_encounter", player_id, ...)
+
+  return emitter, battle_id
+end
+
+Net:on("battle_message", function(event)
+  local player_id = event.player_id
+
+  if not battle_trackers[player_id]:is_resolve_next() then
+    battle_emitters[player_id][1]:emit("battle_message", event)
+  end
+end)
+
+local function subtract_player(emitter)
+  local player_count = emitter["#player_count"] - 1
+  emitter["#player_count"] = player_count
+
+  if player_count == 0 then
+    emitter:destroy()
+  end
+end
+
 Net:on("battle_results", function(event)
   local player_id = event.player_id
 
-  battle_trackers[player_id]:resolve(event)
+  if not battle_trackers[player_id]:resolve(event) then
+    local emitter = table.remove(battle_emitters[player_id], 1)
+    emitter:emit("battle_results", event)
+    subtract_player(emitter)
+  end
+end)
+
+Net:on("player_disconnect", function(event)
+  for _, emitter in ipairs(battle_emitters[event.player_id]) do
+    subtract_player(emitter)
+  end
+
+  battle_emitters[event.player_id] = nil
 end)
 
 -- shops

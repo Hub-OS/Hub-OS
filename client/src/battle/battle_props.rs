@@ -7,8 +7,9 @@ use crate::saves::BlockGrid;
 use crate::saves::Deck;
 use crate::saves::PlayerInputBuffer;
 use framework::prelude::*;
-use packets::structures::InstalledSwitchDrive;
-use packets::structures::{BattleStatistics, Emotion, InstalledBlock};
+use packets::structures::{
+    BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive,
+};
 use serde::{Deserialize, Serialize};
 
 use super::BattleScriptContext;
@@ -301,6 +302,8 @@ impl BattleMeta {
 pub struct BattleComms {
     pub senders: Vec<NetplayPacketSender>,
     pub receivers: Vec<(Option<usize>, NetplayPacketReceiver)>,
+    pub remote_id: BattleId,
+    pub server: Option<(ClientPacketSender, flume::Receiver<(BattleId, String)>)>,
 }
 
 pub struct BattleProps {
@@ -339,8 +342,8 @@ impl BattleProps {
 
             let context = BattleScriptContext {
                 vm_index,
-                resources: &mut resources,
                 game_io,
+                resources: &resources,
                 simulation: &mut simulation,
             };
 

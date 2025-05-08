@@ -301,6 +301,18 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
+    fn handle_battle_message(&mut self, net: &mut Net, player_id: ActorId, message: &str) {
+        if let Some(client) = net.get_client_mut(player_id) {
+            if let Some(info) = client.battle_tracker.front() {
+                let i = info.plugin_index;
+
+                self.wrap_call(i, net, |plugin_interface, net| {
+                    plugin_interface.handle_battle_message(net, player_id, message)
+                });
+            }
+        }
+    }
+
     fn handle_battle_results(
         &mut self,
         net: &mut Net,
@@ -309,6 +321,8 @@ impl PluginInterface for PluginWrapper {
     ) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(info) = client.battle_tracker.pop_front() {
+                net.end_battle_for_player(info.battle_id, player_id);
+
                 let i = info.plugin_index;
 
                 self.wrap_call(i, net, |plugin_interface, net| {

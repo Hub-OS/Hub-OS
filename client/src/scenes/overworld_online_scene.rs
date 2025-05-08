@@ -19,7 +19,8 @@ use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{
-    ActorId, ActorProperty, BattleStatistics, FileHash, SpriteId, SpriteParent, TextboxOptions,
+    ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, SpriteId, SpriteParent,
+    TextboxOptions,
 };
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -38,6 +39,8 @@ pub struct OverworldOnlineScene {
     server_address: String,
     send_packet: ClientPacketSender,
     packet_receiver: ServerPacketReceiver,
+    battle_sender: flume::Sender<(BattleId, String)>,
+    battle_receiver: flume::Receiver<(BattleId, String)>,
     synchronizing_packets: bool,
     stored_packets: Vec<ServerPacket>,
     previous_boost_packet: Option<ClientPacket>,
@@ -86,6 +89,8 @@ impl OverworldOnlineScene {
         // hud
         let hud = OverworldHud::new(game_io, area.player_data.health);
 
+        let (battle_sender, battle_receiver) = flume::unbounded();
+
         Self {
             area,
             menu_manager,
@@ -98,6 +103,8 @@ impl OverworldOnlineScene {
             server_address: address,
             send_packet,
             packet_receiver,
+            battle_sender,
+            battle_receiver,
             synchronizing_packets: false,
             stored_packets: Vec::new(),
             previous_boost_packet: None,
@@ -992,13 +999,20 @@ impl OverworldOnlineScene {
 
                 restrictions.load_restrictions_toml(restrictions_text);
             }
-            ServerPacket::InitiateEncounter { package_path, data } => {
+            ServerPacket::InitiateEncounter {
+                battle_id,
+                package_path,
+                data,
+            } => {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if let Some(package_id) = self.encounter_packages.get(&package_path) {
                     let encounter_package = Some((PackageNamespace::Server, package_id.clone()));
                     let mut props = BattleProps::new_with_defaults(game_io, encounter_package);
                     props.meta.data = data;
+                    props.comms.remote_id = battle_id;
+                    props.comms.server =
+                        Some((self.send_packet.clone(), self.battle_receiver.clone()));
 
                     let player_setup = &mut props.meta.player_setups[0];
                     let player_data = &self.area.player_data;
@@ -1013,11 +1027,8 @@ impl OverworldOnlineScene {
                     }));
 
                     // copy background
-                    props.meta.background = self
-                        .area
-                        .map
-                        .background_properties()
-                        .generate_background(game_io, &self.assets);
+                    let bg_props = self.area.map.background_properties();
+                    props.meta.background = bg_props.generate_background(game_io, &self.assets);
 
                     // create scene
                     let scene = BattleInitScene::new(game_io, props);
@@ -1030,6 +1041,7 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::InitiateNetplay {
+                battle_id,
                 package_path,
                 data,
                 seed,
@@ -1038,11 +1050,8 @@ impl OverworldOnlineScene {
                 (self.send_packet)(Reliability::ReliableOrdered, ClientPacket::EncounterStart);
 
                 // copy background
-                let background = self
-                    .area
-                    .map
-                    .background_properties()
-                    .generate_background(game_io, &self.assets);
+                let bg_props = self.area.map.background_properties();
+                let background = bg_props.generate_background(game_io, &self.assets);
 
                 // callback
                 let event_sender = self.area.event_sender.clone();
@@ -1061,6 +1070,9 @@ impl OverworldOnlineScene {
                 battle_props.meta.seed = seed;
                 battle_props.meta.background = background;
                 battle_props.statistics_callback = Some(statistics_callback);
+                battle_props.comms.remote_id = battle_id;
+                battle_props.comms.server =
+                    Some((self.send_packet.clone(), self.battle_receiver.clone()));
 
                 let player_data = &self.area.player_data;
                 let player_setup = &mut battle_props.meta.player_setups[0];
@@ -1079,6 +1091,10 @@ impl OverworldOnlineScene {
                 let transition = crate::transitions::new_battle(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
                 self.next_scene_queue.push_back(next_scene);
+            }
+
+            ServerPacket::BattleMessage { battle_id, data } => {
+                self.battle_sender.send((battle_id, data));
             }
             ServerPacket::ActorConnected {
                 actor_id,

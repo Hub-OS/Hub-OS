@@ -1,4 +1,4 @@
-use packets::structures::ActorId;
+use packets::structures::{ActorId, BattleId};
 
 use super::lua_errors::{create_area_error, create_player_error};
 use super::lua_helpers::*;
@@ -458,52 +458,6 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
-    lua_api.add_dynamic_function("Net", "_initiate_pvp", |api_ctx, lua, params| {
-        let (player_1_id, player_2_id, package_path, data): (
-            ActorId,
-            ActorId,
-            Option<String>,
-            Option<mlua::Value>,
-        ) = lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
-
-        let player_ids = [player_1_id, player_2_id];
-
-        for player_id in &player_ids {
-            if let Some(tracker) = battle_tracker.get_mut(player_id) {
-                tracker.push_back(api_ctx.script_index);
-            }
-        }
-
-        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
-
-        net.initiate_netplay(&player_ids, package_path, data_string);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function("Net", "_initiate_netplay", |api_ctx, lua, params| {
-        let (player_ids, package_path, data): (Vec<ActorId>, Option<String>, Option<mlua::Value>) =
-            lua.unpack_multi(params)?;
-
-        let mut net = api_ctx.net_ref.borrow_mut();
-        let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
-
-        for player_id in &player_ids {
-            if let Some(tracker) = battle_tracker.get_mut(player_id) {
-                tracker.push_back(api_ctx.script_index);
-            }
-        }
-
-        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
-
-        net.initiate_netplay(&player_ids, package_path, data_string);
-
-        lua.pack_multi(())
-    });
-
     lua_api.add_dynamic_function("Net", "set_player_restrictions", |api_ctx, lua, params| {
         let (player_id, restrictions_path): (ActorId, Option<mlua::String>) =
             lua.unpack_multi(params)?;
@@ -529,10 +483,41 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
 
         if let Some(tracker) = api_ctx.battle_tracker_ref.borrow_mut().get_mut(&player_id) {
             tracker.push_back(api_ctx.script_index);
-
-            let data_string = data.map(|v| lua_value_to_string(v, "", 0));
-            net.initiate_encounter(player_id, package_id_str, data_string);
         }
+
+        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
+        let battle_id = net.initiate_encounter(player_id, package_id_str, data_string);
+
+        lua.pack_multi(battle_id)
+    });
+
+    lua_api.add_dynamic_function("Net", "_initiate_netplay", |api_ctx, lua, params| {
+        let (player_ids, package_path, data): (Vec<ActorId>, Option<String>, Option<mlua::Value>) =
+            lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        let mut battle_tracker = api_ctx.battle_tracker_ref.borrow_mut();
+
+        for player_id in &player_ids {
+            if let Some(tracker) = battle_tracker.get_mut(player_id) {
+                tracker.push_back(api_ctx.script_index);
+            }
+        }
+
+        let data_string = data.map(|v| lua_value_to_string(v, "", 0));
+
+        let battle_id = net
+            .initiate_netplay(&player_ids, package_path, data_string)
+            .unwrap_or_default();
+
+        lua.pack_multi(battle_id)
+    });
+
+    lua_api.add_dynamic_function("Net", "send_battle_message", |api_ctx, lua, params| {
+        let (battle_id, data): (BattleId, mlua::Value) = lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+        net.send_battle_message(battle_id, lua_value_to_string(data, "", 0));
 
         lua.pack_multi(())
     });

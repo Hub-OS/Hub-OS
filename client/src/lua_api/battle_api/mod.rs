@@ -30,6 +30,7 @@ pub use battle_lua_api::*;
 pub use built_in_api::inject_internal_scripts;
 pub use card_select_button_api::*;
 pub use encounter_init::encounter_init;
+pub use encounter_init::pass_server_message;
 pub use entity_api::create_entity_table;
 pub use movement_api::create_movement_table;
 pub use status_api::create_status_table;

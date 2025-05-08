@@ -6,9 +6,10 @@ use super::*;
 use crate::jobs::JobPromise;
 use crate::threads::ThreadMessage;
 use flume::Sender;
+use indexmap::IndexSet;
 use packets::{Reliability, ServerPacket, MAX_IDLE_DURATION};
 use rand::{thread_rng, RngCore};
-use slotmap::HopSlotMap;
+use slotmap::{HopSlotMap, SlotMap};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -28,6 +29,7 @@ pub struct Net {
     active_plugin: usize,
     kick_list: Vec<Boot>,
     item_registry: HashMap<String, ItemDefinition>,
+    active_battles: SlotMap<BattleId, IndexSet<ActorId>>,
 }
 
 impl Net {
@@ -90,6 +92,7 @@ impl Net {
             active_plugin: 0,
             kick_list: Vec::new(),
             item_registry: HashMap::new(),
+            active_battles: Default::default(),
         }
     }
 
@@ -1012,12 +1015,66 @@ impl Net {
         false
     }
 
+    pub fn set_player_restrictions(&mut self, player_id: ActorId, restrictions_path: Option<&str>) {
+        if let Some(restrictions_path) = restrictions_path {
+            ensure_asset(
+                &mut self.packet_orchestrator.borrow_mut(),
+                self.config.args.max_payload_size,
+                &self.asset_manager,
+                &mut self.clients,
+                &[player_id],
+                restrictions_path,
+            );
+        };
+
+        self.packet_orchestrator.borrow_mut().send_by_id(
+            player_id,
+            Reliability::ReliableOrdered,
+            ServerPacket::Restrictions {
+                restrictions_path: restrictions_path.map(|s| s.to_string()),
+            },
+        );
+    }
+
+    pub fn initiate_encounter(
+        &mut self,
+        player_id: ActorId,
+        package_path: &str,
+        data: Option<String>,
+    ) -> Option<BattleId> {
+        self.preload_package(&[player_id], package_path);
+
+        let client = self.clients.get_mut(&player_id)?;
+        let battle_id = self.active_battles.insert(IndexSet::from([player_id]));
+
+        // update tracking
+        let tracking_info = BattleTrackingInfo {
+            battle_id,
+            plugin_index: self.active_plugin,
+            ..Default::default()
+        };
+
+        client.battle_tracker.push_back(tracking_info);
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::InitiateEncounter {
+                battle_id,
+                package_path: package_path.to_string(),
+                data,
+            },
+        );
+
+        Some(battle_id)
+    }
+
     pub fn initiate_netplay(
         &mut self,
         ids: &[ActorId],
         package_path: Option<String>,
         data: Option<String>,
-    ) {
+    ) -> Option<BattleId> {
         if let Some(package_path) = package_path.as_ref() {
             self.preload_package(ids, package_path);
         }
@@ -1038,11 +1095,23 @@ impl Net {
             })
             .collect();
 
+        if remote_players.is_empty() {
+            return None;
+        }
+
         let mut orchestrator = self.packet_orchestrator.borrow_mut();
         let seed = thread_rng().next_u64();
 
-        for (player_index, id) in ids.iter().enumerate() {
-            if let Some(client) = self.clients.get_mut(id) {
+        let battle_id = self.active_battles.insert_with_key(|battle_id| {
+            let mut final_list = IndexSet::default();
+
+            for (player_index, id) in ids.iter().enumerate() {
+                let Some(client) = self.clients.get_mut(id) else {
+                    continue;
+                };
+
+                final_list.insert(*id);
+
                 let remote_addresses: Vec<_> = remote_players
                     .iter()
                     .filter(|info| info.address != client.socket_address)
@@ -1050,6 +1119,7 @@ impl Net {
                     .collect();
 
                 let tracking_info = BattleTrackingInfo {
+                    battle_id,
                     plugin_index: self.active_plugin,
                     player_index,
                     remote_addresses,
@@ -1067,6 +1137,7 @@ impl Net {
                     client.socket_address,
                     Reliability::ReliableOrdered,
                     ServerPacket::InitiateNetplay {
+                        battle_id,
                         package_path: package_path.clone(),
                         data: data.clone(),
                         seed,
@@ -1074,28 +1145,47 @@ impl Net {
                     },
                 );
             }
+
+            final_list
+        });
+
+        Some(battle_id)
+    }
+
+    pub fn send_battle_message(&mut self, battle_id: BattleId, message: String) {
+        let Some(players) = self.active_battles.get(battle_id) else {
+            return;
+        };
+
+        let mut orchestrator = self.packet_orchestrator.borrow_mut();
+
+        for player_id in players {
+            let Some(client) = self.clients.get(player_id) else {
+                continue;
+            };
+
+            orchestrator.send(
+                client.socket_address,
+                Reliability::ReliableOrdered,
+                ServerPacket::BattleMessage {
+                    battle_id,
+                    data: message.clone(),
+                },
+            );
         }
     }
 
-    pub fn set_player_restrictions(&mut self, player_id: ActorId, restrictions_path: Option<&str>) {
-        if let Some(restrictions_path) = restrictions_path {
-            ensure_asset(
-                &mut self.packet_orchestrator.borrow_mut(),
-                self.config.args.max_payload_size,
-                &self.asset_manager,
-                &mut self.clients,
-                &[player_id],
-                restrictions_path,
-            );
+    pub(super) fn end_battle_for_player(&mut self, battle_id: BattleId, id: ActorId) {
+        let Some(players) = self.active_battles.get_mut(battle_id) else {
+            log::warn!("Internal tracking error: Player ended a battle that didn't exist");
+            return;
         };
 
-        self.packet_orchestrator.borrow_mut().send_by_id(
-            player_id,
-            Reliability::ReliableOrdered,
-            ServerPacket::Restrictions {
-                restrictions_path: restrictions_path.map(|s| s.to_string()),
-            },
-        );
+        players.swap_remove(&id);
+
+        if players.is_empty() {
+            self.active_battles.remove(battle_id);
+        }
     }
 
     pub fn refer_server(&mut self, player_id: ActorId, name: String, address: String) {
@@ -1216,36 +1306,6 @@ impl Net {
                 &packets,
             );
         }
-    }
-
-    pub fn initiate_encounter(
-        &mut self,
-        player_id: ActorId,
-        package_path: &str,
-        data: Option<String>,
-    ) {
-        self.preload_package(&[player_id], package_path);
-
-        let Some(client) = self.clients.get_mut(&player_id) else {
-            return;
-        };
-
-        // update tracking
-        let tracking_info = BattleTrackingInfo {
-            plugin_index: self.active_plugin,
-            ..Default::default()
-        };
-
-        client.battle_tracker.push_back(tracking_info);
-
-        self.packet_orchestrator.borrow_mut().send(
-            client.socket_address,
-            Reliability::ReliableOrdered,
-            ServerPacket::InitiateEncounter {
-                package_path: package_path.to_string(),
-                data,
-            },
-        );
     }
 
     pub fn is_player_busy(&self, id: ActorId) -> bool {
@@ -1926,6 +1986,10 @@ impl Net {
         let Some(client) = self.clients.remove(&id) else {
             return;
         };
+
+        for tracker in client.battle_tracker {
+            self.end_battle_for_player(tracker.battle_id, id);
+        }
 
         self.free_actor_id(id);
 

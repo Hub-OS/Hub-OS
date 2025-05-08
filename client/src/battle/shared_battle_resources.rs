@@ -1,3 +1,4 @@
+use super::external_events::ExternalEvents;
 use super::{BattleConfig, BattleMeta, BattleSimulation, StatusRegistry, TileState};
 use crate::bindable::{AuxVariable, MathExpr};
 use crate::lua_api::BattleVmManager;
@@ -34,6 +35,7 @@ pub struct SharedBattleResources {
     pub music_stack_depth: usize,
     pub event_sender: flume::Sender<BattleEvent>,
     pub event_receiver: flume::Receiver<BattleEvent>,
+    pub external_events: ExternalEvents,
 }
 
 impl SharedBattleResources {
@@ -72,6 +74,7 @@ impl SharedBattleResources {
             music_stack_depth: globals.audio.music_stack_len() + 1,
             event_sender,
             event_receiver,
+            external_events: ExternalEvents::new(),
         }
     }
 

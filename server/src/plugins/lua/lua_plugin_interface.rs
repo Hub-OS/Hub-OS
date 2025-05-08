@@ -772,6 +772,34 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
+    fn handle_battle_message(&mut self, net: &mut Net, player_id: ActorId, message: &str) {
+        let tracker = self.battle_trackers.get_mut(&player_id).unwrap();
+
+        let Some(script_index) = tracker.front() else {
+            // protect against attackers
+            return;
+        };
+
+        handle_event(
+            &mut self.scripts,
+            &[*script_index],
+            &mut self.widget_trackers,
+            &mut self.battle_trackers,
+            &mut self.promise_manager,
+            &mut self.lua_api,
+            net,
+            |lua, callback| {
+                let event = lua.create_table()?;
+                event.set("player_id", player_id)?;
+
+                let chunk: Option<mlua::Value> = lua.load(message).eval().ok();
+                event.set("data", chunk)?;
+
+                callback.call(("battle_message", event))
+            },
+        );
+    }
+
     fn handle_battle_results(
         &mut self,
         net: &mut Net,

@@ -11,6 +11,7 @@ pub enum NetplaySignal {
     AttemptingFlee,
     CompletedFlee,
     Disconnect,
+    AcknowledgeServerMessage(usize),
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
