@@ -1,6 +1,6 @@
 use super::{BattleStatistics, Net};
 use crate::plugins::PluginInterface;
-use packets::structures::{ActorId, PackageId};
+use packets::structures::{ActorId, BattleId, PackageId};
 
 pub(super) struct PluginWrapper {
     plugin_interfaces: Vec<Box<dyn PluginInterface>>,
@@ -301,13 +301,20 @@ impl PluginInterface for PluginWrapper {
         });
     }
 
-    fn handle_battle_message(&mut self, net: &mut Net, player_id: ActorId, message: &str) {
+    fn handle_battle_message(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        _: BattleId,
+        message: &str,
+    ) {
         if let Some(client) = net.get_client_mut(player_id) {
             if let Some(info) = client.battle_tracker.front() {
                 let i = info.plugin_index;
+                let battle_id = info.battle_id;
 
                 self.wrap_call(i, net, |plugin_interface, net| {
-                    plugin_interface.handle_battle_message(net, player_id, message)
+                    plugin_interface.handle_battle_message(net, player_id, battle_id, message)
                 });
             }
         }

@@ -3,7 +3,7 @@ use crate::jobs::JobPromiseManager;
 use crate::net::{BattleStatistics, Net, WidgetTracker};
 use crate::plugins::PluginInterface;
 use mlua::Lua;
-use packets::structures::{ActorId, PackageId};
+use packets::structures::{ActorId, BattleId, PackageId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -772,7 +772,13 @@ impl PluginInterface for LuaPluginInterface {
         );
     }
 
-    fn handle_battle_message(&mut self, net: &mut Net, player_id: ActorId, message: &str) {
+    fn handle_battle_message(
+        &mut self,
+        net: &mut Net,
+        player_id: ActorId,
+        battle_id: BattleId,
+        message: &str,
+    ) {
         let tracker = self.battle_trackers.get_mut(&player_id).unwrap();
 
         let Some(script_index) = tracker.front() else {
@@ -791,6 +797,7 @@ impl PluginInterface for LuaPluginInterface {
             |lua, callback| {
                 let event = lua.create_table()?;
                 event.set("player_id", player_id)?;
+                event.set("battle_id", battle_id)?;
 
                 let chunk: Option<mlua::Value> = lua.load(message).eval().ok();
                 event.set("data", chunk)?;

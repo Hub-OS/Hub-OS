@@ -557,8 +557,13 @@ impl Server {
                     }
                 }
                 ClientPacket::BattleMessage { message } => {
-                    self.plugin_wrapper
-                        .handle_battle_message(net, player_id, &message);
+                    self.plugin_wrapper.handle_battle_message(
+                        net,
+                        player_id,
+                        // the wrapper will resolve the battle_id
+                        Default::default(),
+                        &message,
+                    );
                 }
                 ClientPacket::BattleResults { battle_stats } => {
                     self.plugin_wrapper
