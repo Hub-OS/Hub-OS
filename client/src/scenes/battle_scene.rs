@@ -75,8 +75,11 @@ impl BattleScene {
     pub fn new(game_io: &mut GameIO, mut props: BattleProps) -> Self {
         let mut is_playing_back_recording = false;
 
-        if let Some(recording) = props.meta.try_load_recording(game_io) {
-            props.meta = BattleMeta::from_recording(game_io, &recording);
+        let mut initial_external_events = Default::default();
+
+        if let Some(mut recording) = props.meta.try_load_recording(game_io) {
+            initial_external_events = std::mem::take(&mut recording.external_events);
+            props.meta = BattleMeta::from_recording(game_io, recording);
             is_playing_back_recording = true;
         } else {
             // remove recording namespaces to prevent interference with other namespaces
@@ -99,6 +102,9 @@ impl BattleScene {
 
         // take simulation and resources
         let (mut simulation, mut resources) = props.simulation_and_resources.unwrap();
+
+        // load initial external events
+        resources.external_events.load(initial_external_events);
 
         let mut meta = props.meta;
         let comms = props.comms;
@@ -566,10 +572,19 @@ impl BattleScene {
                 }
             }
 
-            self.resources
-                .external_events
-                .tick(self.synced_time, self.connected_count + 1);
+            let external_events = &mut self.resources.external_events;
 
+            // record external events
+            if let Some(recording) = &mut self.recording {
+                let new_event_iter = external_events
+                    .events_for_time(self.synced_time)
+                    .map(|event| (self.synced_time, event.clone()));
+
+                recording.external_events.extend(new_event_iter);
+            }
+
+            // progress external events, and time
+            external_events.tick(self.synced_time, self.connected_count + 1);
             self.synced_time += 1;
         }
     }

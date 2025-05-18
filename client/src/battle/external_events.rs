@@ -1,13 +1,15 @@
 use crate::{render::FrameTime, resources::INPUT_BUFFER_LIMIT};
-use std::collections::{HashMap, HashSet, VecDeque};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 
+#[derive(Serialize, Deserialize, Clone)]
 pub enum ExternalEvent {
     ServerMessage(String),
 }
 
 pub struct ExternalEvents {
     pub server: EventSyncer<String>,
-    events: VecDeque<(FrameTime, ExternalEvent)>,
+    events: Vec<(FrameTime, ExternalEvent)>,
 }
 
 impl ExternalEvents {
@@ -18,6 +20,10 @@ impl ExternalEvents {
         }
     }
 
+    pub fn load(&mut self, events: Vec<(FrameTime, ExternalEvent)>) {
+        self.events.extend(events);
+    }
+
     pub fn tick(&mut self, synced_time: FrameTime, total_players: usize) {
         // make synced events available at the end of our buffer limit
         // that way we don't need to roll back to handle the event
@@ -25,15 +31,8 @@ impl ExternalEvents {
 
         for message in self.server.tick(total_players) {
             self.events
-                .push_back((next_time, ExternalEvent::ServerMessage(message)));
+                .push((next_time, ExternalEvent::ServerMessage(message)));
         }
-
-        // remove items
-        let event_iter = self.events.iter();
-        let drain_end = event_iter
-            .take_while(|(time, _)| *time < synced_time)
-            .count();
-        self.events.drain(..drain_end);
     }
 
     pub fn events_for_time(&self, time: FrameTime) -> impl Iterator<Item = &ExternalEvent> {

@@ -270,14 +270,14 @@ impl BattleMeta {
         globals.encounter_packages.package_or_fallback(*ns, id)
     }
 
-    pub fn from_recording(game_io: &GameIO, recording: &BattleRecording) -> Self {
+    pub fn from_recording(game_io: &GameIO, recording: BattleRecording) -> Self {
         Self {
             encounter_package_pair: recording.encounter_package_pair.clone(),
-            data: recording.data.clone(),
+            data: recording.data,
             seed: recording.seed,
             background: Background::new_battle(game_io),
-            player_setups: recording.player_setups.clone(),
             player_count: recording.player_setups.len(),
+            player_setups: recording.player_setups,
             recording_enabled: false,
         }
     }

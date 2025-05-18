@@ -52,6 +52,7 @@ pub use defense_rule::*;
 pub use derived_animation_state::*;
 pub use ecs_components::*;
 pub use emotion_ui::*;
+pub use external_events::ExternalEvent;
 pub use field::*;
 pub use intangibility::*;
 pub use ownership_tracking::*;

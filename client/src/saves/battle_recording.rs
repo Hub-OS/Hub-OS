@@ -1,5 +1,6 @@
-use crate::battle::{BattleMeta, PlayerSetup};
+use crate::battle::{BattleMeta, ExternalEvent, PlayerSetup};
 use crate::packages::PackageNamespace;
+use crate::render::FrameTime;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::{SupportingServiceComm, SupportingServiceEvent};
 use framework::prelude::*;
@@ -16,6 +17,7 @@ pub struct BattleRecording {
     pub player_setups: Vec<PlayerSetup>,
     pub package_map: HashMap<(PackageCategory, FileHash), Vec<u8>>,
     pub required_packages: Vec<(PackageCategory, PackageNamespace, FileHash)>,
+    pub external_events: Vec<(FrameTime, ExternalEvent)>,
 }
 
 impl BattleRecording {
@@ -39,6 +41,7 @@ impl BattleRecording {
             player_setups: setups,
             package_map: Default::default(),
             required_packages: Default::default(),
+            external_events: Default::default(),
         }
     }
 
