@@ -125,26 +125,16 @@ impl BattleSimulation {
 
         // cloning every component
         macro_rules! clone_component {
-            ($component: ty) => {
-                for (id, component) in self.entities.query_mut::<&$component>() {
+            ($($component: ty),*) => {
+                $(for (id, component) in self.entities.query_mut::<&$component>() {
                     let _ = entities.insert_one(id, component.clone());
-                }
+                })+
             };
         }
 
-        clone_component!(Artifact);
-        clone_component!(Character);
-        clone_component!(Living);
-        clone_component!(Obstacle);
-        clone_component!(Player);
-        clone_component!(Spell);
-        clone_component!(EntityName);
-        clone_component!(EntityShadow);
-        clone_component!(EntityShadowVisible);
-        clone_component!(HpDisplay);
-        clone_component!(Movement);
-        clone_component!(AttackContext);
-        clone_component!(ActionQueue);
+        clone_component!(Artifact, Character, Living, Obstacle, Player, Spell);
+        clone_component!(EntityName, EntityShadow, EntityShadowVisible, HpDisplay);
+        clone_component!(ActionQueue, AttackContext, Movement);
 
         Self {
             statistics: self.statistics.clone(),
