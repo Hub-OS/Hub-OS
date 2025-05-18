@@ -350,23 +350,32 @@ impl BattleScene {
         }
 
         // remove disconnected receivers
+        let mut possible_disconnect_desync = false;
+
         for i in pending_removal.into_iter().rev() {
             let (player_index, _) = self.comms.receivers.remove(i);
 
-            let Some(index) = player_index else {
-                continue;
-            };
+            // disconnect an individual
+            // unless this is a fallback connection, then disconnect all players
+            let range = player_index
+                .map(|index| index..index + 1)
+                .unwrap_or(0..self.player_controllers.len());
 
-            let Some(controller) = self.player_controllers.get_mut(index) else {
-                continue;
-            };
+            for index in range {
+                let Some(controller) = self.player_controllers.get_mut(index) else {
+                    break;
+                };
 
-            if controller.connected {
-                // possible desync when there's another player we need to sync a disconnect with
-                log::error!("Possible desync from a player disconnect without a Disconnect signal");
-
-                packets.push(NetplayPacket::new_disconnect_signal(index));
+                if controller.connected {
+                    packets.push(NetplayPacket::new_disconnect_signal(index));
+                    possible_disconnect_desync = true;
+                }
             }
+        }
+
+        if possible_disconnect_desync {
+            // possible desync when there's another player we need to sync a disconnect with
+            log::error!("Possible desync from a player disconnect without a Disconnect signal");
         }
 
         if self.connected_count == 0 {
