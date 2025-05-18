@@ -1,7 +1,7 @@
 use super::errors::{encounter_method_called_after_start, server_communication_closed};
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
-use crate::battle::{BattleInitMusic, BattleScriptContext, Character, Entity};
+use crate::battle::{BattleInitMusic, BattleProgress, BattleScriptContext, Character, Entity};
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
 use crate::packages::PackageId;
@@ -267,13 +267,52 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "end_scene", |api_ctx, lua, _| {
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+        simulation.progress = BattleProgress::Exiting;
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "end_battle", |api_ctx, lua, _| {
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "win", |api_ctx, lua, _| {
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation.statistics.won = true;
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "lose", |api_ctx, lua, _| {
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation.statistics.won = false;
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "send_to_server", |api_ctx, lua, params| {
         let (_, data): (rollback_mlua::Table, rollback_mlua::Value) = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        if simulation.exit {
+        if simulation.progress == BattleProgress::Exiting {
             return Err(server_communication_closed());
         }
 

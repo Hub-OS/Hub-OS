@@ -15,6 +15,16 @@ use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
 
+crate::structures::sequential_enum! {
+    pub BattleProgress: u8 {
+        Initializing,
+        CompletedIntro,
+        BattleStarted,
+        BattleEnded,
+        Exiting
+    }
+}
+
 pub struct BattleSimulation {
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
@@ -43,10 +53,8 @@ pub struct BattleSimulation {
     pub local_player_id: EntityId,
     pub local_health_ui: PlayerHealthUi,
     pub local_team: Team,
-    pub battle_started: bool,
-    pub intro_complete: bool,
+    pub progress: BattleProgress,
     pub is_resimulation: bool,
-    pub exit: bool,
 }
 
 impl BattleSimulation {
@@ -97,10 +105,8 @@ impl BattleSimulation {
             local_player_id: EntityId::DANGLING,
             local_health_ui: PlayerHealthUi::new(game_io),
             local_team: Team::Unset,
-            battle_started: false,
-            intro_complete: false,
+            progress: BattleProgress::Initializing,
             is_resimulation: false,
-            exit: false,
         }
     }
 
@@ -165,10 +171,8 @@ impl BattleSimulation {
             local_player_id: self.local_player_id,
             local_health_ui: self.local_health_ui.clone(),
             local_team: self.local_team,
-            battle_started: self.battle_started,
-            intro_complete: self.intro_complete,
+            progress: self.progress,
             is_resimulation: self.is_resimulation,
-            exit: self.exit,
         }
     }
 
@@ -387,7 +391,7 @@ impl BattleSimulation {
     }
 
     fn process_disconnects(&mut self) {
-        if self.exit {
+        if self.progress == BattleProgress::Exiting {
             // if we're exiting we'll just ignore disconnects
             // prevents player deletion from disconnect after a victory
             return;
@@ -434,7 +438,7 @@ impl BattleSimulation {
                 }
             }
 
-            if self.battle_started {
+            if self.progress >= BattleProgress::BattleStarted {
                 self.pending_callbacks
                     .push(entity.battle_start_callback.clone())
             };
@@ -747,6 +751,21 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
+    pub fn mark_battle_end(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
+        if self.progress >= BattleProgress::BattleEnded {
+            return;
+        }
+
+        self.progress = BattleProgress::BattleEnded;
+
+        for (_, entity) in self.entities.query_mut::<&mut Entity>() {
+            let callback = entity.battle_end_callback.clone();
+            self.pending_callbacks.push(callback);
+        }
+
+        self.call_pending_callbacks(game_io, resources);
+    }
+
     pub fn call_global<'lua, F, M>(
         &mut self,
         game_io: &GameIO,
@@ -927,7 +946,7 @@ impl BattleSimulation {
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
         // draw hp on living entities
-        if self.intro_complete {
+        if self.progress >= BattleProgress::CompletedIntro {
             let mut hp_text = Text::new(game_io, FontName::EntityHp);
             hp_text.style.letter_spacing = 0.0;
             let tile_size = self.field.tile_size();

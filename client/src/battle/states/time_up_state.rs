@@ -1,5 +1,5 @@
 use super::State;
-use crate::battle::{BattleSimulation, SharedBattleResources};
+use crate::battle::{BattleProgress, BattleSimulation, SharedBattleResources};
 use crate::render::ui::{BattleBannerMessage, BattleBannerPopup};
 use crate::render::{FrameTime, SpriteColorQueue};
 use framework::prelude::GameIO;
@@ -38,7 +38,7 @@ impl State for TimeUpState {
         self.banner.update();
 
         if self.banner.remaining_time().is_some_and(|t| t == 0) {
-            simulation.exit = true;
+            simulation.progress = BattleProgress::Exiting;
         }
     }
 

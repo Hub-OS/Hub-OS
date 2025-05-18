@@ -115,7 +115,10 @@ impl State for IntroState {
         // mark completion if there's no more entities to introduce
         if self.tracked_intros.is_empty() {
             self.completed = true;
-            simulation.intro_complete = true;
+
+            if simulation.progress < BattleProgress::CompletedIntro {
+                simulation.progress = BattleProgress::CompletedIntro;
+            }
         }
 
         Action::process_queues(game_io, resources, simulation);

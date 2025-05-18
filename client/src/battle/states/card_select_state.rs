@@ -442,7 +442,7 @@ impl State for CardSelectState {
             }
         }
 
-        if !simulation.battle_started && selection.confirm_time == 0 {
+        if simulation.progress < BattleProgress::BattleStarted && selection.confirm_time == 0 {
             self.ui.draw_names(game_io, simulation, sprite_queue);
         }
 

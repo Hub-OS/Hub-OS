@@ -109,7 +109,7 @@ impl State for BattleState {
         simulation.battle_time += 1;
         self.time += 1;
 
-        self.detect_success_or_failure(resources, simulation);
+        self.detect_success_or_failure(game_io, resources, simulation);
         self.update_turn_gauge(game_io, resources, simulation);
         self.play_low_hp_sfx(game_io, simulation);
     }
@@ -232,6 +232,7 @@ impl BattleState {
 
     fn detect_success_or_failure(
         &mut self,
+        game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
@@ -244,9 +245,13 @@ impl BattleState {
             *t -= 1;
 
             if *t == 0 {
-                simulation.exit = true;
+                simulation.progress = BattleProgress::Exiting;
             }
 
+            return;
+        }
+
+        if simulation.progress >= BattleProgress::BattleEnded {
             return;
         }
 
@@ -265,7 +270,7 @@ impl BattleState {
 
             let Some(team) = player_teams.iter().next() else {
                 // no one left to spectate
-                self.fail(resources, simulation);
+                self.fail(game_io, resources, simulation);
                 return;
             };
 
@@ -286,7 +291,7 @@ impl BattleState {
             local_team = entity.team;
         } else {
             // the entity was erased
-            self.fail(resources, simulation);
+            self.fail(game_io, resources, simulation);
             return;
         }
 
@@ -297,21 +302,32 @@ impl BattleState {
             .any(|(_, (entity, _))| entity.team != local_team);
 
         if !enemies_alive {
-            self.succeed(simulation);
+            self.succeed(game_io, resources, simulation);
         }
     }
 
-    fn complete_spectating(&mut self, simulation: &mut BattleSimulation) {
+    fn complete_spectating(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         let mut banner = BattleBannerPopup::new(BattleBannerMessage::BattleOver);
         banner.show_for(TOTAL_MESSAGE_TIME);
         simulation.banner_popups.insert(banner);
 
         self.end_timer = Some(TOTAL_MESSAGE_TIME);
+        simulation.mark_battle_end(game_io, resources);
     }
 
-    fn fail(&mut self, resources: &SharedBattleResources, simulation: &mut BattleSimulation) {
+    fn fail(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating(simulation);
+            self.complete_spectating(game_io, resources, simulation);
             return;
         }
 
@@ -319,7 +335,7 @@ impl BattleState {
             simulation.local_player_id = EntityId::default();
 
             // check again
-            self.detect_success_or_failure(resources, simulation);
+            self.detect_success_or_failure(game_io, resources, simulation);
 
             if self.end_timer.is_some() {
                 // avoid displaying failed banner if the battle will end
@@ -329,14 +345,21 @@ impl BattleState {
             self.end_timer = Some(TOTAL_MESSAGE_TIME);
         }
 
+        simulation.mark_battle_end(game_io, resources);
+
         let mut banner = BattleBannerPopup::new(BattleBannerMessage::Failed);
         banner.show_for(TOTAL_MESSAGE_TIME);
         simulation.banner_popups.insert(banner);
     }
 
-    fn succeed(&mut self, simulation: &mut BattleSimulation) {
+    fn succeed(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating(simulation);
+            self.complete_spectating(game_io, resources, simulation);
             return;
         }
 
@@ -348,7 +371,7 @@ impl BattleState {
         self.end_timer = Some(TOTAL_MESSAGE_TIME);
         simulation.statistics.won = true;
 
-        // todo: score screen
+        simulation.mark_battle_end(game_io, resources);
     }
 
     fn detect_battle_start(
@@ -357,11 +380,11 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        if simulation.battle_started {
+        if simulation.progress >= BattleProgress::BattleStarted {
             return;
         }
 
-        simulation.battle_started = true;
+        simulation.progress = BattleProgress::BattleStarted;
 
         for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
             let callback = entity.battle_start_callback.clone();

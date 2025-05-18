@@ -795,8 +795,9 @@ impl BattleScene {
             let oldest_backup = self.backups.front();
 
             oldest_backup
-                .map(|backup| backup.simulation.exit)
-                .unwrap_or(self.simulation.exit)
+                .map(|backup| backup.simulation.progress)
+                .unwrap_or(self.simulation.progress)
+                == BattleProgress::Exiting
         };
 
         if !self.exiting && requested_exit {
