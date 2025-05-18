@@ -52,7 +52,7 @@ impl BattleRecording {
         setup.blocks = Default::default();
     }
 
-    pub fn save(&mut self, game_io: &GameIO, meta: &BattleMeta) {
+    pub fn save(mut self, game_io: &GameIO, meta: &BattleMeta) {
         let service_comm = game_io.resource::<SupportingServiceComm>().unwrap().clone();
         let globals = game_io.resource::<Globals>().unwrap();
         let nickname = globals.global_save.nickname.clone();
@@ -93,8 +93,6 @@ impl BattleRecording {
                 globals.encounter_packages.package_or_fallback(ns, id)
             })
             .map(|package| package.preview_texture_path.clone());
-
-        let recording = self.clone();
 
         log::info!("Starting background thread to save recording");
 
@@ -150,7 +148,7 @@ impl BattleRecording {
             let dat_path = folder_path.clone() + "recording.dat";
             let mut file = File::create(&dat_path).unwrap();
 
-            if let Err(e) = rmp_serde::encode::write_named(&mut file, &recording) {
+            if let Err(e) = rmp_serde::encode::write_named(&mut file, &self) {
                 log::error!("Failed to save data to {:?}: {}", dat_path, e);
                 return;
             }
