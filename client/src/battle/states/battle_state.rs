@@ -526,7 +526,12 @@ impl BattleState {
 
             all_living_ids.push(entity_id);
 
-            if !entity.on_field || entity.deleted || !living.hitbox_enabled || living.health <= 0 {
+            if !entity.on_field
+                || entity.deleted
+                || !living.hitbox_enabled
+                || living.health <= 0
+                || simulation.progress >= BattleProgress::BattleEnded
+            {
                 // entity can't be hit
                 continue;
             }
@@ -552,12 +557,14 @@ impl BattleState {
                 attack_boxes.push(attack_box.clone());
             }
 
-            needs_processing.push((
-                id,
-                living.intangibility.is_enabled(),
-                living.defense_rules.clone(),
-                attack_boxes,
-            ));
+            if !attack_boxes.is_empty() {
+                needs_processing.push((
+                    id,
+                    living.intangibility.is_enabled(),
+                    living.defense_rules.clone(),
+                    attack_boxes,
+                ));
+            }
         }
 
         for (id, intangible, defense_rules, attack_boxes) in needs_processing {
