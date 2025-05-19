@@ -91,6 +91,10 @@ impl SharedBattleResources {
 
         BattleVmManager::init_internal_vm(game_io, self, simulation);
         self.init_dependencies(game_io, simulation, &dependencies);
+
+        if let Some((ns, package_id)) = &meta.encounter_package_pair {
+            self.vm_manager.encounter_vm = self.vm_manager.find_vm(package_id, *ns).ok();
+        }
     }
 
     pub fn load_player_vms(

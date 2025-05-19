@@ -1,14 +1,21 @@
 use super::errors::{encounter_method_called_after_start, server_communication_closed};
 use super::field_api::get_field_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
-use crate::battle::{BattleInitMusic, BattleProgress, BattleScriptContext, Character, Entity};
+use crate::battle::{
+    BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
+    SharedBattleResources,
+};
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
 use crate::packages::PackageId;
 use crate::render::{Animator, Background};
 use crate::resources::{AssetManager, Globals};
+use framework::common::GameIO;
 use framework::prelude::Vec2;
 use std::cell::RefCell;
+
+const BATTLE_END_LISTENERS: &str = "#battle_end_listeners";
+const EXTERNAL_LISTENERS: &str = "#external_listeners";
 
 pub fn encounter_init(api_ctx: BattleScriptContext, data: Option<&str>) {
     let globals = api_ctx.game_io.resource::<Globals>().unwrap();
@@ -271,17 +278,8 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources, false);
         simulation.progress = BattleProgress::Exiting;
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "end_battle", |api_ctx, lua, _| {
-        let api_ctx = &mut *api_ctx.borrow_mut();
-        let simulation = &mut api_ctx.simulation;
-
-        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
 
         lua.pack_multi(())
     });
@@ -290,8 +288,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        simulation.statistics.won = true;
-        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources, true);
 
         lua.pack_multi(())
     });
@@ -300,8 +297,28 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        simulation.statistics.won = false;
-        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources);
+        simulation.mark_battle_end(api_ctx.game_io, api_ctx.resources, false);
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "on_battle_end", |_, lua, params| {
+        let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+            lua.unpack_multi(params)?;
+
+        let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;
+
+        let external_listeners = if let Ok(external_listeners) =
+            table.get::<_, rollback_mlua::Table>(BATTLE_END_LISTENERS)
+        {
+            external_listeners
+        } else {
+            let external_listeners = lua.create_table()?;
+            table.set(BATTLE_END_LISTENERS, external_listeners.clone())?;
+            external_listeners
+        };
+
+        external_listeners.push(callback)?;
 
         lua.pack_multi(())
     });
@@ -329,12 +346,12 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;
 
         let external_listeners = if let Ok(external_listeners) =
-            table.get::<_, rollback_mlua::Table>("#external_listeners")
+            table.get::<_, rollback_mlua::Table>(EXTERNAL_LISTENERS)
         {
             external_listeners
         } else {
             let external_listeners = lua.create_table()?;
-            table.set("#external_listeners", external_listeners.clone())?;
+            table.set(EXTERNAL_LISTENERS, external_listeners.clone())?;
             external_listeners
         };
 
@@ -344,33 +361,79 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     });
 }
 
-pub fn pass_server_message(
-    api_ctx: BattleScriptContext,
-    message: &str,
-) -> rollback_mlua::Result<()> {
-    let vms = api_ctx.resources.vm_manager.vms();
-    let vm = &vms[api_ctx.vm_index];
-    let lua = &vm.lua;
-
-    let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;
-    let Ok(external_listeners) = table.get::<_, rollback_mlua::Table>("#external_listeners") else {
-        // no listeners
-        return Ok(());
+pub fn call_callbacks(
+    game_io: &GameIO,
+    resources: &SharedBattleResources,
+    simulation: &mut BattleSimulation,
+    callback_list_name: &str,
+    load_params: impl for<'lua> FnOnce(
+        &'lua rollback_mlua::Lua,
+    ) -> rollback_mlua::Result<rollback_mlua::Value<'lua>>,
+) {
+    let Some(vm_index) = resources.vm_manager.encounter_vm else {
+        return;
     };
 
-    let data: rollback_mlua::Value = lua.load(message).eval()?;
+    let vm = &resources.vm_manager.vms[vm_index];
+    let lua = &vm.lua;
 
-    for listener in external_listeners.sequence_values::<rollback_mlua::Function>() {
-        let Ok(listener) = listener else {
-            continue;
+    let api_ctx = RefCell::new(BattleScriptContext {
+        vm_index,
+        resources,
+        game_io,
+        simulation,
+    });
+
+    let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+
+    lua_api.inject_dynamic(lua, &api_ctx, |lua| {
+        let table: rollback_mlua::Table = lua.globals().get(ENCOUNTER_TABLE)?;
+        let Ok(external_listeners) = table.get::<_, rollback_mlua::Table>(callback_list_name)
+        else {
+            // no listeners
+            return Ok(());
         };
 
-        if let Err(err) = listener.call::<_, ()>(data.clone()) {
-            log::error!("{err:?}");
-        }
-    }
+        let params = load_params(lua)?;
 
-    Ok(())
+        for listener in external_listeners.sequence_values::<rollback_mlua::Function>() {
+            let Ok(listener) = listener else {
+                continue;
+            };
+
+            if let Err(err) = listener.call::<_, ()>(params.clone()) {
+                log::error!("{err}");
+            }
+        }
+
+        Ok(())
+    });
+}
+
+pub fn pass_server_message(
+    game_io: &GameIO,
+    resources: &SharedBattleResources,
+    simulation: &mut BattleSimulation,
+    message: &str,
+) {
+    call_callbacks(game_io, resources, simulation, EXTERNAL_LISTENERS, |lua| {
+        lua.load(message).eval()
+    })
+}
+
+pub fn call_encounter_end_listeners(
+    game_io: &GameIO,
+    resources: &SharedBattleResources,
+    simulation: &mut BattleSimulation,
+    won: bool,
+) {
+    call_callbacks(
+        game_io,
+        resources,
+        simulation,
+        BATTLE_END_LISTENERS,
+        |lua| lua.pack(won),
+    )
 }
 
 fn inject_spawner_api(lua_api: &mut BattleLuaApi) {

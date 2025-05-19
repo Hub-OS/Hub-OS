@@ -697,8 +697,6 @@ impl BattleScene {
             simulation.handle_local_signals(index, resources);
         }
 
-        simulation.handle_external_signals(&self.meta, game_io, resources);
-
         simulation.pre_update(game_io, resources, state);
         state.update(game_io, resources, simulation);
         simulation.post_update(game_io, resources);

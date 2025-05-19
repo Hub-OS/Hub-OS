@@ -19,6 +19,7 @@ pub struct InternalScripts {
 }
 
 pub struct BattleVmManager {
+    pub encounter_vm: Option<usize>,
     pub vms: Vec<RollbackVM>,
     pub scripts: InternalScripts,
 }
@@ -26,6 +27,7 @@ pub struct BattleVmManager {
 impl BattleVmManager {
     pub fn new() -> Self {
         Self {
+            encounter_vm: None,
             vms: Vec::new(),
             scripts: Default::default(),
         }
@@ -64,7 +66,7 @@ impl BattleVmManager {
         );
 
         if let Err(err) = inject_internal_scripts(&mut resources.vm_manager) {
-            log::error!("{err:?}");
+            log::error!("{err}");
         }
     }
 

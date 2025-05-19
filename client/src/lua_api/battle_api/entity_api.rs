@@ -951,7 +951,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         BATTLE_END_FN,
         |entity: &mut Entity| &mut entity.battle_end_callback,
-        |lua, table, _| lua.pack_multi(table),
+        |lua, table, won| lua.pack_multi((table, won)),
     );
 
     callback_setter(

@@ -317,7 +317,7 @@ impl BattleState {
         simulation.banner_popups.insert(banner);
 
         self.end_timer = Some(TOTAL_MESSAGE_TIME);
-        simulation.mark_battle_end(game_io, resources);
+        simulation.mark_battle_end(game_io, resources, false);
     }
 
     fn fail(
@@ -345,7 +345,7 @@ impl BattleState {
             self.end_timer = Some(TOTAL_MESSAGE_TIME);
         }
 
-        simulation.mark_battle_end(game_io, resources);
+        simulation.mark_battle_end(game_io, resources, false);
 
         let mut banner = BattleBannerPopup::new(BattleBannerMessage::Failed);
         banner.show_for(TOTAL_MESSAGE_TIME);
@@ -369,9 +369,7 @@ impl BattleState {
         simulation.banner_popups.insert(banner);
 
         self.end_timer = Some(TOTAL_MESSAGE_TIME);
-        simulation.statistics.won = true;
-
-        simulation.mark_battle_end(game_io, resources);
+        simulation.mark_battle_end(game_io, resources, true);
     }
 
     fn detect_battle_start(

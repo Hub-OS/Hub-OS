@@ -1,7 +1,7 @@
 use super::external_events::ExternalEvent;
 use super::*;
 use crate::bindable::*;
-use crate::lua_api::pass_server_message;
+use crate::lua_api::{call_encounter_end_listeners, pass_server_message};
 use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::ui::{BattleBannerPopup, FontName, PlayerHealthUi, Text};
 use crate::render::*;
@@ -256,33 +256,11 @@ impl BattleSimulation {
         }
     }
 
-    pub fn handle_external_signals(
-        &mut self,
-        meta: &BattleMeta,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-    ) {
-        let Some((namespace, id)) = &meta.encounter_package_pair else {
-            return;
-        };
-
-        let Ok(vm_index) = resources.vm_manager.find_vm(id, *namespace) else {
-            return;
-        };
-
+    fn handle_external_signals(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
         for event in resources.external_events.events_for_time(self.time) {
             match event {
                 ExternalEvent::ServerMessage(message) => {
-                    let api_ctx = BattleScriptContext {
-                        vm_index,
-                        game_io,
-                        resources,
-                        simulation: self,
-                    };
-
-                    if let Err(err) = pass_server_message(api_ctx, message) {
-                        log::error!("{err:?}");
-                    }
+                    pass_server_message(game_io, resources, self, message);
                 }
             }
         }
@@ -325,6 +303,8 @@ impl BattleSimulation {
 
         // animation + spawn callbacks
         self.call_pending_callbacks(game_io, resources);
+
+        self.handle_external_signals(game_io, resources);
     }
 
     pub fn post_update(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
@@ -751,16 +731,25 @@ impl BattleSimulation {
         entity.pending_spawn = true;
     }
 
-    pub fn mark_battle_end(&mut self, game_io: &GameIO, resources: &SharedBattleResources) {
+    pub fn mark_battle_end(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        won: bool,
+    ) {
         if self.progress >= BattleProgress::BattleEnded {
             return;
         }
 
         self.progress = BattleProgress::BattleEnded;
+        self.statistics.won = won;
+
+        call_encounter_end_listeners(game_io, resources, self, won);
 
         for (_, entity) in self.entities.query_mut::<&mut Entity>() {
             let callback = entity.battle_end_callback.clone();
-            self.pending_callbacks.push(callback);
+            self.pending_callbacks
+                .push(callback.bind(self.statistics.won));
         }
 
         self.call_pending_callbacks(game_io, resources);

@@ -42,7 +42,7 @@ pub struct Entity {
     pub idle_callback: BattleCallback,
     pub counter_callback: BattleCallback<EntityId>,
     pub battle_start_callback: BattleCallback,
-    pub battle_end_callback: BattleCallback,
+    pub battle_end_callback: BattleCallback<bool>,
     pub delete_callback: BattleCallback,
     pub delete_callbacks: Vec<BattleCallback>,
 }
