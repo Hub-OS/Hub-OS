@@ -122,7 +122,7 @@ impl State for BattleState {
         sprite_queue: &mut SpriteColorQueue<'a>,
     ) {
         // win / lose message
-        if self.end_timer.is_none() {
+        if simulation.progress < BattleProgress::BattleEnded {
             // turn gauge
             simulation.turn_gauge.draw(sprite_queue);
         }
@@ -183,7 +183,9 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        if simulation.time_freeze_tracker.time_is_frozen() {
+        if simulation.progress >= BattleProgress::BattleEnded
+            || simulation.time_freeze_tracker.time_is_frozen()
+        {
             return;
         }
 
