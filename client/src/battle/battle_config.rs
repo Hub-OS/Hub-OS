@@ -21,6 +21,8 @@ pub struct BattleConfig {
     pub player_flippable: Vec<Option<bool>>,
     pub turn_limit: Option<u32>,
     pub automatic_turn_end: bool,
+    pub automatic_battle_end: bool,
+    pub automatic_scene_end: bool,
     // todo:
     // pub status_durations: [FrameTime; 3],
     // pub intangibility_duration: FrameTime,
@@ -50,6 +52,8 @@ impl BattleConfig {
             player_flippable: vec![None; player_count],
             turn_limit: None,
             automatic_turn_end: false,
+            automatic_battle_end: true,
+            automatic_scene_end: true,
             // status_durations: [90, 120, 150],
             // intangibility_duration: 120,
             // super_effective_multiplier: 2.0,

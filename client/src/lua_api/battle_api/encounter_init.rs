@@ -274,6 +274,30 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "enable_scripted_result",
+        |api_ctx, lua, _| {
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let mut config = api_ctx.resources.config.borrow_mut();
+            config.automatic_battle_end = false;
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "enable_scripted_scene_end",
+        |api_ctx, lua, _| {
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let mut config = api_ctx.resources.config.borrow_mut();
+            config.automatic_scene_end = false;
+
+            lua.pack_multi(())
+        },
+    );
+
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "end_scene", |api_ctx, lua, _| {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;

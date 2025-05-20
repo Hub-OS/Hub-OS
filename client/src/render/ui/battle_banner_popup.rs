@@ -17,7 +17,7 @@ enum Mode {
     Timed(FrameTime),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum BattleBannerMessage {
     TimeUp,
     TurnStart,

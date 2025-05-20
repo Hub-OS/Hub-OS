@@ -236,6 +236,11 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        if simulation.progress > BattleProgress::BattleEnded {
+            // already complete
+            return;
+        }
+
         if simulation.time_freeze_tracker.time_is_frozen() {
             // allow the time freeze action to finish
             return;
@@ -251,14 +256,52 @@ impl BattleState {
             return;
         }
 
-        if simulation.progress >= BattleProgress::BattleEnded {
+        let (spectate_on_delete, automatic_battle_end, automatic_scene_end) = {
+            let config = resources.config.borrow();
+            (
+                config.spectate_on_delete,
+                config.automatic_battle_end,
+                config.automatic_scene_end,
+            )
+        };
+
+        if simulation.progress == BattleProgress::BattleEnded {
+            // battle end already resolved
+            // need to handle success / failure display for scripts depending on config
+            if automatic_scene_end {
+                if simulation.statistics.won {
+                    self.succeed(game_io, resources, simulation);
+                } else {
+                    self.fail(game_io, resources, simulation);
+                }
+            }
+
+            return;
+        }
+
+        let entities = &mut simulation.entities;
+        let mut local_team = None;
+
+        if let Ok(entity) = entities.query_one_mut::<&Entity>(simulation.local_player_id.into()) {
+            if entity.deleted {
+                // wait until the entity has been erased
+                return;
+            }
+
+            local_team = Some(entity.team);
+        } else if spectate_on_delete {
+            // convert to spectator
+            simulation.local_player_id = EntityId::default();
+        } else if automatic_battle_end {
+            self.fail(game_io, resources, simulation);
+            return;
+        }
+
+        if !automatic_battle_end {
             return;
         }
 
         // detect failure + find team for success detection
-        let local_team;
-
-        let entities = &mut simulation.entities;
 
         if simulation.local_player_id == EntityId::default() {
             // spectator
@@ -274,50 +317,40 @@ impl BattleState {
                 return;
             };
 
-            if player_teams.len() > 1 {
-                // opponents exist
-                return;
+            if player_teams.len() == 1 {
+                // detect remaining enemies for the final team by setting as the local team
+                local_team = Some(*team);
             }
-
-            local_team = *team;
-        } else if let Ok(entity) =
-            entities.query_one_mut::<&Entity>(simulation.local_player_id.into())
-        {
-            if entity.deleted {
-                // wait until the entity has been erased
-                return;
-            }
-
-            local_team = entity.team;
-        } else {
-            // the entity was erased
-            self.fail(game_io, resources, simulation);
-            return;
         }
 
-        // detect success
-        let enemies_alive = entities
-            .query_mut::<(&Entity, &Character)>()
-            .into_iter()
-            .any(|(_, (entity, _))| entity.team != local_team);
+        if let Some(local_team) = local_team {
+            // detect success
+            let enemies_alive = entities
+                .query_mut::<(&Entity, &Character)>()
+                .into_iter()
+                .any(|(_, (entity, _))| entity.team != local_team);
 
-        if !enemies_alive {
-            self.succeed(game_io, resources, simulation);
+            if !enemies_alive {
+                self.succeed(game_io, resources, simulation);
+            }
         }
     }
 
-    fn complete_spectating(
+    fn end_battle(
         &mut self,
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
+        message: BattleBannerMessage,
     ) {
-        let mut banner = BattleBannerPopup::new(BattleBannerMessage::BattleOver);
-        banner.show_for(TOTAL_MESSAGE_TIME);
-        simulation.banner_popups.insert(banner);
+        if resources.config.borrow().automatic_scene_end {
+            let mut banner = BattleBannerPopup::new(message);
+            banner.show_for(TOTAL_MESSAGE_TIME);
+            simulation.banner_popups.insert(banner);
 
-        self.end_timer = Some(TOTAL_MESSAGE_TIME);
-        simulation.mark_battle_end(game_io, resources, false);
+            self.end_timer = Some(TOTAL_MESSAGE_TIME);
+            simulation.mark_battle_end(game_io, resources, message == BattleBannerMessage::Success);
+        }
     }
 
     fn fail(
@@ -326,30 +359,13 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating(game_io, resources, simulation);
-            return;
-        }
-
-        if resources.config.borrow().spectate_on_delete {
-            simulation.local_player_id = EntityId::default();
-
-            // check again
-            self.detect_success_or_failure(game_io, resources, simulation);
-
-            if self.end_timer.is_some() {
-                // avoid displaying failed banner if the battle will end
-                return;
-            }
+        let message = if simulation.local_player_id == EntityId::default() {
+            BattleBannerMessage::BattleOver
         } else {
-            self.end_timer = Some(TOTAL_MESSAGE_TIME);
-        }
+            BattleBannerMessage::Failed
+        };
 
-        simulation.mark_battle_end(game_io, resources, false);
-
-        let mut banner = BattleBannerPopup::new(BattleBannerMessage::Failed);
-        banner.show_for(TOTAL_MESSAGE_TIME);
-        simulation.banner_popups.insert(banner);
+        self.end_battle(game_io, resources, simulation, message);
     }
 
     fn succeed(
@@ -358,18 +374,13 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        if simulation.local_player_id == EntityId::default() {
-            self.complete_spectating(game_io, resources, simulation);
-            return;
-        }
+        let message = if simulation.local_player_id == EntityId::default() {
+            BattleBannerMessage::BattleOver
+        } else {
+            BattleBannerMessage::Success
+        };
 
-        // create banner
-        let mut banner = BattleBannerPopup::new(BattleBannerMessage::Success);
-        banner.show_for(TOTAL_MESSAGE_TIME);
-        simulation.banner_popups.insert(banner);
-
-        self.end_timer = Some(TOTAL_MESSAGE_TIME);
-        simulation.mark_battle_end(game_io, resources, true);
+        self.end_battle(game_io, resources, simulation, message);
     }
 
     fn detect_battle_start(
