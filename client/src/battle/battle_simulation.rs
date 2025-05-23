@@ -183,6 +183,16 @@ impl BattleSimulation {
         }
     }
 
+    pub fn stop_music(&self, game_io: &GameIO, resources: &SharedBattleResources) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        if globals.audio.music_stack_len() != resources.music_stack_depth {
+            return;
+        }
+
+        globals.audio.stop_music();
+    }
+
     pub fn play_music(
         &self,
         game_io: &GameIO,
