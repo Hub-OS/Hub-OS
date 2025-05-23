@@ -351,8 +351,9 @@ impl BattleState {
             simulation.banner_popups.insert(banner);
 
             self.end_timer = Some(TOTAL_MESSAGE_TIME);
-            simulation.mark_battle_end(game_io, resources, message == BattleBannerMessage::Success);
         }
+
+        simulation.mark_battle_end(game_io, resources, message == BattleBannerMessage::Success);
     }
 
     fn fail(
