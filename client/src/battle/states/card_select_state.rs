@@ -527,7 +527,11 @@ impl CardSelectState {
         let input = &simulation.inputs[player_index];
 
         // test for deletion
-        if entity.deleted || input.fleeing() || input.disconnected() {
+        if entity.deleted
+            || input.fleeing()
+            || input.disconnected()
+            || simulation.progress >= BattleProgress::BattleEnded
+        {
             // confirm
             selection.confirm_time = self.time;
             player.staged_items.set_confirmed(true);
