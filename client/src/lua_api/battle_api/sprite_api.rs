@@ -117,7 +117,7 @@ pub fn inject_sprite_api(lua_api: &mut BattleLuaApi) {
         let resources = api_ctx.resources;
         let simulation = &mut api_ctx.simulation;
 
-        let text_style = parse_text_style(game_io, resources, text_style_table)?;
+        let text_style = parse_text_style(game_io, resources, lua, text_style_table)?;
         let text = &*text.to_string_lossy();
 
         let slot_index: GenerationalIndex = table.raw_get("#tree")?;
@@ -452,7 +452,7 @@ pub fn inject_text_style_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = api_ctx.borrow();
 
-        let text_style = parse_text_style(api_ctx.game_io, api_ctx.resources, table)?;
+        let text_style = parse_text_style(api_ctx.game_io, api_ctx.resources, lua, table)?;
         let metrics = text_style.measure(&text.to_string_lossy());
 
         let output = lua.create_table()?;
@@ -463,10 +463,11 @@ pub fn inject_text_style_api(lua_api: &mut BattleLuaApi) {
     });
 }
 
-fn parse_text_style(
+fn parse_text_style<'lua>(
     game_io: &GameIO,
     resources: &SharedBattleResources,
-    table: rollback_mlua::Table,
+    lua: &'lua rollback_mlua::Lua,
+    table: rollback_mlua::Table<'lua>,
 ) -> rollback_mlua::Result<TextStyle> {
     let font_name: rollback_mlua::String = table.get("font")?;
     let font_name = font_name.to_str()?;
@@ -478,15 +479,15 @@ fn parse_text_style(
     let mut text_style =
         if let (Some(texture_path), Some(animation_path)) = (texture_path, animation_path) {
             // find or create glyph map
-            let texture_path = texture_path.to_str()?;
-            let animation_path = animation_path.to_str()?;
+            let texture_path = absolute_path(lua, texture_path.to_str()?.to_string())?;
+            let animation_path = absolute_path(lua, animation_path.to_str()?.to_string())?;
 
             let mut glyph_atlases = resources.glyph_atlases.borrow_mut();
 
             let glyph_atlas = glyph_atlases
-                .get(&(texture_path.into(), animation_path.into()))
+                .get(&(texture_path.as_str().into(), animation_path.as_str().into()))
                 .cloned()
-                .unwrap_or_else(|| {
+                .unwrap_or_else(move || {
                     // create a new glyph map
                     let globals = game_io.resource::<Globals>().unwrap();
                     let assets = &globals.assets;
@@ -494,14 +495,11 @@ fn parse_text_style(
                     let glyph_atlas = Arc::new(GlyphAtlas::new(
                         game_io,
                         assets,
-                        texture_path,
-                        animation_path,
+                        &texture_path,
+                        &animation_path,
                     ));
 
-                    let key = (
-                        texture_path.to_string().into(),
-                        animation_path.to_string().into(),
-                    );
+                    let key = (texture_path.into(), animation_path.into());
                     glyph_atlases.insert(key, glyph_atlas.clone());
 
                     glyph_atlas
