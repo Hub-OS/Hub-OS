@@ -119,6 +119,11 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(api_ctx.simulation.local_player_index == index)
     });
 
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "local_index", |api_ctx, lua, _| {
+        let api_ctx = api_ctx.borrow();
+        lua.pack_multi(api_ctx.simulation.local_player_index)
+    });
+
     lua_api.add_dynamic_function(RESOURCES_TABLE, "input_has", |api_ctx, lua, params| {
         let (index, input_query): (usize, InputQuery) = lua.unpack_multi(params)?;
 
