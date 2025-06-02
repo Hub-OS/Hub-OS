@@ -5,7 +5,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
-use packets::ServerPacket;
+use packets::{ClientPacket, Reliability, ServerPacket};
 
 enum Event {
     Subscribed(ClientPacketSender, ServerPacketReceiver),
@@ -77,26 +77,36 @@ impl InitialConnectScene {
             next_scene: NextScene::None,
         }
     }
-}
 
-impl Scene for InitialConnectScene {
-    fn next_scene(&mut self) -> &mut NextScene {
-        &mut self.next_scene
+    fn fail_with_message(&mut self, message: String) {
+        let event_sender = self.event_sender.clone();
+        let textbox_interface = TextboxMessage::new(message)
+            .with_callback(move || event_sender.send(Event::Pop).unwrap());
+
+        self.textbox.open();
+        self.textbox.push_interface(textbox_interface);
+
+        self.online_scene = None;
     }
 
-    fn enter(&mut self, game_io: &mut GameIO) {
-        let globals = game_io.resource_mut::<Globals>().unwrap();
-        globals.connected_to_server = true;
-    }
-
-    fn update(&mut self, game_io: &mut GameIO) {
-        self.bg_animator.update();
-        self.bg_animator.apply(&mut self.bg_sprite);
-
+    fn handle_packets(&mut self, game_io: &mut GameIO) {
         if let Some(online_scene) = &mut self.online_scene {
             // handle incoming packets
             while let Ok(packet) = online_scene.packet_receiver().try_recv() {
                 match packet {
+                    ServerPacket::VersionInfo {
+                        version_id,
+                        version_iteration,
+                    } => {
+                        if version_id != packets::VERSION_ID
+                            || version_iteration != packets::VERSION_ITERATION
+                        {
+                            self.fail_with_message(String::from("Server protocol mismatch"));
+                            return;
+                        }
+
+                        online_scene.start_connection(game_io, self.data.take());
+                    }
                     ServerPacket::Kick { reason } => {
                         let event = Event::Failed {
                             reason: Some(reason),
@@ -130,6 +140,24 @@ impl Scene for InitialConnectScene {
                     .unwrap();
             }
         }
+    }
+}
+
+impl Scene for InitialConnectScene {
+    fn next_scene(&mut self) -> &mut NextScene {
+        &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.connected_to_server = true;
+    }
+
+    fn update(&mut self, game_io: &mut GameIO) {
+        self.bg_animator.update();
+        self.bg_animator.apply(&mut self.bg_sprite);
+
+        self.handle_packets(game_io);
 
         self.textbox.update(game_io);
 
@@ -141,16 +169,14 @@ impl Scene for InitialConnectScene {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::Subscribed(send_packet, packet_receiver) => {
-                    let mut online_scene = OverworldOnlineScene::new(
+                    send_packet(Reliability::Reliable, ClientPacket::VersionRequest);
+
+                    self.online_scene = Some(OverworldOnlineScene::new(
                         game_io,
                         self.address.clone(),
                         send_packet,
                         packet_receiver,
-                    );
-
-                    online_scene.start_connection(game_io, self.data.take());
-
-                    self.online_scene = Some(online_scene);
+                    ));
                 }
                 Event::Failed { reason } => {
                     let message = match reason {
@@ -158,12 +184,7 @@ impl Scene for InitialConnectScene {
                         None => String::from("Connection failed."),
                     };
 
-                    let event_sender = self.event_sender.clone();
-                    let textbox_interface = TextboxMessage::new(message)
-                        .with_callback(move || event_sender.send(Event::Pop).unwrap());
-
-                    self.textbox.open();
-                    self.textbox.push_interface(textbox_interface);
+                    self.fail_with_message(message);
                 }
                 Event::Pop => {
                     let transition = crate::transitions::new_connect(game_io);
