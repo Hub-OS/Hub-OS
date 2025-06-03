@@ -3,7 +3,18 @@
 - [Discord](https://discord.hubos.dev)
 - [Website](https://hubos.dev)
 
-This project is a derivation of [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle), splintered off from creative differences.
+Hub OS is an online battle experience that takes place on interconnected servers, or Hubs.
+
+Highlights:
+
+- Rollback Netcode
+- Multi-Battles (3+ players in a battle)
+- Cross Platform - Windows, MacOS, Linux
+- Custom Content - including mod manager and documentation
+- Resource Packs
+- Many, many, QOL features
+
+Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle)
 
 ## Special Thanks
 
