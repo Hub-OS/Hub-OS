@@ -58,19 +58,6 @@ Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/Ope
 - Weenie
 - Zeek
 
-# Features:
-
-- [x] Rollback
-- [x] Unlimited players in Netplay/PVP
-- [x] Official co-op support
-- [x] P2P PVP and indirect fallback
-- [x] Mod protection
-- [ ] Automated GitHub builds
-  - [x] Windows
-  - [ ] Mac OS
-  - [x] Linux / Steam Deck
-  - [ ] Android
-
 # Building
 
 ## Prerequisite
