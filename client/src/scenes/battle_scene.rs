@@ -136,7 +136,7 @@ impl BattleScene {
 
         for setup in player_setups {
             player_controllers.push(PlayerController {
-                connected: true,
+                connected: !is_playing_back_recording,
                 buffer: setup.buffer.clone(),
                 local_average: 0.0,
                 remote_average: 0.0,
@@ -759,13 +759,13 @@ impl BattleScene {
         // normal update
         let can_simulate = if self.is_playing_back_recording {
             let controller_iter = self.player_controllers.iter();
-            let total_frames = controller_iter
+            let remaining_buffer = controller_iter
                 .map(|controller| controller.buffer.len() as FrameTime)
                 .max()
                 .unwrap_or_default();
 
             // simulate as long as we have input
-            self.simulation.time < total_frames
+            remaining_buffer > 0
         } else {
             // simulate as long as we can roll back to the synced time
             self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
