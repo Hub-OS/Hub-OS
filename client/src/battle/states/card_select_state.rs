@@ -381,9 +381,10 @@ impl State for CardSelectState {
                 SelectedItem::Card(i) => {
                     let card = &player.deck[i];
                     let preview_point = self.ui.preview_point();
+                    let namespace = player.namespace();
 
-                    card.draw_preview(game_io, sprite_queue, preview_point, 1.0);
-                    card.draw_preview_title(game_io, sprite_queue, preview_point);
+                    card.draw_preview(game_io, sprite_queue, namespace, preview_point, 1.0);
+                    card.draw_preview_title(game_io, sprite_queue, namespace, preview_point);
                 }
                 SelectedItem::Confirm => {
                     self.ui.draw_confirm_preview(player, sprite_queue);

@@ -132,12 +132,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             let texture_path = item.map(|item| match &item.data {
                 StagedItemData::Deck(i) => {
                     if let Some(card) = player.deck.get(*i) {
-                        CardPackage::icon_texture(
-                            game_io,
-                            PackageNamespace::Local,
-                            &card.package_id,
-                        )
-                        .1
+                        CardPackage::icon_texture(game_io, player.namespace(), &card.package_id).1
                     } else {
                         ResourcePaths::CARD_ICON_MISSING
                     }

@@ -4,7 +4,7 @@ use crate::battle::{
     Player,
 };
 use crate::bindable::{CardClass, SpriteColorMode};
-use crate::packages::{CardPackage, PackageNamespace};
+use crate::packages::CardPackage;
 use crate::render::{
     Animator, AnimatorLoopMode, FrameTime, ResolvedPoints, SpriteColorQueue, SpriteNode,
     SpriteShaderEffect,
@@ -320,9 +320,14 @@ impl CardSelectUi {
         }
 
         // draw icons
-        player
-            .staged_items
-            .draw_icons(game_io, sprite_queue, &player.deck, start, ITEM_OFFSET);
+        player.staged_items.draw_icons(
+            game_io,
+            sprite_queue,
+            player.namespace(),
+            &player.deck,
+            start,
+            ITEM_OFFSET,
+        );
     }
 
     pub fn draw_confirm_preview(&mut self, player: &Player, sprite_queue: &mut SpriteColorQueue) {
@@ -369,7 +374,7 @@ impl CardSelectUi {
             CardPackage::draw_icon(
                 game_io,
                 sprite_queue,
-                PackageNamespace::Local,
+                player.namespace(),
                 &card.package_id,
                 position,
             );

@@ -249,7 +249,7 @@ impl CardPackage {
             }
         }
 
-        let path = ResourcePaths::CARD_ICON_MISSING;
+        let path = ResourcePaths::CARD_PREVIEW_MISSING;
         (assets.texture(game_io, path), path)
     }
 }

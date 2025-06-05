@@ -234,7 +234,13 @@ impl FullCard {
             if let Some(card) = card {
                 let scale = (0.5 - art_progress).abs() * 2.0;
 
-                card.draw_preview(game_io, sprite_queue, self.preview_position, scale);
+                card.draw_preview(
+                    game_io,
+                    sprite_queue,
+                    PackageNamespace::Local,
+                    self.preview_position,
+                    scale,
+                );
             }
 
             // draw description

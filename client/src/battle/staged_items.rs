@@ -193,6 +193,7 @@ impl StagedItems {
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
         deck: &[Card],
         start: Vec2,
         step: Vec2,
@@ -207,11 +208,8 @@ impl StagedItems {
             let texture = match &item.data {
                 StagedItemData::Deck(i) => {
                     if let Some(card) = deck.get(*i) {
-                        let (texture, _) = CardPackage::icon_texture(
-                            game_io,
-                            PackageNamespace::Local,
-                            &card.package_id,
-                        );
+                        let (texture, _) =
+                            CardPackage::icon_texture(game_io, namespace, &card.package_id);
                         texture
                     } else {
                         assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING)

@@ -18,12 +18,13 @@ impl Card {
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
         position: Vec2,
     ) {
         let globals = game_io.resource::<Globals>().unwrap();
         let package_manager = &globals.card_packages;
         let name = package_manager
-            .package_or_fallback(PackageNamespace::Local, &self.package_id)
+            .package_or_fallback(namespace, &self.package_id)
             .map(|package| package.card_properties.short_name.as_ref())
             .unwrap_or("?????");
 
@@ -41,6 +42,7 @@ impl Card {
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
         position: Vec2,
         scale: f32,
     ) {
@@ -50,9 +52,7 @@ impl Card {
 
         let (preview_texture_path, element, secondary_element, damage);
 
-        if let Some(package) =
-            package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
-        {
+        if let Some(package) = package_manager.package_or_fallback(namespace, &self.package_id) {
             preview_texture_path = package.preview_texture_path.as_str();
             element = package.card_properties.element;
             secondary_element = package.card_properties.secondary_element;
