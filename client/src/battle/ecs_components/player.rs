@@ -1,6 +1,5 @@
 use crate::battle::*;
 use crate::bindable::*;
-use crate::memoize::ResultCacheSingle;
 use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::*;
 use crate::resources::*;
@@ -22,7 +21,6 @@ pub struct Player {
     pub rapid_boost: u8,
     pub charge_boost: u8,
     pub hand_size_boost: i8,
-    pub card_charge_time_cache: ResultCacheSingle<Option<CardProperties>, Option<FrameTime>>,
     pub marked_charging: bool,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
@@ -83,7 +81,6 @@ impl Player {
             rapid_boost: 0,
             charge_boost: 0,
             hand_size_boost: 0,
-            card_charge_time_cache: ResultCacheSingle::default(),
             marked_charging: false,
             card_charged: false,
             card_charge: AttackCharge::new(
@@ -477,27 +474,29 @@ impl Player {
             Player::calculate_charge_time(game_io, resources, simulation, entity_id, None);
 
         // test the next card to see if can be charged
-        // cached to reduce lua calls + copying card props
         let entities = &mut simulation.entities;
         let (player, character) = entities
             .query_one_mut::<(&mut Player, &Character)>(entity_id.into())
             .unwrap();
 
-        let mut card_chargable_cache = std::mem::take(&mut player.card_charge_time_cache);
-        let card_props = character.cards.last().cloned();
-        let card_charge_time = card_chargable_cache.calculate(card_props, |card_props| {
-            card_props
-                .and_then(|card_props| {
-                    Self::resolve_card_charger(
-                        game_io,
-                        resources,
-                        simulation,
-                        entity_id,
-                        &card_props,
-                    )
-                })
+        let mut card_charge_time = None;
+
+        if let Some(card_props) = character.cards.last() {
+            let input = &simulation.inputs[player.index];
+
+            if input.is_down(Input::UseCard) {
+                let card_props = card_props.clone();
+
+                card_charge_time = Self::resolve_card_charger(
+                    game_io,
+                    resources,
+                    simulation,
+                    entity_id,
+                    &card_props,
+                )
                 .map(|(time, _)| time)
-        });
+            }
+        }
 
         // update AttackCharge structs
         let entities = &mut simulation.entities;
@@ -508,8 +507,6 @@ impl Player {
         if card_charge_time.is_none() {
             player.card_charge.cancel();
         }
-
-        player.card_charge_time_cache = card_chargable_cache;
 
         let play_sfx = !simulation.is_resimulation;
         let input = &simulation.inputs[player.index];
