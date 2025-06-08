@@ -351,7 +351,9 @@ fn callback_setter<G, P, F, R>(
             let api_ctx = &mut *api_ctx.borrow_mut();
             let simulation = &mut api_ctx.simulation;
 
-            let button = button_mut_from_table(simulation, &table).ok_or_else(button_not_found)?;
+            let Some(button) = button_mut_from_table(simulation, &table) else {
+                return lua.pack_multi(());
+            };
 
             let key = lua.create_registry_value(table)?;
 

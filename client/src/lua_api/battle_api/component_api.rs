@@ -101,9 +101,9 @@ fn callback_setter<G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
-        let component = (api_ctx.simulation.components)
-            .get_mut(id)
-            .ok_or_else(component_not_found)?;
+        let Some(component) = api_ctx.simulation.components.get_mut(id) else {
+            return lua.pack_multi(());
+        };
 
         if let Some(callback) = callback {
             let key = lua.create_registry_value(table)?;

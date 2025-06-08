@@ -289,9 +289,9 @@ fn callback_setter<G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
-        let player = entities
-            .query_one_mut::<&mut Player>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return lua.pack_multi(());
+        };
 
         let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
 

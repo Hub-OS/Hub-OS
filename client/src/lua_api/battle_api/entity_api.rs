@@ -2338,9 +2338,9 @@ fn callback_setter<C, G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut C>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let Ok(entity) = entities.query_one_mut::<&mut C>(id.into()) else {
+            return lua.pack_multi(());
+        };
 
         if let Some(callback) = callback {
             let key = lua.create_registry_value(table)?;
@@ -2390,9 +2390,9 @@ fn optional_callback_setter<C, G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut C>(id.into())
-            .map_err(|_| entity_not_found())?;
+        let Ok(entity) = entities.query_one_mut::<&mut C>(id.into()) else {
+            return lua.pack_multi(());
+        };
 
         let key = lua.create_registry_value(table)?;
 

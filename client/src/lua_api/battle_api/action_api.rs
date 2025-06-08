@@ -576,7 +576,9 @@ fn callback_setter<G, P, F, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let actions = &mut api_ctx.simulation.actions;
-        let action = actions.get_mut(id).ok_or_else(action_not_found)?;
+        let Some(action) = actions.get_mut(id) else {
+            return lua.pack_multi(());
+        };
 
         let key = lua.create_registry_value(table)?;
 
