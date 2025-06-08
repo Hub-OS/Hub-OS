@@ -172,7 +172,10 @@ impl Default for GlobalSave {
             selected_character: PackageId::new_blank(),
             decks: Vec::new(),
             selected_deck: 0,
-            server_list: Vec::new(),
+            server_list: vec![ServerInfo {
+                name: String::from("The Index"),
+                address: String::from("hubos.konstinople.dev"),
+            }],
             installed_blocks: HashMap::new(),
             installed_drive_parts: HashMap::new(),
             resource_package_order: Vec::new(),
