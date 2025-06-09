@@ -276,27 +276,38 @@ impl StatusPage {
         }
 
         if let Some(point) = ui_animator.point("PLAYER") {
-            let player_resources = PlayerFallbackResources::resolve(game_io, data.player_package);
-
             let globals = game_io.resource::<Globals>().unwrap();
 
-            let texture_path = player_resources.texture_path;
-            let mut sprite = globals.assets.new_sprite(game_io, &texture_path);
-            sprite.set_position(point);
+            let player_resources = PlayerFallbackResources::resolve(game_io, data.player_package);
+            let root_palette = player_resources.base.palette_path.clone();
+            let player_sprite_list = {
+                let mut list = player_resources.synced;
+                list.insert(0, player_resources.base);
+                list.sort_by_key(|v| -v.layer);
+                list
+            };
 
-            let mut animator = player_resources.animator;
-            animator.set_state(Player::IDLE_STATE);
-            animator.set_loop_mode(AnimatorLoopMode::Loop);
-            animator.apply(&mut sprite);
+            for item in player_sprite_list {
+                let texture_path = item.texture_path;
+                let mut sprite = globals.assets.new_sprite(game_io, &texture_path);
+                sprite.set_position(point + item.offset);
 
-            let palette = player_resources
-                .palette_path
-                .map(|path| globals.assets.texture(game_io, &path));
+                let mut animator = item.animator;
+                animator.set_state(Player::IDLE_STATE);
+                animator.set_loop_mode(AnimatorLoopMode::Loop);
+                animator.apply(&mut sprite);
 
-            let sprite_index = page.sprites.len();
-            page.sprites.push((sprite, palette));
+                let palette = if item.use_parent_shader {
+                    root_palette.as_ref()
+                } else {
+                    item.palette_path.as_ref()
+                }
+                .map(|path| globals.assets.texture(game_io, path));
 
-            page.animators.push((animator, sprite_index));
+                let sprite_index = page.sprites.len();
+                page.sprites.push((sprite, palette));
+                page.animators.push((animator, sprite_index));
+            }
         }
 
         let stat_text_associations = [

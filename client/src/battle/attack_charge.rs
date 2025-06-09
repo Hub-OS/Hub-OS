@@ -52,6 +52,10 @@ impl AttackCharge {
         self.color = color;
     }
 
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
     pub fn has_charge(&self) -> bool {
         self.charging_time > 0
     }
@@ -83,6 +87,10 @@ impl AttackCharge {
     pub fn cancel(&mut self) {
         self.charging_time = 0;
         self.charging = false;
+    }
+
+    pub fn sprite_offset(&self, sprite_tree: &Tree<SpriteNode>) -> Vec2 {
+        sprite_tree[self.sprite_index].offset()
     }
 
     pub fn update_sprite_offset(&self, sprite_tree: &mut Tree<SpriteNode>, offset: Vec2) {

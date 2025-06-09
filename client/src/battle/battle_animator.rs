@@ -74,6 +74,10 @@ impl BattleAnimator {
         !self.synced_animators.is_empty()
     }
 
+    pub fn synced_animators(&self) -> &[GenerationalIndex] {
+        &self.synced_animators
+    }
+
     pub fn add_synced_animator(&mut self, animator_index: GenerationalIndex) {
         self.synced_animators.push(animator_index);
     }

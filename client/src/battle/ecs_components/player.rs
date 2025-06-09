@@ -230,25 +230,7 @@ impl Player {
         } else {
             // default init, sprites + animation only
             let player_resources = PlayerFallbackResources::resolve(game_io, player_package);
-
-            // regrab entity
-            let entity = simulation
-                .entities
-                .query_one_mut::<&mut Entity>(id.into())
-                .unwrap();
-
-            // adopt texture
-            let sprite_node = sprite_tree.root_mut();
-            sprite_node.set_texture(game_io, player_resources.texture_path);
-            sprite_node.set_palette(game_io, player_resources.palette_path);
-
-            // adopt animator
-            let battle_animator = &mut simulation.animators[entity.animator_index];
-            let callbacks = battle_animator.copy_from_animator(&player_resources.animator);
-            battle_animator.find_and_apply_to_target(&mut simulation.sprite_trees);
-
-            // callbacks
-            simulation.pending_callbacks.extend(callbacks);
+            player_resources.adopt(game_io, simulation, id);
             simulation.call_pending_callbacks(game_io, resources);
         }
 
