@@ -738,13 +738,14 @@ impl Player {
                 &'a mut Entity,
                 &'a Living,
                 &'a mut Player,
+                &'a Character,
                 Option<&'a ActionQueue>,
             ),
             &'a Movement,
         >;
 
         let entities = &mut simulation.entities;
-        let Ok((entity, living, player, action_queue)) =
+        let Ok((entity, living, player, character, action_queue)) =
             entities.query_one_mut::<Query>(entity_id.into())
         else {
             return;
@@ -757,7 +758,8 @@ impl Player {
 
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;
-        if action_queue.is_some_and(|q| q.active.is_some() || !q.pending.is_empty())
+        if character.card_use_requested
+            || action_queue.is_some_and(|q| q.active.is_some() || !q.pending.is_empty())
             || living.status_director.is_immobile(status_registry)
         {
             return;
