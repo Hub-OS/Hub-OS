@@ -4,7 +4,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{BattleRecording, PlayerInputBuffer};
+use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedRollback, RecordedSimulationFlow};
 use framework::prelude::*;
 use packets::structures::PackageId;
 use packets::{
@@ -67,6 +67,7 @@ pub struct BattleScene {
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
+    playback_flow: Option<RecordedSimulationFlow>,
     exiting: bool,
     next_scene: NextScene,
 }
@@ -76,9 +77,18 @@ impl BattleScene {
         let mut is_playing_back_recording = false;
 
         let mut initial_external_events = Default::default();
+        #[allow(unused_mut)]
+        let mut playback_flow = None;
 
         if let Some(mut recording) = props.meta.try_load_recording(game_io) {
             initial_external_events = std::mem::take(&mut recording.external_events);
+
+            #[cfg(feature = "record_simulation_flow")]
+            if let Some(mut recorded_flow) = recording.simulation_flow.take() {
+                recorded_flow.current_step = 0;
+                playback_flow = Some(recorded_flow);
+            }
+
             props.meta = BattleMeta::from_recording(game_io, recording);
             is_playing_back_recording = true;
         } else {
@@ -186,6 +196,7 @@ impl BattleScene {
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
+            playback_flow,
             exiting: false,
             next_scene: NextScene::None,
         }
@@ -491,9 +502,23 @@ impl BattleScene {
     }
 
     fn input_synced(&self) -> bool {
+        #[allow(clippy::unused_enumerate_index)]
         self.player_controllers
             .iter()
-            .all(|controller| !controller.connected || !controller.buffer.is_empty())
+            .enumerate()
+            .all(|(_i, controller)| {
+                #[cfg(feature = "record_simulation_flow")]
+                if let Some(playback_flow) = &self.playback_flow {
+                    let player_count = self.player_controllers.len();
+                    let limit = playback_flow.get_buffer_limit(player_count, _i);
+
+                    if limit.is_some_and(|limit| limit == 0) {
+                        return false;
+                    }
+                }
+
+                !controller.connected || !controller.buffer.is_empty()
+            })
     }
 
     fn handle_local_input(&mut self, game_io: &GameIO) {
@@ -539,14 +564,46 @@ impl BattleScene {
         self.broadcast(NetplayPacketData::Buffer { data, lead });
     }
 
+    fn record_buffer_limits(&mut self) {
+        let Some(recording) = &mut self.recording else {
+            return;
+        };
+
+        let Some(simulation_flow) = &mut recording.simulation_flow else {
+            return;
+        };
+
+        for controller in &self.player_controllers {
+            let len = if controller.connected {
+                controller.buffer.len()
+            } else {
+                INPUT_BUFFER_LIMIT
+            };
+
+            simulation_flow.buffer_limits.push(len as _);
+        }
+
+        simulation_flow.current_step += 1;
+    }
+
     fn load_input(&mut self) {
+        let input_index = (self.simulation.time - self.synced_time) as usize;
+
         for (index, player_input) in self.simulation.inputs.iter_mut().enumerate() {
             player_input.flush();
 
-            if let Some(controller) = self.player_controllers.get(index) {
-                let index = (self.simulation.time - self.synced_time) as usize;
+            if let Some(playback_flow) = &self.playback_flow {
+                let player_count = self.player_controllers.len();
+                let limit = playback_flow.get_buffer_limit(player_count, index);
 
-                if let Some(data) = controller.buffer.get(index) {
+                if limit.is_some_and(|limit| input_index >= limit) {
+                    // avoid loading input past the allowed limit
+                    continue;
+                }
+            }
+
+            if let Some(controller) = self.player_controllers.get(index) {
+                if let Some(data) = controller.buffer.get(input_index) {
                     player_input.load_data(data.clone());
                 }
             }
@@ -597,6 +654,17 @@ impl BattleScene {
             return;
         }
 
+        if let Some(recording) = &mut self.recording {
+            if let Some(recorded_flow) = &mut recording.simulation_flow {
+                recorded_flow.rollbacks.push_back(RecordedRollback {
+                    flow_step: recorded_flow.current_step,
+                    resimulate_time: start_time,
+                });
+
+                self.record_buffer_limits();
+            }
+        }
+
         // rollback
         let steps = (local_time - start_time) as usize;
         self.rollback(game_io, steps);
@@ -627,15 +695,13 @@ impl BattleScene {
         self.rollback(game_io, steps);
         self.simulate(game_io);
         self.resimulating = false;
-
-        if !self.is_playing_back_recording {
-            // only updating synced time for actual battles
-            // synced_time is used for input buffer offsets, which playback doesn't delete
-            self.synced_time = self.simulation.time;
-        }
+        self.synced_time = self.simulation.time;
 
         // undo input committed to the recording
         if let Some(recording) = &mut self.recording {
+            // give up on recording rollbacks
+            recording.simulation_flow = None;
+
             for setup in &mut recording.player_setups {
                 for _ in 0..steps - 1 {
                     setup.buffer.delete_last();
@@ -756,8 +822,31 @@ impl BattleScene {
     fn core_update(&mut self, game_io: &GameIO) {
         let input_util = InputUtil::new(game_io);
 
-        // normal update
-        let can_simulate = if self.is_playing_back_recording {
+        // replay rollbacks
+        loop {
+            let Some(playback_flow) = &mut self.playback_flow else {
+                break;
+            };
+
+            let Some(recorded_rollback) = playback_flow.rollbacks.front().cloned() else {
+                break;
+            };
+
+            if playback_flow.current_step != recorded_rollback.flow_step {
+                break;
+            }
+
+            self.resimulate(game_io, recorded_rollback.resimulate_time - 1);
+
+            let Some(playback_flow) = &mut self.playback_flow else {
+                break;
+            };
+
+            playback_flow.rollbacks.pop_front();
+            playback_flow.current_step += 1;
+        }
+
+        let mut can_simulate = if self.is_playing_back_recording {
             let controller_iter = self.player_controllers.iter();
             let remaining_buffer = controller_iter
                 .map(|controller| controller.buffer.len() as FrameTime)
@@ -773,38 +862,33 @@ impl BattleScene {
         };
 
         if self.frame_by_frame_debug {
-            let rewind = input_util.was_just_pressed(Input::RewindFrame);
-
-            if rewind {
+            if input_util.was_just_pressed(Input::RewindFrame) && !self.is_playing_back_recording {
                 self.rewind(game_io, 1);
             }
 
-            let advance = input_util.was_just_pressed(Input::AdvanceFrame);
-
-            if can_simulate && advance {
-                self.handle_local_input(game_io);
-                self.simulate(game_io);
-            }
+            can_simulate &= input_util.was_just_pressed(Input::AdvanceFrame);
 
             // exit from frame_by_frame_debug with pause
             self.frame_by_frame_debug = !input_util.was_just_pressed(Input::Pause);
         } else {
             let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
-            if !should_slow_down && can_simulate {
-                self.handle_local_input(game_io);
-                self.simulate(game_io);
-            }
+            can_simulate &= !should_slow_down;
 
             self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_solo())
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
 
-        // 2x speed while holding confirm in a replay
-        if self.is_playing_back_recording && can_simulate && input_util.is_down(Input::Confirm) {
+        if can_simulate {
             self.handle_local_input(game_io);
+            self.record_buffer_limits();
+
             self.simulate(game_io);
+
+            if let Some(playback_flow) = &mut self.playback_flow {
+                playback_flow.current_step += 1;
+            }
         }
     }
 
@@ -870,6 +954,13 @@ impl Scene for BattleScene {
         }
 
         self.core_update(game_io);
+
+        // 2x speed while holding confirm in a replay
+        let input_util = InputUtil::new(game_io);
+        if self.is_playing_back_recording && input_util.is_down(Input::Confirm) {
+            self.core_update(game_io);
+        }
+
         self.detect_debug_hotkeys(game_io);
         self.handle_exit_requests(game_io);
     }

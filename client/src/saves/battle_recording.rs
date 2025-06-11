@@ -6,10 +6,35 @@ use crate::{SupportingServiceComm, SupportingServiceEvent};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct RecordedRollback {
+    pub flow_step: usize,
+    pub resimulate_time: FrameTime,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct RecordedSimulationFlow {
+    /// Increments when buffer limits are recorded. (When there's a rewind, or local input is gathered)
+    pub current_step: usize,
+    /// The step to rewind at, and the frame time to rewind to
+    pub rollbacks: VecDeque<RecordedRollback>,
+    /// the length of the buffer for each player, repeating for each step
+    pub buffer_limits: Vec<u8>,
+}
+
+impl RecordedSimulationFlow {
+    pub fn get_buffer_limit(&self, player_count: usize, player_index: usize) -> Option<usize> {
+        let start_offset = self.current_step * player_count;
+        self.buffer_limits
+            .get(start_offset + player_index)
+            .map(|limit| *limit as usize)
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct BattleRecording {
     pub encounter_package_pair: Option<(PackageNamespace, PackageId)>,
     pub data: Option<String>,
@@ -18,6 +43,7 @@ pub struct BattleRecording {
     pub package_map: HashMap<(PackageCategory, FileHash), Vec<u8>>,
     pub required_packages: Vec<(PackageCategory, PackageNamespace, FileHash)>,
     pub external_events: Vec<(FrameTime, ExternalEvent)>,
+    pub simulation_flow: Option<RecordedSimulationFlow>,
 }
 
 impl BattleRecording {
@@ -42,6 +68,11 @@ impl BattleRecording {
             package_map: Default::default(),
             required_packages: Default::default(),
             external_events: Default::default(),
+            simulation_flow: if cfg!(feature = "record_simulation_flow") {
+                Some(RecordedSimulationFlow::default())
+            } else {
+                None
+            },
         }
     }
 

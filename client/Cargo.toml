@@ -93,3 +93,6 @@ orientation = "sensorLandscape"
 [package.metadata.android.application]
 label = "Hub OS"
 theme = "@style/Theme"
+
+[features]
+record_simulation_flow = []
