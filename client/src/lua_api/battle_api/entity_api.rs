@@ -1765,6 +1765,46 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "deck_card_properties",
+        |api_ctx, lua, params| {
+            let (table, index): (rollback_mlua::Table, usize) = lua.unpack_multi(params)?;
+
+            let id: EntityId = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let entities = &mut simulation.entities;
+
+            let player = entities
+                .query_one_mut::<&mut Player>(id.into())
+                .map_err(|_| entity_not_found())?;
+
+            let index = index.saturating_sub(1);
+            let Some(card) = player.deck.get(index) else {
+                return lua.pack_multi(());
+            };
+
+            let globals = api_ctx.game_io.resource::<Globals>().unwrap();
+            let card_packages = &globals.card_packages;
+            let ns = player.namespace();
+
+            let mut card_properties =
+                if let Some(package) = card_packages.package_or_fallback(ns, &card.package_id) {
+                    let status_registry = &api_ctx.resources.status_registry;
+                    package.card_properties.to_bindable(status_registry)
+                } else {
+                    CardProperties::default()
+                };
+
+            card_properties.code = card.code.clone();
+            card_properties.namespace = Some(ns);
+
+            lua.pack_multi(card_properties)
+        },
+    );
+
     setter(
         lua_api,
         "set_deck_card",
