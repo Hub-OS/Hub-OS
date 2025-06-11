@@ -46,13 +46,15 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
 
-            let mut card_properties =
-                if let Some(package) = card_packages.package_or_fallback(namespace, &package_id) {
-                    let status_registry = &api_ctx.resources.status_registry;
-                    package.card_properties.to_bindable(status_registry)
-                } else {
-                    CardProperties::default()
-                };
+            let mut card_properties = if let Some(package) =
+                card_packages.package_or_fallback(namespace, &package_id)
+            {
+                let status_registry = &api_ctx.resources.status_registry;
+                package.card_properties.to_bindable(status_registry)
+            } else {
+                log::warn!("Failed to create card properties, missing {package_id:?} in namespace {namespace:?}");
+                CardProperties::default()
+            };
 
             card_properties.code = code.unwrap_or_default();
             card_properties.namespace = Some(namespace);
