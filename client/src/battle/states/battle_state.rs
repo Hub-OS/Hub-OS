@@ -48,6 +48,8 @@ impl State for BattleState {
         // reset frame temporary variables
         self.prepare_updates(simulation);
 
+        self.update_field(game_io, resources, simulation);
+
         // allow cards to mutate
         Character::mutate_cards(game_io, resources, simulation);
 
@@ -64,9 +66,6 @@ impl State for BattleState {
         // new: process movement and actions
         self.process_movement(game_io, resources, simulation);
         Action::process_actions(game_io, resources, simulation);
-
-        // update tiles
-        self.update_field(game_io, resources, simulation);
 
         // update spells
         self.update_spells(game_io, resources, simulation);
