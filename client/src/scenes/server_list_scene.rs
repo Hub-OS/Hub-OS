@@ -121,10 +121,10 @@ impl ServerListScene {
             }
             ServerStatus::Offline => format!("{server_name} is offline."),
             ServerStatus::TooOld => {
-                format!("{server_name} is too behind. We'll need to downgrade to connect.")
+                format!("{server_name} is behind. We'll need to downgrade to connect.")
             }
             ServerStatus::TooNew => {
-                format!("{server_name} is too ahead. We'll need to update to connect.")
+                format!("{server_name} is ahead. We'll need to update to connect.")
             }
             ServerStatus::Incompatible => format!("{server_name} is incompatible."),
             ServerStatus::InvalidAddress => {
