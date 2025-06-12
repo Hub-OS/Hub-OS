@@ -105,6 +105,7 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     card_class_table.set("Mega", CardClass::Mega)?;
     card_class_table.set("Giga", CardClass::Giga)?;
     card_class_table.set("Dark", CardClass::Dark)?;
+    card_class_table.set("Recipe", CardClass::Recipe)?;
     globals.set("CardClass", card_class_table)?;
 
     use crate::bindable::LuaColor;
