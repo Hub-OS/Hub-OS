@@ -372,32 +372,31 @@ fn parse_textbox_options<'lua>(
         return Ok(textbox_options);
     };
 
-    if let mlua::Value::String(mug_texture_path) = first_value {
-        // deprecation compatibility
-        let mug_animation_path: String = lua.unpack_multi(rest)?;
+    match first_value {
+        mlua::Value::Table(table) => {
+            // parse mug
+            textbox_options.mug = table
+                .get::<_, Option<mlua::Table>>("mug")?
+                .map(parse_texture_animation_pair)
+                .transpose()?;
 
-        textbox_options.mug = Some(TextureAnimPathPair {
-            texture: mug_texture_path.to_str()?.to_string().into(),
-            animation: mug_animation_path.into(),
-        });
+            // parse text style
+            textbox_options.text_style = table
+                .get::<_, Option<mlua::Table>>("text_style")?
+                .map(parse_text_style)
+                .transpose()?;
+        }
+        mlua::Value::String(mug_texture_path) => {
+            // deprecation compatibility
+            let mug_animation_path: String = lua.unpack_multi(rest)?;
 
-        return Ok(textbox_options);
-    };
-
-    // parse passed options table
-    let table: mlua::Table = lua.unpack(first_value)?;
-
-    // parse mug
-    textbox_options.mug = table
-        .get::<_, Option<mlua::Table>>("mug")?
-        .map(parse_texture_animation_pair)
-        .transpose()?;
-
-    // parse text style
-    textbox_options.text_style = table
-        .get::<_, Option<mlua::Table>>("text_style")?
-        .map(parse_text_style)
-        .transpose()?;
+            textbox_options.mug = Some(TextureAnimPathPair {
+                texture: mug_texture_path.to_str()?.to_string().into(),
+                animation: mug_animation_path.into(),
+            });
+        }
+        _ => {}
+    }
 
     Ok(textbox_options)
 }
