@@ -161,6 +161,8 @@ impl BattleRecording {
                 description = \"{nickname}'s recorded battle.\"\n\
                 preview_texture_path = \"preview.png\"\n\
                 recording_path = \"recording.dat\"\n\
+                # Add package ids to this list to override recorded packages with installed packages.\n\
+                recording_overrides = []\n\
                 ",
             );
 
