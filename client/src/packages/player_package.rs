@@ -80,6 +80,7 @@ impl Package for PlayerPackage {
 
         package.name = meta.name;
         package.health = meta.health;
+        package.element = Element::from(meta.element);
         package.description = meta.description;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.overworld_paths.texture = (base_path.clone() + &meta.overworld_texture_path).into();
