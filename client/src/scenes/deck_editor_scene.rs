@@ -482,6 +482,11 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
 
     let card_slots = &mut dock.card_slots;
 
+    // silly order preservation fix for the later reverse call
+    if scene.last_sort == Some(selected_option) {
+        card_slots.reverse();
+    }
+
     match selected_option {
         Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
             item.card.package_id.clone()
@@ -492,7 +497,19 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
                 .map(|package| package.card_properties.short_name.clone())
                 .unwrap_or_else(|| CardProperties::<i32>::default().short_name.clone())
         }),
-        Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| item.card.code.clone()),
+        Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| {
+            let code = &item.card.code;
+            let first_char = code.chars().next().unwrap_or_default();
+
+            if first_char.is_alphabetic() {
+                let mut buffer = [0u8; 4];
+                let char = code.chars().next().unwrap_or_default();
+                char.encode_utf8(&mut buffer);
+                return buffer[0] - 65;
+            }
+
+            code.bytes().next().unwrap_or(u8::MAX)
+        }),
         Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
             card_manager
                 .package(NAMESPACE, &item.card.package_id)
@@ -510,7 +527,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
             card_manager
                 .package(NAMESPACE, &item.card.package_id)
                 .map(|package| package.card_properties.card_class as u8)
-                .unwrap_or_default();
+                .unwrap_or_default()
         }),
     }
 
