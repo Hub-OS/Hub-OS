@@ -34,6 +34,61 @@ enum Sorting {
     Class,
 }
 
+impl Sorting {
+    fn sort_items(self, globals: &Globals, card_slots: &mut [Option<CardListItem>]) {
+        let card_packages = &globals.card_packages;
+
+        match self {
+            Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
+                let card_class = card_packages
+                    .package(NAMESPACE, &item.card.package_id)
+                    .map(|package| package.card_properties.card_class)
+                    .unwrap_or_default();
+
+                (card_class, item.card.package_id.clone())
+            }),
+            Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
+                card_packages
+                    .package(NAMESPACE, &item.card.package_id)
+                    .map(|package| package.card_properties.short_name.clone())
+                    .unwrap_or_else(|| CardProperties::<i32>::default().short_name.clone())
+            }),
+            Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| {
+                let code = &item.card.code;
+                let first_char = code.chars().next().unwrap_or_default();
+
+                if first_char.is_alphabetic() {
+                    let mut buffer = [0u8; 4];
+                    let char = code.chars().next().unwrap_or_default();
+                    char.encode_utf8(&mut buffer);
+                    return buffer[0] - 65;
+                }
+
+                code.bytes().next().unwrap_or(u8::MAX)
+            }),
+            Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
+                card_packages
+                    .package(NAMESPACE, &item.card.package_id)
+                    .map(|package| -package.card_properties.damage)
+                    .unwrap_or_default()
+            }),
+            Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
+                card_packages
+                    .package(NAMESPACE, &item.card.package_id)
+                    .map(|package| package.card_properties.element as u8)
+                    .unwrap_or_default()
+            }),
+            Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
+            Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
+                card_packages
+                    .package(NAMESPACE, &item.card.package_id)
+                    .map(|package| package.card_properties.card_class)
+                    .unwrap_or_default()
+            }),
+        }
+    }
+}
+
 pub struct DeckEditorScene {
     deck_index: usize,
     deck_restrictions: DeckRestrictions,
@@ -98,10 +153,7 @@ impl DeckEditorScene {
 
         // pack_dock
         let mut pack_slots = CardListItem::pack_vec_from_packages(game_io, deck);
-
-        sort_card_items(&mut pack_slots, |item: &CardListItem| {
-            item.card.package_id.clone()
-        });
+        Sorting::Id.sort_items(globals, &mut pack_slots);
 
         let pack_dock = Dock::new(
             game_io,
@@ -473,7 +525,6 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         return;
     };
 
-    let card_manager = &game_io.resource::<Globals>().unwrap().card_packages;
     let dock = match scene.page_tracker.active_page() {
         0 => &mut scene.deck_dock,
         1 => &mut scene.pack_dock,
@@ -487,49 +538,8 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         card_slots.reverse();
     }
 
-    match selected_option {
-        Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
-            item.card.package_id.clone()
-        }),
-        Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
-            card_manager
-                .package(NAMESPACE, &item.card.package_id)
-                .map(|package| package.card_properties.short_name.clone())
-                .unwrap_or_else(|| CardProperties::<i32>::default().short_name.clone())
-        }),
-        Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| {
-            let code = &item.card.code;
-            let first_char = code.chars().next().unwrap_or_default();
-
-            if first_char.is_alphabetic() {
-                let mut buffer = [0u8; 4];
-                let char = code.chars().next().unwrap_or_default();
-                char.encode_utf8(&mut buffer);
-                return buffer[0] - 65;
-            }
-
-            code.bytes().next().unwrap_or(u8::MAX)
-        }),
-        Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
-            card_manager
-                .package(NAMESPACE, &item.card.package_id)
-                .map(|package| -package.card_properties.damage)
-                .unwrap_or_default()
-        }),
-        Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
-            card_manager
-                .package(NAMESPACE, &item.card.package_id)
-                .map(|package| package.card_properties.element as u8)
-                .unwrap_or_default()
-        }),
-        Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
-        Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
-            card_manager
-                .package(NAMESPACE, &item.card.package_id)
-                .map(|package| package.card_properties.card_class as u8)
-                .unwrap_or_default()
-        }),
-    }
+    let globals = game_io.resource::<Globals>().unwrap();
+    selected_option.sort_items(globals, card_slots);
 
     if scene.last_sort.take() == Some(selected_option) {
         card_slots.reverse();
