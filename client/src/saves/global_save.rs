@@ -28,7 +28,7 @@ impl GlobalSave {
     }
 
     pub fn load(assets: &impl AssetManager) -> Self {
-        let bytes = assets.binary(Self::PATH);
+        let bytes = assets.binary_silent(Self::PATH);
 
         if bytes.is_empty() {
             // no save data

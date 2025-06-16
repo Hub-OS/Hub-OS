@@ -304,6 +304,27 @@ impl AssetManager for ServerAssetManager {
         }
     }
 
+    fn binary_silent(&self, path: &str) -> Vec<u8> {
+        if path == ResourcePaths::BLANK {
+            return Vec::new();
+        }
+
+        let mut stored_assets = self.stored_assets.borrow_mut();
+        let Some(asset) = stored_assets.get_mut(path) else {
+            return Vec::new();
+        };
+
+        match &asset.data {
+            Some(data) => data.clone(),
+            None => {
+                let res = fs::read(&asset.local_path);
+                let bytes = res.unwrap_or_default();
+                asset.data = Some(bytes.clone());
+                bytes
+            }
+        }
+    }
+
     fn text(&self, path: &str) -> String {
         if path == ResourcePaths::BLANK {
             return String::new();
@@ -316,6 +337,16 @@ impl AssetManager for ServerAssetManager {
             log::warn!("Failed to read {:?} as a string: {}", path, err);
         }
 
+        res.unwrap_or_default()
+    }
+
+    fn text_silent(&self, path: &str) -> String {
+        if path == ResourcePaths::BLANK {
+            return String::new();
+        }
+
+        let bytes = self.binary(path);
+        let res = String::from_utf8(bytes);
         res.unwrap_or_default()
     }
 

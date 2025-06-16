@@ -309,6 +309,15 @@ impl AssetManager for LocalAssetManager {
         res.unwrap_or_default()
     }
 
+    fn binary_silent(&self, path: &str) -> Vec<u8> {
+        if path == ResourcePaths::BLANK {
+            return Vec::new();
+        }
+
+        let res = fs::read(path);
+        res.unwrap_or_default()
+    }
+
     fn text(&self, path: &str) -> String {
         let mut text_cache = self.text_cache.borrow_mut();
 
@@ -320,6 +329,21 @@ impl AssetManager for LocalAssetManager {
             if let Err(err) = &res {
                 log::warn!("Failed to load {:?}: {}", ResourcePaths::shorten(path), err);
             }
+
+            let text = res.unwrap_or_default();
+
+            text_cache.insert(path.into(), text.clone().into());
+            text
+        }
+    }
+
+    fn text_silent(&self, path: &str) -> String {
+        let mut text_cache = self.text_cache.borrow_mut();
+
+        if let Some(text) = text_cache.get(path) {
+            text.to_string()
+        } else {
+            let res = fs::read_to_string(path);
 
             let text = res.unwrap_or_default();
 

@@ -184,7 +184,7 @@ impl Config {
     }
 
     pub fn load(assets: &impl AssetManager) -> Self {
-        let config_text = assets.text("config.ini");
+        let config_text = assets.text_silent("config.ini");
 
         if config_text.is_empty() {
             let default_config = Config::default();
