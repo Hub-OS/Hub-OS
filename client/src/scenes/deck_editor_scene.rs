@@ -1,5 +1,4 @@
 use crate::bindable::CardClass;
-use crate::bindable::CardProperties;
 use crate::bindable::SpriteColorMode;
 use crate::packages::*;
 use crate::render::ui::*;
@@ -31,59 +30,90 @@ enum Sorting {
     Damage,
     Element,
     Number,
-    Class,
 }
 
 impl Sorting {
-    fn sort_items(self, globals: &Globals, card_slots: &mut [Option<CardListItem>]) {
-        let card_packages = &globals.card_packages;
+    fn code_sort_value(code: &str) -> u8 {
+        let first_char = code.chars().next().unwrap_or_default();
 
+        if first_char.is_alphabetic() {
+            let mut buffer = [0u8; 4];
+            let char = code.chars().next().unwrap_or_default();
+            char.encode_utf8(&mut buffer);
+            return buffer[0] - 65;
+        }
+
+        code.bytes().next().unwrap_or(u8::MAX)
+    }
+
+    fn generate_sort_keys<'a>(
+        globals: &'a Globals,
+        item: &CardListItem,
+    ) -> (Option<&'a CardPackage>, (CardClass, PackageId, u8)) {
+        let (package, card_class) = globals
+            .card_packages
+            .package(NAMESPACE, &item.card.package_id)
+            .map(|package| (Some(package), package.card_properties.card_class))
+            .unwrap_or_default();
+
+        (
+            package,
+            (
+                card_class,
+                item.card.package_id.clone(),
+                Self::code_sort_value(&item.card.code),
+            ),
+        )
+    }
+
+    fn sort_card_items<F, K>(card_slots: &mut [Option<CardListItem>], key_function: F)
+    where
+        F: FnMut(&CardListItem) -> K + Copy,
+        K: std::cmp::Ord,
+    {
+        card_slots.sort_by_cached_key(move |slot| slot.as_ref().map(key_function));
+    }
+
+    fn sort_items(self, globals: &Globals, card_slots: &mut [Option<CardListItem>]) {
         match self {
-            Sorting::Id => sort_card_items(card_slots, |item: &CardListItem| {
-                let card_class = card_packages
-                    .package(NAMESPACE, &item.card.package_id)
-                    .map(|package| package.card_properties.card_class)
+            Sorting::Id => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (_, keys) = Self::generate_sort_keys(globals, item);
+
+                keys
+            }),
+            Sorting::Alphabetical => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (package, keys) = Self::generate_sort_keys(globals, item);
+                let short_name = package
+                    .map(|package| package.card_properties.short_name.clone())
                     .unwrap_or_default();
 
-                (card_class, item.card.package_id.clone())
+                (short_name, keys)
             }),
-            Sorting::Alphabetical => sort_card_items(card_slots, |item: &CardListItem| {
-                card_packages
-                    .package(NAMESPACE, &item.card.package_id)
-                    .map(|package| package.card_properties.short_name.clone())
-                    .unwrap_or_else(|| CardProperties::<i32>::default().short_name.clone())
-            }),
-            Sorting::Code => sort_card_items(card_slots, |item: &CardListItem| {
-                let code = &item.card.code;
-                let first_char = code.chars().next().unwrap_or_default();
+            Sorting::Code => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (_, (class, package_id, code)) = Self::generate_sort_keys(globals, item);
 
-                if first_char.is_alphabetic() {
-                    let mut buffer = [0u8; 4];
-                    let char = code.chars().next().unwrap_or_default();
-                    char.encode_utf8(&mut buffer);
-                    return buffer[0] - 65;
-                }
+                (code, class, package_id)
+            }),
+            Sorting::Damage => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (package, keys) = Self::generate_sort_keys(globals, item);
+                let damage = package
+                    .map(|package| package.card_properties.damage)
+                    .unwrap_or_default();
 
-                code.bytes().next().unwrap_or(u8::MAX)
+                (damage, keys)
             }),
-            Sorting::Damage => sort_card_items(card_slots, |item: &CardListItem| {
-                card_packages
-                    .package(NAMESPACE, &item.card.package_id)
-                    .map(|package| -package.card_properties.damage)
-                    .unwrap_or_default()
+            Sorting::Element => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (package, keys) = Self::generate_sort_keys(globals, item);
+                let element = package
+                    .map(|package| package.card_properties.element)
+                    .unwrap_or_default();
+
+                (element, keys)
             }),
-            Sorting::Element => sort_card_items(card_slots, |item: &CardListItem| {
-                card_packages
-                    .package(NAMESPACE, &item.card.package_id)
-                    .map(|package| package.card_properties.element as u8)
-                    .unwrap_or_default()
-            }),
-            Sorting::Number => sort_card_items(card_slots, |item: &CardListItem| -item.count),
-            Sorting::Class => sort_card_items(card_slots, |item: &CardListItem| {
-                card_packages
-                    .package(NAMESPACE, &item.card.package_id)
-                    .map(|package| package.card_properties.card_class)
-                    .unwrap_or_default()
+            Sorting::Number => Self::sort_card_items(card_slots, |item: &CardListItem| {
+                let (_, keys) = Self::generate_sort_keys(globals, item);
+
+                (-item.count, keys)
             }),
         }
     }
@@ -183,7 +213,6 @@ impl DeckEditorScene {
                     ("Attack", Sorting::Damage),
                     ("Element", Sorting::Element),
                     ("No.", Sorting::Number),
-                    ("Class", Sorting::Class),
                 ],
             ),
             last_sort: None,
@@ -551,14 +580,6 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
     card_slots.sort_by_key(|item| !item.is_some());
 
     dock.update_preview();
-}
-
-fn sort_card_items<F, K>(card_slots: &mut [Option<CardListItem>], key_function: F)
-where
-    F: FnMut(&CardListItem) -> K + Copy,
-    K: std::cmp::Ord,
-{
-    card_slots.sort_by_cached_key(move |slot| slot.as_ref().map(key_function));
 }
 
 fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {

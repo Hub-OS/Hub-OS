@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 use strum::Display;
 
 #[repr(u8)]
-#[derive(PartialEq, Eq, Default, Clone, Copy, FromPrimitive, Display, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Copy, FromPrimitive, Display, Debug)]
 pub enum Element {
     #[default]
     None,
