@@ -9,13 +9,12 @@ use crate::transitions::HoldColorScene;
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
-use packets::{
-    NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal, SERVER_TICK_RATE,
-};
+use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal};
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 
 const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
+const HEARTBEAT_RATE: Duration = Duration::from_secs(1);
 
 pub struct NetplayProps {
     /// Partially configured battle props, should only contain the local player and server sent encounter information
@@ -25,7 +24,6 @@ pub struct NetplayProps {
 }
 
 enum Event {
-    AddressesFailed,
     ResolvedAddresses {
         players: Vec<(NetplayPacketSender, NetplayPacketReceiver)>,
     },
@@ -223,7 +221,7 @@ impl NetplayInitScene {
     fn handle_heartbeat(&mut self) {
         let now = Instant::now();
 
-        if now - self.last_heartbeat >= SERVER_TICK_RATE {
+        if now - self.last_heartbeat >= HEARTBEAT_RATE {
             self.last_heartbeat = now;
 
             self.broadcast(NetplayPacketData::Heartbeat);
@@ -249,6 +247,7 @@ impl NetplayInitScene {
 
             if game_io.frame_start_instant() - self.last_fallback_instant > MAX_FALLBACK_SILENCE {
                 // remote must've disconnected in some edge case, such as leaving before connection even starts
+                log::error!("Relayed connection silent");
                 self.stage = ConnectionStage::Failed;
             }
         } else {
@@ -286,6 +285,10 @@ impl NetplayInitScene {
 
                     if !connection.spectating {
                         // fail entirely if this player is involved in the battle
+                        log::error!(
+                            "Lost connection with player {}",
+                            connection.player_setup.index
+                        );
                         self.stage = ConnectionStage::Failed;
                     }
 
@@ -778,9 +781,6 @@ impl Scene for NetplayInitScene {
     fn update(&mut self, game_io: &mut GameIO) {
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
-                Event::AddressesFailed => {
-                    self.stage = ConnectionStage::Failed;
-                }
                 Event::ResolvedAddresses { players } => {
                     for (i, (send, receiver)) in players.into_iter().enumerate() {
                         let connection = &mut self.player_connections[i];

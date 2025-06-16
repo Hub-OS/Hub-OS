@@ -4,8 +4,8 @@ use crate::structures::{DenseSlotMap, GenerationalIndex};
 use framework::math::Instant;
 use framework::prelude::async_sleep;
 use packets::{
-    deserialize, ClientPacket, NetplayPacket, PacketChannels, Reliability, ServerPacket,
-    SERVER_TICK_RATE,
+    deserialize, ClientPacket, NetplayPacket, NetplayPacketData, PacketChannels, Reliability,
+    ServerPacket, SERVER_TICK_RATE,
 };
 use std::collections::HashMap;
 use std::future::Future;
@@ -256,7 +256,11 @@ impl EventListener {
                 }
                 Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
                     addr,
-                    Reliability::ReliableOrdered,
+                    if body.data == NetplayPacketData::Heartbeat {
+                        Reliability::Reliable
+                    } else {
+                        Reliability::ReliableOrdered
+                    },
                     packets::serialize(body),
                 ),
                 Event::ReceivedPacket(addr, time, body) => self.sort_packet(addr, time, body),
