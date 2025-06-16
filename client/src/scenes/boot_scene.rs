@@ -144,13 +144,6 @@ impl BootScene {
                     globals.character_packages = character_packages;
                 }
                 BootEvent::Done => {
-                    let mut available_players =
-                        globals.player_packages.package_ids(PackageNamespace::Local);
-
-                    if available_players.next().is_none() {
-                        log::info!("Missing player mod");
-                    }
-
                     let message = "Press Any Button";
                     self.status_label.text = String::from(message);
                     self.update_progress_bar(1.0);
