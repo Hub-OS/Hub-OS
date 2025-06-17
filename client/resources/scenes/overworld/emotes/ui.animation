@@ -2,9 +2,9 @@ animation state="DEFAULT"
 blank
 point label="SEARCH_BOX_START" x="1" y="146"
 point label="SEARCH_BOX_END" x="120" y="158"
-point label="START" x="12" y="126"
+point label="START" x="12" y="108"
 point label="NEXT" x="18" y="18"
-point label="VIEW_SIZE" x="13" y="2"
+point label="VIEW_SIZE" x="13" y="3"
 
 animation state="SEARCH"
 frame x="0" y="0" w="13" h="13" originx="7" originy="13"

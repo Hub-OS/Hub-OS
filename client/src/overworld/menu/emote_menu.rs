@@ -91,7 +91,7 @@ impl EmoteMenu {
             event_sender,
             event_receiver,
             ui_input_tracker: UiInputTracker::new(),
-            h_scroll: ScrollTracker::new(game_io, view_size.x as _),
+            h_scroll: ScrollTracker::new(game_io, view_size.x as _).with_wrap(true),
             v_scroll: ScrollTracker::new(game_io, view_size.y as _),
             search_box_9patch,
             search_box_bounds,
@@ -101,32 +101,32 @@ impl EmoteMenu {
     }
 
     fn selected_index(&self) -> usize {
-        self.h_scroll.selected_index() * self.v_scroll.view_size() + self.v_scroll.selected_index()
+        self.v_scroll.selected_index() * self.h_scroll.view_size() + self.h_scroll.selected_index()
     }
 
-    fn restrict_v_scroll(&mut self) {
+    fn restrict_h_scroll(&mut self) {
         let total_items = self.emotes.len() + 1;
 
-        if self.h_scroll.selected_index() == self.h_scroll.total_items() - 1 {
-            let remainder = total_items % self.v_scroll.view_size();
+        if self.v_scroll.selected_index() == self.v_scroll.total_items() - 1 {
+            let remainder = total_items % self.h_scroll.view_size();
 
             if remainder == 0 {
-                self.v_scroll.set_total_items(self.v_scroll.view_size());
+                self.h_scroll.set_total_items(self.h_scroll.view_size());
             } else {
-                self.v_scroll.set_total_items(remainder);
+                self.h_scroll.set_total_items(remainder);
             }
         } else {
-            self.v_scroll.set_total_items(self.v_scroll.view_size());
+            self.h_scroll.set_total_items(self.h_scroll.view_size());
         }
     }
 
     fn update_total_items(&mut self) {
-        let max_rows = self.v_scroll.view_size();
+        let max_cols = self.h_scroll.view_size();
         let total_items = self.filtered_emotes.len() + 1;
 
-        self.h_scroll
-            .set_total_items(total_items.div_ceil(max_rows));
-        self.v_scroll.set_total_items(total_items.min(max_rows));
+        self.h_scroll.set_total_items(total_items.min(max_cols));
+        self.v_scroll
+            .set_total_items(total_items.div_ceil(max_cols));
 
         self.h_scroll.set_selected_index(0);
         self.v_scroll.set_selected_index(0);
@@ -261,25 +261,10 @@ impl Menu for EmoteMenu {
             return;
         }
 
-        // handle h_scroll inputs
-        if self.ui_input_tracker.pulsed(Input::Left) {
-            self.h_scroll.move_up();
-        }
-        if self.ui_input_tracker.pulsed(Input::Right) {
-            self.h_scroll.move_down();
-        }
-        self.h_scroll.handle_page_input(&self.ui_input_tracker);
-
-        // update v_scroll limits
-        self.restrict_v_scroll();
-
-        // handle v_scroll inputs
-        if self.ui_input_tracker.pulsed(Input::Up) {
-            self.v_scroll.move_up();
-        }
-        if self.ui_input_tracker.pulsed(Input::Down) {
-            self.v_scroll.move_down();
-        }
+        self.v_scroll.handle_vertical_input(&self.ui_input_tracker);
+        self.restrict_h_scroll();
+        self.h_scroll
+            .handle_horizontal_input(&self.ui_input_tracker);
     }
 
     fn draw(
@@ -291,12 +276,16 @@ impl Menu for EmoteMenu {
     ) {
         let selected_index = self.selected_index();
 
-        for y in 0..self.v_scroll.view_size() {
-            let mut offset = self.start_point;
-            offset.y += self.next_point.y * y as f32;
+        let y_view_range = self.v_scroll.view_range();
+        let y_height = y_view_range.end - y_view_range.start;
+        let y_offset = self.v_scroll.view_size() - y_height;
 
-            for x in self.h_scroll.view_range() {
-                let item_index = x * self.v_scroll.view_size() + y;
+        for y in y_view_range {
+            let mut offset = self.start_point;
+            offset.y += self.next_point.y * (y - self.v_scroll.top_index() + y_offset) as f32;
+
+            for x in 0..self.h_scroll.view_size() {
+                let item_index = y * self.h_scroll.view_size() + x;
                 let emote_index = item_index.saturating_sub(1);
 
                 // draw highlight
