@@ -54,12 +54,10 @@ pub struct Args {
     #[arg(long, value_name = "SIDE_LENGTH", default_value = "80")]
     pub avatar_dimensions_limit: u32,
 
-    #[arg(long, value_name = "ASSET_PATH", 
-    value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
+    #[arg(long, value_name = "ASSET_PATH", value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
     pub emotes_animation_path: Option<String>,
 
-    #[arg(long, value_name = "ASSET_PATH", 
-    value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
+    #[arg(long, value_name = "ASSET_PATH", value_parser = clap::builder::ValueParser::new(optional_asset_path_parser))]
     pub emotes_texture_path: Option<String>,
 }
 
@@ -87,9 +85,9 @@ fn kib_to_bytes_parser(value: &str) -> Result<usize, String> {
     Ok(kib * 1024)
 }
 
-fn optional_asset_path_parser(value: &str) -> Result<Option<String>, String> {
+fn optional_asset_path_parser(value: &str) -> Result<String, String> {
     if value.starts_with("/server/assets/") {
-        Ok(Some(value.to_string()))
+        Ok(value.to_string())
     } else {
         Err(String::from(
             "ASSET_PATH must start with \"/server/assets/\"",
