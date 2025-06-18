@@ -24,6 +24,7 @@ enum Event {
     UpdatePackages,
     ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
     ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
+    OpenModsFolder,
     ReorderResources,
     ClearCache,
     Leave { save: bool },
@@ -574,6 +575,8 @@ impl ConfigScene {
             create_button("Update Mods", Event::UpdatePackages),
             create_button("Resource Mods", Event::ReorderResources),
             create_button("Clear Cache", Event::ClearCache),
+            #[cfg(not(target_os = "android"))]
+            create_button("Open Mods Folder", Event::OpenModsFolder),
         ]
     }
 
@@ -747,6 +750,14 @@ impl ConfigScene {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let scene = PackageUpdatesScene::new(game_io, requires_update);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::OpenModsFolder => {
+                    #[cfg(not(target_os = "android"))]
+                    if let Err(err) =
+                        opener::open(ResourcePaths::data_folder().to_string() + "mods")
+                    {
+                        log::error!("{err:?}")
+                    }
                 }
                 Event::ReorderResources => {
                     let transition = crate::transitions::new_sub_scene(game_io);
