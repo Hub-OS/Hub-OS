@@ -77,11 +77,13 @@ impl Globals {
         let mut resource_packages: PackageManager<ResourcePackage> =
             PackageManager::new(PackageCategory::Resource);
 
-        let resources_mod_path = resource_packages.category().mod_path();
+        let resources_mod_path =
+            ResourcePaths::data_folder_absolute(resource_packages.category().mod_path());
+
         resource_packages.load_packages_in_folder(
             &assets,
             PackageNamespace::Local,
-            resources_mod_path,
+            &resources_mod_path,
             |_, _| {},
         );
         resource_packages.apply(game_io, &mut global_save, &assets);
@@ -660,7 +662,12 @@ impl Globals {
             package.base_path.clone()
         } else {
             let encoded_id = uri_encode(id.as_str());
-            format!("{}{}/", category.mod_path(), encoded_id)
+            format!(
+                "{}{}{}/",
+                ResourcePaths::data_folder(),
+                category.mod_path(),
+                encoded_id
+            )
         }
     }
 

@@ -571,6 +571,7 @@ impl NetplayInitScene {
         }
 
         let broadcasting = self.fallback_sender_receiver.is_some();
+        let mod_cache_folder = ResourcePaths::mod_cache_folder();
 
         if broadcasting {
             // gathering all of the package requests and merging them to broadcast
@@ -584,7 +585,7 @@ impl NetplayInitScene {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                    let path = format!("{}{}.zip", mod_cache_folder, hash);
 
                     assets.binary(&path)
                 });
@@ -604,7 +605,7 @@ impl NetplayInitScene {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                    let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                    let path = format!("{}{}.zip", mod_cache_folder, hash);
 
                     assets.binary(&path)
                 });

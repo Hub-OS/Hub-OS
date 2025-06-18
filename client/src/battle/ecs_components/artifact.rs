@@ -43,7 +43,7 @@ impl Artifact {
 
         // load texture
         if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
-            let texture_string = ResourcePaths::absolute(texture_path);
+            let texture_string = ResourcePaths::game_folder_absolute(texture_path);
             let sprite_root = sprite_tree.root_mut();
             sprite_root.set_texture(game_io, texture_string);
         }

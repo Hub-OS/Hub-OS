@@ -1,6 +1,6 @@
 use super::{BlockGrid, Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
-use crate::resources::{AssetManager, Globals};
+use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 use packets::structures::InstalledSwitchDrive;
 use serde::{Deserialize, Serialize};
@@ -20,15 +20,16 @@ pub struct GlobalSave {
 }
 
 impl GlobalSave {
-    pub const PATH: &'static str = "save.dat";
-    pub const CORRUPTED_PATH: &'static str = "corrupted_save.dat";
+    fn path() -> String {
+        ResourcePaths::data_folder_absolute("save.dat")
+    }
 
     pub fn new() -> Self {
         Self::default()
     }
 
     pub fn load(assets: &impl AssetManager) -> Self {
-        let bytes = assets.binary_silent(Self::PATH);
+        let bytes = assets.binary_silent(&Self::path());
 
         if bytes.is_empty() {
             // no save data
@@ -39,12 +40,13 @@ impl GlobalSave {
         match rmp_serde::from_slice(&bytes) {
             Ok(save) => save,
             Err(e) => {
+                let corrupted_path = ResourcePaths::data_folder_absolute("corrupted_save.dat");
                 log::error!("Failed to load save data: {}", e);
-                log::info!("Backing up corrupted data to {:?}", Self::CORRUPTED_PATH);
+                log::info!("Backing up corrupted data to {:?}", corrupted_path);
 
                 // crash if we can't back up the corrupted save
                 // we never want to accidentally reset a player's save, it should be recoverable
-                std::fs::write(Self::CORRUPTED_PATH, bytes).unwrap();
+                std::fs::write(corrupted_path, bytes).unwrap();
 
                 Self::default()
             }
@@ -56,10 +58,11 @@ impl GlobalSave {
 
         log::info!("Saving...");
 
-        let mut file = File::create(Self::PATH).unwrap();
+        let path = Self::path();
+        let mut file = File::create(&path).unwrap();
 
         if let Err(e) = rmp_serde::encode::write_named(&mut file, self) {
-            log::error!("Failed to save data to {:?}: {}", Self::PATH, e);
+            log::error!("Failed to save data to {:?}: {}", path, e);
         }
     }
 

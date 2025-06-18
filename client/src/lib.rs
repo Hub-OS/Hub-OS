@@ -52,10 +52,10 @@ const TITLE_LIST: [&str; 3] = [
 ];
 
 pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
-    // init_game_folder in case we haven't already
-    ResourcePaths::init_game_folder(&app);
-
     let args = Args::parse();
+
+    // init_game_folders in case we haven't already
+    ResourcePaths::init_game_folders(&app, args.shared_data_folder);
 
     let (log_sender, log_receiver) = flume::unbounded();
     default_logger::init_with_listener!(move |log| {
@@ -93,8 +93,8 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
 #[cfg(target_os = "android")]
 #[no_mangle]
 pub fn android_main(app: WinitPlatformApp) {
-    // init_game_folder for set_current_dir
-    ResourcePaths::init_game_folder(&app);
+    // init_game_folders for set_current_dir
+    ResourcePaths::init_game_folders(&app, false);
 
     std::env::set_current_dir(ResourcePaths::game_folder()).unwrap();
 

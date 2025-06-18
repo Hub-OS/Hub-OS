@@ -203,7 +203,7 @@ impl<T: Package> PackageManager<T> {
         let path = if ResourcePaths::is_absolute(path) {
             path.to_string()
         } else {
-            ResourcePaths::absolute(path)
+            ResourcePaths::data_folder_absolute(path)
         };
 
         if path.to_lowercase().ends_with(".lua") {
@@ -246,18 +246,16 @@ impl<T: Package> PackageManager<T> {
             return Some(hash);
         }
 
-        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+        let mod_cache_folder = ResourcePaths::mod_cache_folder();
+        let path = format!("{}{}.zip", mod_cache_folder, hash);
 
         if std::path::Path::new(&path).exists() {
             // file already cached
             return Some(hash);
         }
 
-        if let Err(e) = std::fs::create_dir_all(ResourcePaths::MOD_CACHE_FOLDER) {
-            log::error!(
-                "Failed to create cache folder {:?}: {e}",
-                ResourcePaths::MOD_CACHE_FOLDER
-            );
+        if let Err(e) = std::fs::create_dir_all(&mod_cache_folder) {
+            log::error!("Failed to create cache folder {mod_cache_folder:?}: {e}",);
         }
 
         if let Err(e) = std::fs::write(&path, data) {

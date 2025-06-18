@@ -1,5 +1,5 @@
 use crate::render::PostProcessColorBlindness;
-use crate::resources::{AssetManager, Input, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
+use crate::resources::{AssetManager, Input, ResourcePaths, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
 use framework::cfg_macros::{cfg_android, cfg_desktop_and_web};
 use framework::input::{Button, Key};
 use itertools::Itertools;
@@ -184,7 +184,8 @@ impl Config {
     }
 
     pub fn load(assets: &impl AssetManager) -> Self {
-        let config_text = assets.text_silent("config.ini");
+        let path = ResourcePaths::data_folder_absolute("config.ini");
+        let config_text = assets.text_silent(&path);
 
         if config_text.is_empty() {
             let default_config = Config::default();
@@ -204,7 +205,8 @@ impl Config {
     }
 
     pub fn save(&self) {
-        if let Err(err) = std::fs::write("config.ini", self.to_string()) {
+        let path = ResourcePaths::data_folder_absolute("config.ini");
+        if let Err(err) = std::fs::write(path, self.to_string()) {
             log::error!("Failed to save config: {err:?}");
         }
     }

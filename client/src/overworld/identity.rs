@@ -11,7 +11,7 @@ impl Identity {
         let address = packets::address_parsing::strip_data(address).replace(':', "_p");
         let address = uri_encode(&address);
 
-        let folder = ResourcePaths::IDENTITY_FOLDER.to_string();
+        let folder = ResourcePaths::identity_folder();
         let file_path = folder.clone() + &address;
 
         let data = std::fs::read(&file_path).unwrap_or_else(|_| {

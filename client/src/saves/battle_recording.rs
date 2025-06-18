@@ -96,6 +96,8 @@ impl BattleRecording {
             let mut dependency_iter = meta.encounter_dependencies(game_io);
             dependency_iter.extend(meta.player_dependencies(game_io));
 
+            let mod_cache_folder = ResourcePaths::mod_cache_folder();
+
             for (info, namespace) in dependency_iter {
                 let category = info.category;
                 let namespace = namespace.prefix_recording();
@@ -107,7 +109,7 @@ impl BattleRecording {
 
                 self.package_map.entry((category, hash)).or_insert_with(|| {
                     globals.assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                        let path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                        let path = format!("{}{}.zip", &mod_cache_folder, hash);
                         globals.assets.binary(&path)
                     })
                 });
@@ -142,7 +144,7 @@ impl BattleRecording {
             );
             let folder_path = format!(
                 "{}{}{}-recording/",
-                ResourcePaths::game_folder(),
+                ResourcePaths::data_folder(),
                 PackageCategory::Encounter.mod_path(),
                 unique_id
             );
@@ -206,6 +208,7 @@ impl BattleRecording {
 
     pub fn load_packages(&self, game_io: &mut GameIO, ignored_package_ids: Vec<PackageId>) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
+        let mod_cache_folder = ResourcePaths::mod_cache_folder();
 
         // unload old packages
         let loaded_namespaces = globals
@@ -252,7 +255,7 @@ impl BattleRecording {
             if let Some(package_info) = globals.package_info(category, PackageNamespace::Local, &id)
             {
                 let hash = package_info.hash;
-                let zip_path = format!("{}{}.zip", ResourcePaths::MOD_CACHE_FOLDER, hash);
+                let zip_path = format!("{}{}.zip", &mod_cache_folder, hash);
 
                 let globals = game_io.resource::<Globals>().unwrap();
                 let bytes = globals.assets.binary(&zip_path);

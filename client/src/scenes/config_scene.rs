@@ -757,7 +757,7 @@ impl ConfigScene {
                     let globals = &mut game_io.resource::<Globals>().unwrap();
 
                     let message = if !globals.connected_to_server {
-                        match std::fs::remove_dir_all(ResourcePaths::SERVER_CACHE_FOLDER) {
+                        match std::fs::remove_dir_all(ResourcePaths::server_cache_folder()) {
                             Ok(()) => String::from("Successfully cleared cache."),
                             Err(e) => {
                                 log::error!("{e}");

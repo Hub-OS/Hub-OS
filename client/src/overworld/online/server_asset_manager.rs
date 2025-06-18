@@ -106,7 +106,7 @@ impl ServerAssetManager {
         let mut prefix = packets::address_parsing::strip_data(address).replace(':', "_p");
         prefix = uri_encode(&prefix);
 
-        ResourcePaths::clean_folder(&format!("{}{}", ResourcePaths::SERVER_CACHE_FOLDER, prefix))
+        ResourcePaths::clean_folder(&(ResourcePaths::server_cache_folder() + prefix.as_str()))
     }
 
     fn find_stored_assets(path: &str) -> HashMap<String, CachedServerAsset> {

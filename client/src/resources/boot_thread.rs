@@ -168,14 +168,14 @@ impl BootThread {
         self.load_package_folder(
             &mut package_manager,
             PackageNamespace::BuiltIn,
-            category.built_in_path(),
+            &ResourcePaths::game_folder_absolute(category.built_in_path()),
             label.clone(),
         );
 
         self.load_package_folder(
             &mut package_manager,
             PackageNamespace::Local,
-            category.mod_path(),
+            &ResourcePaths::data_folder_absolute(category.mod_path()),
             label,
         );
 
@@ -186,7 +186,7 @@ impl BootThread {
         &mut self,
         package_manager: &mut PackageManager<P>,
         namespace: PackageNamespace,
-        path: &'static str,
+        path: &str,
         label: Arc<str>,
     ) {
         package_manager.load_packages_in_folder(
@@ -243,7 +243,7 @@ impl BootThread {
     }
 
     pub fn clean_cache_folder(&mut self) {
-        let Ok(entry_iter) = std::fs::read_dir(ResourcePaths::MOD_CACHE_FOLDER) else {
+        let Ok(entry_iter) = std::fs::read_dir(ResourcePaths::mod_cache_folder()) else {
             return;
         };
 

@@ -2,13 +2,11 @@ use framework::prelude::WinitPlatformApp;
 use std::sync::OnceLock;
 
 static GAME_PATH: OnceLock<String> = OnceLock::new();
+static DATA_PATH: OnceLock<String> = OnceLock::new();
 
 pub struct ResourcePaths;
 
 impl ResourcePaths {
-    pub const SERVER_CACHE_FOLDER: &'static str = "cache/servers/";
-    pub const MOD_CACHE_FOLDER: &'static str = "cache/mods/";
-    pub const IDENTITY_FOLDER: &'static str = "identity/";
     pub const VIRTUAL_PREFIX: &'static str = "/virtual/";
     pub const SEPARATOR: &'static str = "/";
 
@@ -274,22 +272,59 @@ impl ResourcePaths {
         "resources/scenes/resource_order/ui.animation";
 
     #[allow(unused_variables)]
-    pub fn init_game_folder(app: &WinitPlatformApp) {
+    pub fn init_game_folders(app: &WinitPlatformApp, _shared_data_folder: bool) {
         #[cfg(not(target_os = "android"))]
-        let _ = GAME_PATH.set(ResourcePaths::clean_folder(
-            &std::env::current_dir()
-                .unwrap_or_default()
-                .to_string_lossy(),
-        ));
+        {
+            let game_path = std::env::current_dir().unwrap_or_default();
+            let game_path = ResourcePaths::clean_folder(&game_path.to_string_lossy());
+            let _ = GAME_PATH.set(game_path.clone());
+
+            let mut data_path = game_path;
+
+            if _shared_data_folder {
+                let shared_path = if cfg!(target_os = "windows") {
+                    dirs_next::document_dir().map(|d| d.join("My Games"))
+                } else {
+                    dirs_next::data_dir()
+                };
+
+                if let Some(path) = shared_path {
+                    let path = path.join("Hub OS");
+                    data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
+                    let _ = std::fs::create_dir_all(&data_path);
+                }
+            }
+
+            let _ = DATA_PATH.set(data_path);
+        }
 
         #[cfg(target_os = "android")]
-        let _ = GAME_PATH.set(ResourcePaths::clean_folder(
-            &app.internal_data_path().unwrap().to_string_lossy(),
-        ));
+        {
+            let path = app.internal_data_path().unwrap();
+            let path = ResourcePaths::clean_folder(&path.to_string_lossy());
+            let _ = GAME_PATH.set(path.clone());
+            let _ = DATA_PATH.set(path);
+        }
     }
 
     pub fn game_folder() -> &'static str {
         GAME_PATH.get().unwrap()
+    }
+
+    pub fn data_folder() -> &'static str {
+        DATA_PATH.get().unwrap()
+    }
+
+    pub fn server_cache_folder() -> String {
+        Self::data_folder_absolute("cache/servers") + "/"
+    }
+
+    pub fn mod_cache_folder() -> String {
+        Self::data_folder_absolute("cache/mods") + "/"
+    }
+
+    pub fn identity_folder() -> String {
+        Self::data_folder_absolute("identity") + "/"
     }
 
     pub fn is_absolute(path_str: &str) -> bool {
@@ -298,8 +333,12 @@ impl ResourcePaths {
         path_str.starts_with('/') || Path::new(&path_str).is_absolute()
     }
 
-    pub fn absolute(path_str: &str) -> String {
+    pub fn game_folder_absolute(path_str: &str) -> String {
         Self::game_folder().to_string() + &Self::clean(path_str)
+    }
+
+    pub fn data_folder_absolute(path_str: &str) -> String {
+        Self::data_folder().to_string() + &Self::clean(path_str)
     }
 
     pub fn clean(path_str: &str) -> String {
@@ -318,10 +357,9 @@ impl ResourcePaths {
     }
 
     pub fn shorten(path_str: &str) -> String {
-        let game_path = Self::game_folder();
-
         path_str
-            .strip_prefix(game_path)
+            .strip_prefix(Self::game_folder())
+            .or_else(|| path_str.strip_prefix(Self::data_folder()))
             .unwrap_or(path_str)
             .to_string()
     }

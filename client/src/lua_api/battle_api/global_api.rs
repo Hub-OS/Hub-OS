@@ -266,11 +266,11 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     shadow_table.set("None", ResourcePaths::BLANK)?;
     shadow_table.set(
         "Small",
-        ResourcePaths::absolute(ResourcePaths::BATTLE_SHADOW_SMALL),
+        ResourcePaths::game_folder_absolute(ResourcePaths::BATTLE_SHADOW_SMALL),
     )?;
     shadow_table.set(
         "Big",
-        ResourcePaths::absolute(ResourcePaths::BATTLE_SHADOW_BIG),
+        ResourcePaths::game_folder_absolute(ResourcePaths::BATTLE_SHADOW_BIG),
     )?;
     globals.set("Shadow", shadow_table)?;
 

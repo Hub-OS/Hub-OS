@@ -230,7 +230,7 @@ impl LocalAssetManager {
         let mut texture_cache = self.texture_cache.borrow_mut();
         let mut sound_cache = self.sound_cache.borrow_mut();
 
-        let base_mod_folder = ResourcePaths::game_folder().to_string() + "mods";
+        let base_mod_folder = ResourcePaths::data_folder_absolute("mods");
         let base_mod_folder = ResourcePaths::clean_folder(&base_mod_folder);
 
         text_cache.retain(|key, _| !key.starts_with(&base_mod_folder));

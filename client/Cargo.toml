@@ -56,6 +56,7 @@ rustysynth = "1.1"
 indexmap = "2"
 nom = { git = "https://github.com/rust-bakery/nom.git", rev = "2560d5ca917db83db832ce66070b8c81f76b1db2" }
 uncased = "0.9"
+dirs-next = "2.0.0"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 surf = { version = "2.3", default-features = false, features = ["curl-client"] }
