@@ -1706,6 +1706,21 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    getter::<&Player, _, _>(
+        lua_api,
+        "movement_on_input",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.movement_on_input()),
+    );
+
+    setter(
+        lua_api,
+        "set_movement_on_input",
+        |player: &mut Player, _, value: Option<bool>| {
+            player.overridables.flags.set_movement_on_input(value);
+            Ok(())
+        },
+    );
+
     lua_api.add_dynamic_function(
         ENTITY_TABLE,
         "queue_default_player_movement",
@@ -1738,6 +1753,69 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
 
             lua.pack_multi(())
         },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "queue_normal_attack",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let id: EntityId = table.raw_get("#id")?;
+
+            Player::use_normal_attack(api_ctx.game_io, api_ctx.resources, simulation, id);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "queue_charged_attack",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let id: EntityId = table.raw_get("#id")?;
+
+            Player::use_charged_attack(api_ctx.game_io, api_ctx.resources, simulation, id);
+
+            lua.pack_multi(())
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        ENTITY_TABLE,
+        "queue_special_attack",
+        |api_ctx, lua, params| {
+            let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let id: EntityId = table.raw_get("#id")?;
+
+            Player::use_special_attack(api_ctx.game_io, api_ctx.resources, simulation, id);
+
+            lua.pack_multi(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_special_on_input",
+        |player: &mut Player, _, value: Option<bool>| {
+            player.overridables.flags.set_special_on_input(value);
+            Ok(())
+        },
+    );
+
+    getter::<&Player, _, _>(
+        lua_api,
+        "special_on_input",
+        |player: &Player, lua, _: ()| lua.pack_multi(player.special_on_input()),
     );
 
     getter::<&Player, _, _>(
@@ -2170,7 +2248,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "set_charge_with_shoot",
         |player: &mut Player, _, charge: Option<bool>| {
-            player.overridables.charges_with_shoot = charge;
+            player.overridables.flags.set_charges_with_shoot(charge);
             Ok(())
         },
     );

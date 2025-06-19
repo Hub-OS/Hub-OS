@@ -346,6 +346,24 @@ impl Player {
         }
     }
 
+    pub fn charges_with_shoot(&self) -> bool {
+        PlayerOverridables::flat_map_for(self, |o| o.flags.charges_with_shoot())
+            .next()
+            .unwrap_or(true)
+    }
+
+    pub fn special_on_input(&self) -> bool {
+        PlayerOverridables::flat_map_for(self, |o| o.flags.special_on_input())
+            .next()
+            .unwrap_or(true)
+    }
+
+    pub fn movement_on_input(&self) -> bool {
+        PlayerOverridables::flat_map_for(self, |o| o.flags.movement_on_input())
+            .next()
+            .unwrap_or(true)
+    }
+
     pub fn available_forms(&self) -> impl Iterator<Item = (usize, &PlayerForm)> {
         self.forms
             .iter()
@@ -433,12 +451,6 @@ impl Player {
         } else {
             PlayerOverridables::default_calculate_charge_time(level)
         }
-    }
-
-    pub fn charges_with_shoot(&self) -> bool {
-        PlayerOverridables::flat_map_for(self, |o| o.charges_with_shoot)
-            .next()
-            .unwrap_or(true)
     }
 
     pub fn cancel_charge(&mut self) {
@@ -750,6 +762,10 @@ impl Player {
         else {
             return;
         };
+
+        if !player.movement_on_input() {
+            return;
+        }
 
         // can't move if not on the field
         if !entity.on_field {

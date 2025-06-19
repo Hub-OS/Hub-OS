@@ -4,7 +4,10 @@ use super::{
     CHARGED_ATTACK_FN, CHARGED_CARD_FN, CHARGE_TIMING_FN, DEACTIVATE_FN, DESELECT_FN, MOVEMENT_FN,
     NORMAL_ATTACK_FN, PLAYER_FORM_TABLE, SELECT_FN, SPECIAL_ATTACK_FN, UPDATE_FN,
 };
-use crate::battle::{BattleCallback, CardSelectButton, CardSelectButtonPath, Player, PlayerForm};
+use crate::battle::{
+    BattleCallback, CardSelectButton, CardSelectButtonPath, Player, PlayerForm,
+    PlayerOverridableFlags,
+};
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
@@ -131,27 +134,17 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    lua_api.add_dynamic_function(
-        PLAYER_FORM_TABLE,
-        "set_charge_with_shoot",
-        |api_ctx, lua, params| {
-            let (table, charge): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+    flag_setter(lua_api, "set_charge_with_shoot", |flags, value| {
+        flags.set_special_on_input(value);
+    });
 
-            let entity_id: EntityId = table.raw_get("#entity_id")?;
-            let index: usize = table.raw_get("#index")?;
+    flag_setter(lua_api, "set_special_on_input", |flags, value| {
+        flags.set_special_on_input(value);
+    });
 
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-            let player = entities
-                .query_one_mut::<&mut Player>(entity_id.into())
-                .map_err(|_| entity_not_found())?;
-
-            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
-            form.overridables.charges_with_shoot = charge;
-
-            lua.pack_multi(table)
-        },
-    );
+    flag_setter(lua_api, "set_movement_on_input", |flags, value| {
+        flags.set_movement_on_input(value);
+    });
 
     lua_api.add_dynamic_function(
         PLAYER_FORM_TABLE,
@@ -312,6 +305,30 @@ fn callback_setter<G, P, F, R>(
             .transpose()?;
 
         lua.pack_multi(())
+    });
+}
+
+fn flag_setter(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    setter: impl Fn(&mut PlayerOverridableFlags, Option<bool>) + 'static,
+) {
+    lua_api.add_dynamic_function(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
+        let (table, value): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = table.raw_get("#entity_id")?;
+        let index: usize = table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let player = entities
+            .query_one_mut::<&mut Player>(entity_id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+        setter(&mut form.overridables.flags, value);
+
+        lua.pack_multi(table)
     });
 }
 

@@ -96,7 +96,25 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "set_charge_with_shoot",
         |augment, _, charge: Option<bool>| {
-            augment.overridables.charges_with_shoot = charge;
+            augment.overridables.flags.set_charges_with_shoot(charge);
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_special_on_input",
+        |augment, _, value: Option<bool>| {
+            augment.overridables.flags.set_special_on_input(value);
+            Ok(())
+        },
+    );
+
+    setter(
+        lua_api,
+        "set_movement_on_input",
+        |augment, _, value: Option<bool>| {
+            augment.overridables.flags.set_movement_on_input(value);
             Ok(())
         },
     );

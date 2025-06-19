@@ -807,7 +807,7 @@ impl BattleState {
                 continue;
             }
 
-            if input.was_just_pressed(Input::Special) {
+            if input.was_just_pressed(Input::Special) && player.special_on_input() {
                 Player::use_special_attack(game_io, resources, simulation, id.into());
             } else {
                 Player::handle_charging(game_io, resources, simulation, id.into());

@@ -8,11 +8,66 @@ use crate::structures::{SlotMap, Tree};
 use framework::prelude::GameIO;
 use packets::structures::Direction;
 
+// compressing up to 4 optional flags in one byte
+#[derive(Default, Clone)]
+pub struct PlayerOverridableFlags(u8);
+
+impl PlayerOverridableFlags {
+    fn set_bits(&mut self, index: u8, value: Option<bool>) {
+        let offset = index * 2;
+
+        self.0 &= !(0b11 << offset);
+
+        let encoded_value = if let Some(value) = value {
+            (1 << 1) + value as u8
+        } else {
+            0
+        };
+
+        self.0 |= encoded_value << offset;
+    }
+
+    fn get_value(&self, index: u8) -> Option<bool> {
+        let offset = index * 2;
+        let value = self.0 >> offset;
+
+        if value & 0b10 == 0 {
+            return None;
+        }
+
+        Some((value & 1) == 1)
+    }
+
+    pub fn movement_on_input(&self) -> Option<bool> {
+        self.get_value(0)
+    }
+
+    pub fn set_movement_on_input(&mut self, value: Option<bool>) {
+        self.set_bits(0, value);
+    }
+
+    pub fn charges_with_shoot(&self) -> Option<bool> {
+        self.get_value(1)
+    }
+
+    pub fn set_charges_with_shoot(&mut self, value: Option<bool>) {
+        self.set_bits(1, value);
+    }
+
+    pub fn special_on_input(&self) -> Option<bool> {
+        self.get_value(2)
+    }
+
+    pub fn set_special_on_input(&mut self, value: Option<bool>) {
+        self.set_bits(2, value);
+    }
+}
+
 #[derive(Default, Clone)]
 pub struct PlayerOverridables {
     pub buttons: Vec<Option<CardSelectButton>>,
     pub calculate_charge_time: Option<BattleCallback<u8, FrameTime>>,
-    pub charges_with_shoot: Option<bool>,
+    pub flags: PlayerOverridableFlags,
     pub normal_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub charged_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
     pub special_attack: Option<BattleCallback<(), Option<GenerationalIndex>>>,
