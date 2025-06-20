@@ -2336,7 +2336,7 @@ function ScriptNodes:implement_actor_api()
     end
 
     if object.custom_properties.Animation then
-      options.texture_path = self.ASSET_PREFIX .. object.custom_properties.Animation
+      options.animation_path = self.ASSET_PREFIX .. object.custom_properties.Animation
     end
 
     if object.custom_properties.Asset then
