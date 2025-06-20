@@ -930,6 +930,10 @@ impl OverworldOnlineScene {
 
                 self.menu_manager.use_player_avatar(game_io);
                 self.menu_manager.push_textbox_interface(interface);
+
+                if let Some(remove) = self.doorstop_remover.take() {
+                    remove();
+                }
             }
             ServerPacket::ReferServer { name, address } => {
                 let globals = game_io.resource::<Globals>().unwrap();
@@ -1492,7 +1496,6 @@ impl OverworldOnlineScene {
                     self.menu_manager.use_player_avatar(game_io);
                     self.menu_manager.push_textbox_interface(interface);
                 }
-
                 OverworldEvent::Callback(callback) => {
                     callback(game_io, &mut self.area);
                 }
