@@ -17,28 +17,27 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    fs_extra::dir::create_all("dist", false).unwrap();
+    fs_extra::dir::create_all("dist/client", true).unwrap();
 
     // windows exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}.exe"),
-        format!("dist/{BIN_NAME}.exe"),
+        format!("dist/client/{BIN_NAME}.exe"),
     );
 
     // linux + mac exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}"),
-        format!("dist/{BIN_NAME}"),
+        format!("dist/client/{BIN_NAME}"),
     );
 
     // mac ARM exe
     let _ = fs::copy(
         format!("target/release/{BIN_NAME}-aarch64"),
-        format!("dist/{BIN_NAME}-aarch64"),
+        format!("dist/client/{BIN_NAME}-aarch64"),
     );
 
-    let _ = std::fs::remove_dir_all("dist/resources");
-    fs_extra::dir::copy("client/resources", "dist", &Default::default()).unwrap();
+    fs_extra::dir::copy("client/resources", "dist/client", &Default::default()).unwrap();
 
     ExitCode::SUCCESS
 }
