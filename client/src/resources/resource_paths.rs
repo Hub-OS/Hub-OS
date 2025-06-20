@@ -272,16 +272,28 @@ impl ResourcePaths {
         "resources/scenes/resource_order/ui.animation";
 
     #[allow(unused_variables)]
-    pub fn init_game_folders(app: &WinitPlatformApp, _shared_data_folder: bool) {
+    pub fn init_game_folders(app: &WinitPlatformApp, _data_folder_arg: Option<String>) {
         #[cfg(not(target_os = "android"))]
         {
             let game_path = std::env::current_dir().unwrap_or_default();
             let game_path = ResourcePaths::clean_folder(&game_path.to_string_lossy());
-            let _ = GAME_PATH.set(game_path.clone());
+            let _ = GAME_PATH.set(game_path);
 
-            let mut data_path = game_path;
+            let data_path;
 
-            if _shared_data_folder {
+            if let Some(path) = _data_folder_arg {
+                // use folder from arg
+
+                let path = match std::path::absolute(path) {
+                    Ok(path) => path,
+                    Err(err) => {
+                        panic!("Invalid data folder: {err:?}");
+                    }
+                };
+
+                data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
+            } else {
+                // use shared folder
                 let shared_path = if cfg!(target_os = "windows") {
                     dirs_next::document_dir().map(|d| d.join("My Games"))
                 } else {
@@ -292,6 +304,9 @@ impl ResourcePaths {
                     let path = path.join("Hub OS");
                     data_path = ResourcePaths::clean_folder(&path.to_string_lossy());
                     let _ = std::fs::create_dir_all(&data_path);
+                } else {
+                    // use game folder
+                    data_path = ResourcePaths::game_folder().to_string();
                 }
             }
 

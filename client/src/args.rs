@@ -7,5 +7,5 @@ pub struct Args {
     #[clap(long, value_parser, default_value = "65536")]
     pub resend_budget: usize,
     #[clap(long)]
-    pub shared_data_folder: bool,
+    pub data_folder: Option<String>,
 }

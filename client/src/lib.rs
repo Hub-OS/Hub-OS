@@ -55,7 +55,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     let args = Args::parse();
 
     // init_game_folders in case we haven't already
-    ResourcePaths::init_game_folders(&app, args.shared_data_folder);
+    ResourcePaths::init_game_folders(&app, args.data_folder.clone());
 
     let (log_sender, log_receiver) = flume::unbounded();
     default_logger::init_with_listener!(move |log| {
