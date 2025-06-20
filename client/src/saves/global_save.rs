@@ -177,7 +177,7 @@ impl Default for GlobalSave {
             selected_deck: 0,
             server_list: vec![ServerInfo {
                 name: String::from("The Index"),
-                address: String::from("hubos.konstinople.dev"),
+                address: String::from("servers.hubos.dev"),
             }],
             installed_blocks: HashMap::new(),
             installed_drive_parts: HashMap::new(),
