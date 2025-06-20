@@ -209,6 +209,9 @@ pub enum ServerPacket {
     RemoveShopItem {
         id: String,
     },
+    ReferLink {
+        address: String,
+    },
     ReferServer {
         name: String,
         address: String,

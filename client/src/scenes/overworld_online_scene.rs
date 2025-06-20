@@ -918,6 +918,19 @@ impl OverworldOnlineScene {
                     shop.remove_item(&id);
                 }
             }
+            ServerPacket::ReferLink { address } => {
+                let message = String::from("Open link in browser?");
+                let interface = TextboxQuestion::new(message, move |yes| {
+                    if yes {
+                        if let Err(err) = webbrowser::open(&address) {
+                            log::error!("{err:?}");
+                        }
+                    }
+                });
+
+                self.menu_manager.use_player_avatar(game_io);
+                self.menu_manager.push_textbox_interface(interface);
+            }
             ServerPacket::ReferServer { name, address } => {
                 let globals = game_io.resource::<Globals>().unwrap();
                 let index = globals.global_save.server_list.len() + 1;

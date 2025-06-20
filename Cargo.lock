@@ -2247,6 +2247,7 @@ dependencies = [
  "unicode-segmentation",
  "unicode_categories",
  "walkdir",
+ "webbrowser",
 ]
 
 [[package]]
@@ -3310,6 +3311,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "900831247d2fe1a09a683278e5384cfb8c80c79fe6b166f9d14bfdde0ea1b03c"
 dependencies = [
+ "bitflags 2.9.1",
  "objc2 0.6.1",
 ]
 
@@ -5437,6 +5439,22 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "webbrowser"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aaf4f3c0ba838e82b4e5ccc4157003fb8c324ee24c058470ffb82820becbde98"
+dependencies = [
+ "core-foundation 0.10.1",
+ "jni",
+ "log",
+ "ndk-context",
+ "objc2 0.6.1",
+ "objc2-foundation 0.3.1",
+ "url",
+ "web-sys",
 ]
 
 [[package]]

@@ -1184,6 +1184,18 @@ impl Net {
         }
     }
 
+    pub fn refer_link(&mut self, player_id: ActorId, address: String) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
+            return;
+        };
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::ReferLink { address },
+        );
+    }
+
     pub fn refer_server(&mut self, player_id: ActorId, name: String, address: String) {
         let Some(client) = self.clients.get_mut(&player_id) else {
             return;

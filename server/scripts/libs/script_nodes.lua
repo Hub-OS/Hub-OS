@@ -2190,9 +2190,13 @@ function ScriptNodes:implement_inventory_api()
   end)
 end
 
----Implements support for the `Refer Server` and `Refer Package` nodes
+---Implements support for the `Refer Link`, `Refer Server` and `Refer Package` nodes
 ---
 ---Expects `area_id` and `player_id` or `player_ids` to be defined on the context table.
+---
+---Supported custom properties for `Refer Link`:
+--- - `Address` string
+--- - `Next [1]` a link to the next node (optional)
 ---
 ---Supported custom properties for `Refer Server`:
 --- - `Name` string
@@ -2203,6 +2207,16 @@ end
 --- - `Id` string
 --- - `Next [1]` a link to the next node (optional)
 function ScriptNodes:implement_link_api()
+  self:implement_node("refer link", function(context, object)
+    local address = object.custom_properties.Address
+
+    for_each_player_safe(context, function(player_id)
+      Net.refer_link(player_id, address)
+    end)
+
+    self:execute_next_node(context, context.area_id, object)
+  end)
+
   self:implement_node("refer server", function(context, object)
     local name = object.custom_properties.Name
     local address = object.custom_properties.Address
