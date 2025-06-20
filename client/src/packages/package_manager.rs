@@ -82,7 +82,7 @@ impl<T: Package> PackageManager<T> {
     {
         use std::fs;
 
-        fs::create_dir_all(path).unwrap();
+        let _ = fs::create_dir_all(path);
 
         let paths: Vec<_> = fs::read_dir(path)
             .unwrap()
