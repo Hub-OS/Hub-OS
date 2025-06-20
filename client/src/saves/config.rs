@@ -141,13 +141,27 @@ impl Config {
                 Input::Right,
                 vec![Button::LeftStickRight, Button::DPadRight],
             ),
-            (Input::ShoulderL, vec![Button::LeftTrigger]),
-            (Input::ShoulderR, vec![Button::RightTrigger]),
-            (Input::Flee, vec![Button::LeftTrigger]),
-            (Input::Info, vec![Button::RightTrigger]),
+            (
+                Input::ShoulderL,
+                vec![Button::LeftTrigger, Button::LeftShoulder],
+            ),
+            (
+                Input::ShoulderR,
+                vec![Button::RightTrigger, Button::RightShoulder],
+            ),
+            (Input::Flee, vec![Button::LeftTrigger, Button::LeftShoulder]),
+            (
+                Input::Info,
+                vec![Button::RightTrigger, Button::RightShoulder],
+            ),
             (
                 Input::EndTurn,
-                vec![Button::LeftTrigger, Button::RightTrigger],
+                vec![
+                    Button::LeftTrigger,
+                    Button::RightTrigger,
+                    Button::LeftShoulder,
+                    Button::RightShoulder,
+                ],
             ),
             (Input::Confirm, vec![Button::A]),
             (Input::UseCard, vec![Button::A]),
@@ -162,8 +176,8 @@ impl Config {
             (Input::Option2, vec![Button::Select]),
             (Input::End, vec![Button::Start]),
             (Input::Pause, vec![Button::Start]),
-            (Input::RewindFrame, vec![Button::LeftShoulder]),
-            (Input::AdvanceFrame, vec![Button::RightShoulder]),
+            (Input::RewindFrame, vec![]),
+            (Input::AdvanceFrame, vec![]),
         ])
     }
 
