@@ -59,6 +59,7 @@ jobs:
           wget -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
           unzip butler.zip
           chmod +x ./butler
+          export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
           ./butler push --ignore 'hub_os' --ignore 'hub_os_server' dist hub-os/hub-os:windows --userversion ${{ github.ref_name }}
           ./butler push --ignore '*.exe' dist hub-os/hub-os:linux --userversion ${{ github.ref_name }}
           cd ..
@@ -119,6 +120,7 @@ jobs:
           wget -O butler.zip https://broth.itch.ovh/butler/darwin-amd64/LATEST/archive/default
           unzip butler.zip
           chmod +x ./butler
+          export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
           ./butler push dist hub-os/hub-os:mac --userversion ${{ github.ref_name }}
           cd ..
 
