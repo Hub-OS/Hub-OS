@@ -456,7 +456,9 @@ impl Textbox {
             return;
         };
 
-        let idle = !self.effect_processor.animate_avatar || silent_char;
+        let current_page = self.page_queue.front();
+        let completed_speaking = !current_page.is_some_and(|page| self.text_index < page.range.end);
+        let idle = !self.effect_processor.animate_avatar || silent_char || completed_speaking;
 
         let state = if idle { "IDLE" } else { "TALK" };
 
