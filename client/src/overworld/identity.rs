@@ -1,6 +1,7 @@
 use crate::resources::{ResourcePaths, IDENTITY_LEN};
 use packets::address_parsing::uri_encode;
 use rand::{rngs::OsRng, RngCore};
+use std::io::Write;
 
 pub struct Identity {
     data: Vec<u8>,
@@ -15,9 +16,15 @@ impl Identity {
         let file_path = folder.clone() + &address;
 
         let data = std::fs::read(&file_path).unwrap_or_else(|_| {
-            let mut data = vec![0; IDENTITY_LEN];
+            const HEADER: &[u8] = b"random:";
 
-            OsRng.fill_bytes(&mut data);
+            let mut data = vec![0; IDENTITY_LEN + HEADER.len()];
+
+            // write header
+            let _ = (&mut data[0..HEADER.len()]).write(HEADER);
+
+            // fill the rest with random bytes
+            OsRng.fill_bytes(&mut data[HEADER.len()..]);
 
             let _ = std::fs::create_dir_all(&folder);
 
