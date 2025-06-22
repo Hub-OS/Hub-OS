@@ -38,7 +38,15 @@ pub struct Config {
 
 impl Config {
     pub fn validate(&self) -> bool {
+        self.validate_keys() && self.validate_controller()
+    }
+
+    pub fn validate_keys(&self) -> bool {
         Config::validate_bindings(&self.key_bindings)
+    }
+
+    pub fn validate_controller(&self) -> bool {
+        Config::validate_bindings(&self.controller_bindings)
     }
 
     pub fn with_default_key_bindings(mut self, key_style: KeyStyle) -> Self {
@@ -225,11 +233,11 @@ impl Config {
         }
     }
 
-    fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, V>) -> bool {
+    fn validate_bindings<V: std::cmp::PartialEq>(bindings: &HashMap<Input, Vec<V>>) -> bool {
         let required_are_set = Input::REQUIRED
             .iter()
             .map(|input| bindings.get(input))
-            .all(|binding| binding.is_some());
+            .all(|binding| binding.is_some_and(|b| !b.is_empty()));
 
         let non_overlap_bindings: Vec<_> = Input::NON_OVERLAP
             .iter()
