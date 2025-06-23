@@ -8,7 +8,7 @@ use packets::address_parsing::uri_encode;
 use taffy::style::{AlignItems, Dimension, FlexDirection};
 
 enum Event {
-    ReceivedAuthor(String),
+    ReceivedUploader(String),
     StartDownload,
     Delete,
 }
@@ -94,7 +94,7 @@ impl PackageScene {
         game_io: &GameIO,
         list: &ScrollableList,
         listing: &PackageListing,
-        author: String,
+        uploader: String,
     ) -> Vec<Box<dyn UiNode>> {
         let mut style = TextStyle::new(game_io, FontName::Thin);
         style.bounds = list.list_bounds();
@@ -129,7 +129,7 @@ impl PackageScene {
         }
 
         push_blank(&mut children);
-        push_text(&mut children, &format!("Author: {author}"));
+        push_text(&mut children, &format!("Uploader: {uploader}"));
 
         children
     }
@@ -296,12 +296,12 @@ impl PackageScene {
 
     fn handle_event(&mut self, game_io: &mut GameIO, event: Event) {
         match event {
-            Event::ReceivedAuthor(author) => {
+            Event::ReceivedUploader(uploader) => {
                 self.list.set_children(Self::generate_list(
                     game_io,
                     &self.list,
                     self.preview.listing(),
-                    author,
+                    uploader,
                 ));
             }
             Event::StartDownload => {
@@ -383,7 +383,7 @@ impl PackageScene {
         self.textbox.open();
     }
 
-    fn request_author(&mut self, game_io: &GameIO) {
+    fn request_uploader(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let repo = &globals.config.package_repo;
@@ -394,15 +394,15 @@ impl PackageScene {
         let task = game_io.spawn_local_task(async move {
             let Some(value) = crate::http::request_json(&uri).await else {
                 // provide default
-                return Event::ReceivedAuthor(String::from("unknown"));
+                return Event::ReceivedUploader(String::from("unknown"));
             };
 
-            let author = value
+            let uploader = value
                 .get("username")
                 .and_then(|v| v.as_str())
                 .unwrap_or_default();
 
-            Event::ReceivedAuthor(author.to_string())
+            Event::ReceivedUploader(uploader.to_string())
         });
 
         self.tasks.push(task);
@@ -445,7 +445,7 @@ impl Scene for PackageScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         if self.list.total_children() == 0 {
-            self.request_author(game_io);
+            self.request_uploader(game_io);
         }
     }
 
