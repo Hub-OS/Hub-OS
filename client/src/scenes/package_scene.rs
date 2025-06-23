@@ -130,6 +130,8 @@ impl PackageScene {
 
         push_blank(&mut children);
         push_text(&mut children, &format!("Uploader: {uploader}"));
+        push_blank(&mut children);
+        push_text(&mut children, &format!("Package ID: {}", listing.id));
 
         children
     }
