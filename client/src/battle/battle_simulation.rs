@@ -608,7 +608,7 @@ impl BattleSimulation {
         let padding = tile_size * BATTLE_CAMERA_TILE_PADDING;
         min_x -= padding.x;
         max_x += padding.x;
-        min_y -= padding.y * 2.0; // extra padding for UI
+        min_y -= padding.y * 3.0; // extra padding for UI
         max_y += padding.y;
 
         // clip the box to the field (only on the x axis)
