@@ -582,7 +582,13 @@ impl BattleSimulation {
 
         for (_, (entity, _)) in entities.query_mut::<(&Entity, &Character)>() {
             if entity.spawned {
-                let position = entity.screen_position(&self.field, perspective_flipped);
+                let mut position = entity.screen_position(&self.field, perspective_flipped);
+
+                // reapply a limited vertical movement offset, to avoid rapid screen movement from :jump()s
+                let vertical_movement_offset = entity.movement_offset.y;
+                position.y -= vertical_movement_offset;
+                position.y += vertical_movement_offset.max(-self.field.tile_size().y);
+
                 min_x = position.x.min(min_x);
                 max_x = position.x.max(max_x);
                 min_y = position.y.min(min_y);
@@ -602,7 +608,7 @@ impl BattleSimulation {
         let padding = tile_size * BATTLE_CAMERA_TILE_PADDING;
         min_x -= padding.x;
         max_x += padding.x;
-        min_y -= padding.y;
+        min_y -= padding.y * 2.0; // extra padding for UI
         max_y += padding.y;
 
         // clip the box to the field (only on the x axis)
