@@ -71,7 +71,7 @@ local function card_allowed()
   end
 
   if restriction.code then
-    return restriction.code == card_properties.code or card_properties.code == "*"
+    return (restriction.code == card_properties.code and restriction.code ~= "!") or card_properties.code == "*"
   end
 
   return restriction.package_id == card_properties.package_id
