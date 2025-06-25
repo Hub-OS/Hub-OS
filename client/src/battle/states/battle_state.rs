@@ -767,8 +767,14 @@ impl BattleState {
             let entities = &mut simulation.entities;
             let entity_id = id.into();
 
-            let (entity, player, living, character) = entities
-                .query_one_mut::<(&mut Entity, &mut Player, &Living, &mut Character)>(id)
+            let (entity, player, living, character, action_queue) = entities
+                .query_one_mut::<(
+                    &mut Entity,
+                    &mut Player,
+                    &Living,
+                    &mut Character,
+                    Option<&mut ActionQueue>,
+                )>(id)
                 .unwrap();
 
             if !entity.on_field {
@@ -783,11 +789,12 @@ impl BattleState {
                 continue;
             }
 
+            let has_pending_action = action_queue.is_some_and(|queue| !queue.pending.is_empty());
             let action_processed = (simulation.actions)
                 .values()
                 .any(|action| action.processed && action.entity == entity_id);
 
-            if action_processed {
+            if has_pending_action || action_processed {
                 player.cancel_charge();
                 continue;
             }
