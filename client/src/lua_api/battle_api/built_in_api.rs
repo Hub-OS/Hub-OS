@@ -109,12 +109,12 @@ pub fn inject_internal_scripts(vm_manager: &mut BattleVmManager) -> rollback_mlu
         },
     )?;
 
-    let delete_character_fn = internal_script!(lua, "queue_default_player_movement")?;
+    let queue_movement_fn = internal_script!(lua, "queue_default_player_movement")?;
     vm_manager.scripts.queue_default_player_movement =
         BattleCallback::new_transformed_lua_callback(
             lua,
             0,
-            delete_character_fn,
+            queue_movement_fn,
             |_, lua, (id, tile_position)| {
                 lua.pack_multi((
                     create_entity_table(lua, id)?,
