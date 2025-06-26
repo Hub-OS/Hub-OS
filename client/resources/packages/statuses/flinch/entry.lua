@@ -14,7 +14,21 @@ function status_init(status)
   entity:cancel_movement()
 
   local action = Action.new(entity, "CHARACTER_HIT")
-  action:override_animation_frames({ { 1, 15 }, { 2, 7 }, })
+  action:set_lockout(ActionLockout.new_sequence())
+
+  local i = 0
+
+  local wait_step = action:create_step()
+  wait_step.on_update_func = function()
+    i = i + 1
+
+    -- we want to flinch for 22 frames
+    -- timing through the action's on_update_func shows this is accurate
+    if i == 21 then
+      wait_step:complete_step()
+    end
+  end
+
   entity:queue_action(action)
 
   Resources.play_audio(SFX)
