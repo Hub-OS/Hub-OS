@@ -48,7 +48,7 @@ impl Deck {
         // fill the rest of the deck
         let default_card = Card {
             package_id: PackageId::default(),
-            code: String::from("!"),
+            code: String::from("?"),
         };
 
         let new_len = deck_restrictions.required_total;
