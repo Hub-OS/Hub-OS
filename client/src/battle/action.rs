@@ -649,6 +649,9 @@ impl Action {
         reset_context: bool,
         delete_indices: impl IntoIterator<Item = GenerationalIndex>,
     ) {
+        // call pending callbacks to avoid weird call ordering
+        simulation.call_pending_callbacks(game_io, resources);
+
         for index in delete_indices {
             let Some(action) = simulation.actions.get_mut(index) else {
                 continue;
