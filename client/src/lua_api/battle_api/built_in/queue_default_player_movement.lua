@@ -9,7 +9,7 @@ tile:reserve_for(entity)
 
 local movement
 
-if entity:slide_when_moving() then
+if Player.from(entity) and entity:slide_when_moving() then
   movement = Movement.new_slide(tile, 14)
 else
   movement = Movement.new_teleport(tile)
