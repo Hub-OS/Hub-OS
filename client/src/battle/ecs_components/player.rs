@@ -17,6 +17,7 @@ pub struct Player {
     pub card_select_blocked: bool,
     pub has_regular_card: bool,
     pub can_flip: bool,
+    pub flip_requested: bool,
     pub attack_boost: u8,
     pub rapid_boost: u8,
     pub charge_boost: u8,
@@ -77,6 +78,7 @@ impl Player {
             card_select_blocked: false,
             has_regular_card: deck.regular_index.is_some(),
             can_flip: true,
+            flip_requested: false,
             attack_boost: 0,
             rapid_boost: 0,
             charge_boost: 0,
@@ -745,19 +747,17 @@ impl Player {
         entity_id: EntityId,
     ) {
         // exclude results with movement, since we can't move if we're already moving
-        type Query<'a> = hecs::Without<
-            (
-                &'a mut Entity,
-                &'a Living,
-                &'a mut Player,
-                &'a Character,
-                Option<&'a ActionQueue>,
-            ),
-            &'a Movement,
-        >;
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a Living,
+            &'a mut Player,
+            &'a Character,
+            Option<&'a ActionQueue>,
+            Option<&'a Movement>,
+        );
 
         let entities = &mut simulation.entities;
-        let Ok((entity, living, player, character, action_queue)) =
+        let Ok((entity, living, player, character, action_queue, movement)) =
             entities.query_one_mut::<Query>(entity_id.into())
         else {
             return;
@@ -772,27 +772,34 @@ impl Player {
             return;
         }
 
+        let input = &simulation.inputs[player.index];
+
+        // queue flip requests
+        let face_left = input.was_just_pressed(Input::FaceLeft);
+        let face_right = input.was_just_pressed(Input::FaceRight);
+
+        player.flip_requested |= (face_left && face_right)
+            || (face_left && entity.facing != Direction::Left)
+            || (face_right && entity.facing != Direction::Right);
+
         // can't move if there's a blocking action or immoble
         let status_registry = &resources.status_registry;
         if character.card_use_requested
             || action_queue.is_some_and(|q| q.active.is_some() || !q.pending.is_empty())
             || living.status_director.is_immobile(status_registry)
         {
+            // clear the flip request if an action is being performed
+            player.flip_requested = false;
             return;
         }
 
-        let input = &simulation.inputs[player.index];
+        if movement.is_some() {
+            return;
+        }
 
-        // handle flipping
-        let face_left = input.was_just_pressed(Input::FaceLeft);
-        let face_right = input.was_just_pressed(Input::FaceRight);
-
-        let flip_requested = (face_left && face_right)
-            || (face_left && entity.facing != Direction::Left)
-            || (face_right && entity.facing != Direction::Right);
-
-        if flip_requested && player.can_flip {
+        if player.flip_requested && player.can_flip {
             entity.facing = entity.facing.reversed();
+            player.flip_requested = false;
         }
 
         // handle movement
