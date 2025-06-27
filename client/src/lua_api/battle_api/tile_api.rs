@@ -82,23 +82,26 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let old_state_index = tile.state_index();
         tile.set_state_index(state_index, tile_state.max_lifetime);
 
-        // activate entity_enter_callback for every entity on this tile
-        let tile_callback = tile_state.entity_enter_callback.clone();
+        if state_index != old_state_index {
+            // activate entity_enter_callback for every entity on this tile
+            let tile_callback = tile_state.entity_enter_callback.clone();
 
-        let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
-        let same_tile_entity_iter =
-            entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y);
+            let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
+            let same_tile_entity_iter =
+                entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y);
 
-        let entity_ids: Vec<EntityId> = same_tile_entity_iter.map(|(id, _)| id.into()).collect();
+            let entity_ids: Vec<EntityId> =
+                same_tile_entity_iter.map(|(id, _)| id.into()).collect();
 
-        for id in entity_ids {
-            tile_callback.call(game_io, resources, simulation, id);
+            for id in entity_ids {
+                tile_callback.call(game_io, resources, simulation, id);
+            }
+
+            // let the old state know it was replaced
+            let old_tile_state = simulation.tile_states.get(old_state_index).unwrap();
+            let replace_callback = old_tile_state.replace_callback.clone();
+            replace_callback.call(game_io, resources, simulation, (x, y));
         }
-
-        // let the old state know it was replaced
-        let old_tile_state = simulation.tile_states.get(old_state_index).unwrap();
-        let replace_callback = old_tile_state.replace_callback.clone();
-        replace_callback.call(game_io, resources, simulation, (x, y));
 
         lua.pack_multi(())
     });
