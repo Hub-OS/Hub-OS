@@ -45,9 +45,7 @@ impl<'a> CardSelectRestriction<'a> {
         }
 
         if let Some(code) = code_restriction {
-            if code == "!" {
-                return Self::Code(code);
-            } else if same_package_id {
+            if same_package_id {
                 if !same_code {
                     return Self::Package(first_package_id.unwrap());
                 } else {
@@ -68,7 +66,7 @@ impl<'a> CardSelectRestriction<'a> {
 
     pub fn allows_card(self, card: &Card) -> bool {
         match self {
-            Self::Code(code) => (card.code == code && code != "!") || card.code == "*",
+            Self::Code(code) => card.code == code || card.code == "*",
             Self::Package(package_id) => card.package_id == *package_id,
             Self::Mixed { package_id, code } => {
                 card.package_id == *package_id || card.code == code || card.code == "*"
