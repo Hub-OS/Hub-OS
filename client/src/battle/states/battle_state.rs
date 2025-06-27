@@ -957,35 +957,25 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let status_registry = &resources.status_registry;
         let tile_size = simulation.field.tile_size();
         let mut moving_entities = Vec::new();
 
-        for (id, (entity, living, _)) in simulation
-            .entities
-            .query_mut::<(&Entity, Option<&Living>, &Movement)>()
-        {
-            let mut update_progress = entity.spawned && !entity.deleted && !entity.time_frozen;
-
-            if let Some(living) = living {
-                if living.status_director.is_immobile(status_registry) {
-                    update_progress = false;
-                }
-            }
-
-            moving_entities.push((id, update_progress));
+        for (id, _) in simulation.entities.query_mut::<(&Entity, &Movement)>() {
+            moving_entities.push(id);
         }
 
         // movement
         // maybe this should happen in a separate update before everything else updates
         // that way scripts see accurate offsets
-        for (id, update_progress) in moving_entities {
+        for id in moving_entities {
             let Ok((mut entity, mut movement)) = simulation
                 .entities
                 .query_one_mut::<(&mut Entity, &mut Movement)>(id)
             else {
                 continue;
             };
+
+            let update_progress = entity.spawned && !entity.deleted && !entity.time_frozen;
 
             let entity_id = id.into();
 
