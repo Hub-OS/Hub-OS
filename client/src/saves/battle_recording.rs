@@ -121,14 +121,26 @@ impl BattleRecording {
         }
 
         // get preview path
-        let encounter_preview_path = self
+        let encounter_preview = self
             .encounter_package_pair
             .as_ref()
             .and_then(|(ns, id)| {
                 let ns = ns.strip_recording();
                 globals.encounter_packages.package_or_fallback(ns, id)
             })
-            .map(|package| package.preview_texture_path.clone());
+            .and_then(|package| {
+                let path = &package.preview_texture_path;
+                let bytes = globals.assets.binary_silent(path);
+
+                if bytes.is_empty() {
+                    return None;
+                }
+
+                let file_name = ResourcePaths::file_name(path)?;
+                println!("resolved {file_name} from {path}");
+
+                Some((file_name.to_string(), bytes))
+            });
 
         log::info!("Starting background thread to save recording");
 
@@ -153,6 +165,11 @@ impl BattleRecording {
             let _ = std::fs::create_dir_all(&folder_path);
 
             // create package file
+            let preview_image_toml = encounter_preview
+                .as_ref()
+                .map(|(file_name, _)| format!("preview_texture_path = \"{file_name}\""))
+                .unwrap_or_else(|| String::from("# preview_texture_path = \"\""));
+
             let toml_path = folder_path.clone() + "package.toml";
             let toml_data = format!(
                 "\
@@ -161,11 +178,11 @@ impl BattleRecording {
                 id = \"~{unique_id}\"\n\
                 name = \"Recorded Battle\"\n\
                 description = \"{nickname}'s recorded battle.\"\n\
-                preview_texture_path = \"preview.png\"\n\
+                {preview_image_toml}\n\
                 recording_path = \"recording.dat\"\n\
                 # Add package ids to this list to override recorded packages with installed packages.\n\
                 recording_overrides = []\n\
-                ",
+                "
             );
 
             if let Err(e) = std::fs::write(&toml_path, toml_data) {
@@ -174,10 +191,10 @@ impl BattleRecording {
             }
 
             // save preview image
-            if let Some(from_path) = encounter_preview_path {
-                let to_path = folder_path.clone() + "preview.png";
+            if let Some((file_name, bytes)) = encounter_preview {
+                let to_path = folder_path.clone() + file_name.as_str();
 
-                if let Err(e) = std::fs::copy(from_path, &to_path) {
+                if let Err(e) = std::fs::write(&to_path, bytes) {
                     log::error!("Failed to copy preview texture to {:?}: {}", to_path, e);
                 }
             }

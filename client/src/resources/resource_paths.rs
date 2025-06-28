@@ -371,6 +371,16 @@ impl ResourcePaths {
         Some(&path_str[..slash_index + 1])
     }
 
+    /// Returns the name of the file with extension
+    pub fn file_name(path_str: &str) -> Option<&str> {
+        let start_index = path_str
+            .rfind('/')
+            .map(|slash_index| slash_index + 1)
+            .unwrap_or_default();
+
+        Some(&path_str[start_index..])
+    }
+
     pub fn shorten(path_str: &str) -> String {
         path_str
             .strip_prefix(Self::game_folder())
