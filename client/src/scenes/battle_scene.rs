@@ -870,8 +870,10 @@ impl BattleScene {
 
             can_simulate &= input_util.was_just_pressed(Input::AdvanceFrame);
 
-            // exit from frame_by_frame_debug with pause
-            self.frame_by_frame_debug = !input_util.was_just_pressed(Input::Pause);
+            // exit from frame_by_frame_debug with pause or confirm
+            let resume = input_util.was_just_pressed(Input::Pause)
+                || input_util.was_just_pressed(Input::Confirm);
+            self.frame_by_frame_debug = !resume;
         } else {
             let should_slow_down = self.slow_cooldown == SLOW_COOLDOWN;
 
