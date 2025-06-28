@@ -1,7 +1,7 @@
 use crate::battle::*;
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{Textbox, TextboxMessage, TextboxQuestion};
+use crate::render::ui::{FontName, TextStyle, Textbox, TextboxMessage, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BattleRecording, PlayerInputBuffer, RecordedRollback, RecordedSimulationFlow};
@@ -67,6 +67,7 @@ pub struct BattleScene {
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
+    playback_2x: bool,
     playback_flow: Option<RecordedSimulationFlow>,
     exiting: bool,
     next_scene: NextScene,
@@ -196,6 +197,7 @@ impl BattleScene {
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
+            playback_2x: false,
             playback_flow,
             exiting: false,
             next_scene: NextScene::None,
@@ -958,7 +960,9 @@ impl Scene for BattleScene {
 
         // 2x speed while holding confirm in a replay
         let input_util = InputUtil::new(game_io);
-        if self.is_playing_back_recording && input_util.is_down(Input::Confirm) {
+        self.playback_2x = self.is_playing_back_recording && input_util.is_down(Input::Confirm);
+
+        if self.playback_2x {
             self.core_update(game_io);
         }
 
@@ -993,6 +997,16 @@ impl Scene for BattleScene {
         let fade_color = self.resources.ui_fade_color.get();
         self.resources
             .draw_fade_sprite(&mut sprite_queue, fade_color);
+
+        if self.playback_2x {
+            let text = "2X";
+            let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
+            text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
+
+            let metrics = text_style.measure(text);
+            text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
+            text_style.draw(game_io, &mut sprite_queue, text);
+        }
 
         // draw textbox over everything
         self.textbox.draw(game_io, &mut sprite_queue);
