@@ -8,7 +8,7 @@ use crate::render::{
     PostProcessColorBlindness, PostProcessGhosting, SpritePipelineCollection,
 };
 use crate::resources::*;
-use crate::saves::{BattleRecording, Config, GlobalSave};
+use crate::saves::{BattleRecording, Config, GlobalSave, InternalResolution};
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::FileHash;
@@ -19,6 +19,7 @@ use super::restrictions::Restrictions;
 
 pub struct Globals {
     pub config: Config,
+    pub internal_resolution: InternalResolution,
     pub snap_resize: bool,
     pub post_process_adjust_config: PostProcessAdjustConfig,
     pub post_process_ghosting: f32,
@@ -102,9 +103,11 @@ impl Globals {
         window.set_integer_scaling(config.integer_scaling);
 
         if config.lock_aspect_ratio {
-            window.lock_resolution(TRUE_RESOLUTION);
+            // lock to an initial size, more logic will occur in SupportingService
+            window.lock_resolution(RESOLUTION);
         }
 
+        let internal_resolution = config.internal_resolution;
         let snap_resize = config.snap_resize;
         let post_process_adjust_config = PostProcessAdjustConfig::from_config(&config);
         let post_process_ghosting = config.ghosting as f32 * 0.01;
@@ -121,6 +124,7 @@ impl Globals {
 
         Self {
             config,
+            internal_resolution,
             snap_resize,
             post_process_adjust_config,
             post_process_ghosting,

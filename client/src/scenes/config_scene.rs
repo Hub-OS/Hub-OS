@@ -4,6 +4,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::InternalResolution;
 use crate::saves::{Config, KeyStyle};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
@@ -219,6 +220,24 @@ impl ConfigScene {
                     config.vsync
                 },
             )),
+            Box::new(UiConfigCycle::new(
+                "Resolution",
+                config.borrow().internal_resolution,
+                config.clone(),
+                &[
+                    ("Default", InternalResolution::Default),
+                    ("GBA", InternalResolution::Gba),
+                    ("Auto", InternalResolution::Auto),
+                ],
+                |game_io, mut config, value, confirmed| {
+                    config.internal_resolution = value;
+
+                    if confirmed {
+                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                        globals.internal_resolution = value;
+                    }
+                },
+            )),
             Box::new(UiConfigToggle::new(
                 "Lock Aspect",
                 config.borrow().lock_aspect_ratio,
@@ -229,7 +248,8 @@ impl ConfigScene {
                     let window = game_io.window_mut();
 
                     if config.lock_aspect_ratio {
-                        window.lock_resolution(TRUE_RESOLUTION);
+                        // lock to an initial size, more logic will occur in SupportingService
+                        window.lock_resolution(RESOLUTION);
                     } else {
                         window.unlock_resolution()
                     }
@@ -823,13 +843,15 @@ impl ConfigScene {
                         let fullscreen = config.fullscreen;
                         let lock_aspect_ratio = config.lock_aspect_ratio;
                         let integer_scaling = config.integer_scaling;
+                        globals.internal_resolution = config.internal_resolution;
                         globals.snap_resize = config.snap_resize;
                         let window = game_io.window_mut();
 
                         window.set_fullscreen(fullscreen);
 
                         if lock_aspect_ratio {
-                            window.lock_resolution(TRUE_RESOLUTION);
+                            // lock to an initial size, more logic will occur in SupportingService
+                            window.lock_resolution(RESOLUTION);
                         } else {
                             window.unlock_resolution();
                         }

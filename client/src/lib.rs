@@ -65,7 +65,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
     let random_title = TITLE_LIST.choose(&mut rand::thread_rng()).unwrap();
-    let game = Game::<WinitGameLoop>::new(random_title, TRUE_RESOLUTION.into())
+    let game = Game::<WinitGameLoop>::new(random_title, (RESOLUTION * 4).into())
         .with_platform_app(app)
         .with_resizable(true)
         .with_setup(|game_io| {

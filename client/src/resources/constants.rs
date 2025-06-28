@@ -8,12 +8,8 @@ pub const BATTLE_VM_MEMORY: usize = 1024 * 1024;
 pub const INPUT_BUFFER_LIMIT: usize = 20;
 pub const IDENTITY_LEN: usize = 32;
 
-pub const RESOLUTION_F: Vec2 = Vec2::new(240.0, 160.0);
-pub const DEFAULT_SCALE: f32 = 2.0;
-pub const TRUE_RESOLUTION: UVec2 = UVec2::new(
-    (RESOLUTION_F.x * DEFAULT_SCALE) as u32,
-    (RESOLUTION_F.y * DEFAULT_SCALE) as u32,
-);
+pub const RESOLUTION: UVec2 = UVec2::new(240, 160);
+pub const RESOLUTION_F: Vec2 = Vec2::new(RESOLUTION.x as _, RESOLUTION.y as _);
 pub const MAX_VOLUME: u8 = 100;
 
 // battle

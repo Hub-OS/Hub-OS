@@ -13,10 +13,19 @@ pub enum KeyStyle {
     Emulator,
 }
 
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
+pub enum InternalResolution {
+    #[default]
+    Default,
+    Gba,
+    Auto,
+}
+
 #[derive(Clone, PartialEq, Eq)]
 pub struct Config {
     pub fullscreen: bool,
     pub vsync: bool,
+    pub internal_resolution: InternalResolution,
     pub lock_aspect_ratio: bool,
     pub integer_scaling: bool,
     pub snap_resize: bool,
@@ -265,6 +274,7 @@ impl Default for Config {
                 cfg_desktop_and_web! {false}
             },
             vsync: true,
+            internal_resolution: Default::default(),
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
@@ -295,6 +305,7 @@ impl From<&str> for Config {
         let mut config = Config {
             fullscreen: false,
             vsync: true,
+            internal_resolution: Default::default(),
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
@@ -327,6 +338,16 @@ impl From<&str> for Config {
         if let Some(properties) = ini.section(Some("Video")) {
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
             config.vsync = parse_or(properties.get("VSync"), true);
+            config.internal_resolution = match properties
+                .get("InternalResolution")
+                .unwrap_or_default()
+                .to_lowercase()
+                .as_str()
+            {
+                "gba" => InternalResolution::Gba,
+                "auto" => InternalResolution::Auto,
+                _ => InternalResolution::Default,
+            };
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.integer_scaling = parse_or_default(properties.get("IntegerScaling"));
             config.snap_resize = parse_or_default(properties.get("SnapResize"));
@@ -413,6 +434,13 @@ impl std::fmt::Display for Config {
         writeln!(f, "[Video]")?;
         writeln!(f, "Fullscreen = {}", self.fullscreen)?;
         writeln!(f, "VSync = {}", self.vsync)?;
+
+        match self.internal_resolution {
+            InternalResolution::Default => writeln!(f, "InternalResolution = default")?,
+            InternalResolution::Gba => writeln!(f, "InternalResolution = gba")?,
+            InternalResolution::Auto => writeln!(f, "InternalResolution = auto")?,
+        }
+
         writeln!(f, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
         writeln!(f, "IntegerScaling = {}", self.integer_scaling)?;
         writeln!(f, "SnapResize = {}", self.snap_resize)?;

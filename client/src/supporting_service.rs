@@ -1,5 +1,6 @@
-use crate::resources::Globals;
-use crate::{packages::PackageNamespace, TRUE_RESOLUTION};
+use crate::packages::PackageNamespace;
+use crate::resources::{Globals, RESOLUTION};
+use crate::saves::InternalResolution;
 use framework::input::Key;
 use framework::prelude::{GameIO, GameService};
 use packets::structures::PackageCategory;
@@ -53,16 +54,35 @@ impl GameService for SupportingService {
             self.suspended_music = false;
         }
 
-        // handle snap resize
+        // handle internal resolution and snap resize
+        let internal_resolution = globals.internal_resolution;
         let snap_resize = globals.snap_resize;
         let window = game_io.window_mut();
 
-        if snap_resize && window.has_locked_resolution() {
-            let target_size = TRUE_RESOLUTION.as_vec2() * window.render_scale();
+        if window.has_locked_resolution() {
+            // lock back to a base resolution to resolve the render scale
+            // lock_resolution only updates a few variables so this is fast
+            let base_resolution = match internal_resolution {
+                InternalResolution::Default => RESOLUTION * 2,
+                _ => RESOLUTION,
+            };
+            window.lock_resolution(base_resolution);
+
+            let target_size = base_resolution.as_vec2() * window.render_scale();
             let target_size = target_size.as_uvec2();
 
-            if target_size != window.size() {
-                window.request_size(target_size);
+            let updated_resolution = match internal_resolution {
+                InternalResolution::Auto => target_size,
+                _ => base_resolution,
+            };
+
+            if snap_resize {
+                if target_size != window.size() {
+                    window.request_size(target_size);
+                    window.lock_resolution(updated_resolution);
+                }
+            } else {
+                window.lock_resolution(updated_resolution);
             }
         }
 
