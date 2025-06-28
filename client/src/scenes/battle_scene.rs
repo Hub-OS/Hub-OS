@@ -931,7 +931,8 @@ impl Scene for BattleScene {
 
     fn destroy(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
-        globals.battle_recording = self.recording.take().map(|recording| {
+
+        if let Some(recording) = self.recording.take() {
             let meta = BattleMeta {
                 encounter_package_pair: self.meta.encounter_package_pair.clone(),
                 data: std::mem::take(&mut self.meta.data),
@@ -942,8 +943,8 @@ impl Scene for BattleScene {
                 recording_enabled: false,
             };
 
-            (meta, recording)
-        });
+            globals.battle_recording = Some((meta, recording))
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
