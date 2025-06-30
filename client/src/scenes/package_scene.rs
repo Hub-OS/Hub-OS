@@ -98,6 +98,7 @@ impl PackageScene {
     ) -> Vec<Box<dyn UiNode>> {
         let mut style = TextStyle::new(game_io, FontName::Thin);
         style.bounds = list.list_bounds();
+        style.bounds.height = f32::INFINITY;
 
         let push_text = |children: &mut Vec<Box<dyn UiNode + 'static>>, text: &str| {
             let ranges = style.measure(text).line_ranges;
