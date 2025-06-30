@@ -35,18 +35,18 @@ impl Intangibility {
     }
 
     pub fn update(&mut self) {
-        if self.remaining_duration == 0 {
+        if self.remaining_duration > 0 {
+            self.remaining_duration -= 1;
+        }
+
+        if self.remaining_duration > 0 {
             return;
         }
 
-        self.remaining_duration -= 1;
+        self.retangible = false;
 
-        if self.remaining_duration == 0 {
-            self.retangible = false;
-
-            if let Some(callback) = self.deactivate_callback.take() {
-                self.deactivate_callbacks.push(callback);
-            }
+        if let Some(callback) = self.deactivate_callback.take() {
+            self.deactivate_callbacks.push(callback);
         }
     }
 
