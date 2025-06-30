@@ -231,7 +231,10 @@ impl TextStyle {
                     "\t" => {
                         insert_tracker.insert_tab(index);
                     }
-                    "\r\n" | "\n" => {
+                    "\r\n" => {
+                        insert_tracker.new_line(index, 2);
+                    }
+                    "\n" => {
                         insert_tracker.new_line(index, 1);
                     }
                     _ => {
@@ -279,7 +282,10 @@ impl TextStyle {
 
         let range_start = insert_tracker.line_start_index;
         let range_end = text.len().min(last_index + 1);
-        insert_tracker.line_ranges.push(range_start..range_end);
+
+        if range_start < range_end {
+            insert_tracker.line_ranges.push(range_start..range_end);
+        }
 
         TextMetrics {
             line_ranges: insert_tracker.line_ranges,
