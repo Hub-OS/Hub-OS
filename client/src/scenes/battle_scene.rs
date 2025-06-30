@@ -821,6 +821,14 @@ impl BattleScene {
         globals.audio.pop_music_stack();
     }
 
+    fn remaining_replay_buffer(&self) -> FrameTime {
+        let controller_iter = self.player_controllers.iter();
+        controller_iter
+            .map(|controller| controller.buffer.len() as FrameTime)
+            .max()
+            .unwrap_or_default()
+    }
+
     fn core_update(&mut self, game_io: &GameIO) {
         let input_util = InputUtil::new(game_io);
 
@@ -849,14 +857,8 @@ impl BattleScene {
         }
 
         let mut can_simulate = if self.is_playing_back_recording {
-            let controller_iter = self.player_controllers.iter();
-            let remaining_buffer = controller_iter
-                .map(|controller| controller.buffer.len() as FrameTime)
-                .max()
-                .unwrap_or_default();
-
             // simulate as long as we have input
-            remaining_buffer > 0
+            self.remaining_replay_buffer() > 0
         } else {
             // simulate as long as we can roll back to the synced time
             self.simulation.time < self.synced_time + INPUT_BUFFER_LIMIT as FrameTime
@@ -1008,6 +1010,21 @@ impl Scene for BattleScene {
             let metrics = text_style.measure(text);
             text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
             text_style.draw(game_io, &mut sprite_queue, text);
+        }
+
+        if self.is_playing_back_recording {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let assets = &globals.assets;
+
+            let mut progress_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+            progress_sprite.set_color(Color::new(1.0, 1.0, 1.0, 0.5));
+
+            let total_time = self.simulation.time + self.remaining_replay_buffer();
+            let progress = self.simulation.time as f32 / total_time.max(1) as f32;
+            progress_sprite.set_width(progress * RESOLUTION_F.x);
+
+            progress_sprite.set_position(Vec2::new(0.0, RESOLUTION_F.y - 1.0));
+            sprite_queue.draw_sprite(&progress_sprite);
         }
 
         // draw textbox over everything
