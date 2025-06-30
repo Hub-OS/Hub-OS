@@ -223,7 +223,7 @@ impl Tile {
             // synchronous card action
             let action = &actions[index];
 
-            if action.executed {
+            if action.executed && !action.allows_auto_reserve {
                 // card action began, prevent automatic reservation changes
                 return false;
             }

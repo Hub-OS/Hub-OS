@@ -46,7 +46,8 @@ pub struct Action {
     pub step_index: usize,
     pub attachments: Vec<ActionAttachment>,
     pub lockout_type: ActionLockout,
-    pub old_position: (i32, i32),
+    pub allows_auto_reserve: bool,
+    pub old_position: Option<(i32, i32)>,
     pub can_move_to_callback: Option<BattleCallback<(i32, i32), bool>>,
     pub update_callback: Option<BattleCallback>,
     pub execute_callback: Option<BattleCallback>,
@@ -71,7 +72,8 @@ impl Action {
             step_index: 0,
             attachments: Vec::new(),
             lockout_type: ActionLockout::Animation,
-            old_position: (0, 0),
+            allows_auto_reserve: false,
+            old_position: None,
             can_move_to_callback: None,
             update_callback: None,
             execute_callback: None,
@@ -195,7 +197,10 @@ impl Action {
             .unwrap();
 
         action.executed = true;
-        action.old_position = (entity.x, entity.y);
+
+        if !action.allows_auto_reserve {
+            action.old_position = Some((entity.x, entity.y));
+        }
 
         // animations
         let animator_index = entity.animator_index;
@@ -733,6 +738,38 @@ impl Action {
         simulation.call_pending_callbacks(game_io, resources);
     }
 
+    pub fn set_auto_reservation_preference(
+        &mut self,
+        entities: &mut hecs::World,
+        field: &mut Field,
+        allow: bool,
+    ) {
+        if self.allows_auto_reserve == allow {
+            return;
+        }
+
+        self.allows_auto_reserve = allow;
+
+        let id = self.entity.into();
+        let Ok(entity) = entities.query_one_mut::<&mut Entity>(id) else {
+            return;
+        };
+
+        if self.allows_auto_reserve {
+            if let Some(position) = self.old_position.take() {
+                if let Some(old_tile) = field.tile_at_mut(position) {
+                    old_tile.remove_reservation_for(self.entity);
+                }
+
+                if let Some(current_tile) = field.tile_at_mut((entity.x, entity.y)) {
+                    current_tile.reserve_for(self.entity);
+                }
+            }
+        } else if self.old_position.is_none() {
+            self.old_position = Some((entity.x, entity.y));
+        }
+    }
+
     fn complete_sync(
         &mut self,
         entities: &mut hecs::World,
@@ -749,19 +786,9 @@ impl Action {
 
         // unset action_index to allow other actions to be used
         action_queue.active = None;
-
-        // update reservations as they're ignored while in a sync action
-        if self.executed && entity.auto_reserves_tiles {
-            if let Some(old_tile) = field.tile_at_mut(self.old_position) {
-                old_tile.remove_reservation_for(self.entity);
-            }
-
-            if let Some(current_tile) = field.tile_at_mut((entity.x, entity.y)) {
-                current_tile.reserve_for(self.entity);
-            }
-        }
-
         pending_callbacks.push(entity.idle_callback.clone());
+
+        self.set_auto_reservation_preference(entities, field, true);
     }
 }
 

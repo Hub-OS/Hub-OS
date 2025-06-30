@@ -145,6 +145,29 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function(
+        ACTION_TABLE,
+        "allow_auto_tile_reservation",
+        move |api_ctx, lua, params| {
+            let (table, allow): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
+
+            let id: GenerationalIndex = table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+
+            if let Some(action) = simulation.actions.get_mut(id) {
+                action.set_auto_reservation_preference(
+                    &mut simulation.entities,
+                    &mut simulation.field,
+                    allow.unwrap_or(true),
+                );
+            };
+
+            lua.pack_multi(())
+        },
+    );
+
     setter(
         lua_api,
         "override_animation_frames",
