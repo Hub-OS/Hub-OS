@@ -272,15 +272,12 @@ impl StatusDirector {
     pub fn remove_status(&mut self, status_flag: HitFlags) {
         let status_search = self
             .statuses
-            .iter()
-            .position(|status| status.status_flag == status_flag);
+            .iter_mut()
+            .find(|status| status.status_flag == status_flag);
 
-        if let Some(index) = status_search {
-            let mut status = self.statuses.remove(index);
-
-            if let Some(callback) = status.destructor.take() {
-                self.ready_destructors.push(callback);
-            }
+        if let Some(status) = status_search {
+            status.remaining_time = 0;
+            status.lifetime = 0;
         }
 
         let new_status_search = self
@@ -295,6 +292,13 @@ impl StatusDirector {
 
     // should be called after update()
     pub fn take_new_statuses(&mut self) -> Vec<HitFlags> {
+        self.new_statuses
+            .drain(..)
+            .map(|status| status.status_flag)
+            .collect()
+    }
+
+    pub fn take_ready_destructors(&mut self) -> Vec<BattleCallback> {
         // append some final statuses
         for status in &mut self.statuses {
             if status.remaining_time <= 0 {
@@ -307,13 +311,6 @@ impl StatusDirector {
             }
         }
 
-        std::mem::take(&mut self.new_statuses)
-            .into_iter()
-            .map(|status| status.status_flag)
-            .collect()
-    }
-
-    pub fn take_ready_destructors(&mut self) -> Vec<BattleCallback> {
         std::mem::take(&mut self.ready_destructors)
     }
 
