@@ -256,12 +256,15 @@ impl ResourcePaths {
 
     // PackagesScene
     pub const PACKAGES_UI_ANIMATION: &'static str = "resources/scenes/packages/ui.animation";
-    pub const PACKAGES_PREVIEW: &'static str = "resources/scenes/packages/preview.png";
-    pub const PACKAGES_PREVIEW_ANIMATION: &'static str =
-        "resources/scenes/packages/preview.animation";
+    pub const PACKAGE_ICON: &'static str = "resources/scenes/packages/package_categories.png";
+    pub const PACKAGE_ICON_ANIMATION: &'static str =
+        "resources/scenes/packages/package_categories.animation";
 
     // PackageScene
     pub const PACKAGE_UI_ANIMATION: &'static str = "resources/scenes/package/ui.animation";
+    pub const PACKAGE_PREVIEW: &'static str = "resources/scenes/package/preview.png";
+    pub const PACKAGE_PREVIEW_ANIMATION: &'static str =
+        "resources/scenes/package/preview.animation";
 
     // PackageUpdatesScene
     pub const PACKAGE_UPDATES_UI_ANIMATION: &'static str =

@@ -231,50 +231,108 @@ impl UiNode for PackageListing {
                 }
             }
             PackagePreviewData::Player { element, .. } => {
-                let mut sprite = ElementSprite::new(game_io, *element);
-                let mut position = bounds.top_right();
-                position.x -= sprite.size().x;
+                let category_sprite = create_category_sprite(game_io, bounds, "PLAYER");
+                sprite_queue.draw_sprite(&category_sprite);
 
-                sprite.set_position(position);
-                sprite_queue.draw_sprite(&sprite);
+                let mut element_sprite = ElementSprite::new(game_io, *element);
+                let mut element_position = category_sprite.position();
+                element_position.x -= element_sprite.size().x + 1.0;
+                element_sprite.set_position(element_position);
+                sprite_queue.draw_sprite(&element_sprite);
             }
             PackagePreviewData::Augment {
                 colors,
                 flat,
-                shape: Some(_),
+                shape,
+                slot,
                 ..
             } => {
-                let assets = &game_io.resource::<Globals>().unwrap().assets;
-                let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
-                sprite.set_scale(Vec2::new(2.0, 2.0));
+                let mut x_offset = 0.0;
 
-                let mut animator =
-                    Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
+                if let Some(slot) = slot {
+                    let state = match slot {
+                        SwitchDriveSlot::Head => "SWITCH_DRIVE_HEAD",
+                        SwitchDriveSlot::Body => "SWITCH_DRIVE_BODY",
+                        SwitchDriveSlot::Arms => "SWITCH_DRIVE_ARMS",
+                        SwitchDriveSlot::Legs => "SWITCH_DRIVE_LEGS",
+                    };
 
-                let mut position = bounds.center_right();
-                position.x -= 3.0;
+                    let category_sprite = create_category_sprite(game_io, bounds, state);
+                    sprite_queue.draw_sprite(&category_sprite);
 
-                for color in colors.iter().rev() {
-                    animator.set_state(if *flat {
-                        color.flat_state()
-                    } else {
-                        color.plus_state()
-                    });
+                    x_offset = -category_sprite.size().x;
+                }
 
-                    animator.apply(&mut sprite);
+                if shape.is_some() {
+                    let assets = &game_io.resource::<Globals>().unwrap().assets;
+                    let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
+                    sprite.set_scale(Vec2::new(2.0, 2.0));
 
-                    sprite.set_position(position - sprite.size() * 0.5);
-                    sprite_queue.draw_sprite(&sprite);
+                    let mut animator =
+                        Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
 
-                    position.x -= sprite.size().x;
-                    position.x -= 1.0;
+                    let mut position = bounds.center_right();
+                    position.x += x_offset - 3.0;
+
+                    for color in colors.iter().rev() {
+                        animator.set_state(if *flat {
+                            color.flat_state()
+                        } else {
+                            color.plus_state()
+                        });
+
+                        animator.apply(&mut sprite);
+
+                        sprite.set_position(position - sprite.size() * 0.5);
+                        sprite_queue.draw_sprite(&sprite);
+
+                        position.x -= sprite.size().x;
+                        position.x -= 1.0;
+                    }
+                }
+
+                if shape.is_none() && slot.is_none() {
+                    let category_sprite = create_category_sprite(game_io, bounds, "LIBRARY");
+                    sprite_queue.draw_sprite(&category_sprite);
                 }
             }
-            _ => {}
+            PackagePreviewData::Encounter => {
+                let category_sprite = create_category_sprite(game_io, bounds, "ENCOUNTER");
+                sprite_queue.draw_sprite(&category_sprite);
+            }
+            PackagePreviewData::Pack => {
+                let category_sprite = create_category_sprite(game_io, bounds, "PACK");
+                sprite_queue.draw_sprite(&category_sprite);
+            }
+            PackagePreviewData::Resource => {
+                let category_sprite = create_category_sprite(game_io, bounds, "RESOURCE");
+                sprite_queue.draw_sprite(&category_sprite);
+            }
+            _ => {
+                let category_sprite = create_category_sprite(game_io, bounds, "LIBRARY");
+                sprite_queue.draw_sprite(&category_sprite);
+            }
         }
     }
 
     fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
         Vec2::ZERO
     }
+}
+
+fn create_category_sprite(game_io: &GameIO, bounds: Rect, state: &str) -> Sprite {
+    let assets = &game_io.resource::<Globals>().unwrap().assets;
+
+    let mut category_sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGE_ICON);
+
+    Animator::load_new(assets, ResourcePaths::PACKAGE_ICON_ANIMATION)
+        .with_state(state)
+        .apply(&mut category_sprite);
+
+    let mut position = bounds.top_right();
+    position.x -= category_sprite.size().x;
+    position.y -= 1.0;
+    category_sprite.set_position(position);
+
+    category_sprite
 }

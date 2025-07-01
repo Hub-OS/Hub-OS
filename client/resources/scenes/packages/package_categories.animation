@@ -1,0 +1,26 @@
+animation state="PLAYER"
+frame x="0" y="0" w="14" h="14"
+
+animation state="ENCOUNTER"
+frame x="14" y="0" w="14" h="14"
+
+animation state="RESOURCE"
+frame x="28" y="0" w="14" h="14"
+
+animation state="PACK"
+frame x="0" y="14" w="14" h="14"
+
+animation state="LIBRARY"
+frame x="14" y="14" w="14" h="14"
+
+animation state="SWITCH_DRIVE_HEAD"
+frame x="28" y="14" w="14" h="14"
+
+animation state="SWITCH_DRIVE_BODY"
+frame x="0" y="28" w="14" h="14"
+
+animation state="SWITCH_DRIVE_ARMS"
+frame x="14" y="28" w="14" h="14"
+
+animation state="SWITCH_DRIVE_LEGS"
+frame x="28" y="28" w="14" h="14"

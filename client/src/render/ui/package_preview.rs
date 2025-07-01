@@ -152,7 +152,7 @@ impl PackagePreview {
 
         let assets = &game_io.resource::<Globals>().unwrap().assets;
 
-        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGES_PREVIEW_ANIMATION)
+        let mut animator = Animator::load_new(assets, ResourcePaths::PACKAGE_PREVIEW_ANIMATION)
             .with_state("DEFAULT");
 
         let image_bounds = Rect::from_corners(
@@ -161,7 +161,7 @@ impl PackagePreview {
         );
 
         // background
-        let mut background = assets.new_sprite(game_io, ResourcePaths::PACKAGES_PREVIEW);
+        let mut background = assets.new_sprite(game_io, ResourcePaths::PACKAGE_PREVIEW);
         animator.apply(&mut background);
         self.sprites.push(background);
 
@@ -244,7 +244,7 @@ impl PackagePreview {
                 self.sprites.push(element_sprite);
 
                 // health bg
-                let mut health_sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGES_PREVIEW);
+                let mut health_sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGE_PREVIEW);
 
                 animator.set_state("HEALTH");
                 animator.apply(&mut health_sprite);
@@ -304,10 +304,10 @@ impl PackagePreview {
                 slot: Some(slot), ..
             } => {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
-                let mut sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGES_PREVIEW);
+                let mut sprite = assets.new_sprite(game_io, ResourcePaths::PACKAGE_PREVIEW);
 
                 let mut animator =
-                    Animator::load_new(assets, ResourcePaths::PACKAGES_PREVIEW_ANIMATION);
+                    Animator::load_new(assets, ResourcePaths::PACKAGE_PREVIEW_ANIMATION);
 
                 let state = match slot {
                     SwitchDriveSlot::Head => "SWITCH_DRIVE_HEAD",
