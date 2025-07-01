@@ -88,7 +88,7 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
 
             let entity_iter = simulation.entities.query_mut::<&Entity>().into_iter();
             let same_tile_entity_iter =
-                entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y);
+                entity_iter.filter(|(_, entity)| entity.x == x && entity.y == y && entity.spawned);
 
             let entity_ids: Vec<EntityId> =
                 same_tile_entity_iter.map(|(id, _)| id.into()).collect();
@@ -402,6 +402,11 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
             .map_err(|_| entity_not_found())?;
 
         if !entity.spawned {
+            return lua.pack_multi(());
+        }
+
+        if entity.x == x && entity.y == y {
+            entity.on_field = true;
             return lua.pack_multi(());
         }
 
