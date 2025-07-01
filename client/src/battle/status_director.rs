@@ -27,11 +27,12 @@ pub struct StatusDirector {
 impl StatusDirector {
     pub fn clear_statuses(&mut self) {
         self.ready_destructors.extend(
-            std::mem::take(&mut self.statuses)
-                .into_iter()
-                .flat_map(|status| status.destructor),
+            self.statuses
+                .iter_mut()
+                .flat_map(|status| status.destructor.take()),
         );
 
+        self.statuses.clear();
         self.new_statuses.clear();
         self.dragged = false;
         self.remaining_drag_lockout = 0;
