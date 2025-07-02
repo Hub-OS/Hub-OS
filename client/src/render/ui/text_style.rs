@@ -34,6 +34,7 @@ pub struct TextStyle {
     pub bounds: Rect,
     /// Every letter will be treated as having the same size as the letter A during text placement
     pub monospace: bool,
+    pub ellipsis: bool,
 }
 
 impl TextStyle {
@@ -55,6 +56,7 @@ impl TextStyle {
             shadow_color: Color::TRANSPARENT,
             bounds: Rect::new(0.0, 0.0, f32::INFINITY, f32::INFINITY),
             monospace: false,
+            ellipsis: false,
         }
     }
 
@@ -88,6 +90,7 @@ impl TextStyle {
             shadow_color: blueprint.shadow_color.into(),
             bounds: Rect::new(0.0, 0.0, f32::INFINITY, f32::INFINITY), // todo: ? not used currently
             monospace: blueprint.monospace,
+            ellipsis: false,
         }
     }
 
@@ -113,6 +116,11 @@ impl TextStyle {
 
     pub fn with_line_spacing(mut self, line_spacing: f32) -> Self {
         self.line_spacing = line_spacing;
+        self
+    }
+
+    pub fn with_ellipsis(mut self, ellipsis: bool) -> Self {
+        self.ellipsis = ellipsis;
         self
     }
 
@@ -198,20 +206,32 @@ impl TextStyle {
                 continue;
             }
 
-            let word_width = self.measure_word(word);
+            let word_width = self.measure_unbroken(word);
+            let on_last_line = insert_tracker.y + insert_tracker.whitespace.y * 2.0
+                > insert_tracker.unscaled_bounds_size.y;
 
             if (insert_tracker.x + word_width) * self.scale.x > self.bounds.width {
                 if word == " " || word == "\t" {
+                    if self.ellipsis && on_last_line {
+                        self.output_ellipsis(&mut insert_tracker, &mut callback);
+                        max_x = max_x.max(insert_tracker.x);
+                        break 'primary;
+                    }
+
                     // create a new line and eat the whitespace
                     insert_tracker.new_line(word_index, 1);
                     continue;
                 }
 
-                if insert_tracker.line_start_index != word_index {
+                if !(self.ellipsis && on_last_line) && insert_tracker.line_start_index != word_index
+                {
                     // word too long, move it to a new line if it's not already on one
                     insert_tracker.new_line(word_index, 0);
                 }
             }
+
+            let may_ellipse =
+                self.ellipsis && on_last_line && insert_tracker.should_ellipse_before(word_width);
 
             for (relative_index, character) in word.grapheme_indices(true) {
                 let index = word_index + relative_index;
@@ -226,15 +246,43 @@ impl TextStyle {
 
                 match character {
                     " " => {
+                        let whitespace_x = insert_tracker.whitespace.x;
+
+                        if may_ellipse && insert_tracker.should_ellipse_before(whitespace_x) {
+                            self.output_ellipsis(&mut insert_tracker, &mut callback);
+                            max_x = max_x.max(insert_tracker.x);
+                            break 'primary;
+                        }
+
                         insert_tracker.insert_space(index);
                     }
                     "\t" => {
+                        let whitespace_x = insert_tracker.whitespace.x;
+
+                        if may_ellipse && insert_tracker.should_ellipse_before(whitespace_x * 4.0) {
+                            self.output_ellipsis(&mut insert_tracker, &mut callback);
+                            max_x = max_x.max(insert_tracker.x);
+                            break 'primary;
+                        }
+
                         insert_tracker.insert_tab(index);
                     }
                     "\r\n" => {
+                        if self.ellipsis && on_last_line {
+                            self.output_ellipsis(&mut insert_tracker, &mut callback);
+                            max_x = max_x.max(insert_tracker.x);
+                            break 'primary;
+                        }
+
                         insert_tracker.new_line(index, 2);
                     }
                     "\n" => {
+                        if self.ellipsis && on_last_line {
+                            self.output_ellipsis(&mut insert_tracker, &mut callback);
+                            max_x = max_x.max(insert_tracker.x);
+                            break 'primary;
+                        }
+
                         insert_tracker.new_line(index, 1);
                     }
                     _ => {
@@ -244,13 +292,21 @@ impl TextStyle {
                             continue;
                         }
 
+                        let prev_x = insert_tracker.x;
                         let character_size = frame.size();
                         let (x, y) = insert_tracker.next_position(index, character_size).into();
+
+                        if may_ellipse && insert_tracker.should_ellipse_before(0.0) {
+                            insert_tracker.x = prev_x;
+                            self.output_ellipsis(&mut insert_tracker, &mut callback);
+                            max_x = max_x.max(insert_tracker.x);
+                            break 'primary;
+                        }
 
                         // break early if we can't place this character
                         let line_bottom = insert_tracker.y + insert_tracker.whitespace.y;
 
-                        if line_bottom > self.bounds.height / self.scale.y {
+                        if line_bottom > insert_tracker.unscaled_bounds_size.y {
                             break 'primary;
                         }
 
@@ -265,7 +321,7 @@ impl TextStyle {
                 // break early if whitespace caused us to go out of bounds
                 let line_bottom = insert_tracker.y + insert_tracker.whitespace.y;
 
-                if line_bottom > self.bounds.height / self.scale.y {
+                if line_bottom > insert_tracker.unscaled_bounds_size.y {
                     break 'primary;
                 }
 
@@ -293,13 +349,36 @@ impl TextStyle {
         }
     }
 
-    fn measure_word(&self, word: &str) -> f32 {
+    fn output_ellipsis<F>(&self, insert_tracker: &mut TextInsertTracker, callback: &mut F)
+    where
+        F: FnMut(AnimationFrame, Vec2),
+    {
+        let frame = self.character_frame(".");
+
+        if !frame.valid {
+            return;
+        }
+
+        let mut ellipsis_tracker = TextInsertTracker::new(self);
+        let start_position = Vec2::new(insert_tracker.x + self.letter_spacing, insert_tracker.y);
+
+        for _ in 0..3 {
+            let offset = ellipsis_tracker.next_position(0, frame.size());
+
+            let position = self.bounds.position() + (start_position + offset) * self.scale;
+            callback(frame.clone(), position);
+        }
+
+        insert_tracker.x += ellipsis_tracker.x;
+    }
+
+    fn measure_unbroken(&self, word: &str) -> f32 {
         let whitespace_size = self.glyph_atlas.resolve_whitespace_size(&self.font);
 
         match word {
             " " => whitespace_size.x,
             "\t" => whitespace_size.x * 4.0,
-            "" | "\n" => 0.0,
+            "" | "\n" | "\r\n" => 0.0,
             _ => {
                 let mut width = 0.0;
 
@@ -339,7 +418,9 @@ impl TextStyle {
 struct TextInsertTracker<'a> {
     x: f32,
     y: f32,
+    unscaled_bounds_size: Vec2,
     whitespace: Vec2,
+    ellipsis_width: f32,
     style: &'a TextStyle,
     line_start_index: usize,
     line_ranges: Vec<Range<usize>>,
@@ -350,11 +431,21 @@ impl<'a> TextInsertTracker<'a> {
         Self {
             x: 0.0,
             y: 0.0,
+            unscaled_bounds_size: style.bounds.size() / style.scale,
             whitespace: style.glyph_atlas.resolve_whitespace_size(&style.font),
+            ellipsis_width: style
+                .ellipsis
+                .then(|| style.measure_unbroken("...") + style.letter_spacing)
+                .unwrap_or_default(),
             style,
             line_start_index: 0,
             line_ranges: Vec::new(),
         }
+    }
+
+    fn should_ellipse_before(&self, x_offset: f32) -> bool {
+        self.x + self.style.letter_spacing + self.ellipsis_width + x_offset
+            >= self.unscaled_bounds_size.x
     }
 
     fn next_position(&mut self, index: usize, character_size: Vec2) -> Vec2 {
@@ -366,7 +457,7 @@ impl<'a> TextInsertTracker<'a> {
 
         width_used = width_used.max(self.style.min_glyph_width);
 
-        if (self.x + width_used) * self.style.scale.x > self.style.bounds.width {
+        if self.x + width_used > self.unscaled_bounds_size.x {
             // wrap text
             self.new_line(index, 0);
         }

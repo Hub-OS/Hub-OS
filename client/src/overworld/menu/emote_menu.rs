@@ -344,6 +344,7 @@ impl Menu for EmoteMenu {
             TextStyle::new(game_io, FontName::ThinSmall)
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
                 .with_bounds(text_bounds)
+                .with_ellipsis(true)
                 .draw(game_io, sprite_queue, selection_name);
         }
     }

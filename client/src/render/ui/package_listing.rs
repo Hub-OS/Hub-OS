@@ -189,9 +189,7 @@ impl UiNode for PackageListing {
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
-        let mut text_style = TextStyle::new(game_io, FontName::Thick);
-        text_style.bounds = bounds + Vec2::ONE;
-        text_style.draw(game_io, sprite_queue, &self.name);
+        let mut used_x = 1.0;
 
         match &self.preview_data {
             PackagePreviewData::Card {
@@ -220,15 +218,21 @@ impl UiNode for PackageListing {
 
                 // draw damage
                 if *damage != 0 {
+                    let mut text_style = TextStyle::new(game_io, FontName::Thick);
                     let damage_space = text_style.measure("0000").size;
                     let damage_text = format!("{damage}");
                     text_style.monospace = true;
 
                     text_style.bounds.x =
                         position.x - text_style.measure(&damage_text).size.x - 2.0;
+                    text_style.bounds.y = bounds.y + 1.0;
                     text_style.bounds.set_size(damage_space);
                     text_style.draw(game_io, sprite_queue, &damage_text);
+
+                    used_x += damage_space.x;
                 }
+
+                used_x += sprite.size().x * 2.0;
             }
             PackagePreviewData::Player { element, .. } => {
                 let category_sprite = create_category_sprite(game_io, bounds, "PLAYER");
@@ -239,6 +243,8 @@ impl UiNode for PackageListing {
                 element_position.x -= element_sprite.size().x + 1.0;
                 element_sprite.set_position(element_position);
                 sprite_queue.draw_sprite(&element_sprite);
+
+                used_x += element_sprite.size().x + 1.0 + category_sprite.size().x;
             }
             PackagePreviewData::Augment {
                 colors,
@@ -261,6 +267,7 @@ impl UiNode for PackageListing {
                     sprite_queue.draw_sprite(&category_sprite);
 
                     x_offset = -category_sprite.size().x;
+                    used_x += category_sprite.size().x;
                 }
 
                 if shape.is_some() {
@@ -289,30 +296,48 @@ impl UiNode for PackageListing {
                         position.x -= sprite.size().x;
                         position.x -= 1.0;
                     }
+
+                    used_x += bounds.right() - position.x;
                 }
 
                 if shape.is_none() && slot.is_none() {
                     let category_sprite = create_category_sprite(game_io, bounds, "LIBRARY");
                     sprite_queue.draw_sprite(&category_sprite);
+
+                    used_x += category_sprite.size().x;
                 }
             }
             PackagePreviewData::Encounter => {
                 let category_sprite = create_category_sprite(game_io, bounds, "ENCOUNTER");
                 sprite_queue.draw_sprite(&category_sprite);
+
+                used_x += category_sprite.size().x;
             }
             PackagePreviewData::Pack => {
                 let category_sprite = create_category_sprite(game_io, bounds, "PACK");
                 sprite_queue.draw_sprite(&category_sprite);
+
+                used_x += category_sprite.size().x;
             }
             PackagePreviewData::Resource => {
                 let category_sprite = create_category_sprite(game_io, bounds, "RESOURCE");
                 sprite_queue.draw_sprite(&category_sprite);
+
+                used_x += category_sprite.size().x;
             }
             _ => {
                 let category_sprite = create_category_sprite(game_io, bounds, "LIBRARY");
                 sprite_queue.draw_sprite(&category_sprite);
+
+                used_x += category_sprite.size().x;
             }
         }
+
+        let mut text_style = TextStyle::new(game_io, FontName::Thick);
+        text_style.ellipsis = true;
+        text_style.bounds = bounds + Vec2::ONE;
+        text_style.bounds.width -= used_x;
+        text_style.draw(game_io, sprite_queue, &self.name);
     }
 
     fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {
