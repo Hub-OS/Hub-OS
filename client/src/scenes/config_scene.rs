@@ -850,8 +850,10 @@ impl ConfigScene {
                         window.set_fullscreen(fullscreen);
 
                         if lock_aspect_ratio {
-                            // lock to an initial size, more logic will occur in SupportingService
-                            window.lock_resolution(RESOLUTION);
+                            if !window.has_locked_resolution() {
+                                // lock to an initial size, more logic will occur in SupportingService
+                                window.lock_resolution(RESOLUTION);
+                            }
                         } else {
                             window.unlock_resolution();
                         }
