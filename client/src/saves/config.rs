@@ -224,12 +224,16 @@ impl Config {
             return default_config;
         }
 
-        let config = Config::from(config_text.as_str());
+        let mut config = Config::from(config_text.as_str());
 
-        if !config.validate() {
-            // todo: don't override the entire config file, patch out / correct what we have
-            log::error!("Config file invalid, falling back to default config");
-            return Config::default();
+        if !config.validate_keys() {
+            log::error!("Invalid key bindings, using defaults");
+            config.key_bindings = Self::default_key_bindings(config.key_style);
+        }
+
+        if !config.validate_controller() {
+            log::error!("Invalid controller bindings, using defaults");
+            config.controller_bindings = Self::default_controller_bindings();
         }
 
         config
