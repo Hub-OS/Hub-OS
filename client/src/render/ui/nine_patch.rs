@@ -40,6 +40,10 @@ impl NinePatch {
         self.sprite.set_texture(texture);
     }
 
+    pub fn set_color(&mut self, color: Color) {
+        self.sprite.set_color(color);
+    }
+
     pub fn body_frame(&self) -> Option<&AnimationFrame> {
         self.body.as_ref()
     }

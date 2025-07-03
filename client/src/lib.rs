@@ -82,7 +82,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
 
     #[cfg(target_os = "android")]
     let game = game.with_overlay(GameOverlayTarget::Window, |game_io| {
-        MobileOverlay::new(game_io)
+        VirtualController::new(game_io)
     });
 
     game.run(|game_io| BootScene::new(game_io, log_receiver))?;
@@ -94,7 +94,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
 #[no_mangle]
 pub fn android_main(app: WinitPlatformApp) {
     // init_game_folders for set_current_dir
-    ResourcePaths::init_game_folders(&app, false);
+    ResourcePaths::init_game_folders(&app, None);
 
     std::env::set_current_dir(ResourcePaths::game_folder()).unwrap();
 

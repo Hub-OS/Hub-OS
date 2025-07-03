@@ -1,0 +1,55 @@
+animation state="LEFTTRIGGER"
+frame x="1" y="1" w="50" h="20" originx="0" originy="10"
+
+animation state="RIGHTTRIGGER"
+frame x="77" y="1" w="50" h="20" originx="50" originy="10"
+
+animation state="A"
+frame x="13" y="21" w="26" h="26" originx="13" originy="13"
+
+animation state="B"
+frame x="38" y="21" w="26" h="26" originx="13" originy="13"
+
+animation state="X"
+frame x="63" y="21" w="26" h="26" originx="13" originy="13"
+
+animation state="Y"
+frame x="88" y="21" w="26" h="26" originx="13" originy="13"
+
+animation state="DPAD"
+frame x="1" y="48" w="58" h="58" originx="29" originy="29"
+point label="DEAD_ZONE" x="7" y="7"
+
+animation state="SELECT"
+frame x="75" y="61" w="49" h="16" originx="24" originy="8"
+
+animation state="START"
+frame x="75" y="78" w="49" h="16" originx="25" originy="8"
+
+animation state="NINE_PATCH_TOP_LEFT"
+frame x="104" y="108" w="10" h="8" originx="10" originy="8"
+
+animation state="NINE_PATCH_TOP"
+frame x="115" y="108" w="1" h="8" originx="0" originy="8"
+
+animation state="NINE_PATCH_TOP_RIGHT"
+frame x="117" y="108" w="10" h="8" originx="0" originy="8"
+
+animation state="NINE_PATCH_LEFT"
+frame x="104" y="117" w="10" h="1" originx="10" originy="0"
+
+animation state="NINE_PATCH_BODY"
+frame x="115" y="117" w="1" h="1" originx="0" originy="0"
+point label="TEXT_BRIGHTNESS" x="0.5"
+
+animation state="NINE_PATCH_RIGHT"
+frame x="117" y="117" w="10" h="1" originx="0" originy="0"
+
+animation state="NINE_PATCH_BOTTOM_LEFT"
+frame x="104" y="119" w="10" h="8" originx="10" originy="0"
+
+animation state="NINE_PATCH_BOTTOM"
+frame x="115" y="119" w="1" h="8" originx="0" originy="0"
+
+animation state="NINE_PATCH_BOTTOM_RIGHT"
+frame x="117" y="119" w="10" h="8" originx="0" originy="0"

@@ -89,11 +89,15 @@ impl ResourcePaths {
         "resources/scenes/shared/health_frame.animation";
     pub const UNREAD: &'static str = "resources/scenes/shared/unread.png";
     pub const UNREAD_ANIMATION: &'static str = "resources/scenes/shared/unread.animation";
-    pub const INPUT_OVERLAY: &'static str = "resources/scenes/shared/input_overlay.png";
-    pub const INPUT_OVERLAY_ANIMATION: &'static str =
-        "resources/scenes/shared/input_overlay.animation";
     pub const GUIDE_MUG: &'static str = "resources/scenes/shared/guide_mug.png";
     pub const GUIDE_MUG_ANIMATION: &'static str = "resources/scenes/shared/guide_mug.animation";
+
+    // Virtual Inpur / Mobile Overlay
+    pub const VIRTUAL_CONTROLLER: &'static str = "resources/scenes/virtual_controller/buttons.png";
+    pub const VIRTUAL_CONTROLLER_ANIMATION: &'static str =
+        "resources/scenes/virtual_controller/buttons.animation";
+    pub const VIRTUAL_CONTROLLER_EDIT_ANIMATION: &'static str =
+        "resources/scenes/virtual_controller/ui.animation";
 
     // Textbox
     pub const TEXTBOX_CURSOR: &'static str = "resources/scenes/shared/textbox_cursor.png";

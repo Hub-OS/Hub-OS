@@ -19,6 +19,8 @@ use super::restrictions::Restrictions;
 
 pub struct Globals {
     pub config: Config,
+    pub editing_config: bool,
+    pub editing_virtual_controller: bool,
     pub internal_resolution: InternalResolution,
     pub snap_resize: bool,
     pub post_process_adjust_config: PostProcessAdjustConfig,
@@ -124,6 +126,8 @@ impl Globals {
 
         Self {
             config,
+            editing_config: false,
+            editing_virtual_controller: false,
             internal_resolution,
             snap_resize,
             post_process_adjust_config,

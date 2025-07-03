@@ -23,15 +23,15 @@ num-traits = "0.2"
 rand = { version = "0.8", features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rmp-serde = "1.1"
-rodio = { version = "0.19", default-features = false }
+rodio = { version = "0.19", default-features = false, features = [
+  "cpal-shared-stdcxx"
+] }
 symphonia = { version = "0.5", features = [
   "ogg",
   "vorbis",
   "wav",
   "mp3"
 ], default-features = false }
-# let rodio restrict cpal's version, we just want to specify the feature
-cpal = { version = "*", features = ["oboe-shared-stdcxx"] }
 roxmltree = "0.19"
 rust-ini = "0.21"
 serde = { version = "1.0", features = ["derive"] }

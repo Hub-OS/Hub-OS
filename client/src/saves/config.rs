@@ -2,6 +2,7 @@ use crate::render::PostProcessColorBlindness;
 use crate::resources::{AssetManager, Input, ResourcePaths, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
 use framework::cfg_macros::{cfg_android, cfg_desktop_and_web};
 use framework::input::{Button, Key};
+use framework::math::Vec2;
 use itertools::Itertools;
 use std::collections::HashMap;
 
@@ -21,7 +22,7 @@ pub enum InternalResolution {
     Auto,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 pub struct Config {
     pub fullscreen: bool,
     pub vsync: bool,
@@ -42,6 +43,8 @@ pub struct Config {
     pub key_bindings: HashMap<Input, Vec<Key>>,
     pub controller_bindings: HashMap<Input, Vec<Button>>,
     pub controller_index: usize,
+    pub virtual_input_positions: HashMap<Button, Vec2>,
+    pub virtual_controller_scale: f32,
     pub package_repo: String,
 }
 
@@ -198,6 +201,22 @@ impl Config {
         ])
     }
 
+    pub fn default_virtual_input_positions() -> HashMap<Button, Vec2> {
+        HashMap::from([
+            // left inputs
+            (Button::Select, Vec2::new(27.0, -9.0)),
+            (Button::LeftTrigger, Vec2::new(0.0, -96.0)),
+            (Button::LeftStick, Vec2::new(44.0, -50.0)),
+            // right inputs
+            (Button::Start, Vec2::new(-27.0, -9.0)),
+            (Button::RightTrigger, Vec2::new(0.0, -96.0)),
+            (Button::A, Vec2::new(-44.0, -32.0)),
+            (Button::B, Vec2::new(-25.0, -51.0)),
+            (Button::X, Vec2::new(-63.0, -51.0)),
+            (Button::Y, Vec2::new(-44.0, -70.0)),
+        ])
+    }
+
     pub fn music_volume(&self) -> f32 {
         if self.mute_music {
             return 0.0;
@@ -295,6 +314,8 @@ impl Default for Config {
             key_bindings: Self::default_key_bindings(Default::default()),
             controller_bindings: Self::default_controller_bindings(),
             controller_index: 0,
+            virtual_input_positions: Self::default_virtual_input_positions(),
+            virtual_controller_scale: 1.0,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         }
     }
@@ -326,6 +347,8 @@ impl From<&str> for Config {
             key_bindings: HashMap::new(),
             controller_bindings: HashMap::new(),
             controller_index: 0,
+            virtual_input_positions: Self::default_virtual_input_positions(),
+            virtual_controller_scale: 1.0,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         };
 
@@ -392,7 +415,7 @@ impl From<&str> for Config {
                     .get(&input_string)
                     .into_iter()
                     .flat_map(|key_str| key_str.split(','))
-                    .flat_map(|value| Key::from_str(value).ok())
+                    .flat_map(|value| Key::from_str(value.trim()).ok())
                     .collect();
 
                 config.key_bindings.insert(input, keys);
@@ -409,10 +432,34 @@ impl From<&str> for Config {
                     .get(&input_string)
                     .into_iter()
                     .flat_map(|key_str| key_str.split(','))
-                    .flat_map(|value| Button::from_str(value).ok())
+                    .flat_map(|value| Button::from_str(value.trim()).ok())
                     .collect();
 
                 config.controller_bindings.insert(input, buttons);
+            }
+        }
+
+        if let Some(properties) = ini.section(Some("VirtualController")) {
+            config.virtual_controller_scale = parse_or_default(properties.get("Scale"));
+
+            for (button, position) in &mut config.virtual_input_positions {
+                let button_str: &'static str = button.into();
+
+                let Some(position_str) = properties.get(button_str) else {
+                    continue;
+                };
+
+                let Some((x_str, y_str)) = position_str.split_once(',') else {
+                    continue;
+                };
+
+                let (Ok(x), Ok(y)) = (x_str.trim().parse::<f32>(), y_str.trim().parse::<f32>())
+                else {
+                    continue;
+                };
+
+                position.x = x;
+                position.y = y;
             }
         }
 
@@ -499,6 +546,14 @@ impl std::fmt::Display for Config {
             } else {
                 writeln!(f, "None")?;
             }
+        }
+
+        writeln!(f, "[VirtualController]")?;
+        writeln!(f, "Scale = {}", self.virtual_controller_scale)?;
+
+        for (button, position) in &self.virtual_input_positions {
+            let button_str: &'static str = button.into();
+            writeln!(f, "{button_str} = {},{}", position.x, position.y)?;
         }
 
         writeln!(f, "[Online]")?;

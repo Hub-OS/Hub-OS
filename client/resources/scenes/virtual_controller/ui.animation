@@ -1,0 +1,6 @@
+animation state="DEFAULT"
+blank
+point label="RESET" x="0" y="-51"
+point label="CONFIRM" x="0" y="-25"
+point label="-" x="-15" y="51"
+point label="+" x="15" y="51"

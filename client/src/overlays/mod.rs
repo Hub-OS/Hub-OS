@@ -2,7 +2,7 @@ mod debug_overlay;
 pub use debug_overlay::*;
 
 #[cfg(target_os = "android")]
-mod mobile_overlay;
+mod virtual_controller;
 
 #[cfg(target_os = "android")]
-pub use mobile_overlay::*;
+pub use virtual_controller::*;

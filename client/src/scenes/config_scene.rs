@@ -19,6 +19,7 @@ enum Event {
     EnterCategory,
     ApplyKeyBinds,
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
+    EditVirtualControllerLayout,
     RequestNicknameChange,
     ChangeNickname { name: String },
     ViewPackages,
@@ -58,6 +59,7 @@ pub struct ConfigScene {
     doorstop_remover: Option<TextboxDoorstopRemover>,
     config: Rc<RefCell<Config>>,
     key_bindings_backup: HashMap<Input, Vec<Key>>,
+    opened_virtual_controller_editor: bool,
     next_scene: NextScene,
 }
 
@@ -126,6 +128,7 @@ impl ConfigScene {
             doorstop_remover: None,
             config,
             key_bindings_backup,
+            opened_virtual_controller_editor: false,
             next_scene: NextScene::None,
         })
     }
@@ -524,6 +527,7 @@ impl ConfigScene {
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         let mut children: Vec<Box<dyn UiNode>> = vec![
+            #[cfg(not(target_os = "android"))]
             Box::new(UiConfigDynamicCycle::new(
                 game_io,
                 "Active Gamepad",
@@ -546,6 +550,15 @@ impl ConfigScene {
                     config.controller_index = *value;
                 },
             )),
+            #[cfg(target_os = "android")]
+            Box::new(
+                UiButton::new_text(game_io, FontName::Thick, "Edit Layout").on_activate({
+                    let event_sender = event_sender.clone();
+                    move || {
+                        let _ = event_sender.send(Event::EditVirtualControllerLayout);
+                    }
+                }),
+            ),
             Box::new(
                 UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
                     let config = config.clone();
@@ -628,6 +641,14 @@ impl Scene for ConfigScene {
 
     fn enter(&mut self, game_io: &mut GameIO) {
         self.textbox.use_navigation_avatar(game_io);
+
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.editing_config = true;
+    }
+
+    fn exit(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
+        globals.editing_config = false;
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -663,6 +684,16 @@ impl Scene for ConfigScene {
 
 impl ConfigScene {
     fn handle_events(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        if self.opened_virtual_controller_editor && !globals.editing_virtual_controller {
+            self.opened_virtual_controller_editor = false;
+
+            let message = "Tap the screen five times if you need to open the editor again.";
+            self.textbox
+                .push_interface(TextboxMessage::new(message.to_string()));
+            self.textbox.open();
+        }
+
         while let Ok(event) = self.event_receiver.try_recv() {
             match event {
                 Event::CategoryChange(category) => {
@@ -673,6 +704,10 @@ impl ConfigScene {
 
                     self.secondary_layout.set_label(label.to_ascii_uppercase());
                     self.secondary_layout.set_children(children);
+                }
+                Event::EnterCategory => {
+                    self.primary_layout.set_focused(false);
+                    self.secondary_layout.set_focused(true);
                 }
                 Event::ApplyKeyBinds => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -685,9 +720,10 @@ impl ConfigScene {
                     self.context_menu.open();
                     self.context_sender = Some(sender);
                 }
-                Event::EnterCategory => {
-                    self.primary_layout.set_focused(false);
-                    self.secondary_layout.set_focused(true);
+                Event::EditVirtualControllerLayout => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+                    globals.editing_virtual_controller = true;
+                    self.opened_virtual_controller_editor = true;
                 }
                 Event::RequestNicknameChange => {
                     let event_sender = self.event_sender.clone();
@@ -813,15 +849,32 @@ impl ConfigScene {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     if save {
+                        let mut new_config = self.config.borrow_mut();
+
+                        // apply new virtual input settings, the virtual input directly modifies the global config
+                        let virtual_input_positions =
+                            std::mem::take(&mut globals.config.virtual_input_positions);
+                        new_config.virtual_input_positions.clear();
+                        new_config.virtual_controller_scale =
+                            globals.config.virtual_controller_scale;
+
                         // save new config
-                        globals.config = self.config.borrow().clone();
+                        globals.config = new_config.clone();
+                        globals.config.virtual_input_positions = virtual_input_positions;
                         globals.config.save();
                     } else {
                         // reapply previous config
                         let config = &mut globals.config;
+                        let mut new_config = self.config.borrow_mut();
 
                         // input
                         config.key_bindings = self.key_bindings_backup.clone();
+
+                        // new config actually works as a backup for virtual input,
+                        // since the virtual input editor directly modifies global config
+                        config.virtual_input_positions =
+                            std::mem::take(&mut new_config.virtual_input_positions);
+                        config.virtual_controller_scale = new_config.virtual_controller_scale;
 
                         // audio
                         let audio = &mut globals.audio;
