@@ -60,6 +60,7 @@ impl TextboxInterface for TextboxPrompt {
 
     fn update(&mut self, game_io: &mut GameIO, text_style: &TextStyle, _lines: usize) {
         if let Some(layout) = &mut self.layout {
+            layout.set_position(text_style.bounds.position());
             layout.update(game_io, &self.ui_input_tracker);
 
             if !layout.is_focus_locked() {}

@@ -141,9 +141,10 @@ impl UiNode for TextInput {
             input.was_key_just_pressed(Key::Return) || input.is_key_repeated(Key::Return);
 
         if input.was_key_just_pressed(Key::Escape)
+            || controller_pressing_cancel
             || (!holding_shift && pressed_return)
             || (!self.paged && input.was_key_just_pressed(Key::Tab))
-            || controller_pressing_cancel
+            || (cfg!(target_os = "android") && input.text().contains("\n"))
         {
             self.active = false;
             input.end_text_input();

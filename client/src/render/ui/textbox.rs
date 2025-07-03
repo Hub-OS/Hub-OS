@@ -67,6 +67,7 @@ pub struct Textbox {
     transition_animation_enabled: bool,
     text_animation_enabled: bool,
     effect_processor: TextboxEffectProcessor,
+    ime_offset: f32,
 }
 
 impl Textbox {
@@ -118,6 +119,7 @@ impl Textbox {
             transition_animation_enabled: true,
             text_animation_enabled: true,
             effect_processor: TextboxEffectProcessor::new(),
+            ime_offset: 0.0,
         };
 
         textbox.with_position(Vec2::new(RESOLUTION_F.x * 0.5, y))
@@ -158,10 +160,13 @@ impl Textbox {
     }
 
     pub fn position(&self) -> Vec2 {
-        self.sprite.position()
+        let mut position = self.sprite.position();
+        position.y -= self.ime_offset;
+        position
     }
 
-    pub fn set_position(&mut self, position: Vec2) {
+    pub fn set_position(&mut self, mut position: Vec2) {
+        position += self.ime_offset;
         self.sprite.set_position(position);
         self.text_style
             .bounds
@@ -317,6 +322,32 @@ impl Textbox {
     }
 
     pub fn update(&mut self, game_io: &mut GameIO) {
+        // updating position based on ime height
+        if game_io.input().accepting_text() {
+            // get position with old ime offset stripped
+            let mut position = self.position();
+
+            // get new ime height
+            let window = game_io.window();
+            let scale = RESOLUTION_F.y / window.size().y as f32;
+            let ime_height = window.ime_height() as f32 * scale;
+
+            // resolve new offset, making sure to not send the editor out of bounds
+            let raw_top = position.y - self.sprite.origin().y;
+            let new_offset = (raw_top - ime_height).max(1.0) - raw_top;
+
+            position.y += new_offset;
+
+            self.ime_offset = 0.0;
+            self.set_position(position);
+            self.ime_offset = new_offset;
+        } else if self.ime_offset != 0.0 {
+            // reset position
+            let position = self.position();
+            self.ime_offset = 0.0;
+            self.set_position(position);
+        }
+
         if !self.is_open {
             return;
         }

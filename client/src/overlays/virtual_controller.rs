@@ -256,6 +256,12 @@ impl VirtualController {
             // enable debug when three fingers are on the screen pressing nothing
             globals.debug_visible = !globals.debug_visible;
         }
+
+        if !pressed_something && !self.touch_positions.is_empty() && self.previous_touch_count == 0
+        {
+            // close keyboard
+            game_io.input_mut().end_text_input();
+        }
     }
 
     fn first_button_under(&self, point: Vec2) -> Option<Button> {
