@@ -12,7 +12,6 @@ mod repo_package_updater;
 mod resource_package;
 mod status_package;
 mod tile_state_package;
-mod util;
 
 pub use augment_package::*;
 pub use card_package::*;
