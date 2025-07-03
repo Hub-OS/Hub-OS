@@ -21,10 +21,10 @@ frame x="1" y="48" w="58" h="58" originx="29" originy="29"
 point label="DEAD_ZONE" x="7" y="7"
 
 animation state="SELECT"
-frame x="75" y="61" w="49" h="16" originx="24" originy="8"
+frame x="75" y="60" w="49" h="17" originx="24" originy="8"
 
 animation state="START"
-frame x="75" y="78" w="49" h="16" originx="25" originy="8"
+frame x="75" y="77" w="49" h="17" originx="25" originy="8"
 
 animation state="NINE_PATCH_TOP_LEFT"
 frame x="104" y="108" w="10" h="8" originx="10" originy="8"

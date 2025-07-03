@@ -205,15 +205,15 @@ impl Config {
         HashMap::from([
             // left inputs
             (Button::Select, Vec2::new(27.0, -9.0)),
-            (Button::LeftTrigger, Vec2::new(0.0, -96.0)),
-            (Button::LeftStick, Vec2::new(44.0, -50.0)),
+            (Button::LeftTrigger, Vec2::new(0.0, -97.0)),
+            (Button::LeftStick, Vec2::new(44.0, -51.0)),
             // right inputs
             (Button::Start, Vec2::new(-27.0, -9.0)),
-            (Button::RightTrigger, Vec2::new(0.0, -96.0)),
-            (Button::A, Vec2::new(-44.0, -32.0)),
-            (Button::B, Vec2::new(-25.0, -51.0)),
-            (Button::X, Vec2::new(-63.0, -51.0)),
-            (Button::Y, Vec2::new(-44.0, -70.0)),
+            (Button::RightTrigger, Vec2::new(0.0, -97.0)),
+            (Button::A, Vec2::new(-44.0, -33.0)),
+            (Button::B, Vec2::new(-25.0, -52.0)),
+            (Button::X, Vec2::new(-63.0, -52.0)),
+            (Button::Y, Vec2::new(-44.0, -71.0)),
         ])
     }
 
