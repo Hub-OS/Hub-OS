@@ -1,5 +1,6 @@
 use super::{FontName, TextStyle};
 use crate::bindable::SpriteColorMode;
+use crate::render::ui::UiLayout;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -328,9 +329,7 @@ impl Textbox {
             let mut position = self.position();
 
             // get new ime height
-            let window = game_io.window();
-            let scale = RESOLUTION_F.y / window.size().y as f32;
-            let ime_height = window.ime_height() as f32 * scale;
+            let ime_height = UiLayout::corrected_ime_height(game_io);
 
             // resolve new offset, making sure to not send the editor out of bounds
             let raw_top = position.y - self.sprite.origin().y;

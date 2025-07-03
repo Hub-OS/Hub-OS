@@ -71,6 +71,7 @@ pub struct UiStyle {
     pub max_width: Dimension,
     pub max_height: Dimension,
     pub nine_patch: Option<NinePatch>,
+    pub ime_padding: Option<f32>,
 }
 
 impl Default for UiStyle {
@@ -101,6 +102,7 @@ impl Default for UiStyle {
             max_width: Dimension::Auto,
             max_height: Dimension::Auto,
             nine_patch: None,
+            ime_padding: None,
         }
     }
 }
@@ -148,6 +150,7 @@ struct InternalUiElement {
     taffy_size: Arc<Mutex<Vec2>>,
     content: Box<dyn UiNode>,
     nine_patch: Option<NinePatch>,
+    ime_padding: Option<f32>,
     padding_left: f32,
     padding_right: f32,
     padding_top: f32,
@@ -228,6 +231,10 @@ impl UiLayout {
         self.wrap_selection = true;
 
         self
+    }
+
+    pub fn position(&self) -> Vec2 {
+        self.bounds.position()
     }
 
     pub fn set_position(&mut self, position: Vec2) {
@@ -653,13 +660,42 @@ impl UiLayout {
         self.calculated = true;
     }
 
+    pub fn corrected_ime_height(game_io: &GameIO) -> f32 {
+        let window = game_io.window();
+        let view_render_offset = window.render_offset().y;
+        let scale = RESOLUTION_F.y / (window.size().y as f32 - view_render_offset * 2.0);
+        let height = (window.ime_height() as f32 - view_render_offset) * scale;
+        height.max(0.0)
+    }
+
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         self.recalculate(game_io);
+
+        let mut offset_y = self.bounds.y;
+
+        if game_io.input().accepting_text() {
+            if let Some(index) = self.focused_index {
+                let element = &self.tree[index];
+
+                if let Some(padding) = element.ime_padding {
+                    let mut bounds = element.bounds;
+                    bounds.y += offset_y;
+
+                    // try to move the bounds into the available space
+                    let ime_height = Self::corrected_ime_height(game_io);
+                    let available_space = RESOLUTION_F.y - ime_height - padding;
+
+                    if bounds.bottom() > available_space {
+                        offset_y += available_space - bounds.bottom();
+                    }
+                }
+            }
+        }
 
         for element in self.tree.values_mut() {
             let mut bounds = element.bounds;
             bounds.x += self.bounds.x;
-            bounds.y += self.bounds.y;
+            bounds.y += offset_y;
 
             if let Some(nine_patch) = &mut element.nine_patch {
                 let mut patch_bounds = bounds;
@@ -691,6 +727,7 @@ fn to_internal_node(taffy: &mut taffy::Taffy, node: UiLayoutNode) -> InternalUiE
         taffy_size,
         content: node.content,
         nine_patch: node.style.nine_patch,
+        ime_padding: node.style.ime_padding,
         padding_left: node.style.padding_left,
         padding_right: node.style.padding_right,
         padding_top: node.style.padding_top,

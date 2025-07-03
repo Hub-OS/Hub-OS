@@ -276,61 +276,74 @@ impl Menu for EmoteMenu {
     ) {
         let selected_index = self.selected_index();
 
-        let y_view_range = self.v_scroll.view_range();
-        let y_height = y_view_range.end - y_view_range.start;
-        let y_offset = self.v_scroll.view_size() - y_height;
+        let search_offset_y = if self.search_layout.is_some() {
+            -UiLayout::corrected_ime_height(game_io)
+        } else {
+            0.0
+        };
 
-        for y in y_view_range {
-            let mut offset = self.start_point;
-            offset.y += self.next_point.y * (y - self.v_scroll.top_index() + y_offset) as f32;
+        if search_offset_y == 0.0 {
+            // render emotes, but only if we don't have to shift them for ime
 
-            for x in 0..self.h_scroll.view_size() {
-                let item_index = y * self.h_scroll.view_size() + x;
-                let emote_index = item_index.saturating_sub(1);
+            let y_view_range = self.v_scroll.view_range();
+            let y_height = y_view_range.end - y_view_range.start;
+            let y_offset = self.v_scroll.view_size() - y_height;
 
-                // draw highlight
-                if item_index == selected_index {
-                    self.highlight_sprite.set_position(offset);
-                    sprite_queue.draw_sprite(&self.highlight_sprite);
-                }
+            for y in y_view_range {
+                let mut offset = self.start_point;
+                offset.y += self.next_point.y * (y - self.v_scroll.top_index() + y_offset) as f32;
 
-                if item_index == 0 {
-                    // draw search tool
-                    self.search_sprite.set_position(offset);
-                    sprite_queue.draw_sprite(&self.search_sprite);
-                } else if let Some((state, category)) = self.filtered_emotes.get(emote_index) {
-                    // draw emote
-                    match category {
-                        EmoteCategory::Icon => {
-                            self.emote_animator.set_state(state);
+                for x in 0..self.h_scroll.view_size() {
+                    let item_index = y * self.h_scroll.view_size() + x;
+                    let emote_index = item_index.saturating_sub(1);
 
-                            // scale
-                            let scale = self.emote_animator.point("SCALE").unwrap_or(Vec2::ONE);
-                            self.emote_sprite.set_scale(scale);
+                    // draw highlight
+                    if item_index == selected_index {
+                        self.highlight_sprite.set_position(offset);
+                        sprite_queue.draw_sprite(&self.highlight_sprite);
+                    }
 
-                            // apply animation
-                            self.emote_animator.sync_time(area.world_time);
-                            self.emote_animator.apply(&mut self.emote_sprite);
+                    if item_index == 0 {
+                        // draw search tool
+                        self.search_sprite.set_position(offset);
+                        sprite_queue.draw_sprite(&self.search_sprite);
+                    } else if let Some((state, category)) = self.filtered_emotes.get(emote_index) {
+                        // draw emote
+                        match category {
+                            EmoteCategory::Icon => {
+                                self.emote_animator.set_state(state);
 
-                            // draw
-                            self.emote_sprite.set_position(offset);
-                            sprite_queue.draw_sprite(&self.emote_sprite);
-                        }
-                        EmoteCategory::ActorAnimation => {
-                            // draw actor animation placeholder
-                            self.actor_animation_sprite.set_position(offset);
-                            sprite_queue.draw_sprite(&self.actor_animation_sprite);
+                                // scale
+                                let scale = self.emote_animator.point("SCALE").unwrap_or(Vec2::ONE);
+                                self.emote_sprite.set_scale(scale);
+
+                                // apply animation
+                                self.emote_animator.sync_time(area.world_time);
+                                self.emote_animator.apply(&mut self.emote_sprite);
+
+                                // draw
+                                self.emote_sprite.set_position(offset);
+                                sprite_queue.draw_sprite(&self.emote_sprite);
+                            }
+                            EmoteCategory::ActorAnimation => {
+                                // draw actor animation placeholder
+                                self.actor_animation_sprite.set_position(offset);
+                                sprite_queue.draw_sprite(&self.actor_animation_sprite);
+                            }
                         }
                     }
-                }
 
-                offset.x += self.next_point.x;
+                    offset.x += self.next_point.x;
+                }
             }
         }
 
         if let Some(layout) = &mut self.search_layout {
             // draw search
+            let position = layout.position();
+            layout.set_position(position + Vec2::new(0.0, search_offset_y));
             layout.draw(game_io, sprite_queue);
+            layout.set_position(position);
         } else {
             // draw selection name
             let selection_name = if selected_index == 0 {

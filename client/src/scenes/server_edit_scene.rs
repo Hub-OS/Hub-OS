@@ -94,6 +94,7 @@ impl ServerEditScene {
             max_height: Dimension::Points(input_height),
             max_width: Dimension::Percent(1.0),
             nine_patch: Some(input_9patch.clone()),
+            ime_padding: Some(6.0),
             ..Default::default()
         };
 
