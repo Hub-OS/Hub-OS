@@ -248,8 +248,6 @@ impl EventListener {
                                 self.handle_netplay_subscription(addr, sender)
                             }
                             Event::SendingClientPacket(addr, reliability, body) => {
-                                let name: &'static str = (&body).into();
-                                println!("sending ClientPacket::{name:?}");
                                 self.send_client_packet(addr, reliability, packets::serialize(body))
                             }
                             Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
