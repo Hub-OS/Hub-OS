@@ -249,7 +249,7 @@ impl PackagesScene {
         let input_util = InputUtil::new(game_io);
 
         // switch between sidebar and list with left + right
-        if input_util.was_just_pressed(Input::Left) && !self.sidebar.focused() {
+        if input_util.was_just_pressed(Input::Left) && self.list.focused() {
             self.sidebar.set_focused(true);
             self.list.set_focused(false);
             self.sidebar.focus_default();
