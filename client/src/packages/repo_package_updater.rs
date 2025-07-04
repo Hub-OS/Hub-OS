@@ -89,21 +89,29 @@ impl RepoPackageUpdater {
 
                 // test for required install
                 if let Some(category) = listing.preview_data.category() {
-                    let id = &self.queue[self.queue_position];
+                    let queued_id = &self.queue[self.queue_position];
                     let latest_id = listing.id;
 
-                    let existing_hash = globals
-                        .package_info(category, PackageNamespace::Local, id)
-                        .map(|package| package.hash);
+                    let existing_package = globals
+                        .package_info(category, PackageNamespace::Local, queued_id)
+                        .or_else(|| {
+                            globals.package_info(category, PackageNamespace::Local, &latest_id)
+                        });
+
+                    let existing_hash = existing_package.map(|package| package.hash);
 
                     let requires_update = existing_hash != Some(listing.hash);
-                    let already_updating =
-                        (self.install_required.iter()).any(|(_, _, id)| *id == latest_id);
+                    let already_updating = (self.install_required.iter())
+                        .any(|(_, _, id)| *id == latest_id || id == queued_id);
 
                     if requires_update && !already_updating {
                         // save package id for install pass
-                        let old_id = id.clone();
-                        self.install_required.push((category, old_id, latest_id));
+                        let install_id = existing_package
+                            .map(|p| &p.id)
+                            .unwrap_or(&latest_id)
+                            .clone();
+                        self.install_required
+                            .push((category, install_id, latest_id));
                     }
                 }
 
@@ -152,7 +160,7 @@ impl RepoPackageUpdater {
     }
 
     fn download_package(&mut self, game_io: &GameIO) {
-        let Some(&(category, ref old_id, ref id)) =
+        let Some(&(category, ref install_id, ref id)) =
             self.install_required.get(self.install_position)
         else {
             self.status = UpdateStatus::Success;
@@ -164,7 +172,7 @@ impl RepoPackageUpdater {
         let encoded_id = uri_encode(id.as_str());
 
         let uri = format!("{repo}/api/mods/{encoded_id}");
-        let base_path = globals.resolve_package_download_path(category, old_id);
+        let base_path = globals.resolve_package_download_path(category, install_id);
 
         let task = game_io.spawn_local_task(async move {
             let Some(zip_bytes) = crate::http::request(&uri).await else {
@@ -199,21 +207,21 @@ impl RepoPackageUpdater {
     }
 
     fn install_package(&mut self, game_io: &mut GameIO) {
-        let (category, old_id, new_id) = &self.install_required[self.install_position];
+        let (category, install_id, new_id) = &self.install_required[self.install_position];
         let category = *category;
         self.install_position += 1;
 
         // reload package
         let globals = game_io.resource_mut::<Globals>().unwrap();
-        let path = globals.resolve_package_download_path(category, old_id);
+        let path = globals.resolve_package_download_path(category, install_id);
 
-        globals.unload_package(category, PackageNamespace::Local, old_id);
+        globals.unload_package(category, PackageNamespace::Local, install_id);
         globals.load_package(category, PackageNamespace::Local, &path);
 
         // update save
-        if old_id != new_id {
+        if install_id != new_id {
             let global_save = &mut globals.global_save;
-            global_save.update_package_id(old_id, new_id);
+            global_save.update_package_id(install_id, new_id);
             global_save.save();
         }
 
