@@ -571,7 +571,16 @@ impl OverworldMenuManager {
     ) {
         // draw names
         if !self.is_blocking_hud() {
-            area.draw_player_names(game_io, sprite_queue);
+            area.draw_player_names_at(game_io, sprite_queue, game_io.input().mouse_position());
+
+            for touch in game_io.input().touches() {
+                let mut render_point = touch.position;
+
+                // shift to avoid rendering directly under the finger
+                render_point.y += 0.15;
+
+                area.draw_player_names_at(game_io, sprite_queue, render_point);
+            }
         }
 
         let fade_progress = inverse_lerp!(0, self.max_fade_time, self.fade_time);

@@ -265,22 +265,25 @@ impl OverworldArea {
         }
     }
 
-    pub fn draw_player_names(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
+    pub fn draw_player_names_at(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        render_point: Vec2,
+    ) {
         // find the closest named entity under the mouse
-        let camera_scale = self.world_camera.scale();
-        let mouse_position = (game_io.input().mouse_position() * Vec2::new(0.5, -0.5) + 0.5)
-            * RESOLUTION_F
-            * camera_scale;
-
-        let mouse_screen =
-            mouse_position + self.world_camera.position() - self.world_camera.size() * 0.5;
-
         let mut query = self.entities.query::<(&Sprite, &Vec3, &NameLabel)>();
         let query_iter = query.into_iter().map(|(_, pair)| pair);
 
+        let camera_scale = self.world_camera.scale();
+        let world_point = (render_point * Vec2::new(0.5, -0.5) + 0.5) * RESOLUTION_F * camera_scale;
+
+        let screen_point =
+            world_point + self.world_camera.position() - self.world_camera.size() * 0.5;
+
         let Some((.., name_label)) = query_iter
             .filter(|(.., name_label)| !name_label.0.is_empty())
-            .filter(|(sprite, ..)| sprite.bounds().contains(mouse_screen))
+            .filter(|(sprite, ..)| sprite.bounds().contains(screen_point))
             .max_by_key(|(_, position, _)| self.map.world_3d_to_screen(**position).y as i32)
         else {
             return;
@@ -293,7 +296,7 @@ impl OverworldArea {
 
         // update bounds
         let text_size = text_style.measure(name).size;
-        text_style.bounds.set_position(mouse_position);
+        text_style.bounds.set_position(world_point);
         text_style.bounds -= text_size * Vec2::new(0.5, 1.0);
         text_style.bounds.y -= 2.0;
 
