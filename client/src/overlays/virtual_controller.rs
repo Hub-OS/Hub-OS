@@ -29,6 +29,13 @@ const BUTTON_ORDER: [Button; 8] = [
     Button::Y,
 ];
 
+#[derive(PartialEq, Eq)]
+enum ViewState {
+    Default,
+    Editor,
+    Keyboard,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum EditorButton {
     Confirm,
@@ -69,6 +76,7 @@ pub struct VirtualController {
     touch_positions: Vec<Vec2>,
     last_touch_id: Option<u64>,
     previous_touch_count: usize,
+    previous_view_state: ViewState,
 
     // debug
     empty_touch_count: u8,
@@ -76,7 +84,6 @@ pub struct VirtualController {
 
     // moving UI
     editor_camera: Camera,
-    ignoring_first_editor_touch: bool,
     last_movement_touch: Option<Vec2>,
     selection_start: Option<Vec2>,
     selected_buttons: Vec<Button>,
@@ -147,10 +154,10 @@ impl VirtualController {
             touch_positions: Default::default(),
             last_touch_id: None,
             previous_touch_count: 0,
+            previous_view_state: ViewState::Default,
             empty_touch_count: 0,
             last_empty_touch: 0,
             editor_camera: Camera::new(game_io),
-            ignoring_first_editor_touch: true,
             last_movement_touch: None,
             selection_start: None,
             selected_buttons: Default::default(),
@@ -476,9 +483,7 @@ impl VirtualController {
         let touch = self.touch_positions.first().cloned();
 
         if let Some(touch) = touch {
-            if self.ignoring_first_editor_touch {
-                // ignoring...
-            } else if let Some(start) = self.selection_start {
+            if let Some(start) = self.selection_start {
                 // continue selection
                 self.select_buttons_in_range(start, touch);
             } else if self.selected_buttons.is_empty() {
@@ -506,9 +511,6 @@ impl VirtualController {
                 self.selected_buttons.clear();
             }
         } else if self.last_movement_touch.is_some() {
-            // handle touch release
-            self.ignoring_first_editor_touch = false;
-
             self.respawn_buttons(game_io);
 
             // clear range selection
@@ -588,17 +590,42 @@ impl GameOverlay for VirtualController {
         // flush input
         globals.emulated_input.flush();
 
-        if globals.editing_virtual_controller {
-            self.move_buttons_update(game_io);
+        // handle update
+        let editing = globals.editing_virtual_controller;
+
+        let view_state = if game_io.input().accepting_text() && game_io.window().ime_height() > 0 {
+            ViewState::Keyboard
+        } else if editing {
+            ViewState::Editor
         } else {
-            self.accept_input_update(game_io);
-            self.ignoring_first_editor_touch = true;
+            ViewState::Default
+        };
+
+        // avoid updating when the player is touching the screen while switching state
+        if view_state == self.previous_view_state || self.touch_positions.is_empty() {
+            match view_state {
+                ViewState::Default => self.accept_input_update(game_io),
+                ViewState::Editor => self.move_buttons_update(game_io),
+                ViewState::Keyboard => {
+                    if !self.touch_positions.is_empty() && self.previous_touch_count == 0 {
+                        // close keyboard
+                        game_io.input_mut().end_text_input();
+                    }
+                }
+            }
+
+            self.previous_view_state = view_state;
         }
 
         self.last_touch_id = game_io.input().touches().first().map(|t| t.id);
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
+        if game_io.input().accepting_text() && game_io.window().ime_height() > 0 {
+            // hide if the keyboard is open
+            return;
+        }
+
         let globals = game_io.resource::<Globals>().unwrap();
         let editing = globals.editing_virtual_controller;
 
@@ -650,7 +677,9 @@ impl GameOverlay for VirtualController {
         // draw buttons
         for (button, sprite) in &mut self.button_sprites {
             let bounds = sprite.bounds();
-            let pressed = if editing {
+            let pressed = if self.previous_view_state == ViewState::Keyboard {
+                false
+            } else if editing {
                 self.selected_buttons.contains(button)
             } else {
                 self.touch_positions
