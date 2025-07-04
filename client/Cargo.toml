@@ -93,6 +93,7 @@ orientation = "sensorLandscape"
 [package.metadata.android.application]
 label = "Hub OS"
 theme = "@style/Theme"
+icon = "@mipmap/ic_launcher"
 
 [features]
 record_simulation_flow = []
