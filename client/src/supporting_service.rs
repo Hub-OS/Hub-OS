@@ -46,7 +46,6 @@ impl GameService for SupportingService {
     fn pre_update(&mut self, game_io: &mut GameIO) {
         let suspended = game_io.suspended();
         let globals = game_io.resource_mut::<Globals>().unwrap();
-        globals.network.tick();
 
         if !suspended && self.suspended_music {
             // resume music if we stopped it

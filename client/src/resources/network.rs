@@ -1,8 +1,8 @@
 use crate::args::Args;
-use crate::render::FrameTime;
 use crate::structures::{DenseSlotMap, GenerationalIndex};
 use framework::math::Instant;
 use framework::prelude::async_sleep;
+use futures::StreamExt;
 use packets::{
     deserialize, ClientPacket, NetplayPacket, NetplayPacketData, PacketChannels, Reliability,
     ServerPacket, SERVER_TICK_RATE,
@@ -35,13 +35,11 @@ enum Event {
     SendingClientPacket(SocketAddr, Reliability, ClientPacket),
     SendingNetplayPacket(SocketAddr, NetplayPacket),
     ReceivedPacket(SocketAddr, Instant, Vec<u8>),
-    Tick,
 }
 
 pub struct Network {
     socket: Arc<UdpSocket>,
     sender: flume::Sender<Event>,
-    time: FrameTime,
 }
 
 impl Network {
@@ -64,11 +62,7 @@ impl Network {
             move || listener.run()
         });
 
-        Self {
-            socket,
-            sender,
-            time: 0,
-        }
+        Self { socket, sender }
     }
 
     pub fn subscribe_to_netplay(
@@ -161,15 +155,6 @@ impl Network {
 
         ServerStatus::Offline
     }
-
-    pub fn tick(&mut self) {
-        self.time += 1;
-
-        // run 20 times per second
-        if self.time % (60 / 20) == 0 {
-            self.sender.send(Event::Tick).unwrap();
-        }
-    }
 }
 
 fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) {
@@ -238,35 +223,50 @@ impl EventListener {
     }
 
     fn run(mut self) {
-        loop {
-            let event = match self.receiver.recv() {
-                Ok(event) => event,
-                _ => return,
-            };
+        smol::block_on(async {
+            let tick_stream = smol::Timer::interval(SERVER_TICK_RATE).fuse();
+            let receiver_clone = self.receiver.clone();
+            let receiver_stream = receiver_clone.stream().fuse();
 
-            match event {
-                Event::ServerSubscription(addr, sender) => {
-                    self.handle_server_subscription(addr, sender)
+            futures::pin_mut!(tick_stream, receiver_stream);
+
+            loop {
+                futures::select! {
+                    _ = tick_stream.select_next_some() => {
+                        if self.receiver.is_disconnected() {
+                            return;
+                        }
+
+                        self.tick();
+                    }
+                    event = receiver_stream.select_next_some() => {
+                        match event {
+                            Event::ServerSubscription(addr, sender) => {
+                                self.handle_server_subscription(addr, sender)
+                            }
+                            Event::NetplaySubscription(addr, sender) => {
+                                self.handle_netplay_subscription(addr, sender)
+                            }
+                            Event::SendingClientPacket(addr, reliability, body) => {
+                                let name: &'static str = (&body).into();
+                                println!("sending ClientPacket::{name:?}");
+                                self.send_client_packet(addr, reliability, packets::serialize(body))
+                            }
+                            Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
+                                addr,
+                                if body.data == NetplayPacketData::Heartbeat {
+                                    Reliability::Reliable
+                                } else {
+                                    Reliability::ReliableOrdered
+                                },
+                                packets::serialize(body),
+                            ),
+                            Event::ReceivedPacket(addr, time, body) => self.sort_packet(addr, time, body),
+                        }
+                    }
                 }
-                Event::NetplaySubscription(addr, sender) => {
-                    self.handle_netplay_subscription(addr, sender)
-                }
-                Event::SendingClientPacket(addr, reliability, body) => {
-                    self.send_client_packet(addr, reliability, packets::serialize(body))
-                }
-                Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
-                    addr,
-                    if body.data == NetplayPacketData::Heartbeat {
-                        Reliability::Reliable
-                    } else {
-                        Reliability::ReliableOrdered
-                    },
-                    packets::serialize(body),
-                ),
-                Event::ReceivedPacket(addr, time, body) => self.sort_packet(addr, time, body),
-                Event::Tick => self.tick(),
             }
-        }
+        })
     }
 
     fn handle_server_subscription(
