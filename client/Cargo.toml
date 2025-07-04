@@ -82,14 +82,6 @@ target_sdk_version = 30
 min_sdk_version = 30
 max_sdk_version = 35
 
-[package.metadata.android.signing.debug]
-path = "debug.keystore"
-keystore_password = "android"
-
-[package.metadata.android.signing.release]
-path = "debug.keystore"
-keystore_password = "android"
-
 [[package.metadata.android.uses_permission]]
 name = "android.permission.INTERNET"
 
@@ -103,3 +95,16 @@ theme = "@style/Theme"
 
 [features]
 record_simulation_flow = []
+
+# keystores
+[package.metadata.android.signing.dev]
+path = "debug.keystore"
+keystore_password = "android"
+
+[package.metadata.android.signing.debug]
+path = "debug.keystore"
+keystore_password = "android"
+
+[package.metadata.android.signing.release]
+path = "debug.keystore"
+keystore_password = "android"
