@@ -425,6 +425,10 @@ impl PackageScene {
 
         globals.unload_package(category, PackageNamespace::Local, id);
 
+        // remove associated save data
+        globals.global_save.installed_blocks.remove(id);
+        globals.global_save.installed_drive_parts.remove(id);
+
         log::info!("Deleting {path:?}");
         let _ = std::fs::remove_dir_all(path);
     }
