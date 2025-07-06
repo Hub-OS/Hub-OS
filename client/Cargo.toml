@@ -74,6 +74,8 @@ surf = { version = "2.3", default-features = false, features = [
 crate-type = ["cdylib", "rlib"]
 
 [package.metadata.android]
+package = "dev.hubos.client"
+apk_name = "hub_os"
 build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
 assets = "cache/android_assets"
 resources = "android_res"
