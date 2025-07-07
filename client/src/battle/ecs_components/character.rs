@@ -1,7 +1,7 @@
 use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
-    Action, ActionType, BattleCallback, BattleSimulation, BattleState, Entity, Movement,
-    SharedBattleResources, TileState,
+    Action, ActionQueue, ActionType, BattleCallback, BattleSimulation, BattleState, Entity,
+    Movement, SharedBattleResources, TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
@@ -337,19 +337,21 @@ impl Character {
         entity_id: EntityId,
         sprite_queue: &mut SpriteColorQueue,
     ) {
-        type Query<'a> = (&'a mut Character, &'a Living);
+        type Query<'a> = (&'a mut Character, &'a Living, Option<&'a ActionQueue>);
 
         let entities = &mut simulation.entities;
-        let Ok((character, living)) = entities.query_one_mut::<Query>(entity_id.into()) else {
+        let Ok((character, living, action_queue)) =
+            entities.query_one_mut::<Query>(entity_id.into())
+        else {
             return;
         };
 
-        // only render if there's no processed actions
+        // only render if there's no processed or pending actions
         let mut actions_iter = simulation.actions.iter();
         let action_processed =
             actions_iter.any(|(_, action)| action.entity == entity_id && action.processed);
 
-        if action_processed {
+        if action_processed || action_queue.is_some_and(|action| !action.pending.is_empty()) {
             return;
         }
 
