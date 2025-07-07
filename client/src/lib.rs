@@ -58,9 +58,16 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
     ResourcePaths::init_game_folders(&app, args.data_folder.clone());
 
     let (log_sender, log_receiver) = flume::unbounded();
-    default_logger::init_with_listener!(move |log| {
-        let _ = log_sender.send(log);
-    });
+
+    default_logger::DefaultLogger::new()
+        .with_global_level_filter(LogLevelFilter::Warn)
+        .with_crate_level_filter(env!("CARGO_PKG_NAME"), LogLevelFilter::Trace)
+        .with_crate_level_filter("framework", LogLevelFilter::Trace)
+        .with_listener(move |log| {
+            let _ = log_sender.send(log);
+        })
+        .init()
+        .unwrap();
 
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
