@@ -114,9 +114,16 @@ impl Bbs {
         // update selection
         let new_size = self.posts.len();
         let selected_index = self.scroll_tracker.selected_index();
+        let top_index = self.scroll_tracker.top_index();
+
+        let increase = new_size - old_size;
+
+        if top_index >= at_index {
+            let updated_index = top_index + increase;
+            self.scroll_tracker.set_top_index(updated_index);
+        }
 
         if selected_index >= at_index {
-            let increase = new_size - old_size;
             let updated_index = selected_index + increase;
             self.scroll_tracker.set_selected_index(updated_index);
         }
@@ -147,9 +154,16 @@ impl Bbs {
             // update selection
             let new_size = self.posts.len();
             let selected_index = self.scroll_tracker.selected_index();
+            let top_index = self.scroll_tracker.top_index();
 
-            if selected_index >= after_index {
-                let increase = new_size - old_size;
+            let increase = new_size - old_size;
+
+            if top_index > after_index {
+                let updated_index = top_index + increase;
+                self.scroll_tracker.set_top_index(updated_index);
+            }
+
+            if selected_index > after_index {
                 let updated_index = selected_index + increase;
                 self.scroll_tracker.set_selected_index(updated_index);
             }
@@ -165,6 +179,18 @@ impl Bbs {
     pub fn remove_post(&mut self, id: &str) {
         if let Some(index) = self.posts.iter().position(|post| post.id == id) {
             self.posts.remove(index);
+
+            let selected_index = self.scroll_tracker.selected_index();
+            let top_index = self.scroll_tracker.top_index();
+
+            if index < top_index {
+                self.scroll_tracker.set_top_index(top_index - 1);
+            }
+
+            if index < selected_index {
+                self.scroll_tracker.set_selected_index(selected_index - 1);
+            }
+
             self.scroll_tracker.set_total_items(self.posts.len());
         }
     }
