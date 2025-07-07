@@ -786,7 +786,10 @@ impl Action {
 
         // unset action_index to allow other actions to be used
         action_queue.active = None;
-        pending_callbacks.push(entity.idle_callback.clone());
+
+        if action_queue.pending.is_empty() {
+            pending_callbacks.push(entity.idle_callback.clone());
+        }
 
         self.set_auto_reservation_preference(entities, field, true);
     }

@@ -13,7 +13,11 @@ function status_init(status)
   entity:cancel_actions()
   entity:cancel_movement()
 
-  local action = Action.new(entity, "CHARACTER_HIT")
+  -- set the animation immediately
+  animation:set_state("CHARACTER_HIT")
+
+  -- use no animation on the action to carry the previous animation
+  local action = Action.new(entity)
   action:set_lockout(ActionLockout.new_sequence())
 
   local i = 0
@@ -22,8 +26,7 @@ function status_init(status)
   wait_step.on_update_func = function()
     i = i + 1
 
-    -- we want to flinch for 22 frames
-    -- timing through the action's on_update_func shows this is accurate
+    -- we want to flinch for 22 frames, confirmed by counting frames in battle
     if i == 21 then
       wait_step:complete_step()
     end
