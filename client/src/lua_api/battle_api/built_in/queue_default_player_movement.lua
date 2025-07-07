@@ -14,7 +14,7 @@ if Player.from(entity) and entity:slide_when_moving() then
 else
   movement = Movement.new_teleport(tile)
   movement.delay = 5
-  movement.endlag = 7
+  movement.endlag = 8
 
   local FRAMES = {
     { 1, 2 },
@@ -23,7 +23,7 @@ else
     { 4, 1 },
     { 3, 1 },
     { 2, 1 },
-    { 1, 1 },
+    { 1, 2 },
   }
 
   local animation = entity:animation()
