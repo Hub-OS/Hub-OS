@@ -767,8 +767,8 @@ impl Player {
             return;
         }
 
-        // can't move if not on the field
-        if !entity.on_field {
+        // can't move if not on the field or deleted
+        if !entity.on_field || entity.deleted {
             return;
         }
 
