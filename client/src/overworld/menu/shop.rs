@@ -1,7 +1,7 @@
 use super::Menu;
 use crate::overworld::OverworldArea;
 use crate::render::ui::{
-    FontName, ScrollTracker, TextStyle, Textbox, TextboxDoorstop, TextboxDoorstopRemover,
+    FontName, ScrollTracker, TextStyle, Textbox, TextboxDoorstop, TextboxDoorstopKey,
     TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, FrameTime, SpriteColorQueue};
@@ -38,7 +38,7 @@ pub struct Shop {
     items: Vec<ShopItem>,
     money_text: String,
     base_textbox: Textbox,
-    doorstop_remover: Option<TextboxDoorstopRemover>,
+    doorstop_key: Option<TextboxDoorstopKey>,
     on_select: Box<dyn Fn(&str)>,
     on_description_request: Box<dyn Fn(&str)>,
     on_leave: Rc<dyn Fn()>,
@@ -113,7 +113,7 @@ impl Shop {
                 .with_transition_animation_enabled(false)
                 .with_text_animation_enabled(false)
                 .begin_open(),
-            doorstop_remover: None,
+            doorstop_key: None,
             on_select: Box::new(on_select),
             on_description_request: Box::new(on_description_request),
             on_leave: Rc::new(on_leave),
@@ -138,12 +138,8 @@ impl Shop {
             return;
         }
 
-        if let Some(remover) = self.doorstop_remover.take() {
-            remover();
-        }
-
-        let (interface, remover) = TextboxDoorstop::new();
-        self.doorstop_remover = Some(remover);
+        let (interface, doorstop_key) = TextboxDoorstop::new();
+        self.doorstop_key = Some(doorstop_key);
 
         self.base_textbox
             .push_interface(interface.with_string(message));

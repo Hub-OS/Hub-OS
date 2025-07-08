@@ -8,7 +8,7 @@ use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    PackageListing, TextStyle, TextboxDoorstop, TextboxDoorstopRemover, TextboxInterface,
+    PackageListing, TextStyle, TextboxDoorstop, TextboxDoorstopKey, TextboxInterface,
     TextboxMessage, TextboxMessageAuto, TextboxPrompt, TextboxQuestion, TextboxQuiz,
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
@@ -50,7 +50,7 @@ pub struct OverworldOnlineScene {
     sprite_id_map: HashMap<SpriteId, hecs::Entity>,
     excluded_actors: Vec<ActorId>,
     excluded_objects: Vec<u32>,
-    doorstop_remover: Option<TextboxDoorstopRemover>,
+    doorstop_key: Option<TextboxDoorstopKey>,
     encounter_packages: HashMap<String, PackageId>, // server_path -> package_id
     loaded_zips: HashMap<String, FileHash>,         // server_path -> hash
 }
@@ -114,7 +114,7 @@ impl OverworldOnlineScene {
             sprite_id_map: HashMap::new(),
             excluded_actors: Vec::new(),
             excluded_objects: Vec::new(),
-            doorstop_remover: None,
+            doorstop_key: None,
             encounter_packages: HashMap::new(),
             loaded_zips: HashMap::new(),
         }
@@ -764,9 +764,7 @@ impl OverworldOnlineScene {
                     // big assumption here
                     // the last interface should be from the server
                     // todo: replace with a counter?
-                    if let Some(remove) = self.doorstop_remover.take() {
-                        remove();
-                    }
+                    self.doorstop_key.take();
                 }
             }
             ServerPacket::OpenBoard {
@@ -931,9 +929,7 @@ impl OverworldOnlineScene {
                 self.menu_manager.use_player_avatar(game_io);
                 self.menu_manager.push_textbox_interface(interface);
 
-                if let Some(remove) = self.doorstop_remover.take() {
-                    remove();
-                }
+                self.doorstop_key.take();
             }
             ServerPacket::ReferServer { name, address } => {
                 let globals = game_io.resource::<Globals>().unwrap();
@@ -1478,13 +1474,11 @@ impl OverworldOnlineScene {
     }
 
     fn set_textbox_doorstop(&mut self) {
-        if let Some(remove) = self.doorstop_remover.take() {
-            remove();
-        }
+        self.doorstop_key.take();
 
         // keep the textbox open until the server receives our response or another textbox comes in
-        let (doorstop_interface, remover) = TextboxDoorstop::new();
-        self.doorstop_remover = Some(remover);
+        let (doorstop_interface, doorstop_key) = TextboxDoorstop::new();
+        self.doorstop_key = Some(doorstop_key);
         self.menu_manager.push_textbox_interface(doorstop_interface);
     }
 
@@ -1594,11 +1588,7 @@ impl OverworldOnlineScene {
                     self.menu_manager.use_player_avatar(game_io);
                     self.menu_manager.push_textbox_interface(interface);
 
-                    if let Some(remove) = self.doorstop_remover.take() {
-                        // we might never get a TextBoxResponseAck
-                        // remove the doorstop to prevent a soft lock
-                        remove();
-                    }
+                    self.doorstop_key.take();
 
                     self.connected = false;
                 }

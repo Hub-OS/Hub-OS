@@ -26,7 +26,7 @@ pub struct PackageScene {
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     tasks: Vec<AsyncTask<Event>>,
-    doorstop_remover: Option<TextboxDoorstopRemover>,
+    doorstop_key: Option<TextboxDoorstopKey>,
     package_updater: RepoPackageUpdater,
     prev_status: UpdateStatus,
     textbox: Textbox,
@@ -82,7 +82,7 @@ impl PackageScene {
             event_sender,
             event_receiver,
             tasks: Vec::new(),
-            doorstop_remover: None,
+            doorstop_key: None,
             package_updater: RepoPackageUpdater::new(),
             prev_status: UpdateStatus::Idle,
             textbox: Textbox::new_navigation(game_io),
@@ -345,9 +345,7 @@ impl PackageScene {
         }
         self.prev_status = status;
 
-        if let Some(doorstop_remover) = self.doorstop_remover.take() {
-            doorstop_remover();
-        }
+        self.doorstop_key.take();
 
         let message = match status {
             UpdateStatus::Idle => unreachable!(),
@@ -378,8 +376,8 @@ impl PackageScene {
             let interface = TextboxMessage::new(String::from(message));
             self.textbox.push_interface(interface);
         } else {
-            let (doorstop, doorstop_remover) = TextboxDoorstop::new();
-            self.doorstop_remover = Some(doorstop_remover);
+            let (doorstop, doorstop_key) = TextboxDoorstop::new();
+            self.doorstop_key = Some(doorstop_key);
             self.textbox.push_interface(doorstop.with_str(message));
         }
 

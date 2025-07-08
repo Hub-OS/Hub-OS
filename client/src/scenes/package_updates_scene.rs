@@ -2,7 +2,7 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{PackageNamespace, RepoPackageUpdater, UpdateStatus};
 use crate::render::ui::{
     build_9patch, FontName, LengthPercentageAuto, PackageListing, SceneTitle, ScrollableList,
-    SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopRemover, TextboxMessage, UiButton,
+    SubSceneFrame, Textbox, TextboxDoorstop, TextboxDoorstopKey, TextboxMessage, UiButton,
     UiInputTracker, UiLayout, UiLayoutNode, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
@@ -35,7 +35,7 @@ pub struct PackageUpdatesScene {
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
-    doorstop_remover: Option<TextboxDoorstopRemover>,
+    doorstop_key: Option<TextboxDoorstopKey>,
     next_scene: NextScene,
 }
 
@@ -90,7 +90,7 @@ impl PackageUpdatesScene {
             event_sender,
             event_receiver,
             textbox: Textbox::new_navigation(game_io),
-            doorstop_remover: None,
+            doorstop_key: None,
             next_scene: NextScene::None,
         }
     }
@@ -217,8 +217,8 @@ impl PackageUpdatesScene {
                         .with_transition(crate::transitions::new_sub_scene(game_io));
                 }
                 Event::Update => {
-                    let (doorstop, doorstop_remover) = TextboxDoorstop::new();
-                    self.doorstop_remover = Some(doorstop_remover);
+                    let (doorstop, doorstop_key) = TextboxDoorstop::new();
+                    self.doorstop_key = Some(doorstop_key);
                     self.textbox
                         .push_interface(doorstop.with_str("Updating..."));
                     self.textbox.open();
@@ -255,9 +255,7 @@ impl PackageUpdatesScene {
             }
         };
 
-        if let Some(doorstop_remover) = self.doorstop_remover.take() {
-            doorstop_remover();
-        }
+        self.doorstop_key.take();
 
         // clear cached assets
         let globals = game_io.resource::<Globals>().unwrap();

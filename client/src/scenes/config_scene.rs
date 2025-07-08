@@ -56,7 +56,7 @@ pub struct ConfigScene {
     context_menu: ContextMenu<BindingContextOption>,
     context_sender: Option<flume::Sender<Option<BindingContextOption>>>,
     textbox: Textbox,
-    doorstop_remover: Option<TextboxDoorstopRemover>,
+    doorstop_key: Option<TextboxDoorstopKey>,
     config: Rc<RefCell<Config>>,
     key_bindings_backup: HashMap<Input, Vec<Key>>,
     opened_virtual_controller_editor: bool,
@@ -125,7 +125,7 @@ impl ConfigScene {
             ),
             context_sender: None,
             textbox: Textbox::new_navigation(game_io),
-            doorstop_remover: None,
+            doorstop_key: None,
             config,
             key_bindings_backup,
             opened_virtual_controller_editor: false,
@@ -755,8 +755,8 @@ impl ConfigScene {
                     let globals = &mut game_io.resource::<Globals>().unwrap();
                     let request = globals.request_latest_hashes();
                     let event_sender = self.event_sender.clone();
-                    let (doorstop, doorstop_remover) = TextboxDoorstop::new();
-                    self.doorstop_remover = Some(doorstop_remover);
+                    let (doorstop, doorstop_key) = TextboxDoorstop::new();
+                    self.doorstop_key = Some(doorstop_key);
 
                     self.textbox
                         .push_interface(doorstop.with_str("Checking for updates..."));
@@ -801,8 +801,7 @@ impl ConfigScene {
                         self.textbox.push_interface(interface);
                     }
 
-                    let remove_doorstop = self.doorstop_remover.take().unwrap();
-                    remove_doorstop();
+                    self.doorstop_key.take();
                 }
                 Event::ViewUpdates(requires_update) => {
                     let transition = crate::transitions::new_sub_scene(game_io);

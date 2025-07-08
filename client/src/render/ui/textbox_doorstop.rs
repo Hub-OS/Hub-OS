@@ -1,31 +1,28 @@
 use super::{TextStyle, TextboxInterface};
 use crate::render::*;
 use framework::prelude::GameIO;
+use std::rc::{Rc, Weak};
 
-pub type TextboxDoorstopRemover = Box<dyn FnOnce()>;
+pub struct TextboxDoorstopKey(Rc<()>);
 
 /// Keeps the textbox open
 pub struct TextboxDoorstop {
-    receiver: flume::Receiver<()>,
+    weak: Weak<()>,
     text: String,
     complete: bool,
 }
 
 impl TextboxDoorstop {
-    pub fn new() -> (Self, TextboxDoorstopRemover) {
-        let (sender, receiver) = flume::unbounded();
-
-        let doorstop_remover = Box::new(move || {
-            let _ = sender.send(());
-        });
+    pub fn new() -> (Self, TextboxDoorstopKey) {
+        let doorstop_key = TextboxDoorstopKey(Rc::new(()));
 
         (
             Self {
-                receiver,
+                weak: Rc::downgrade(&doorstop_key.0),
                 text: String::new(),
                 complete: false,
             },
-            doorstop_remover,
+            doorstop_key,
         )
     }
 
@@ -46,14 +43,10 @@ impl TextboxInterface for TextboxDoorstop {
     }
 
     fn is_complete(&self) -> bool {
-        self.complete
+        self.weak.strong_count() == 0
     }
 
-    fn update(&mut self, _game_io: &mut GameIO, _text_style: &TextStyle, _lines: usize) {
-        if self.receiver.try_recv().is_ok() {
-            self.complete = true;
-        }
-    }
+    fn update(&mut self, _game_io: &mut GameIO, _text_style: &TextStyle, _lines: usize) {}
 
     fn draw(&mut self, _game_io: &GameIO, _sprite_queue: &mut SpriteColorQueue) {
         // no ui
