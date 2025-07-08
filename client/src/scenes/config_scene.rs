@@ -435,9 +435,11 @@ impl ConfigScene {
                     }
                 },
                 |_, previous_value, cycle_right| {
-                    let names: Vec<_> = std::iter::once(None)
+                    let mut names: Vec<_> = std::iter::once(None)
                         .chain(AudioManager::device_names().map(Some))
                         .collect();
+
+                    names.sort();
 
                     let device_name =
                         UiConfigDynamicCycle::cycle_slice(&names, cycle_right, |name| {
