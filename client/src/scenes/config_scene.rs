@@ -442,6 +442,7 @@ impl ConfigScene {
                         .collect();
 
                     names.sort();
+                    names.dedup();
 
                     let device_name =
                         UiConfigDynamicCycle::cycle_slice(&names, cycle_right, |name| {
