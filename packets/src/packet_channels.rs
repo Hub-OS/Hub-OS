@@ -6,4 +6,5 @@ pub enum PacketChannels {
     Server,
     ServerComm,
     Netplay,
+    SyncData,
 }

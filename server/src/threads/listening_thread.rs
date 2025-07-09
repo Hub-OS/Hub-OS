@@ -138,6 +138,10 @@ async fn decode_messages(
                 }
             }
         }
+        PacketChannels::SyncData => {
+            // this channel is used for syncing data between clients
+            // ignored on servers
+        }
     }
 }
 

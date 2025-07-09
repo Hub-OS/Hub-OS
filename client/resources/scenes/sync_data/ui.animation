@@ -1,0 +1,5 @@
+animation state="DEFAULT"
+blank
+point label="LIST_START" x="7" y="22"
+point label="LIST_END" x="233" y="141"
+point label="LOCAL_ADDRESS" x="237" y="147"

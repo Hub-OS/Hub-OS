@@ -17,6 +17,13 @@ pub fn clean_path(path_str: &str) -> String {
     path.strip_prefix("./").map(String::from).unwrap_or(path)
 }
 
+fn parent(path_str: &str) -> Option<&str> {
+    let last_index = path_str.len().max(1) - 1;
+    let slash_index = path_str[..last_index].rfind('/')?;
+
+    Some(&path_str[..slash_index + 1])
+}
+
 pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
     let cursor = Cursor::new(bytes);
     let mut archive = match zip::ZipArchive::new(cursor) {
@@ -44,6 +51,27 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
 
         file_callback(path, file);
     }
+}
+
+pub fn extract_to(bytes: &[u8], base_path: &str) {
+    let _ = std::fs::remove_dir_all(base_path);
+
+    extract(bytes, |path, mut virtual_file| {
+        let path = format!("{base_path}{path}");
+
+        if let Some(parent_path) = parent(&path) {
+            if let Err(err) = std::fs::create_dir_all(parent_path) {
+                log::error!("Failed to create directory {parent_path:?}: {}", err);
+            }
+        }
+
+        let res = std::fs::File::create(&path)
+            .and_then(|mut file| std::io::copy(&mut virtual_file, &mut file));
+
+        if let Err(err) = res {
+            log::error!("Failed to write to {path:?}: {}", err);
+        }
+    });
 }
 
 pub fn compress<S>(path: &S) -> ZipResult<Vec<u8>>

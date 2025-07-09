@@ -1,5 +1,7 @@
 use super::{FontName, TextStyle};
 use crate::bindable::SpriteColorMode;
+use crate::render::ui::TextboxDoorstop;
+use crate::render::ui::TextboxDoorstopKey;
 use crate::render::ui::UiLayout;
 use crate::render::*;
 use crate::resources::*;
@@ -218,6 +220,19 @@ impl Textbox {
         if self.interface_queue.len() == 1 {
             self.create_pages();
         }
+    }
+
+    pub fn push_doorstop(&mut self) -> TextboxDoorstopKey {
+        let (interface, key) = TextboxDoorstop::new();
+        self.push_interface(interface);
+        key
+    }
+
+    pub fn push_doorstop_with_message(&mut self, message: String) -> TextboxDoorstopKey {
+        let (interface, key) = TextboxDoorstop::new();
+        let interface = interface.with_string(message);
+        self.push_interface(interface);
+        key
     }
 
     pub fn is_complete(&self) -> bool {

@@ -21,6 +21,12 @@ impl TextboxMessage {
     }
 }
 
+impl From<&str> for TextboxMessage {
+    fn from(value: &str) -> Self {
+        TextboxMessage::new(value.to_string())
+    }
+}
+
 impl TextboxInterface for TextboxMessage {
     fn text(&self) -> &str {
         &self.message

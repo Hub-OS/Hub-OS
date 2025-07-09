@@ -39,3 +39,5 @@ pub use shop_item::*;
 pub use sprite::*;
 pub use switch_drive_slot::*;
 pub use textbox_options::*;
+
+pub use uuid::Uuid;

@@ -278,6 +278,9 @@ impl ResourcePaths {
     pub const RESOURCE_ORDER_UI_ANIMATION: &'static str =
         "resources/scenes/resource_order/ui.animation";
 
+    // SyncDataScene
+    pub const SYNC_DATA_UI_ANIMATION: &'static str = "resources/scenes/sync_data/ui.animation";
+
     #[allow(unused_variables)]
     pub fn init_game_folders(app: &WinitPlatformApp, _data_folder_arg: Option<String>) {
         #[cfg(not(target_os = "android"))]

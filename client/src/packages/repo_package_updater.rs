@@ -1,6 +1,6 @@
 use super::PackageNamespace;
 use crate::render::ui::PackageListing;
-use crate::resources::{Globals, ResourcePaths};
+use crate::resources::Globals;
 use framework::prelude::{AsyncTask, GameIO};
 use packets::address_parsing::uri_encode;
 use packets::structures::{PackageCategory, PackageId};
@@ -101,10 +101,19 @@ impl RepoPackageUpdater {
                     let existing_hash = existing_package.map(|package| package.hash);
 
                     let requires_update = existing_hash != Some(listing.hash);
-                    let already_updating = (self.install_required.iter())
-                        .any(|(_, _, id)| *id == latest_id || id == queued_id);
+                    let already_updating =
+                        (self.install_required.iter()).any(|(_, _, id)| *id == latest_id);
 
-                    if requires_update && !already_updating {
+                    let newer_id_installed = *queued_id != latest_id
+                        && globals
+                            .package_info(category, PackageNamespace::Local, &latest_id)
+                            .is_some();
+
+                    if newer_id_installed {
+                        // uninstall old package
+                        let base_path = globals.resolve_package_download_path(category, queued_id);
+                        let _ = std::fs::remove_dir_all(base_path);
+                    } else if requires_update && !already_updating {
                         // save package id for install pass
                         let install_id = existing_package
                             .map(|p| &p.id)
@@ -180,24 +189,7 @@ impl RepoPackageUpdater {
                 return Event::Failed;
             };
 
-            let _ = std::fs::remove_dir_all(&base_path);
-
-            packets::zip::extract(&zip_bytes, |path, mut virtual_file| {
-                let path = format!("{base_path}{path}");
-
-                if let Some(parent_path) = ResourcePaths::parent(&path) {
-                    if let Err(err) = std::fs::create_dir_all(parent_path) {
-                        log::error!("Failed to create directory {parent_path:?}: {}", err);
-                    }
-                }
-
-                let res = std::fs::File::create(&path)
-                    .and_then(|mut file| std::io::copy(&mut virtual_file, &mut file));
-
-                if let Err(err) = res {
-                    log::error!("Failed to write to {path:?}: {}", err);
-                }
-            });
+            packets::zip::extract_to(&zip_bytes, &base_path);
 
             Event::InstallPackage
         });

@@ -1,11 +1,12 @@
-use super::{CategoryFilter, PackageUpdatesScene, PackagesScene, ResourceOrderScene};
+use super::{
+    CategoryFilter, PackageUpdatesScene, PackagesScene, ResourceOrderScene, SyncDataScene,
+};
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::InternalResolution;
-use crate::saves::{Config, KeyStyle};
+use crate::saves::{Config, InternalResolution, KeyStyle};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
@@ -21,6 +22,7 @@ enum Event {
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     EditVirtualControllerLayout,
     RequestNicknameChange,
+    SyncData,
     ChangeNickname { name: String },
     ViewPackages,
     UpdatePackages,
@@ -629,10 +631,10 @@ impl ConfigScene {
             )
         };
 
-        vec![create_button(
-            "Change Nickname",
-            Event::RequestNicknameChange,
-        )]
+        vec![
+            create_button("Change Nickname", Event::RequestNicknameChange),
+            create_button("Sync Data", Event::SyncData),
+        ]
     }
 }
 
@@ -740,6 +742,11 @@ impl ConfigScene {
 
                     self.textbox.push_interface(interface);
                     self.textbox.open();
+                }
+                Event::SyncData => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = SyncDataScene::new(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::ChangeNickname { name } => {
                     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
