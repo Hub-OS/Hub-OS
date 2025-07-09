@@ -72,7 +72,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
     }
 
     /// Sends pending packets including internally generated packets such as Acks, updates last_receive_time
-    pub fn tick(&mut self, now: Instant, send: impl Fn(&[u8])) {
+    pub fn tick(&mut self, now: Instant, mut send: impl FnMut(&[u8])) {
         while let Ok(ack) = self.ack_receiver.try_recv() {
             self.last_receive_time = ack.time;
 
@@ -176,15 +176,22 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         }
 
         for packet in &mut self.stored_packets {
-            if packet.next_retry <= now && packet.bytes.len() <= budget {
-                budget -= packet.bytes.len();
-                send(&packet.bytes);
-                packet.next_retry = now + self.retry_delay;
+            if packet.next_retry > now {
+                continue;
+            }
 
-                #[cfg(feature = "reliable_statistics")]
-                {
-                    self.statistics.resent += 1;
-                }
+            if packet.bytes.len() > budget {
+                // break as soon as we're over budget to avoid busy looping
+                break;
+            }
+
+            budget -= packet.bytes.len();
+            send(&packet.bytes);
+            packet.next_retry = now + self.retry_delay;
+
+            #[cfg(feature = "reliable_statistics")]
+            {
+                self.statistics.resent += 1;
             }
         }
     }
