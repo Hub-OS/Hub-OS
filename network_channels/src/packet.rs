@@ -31,8 +31,8 @@ impl<ChannelLabel: Label> Packet<'_, ChannelLabel> {
     }
 }
 
-pub(crate) enum PacketBuilder<ChannelLabel> {
-    Message {
+pub(crate) enum SenderTask<ChannelLabel> {
+    SendMessage {
         channel: ChannelLabel,
         reliability: Reliability,
         fragment_count: u64,
@@ -40,15 +40,14 @@ pub(crate) enum PacketBuilder<ChannelLabel> {
         data: Arc<Vec<u8>>,
         range: Range<usize>,
     },
-    Ack {
+    SendAck {
         header: PacketHeader<ChannelLabel>,
         time: Instant,
     },
-}
-
-pub(crate) struct Ack<ChannelLabel> {
-    pub header: Option<PacketHeader<ChannelLabel>>,
-    pub time: Instant,
+    Ack {
+        header: Option<PacketHeader<ChannelLabel>>,
+        time: Instant,
+    },
 }
 
 #[derive(Serialize, Deserialize)]

@@ -1,6 +1,6 @@
 use crate::channel_receiver::ChannelReceiver;
 use crate::deserialize;
-use crate::packet::{Ack, Packet, PacketBuilder};
+use crate::packet::{Packet, SenderTask};
 use crate::{DecodeError, Instant, Label};
 use std::sync::mpsc;
 
@@ -8,16 +8,14 @@ pub type ReceiveResult<T> = std::result::Result<T, DecodeError>;
 
 pub struct PacketReceiver<ChannelLabel> {
     channel_receivers: Vec<ChannelReceiver<ChannelLabel>>,
-    packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
-    ack_sender: mpsc::Sender<Ack<ChannelLabel>>,
+    task_sender: mpsc::Sender<SenderTask<ChannelLabel>>,
     last_receive_time: Instant,
 }
 
 impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
     pub(crate) fn new(
         channels: &[ChannelLabel],
-        packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
-        ack_sender: mpsc::Sender<Ack<ChannelLabel>>,
+        task_sender: mpsc::Sender<SenderTask<ChannelLabel>>,
     ) -> Self {
         let channel_receivers: Vec<_> = channels
             .iter()
@@ -26,8 +24,7 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
 
         Self {
             channel_receivers,
-            packet_sender,
-            ack_sender,
+            task_sender,
             last_receive_time: Instant::now(),
         }
     }
@@ -55,8 +52,8 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
             } => {
                 if header.reliability.is_reliable() {
                     let _ = self
-                        .packet_sender
-                        .send(PacketBuilder::Ack { header, time: now });
+                        .task_sender
+                        .send(SenderTask::SendAck { header, time: now });
                 }
 
                 if let Some(receiver) = self
@@ -70,13 +67,13 @@ impl<ChannelLabel: Label> PacketReceiver<ChannelLabel> {
                     )));
                 }
 
-                let _ = self.ack_sender.send(Ack {
+                let _ = self.task_sender.send(SenderTask::Ack {
                     header: None,
                     time: now,
                 });
             }
             Packet::Ack { header } => {
-                let _ = self.ack_sender.send(Ack {
+                let _ = self.task_sender.send(SenderTask::Ack {
                     header: Some(header),
                     time: now,
                 });

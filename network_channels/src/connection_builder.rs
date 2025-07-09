@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::packet::{Packet, PacketBuilder};
+use crate::packet::{Packet, SenderTask};
 use crate::packet_sender::PacketSender;
 use crate::{ChannelSender, Connection, Label, PacketReceiver};
 use std::sync::mpsc;
@@ -8,20 +8,20 @@ pub struct ConnectionBuilder<ChannelLabel: Label> {
     config: Config,
     sending_channels: Vec<ChannelLabel>,
     receiving_channels: Vec<ChannelLabel>,
-    packet_sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
-    packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
+    task_sender: mpsc::Sender<SenderTask<ChannelLabel>>,
+    task_receiver: mpsc::Receiver<SenderTask<ChannelLabel>>,
 }
 
 impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
     pub fn new(config: &Config) -> Self {
-        let (packet_sender, packet_receiver) = mpsc::channel();
+        let (task_sender, task_receiver) = mpsc::channel();
 
         Self {
             config: config.clone(),
             receiving_channels: Vec::new(),
             sending_channels: Vec::new(),
-            packet_sender,
-            packet_receiver,
+            task_sender,
+            task_receiver,
         }
     }
 
@@ -33,7 +33,7 @@ impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
         ChannelSender {
             channel: label,
             mtu: self.config.mtu as usize - std::mem::size_of::<Packet<'_, ChannelLabel>>(),
-            sender: self.packet_sender.clone(),
+            sender: self.task_sender.clone(),
         }
     }
 
@@ -49,17 +49,10 @@ impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
     }
 
     pub fn build(self) -> Connection<ChannelLabel> {
-        let (ack_sender, ack_receiver) = mpsc::channel();
+        let packet_sender =
+            PacketSender::new(&self.config, &self.sending_channels, self.task_receiver);
 
-        let packet_sender = PacketSender::new(
-            &self.config,
-            &self.sending_channels,
-            self.packet_receiver,
-            ack_receiver,
-        );
-
-        let packet_receiver =
-            PacketReceiver::new(&self.receiving_channels, self.packet_sender, ack_sender);
+        let packet_receiver = PacketReceiver::new(&self.receiving_channels, self.task_sender);
 
         Connection {
             packet_sender,

@@ -1,4 +1,4 @@
-use crate::packet::PacketBuilder;
+use crate::packet::SenderTask;
 use crate::{serialize, Label, Reliability};
 use std::sync::mpsc;
 use std::sync::Arc;
@@ -7,7 +7,7 @@ use std::sync::Arc;
 pub struct ChannelSender<ChannelLabel: Label> {
     pub(crate) channel: ChannelLabel,
     pub(crate) mtu: usize,
-    pub(crate) sender: mpsc::Sender<PacketBuilder<ChannelLabel>>,
+    pub(crate) sender: mpsc::Sender<SenderTask<ChannelLabel>>,
 }
 
 impl<ChannelLabel: Label> ChannelSender<ChannelLabel> {
@@ -36,7 +36,7 @@ impl<ChannelLabel: Label> ChannelSender<ChannelLabel> {
             let range = i..data.len().min(i + self.mtu);
             i += self.mtu;
 
-            let _ = self.sender.send(PacketBuilder::Message {
+            let _ = self.sender.send(SenderTask::SendMessage {
                 channel: self.channel,
                 reliability,
                 fragment_count,

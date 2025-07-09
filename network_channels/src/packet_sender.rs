@@ -1,6 +1,6 @@
 use crate::channel_send_tracking::ChannelSendTracking;
 use crate::config::Config;
-use crate::packet::{Ack, FragmentType, Packet, PacketBuilder, PacketHeader};
+use crate::packet::{FragmentType, Packet, PacketHeader, SenderTask};
 use crate::{serialize, Label};
 use instant::{Duration, Instant};
 use std::sync::mpsc;
@@ -30,8 +30,7 @@ impl ReliablePacketStatistics {
 pub struct PacketSender<ChannelLabel: Label> {
     bytes_per_tick: usize,
     send_trackers: Vec<ChannelSendTracking<ChannelLabel>>,
-    packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
-    ack_receiver: mpsc::Receiver<Ack<ChannelLabel>>,
+    task_receiver: mpsc::Receiver<SenderTask<ChannelLabel>>,
     stored_packets: Vec<StoredPacket<ChannelLabel>>,
     last_receive_time: Instant,
     rtt_resend_factor: f32,
@@ -44,8 +43,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
     pub(crate) fn new(
         config: &Config,
         channels: &[ChannelLabel],
-        packet_receiver: mpsc::Receiver<PacketBuilder<ChannelLabel>>,
-        ack_receiver: mpsc::Receiver<Ack<ChannelLabel>>,
+        task_receiver: mpsc::Receiver<SenderTask<ChannelLabel>>,
     ) -> Self {
         let send_trackers: Vec<_> = channels
             .iter()
@@ -55,8 +53,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
         Self {
             bytes_per_tick: config.bytes_per_tick,
             send_trackers,
-            packet_receiver,
-            ack_receiver,
+            task_receiver,
             stored_packets: Vec::new(),
             last_receive_time: Instant::now(),
             rtt_resend_factor: config.rtt_resend_factor,
@@ -73,39 +70,38 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
     /// Sends pending packets including internally generated packets such as Acks, updates last_receive_time
     pub fn tick(&mut self, now: Instant, mut send: impl FnMut(&[u8])) {
-        while let Ok(ack) = self.ack_receiver.try_recv() {
-            self.last_receive_time = ack.time;
-
-            let Some(header) = ack.header else {
-                continue;
-            };
-
-            let mut packets_iter = self.stored_packets.iter();
-
-            if let Some(index) = packets_iter.position(|packet| packet.header == header) {
-                let packet = self.stored_packets.remove(index);
-
-                let rtt = ack.time - packet.creation;
-                let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
-                self.retry_delay = self.retry_delay.min(updated_retry_delay);
-
-                #[cfg(feature = "reliable_statistics")]
-                {
-                    self.statistics.acknowledged += 1;
-                }
-            } else {
-                #[cfg(feature = "reliable_statistics")]
-                {
-                    self.statistics.redundant += 1;
-                }
-            }
-        }
-
         let mut budget = self.bytes_per_tick;
 
-        while let Ok(packet_instruction) = self.packet_receiver.try_recv() {
-            match &packet_instruction {
-                PacketBuilder::Message {
+        while let Ok(packet_instruction) = self.task_receiver.try_recv() {
+            match packet_instruction {
+                SenderTask::Ack { header, time } => {
+                    self.last_receive_time = time;
+
+                    let Some(header) = header else {
+                        continue;
+                    };
+
+                    let mut packets_iter = self.stored_packets.iter();
+
+                    if let Some(index) = packets_iter.position(|packet| packet.header == header) {
+                        let packet = self.stored_packets.remove(index);
+
+                        let rtt = time - packet.creation;
+                        let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
+                        self.retry_delay = self.retry_delay.min(updated_retry_delay);
+
+                        #[cfg(feature = "reliable_statistics")]
+                        {
+                            self.statistics.acknowledged += 1;
+                        }
+                    } else {
+                        #[cfg(feature = "reliable_statistics")]
+                        {
+                            self.statistics.redundant += 1;
+                        }
+                    }
+                }
+                SenderTask::SendMessage {
                     channel,
                     reliability,
                     fragment_count,
@@ -116,24 +112,24 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     let Some(tracker) = self
                         .send_trackers
                         .iter_mut()
-                        .find(|tracker| tracker.label() == *channel)
+                        .find(|tracker| tracker.label() == channel)
                     else {
                         continue;
                     };
 
                     let header = PacketHeader {
-                        channel: *channel,
-                        reliability: *reliability,
-                        id: tracker.next_id(*reliability),
+                        channel,
+                        reliability,
+                        id: tracker.next_id(reliability),
                     };
 
                     let bytes = serialize(&Packet::Message {
                         header,
-                        fragment_type: if *fragment_count == 1 {
+                        fragment_type: if fragment_count == 1 {
                             FragmentType::Full
                         } else {
                             let start = header.id - fragment_id;
-                            let end = start + *fragment_count;
+                            let end = start + fragment_count;
 
                             FragmentType::Fragment {
                                 id_range: start..end,
@@ -163,9 +159,9 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         }
                     }
                 }
-                PacketBuilder::Ack { header, time } => {
-                    self.last_receive_time = *time;
-                    let bytes = serialize(&Packet::Ack { header: *header });
+                SenderTask::SendAck { header, time } => {
+                    self.last_receive_time = time;
+                    let bytes = serialize(&Packet::Ack { header });
 
                     if bytes.len() <= budget {
                         budget -= bytes.len();
