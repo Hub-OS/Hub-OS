@@ -477,6 +477,7 @@ impl SyncDataScene {
                     if let Ok(remote_save) = deserialize::<GlobalSave>(&save) {
                         let globals = game_io.resource_mut::<Globals>().unwrap();
                         globals.global_save = remote_save;
+                        globals.global_save.save();
                     } else {
                         let error = "Failed to read remote save.";
                         log::debug!("{error}");
