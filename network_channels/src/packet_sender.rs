@@ -10,6 +10,7 @@ pub struct StoredPacket<ChannelLabel> {
     bytes: Vec<u8>,
     creation: Instant,
     next_retry: Instant,
+    attempts: u8,
 }
 
 #[cfg(feature = "reliable_statistics")]
@@ -28,7 +29,6 @@ impl ReliablePacketStatistics {
 }
 
 pub struct PacketSender<ChannelLabel: Label> {
-    bytes_per_tick: usize,
     send_trackers: Vec<ChannelSendTracking<ChannelLabel>>,
     task_receiver: mpsc::Receiver<SenderTask<ChannelLabel>>,
     stored_packets: Vec<StoredPacket<ChannelLabel>>,
@@ -36,6 +36,14 @@ pub struct PacketSender<ChannelLabel: Label> {
     estimated_rtt: Duration,
     retry_delay: Duration,
     rtt_resend_factor: f32,
+    mtu: u16,
+    bytes_per_sec: usize,
+    max_bytes_per_sec: Option<usize>,
+    bytes_per_second_increase_factor: f32,
+    bytes_per_second_slow_factor: f32,
+    remaining_send_budget: usize,
+    successfully_sent: usize,
+    last_clear: Instant,
     #[cfg(feature = "reliable_statistics")]
     statistics: ReliablePacketStatistics,
 }
@@ -52,7 +60,6 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             .collect();
 
         Self {
-            bytes_per_tick: config.bytes_per_tick,
             send_trackers,
             task_receiver,
             stored_packets: Vec::new(),
@@ -60,20 +67,41 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             rtt_resend_factor: config.rtt_resend_factor,
             estimated_rtt: config.initial_rtt,
             retry_delay: config.initial_rtt.mul_f32(config.rtt_resend_factor),
+            mtu: config.mtu,
+            bytes_per_sec: config.initial_bytes_per_second,
+            max_bytes_per_sec: config
+                .max_bytes_per_second
+                .map(|bytes| bytes.max(config.mtu as usize)),
+            bytes_per_second_increase_factor: config.bytes_per_second_increase_factor,
+            bytes_per_second_slow_factor: config.bytes_per_second_slow_factor,
+            remaining_send_budget: config.initial_bytes_per_second,
+            successfully_sent: 0,
+            last_clear: Instant::now(),
             #[cfg(feature = "reliable_statistics")]
             statistics: Default::default(),
         }
     }
 
-    /// Last time a packet was received by the PacketReceiver, including Acks. Updates after a tick()
+    /// Last time a packet was received by the [PacketReceiver](crate::PacketReceiver), including Acks. Updates after a [tick](Self::tick).
     pub fn last_receive_time(&self) -> Instant {
         self.last_receive_time
     }
 
-    /// Sends pending packets including internally generated packets such as Acks, updates last_receive_time
+    /// Sends new packets and resends old packets.
     pub fn tick(&mut self, now: Instant, mut send: impl FnMut(&[u8])) {
-        let mut budget = self.bytes_per_tick;
+        // prioritize new packets
+        self.send_latest(now, &mut send);
+        self.resend_old(now, &mut send);
 
+        if now - self.last_clear > Duration::from_secs(1) {
+            // clear successfully sent to avoid speeding up from mostly idling
+            self.successfully_sent = 0;
+            self.remaining_send_budget = self.bytes_per_sec;
+            self.last_clear = now;
+        }
+    }
+
+    fn send_latest(&mut self, now: Instant, send: &mut dyn FnMut(&[u8])) {
         while let Ok(packet_instruction) = self.task_receiver.try_recv() {
             match packet_instruction {
                 SenderTask::Ack { header, time } => {
@@ -99,6 +127,31 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         // update retry delay
                         let new_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
                         self.retry_delay = self.retry_delay.min(new_delay);
+
+                        // try speeding up
+                        self.successfully_sent += packet.bytes.len();
+
+                        let threshold = if self.bytes_per_sec > self.mtu as usize * 2 {
+                            // must successfully utilize almost all of the budget
+                            self.bytes_per_sec - self.mtu as usize * 2
+                        } else {
+                            // must successfully utilize at least half of the budget
+                            self.bytes_per_sec / 2
+                        };
+
+                        if self.successfully_sent >= threshold {
+                            // try speeding up
+                            self.bytes_per_sec = (self.bytes_per_sec as f32
+                                * self.bytes_per_second_increase_factor)
+                                as usize;
+
+                            // limit increase
+                            if let Some(max) = self.max_bytes_per_sec {
+                                self.bytes_per_sec = self.bytes_per_sec.min(max);
+                            }
+
+                            self.successfully_sent = 0;
+                        }
 
                         #[cfg(feature = "reliable_statistics")]
                         {
@@ -148,10 +201,10 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         data: &data[range.start..range.end],
                     });
 
-                    let sending = bytes.len() <= budget;
+                    let sending = bytes.len() <= self.remaining_send_budget;
 
                     if sending {
-                        budget -= bytes.len();
+                        self.remaining_send_budget -= bytes.len();
                         send(&bytes);
                     }
 
@@ -161,6 +214,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             bytes,
                             creation: now,
                             next_retry: if sending { now + self.retry_delay } else { now },
+                            attempts: 0,
                         });
 
                         #[cfg(feature = "reliable_statistics")]
@@ -173,25 +227,36 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     self.last_receive_time = time;
                     let bytes = serialize(&Packet::Ack { header });
 
-                    if bytes.len() <= budget {
-                        budget -= bytes.len();
+                    if bytes.len() <= self.remaining_send_budget {
+                        self.remaining_send_budget -= bytes.len();
                         send(&bytes);
                     }
                 }
             };
         }
+    }
+
+    /// Resends old packets and handles slowing down
+    fn resend_old(&mut self, now: Instant, send: &mut dyn FnMut(&[u8])) {
+        let mut slowing = false;
 
         for packet in &mut self.stored_packets {
             if packet.next_retry > now {
                 continue;
             }
 
-            if packet.bytes.len() > budget {
+            if packet.bytes.len() > self.remaining_send_budget {
                 // break as soon as we're over budget to avoid busy looping
                 break;
             }
 
-            budget -= packet.bytes.len();
+            if packet.attempts >= 2 {
+                slowing = true;
+            }
+
+            packet.attempts += 1;
+
+            self.remaining_send_budget -= packet.bytes.len();
             send(&packet.bytes);
             packet.next_retry = now + self.retry_delay;
 
@@ -199,6 +264,22 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             {
                 self.statistics.resent += 1;
             }
+        }
+
+        if slowing && self.bytes_per_sec > self.mtu as usize {
+            // reduce bytes per tick
+            self.bytes_per_sec =
+                (self.bytes_per_sec as f32 * self.bytes_per_second_slow_factor) as usize;
+
+            // send at least one packet
+            self.bytes_per_sec = self.bytes_per_sec.max(self.mtu as _);
+
+            // reset attempts
+            for packet in &mut self.stored_packets {
+                packet.attempts = 0;
+            }
+
+            self.successfully_sent = 0;
         }
     }
 }

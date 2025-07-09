@@ -79,7 +79,7 @@ impl Network {
         });
 
         std::thread::spawn({
-            let listener = EventListener::new(socket.clone(), receiver, args.resend_budget);
+            let listener = EventListener::new(socket.clone(), receiver, args.send_budget);
 
             move || listener.run()
         });
@@ -284,8 +284,14 @@ struct Connection {
 }
 
 impl Connection {
-    fn new(socket_addr: SocketAddr) -> Self {
-        let mut builder = packets::ConnectionBuilder::new(&packets::Config::default());
+    fn new(socket_addr: SocketAddr, send_budget: usize) -> Self {
+        let default_config = packets::Config::default();
+
+        let mut builder = packets::ConnectionBuilder::new(&packets::Config {
+            initial_bytes_per_second: default_config.initial_bytes_per_second.min(send_budget),
+            max_bytes_per_second: Some(send_budget),
+            ..Default::default()
+        });
         builder.receiving_channel(PacketChannels::Server);
         let client_channel = builder.sending_channel(PacketChannels::Client);
         let netplay_channel = builder.bidirectional_channel(PacketChannels::Netplay);
@@ -320,11 +326,11 @@ struct EventListener {
     >,
     multicast_listeners: Vec<flume::Sender<(SocketAddr, MulticastPacket)>>,
     receiver: flume::Receiver<Event>,
-    resend_budget: usize,
+    send_budget: usize,
 }
 
 impl EventListener {
-    fn new(socket: Arc<UdpSocket>, receiver: flume::Receiver<Event>, resend_budget: usize) -> Self {
+    fn new(socket: Arc<UdpSocket>, receiver: flume::Receiver<Event>, send_budget: usize) -> Self {
         Self {
             socket,
             connection_map: HashMap::new(),
@@ -332,7 +338,7 @@ impl EventListener {
             sync_senders_and_receivers: Default::default(),
             multicast_listeners: Default::default(),
             receiver,
-            resend_budget,
+            send_budget,
         }
     }
 
@@ -403,7 +409,7 @@ impl EventListener {
         if let Some(index) = self.connection_map.get_mut(&addr) {
             *index
         } else {
-            let connection = Connection::new(addr);
+            let connection = Connection::new(addr, self.send_budget);
             let index = self.connections.insert(connection);
             self.connection_map.insert(addr, index);
             index

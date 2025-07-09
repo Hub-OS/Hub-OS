@@ -28,8 +28,8 @@ pub struct Args {
     pub max_payload_size: u16,
 
     /// Budget of bytes each client has for the server to spend on resending packets
-    #[arg(long, value_name = "SIZE_IN_BYTES", default_value = "65536")]
-    pub resend_budget: usize,
+    #[arg(long, value_name = "SIZE_IN_BYTES", default_value = "1310720")]
+    pub send_budget: usize,
 
     /// Rate of received packets to randomly drop for simulating an unstable connection
     #[arg(

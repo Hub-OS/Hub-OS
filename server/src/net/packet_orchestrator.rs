@@ -8,7 +8,6 @@ use std::collections::{HashMap, HashSet};
 use std::net::{SocketAddr, UdpSocket};
 use std::rc::Rc;
 use std::sync::Arc;
-use std::time::Duration;
 
 use super::boot::Boot;
 use super::ServerConfig;
@@ -69,11 +68,14 @@ pub struct PacketOrchestrator {
 
 impl PacketOrchestrator {
     pub fn new(socket: Rc<UdpSocket>, server_config: Rc<ServerConfig>) -> PacketOrchestrator {
+        let default_config = packets::Config::default();
+        let send_budget = server_config.args.send_budget;
+
         let connection_config = packets::Config {
             mtu: server_config.args.max_payload_size,
-            bytes_per_tick: server_config.args.resend_budget,
-            rtt_resend_factor: 0.5,
-            initial_rtt: Duration::from_millis(500),
+            initial_bytes_per_second: default_config.initial_bytes_per_second.min(send_budget),
+            max_bytes_per_second: Some(send_budget),
+            ..default_config
         };
 
         PacketOrchestrator {
@@ -671,7 +673,7 @@ mod tests {
                 log_connections: false,
                 log_packets: false,
                 max_payload_size: 1000,
-                resend_budget: 0,
+                send_budget: 0,
                 receiving_drop_rate: 0.0,
                 player_asset_limit: 0,
                 avatar_dimensions_limit: 0,
