@@ -33,8 +33,9 @@ pub struct PacketSender<ChannelLabel: Label> {
     task_receiver: mpsc::Receiver<SenderTask<ChannelLabel>>,
     stored_packets: Vec<StoredPacket<ChannelLabel>>,
     last_receive_time: Instant,
-    rtt_resend_factor: f32,
+    estimated_rtt: Duration,
     retry_delay: Duration,
+    rtt_resend_factor: f32,
     #[cfg(feature = "reliable_statistics")]
     statistics: ReliablePacketStatistics,
 }
@@ -57,6 +58,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             stored_packets: Vec::new(),
             last_receive_time: Instant::now(),
             rtt_resend_factor: config.rtt_resend_factor,
+            estimated_rtt: config.initial_rtt,
             retry_delay: config.initial_rtt.mul_f32(config.rtt_resend_factor),
             #[cfg(feature = "reliable_statistics")]
             statistics: Default::default(),
@@ -86,9 +88,17 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     if let Some(index) = packets_iter.position(|packet| packet.header == header) {
                         let packet = self.stored_packets.remove(index);
 
-                        let rtt = time - packet.creation;
-                        let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
-                        self.retry_delay = self.retry_delay.min(updated_retry_delay);
+                        // resolve rtt using a smoothing factor, matching TCP
+                        const A: f32 = 0.125;
+                        const A_FLIPPED: f32 = 1.0 - A;
+
+                        let rtt_sample = time - packet.creation;
+                        self.estimated_rtt =
+                            self.estimated_rtt.mul_f32(A_FLIPPED) + rtt_sample.mul_f32(A);
+
+                        // update retry delay
+                        let new_delay = self.estimated_rtt.mul_f32(self.rtt_resend_factor);
+                        self.retry_delay = self.retry_delay.min(new_delay);
 
                         #[cfg(feature = "reliable_statistics")]
                         {
