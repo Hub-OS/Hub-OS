@@ -251,7 +251,6 @@ impl Server {
                         ServerPacket::new_version_info(),
                     );
                 }
-                ClientPacket::Heartbeat => {}
                 ClientPacket::AssetFound {
                     path,
                     last_modified,

@@ -21,7 +21,6 @@ pub enum ClientPacket {
         identity: Vec<u8>,
         data: Vec<u8>,
     },
-    Heartbeat,
     AssetFound {
         path: String,
         last_modified: u64,
