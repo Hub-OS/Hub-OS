@@ -12,6 +12,21 @@ pub struct StoredPacket<ChannelLabel> {
     next_retry: Instant,
 }
 
+#[cfg(feature = "reliable_statistics")]
+pub struct ReliablePacketStatistics {
+    pub sent: usize,
+    pub resent: usize,
+    pub acknowledged: usize,
+    pub redundant: usize,
+}
+
+#[cfg(feature = "reliable_statistics")]
+impl ReliablePacketStatistics {
+    fn unaccounted() -> usize {
+        self.sent + self.resent - self.acknowledged - self.redundant
+    }
+}
+
 pub struct PacketSender<ChannelLabel: Label> {
     bytes_per_tick: usize,
     send_trackers: Vec<ChannelSendTracking<ChannelLabel>>,
@@ -21,6 +36,8 @@ pub struct PacketSender<ChannelLabel: Label> {
     last_receive_time: Instant,
     rtt_resend_factor: f32,
     retry_delay: Duration,
+    #[cfg(feature = "reliable_statistics")]
+    statistics: ReliablePacketStatistics,
 }
 
 impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
@@ -44,6 +61,8 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             last_receive_time: Instant::now(),
             rtt_resend_factor: config.rtt_resend_factor,
             retry_delay: config.initial_rtt.mul_f32(config.rtt_resend_factor),
+            #[cfg(feature = "reliable_statistics")]
+            statistics: Default::default(),
         }
     }
 
@@ -69,6 +88,16 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 let rtt = ack.time - packet.creation;
                 let updated_retry_delay = rtt.mul_f32(self.rtt_resend_factor);
                 self.retry_delay = self.retry_delay.min(updated_retry_delay);
+
+                #[cfg(feature = "reliable_statistics")]
+                {
+                    self.statistics.acknowledged += 1;
+                }
+            } else {
+                #[cfg(feature = "reliable_statistics")]
+                {
+                    self.statistics.redundant += 1;
+                }
             }
         }
 
@@ -126,7 +155,12 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             bytes,
                             creation: now,
                             next_retry: if sending { now + self.retry_delay } else { now },
-                        })
+                        });
+
+                        #[cfg(feature = "reliable_statistics")]
+                        {
+                            self.statistics.sent += 1;
+                        }
                     }
                 }
                 PacketBuilder::Ack { header, time } => {
@@ -146,6 +180,11 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 budget -= packet.bytes.len();
                 send(&packet.bytes);
                 packet.next_retry = now + self.retry_delay;
+
+                #[cfg(feature = "reliable_statistics")]
+                {
+                    self.statistics.resent += 1;
+                }
             }
         }
     }
