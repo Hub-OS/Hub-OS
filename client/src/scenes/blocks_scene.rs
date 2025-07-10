@@ -8,7 +8,7 @@ use crate::render::ui::{
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
-use crate::saves::{BlockGrid, InstalledBlock};
+use crate::saves::{BlockGrid, GlobalSave, InstalledBlock};
 use framework::prelude::*;
 use itertools::Itertools;
 use packets::structures::PackageCategory;
@@ -506,6 +506,11 @@ impl BlocksScene {
                             global_save.installed_blocks.insert(
                                 global_save.selected_character.clone(),
                                 self.grid.installed_blocks().cloned().collect(),
+                            );
+
+                            global_save.character_update_times.insert(
+                                global_save.selected_character.clone(),
+                                GlobalSave::current_time(),
                             );
 
                             global_save.save();

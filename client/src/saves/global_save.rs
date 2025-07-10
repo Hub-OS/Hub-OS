@@ -2,7 +2,7 @@ use super::{BlockGrid, Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
-use packets::structures::InstalledSwitchDrive;
+use packets::structures::{InstalledSwitchDrive, Uuid};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -10,18 +10,30 @@ use std::collections::HashMap;
 #[serde(default)]
 pub struct GlobalSave {
     pub nickname: String,
-    pub selected_character: PackageId,
+    pub nickname_time: u64,
+    pub server_list: Vec<ServerInfo>,
     pub decks: Vec<Deck>,
     pub selected_deck: usize,
-    pub server_list: Vec<ServerInfo>,
+    pub selected_deck_time: u64,
+    pub selected_character: PackageId,
+    pub selected_character_time: u64,
+    pub character_update_times: HashMap<PackageId, u64>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
     pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
     pub resource_package_order: Vec<(PackageId, bool)>,
+    pub resource_order_time: u64,
 }
 
 impl GlobalSave {
     fn path() -> String {
         ResourcePaths::data_folder_absolute("save.dat")
+    }
+
+    pub fn current_time() -> u64 {
+        std::time::UNIX_EPOCH
+            .elapsed()
+            .unwrap_or_default()
+            .as_secs()
     }
 
     pub fn new() -> Self {
@@ -63,6 +75,106 @@ impl GlobalSave {
 
         if let Err(e) = rmp_serde::encode::write_named(&mut file, self) {
             log::error!("Failed to save data to {:?}: {}", path, e);
+        }
+    }
+
+    pub fn sync(&mut self, mut other: GlobalSave) {
+        // sync nickname
+        if other.nickname_time > self.nickname_time {
+            self.nickname = other.nickname;
+            self.nickname_time = other.nickname_time;
+        }
+
+        // sync server list
+        let mut prev_server = None;
+
+        for other_info in other.server_list.into_iter() {
+            let insert_after = prev_server;
+            prev_server = Some(other_info.uuid);
+
+            let mut info_iter = self.server_list.iter_mut();
+            let Some(info) = info_iter.find(|info| info.uuid == other_info.uuid) else {
+                if let Some(uuid) = insert_after {
+                    let mut info_iter = self.server_list.iter();
+                    let i = info_iter
+                        .position(|info| info.uuid == uuid)
+                        .unwrap_or_default();
+
+                    self.server_list.insert(i + 1, other_info);
+                } else {
+                    self.server_list.insert(0, other_info);
+                }
+
+                continue;
+            };
+
+            // sync server info
+            if other_info.update_time > info.update_time {
+                *info = other_info;
+            }
+        }
+
+        // sync decks
+        let should_merge_selected_deck = other.selected_deck_time > self.selected_deck_time;
+        let mut other_selected_deck_uuid = None;
+
+        for (other_i, other_deck) in other.decks.into_iter().enumerate() {
+            if other_i == other.selected_deck {
+                other_selected_deck_uuid = Some(other_deck.uuid);
+            }
+
+            let mut deck_iter = self.decks.iter_mut();
+            let Some(deck) = deck_iter.find(|deck| deck.uuid == other_deck.uuid) else {
+                // append deck
+                self.decks.push(other_deck);
+                continue;
+            };
+
+            // sync deck data
+            if other_deck.update_time > deck.update_time {
+                *deck = other_deck;
+            }
+        }
+
+        // sync selected deck
+        if should_merge_selected_deck {
+            let other_selected_index = other_selected_deck_uuid
+                .and_then(|uuid| self.decks.iter().position(|d| d.uuid == uuid));
+
+            if let Some(i) = other_selected_index {
+                self.selected_deck = i;
+            }
+
+            self.selected_deck_time = other.selected_deck_time
+        }
+
+        // sync selected character
+        if other.selected_character_time > self.selected_character_time {
+            self.selected_character = other.selected_character;
+            self.selected_character_time = other.selected_character_time;
+        }
+
+        // sync augments
+        for (id, other_time) in other.character_update_times {
+            let time = self.character_update_times.get(&id);
+
+            if time.is_none_or(|t| other_time > *t) {
+                if let Some(blocks) = other.installed_blocks.remove(&id) {
+                    self.installed_blocks.insert(id.clone(), blocks);
+                }
+
+                if let Some(parts) = other.installed_drive_parts.remove(&id) {
+                    self.installed_drive_parts.insert(id.clone(), parts);
+                }
+
+                self.character_update_times.insert(id, other_time);
+            }
+        }
+
+        // sync resource order
+        if other.resource_order_time > self.resource_order_time {
+            self.resource_package_order = other.resource_package_order;
+            self.resource_order_time = other.resource_order_time;
         }
     }
 
@@ -172,16 +284,23 @@ impl Default for GlobalSave {
     fn default() -> Self {
         Self {
             nickname: String::from("Anon"),
-            selected_character: PackageId::new_blank(),
-            decks: Vec::new(),
-            selected_deck: 0,
+            nickname_time: 0,
             server_list: vec![ServerInfo {
                 name: String::from("The Index"),
                 address: String::from("servers.hubos.dev"),
+                uuid: Uuid::nil(),
+                update_time: 0,
             }],
+            decks: Vec::new(),
+            selected_deck: 0,
+            selected_deck_time: 0,
+            selected_character: PackageId::new_blank(),
+            selected_character_time: 0,
+            character_update_times: HashMap::new(),
             installed_blocks: HashMap::new(),
             installed_drive_parts: HashMap::new(),
             resource_package_order: Vec::new(),
+            resource_order_time: 0,
         }
     }
 }

@@ -3,6 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::{FontName, NavigationMenu, SceneOption, TextStyle};
 use crate::render::*;
 use crate::resources::*;
+use crate::saves::GlobalSave;
 use framework::prelude::*;
 use ui::{Textbox, TextboxMessage};
 
@@ -33,6 +34,7 @@ impl CharacterData {
 
         let global_save = &mut globals.global_save;
         global_save.selected_character = package_id.clone();
+        global_save.selected_character_time = GlobalSave::current_time();
         global_save.save();
     }
 

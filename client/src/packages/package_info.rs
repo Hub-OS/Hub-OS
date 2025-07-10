@@ -28,7 +28,7 @@ impl PackageInfo {
         matches!(
             self.category,
             PackageCategory::Resource | PackageCategory::Encounter
-        ) && !self.child_id_path_pairs.is_empty()
+        ) && self.child_id_path_pairs.is_empty()
     }
 
     pub fn triplet(&self) -> (PackageCategory, PackageNamespace, PackageId) {

@@ -140,7 +140,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         };
 
                         if self.successfully_sent >= threshold {
-                            // try speeding up
+                            // speed up
                             self.bytes_per_sec = (self.bytes_per_sec as f32
                                 * self.bytes_per_second_increase_factor)
                                 as usize;

@@ -4,7 +4,7 @@ use crate::packages::*;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{Card, Deck};
+use crate::saves::{Card, Deck, GlobalSave};
 use framework::prelude::*;
 use std::collections::HashMap;
 
@@ -232,9 +232,7 @@ impl DeckEditorScene {
         let global_save = &game_io.resource::<Globals>().unwrap().global_save;
         let old_deck = &global_save.decks[self.deck_index];
 
-        let mut deck = Deck::new(old_deck.name.clone());
-
-        deck.cards = self
+        let cards = self
             .deck_dock
             .card_slots
             .iter()
@@ -242,13 +240,18 @@ impl DeckEditorScene {
             .map(|item| item.card.clone())
             .collect();
 
-        deck.regular_index = self.resolve_regular_index();
-
-        deck
+        Deck {
+            name: old_deck.name.clone(),
+            cards,
+            regular_index: self.resolve_regular_index(),
+            uuid: old_deck.uuid,
+            update_time: old_deck.update_time,
+        }
     }
 
-    fn save_deck(&self, game_io: &mut GameIO, deck: Deck) {
+    fn save_deck(&self, game_io: &mut GameIO, mut deck: Deck) {
         let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+        deck.update_time = GlobalSave::current_time();
         global_save.decks[self.deck_index] = deck;
         global_save.save();
     }
@@ -256,6 +259,7 @@ impl DeckEditorScene {
     fn equip_deck(&self, game_io: &mut GameIO) {
         let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
         global_save.selected_deck = self.deck_index;
+        global_save.selected_deck_time = GlobalSave::current_time();
         global_save.save();
     }
 

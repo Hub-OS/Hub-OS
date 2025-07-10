@@ -3,8 +3,9 @@ use crate::bindable::SpriteColorMode;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::ServerInfo;
+use crate::saves::{GlobalSave, ServerInfo};
 use framework::prelude::*;
+use packets::structures::Uuid;
 
 pub enum ServerEditProp {
     Edit(usize),
@@ -50,6 +51,8 @@ impl ServerEditScene {
                 address: address
                     .clone()
                     .unwrap_or_else(|| String::from("localhost:8765")),
+                uuid: Uuid::new_v4(),
+                update_time: 0,
             },
         };
 
@@ -276,6 +279,8 @@ impl Scene for ServerEditScene {
                 UiMessage::Cancel => leaving = true,
                 UiMessage::Save => {
                     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
+
+                    self.server_info.update_time = GlobalSave::current_time();
 
                     match self.edit_prop {
                         ServerEditProp::Edit(index) => {

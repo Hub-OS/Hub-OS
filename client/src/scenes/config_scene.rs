@@ -6,7 +6,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::{Config, InternalResolution, KeyStyle};
+use crate::saves::{Config, GlobalSave, InternalResolution, KeyStyle};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
@@ -752,6 +752,7 @@ impl ConfigScene {
                 Event::ChangeNickname { name } => {
                     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
                     global_save.nickname = name;
+                    global_save.nickname_time = GlobalSave::current_time();
                     global_save.save();
                 }
                 Event::ViewPackages => {

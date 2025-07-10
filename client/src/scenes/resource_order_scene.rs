@@ -6,6 +6,7 @@ use crate::render::ui::{
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
 use crate::resources::{Globals, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
+use crate::saves::GlobalSave;
 use framework::prelude::*;
 use packets::structures::{Input, PackageId};
 
@@ -257,6 +258,7 @@ impl ResourceOrderScene {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
 
                     globals.global_save.resource_package_order = self.collect_order();
+                    globals.global_save.resource_order_time = GlobalSave::current_time();
                     globals.global_save.save();
 
                     let event_sender = self.event_sender.clone();

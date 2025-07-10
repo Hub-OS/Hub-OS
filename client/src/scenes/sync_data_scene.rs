@@ -26,8 +26,6 @@ enum Event {
     AcceptSyncWith,
     RejectSyncWith,
     SyncConnectionResolved(Option<(SyncDataPacketSender, SyncDataPacketReceiver)>),
-    OverwriteLocalResponse(bool),
-    OverwriteRemoteResponse(bool),
 }
 
 pub struct SyncDataScene {
@@ -43,11 +41,12 @@ pub struct SyncDataScene {
     requesting_connection_with: Option<(SocketAddr, Uuid)>,
     sync_comms: Option<(SyncDataPacketSender, SyncDataPacketReceiver)>,
     accepted_sync: bool,
+    started_connection: bool,
     // pending request
     pending_packages: Vec<(PackageCategory, PackageId)>,
     total_packages: usize,
     // pending send
-    pending_identity: Vec<String>,
+    pending_identity: Vec<(String, u64)>,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
@@ -90,6 +89,7 @@ impl SyncDataScene {
             requesting_connection_with: None,
             sync_comms: None,
             accepted_sync: false,
+            started_connection: false,
             pending_packages: Default::default(),
             total_packages: 0,
             pending_identity: Default::default(),
@@ -174,7 +174,7 @@ impl SyncDataScene {
 
         // update textbox based on outgoing packets
         match packet {
-            SyncDataPacket::RequestPackageList => {
+            SyncDataPacket::PackageList { .. } => {
                 let message = String::from("Syncing packages...");
                 let key = self.textbox.push_doorstop_with_message(message);
                 self.doorstop_key = Some(key);
@@ -219,9 +219,30 @@ impl SyncDataScene {
             .detach();
     }
 
-    fn request_next_package(&mut self) -> bool {
+    fn send_package_list(&mut self, game_io: &GameIO) {
+        log::debug!("Sending package list");
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let list = globals
+            .packages(PackageNamespace::Local)
+            .filter(|info| info.hash != FileHash::ZERO)
+            .map(|info| (info.category, info.id.clone()))
+            .collect();
+        self.send(SyncDataPacket::PackageList { list });
+    }
+
+    fn request_next_package_or_advance(&mut self, game_io: &GameIO) {
         let Some((category, id)) = self.pending_packages.pop() else {
-            return false;
+            if self.started_connection {
+                self.send(SyncDataPacket::RequestSave);
+                self.build_identity_list();
+            } else {
+                // flip around and send our package list
+                // this brings control back to the device that started the connection
+                self.send_package_list(game_io);
+            }
+
+            return;
         };
 
         self.send(SyncDataPacket::RequestPackage { category, id });
@@ -230,14 +251,54 @@ impl SyncDataScene {
             .total_packages
             .saturating_sub(self.pending_packages.len());
         let message = format!(
-            "\x04Downloading package: {remaining}/{}",
+            "\x04Downloading packages: {remaining}/{}",
             self.total_packages
         );
 
         let key = self.textbox.push_doorstop_with_message(message);
         self.doorstop_key = Some(key);
+    }
 
-        true
+    fn package_zip(game_io: &GameIO, category: PackageCategory, id: &PackageId) -> Vec<u8> {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let Some(package_info) = globals.package_info(category, PackageNamespace::Local, id) else {
+            return vec![];
+        };
+
+        if package_info.local_only() {
+            packets::zip::compress(&package_info.base_path)
+                .inspect_err(|err| {
+                    log::error!("Failed to zip {:?} {err:?}", package_info.base_path)
+                })
+                .unwrap_or_default()
+        } else {
+            let mod_cache_folder = ResourcePaths::mod_cache_folder();
+            let path = format!("{}{}.zip", mod_cache_folder, package_info.hash);
+            globals.assets.binary(&path)
+        }
+    }
+
+    fn build_identity_list(&mut self) {
+        let identity_folder = ResourcePaths::identity_folder();
+
+        if let Ok(entries) = std::fs::read_dir(identity_folder) {
+            self.pending_identity = entries
+                .into_iter()
+                .flatten()
+                .flat_map(|entry| {
+                    Some((
+                        // name
+                        entry.file_name().to_str().map(|s| s.to_string())?,
+                        // time
+                        file_creation_time(entry.metadata()).unwrap_or_default(),
+                    ))
+                })
+                .collect();
+        }
+
+        // make sure an identity folder exists
+        let identity_folder = ResourcePaths::identity_folder();
+        let _ = std::fs::create_dir_all(identity_folder);
     }
 
     fn handle_packets(&mut self, game_io: &mut GameIO) {
@@ -285,6 +346,8 @@ impl SyncDataScene {
                             // drop connection since this is difficult to handle
                             self.sync_comms = None;
                             self.requesting_connection_with = None;
+
+                            self.textbox.advance_interface(game_io);
 
                             let interface = TextboxMessage::from(
                                 "Sync cancelled.\nStart sync from only one device.",
@@ -367,6 +430,7 @@ impl SyncDataScene {
                 }
                 SyncDataPacket::RejectSync => {
                     self.sync_comms = None;
+                    self.requesting_connection_with = None;
                     self.doorstop_key.take();
 
                     while self.textbox.remaining_interfaces() > 0 {
@@ -381,37 +445,9 @@ impl SyncDataScene {
                 }
                 SyncDataPacket::AcceptSync => {
                     self.requesting_connection_with = None;
+                    self.started_connection = true;
 
-                    while self.textbox.remaining_interfaces() > 0 {
-                        self.textbox.advance_interface(game_io);
-                    }
-
-                    let sender = self.event_sender.clone();
-                    let interface = TextboxQuestion::new(
-                        String::from("Overwrite local data?"),
-                        move |accept| {
-                            let _ = sender.send(Event::OverwriteLocalResponse(accept));
-                        },
-                    );
-                    self.textbox.push_interface(interface);
-                    self.textbox.open();
-
-                    let key = self.textbox.push_doorstop();
-                    self.doorstop_key = Some(key);
-                }
-                SyncDataPacket::PassControl => {
-                    log::debug!("Received control. We're overwriting data on this device");
-                    self.send(SyncDataPacket::RequestPackageList);
-                }
-                SyncDataPacket::RequestPackageList => {
-                    log::debug!("Sending package list");
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    let list = globals
-                        .packages(PackageNamespace::Local)
-                        .filter(|info| info.hash != FileHash::ZERO)
-                        .map(|info| (info.category, info.id.clone(), info.hash))
-                        .collect();
-                    self.send(SyncDataPacket::PackageList { list });
+                    self.send_package_list(game_io);
                 }
                 SyncDataPacket::PackageList { list } => {
                     log::debug!("Received package list");
@@ -419,37 +455,22 @@ impl SyncDataScene {
                     let globals = game_io.resource::<Globals>().unwrap();
                     self.pending_packages = list
                         .into_iter()
-                        .filter(|(category, id, hash)| {
+                        .filter(|(category, id)| {
+                            // only download packages we don't have
+                            // ignore hashes / dates to avoid overwriting a mod someone is working on
                             let namespace = PackageNamespace::Local;
-                            let Some(info) = globals.package_info(*category, namespace, id) else {
-                                // not installed, keep in to install
-                                return true;
-                            };
-
-                            // download if hashes differ
-                            info.hash != *hash
+                            globals.package_info(*category, namespace, id).is_none()
                         })
-                        .map(|(category, id, _)| (category, id))
                         .collect();
 
                     self.total_packages = self.pending_packages.len();
 
-                    if !self.request_next_package() {
-                        self.send(SyncDataPacket::RequestSave);
-                    }
+                    self.request_next_package_or_advance(game_io);
                 }
                 SyncDataPacket::RequestPackage { category, id } => {
                     log::debug!("Sending package {category:?} {id:?}");
 
-                    let globals = game_io.resource::<Globals>().unwrap();
-                    let hash = globals
-                        .package_info(category, PackageNamespace::Local, &id)
-                        .map(|info| info.hash)
-                        .unwrap_or_default();
-
-                    let mod_cache_folder = ResourcePaths::mod_cache_folder();
-                    let path = format!("{}{}.zip", mod_cache_folder, hash);
-                    let zip_bytes = globals.assets.binary(&path);
+                    let zip_bytes = Self::package_zip(game_io, category, &id);
 
                     self.send(SyncDataPacket::Package {
                         category,
@@ -471,33 +492,35 @@ impl SyncDataScene {
                     globals.unload_package(category, PackageNamespace::Local, &id);
                     globals.load_package(category, PackageNamespace::Local, &path);
 
-                    if !self.request_next_package() {
-                        self.send(SyncDataPacket::RequestSave);
-                    }
+                    self.request_next_package_or_advance(game_io);
                 }
                 SyncDataPacket::RequestSave => {
                     log::debug!("Sending save data");
+
                     let globals = game_io.resource::<Globals>().unwrap();
                     let save = serialize(&globals.global_save);
                     self.send(SyncDataPacket::Save { save });
 
-                    // build identity list for sending
-                    let identity_folder = ResourcePaths::identity_folder();
-
-                    if let Ok(entries) = std::fs::read_dir(identity_folder) {
-                        self.pending_identity = entries
-                            .into_iter()
-                            .flatten()
-                            .flat_map(|entry| entry.file_name().to_str().map(|s| s.to_string()))
-                            .collect();
-                    }
+                    // build identity list on the remote device
+                    self.build_identity_list();
                 }
                 SyncDataPacket::Save { save } => {
                     log::debug!("Received save data");
 
                     if let Ok(remote_save) = deserialize::<GlobalSave>(&save) {
                         let globals = game_io.resource_mut::<Globals>().unwrap();
-                        globals.global_save = remote_save;
+
+                        if self.started_connection {
+                            globals.global_save.sync(remote_save);
+
+                            log::debug!("Sending save data");
+                            let save = serialize(&globals.global_save);
+                            self.send(SyncDataPacket::Save { save })
+                        } else {
+                            // the other client handled sync, use their save
+                            globals.global_save = remote_save;
+                        }
+
                         globals.global_save.save();
                     } else {
                         let error = "Failed to read remote save.";
@@ -508,15 +531,16 @@ impl SyncDataScene {
                         self.textbox.open();
                     }
 
-                    // create identity folder and request remote identity
-                    let identity_folder = ResourcePaths::identity_folder();
-                    let _ = std::fs::create_dir_all(identity_folder);
-                    self.send(SyncDataPacket::RequestIdentity);
+                    if self.started_connection {
+                        // only one side needs to message here
+                        // we share saves at the same time, and the first device will kick this off
+                        self.send(SyncDataPacket::RequestIdentity);
+                    }
                 }
                 SyncDataPacket::RequestIdentity => {
                     let next_identity = self.pending_identity.pop();
                     let packet = next_identity
-                        .and_then(|file_name| {
+                        .and_then(|(file_name, created_time)| {
                             log::debug!("Sending identity for {}", uri_decode(&file_name)?);
 
                             let path = ResourcePaths::identity_folder() + &file_name;
@@ -524,20 +548,39 @@ impl SyncDataScene {
                                 .inspect_err(|err| log::error!("Failed to read {path}: {err:?}"))
                                 .ok()?;
 
-                            Some(SyncDataPacket::Identity { file_name, data })
+                            Some(SyncDataPacket::Identity {
+                                file_name,
+                                data,
+                                created_time,
+                            })
                         })
-                        .unwrap_or(SyncDataPacket::Complete { cancelled: false });
+                        .unwrap_or(if self.started_connection {
+                            SyncDataPacket::Complete { cancelled: false }
+                        } else {
+                            // start requesting identity back
+                            SyncDataPacket::RequestIdentity
+                        });
 
                     self.send(packet);
                 }
-                SyncDataPacket::Identity { file_name, data } => {
+                SyncDataPacket::Identity {
+                    file_name,
+                    data,
+                    created_time,
+                } => {
                     if let Some(decoded_name) = uri_decode(&file_name) {
                         log::debug!("Received identity {decoded_name}");
 
                         // re-encode for safety
                         let path = ResourcePaths::identity_folder() + &uri_encode(&decoded_name);
-                        if let Err(err) = std::fs::write(path, data) {
-                            log::error!("Failed to save identity for {decoded_name}: {err:?}");
+
+                        // use the older identity file
+                        let local_created_time = file_creation_time(std::fs::metadata(&path));
+
+                        if local_created_time.is_none_or(|time| created_time < time) {
+                            if let Err(err) = std::fs::write(path, data) {
+                                log::error!("Failed to save identity for {decoded_name}: {err:?}");
+                            }
                         }
 
                         // request more identity
@@ -611,6 +654,7 @@ impl SyncDataScene {
                 }
                 Event::AcceptSyncWith => {
                     self.accepted_sync = true;
+                    self.started_connection = false;
                     self.send(SyncDataPacket::AcceptSync);
 
                     // notify user
@@ -626,35 +670,6 @@ impl SyncDataScene {
                 }
                 Event::SyncConnectionResolved(comms) => {
                     self.sync_comms = comms;
-                }
-                Event::OverwriteLocalResponse(accept) => {
-                    if accept {
-                        self.send(SyncDataPacket::RequestPackageList);
-                    } else {
-                        let sender = self.event_sender.clone();
-                        let interface = TextboxQuestion::new(
-                            String::from("Overwrite remote data?"),
-                            move |accept| {
-                                let _ = sender.send(Event::OverwriteRemoteResponse(accept));
-                            },
-                        );
-                        self.textbox.push_interface(interface);
-
-                        let doorstop_key = self.textbox.push_doorstop();
-                        self.doorstop_key = Some(doorstop_key);
-                    }
-                }
-                Event::OverwriteRemoteResponse(accept) => {
-                    if accept {
-                        self.send(SyncDataPacket::PassControl);
-
-                        let message = String::from("Syncing...");
-                        let doorstop_key = self.textbox.push_doorstop_with_message(message);
-                        self.doorstop_key = Some(doorstop_key);
-                    } else {
-                        self.send(SyncDataPacket::Complete { cancelled: true });
-                        self.sync_comms.take();
-                    }
                 }
             }
         }
@@ -702,4 +717,10 @@ impl Scene for SyncDataScene {
 
         render_pass.consume_queue(sprite_queue);
     }
+}
+
+fn file_creation_time(metadata_result: std::io::Result<std::fs::Metadata>) -> Option<u64> {
+    let metadata = metadata_result.ok()?;
+    let creation_instant = metadata.created().ok()?;
+    Some(creation_instant.elapsed().ok()?.as_secs())
 }

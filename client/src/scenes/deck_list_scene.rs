@@ -4,7 +4,7 @@ use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
-use crate::saves::Deck;
+use crate::saves::{Deck, GlobalSave};
 use framework::prelude::*;
 
 enum Event {
@@ -325,7 +325,9 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
     match scene.event_receiver.try_recv() {
         Ok(Event::Rename(name)) => {
             let deck_index = scene.deck_scroll_tracker.selected_index();
-            global_save.decks[deck_index].name = name;
+            let deck = &mut global_save.decks[deck_index];
+            deck.name = name;
+            deck.update_time = GlobalSave::current_time();
             global_save.save();
 
             scene.textbox.close();
@@ -340,6 +342,7 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
             if global_save.selected_deck <= new_total {
                 global_save.selected_deck = 0;
+                global_save.selected_deck_time = GlobalSave::current_time();
             }
 
             global_save.save();
@@ -480,6 +483,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         }
         DeckOption::Equip => {
             global_save.selected_deck = scene.deck_scroll_tracker.selected_index();
+            global_save.selected_deck_time = GlobalSave::current_time();
             global_save.save();
         }
         DeckOption::ChangeName => {

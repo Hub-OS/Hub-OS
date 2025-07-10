@@ -1,4 +1,4 @@
-use crate::structures::{FileHash, PackageCategory, PackageId};
+use crate::structures::{PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -6,10 +6,8 @@ pub enum SyncDataPacket {
     Heartbeat,
     RejectSync,
     AcceptSync,
-    PassControl,
-    RequestPackageList,
     PackageList {
-        list: Vec<(PackageCategory, PackageId, FileHash)>,
+        list: Vec<(PackageCategory, PackageId)>,
     },
     RequestPackage {
         category: PackageCategory,
@@ -28,6 +26,7 @@ pub enum SyncDataPacket {
     Identity {
         file_name: String,
         data: Vec<u8>,
+        created_time: u64,
     },
     Complete {
         cancelled: bool,

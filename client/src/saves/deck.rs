@@ -4,7 +4,7 @@ use crate::resources::{DeckRestrictions, Globals};
 use crate::saves::Card;
 use crate::Restrictions;
 use framework::prelude::GameIO;
-use packets::structures::{PackageCategory, PackageId};
+use packets::structures::{PackageCategory, PackageId, Uuid};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -12,6 +12,10 @@ pub struct Deck {
     pub name: String,
     pub cards: Vec<Card>,
     pub regular_index: Option<usize>,
+    #[serde(default = "Uuid::new_v4")]
+    pub uuid: Uuid,
+    #[serde(default)]
+    pub update_time: u64,
 }
 
 impl Deck {
@@ -22,6 +26,8 @@ impl Deck {
             name,
             cards: Vec::new(),
             regular_index: None,
+            uuid: Uuid::new_v4(),
+            update_time: 0,
         }
     }
 

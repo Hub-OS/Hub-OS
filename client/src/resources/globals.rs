@@ -182,45 +182,23 @@ impl Globals {
     }
 
     pub fn packages(&self, namespace: PackageNamespace) -> impl Iterator<Item = &PackageInfo> {
-        (self
-            .augment_packages
-            .packages(namespace)
-            .map(|package| &package.package_info))
-        .chain(
-            self.card_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.encounter_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.library_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.player_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.character_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.status_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
-        .chain(
-            self.tile_state_packages
-                .packages(namespace)
-                .map(|package| &package.package_info),
-        )
+        macro_rules! map_to_info {
+            ($package_manager:expr) => {
+                $package_manager
+                    .packages(namespace)
+                    .map(|package| &package.package_info)
+            };
+        }
+
+        map_to_info!(self.augment_packages)
+            .chain(map_to_info!(self.card_packages))
+            .chain(map_to_info!(self.encounter_packages))
+            .chain(map_to_info!(self.library_packages))
+            .chain(map_to_info!(self.player_packages))
+            .chain(map_to_info!(self.character_packages))
+            .chain(map_to_info!(self.status_packages))
+            .chain(map_to_info!(self.tile_state_packages))
+            .chain(map_to_info!(self.resource_packages))
     }
 
     pub fn load_virtual_package(
@@ -682,16 +660,10 @@ impl Globals {
     pub fn request_latest_hashes(
         &self,
     ) -> impl futures::Future<Output = Vec<(PackageCategory, PackageId, FileHash)>> {
-        let ns = PackageNamespace::Local;
-        let package_ids: Vec<_> = (self.augment_packages.package_ids(ns))
-            .chain(self.encounter_packages.package_ids(ns))
-            .chain(self.card_packages.package_ids(ns))
-            .chain(self.library_packages.package_ids(ns))
-            .chain(self.player_packages.package_ids(ns))
-            .chain(self.resource_packages.package_ids(ns))
-            .chain(self.status_packages.package_ids(ns))
-            .chain(self.tile_state_packages.package_ids(ns))
-            .map(|id| uri_encode(id.as_str()))
+        let package_ids: Vec<_> = self
+            .packages(PackageNamespace::Local)
+            .filter(|info| info.category != PackageCategory::Character)
+            .map(|info| uri_encode(info.id.as_str()))
             .collect();
 
         let repo = self.config.package_repo.clone();

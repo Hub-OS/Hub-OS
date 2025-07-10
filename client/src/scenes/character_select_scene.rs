@@ -6,6 +6,7 @@ use crate::render::ui::{
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
+use crate::saves::GlobalSave;
 use framework::prelude::*;
 use itertools::Itertools;
 
@@ -253,6 +254,7 @@ impl CharacterSelectScene {
 
             let package_id = self.selected_package_id();
             globals.global_save.selected_character = package_id.clone();
+            globals.global_save.selected_character_time = GlobalSave::current_time();
             globals.global_save.save();
         }
 

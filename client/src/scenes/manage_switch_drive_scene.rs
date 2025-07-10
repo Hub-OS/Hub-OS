@@ -6,7 +6,7 @@ use crate::render::ui::{
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, FrameTime, SpriteColorQueue};
 use crate::resources::*;
-use crate::saves::InstalledSwitchDrive;
+use crate::saves::{GlobalSave, InstalledSwitchDrive};
 use enum_map::{enum_map, Enum, EnumMap};
 use framework::prelude::*;
 use packets::structures::SwitchDriveSlot;
@@ -621,7 +621,14 @@ impl Scene for ManageSwitchDriveScene {
     fn destroy(&mut self, game_io: &mut GameIO) {
         // save on exit
         let globals = game_io.resource_mut::<Globals>().unwrap();
-        globals.global_save.save();
+        let global_save = &mut globals.global_save;
+
+        global_save.character_update_times.insert(
+            global_save.selected_character.clone(),
+            GlobalSave::current_time(),
+        );
+
+        global_save.save();
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
