@@ -15,6 +15,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 const IDLE_CHAR_DELAY: FrameTime = 2;
 const FAST_CHAR_DELAY: FrameTime = 1;
+const IMMEDIATE_CHAR_DELAY: FrameTime = 0;
 const DRAMATIC_CHAR_DELAY: FrameTime = 40;
 
 pub trait TextboxInterface {
@@ -411,7 +412,9 @@ impl Textbox {
         let is_last_page = self.page_queue.len() == 1;
         let page_completed = self.text_index == page.range.end;
 
-        if !self.text_animation_enabled && !page_completed {
+        if !page_completed
+            && (!self.text_animation_enabled || self.effect_processor.char_delay == 0)
+        {
             self.skip_animation(game_io);
         } else if !page_completed {
             // try advancing character
@@ -429,7 +432,9 @@ impl Textbox {
                 self.update_avatar(game_io);
             }
 
-            if pressed_skip && self.text_index != page.range.end {
+            let requested_skip = pressed_skip || self.effect_processor.char_delay == 0;
+
+            if requested_skip && self.text_index != page.range.end {
                 // checked after testing for page completion to prevent Confirm from skipping + advancing same frame
                 self.skip_animation(game_io);
             }
@@ -490,9 +495,11 @@ impl Textbox {
 
         let silent_char = current_char.is_control()
             || current_char.is_whitespace()
-            || current_char.is_punctuation();
+            || current_char.is_punctuation()
+            || !self.text_animation_enabled
+            || self.effect_processor.char_delay == 0;
 
-        if !silent_char && self.text_animation_enabled {
+        if !silent_char {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.text_blip);
         }
@@ -560,7 +567,12 @@ impl Textbox {
         }
 
         self.create_pages();
-        self.update_avatar(game_io);
+
+        if self.effect_processor.char_delay == 0 {
+            self.skip_animation(game_io);
+        } else {
+            self.update_avatar(game_io);
+        }
     }
 
     fn create_pages(&mut self) {
@@ -669,6 +681,7 @@ impl TextboxEffectProcessor {
     const DRAMATIC_TOKEN: char = '\x01';
     const NOLIP_TOKEN: char = '\x02';
     const FAST_TOKEN: char = '\x03';
+    const IMMEDIATE_TOKEN: char = '\x04';
 
     fn new() -> Self {
         Self {
@@ -682,21 +695,22 @@ impl TextboxEffectProcessor {
     }
 
     fn process_char(&mut self, char: char) -> bool {
-        let mut new_speed = 0;
+        let mut new_speed = None;
 
         match char {
-            Self::DRAMATIC_TOKEN => new_speed = DRAMATIC_CHAR_DELAY,
-            Self::FAST_TOKEN => new_speed = FAST_CHAR_DELAY,
+            Self::DRAMATIC_TOKEN => new_speed = Some(DRAMATIC_CHAR_DELAY),
+            Self::FAST_TOKEN => new_speed = Some(FAST_CHAR_DELAY),
+            Self::IMMEDIATE_TOKEN => new_speed = Some(IMMEDIATE_CHAR_DELAY),
             Self::NOLIP_TOKEN => self.animate_avatar = !self.animate_avatar,
             _ => {
                 return false;
             }
         }
 
-        if new_speed == self.char_delay {
+        if new_speed == Some(self.char_delay) {
             self.char_delay = IDLE_CHAR_DELAY;
-        } else if new_speed != 0 {
-            self.char_delay = new_speed;
+        } else if let Some(speed) = new_speed {
+            self.char_delay = speed;
         }
 
         true

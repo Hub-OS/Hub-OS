@@ -45,6 +45,7 @@ pub struct SyncDataScene {
     accepted_sync: bool,
     // pending request
     pending_packages: Vec<(PackageCategory, PackageId)>,
+    total_packages: usize,
     // pending send
     pending_identity: Vec<String>,
     event_sender: flume::Sender<Event>,
@@ -90,6 +91,7 @@ impl SyncDataScene {
             sync_comms: None,
             accepted_sync: false,
             pending_packages: Default::default(),
+            total_packages: 0,
             pending_identity: Default::default(),
             event_sender,
             event_receiver,
@@ -215,6 +217,27 @@ impl SyncDataScene {
                 let _ = sender.send(event);
             })
             .detach();
+    }
+
+    fn request_next_package(&mut self) -> bool {
+        let Some((category, id)) = self.pending_packages.pop() else {
+            return false;
+        };
+
+        self.send(SyncDataPacket::RequestPackage { category, id });
+
+        let remaining = self
+            .total_packages
+            .saturating_sub(self.pending_packages.len());
+        let message = format!(
+            "\x04Downloading package: {remaining}/{}",
+            self.total_packages
+        );
+
+        let key = self.textbox.push_doorstop_with_message(message);
+        self.doorstop_key = Some(key);
+
+        true
     }
 
     fn handle_packets(&mut self, game_io: &mut GameIO) {
@@ -409,9 +432,9 @@ impl SyncDataScene {
                         .map(|(category, id, _)| (category, id))
                         .collect();
 
-                    if let Some((category, id)) = self.pending_packages.pop() {
-                        self.send(SyncDataPacket::RequestPackage { category, id })
-                    } else {
+                    self.total_packages = self.pending_packages.len();
+
+                    if !self.request_next_package() {
                         self.send(SyncDataPacket::RequestSave);
                     }
                 }
@@ -448,9 +471,7 @@ impl SyncDataScene {
                     globals.unload_package(category, PackageNamespace::Local, &id);
                     globals.load_package(category, PackageNamespace::Local, &path);
 
-                    if let Some((category, id)) = self.pending_packages.pop() {
-                        self.send(SyncDataPacket::RequestPackage { category, id })
-                    } else {
+                    if !self.request_next_package() {
                         self.send(SyncDataPacket::RequestSave);
                     }
                 }
