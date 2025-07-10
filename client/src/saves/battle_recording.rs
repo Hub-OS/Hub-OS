@@ -4,6 +4,7 @@ use crate::render::FrameTime;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use crate::{SupportingServiceComm, SupportingServiceEvent};
 use framework::prelude::*;
+use packets::address_parsing::uri_encode;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
@@ -150,9 +151,10 @@ impl BattleRecording {
             // resolve package path
             let elapsed_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
             let unique_id = format!(
-                "{}-{}-{nickname}",
+                "{}-{}-{}",
                 elapsed_time.as_secs(),
                 env!("CARGO_PKG_VERSION"),
+                uri_encode(&nickname)
             );
             let folder_path = format!(
                 "{}{}{}-recording/",
@@ -177,12 +179,13 @@ impl BattleRecording {
                 category = \"encounter\"\n\
                 id = \"~{unique_id}\"\n\
                 name = \"Recorded Battle\"\n\
-                description = \"{nickname}'s recorded battle.\"\n\
+                description = \"{}'s recorded battle.\"\n\
                 {preview_image_toml}\n\
                 recording_path = \"recording.dat\"\n\
                 # Add package ids to this list to override recorded packages with installed packages.\n\
                 recording_overrides = []\n\
-                "
+                ",
+                nickname.replace('"', "\\\"")
             );
 
             if let Err(e) = std::fs::write(&toml_path, toml_data) {
