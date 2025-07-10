@@ -506,7 +506,8 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         DeckOption::New => create_new_deck(scene, game_io),
         DeckOption::Delete => {
             let event_sender = scene.event_sender.clone();
-            let deck_name = &global_save.decks[global_save.selected_deck].name;
+            let index = scene.deck_scroll_tracker.selected_index();
+            let deck_name = &global_save.decks[index].name;
             let callback = move |response| {
                 let event = if response {
                     Event::Delete
