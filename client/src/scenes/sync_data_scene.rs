@@ -503,6 +503,10 @@ impl SyncDataScene {
                 SyncDataPacket::RequestSave => {
                     log::debug!("Sending save data");
 
+                    let message = String::from("Syncing save...");
+                    let key = self.textbox.push_doorstop_with_message(message);
+                    self.doorstop_key = Some(key);
+
                     let globals = game_io.resource::<Globals>().unwrap();
                     let save = serialize(&globals.global_save);
                     self.send(game_io, SyncDataPacket::Save { save });
