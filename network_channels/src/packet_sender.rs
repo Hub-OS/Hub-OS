@@ -252,6 +252,9 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
             if packet.attempts >= 2 {
                 slowing = true;
+                // avoid sending more packets
+                // as we're possibly flooding the network and need to slow down
+                break;
             }
 
             packet.attempts += 1;
@@ -266,7 +269,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             }
         }
 
-        if slowing && self.bytes_per_sec > self.mtu as usize {
+        if slowing {
             // reduce bytes per tick
             self.bytes_per_sec =
                 (self.bytes_per_sec as f32 * self.bytes_per_second_slow_factor) as usize;
@@ -280,6 +283,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
             }
 
             self.successfully_sent = 0;
+            self.remaining_send_budget = 0;
         }
     }
 }
