@@ -167,7 +167,7 @@ impl SyncDataScene {
             .collect()
     }
 
-    fn send(&mut self, packet: SyncDataPacket) {
+    fn send(&mut self, game_io: &GameIO, packet: SyncDataPacket) {
         let Some((send, _)) = &self.sync_comms else {
             return;
         };
@@ -192,6 +192,9 @@ impl SyncDataScene {
                 } else {
                     "Sync complete."
                 };
+
+                // update avatar to match the latest save
+                self.textbox.use_navigation_avatar(game_io);
 
                 let interface = TextboxMessage::from(message);
                 self.textbox.push_interface(interface);
@@ -228,13 +231,13 @@ impl SyncDataScene {
             .filter(|info| info.hash != FileHash::ZERO)
             .map(|info| (info.category, info.id.clone()))
             .collect();
-        self.send(SyncDataPacket::PackageList { list });
+        self.send(game_io, SyncDataPacket::PackageList { list });
     }
 
     fn request_next_package_or_advance(&mut self, game_io: &GameIO) {
         let Some((category, id)) = self.pending_packages.pop() else {
             if self.started_connection {
-                self.send(SyncDataPacket::RequestSave);
+                self.send(game_io, SyncDataPacket::RequestSave);
                 self.build_identity_list();
             } else {
                 // flip around and send our package list
@@ -245,7 +248,7 @@ impl SyncDataScene {
             return;
         };
 
-        self.send(SyncDataPacket::RequestPackage { category, id });
+        self.send(game_io, SyncDataPacket::RequestPackage { category, id });
 
         let remaining = self
             .total_packages
@@ -472,11 +475,14 @@ impl SyncDataScene {
 
                     let zip_bytes = Self::package_zip(game_io, category, &id);
 
-                    self.send(SyncDataPacket::Package {
-                        category,
-                        id,
-                        zip_bytes,
-                    });
+                    self.send(
+                        game_io,
+                        SyncDataPacket::Package {
+                            category,
+                            id,
+                            zip_bytes,
+                        },
+                    );
                 }
                 SyncDataPacket::Package {
                     category,
@@ -499,7 +505,7 @@ impl SyncDataScene {
 
                     let globals = game_io.resource::<Globals>().unwrap();
                     let save = serialize(&globals.global_save);
-                    self.send(SyncDataPacket::Save { save });
+                    self.send(game_io, SyncDataPacket::Save { save });
 
                     // build identity list on the remote device
                     self.build_identity_list();
@@ -512,16 +518,17 @@ impl SyncDataScene {
 
                         if self.started_connection {
                             globals.global_save.sync(remote_save);
+                            globals.global_save.save();
 
                             log::debug!("Sending save data");
+
                             let save = serialize(&globals.global_save);
-                            self.send(SyncDataPacket::Save { save })
+                            self.send(game_io, SyncDataPacket::Save { save })
                         } else {
                             // the other client handled sync, use their save
                             globals.global_save = remote_save;
+                            globals.global_save.save();
                         }
-
-                        globals.global_save.save();
                     } else {
                         let error = "Failed to read remote save.";
                         log::debug!("{error}");
@@ -534,7 +541,7 @@ impl SyncDataScene {
                     if self.started_connection {
                         // only one side needs to message here
                         // we share saves at the same time, and the first device will kick this off
-                        self.send(SyncDataPacket::RequestIdentity);
+                        self.send(game_io, SyncDataPacket::RequestIdentity);
                     }
                 }
                 SyncDataPacket::RequestIdentity => {
@@ -561,7 +568,7 @@ impl SyncDataScene {
                             SyncDataPacket::RequestIdentity
                         });
 
-                    self.send(packet);
+                    self.send(game_io, packet);
                 }
                 SyncDataPacket::Identity {
                     file_name,
@@ -584,14 +591,14 @@ impl SyncDataScene {
                         }
 
                         // request more identity
-                        self.send(SyncDataPacket::RequestIdentity);
+                        self.send(game_io, SyncDataPacket::RequestIdentity);
                     }
                 }
                 SyncDataPacket::Complete { cancelled } => {
                     self.sync_comms = None;
                     self.doorstop_key.take();
 
-                    // update avatar
+                    // update avatar to match the latest save
                     self.textbox.use_navigation_avatar(game_io);
 
                     let message = if cancelled {
@@ -655,7 +662,7 @@ impl SyncDataScene {
                 Event::AcceptSyncWith => {
                     self.accepted_sync = true;
                     self.started_connection = false;
-                    self.send(SyncDataPacket::AcceptSync);
+                    self.send(game_io, SyncDataPacket::AcceptSync);
 
                     // notify user
                     let message = "Syncing...";
@@ -664,7 +671,7 @@ impl SyncDataScene {
                     self.textbox.open();
                 }
                 Event::RejectSyncWith => {
-                    self.send(SyncDataPacket::RejectSync);
+                    self.send(game_io, SyncDataPacket::RejectSync);
                     self.doorstop_key.take();
                     self.sync_comms = None;
                 }
