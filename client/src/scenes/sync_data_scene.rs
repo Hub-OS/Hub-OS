@@ -702,7 +702,8 @@ impl Scene for SyncDataScene {
 
         // draw local address
         let globals = game_io.resource::<Globals>().unwrap();
-        let address = globals.network.local_address().unwrap_or_default();
+        let network_details = globals.network.details();
+        let address = network_details.local_address().unwrap_or_default();
 
         let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;

@@ -6,11 +6,12 @@ use futures::StreamExt;
 use packets::{
     deserialize, ClientPacket, MulticastPacket, MulticastPacketWrapper, NetplayPacket,
     NetplayPacketData, PacketChannels, Reliability, ServerPacket, SyncDataPacket, MULTICAST_ADDR,
-    MULTICAST_PORT, MULTICAST_V4, SERVER_TICK_RATE,
+    MULTICAST_PORT, MULTICAST_V4, SERVER_TICK_RATE, SERVER_TICK_RATE_F,
 };
 use std::collections::HashMap;
 use std::future::Future;
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
@@ -23,6 +24,8 @@ pub type SyncDataPacketReceiver = flume::Receiver<SyncDataPacket>;
 pub type MulticastReceiver = flume::Receiver<(SocketAddr, MulticastPacket)>;
 
 const DISCONNECT_AFTER: Duration = Duration::from_secs(5);
+const TICK_RATE: Duration = SERVER_TICK_RATE;
+const TPS: usize = (1.0 / SERVER_TICK_RATE_F) as _;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum ServerStatus {
@@ -44,27 +47,49 @@ enum Event {
     SendingSyncPacket(SocketAddr, Reliability, SyncDataPacket),
     SendingMulticastPacket(MulticastPacket),
     ReceivedPacket(SocketAddr, Instant, Vec<u8>),
-    ReceivedMulticastPacket(SocketAddr, MulticastPacket),
+    ReceivedMulticastPacket(SocketAddr, MulticastPacket, usize),
+}
+
+#[derive(Default)]
+pub struct NetworkDetails {
+    local_address: OnceLock<String>,
+    avg_up: AtomicUsize,
+    avg_down: AtomicUsize,
+}
+
+impl NetworkDetails {
+    // Resolved when outgoing multicast packets are read
+    pub fn local_address(&self) -> Option<&str> {
+        self.local_address.get().map(|s| s.as_str())
+    }
+
+    pub fn avg_bytes_up(&self) -> usize {
+        self.avg_up.load(Ordering::Relaxed)
+    }
+
+    pub fn avg_bytes_down(&self) -> usize {
+        self.avg_down.load(Ordering::Relaxed)
+    }
 }
 
 pub struct Network {
     socket: Arc<UdpSocket>,
     sender: flume::Sender<Event>,
-    local_address: Arc<OnceLock<String>>,
+    network_details: Arc<NetworkDetails>,
 }
 
 impl Network {
     pub fn new(args: &Args) -> Self {
         let (sender, receiver) = flume::unbounded();
 
-        let local_address = Arc::new(OnceLock::new());
+        let network_details = Arc::new(NetworkDetails::default());
 
         // multicast listener
         std::thread::spawn({
             let sender = sender.clone();
-            let local_address = local_address.clone();
+            let network_details = network_details.clone();
 
-            move || multicast_listener(sender, local_address)
+            move || multicast_listener(sender, network_details)
         });
 
         // regular socket
@@ -79,7 +104,9 @@ impl Network {
         });
 
         std::thread::spawn({
-            let listener = EventListener::new(socket.clone(), receiver, args.send_budget);
+            let network_details = network_details.clone();
+            let listener =
+                EventListener::new(socket.clone(), receiver, args.send_budget, network_details);
 
             move || listener.run()
         });
@@ -87,13 +114,13 @@ impl Network {
         Self {
             socket,
             sender,
-            local_address,
+            network_details,
         }
     }
 
     // Resolved when outgoing multicast packets are read
-    pub fn local_address(&self) -> Option<&str> {
-        self.local_address.get().map(|s| s.as_str())
+    pub fn details(&self) -> &NetworkDetails {
+        &self.network_details
     }
 
     pub fn subscribe_to_netplay(
@@ -186,7 +213,7 @@ impl Network {
         while !receiver.is_disconnected() {
             send(Reliability::Unreliable, ClientPacket::VersionRequest);
 
-            async_sleep(SERVER_TICK_RATE).await;
+            async_sleep(TICK_RATE).await;
 
             let response = match receiver.try_recv() {
                 Ok(response) => response,
@@ -236,7 +263,7 @@ fn socket_listener(socket: Arc<UdpSocket>, packet_sender: flume::Sender<Event>) 
     }
 }
 
-fn multicast_listener(packet_sender: flume::Sender<Event>, local_address: Arc<OnceLock<String>>) {
+fn multicast_listener(packet_sender: flume::Sender<Event>, network_details: Arc<NetworkDetails>) {
     let socket = match UdpSocket::bind(format!("0.0.0.0:{MULTICAST_PORT}")) {
         Ok(socket) => socket,
         Err(err) => {
@@ -261,10 +288,10 @@ fn multicast_listener(packet_sender: flume::Sender<Event>, local_address: Arc<On
 
         if let Ok(wrapped_packet) = packets::deserialize::<MulticastPacketWrapper>(bytes) {
             if wrapped_packet.is_compatible() {
-                let event = Event::ReceivedMulticastPacket(addr, wrapped_packet.data);
+                let event = Event::ReceivedMulticastPacket(addr, wrapped_packet.data, bytes.len());
                 let _ = packet_sender.send(event);
             } else if !local_address_set && wrapped_packet.uuid == MulticastPacket::local_uuid() {
-                let _ = local_address.set(addr.to_string());
+                let _ = network_details.local_address.set(addr.to_string());
                 local_address_set = true;
             }
         }
@@ -313,6 +340,12 @@ impl Connection {
     }
 }
 
+#[derive(Default)]
+struct NetworkSample {
+    bytes_up: usize,
+    bytes_down: usize,
+}
+
 struct EventListener {
     socket: Arc<UdpSocket>,
     connection_map: HashMap<SocketAddr, GenerationalIndex>,
@@ -326,11 +359,21 @@ struct EventListener {
     >,
     multicast_listeners: Vec<flume::Sender<(SocketAddr, MulticastPacket)>>,
     receiver: flume::Receiver<Event>,
+    network_details: Arc<NetworkDetails>,
+    network_samples: [NetworkSample; TPS],
+    next_network_sample: usize,
+    bytes_up: usize,
+    bytes_down: usize,
     send_budget: usize,
 }
 
 impl EventListener {
-    fn new(socket: Arc<UdpSocket>, receiver: flume::Receiver<Event>, send_budget: usize) -> Self {
+    fn new(
+        socket: Arc<UdpSocket>,
+        receiver: flume::Receiver<Event>,
+        send_budget: usize,
+        network_details: Arc<NetworkDetails>,
+    ) -> Self {
         Self {
             socket,
             connection_map: HashMap::new(),
@@ -339,12 +382,17 @@ impl EventListener {
             multicast_listeners: Default::default(),
             receiver,
             send_budget,
+            network_details,
+            network_samples: Default::default(),
+            next_network_sample: 0,
+            bytes_up: 0,
+            bytes_down: 0,
         }
     }
 
     fn run(mut self) {
         smol::block_on(async {
-            let tick_stream = smol::Timer::interval(SERVER_TICK_RATE).fuse();
+            let tick_stream = smol::Timer::interval(TICK_RATE).fuse();
             let receiver_clone = self.receiver.clone();
             let receiver_stream = receiver_clone.stream().fuse();
 
@@ -360,49 +408,58 @@ impl EventListener {
                         self.tick();
                     }
                     event = receiver_stream.select_next_some() => {
-                        match event {
-                            Event::ServerSubscription(addr, sender) => {
-                                self.handle_server_subscription(addr, sender)
-                            }
-                            Event::NetplaySubscription(addr, sender) => {
-                                self.handle_netplay_subscription(addr, sender)
-                            }
-                            Event::SyncDataSubscription(addr, sender) => {
-                                self.handle_sync_data_subscription(addr, sender)
-                            }
-                            Event::MulticastSubscription( sender) => {
-                                self.multicast_listeners.push(sender);
-                            }
-                            Event::SendingClientPacket(addr, reliability, body) => {
-                                self.send_client_packet(addr, reliability, packets::serialize(body))
-                            }
-                            Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
-                                addr,
-                                if body.data == NetplayPacketData::Heartbeat {
-                                    Reliability::Reliable
-                                } else {
-                                    Reliability::ReliableOrdered
-                                },
-                                packets::serialize(body),
-                            ),
-                            Event::SendingSyncPacket(addr, reliability, body) => {
-                                self.send_sync_packet(addr, reliability, packets::serialize(body))
-                            }
-                            Event::SendingMulticastPacket(body) => {
-                                let bytes = packets::serialize(MulticastPacketWrapper::new( body));
-                                let _ = self.socket.send_to(&bytes, MULTICAST_ADDR);
-                            }
-                            Event::ReceivedPacket(addr, time, body) => self.sort_packet(addr, time, body),
-                            Event::ReceivedMulticastPacket(addr,  body) => {
-                                for sender in &self.multicast_listeners {
-                                    let _ = sender.send((addr, body.clone()));
-                                }
-                            }
-                        }
+                        self.handle_event(event);
                     }
                 }
             }
         })
+    }
+
+    fn handle_event(&mut self, event: Event) {
+        match event {
+            Event::ServerSubscription(addr, sender) => {
+                self.handle_server_subscription(addr, sender)
+            }
+            Event::NetplaySubscription(addr, sender) => {
+                self.handle_netplay_subscription(addr, sender)
+            }
+            Event::SyncDataSubscription(addr, sender) => {
+                self.handle_sync_data_subscription(addr, sender)
+            }
+            Event::MulticastSubscription(sender) => {
+                self.multicast_listeners.push(sender);
+            }
+            Event::SendingClientPacket(addr, reliability, body) => {
+                self.send_client_packet(addr, reliability, packets::serialize(body))
+            }
+            Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
+                addr,
+                if body.data == NetplayPacketData::Heartbeat {
+                    Reliability::Reliable
+                } else {
+                    Reliability::ReliableOrdered
+                },
+                packets::serialize(body),
+            ),
+            Event::SendingSyncPacket(addr, reliability, body) => {
+                self.send_sync_packet(addr, reliability, packets::serialize(body))
+            }
+            Event::SendingMulticastPacket(body) => {
+                let bytes = packets::serialize(MulticastPacketWrapper::new(body));
+                self.bytes_up += bytes.len();
+                let _ = self.socket.send_to(&bytes, MULTICAST_ADDR);
+            }
+            Event::ReceivedPacket(addr, time, body) => {
+                self.bytes_down += body.len();
+                self.sort_packet(addr, time, body);
+            }
+            Event::ReceivedMulticastPacket(addr, body, len) => {
+                for sender in &self.multicast_listeners {
+                    let _ = sender.send((addr, body.clone()));
+                }
+                self.bytes_down += len;
+            }
+        }
     }
 
     fn get_or_init_connection(&mut self, addr: SocketAddr) -> GenerationalIndex {
@@ -462,6 +519,7 @@ impl EventListener {
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
+            self.bytes_up += bytes.len();
             let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
@@ -478,6 +536,7 @@ impl EventListener {
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
+            self.bytes_up += bytes.len();
             let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
@@ -494,6 +553,7 @@ impl EventListener {
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
+            self.bytes_up += bytes.len();
             let _ = self.socket.send_to(bytes, connection.socket_addr);
         })
     }
@@ -600,6 +660,30 @@ impl EventListener {
 
         self.handle_disconnections(now);
         self.send_packets(now);
+
+        // update network samples
+        let current_sample = &mut self.network_samples[self.next_network_sample];
+        current_sample.bytes_up = self.bytes_up;
+        current_sample.bytes_down = self.bytes_down;
+
+        self.bytes_up = 0;
+        self.bytes_down = 0;
+
+        self.next_network_sample += 1;
+        self.next_network_sample %= TPS;
+
+        // update average
+        let mut total_up = 0;
+        let mut total_down = 0;
+
+        for sample in &self.network_samples {
+            total_up += sample.bytes_up;
+            total_down += sample.bytes_down;
+        }
+
+        let ordering = Ordering::Relaxed;
+        self.network_details.avg_up.store(total_up, ordering);
+        self.network_details.avg_down.store(total_down, ordering);
     }
 
     fn handle_disconnections(&mut self, now: Instant) {
@@ -633,6 +717,7 @@ impl EventListener {
     fn send_packets(&mut self, now: Instant) {
         for (_, connection) in &mut self.connections {
             connection.packet_sender.tick(now, |bytes| {
+                self.bytes_up += bytes.len();
                 let _ = self.socket.send_to(bytes, connection.socket_addr);
             });
         }
