@@ -214,7 +214,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             bytes,
                             creation: now,
                             next_retry: if sending { now + self.retry_delay } else { now },
-                            attempts: 0,
+                            attempts: if sending { 1 } else { 0 },
                         });
 
                         #[cfg(feature = "reliable_statistics")]
@@ -250,7 +250,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 break;
             }
 
-            if packet.attempts >= 2 {
+            if packet.attempts >= 3 {
                 slowing = true;
                 // avoid sending more packets
                 // as we're possibly flooding the network and need to slow down
