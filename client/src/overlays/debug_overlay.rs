@@ -143,7 +143,7 @@ impl GameOverlay for DebugOverlay {
 
         // draw bytes down
         text.text = fmt_byte_avg(network_details.avg_bytes_down(), "/s DOWN ");
-        text.style.bounds.x = RESOLUTION_F.x - text.measure().size.x - whitespace_size.x * 12.0;
+        text.style.bounds.x = RESOLUTION_F.x - text.measure().size.x - whitespace_size.x * 14.0;
         text.style.color = Color::from((50, 200, 200)).multiply_alpha(ALPHA); // blue
         text.draw(game_io, &mut sprite_queue);
 
