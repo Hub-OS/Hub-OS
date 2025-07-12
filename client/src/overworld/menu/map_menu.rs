@@ -378,10 +378,6 @@ impl Menu for MapMenu {
 
         let map_offset = self.map_sprite.position();
 
-        if game_io.resource::<Globals>().unwrap().debug_visible {
-            return;
-        }
-
         // draw tile markers
         for sprite in &mut self.tile_marker_sprites {
             let original_position = sprite.position();
