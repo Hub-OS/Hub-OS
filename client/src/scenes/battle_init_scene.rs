@@ -1,16 +1,14 @@
 // for online battles see netplay_init_scene.rs
 
-use framework::prelude::*;
-
-use crate::{battle::BattleProps, resources::Globals, transitions::BATTLE_HOLD_DURATION};
-
 use super::BattleScene;
+use crate::{battle::BattleProps, resources::Globals, transitions::BATTLE_HOLD_DURATION};
+use framework::prelude::*;
 
 pub struct BattleInitScene {
     start_instant: Instant,
     camera: OrthoCamera,
     model: FlatModel,
-    battle_scene: Option<BattleScene>,
+    battle_props: Option<BattleProps>,
     next_scene: NextScene,
 }
 
@@ -26,7 +24,7 @@ impl BattleInitScene {
             start_instant: Instant::now(),
             camera,
             model,
-            battle_scene: Some(BattleScene::new(game_io, props)),
+            battle_props: Some(props),
             next_scene: NextScene::None,
         }
     }
@@ -51,7 +49,8 @@ impl Scene for BattleInitScene {
             return;
         }
 
-        if let Some(scene) = self.battle_scene.take() {
+        if let Some(props) = self.battle_props.take() {
+            let scene = BattleScene::new(game_io, props);
             let transition = crate::transitions::new_battle(game_io);
             self.next_scene = NextScene::new_swap(scene).with_transition(transition);
         }
