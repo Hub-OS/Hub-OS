@@ -181,7 +181,7 @@ impl Scene for BattleSelectScene {
             let props = BattleProps::new_with_defaults(game_io, encounter_package);
             let scene = BattleInitScene::new(game_io, props);
 
-            let transition = crate::transitions::new_battle(game_io);
+            let transition = crate::transitions::new_battle_init(game_io);
             self.next_scene = NextScene::new_push(scene).with_transition(transition);
             return;
         }

@@ -3,6 +3,7 @@
 mod color_fade_transition;
 mod fade_transition;
 mod hold_color_scene;
+mod pixelate_out_transition;
 mod push_transition;
 
 use color_fade_transition::*;
@@ -12,6 +13,8 @@ use push_transition::*;
 
 use framework::prelude::{Color, Duration, GameIO};
 use packets::structures::Direction;
+
+use crate::transitions::pixelate_out_transition::PixelateTransition;
 
 pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
 pub const DEFAULT_FADE_DURATION: Duration = Duration::from_millis(500);
@@ -38,6 +41,10 @@ pub fn new_sub_scene(game_io: &GameIO) -> ColorFadeTransition {
 
 pub fn new_sub_scene_pop(game_io: &GameIO) -> ColorFadeTransition {
     new_sub_scene(game_io)
+}
+
+pub fn new_battle_init(game_io: &GameIO) -> PixelateTransition {
+    PixelateTransition::new(game_io, BATTLE_FADE_DURATION)
 }
 
 pub fn new_battle(game_io: &GameIO) -> ColorFadeTransition {

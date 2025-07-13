@@ -1046,7 +1046,7 @@ impl OverworldOnlineScene {
                     // create scene
                     let scene = BattleInitScene::new(game_io, props);
 
-                    let transition = crate::transitions::new_battle(game_io);
+                    let transition = crate::transitions::new_battle_init(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
                     self.next_scene_queue.push_back(next_scene);
                 } else {
@@ -1101,7 +1101,7 @@ impl OverworldOnlineScene {
 
                 let scene = NetplayInitScene::new(game_io, props);
 
-                let transition = crate::transitions::new_battle(game_io);
+                let transition = crate::transitions::new_battle_init(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
                 self.next_scene_queue.push_back(next_scene);
             }
