@@ -3,7 +3,7 @@ use crate::render::{Camera, FrameTime, SpriteColorQueue, SpriteShaderEffect};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
 use framework::prelude::*;
 
-const MAX_PIXELATION: f32 = 1.0 / 8.0;
+const MAX_PIXELATION: f32 = 1.0 / 12.0;
 
 pub struct PixelateTransition {
     elapsed_frames: FrameTime,
