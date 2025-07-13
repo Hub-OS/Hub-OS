@@ -53,8 +53,10 @@ enum Event {
 #[derive(Default)]
 pub struct NetworkDetails {
     local_address: OnceLock<String>,
-    avg_up: AtomicUsize,
-    avg_down: AtomicUsize,
+    per_sec_up: AtomicUsize,
+    per_sec_down: AtomicUsize,
+    total_up: AtomicUsize,
+    total_down: AtomicUsize,
 }
 
 impl NetworkDetails {
@@ -63,12 +65,20 @@ impl NetworkDetails {
         self.local_address.get().map(|s| s.as_str())
     }
 
-    pub fn avg_bytes_up(&self) -> usize {
-        self.avg_up.load(Ordering::Relaxed)
+    pub fn per_sec_bytes_up(&self) -> usize {
+        self.per_sec_up.load(Ordering::Relaxed)
     }
 
-    pub fn avg_bytes_down(&self) -> usize {
-        self.avg_down.load(Ordering::Relaxed)
+    pub fn per_sec_bytes_down(&self) -> usize {
+        self.per_sec_down.load(Ordering::Relaxed)
+    }
+
+    pub fn total_bytes_up(&self) -> usize {
+        self.total_up.load(Ordering::Relaxed)
+    }
+
+    pub fn total_bytes_down(&self) -> usize {
+        self.total_down.load(Ordering::Relaxed)
     }
 }
 
@@ -661,29 +671,33 @@ impl EventListener {
         self.handle_disconnections(now);
         self.send_packets(now);
 
+        // update total up and down
+        let details = &self.network_details;
+        let ordering = Ordering::Relaxed;
+        details.total_up.fetch_add(self.bytes_up, ordering);
+        details.total_down.fetch_add(self.bytes_down, ordering);
+
         // update network samples
         let current_sample = &mut self.network_samples[self.next_network_sample];
         current_sample.bytes_up = self.bytes_up;
         current_sample.bytes_down = self.bytes_down;
-
         self.bytes_up = 0;
         self.bytes_down = 0;
 
         self.next_network_sample += 1;
         self.next_network_sample %= TPS;
 
-        // update average
-        let mut total_up = 0;
-        let mut total_down = 0;
+        // update bytes per sec
+        let mut up = 0;
+        let mut down = 0;
 
         for sample in &self.network_samples {
-            total_up += sample.bytes_up;
-            total_down += sample.bytes_down;
+            up += sample.bytes_up;
+            down += sample.bytes_down;
         }
 
-        let ordering = Ordering::Relaxed;
-        self.network_details.avg_up.store(total_up, ordering);
-        self.network_details.avg_down.store(total_down, ordering);
+        details.per_sec_up.store(up, ordering);
+        details.per_sec_down.store(down, ordering);
     }
 
     fn handle_disconnections(&mut self, now: Instant) {

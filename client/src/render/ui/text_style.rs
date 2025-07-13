@@ -133,6 +133,16 @@ impl TextStyle {
         self.iterate(text, |_, _| {})
     }
 
+    pub fn measure_grapheme(&self, grapheme: &str) -> Vec2 {
+        let mut size = self.glyph_atlas.resolve_whitespace_size(&self.font);
+
+        if !self.monospace && grapheme != " " {
+            size.x = self.character_frame(grapheme).size().x;
+        }
+
+        size
+    }
+
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, text: &str) {
         self.draw_slice(game_io, sprite_queue, text, 0..text.len());
     }

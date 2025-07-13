@@ -1,5 +1,5 @@
 use crate::bindable::SpriteColorMode;
-use crate::render::ui::{FontName, Text};
+use crate::render::ui::{FontName, TextStyle};
 use crate::render::{Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
 use framework::prelude::*;
@@ -16,6 +16,8 @@ const RECT_HEIGHT: usize = 16;
 const RECT_WIDTH_F: f32 = RECT_WIDTH as f32;
 const RECT_HEIGHT_F: f32 = RECT_HEIGHT as f32;
 const ALPHA: f32 = 0.95;
+const BYTES_DOWN_COLOR: Color = Color::from_rgb_u8s(50, 200, 200).multiply_alpha(ALPHA);
+const BYTES_UP_COLOR: Color = Color::from_rgb_u8s(200, 50, 200).multiply_alpha(ALPHA);
 
 impl DebugOverlay {
     pub fn new(game_io: &GameIO) -> Self {
@@ -129,42 +131,67 @@ impl GameOverlay for DebugOverlay {
 
         // draw network details
         let network_details = globals.network.details();
-        let mut text = Text::new(game_io, FontName::ThinSmall);
+        let mut text_style = TextStyle::new(game_io, FontName::ThinSmall);
 
-        let mut whitespace_size = text.style.measure(" ").size;
-        whitespace_size.x += text.style.letter_spacing;
-        text.style.bounds.y = line_top - whitespace_size.y;
+        let row_h = text_style.line_height();
+        text_style.bounds.y = line_top - row_h;
 
-        // draw bytes up
-        text.text = fmt_byte_avg(network_details.avg_bytes_up(), "/s UP ");
-        text.style.bounds.x = RESOLUTION_F.x - text.measure().size.x;
-        text.style.color = Color::from((200, 50, 200)).multiply_alpha(ALPHA); // purple
-        text.draw(game_io, &mut sprite_queue);
+        draw_network_stats(
+            game_io,
+            &mut sprite_queue,
+            &mut text_style,
+            &fmt_byte_avg(network_details.total_bytes_down(), " DOWN"),
+            &fmt_byte_avg(network_details.total_bytes_up(), " UP"),
+        );
 
-        // draw bytes down
-        text.text = fmt_byte_avg(network_details.avg_bytes_down(), "/s DOWN ");
-        text.style.bounds.x = RESOLUTION_F.x - text.measure().size.x - whitespace_size.x * 14.0;
-        text.style.color = Color::from((50, 200, 200)).multiply_alpha(ALPHA); // blue
-        text.draw(game_io, &mut sprite_queue);
+        text_style.bounds.y -= row_h;
+
+        draw_network_stats(
+            game_io,
+            &mut sprite_queue,
+            &mut text_style,
+            &fmt_byte_avg(network_details.per_sec_bytes_down(), "/s DOWN"),
+            &fmt_byte_avg(network_details.per_sec_bytes_up(), "/s UP"),
+        );
 
         render_pass.consume_queue(sprite_queue);
     }
 }
 
+fn draw_network_stats(
+    game_io: &GameIO,
+    sprite_queue: &mut SpriteColorQueue,
+    text_style: &mut TextStyle,
+    bytes_down_str: &str,
+    bytes_up_str: &str,
+) {
+    let mut blank_w = text_style.measure_grapheme(" ").x;
+    blank_w += text_style.letter_spacing;
+
+    // draw bytes up, closest to the right
+    text_style.bounds.x = RESOLUTION_F.x - text_style.measure(bytes_up_str).size.x - blank_w;
+    text_style.color = BYTES_UP_COLOR;
+    text_style.draw(game_io, sprite_queue, bytes_up_str);
+
+    // draw bytes down, second from the right
+    text_style.bounds.x =
+        RESOLUTION_F.x - text_style.measure(bytes_down_str).size.x - blank_w * 15.0;
+    text_style.color = BYTES_DOWN_COLOR;
+    text_style.draw(game_io, sprite_queue, bytes_down_str);
+}
+
 fn fmt_byte_avg(avg: usize, suffix: &str) -> String {
     let mut avg = avg as f32;
+    let mut unit = "PiB";
 
-    if avg > 1024.0 {
+    for test_unit in ["B", "KiB", "MiB", "GiB", "TiB"] {
+        if avg < 1024.0 {
+            unit = test_unit;
+            break;
+        }
+
         avg /= 1024.0;
-    } else {
-        return format!("{avg:.1} B{suffix}");
     }
 
-    if avg > 1024.0 {
-        avg /= 1024.0;
-    } else {
-        return format!("{avg:.1} KiB{suffix}");
-    }
-
-    format!("{avg:.1} MiB{suffix}")
+    format!("{avg:.1} {unit}{suffix}")
 }
