@@ -53,26 +53,30 @@ fn grayscale_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>)
     return out;
 }
 
-fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame_size: vec2<f32>) -> vec2<f32> {
-    let pixelation = mix(frame_size * 0.5, vec2<f32>(0.0), color.a);
+fn resolve_pixelated_uv(uv: vec2<f32>, color: vec4<f32>, frame: vec4<f32>) -> vec2<f32> {
+    let block_size = mix(frame.zw * 0.5, vec2<f32>(0.0), color.a);
 
-    if pixelation.x != 0.0 {
-        return trunc(uv / pixelation) * pixelation;
-    } else {
+    if block_size.x == 0.0 || block_size.y == 0.0 {
+        // avoid dividing by zero
         return uv;
     }
+
+    // this value seems to work best for battle
+    let scale_origin = vec2<f32>(frame.z * 0.5, 0.0);
+    let centered_uv = uv - frame.xy - scale_origin;
+    return trunc(centered_uv / block_size) * block_size + frame.xy + scale_origin;
 }
 
 @fragment
-fn pixelate_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame_size: vec2<f32>) -> @location(0) vec4<f32> {
-    let updated_uv = resolve_pixelated_uv(uv, color, frame_size);
+fn pixelate_multiply_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame);
 
     return color * sample_palette(updated_uv);
 }
 
 @fragment
-fn pixelate_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame_size: vec2<f32>) -> @location(0) vec4<f32> {
-    let updated_uv = resolve_pixelated_uv(uv, color, frame_size);
+fn pixelate_add_main(@location(0) uv: vec2<f32>, @location(1) color: vec4<f32>, @location(2) frame: vec4<f32>) -> @location(0) vec4<f32> {
+    let updated_uv = resolve_pixelated_uv(uv, color, frame);
 
     let sample = sample_palette(updated_uv);
     var out: vec4<f32> = clamp(color + sample, vec4<f32>(), vec4<f32>(1.0));
