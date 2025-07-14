@@ -151,7 +151,7 @@ impl ServerAssetManager {
             let file_name = entry.file_name();
             let Some(file_name_str) = file_name.to_str() else {
                 let file_path = entry.path();
-                log::info!("Removing invalid cache file: {file_path:?}");
+                log::warn!("Removing invalid cache file: {file_path:?}");
                 let _ = std::fs::remove_file(file_path);
                 continue;
             };
@@ -160,7 +160,7 @@ impl ServerAssetManager {
                 assets.insert(asset.remote_path.clone(), asset);
             } else {
                 let file_path = entry.path();
-                log::info!("Removing invalid cache file: {file_path:?}");
+                log::warn!("Removing invalid cache file: {file_path:?}");
                 let _ = std::fs::remove_file(file_path);
             }
         }
