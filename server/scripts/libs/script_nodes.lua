@@ -464,6 +464,19 @@ function ScriptNodes:execute_node(context, object)
   end
 end
 
+---@param node_type string
+---@param context table
+---@param object Net.Object
+function ScriptNodes:execute_node_as(node_type, context, object)
+  local callback = self._node_types[node_type:lower()]
+
+  if not callback then
+    error('"' .. node_type .. '" is not implemented')
+  else
+    callback(context, object)
+  end
+end
+
 ---Resolves the id of the next script node. Initially checks `Next [n]`, and falls back to `Next`, then `Next 1`
 ---@param object Net.Object
 ---@param n number?
