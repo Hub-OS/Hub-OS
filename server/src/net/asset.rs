@@ -19,6 +19,10 @@ pub struct Asset {
 }
 
 impl packets::structures::AssetTrait for Asset {
+    fn hash(&self) -> FileHash {
+        self.hash
+    }
+
     fn last_modified(&self) -> u64 {
         self.last_modified
     }

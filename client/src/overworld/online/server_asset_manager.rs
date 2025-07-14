@@ -1,17 +1,17 @@
 use crate::render::ui::GlyphAtlas;
 use crate::resources::*;
+use base64::Engine;
 use framework::prelude::*;
 use packets::address_parsing::{uri_decode, uri_encode};
-use packets::structures::{AssetDataType, TextureAnimPathPair};
+use packets::structures::{AssetDataType, FileHash, TextureAnimPathPair};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::fs;
 use std::sync::Arc;
 
 struct ServerAssetDownload {
     remote_path: String,
-    last_modified: u64,
+    hash: FileHash,
     expected_size: usize,
     save_to_disk: bool,
     data_type: AssetDataType,
@@ -21,26 +21,33 @@ struct ServerAssetDownload {
 struct CachedServerAsset {
     remote_path: String,
     local_path: String,
-    last_modified: u64,
+    hash: FileHash,
     data: Option<Vec<u8>>,
 }
 
 pub struct StoredServerAsset {
     pub remote_path: String,
-    pub last_modified: u64,
+    pub hash: FileHash,
 }
 
+const BASE64_ENGINE: base64::engine::GeneralPurpose = base64::engine::GeneralPurpose::new(
+    &base64::alphabet::URL_SAFE,
+    base64::engine::general_purpose::NO_PAD,
+);
+
 impl CachedServerAsset {
-    fn new(path_prefix: &str, remote_path: String, last_modified: u64) -> Self {
+    fn new(path_prefix: &str, remote_path: String, hash: FileHash) -> Self {
         let encoded_remote_path = uri_encode(&remote_path);
 
         let mut local_path = path_prefix.to_string();
-        write!(&mut local_path, "{last_modified}-{encoded_remote_path}").unwrap();
+        local_path += &BASE64_ENGINE.encode(hash.as_bytes());
+        local_path += " ";
+        local_path += &encoded_remote_path;
 
         Self {
             remote_path,
             local_path,
-            last_modified,
+            hash,
             data: None,
         }
     }
@@ -48,12 +55,13 @@ impl CachedServerAsset {
     fn decode_local(path_prefix: &str, local_name: &str) -> Option<Self> {
         let local_path = format!("{path_prefix}{local_name}");
 
-        let (last_modified_str, encoded_remote_path) = local_name.split_once('-')?;
+        let (hash_str, encoded_remote_path) = local_name.split_once(' ')?;
+        let hash_bytes = BASE64_ENGINE.decode(hash_str).ok()?;
 
         Some(Self {
             local_path,
             remote_path: uri_decode(encoded_remote_path)?,
-            last_modified: last_modified_str.parse().ok()?,
+            hash: FileHash::from_prehashed(hash_bytes.try_into().ok()?),
             data: None,
         })
     }
@@ -142,11 +150,18 @@ impl ServerAssetManager {
 
             let file_name = entry.file_name();
             let Some(file_name_str) = file_name.to_str() else {
+                let file_path = entry.path();
+                log::info!("Removing invalid cache file: {file_path:?}");
+                let _ = std::fs::remove_file(file_path);
                 continue;
             };
 
             if let Some(asset) = CachedServerAsset::decode_local(path, file_name_str) {
                 assets.insert(asset.remote_path.clone(), asset);
+            } else {
+                let file_path = entry.path();
+                log::info!("Removing invalid cache file: {file_path:?}");
+                let _ = std::fs::remove_file(file_path);
             }
         }
 
@@ -161,9 +176,8 @@ impl ServerAssetManager {
         let _ = fs::remove_file(asset.local_path);
     }
 
-    pub fn store_asset(&self, remote_path: String, last_modified: u64, data: Vec<u8>, write: bool) {
-        let mut asset =
-            CachedServerAsset::new(&self.path_prefix, remote_path.clone(), last_modified);
+    pub fn store_asset(&self, remote_path: String, hash: FileHash, data: Vec<u8>, write: bool) {
+        let mut asset = CachedServerAsset::new(&self.path_prefix, remote_path.clone(), hash);
 
         if write {
             let _ = fs::write(&asset.local_path, &data);
@@ -177,14 +191,14 @@ impl ServerAssetManager {
     pub fn start_download(
         &mut self,
         remote_path: String,
-        last_modified: u64,
+        hash: FileHash,
         expected_size: usize,
         data_type: AssetDataType,
         write: bool,
     ) {
         self.current_download = Some(ServerAssetDownload {
             remote_path,
-            last_modified,
+            hash,
             expected_size,
             save_to_disk: write,
             data_type,
@@ -235,7 +249,7 @@ impl ServerAssetManager {
 
         self.store_asset(
             remote_path.clone(),
-            download.last_modified,
+            download.hash,
             data,
             download.save_to_disk,
         );
@@ -261,7 +275,7 @@ impl ServerAssetManager {
             .values()
             .map(|asset| StoredServerAsset {
                 remote_path: asset.remote_path.clone(),
-                last_modified: asset.last_modified,
+                hash: asset.hash,
             })
             .collect()
     }

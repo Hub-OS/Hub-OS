@@ -145,7 +145,7 @@ impl OverworldOnlineScene {
                 Reliability::ReliableOrdered,
                 ClientPacket::AssetFound {
                     path: asset.remote_path,
-                    last_modified: asset.last_modified,
+                    hash: asset.hash,
                 },
             );
         }
@@ -420,19 +420,14 @@ impl OverworldOnlineScene {
             ServerPacket::RemoveAsset { path } => self.assets.delete_asset(&path),
             ServerPacket::AssetStreamStart {
                 name,
-                last_modified,
+                hash,
                 cache_to_disk,
                 data_type,
                 size,
             } => {
                 self.loaded_zips.remove(&name);
-                self.assets.start_download(
-                    name,
-                    last_modified,
-                    size as usize,
-                    data_type,
-                    cache_to_disk,
-                );
+                self.assets
+                    .start_download(name, hash, size as usize, data_type, cache_to_disk);
             }
             ServerPacket::AssetStream { data } => {
                 self.assets.receive_download_data(game_io, data);

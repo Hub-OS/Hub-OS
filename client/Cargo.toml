@@ -59,6 +59,7 @@ uncased = "0.9"
 dirs-next = "2.0.0"
 webbrowser = { version = "1", features = ["hardened"] }
 smol = "2"
+base64 = "0.22.1"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 surf = { version = "2.3", default-features = false, features = ["curl-client"] }

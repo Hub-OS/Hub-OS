@@ -1,6 +1,8 @@
+use crate::structures::FileHash;
 use serde::{Deserialize, Serialize};
 
 pub trait AssetTrait {
+    fn hash(&self) -> FileHash;
     fn last_modified(&self) -> u64;
     fn cache_to_disk(&self) -> bool;
     fn data(&self) -> &AssetData;

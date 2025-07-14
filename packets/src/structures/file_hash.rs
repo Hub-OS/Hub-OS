@@ -18,6 +18,10 @@ impl FileHash {
         }
     }
 
+    pub fn from_prehashed(bytes: [u8; 32]) -> Self {
+        Self { bytes }
+    }
+
     pub fn from_hex(value: &str) -> Option<Self> {
         let bytes = hex::decode(value).ok()?;
         let bytes = bytes.try_into().ok()?;

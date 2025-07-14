@@ -1,7 +1,7 @@
 // Increment VERSION_ITERATION packets/src/lib.rs if packets are added or modified
 
 use super::structures::{BattleStatistics, Direction};
-use crate::structures::{ActorId, PackageId};
+use crate::structures::{ActorId, FileHash, PackageId};
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -23,7 +23,7 @@ pub enum ClientPacket {
     },
     AssetFound {
         path: String,
-        last_modified: u64,
+        hash: FileHash,
     },
     Asset {
         asset_type: ClientAssetType,

@@ -251,14 +251,11 @@ impl Server {
                         ServerPacket::new_version_info(),
                     );
                 }
-                ClientPacket::AssetFound {
-                    path,
-                    last_modified,
-                } => {
+                ClientPacket::AssetFound { path, hash } => {
                     let mut is_valid = false;
 
                     if let Some(asset) = net.get_asset(&path) {
-                        is_valid = asset.last_modified == last_modified;
+                        is_valid = asset.hash == hash;
                     }
 
                     if let Some(client) = net.get_client_mut(player_id) {

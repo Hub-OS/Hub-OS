@@ -44,7 +44,7 @@ pub enum ServerPacket {
     },
     AssetStreamStart {
         name: String,
-        last_modified: u64,
+        hash: FileHash,
         cache_to_disk: bool,
         data_type: AssetDataType,
         size: u64,
@@ -344,7 +344,7 @@ impl ServerPacket {
 
         let initial_packet = ServerPacket::AssetStreamStart {
             name: name.to_string(),
-            last_modified: asset.last_modified(),
+            hash: asset.hash(),
             cache_to_disk: asset.cache_to_disk(),
             data_type: asset.data().data_type(),
             size: bytes.len() as u64,
