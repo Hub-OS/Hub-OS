@@ -213,16 +213,18 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             data: chunk,
                         });
 
-                        let mut sending = true;
-
-                        if bytes.len() <= self.remaining_send_budget {
-                            self.remaining_send_budget -= bytes.len();
-                        } else if !priority {
-                            sending = false;
-                        }
+                        let sending = bytes.len() <= self.remaining_send_budget || priority;
 
                         if sending {
                             send(&bytes);
+
+                            self.remaining_send_budget =
+                                self.remaining_send_budget.saturating_sub(bytes.len());
+
+                            if !reliability.is_reliable() {
+                                // count unreliable packets as successfully sent to avoid blocking speed increases
+                                self.successfully_sent += bytes.len();
+                            }
                         }
 
                         if reliability.is_reliable() {
@@ -252,9 +254,11 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                     self.last_receive_time = time;
                     let bytes = serialize(&Packet::Ack { header });
 
-                    if bytes.len() <= self.remaining_send_budget {
-                        self.remaining_send_budget -= bytes.len();
-                    }
+                    self.remaining_send_budget =
+                        self.remaining_send_budget.saturating_sub(bytes.len());
+
+                    // count acks as successfully sent to avoid blocking speed increases
+                    self.successfully_sent += bytes.len();
 
                     // send acks even if we're over send budget
                     send(&bytes);
