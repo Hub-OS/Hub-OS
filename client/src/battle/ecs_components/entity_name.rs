@@ -1,2 +1,4 @@
+use std::sync::Arc;
+
 #[derive(Clone)]
-pub struct EntityName(pub String);
+pub struct EntityName(pub Arc<str>);

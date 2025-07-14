@@ -1,6 +1,7 @@
 use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -16,8 +17,8 @@ struct EncounterMeta {
 #[derive(Default, Clone)]
 pub struct EncounterPackage {
     pub package_info: PackageInfo,
-    pub name: String,
-    pub description: String,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
     pub preview_texture_path: String,
     pub recording_path: Option<String>,
     pub recording_overrides: Vec<PackageId>,
@@ -33,7 +34,7 @@ impl Package for EncounterPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Encounter,
             dependencies: self.package_info.requirements.clone(),
@@ -63,8 +64,8 @@ impl Package for EncounterPackage {
 
         let base_path = &package.package_info.base_path;
 
-        package.name = meta.name;
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.recording_path = meta.recording_path.map(|path| base_path.clone() + &path);
         package.recording_overrides = meta.recording_overrides;

@@ -197,7 +197,7 @@ impl Scene for BattleSelectScene {
                 .package(PackageNamespace::Local, package_id)
                 .unwrap();
 
-            let interface = TextboxMessage::new(package.description.clone());
+            let interface = TextboxMessage::new(package.description.to_string());
 
             self.textbox.push_interface(interface);
             self.textbox.open();

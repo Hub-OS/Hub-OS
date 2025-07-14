@@ -80,7 +80,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let name = simulation
             .entities
             .query_one_mut::<&EntityName>(id.into())
-            .map(|name| name.0.as_str())
+            .map(|name| &*name.0)
             .unwrap_or("");
 
         lua.pack_multi(name)
@@ -97,6 +97,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         if name.is_empty() {
             let _ = simulation.entities.remove_one::<EntityName>(id.into());
         } else {
+            let name = name.into();
             let _ = simulation.entities.insert_one(id.into(), EntityName(name));
         }
 

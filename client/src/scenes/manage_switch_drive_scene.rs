@@ -133,7 +133,8 @@ impl SlotUi {
     fn set_package(&mut self, package: Option<&AugmentPackage>) {
         if let Some(package) = package {
             self.package_id = Some(package.package_info.id.clone());
-            self.name_text.text.clone_from(&package.name);
+            self.name_text.text.clear();
+            self.name_text.text.push_str(&package.name);
         } else {
             self.package_id = None;
             self.name_text.text.clear();

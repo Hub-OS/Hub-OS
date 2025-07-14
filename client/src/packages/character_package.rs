@@ -14,9 +14,9 @@ impl Package for CharacterPackage {
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
             id: self.package_info.id.clone(),
-            name: String::new(),
-            description: String::new(),
-            creator: String::new(),
+            name: Default::default(),
+            description: Default::default(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Unknown,
             dependencies: self.package_info.requirements.clone(),

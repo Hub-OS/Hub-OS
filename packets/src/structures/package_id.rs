@@ -1,11 +1,54 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
-#[derive(Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
-pub struct PackageId(Box<str>);
+#[derive(Default, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct PackageId(Arc<str>);
+
+impl Serialize for PackageId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0)
+    }
+}
+
+struct PackageIdVisitor;
+
+impl serde::de::Visitor<'_> for PackageIdVisitor {
+    type Value = PackageId;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a string value")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(v.into())
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(v.into())
+    }
+}
+
+impl<'de> Deserialize<'de> for PackageId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(PackageIdVisitor)
+    }
+}
 
 impl PackageId {
     pub fn new_blank() -> Self {
-        Self(Box::from(""))
+        Self("".into())
     }
 
     pub fn is_blank(&self) -> bool {
@@ -19,13 +62,13 @@ impl PackageId {
 
 impl From<&str> for PackageId {
     fn from(id: &str) -> Self {
-        Self(Box::from(id))
+        Self(id.into())
     }
 }
 
 impl From<String> for PackageId {
     fn from(id: String) -> Self {
-        Self(Box::from(id))
+        Self(id.into())
     }
 }
 
@@ -55,7 +98,7 @@ impl<'lua> mlua::FromLua<'lua> for PackageId {
             });
         };
 
-        Ok(Self(Box::from(id.to_string_lossy())))
+        Ok(Self(id.to_string_lossy().into()))
     }
 }
 

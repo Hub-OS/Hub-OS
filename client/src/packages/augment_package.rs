@@ -4,6 +4,7 @@ use crate::bindable::SwitchDriveSlot;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 use std::borrow::Cow;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -34,8 +35,8 @@ struct AugmentMeta {
 #[derive(Default, Clone)]
 pub struct AugmentPackage {
     pub package_info: PackageInfo,
-    pub name: String,
-    pub description: String,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
     pub health_boost: i32,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -84,7 +85,7 @@ impl Package for AugmentPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Augment {
                 slot: self.slot,
@@ -117,8 +118,8 @@ impl Package for AugmentPackage {
             );
         }
 
-        package.name = meta.name;
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
         package.health_boost = meta.health_boost;
         package.attack_boost = meta.attack_boost;
         package.rapid_boost = meta.rapid_boost;

@@ -239,7 +239,7 @@ impl BattleSimulation {
             let name = name.map(|n| n.0.clone()).unwrap_or_default();
 
             survivor_list.push(BattleSurvivor {
-                name,
+                name: name.to_string(),
                 health: living.health,
             });
         }

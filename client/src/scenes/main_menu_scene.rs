@@ -84,7 +84,7 @@ impl CharacterData {
 
         // text
         let part_text = player_package
-            .map(|package| package.name.as_str())
+            .map(|package| &*package.name)
             .unwrap_or("Missing Navi")
             .to_uppercase()
             + "   ";

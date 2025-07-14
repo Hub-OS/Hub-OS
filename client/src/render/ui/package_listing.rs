@@ -6,13 +6,14 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId, SwitchDriveSlot};
 use serde_json as json;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PackageListing {
     pub id: PackageId,
-    pub name: String,
-    pub description: String,
-    pub creator: String,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
+    pub creator: Arc<str>,
     pub hash: FileHash,
     pub preview_data: PackagePreviewData,
     pub dependencies: Vec<(PackageCategory, PackageId)>,
@@ -23,9 +24,9 @@ impl From<&json::Value> for PackageListing {
         let Some(package_table) = value.get("package") else {
             return Self {
                 id: PackageId::new_blank(),
-                name: String::from("Broken package"),
-                description: String::from("???"),
-                creator: String::new(),
+                name: "Broken package".into(),
+                description: "???".into(),
+                creator: Default::default(),
                 hash: FileHash::ZERO,
                 preview_data: PackagePreviewData::Unknown,
                 dependencies: Vec::new(),
@@ -126,9 +127,9 @@ impl From<&json::Value> for PackageListing {
 
         Self {
             id: get_str(package_table, "id").into(),
-            name: get_str(package_table, "name").to_string(),
-            description: description.to_string(),
-            creator: get_unknown_as_string(value, "creator"),
+            name: get_str(package_table, "name").into(),
+            description: description.into(),
+            creator: get_unknown_as_string(value, "creator").into(),
             hash: FileHash::from_hex(get_str(value, "hash")).unwrap_or_default(),
             preview_data,
             dependencies,

@@ -14,6 +14,7 @@ use itertools::Itertools;
 use packets::structures::PackageCategory;
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 const DIM_COLOR: Color = Color::new(0.75, 0.75, 0.75, 1.0);
 
@@ -31,7 +32,7 @@ enum BlockOption {
 #[derive(Clone)]
 struct CompactPackageInfo {
     id: PackageId,
-    name: String,
+    name: Arc<str>,
     color: BlockColor,
 }
 
@@ -308,7 +309,8 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &block.package_id)
                         .unwrap();
 
-                    self.information_text.text.clone_from(&package.description);
+                    self.information_text.text.clear();
+                    self.information_text.text.push_str(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&block.package_id, block.color);
                 } else {
@@ -327,7 +329,8 @@ impl BlocksScene {
                         .package(PackageNamespace::Local, &package.id)
                         .unwrap();
 
-                    self.information_text.text.clone_from(&package.description);
+                    self.information_text.text.clear();
+                    self.information_text.text.push_str(&package.description);
                     self.information_text.style.color =
                         self.package_text_color(&package.package_info.id, block_color);
 

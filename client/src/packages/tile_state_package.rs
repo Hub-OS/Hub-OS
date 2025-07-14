@@ -3,6 +3,7 @@ use crate::bindable::Element;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::FrameTime;
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -22,8 +23,8 @@ struct TileStateMeta {
 
 pub struct TileStatePackage {
     pub package_info: PackageInfo,
-    pub name: String,
-    pub description: String,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
     pub state_name: String,
     pub texture_path: String,
     pub animation_path: String,
@@ -44,7 +45,7 @@ impl Package for TileStatePackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::TileState,
             dependencies: self.package_info.requirements.clone(),
@@ -54,8 +55,8 @@ impl Package for TileStatePackage {
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
         let mut package = Self {
             package_info,
-            name: String::new(),
-            description: String::new(),
+            name: Default::default(),
+            description: Default::default(),
             state_name: String::new(),
             texture_path: String::new(),
             animation_path: String::new(),
@@ -83,8 +84,8 @@ impl Package for TileStatePackage {
 
         let base_path = &package.package_info.base_path;
 
-        package.name = meta.name;
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
         package.state_name = meta.state_name;
         package.texture_path = base_path.clone() + &meta.texture_path;
         package.animation_path = base_path.clone() + &meta.animation_path;

@@ -1,7 +1,7 @@
-use crate::render::ui::{PackageListing, PackagePreviewData};
-
 use super::*;
+use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -14,8 +14,8 @@ struct LibraryMeta {
 #[derive(Default, Clone)]
 pub struct LibraryPackage {
     pub package_info: PackageInfo,
-    name: String,
-    description: String,
+    name: Arc<str>,
+    description: Arc<str>,
 }
 
 impl Package for LibraryPackage {
@@ -28,7 +28,7 @@ impl Package for LibraryPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Library,
             dependencies: self.package_info.requirements.clone(),
@@ -38,8 +38,8 @@ impl Package for LibraryPackage {
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
         let mut package = Self {
             package_info,
-            name: String::new(),
-            description: String::new(),
+            name: Default::default(),
+            description: Default::default(),
         };
 
         let meta: LibraryMeta = match package_table.try_into() {
@@ -57,8 +57,8 @@ impl Package for LibraryPackage {
             );
         }
 
-        package.name = meta.name;
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
 
         package
     }

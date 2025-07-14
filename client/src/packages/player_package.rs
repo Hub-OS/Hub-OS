@@ -3,6 +3,7 @@ use crate::bindable::Element;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use packets::structures::TextureAnimPathPair;
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -24,10 +25,10 @@ struct PlayerMeta {
 #[derive(Default, Clone)]
 pub struct PlayerPackage {
     pub package_info: PackageInfo,
-    pub name: String,
+    pub name: Arc<str>,
     pub health: i32,
     pub element: Element,
-    pub description: String,
+    pub description: Arc<str>,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
     pub overworld_paths: TextureAnimPathPair<'static>,
@@ -45,7 +46,7 @@ impl Package for PlayerPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Player {
                 element: self.element,
@@ -78,10 +79,10 @@ impl Package for PlayerPackage {
 
         let base_path = &package.package_info.base_path;
 
-        package.name = meta.name;
+        package.name = meta.name.into();
         package.health = meta.health;
         package.element = Element::from(meta.element);
-        package.description = meta.description;
+        package.description = meta.description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.overworld_paths.texture = (base_path.clone() + &meta.overworld_texture_path).into();
         package.overworld_paths.animation =

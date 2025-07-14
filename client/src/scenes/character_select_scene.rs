@@ -9,6 +9,7 @@ use crate::resources::*;
 use crate::saves::GlobalSave;
 use framework::prelude::*;
 use itertools::Itertools;
+use std::sync::Arc;
 
 const ICON_WIDTH: f32 = 20.0;
 const ICON_HEIGHT: f32 = 24.0;
@@ -239,7 +240,7 @@ impl CharacterSelectScene {
                 .set_next_avatar(game_io, &globals.assets, Some(&package.mugshot_paths));
 
             // set description
-            let interface = TextboxMessage::new(package.description.clone());
+            let interface = TextboxMessage::new(package.description.to_string());
             self.textbox.push_interface(interface);
             self.textbox.open();
         }
@@ -379,7 +380,7 @@ impl Scene for CharacterSelectScene {
 
 struct CompactPackageInfo {
     package_id: PackageId,
-    name: String,
+    name: Arc<str>,
     texture_path: String,
     animation_path: String,
     valid: bool,

@@ -6,6 +6,7 @@ use crate::ResourcePaths;
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use serde::Deserialize;
+use std::sync::Arc;
 use walkdir::WalkDir;
 
 #[derive(Deserialize, Default)]
@@ -19,8 +20,8 @@ struct ResourceMeta {
 #[derive(Default, Clone)]
 pub struct ResourcePackage {
     pub package_info: PackageInfo,
-    name: String,
-    description: String,
+    name: Arc<str>,
+    description: Arc<str>,
 }
 
 impl ResourcePackage {
@@ -49,9 +50,9 @@ impl ResourcePackage {
     pub fn default_package_listing() -> PackageListing {
         PackageListing {
             id: PackageId::default(),
-            name: String::from("Default"),
-            description: String::from("Default resources for the OS."),
-            creator: String::from("Hub OS"),
+            name: "Default".into(),
+            description: "Default resources for the OS.".into(),
+            creator: "Hub OS".into(),
             hash: FileHash::ZERO,
             preview_data: PackagePreviewData::Resource,
             dependencies: Vec::new(),
@@ -69,7 +70,7 @@ impl Package for ResourcePackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Resource,
             dependencies: self.package_info.requirements.clone(),
@@ -79,8 +80,8 @@ impl Package for ResourcePackage {
     fn load_new(package_info: PackageInfo, package_table: toml::Table) -> Self {
         let mut package = Self {
             package_info,
-            name: String::new(),
-            description: String::new(),
+            name: Default::default(),
+            description: Default::default(),
         };
 
         let meta: ResourceMeta = match package_table.try_into() {
@@ -98,8 +99,8 @@ impl Package for ResourcePackage {
             );
         }
 
-        package.name = meta.name;
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
 
         package
     }

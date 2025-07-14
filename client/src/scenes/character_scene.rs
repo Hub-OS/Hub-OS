@@ -183,7 +183,7 @@ impl Scene for CharacterScene {
 
 struct StatusData<'a> {
     player_package: &'a PlayerPackage,
-    visible_augments: Vec<String>,
+    visible_augments: Vec<Arc<str>>,
     health: i32,
     charge_level: i8,
     attack_level: i8,

@@ -2,6 +2,7 @@ use super::*;
 use crate::render::ui::{PackageListing, PackagePreviewData};
 use crate::render::FrameTime;
 use serde::Deserialize;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
@@ -23,8 +24,8 @@ struct StatusMeta {
 pub struct StatusPackage {
     pub package_info: PackageInfo,
     pub icon_texture_path: Option<String>,
-    pub name: String,
-    pub description: String,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
     pub flag_name: String,
     pub mutual_exclusions: Vec<String>,
     pub blocked_by: Vec<String>,
@@ -44,7 +45,7 @@ impl Package for StatusPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Status,
             dependencies: self.package_info.requirements.clone(),
@@ -74,9 +75,9 @@ impl Package for StatusPackage {
 
         let base_path = &package.package_info.base_path;
 
-        package.name = meta.name;
         package.icon_texture_path = meta.icon_texture_path.map(|p| base_path.clone() + &p);
-        package.description = meta.description;
+        package.name = meta.name.into();
+        package.description = meta.description.into();
         package.flag_name = meta.flag_name;
         package.mutual_exclusions = meta.mutual_exclusions;
         package.blocked_by = meta.blocked_by;

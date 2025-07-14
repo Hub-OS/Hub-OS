@@ -50,8 +50,8 @@ pub struct CardPackage {
     pub icon_texture_path: String,
     pub preview_texture_path: String,
     pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
-    pub description: String,
-    pub long_description: String,
+    pub description: Arc<str>,
+    pub long_description: Arc<str>,
     pub default_codes: Vec<String>,
     pub regular_allowed: bool,
     pub hidden: bool,
@@ -67,13 +67,13 @@ impl Package for CardPackage {
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
             id: self.package_info.id.clone(),
-            name: self.card_properties.short_name.to_string(),
+            name: self.card_properties.short_name.clone().into(),
             description: if !self.long_description.is_empty() {
                 self.long_description.clone()
             } else {
                 self.description.clone()
             },
-            creator: String::new(),
+            creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Card {
                 class: self.card_properties.card_class,
@@ -151,8 +151,8 @@ impl Package for CardPackage {
 
         package.icon_texture_path = base_path.clone() + &meta.icon_texture_path;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
-        package.description = meta.description;
-        package.long_description = meta.long_description;
+        package.description = meta.description.into();
+        package.long_description = meta.long_description.into();
         package.default_codes = meta.codes;
         package.hidden = meta.hidden;
         package.limit = meta.limit.unwrap_or(5);

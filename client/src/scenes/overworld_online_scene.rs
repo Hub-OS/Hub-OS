@@ -219,7 +219,7 @@ impl OverworldOnlineScene {
         send_packet(
             Reliability::ReliableOrdered,
             ClientPacket::AvatarChange {
-                name: player_package.name.clone(),
+                name: player_package.name.to_string(),
                 element: player_package.element.to_string(),
                 base_health: player_package.health,
             },

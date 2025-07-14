@@ -225,9 +225,9 @@ impl BattleScene {
                     };
 
                     let description = if package.long_description.is_empty() {
-                        package.description.clone()
+                        package.description.to_string()
                     } else {
-                        package.long_description.clone()
+                        package.long_description.to_string()
                     };
 
                     self.textbox.use_blank_avatar(game_io);
