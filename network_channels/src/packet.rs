@@ -34,6 +34,7 @@ impl<ChannelLabel: Label> Packet<'_, ChannelLabel> {
 pub(crate) enum SenderTask<ChannelLabel> {
     SendMessage {
         channel: ChannelLabel,
+        priority: bool,
         reliability: Reliability,
         data: Arc<Vec<u8>>,
     },

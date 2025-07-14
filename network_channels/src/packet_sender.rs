@@ -11,6 +11,7 @@ pub struct StoredPacket<ChannelLabel> {
     creation: Instant,
     next_retry: Instant,
     attempts: u8,
+    priority: bool,
 }
 
 #[cfg(feature = "reliable_statistics")]
@@ -166,6 +167,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 }
                 SenderTask::SendMessage {
                     channel,
+                    priority,
                     reliability,
                     data,
                 } => {
@@ -211,21 +213,33 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                             data: chunk,
                         });
 
-                        let sending = bytes.len() <= self.remaining_send_budget;
+                        let mut sending = true;
+
+                        if bytes.len() <= self.remaining_send_budget {
+                            self.remaining_send_budget -= bytes.len();
+                        } else if !priority {
+                            sending = false;
+                        }
 
                         if sending {
-                            self.remaining_send_budget -= bytes.len();
                             send(&bytes);
                         }
 
                         if reliability.is_reliable() {
-                            self.stored_packets.push(StoredPacket {
+                            let stored_packet = StoredPacket {
                                 header,
                                 bytes,
                                 creation: now,
                                 next_retry: if sending { now + self.retry_delay } else { now },
                                 attempts: if sending { 1 } else { 0 },
-                            });
+                                priority,
+                            };
+
+                            if priority {
+                                self.stored_packets.insert(0, stored_packet);
+                            } else {
+                                self.stored_packets.push(stored_packet);
+                            }
 
                             #[cfg(feature = "reliable_statistics")]
                             {
@@ -258,7 +272,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 continue;
             }
 
-            if packet.bytes.len() > self.remaining_send_budget {
+            if !packet.priority && packet.bytes.len() > self.remaining_send_budget {
                 // break as soon as we're over budget to avoid busy looping
                 break;
             }
@@ -272,7 +286,10 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
             packet.attempts += 1;
 
-            self.remaining_send_budget -= packet.bytes.len();
+            self.remaining_send_budget = self
+                .remaining_send_budget
+                .saturating_sub(packet.bytes.len());
+
             send(&packet.bytes);
             packet.next_retry = now + self.retry_delay;
 

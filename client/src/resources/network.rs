@@ -440,7 +440,7 @@ impl EventListener {
                 self.multicast_listeners.push(sender);
             }
             Event::SendingClientPacket(addr, reliability, body) => {
-                self.send_client_packet(addr, reliability, packets::serialize(body))
+                self.send_client_packet(addr, reliability, body)
             }
             Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
                 addr,
@@ -449,10 +449,10 @@ impl EventListener {
                 } else {
                     Reliability::ReliableOrdered
                 },
-                packets::serialize(body),
+                body,
             ),
             Event::SendingSyncPacket(addr, reliability, body) => {
-                self.send_sync_packet(addr, reliability, packets::serialize(body))
+                self.send_sync_packet(addr, reliability, body)
             }
             Event::SendingMulticastPacket(body) => {
                 let bytes = packets::serialize(MulticastPacketWrapper::new(body));
@@ -517,7 +517,12 @@ impl EventListener {
         let _ = sender.send(packet_receiver.clone());
     }
 
-    fn send_client_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
+    fn send_client_packet(
+        &mut self,
+        addr: SocketAddr,
+        reliability: Reliability,
+        packet: ClientPacket,
+    ) {
         let Some(index) = self.connection_map.get_mut(&addr) else {
             return;
         };
@@ -525,7 +530,7 @@ impl EventListener {
 
         connection
             .client_channel
-            .send_shared_bytes(reliability, Arc::new(bytes));
+            .send_serialized(reliability, packet);
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
@@ -534,15 +539,26 @@ impl EventListener {
         })
     }
 
-    fn send_netplay_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
+    fn send_netplay_packet(
+        &mut self,
+        addr: SocketAddr,
+        reliability: Reliability,
+        packet: NetplayPacket,
+    ) {
         let Some(index) = self.connection_map.get_mut(&addr) else {
             return;
         };
         let connection = &mut self.connections[*index];
 
-        connection
-            .netplay_channel
-            .send_shared_bytes(reliability, Arc::new(bytes));
+        if matches!(packet.data, NetplayPacketData::Buffer { .. }) {
+            connection
+                .netplay_channel
+                .send_serialized_with_priority(reliability, packet);
+        } else {
+            connection
+                .netplay_channel
+                .send_serialized(reliability, packet);
+        }
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {
@@ -551,15 +567,18 @@ impl EventListener {
         })
     }
 
-    fn send_sync_packet(&mut self, addr: SocketAddr, reliability: Reliability, bytes: Vec<u8>) {
+    fn send_sync_packet(
+        &mut self,
+        addr: SocketAddr,
+        reliability: Reliability,
+        packet: SyncDataPacket,
+    ) {
         let Some(index) = self.connection_map.get_mut(&addr) else {
             return;
         };
         let connection = &mut self.connections[*index];
 
-        connection
-            .sync_channel
-            .send_shared_bytes(reliability, Arc::new(bytes));
+        connection.sync_channel.send_serialized(reliability, packet);
 
         // push asap
         connection.packet_sender.tick(Instant::now(), |bytes| {

@@ -20,8 +20,30 @@ impl<ChannelLabel: Label> ChannelSender<ChannelLabel> {
     }
 
     pub fn send_shared_bytes(&self, reliability: Reliability, data: Arc<Vec<u8>>) {
+        self.internal_send(false, reliability, data);
+    }
+
+    pub fn send_serialized_with_priority(
+        &self,
+        reliability: Reliability,
+        data: impl serde::Serialize,
+    ) {
+        let data = Arc::new(serialize(data));
+        self.send_shared_bytes_with_priority(reliability, data);
+    }
+
+    pub fn send_bytes_with_priority(&self, reliability: Reliability, data: &[u8]) {
+        self.send_shared_bytes_with_priority(reliability, Arc::new(data.to_vec()));
+    }
+
+    pub fn send_shared_bytes_with_priority(&self, reliability: Reliability, data: Arc<Vec<u8>>) {
+        self.internal_send(true, reliability, data);
+    }
+
+    fn internal_send(&self, priority: bool, reliability: Reliability, data: Arc<Vec<u8>>) {
         let _ = self.sender.send(SenderTask::SendMessage {
             channel: self.channel,
+            priority,
             reliability,
             data,
         });
