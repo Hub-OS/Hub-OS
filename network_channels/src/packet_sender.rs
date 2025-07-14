@@ -229,8 +229,10 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
 
                     if bytes.len() <= self.remaining_send_budget {
                         self.remaining_send_budget -= bytes.len();
-                        send(&bytes);
                     }
+
+                    // send acks even if we're over send budget
+                    send(&bytes);
                 }
             };
         }
