@@ -35,10 +35,7 @@ pub(crate) enum SenderTask<ChannelLabel> {
     SendMessage {
         channel: ChannelLabel,
         reliability: Reliability,
-        fragment_count: u64,
-        fragment_id: u64,
         data: Arc<Vec<u8>>,
-        range: Range<usize>,
     },
     SendAck {
         header: PacketHeader<ChannelLabel>,
@@ -50,7 +47,7 @@ pub(crate) enum SenderTask<ChannelLabel> {
     },
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(crate) enum FragmentType {
     Full,
     Fragment { id_range: Range<u64> },

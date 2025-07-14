@@ -167,10 +167,7 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                 SenderTask::SendMessage {
                     channel,
                     reliability,
-                    fragment_count,
-                    fragment_id,
                     data,
-                    range,
                 } => {
                     let Some(tracker) = self
                         .send_trackers
@@ -180,46 +177,60 @@ impl<ChannelLabel: Label> PacketSender<ChannelLabel> {
                         continue;
                     };
 
-                    let header = PacketHeader {
-                        channel,
-                        reliability,
-                        id: tracker.next_id(reliability),
+                    let chunk_size =
+                        self.mtu as usize - std::mem::size_of::<Packet<'_, ChannelLabel>>();
+
+                    let fragment_type = if data.len() <= chunk_size {
+                        FragmentType::Full
+                    } else {
+                        if !reliability.is_reliable() {
+                            // don't fragment if this is an unreliable packet
+                            // just drop it
+                            continue;
+                        }
+
+                        let total_fragments = data.len().div_ceil(chunk_size);
+                        let start = tracker.peek_next_id(reliability);
+                        let end = start + total_fragments as u64;
+
+                        FragmentType::Fragment {
+                            id_range: start..end,
+                        }
                     };
 
-                    let bytes = serialize(&Packet::Message {
-                        header,
-                        fragment_type: if fragment_count == 1 {
-                            FragmentType::Full
-                        } else {
-                            let start = header.id - fragment_id;
-                            let end = start + fragment_count;
+                    for chunk in data.chunks(chunk_size) {
+                        let header = PacketHeader {
+                            channel,
+                            reliability,
+                            id: tracker.next_id(reliability),
+                        };
 
-                            FragmentType::Fragment {
-                                id_range: start..end,
-                            }
-                        },
-                        data: &data[range.start..range.end],
-                    });
-
-                    let sending = bytes.len() <= self.remaining_send_budget;
-
-                    if sending {
-                        self.remaining_send_budget -= bytes.len();
-                        send(&bytes);
-                    }
-
-                    if reliability.is_reliable() {
-                        self.stored_packets.push(StoredPacket {
+                        let bytes = serialize(&Packet::Message {
                             header,
-                            bytes,
-                            creation: now,
-                            next_retry: if sending { now + self.retry_delay } else { now },
-                            attempts: if sending { 1 } else { 0 },
+                            fragment_type: fragment_type.clone(),
+                            data: chunk,
                         });
 
-                        #[cfg(feature = "reliable_statistics")]
-                        {
-                            self.statistics.sent += 1;
+                        let sending = bytes.len() <= self.remaining_send_budget;
+
+                        if sending {
+                            self.remaining_send_budget -= bytes.len();
+                            send(&bytes);
+                        }
+
+                        if reliability.is_reliable() {
+                            self.stored_packets.push(StoredPacket {
+                                header,
+                                bytes,
+                                creation: now,
+                                next_retry: if sending { now + self.retry_delay } else { now },
+                                attempts: if sending { 1 } else { 0 },
+                            });
+
+                            #[cfg(feature = "reliable_statistics")]
+                            {
+                                self.statistics.sent += 1;
+                            }
                         }
                     }
                 }

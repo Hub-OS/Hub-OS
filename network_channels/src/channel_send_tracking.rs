@@ -21,6 +21,15 @@ impl<ChannelLabel: Copy> ChannelSendTracking<ChannelLabel> {
         self.label
     }
 
+    pub(crate) fn peek_next_id(&mut self, reliability: Reliability) -> u64 {
+        match reliability {
+            Reliability::Unreliable => 0,
+            Reliability::UnreliableSequenced => self.next_unreliable_sequenced,
+            Reliability::Reliable => self.next_reliable,
+            Reliability::ReliableOrdered => self.next_reliable_ordered,
+        }
+    }
+
     pub(crate) fn next_id(&mut self, reliability: Reliability) -> u64 {
         match reliability {
             Reliability::Unreliable => 0,

@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::packet::{Packet, SenderTask};
+use crate::packet::SenderTask;
 use crate::packet_sender::PacketSender;
 use crate::{ChannelSender, Connection, Label, PacketReceiver};
 use std::sync::mpsc;
@@ -32,7 +32,6 @@ impl<ChannelLabel: Label> ConnectionBuilder<ChannelLabel> {
 
         ChannelSender {
             channel: label,
-            mtu: self.config.mtu as usize - std::mem::size_of::<Packet<'_, ChannelLabel>>(),
             sender: self.task_sender.clone(),
         }
     }
