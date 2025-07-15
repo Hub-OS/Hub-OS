@@ -6,6 +6,9 @@ use packets::structures::{InstalledSwitchDrive, Uuid};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+const FIRST_SERVER_NAME: &str = "The Index";
+const FIRST_SERVER_ADDRESS: &str = "servers.hubos.dev";
+
 #[derive(Serialize, Deserialize)]
 #[serde(default)]
 pub struct GlobalSave {
@@ -53,7 +56,7 @@ impl GlobalSave {
             return Self::default();
         }
 
-        match rmp_serde::from_slice(&bytes) {
+        let mut save: Self = match rmp_serde::from_slice(&bytes) {
             Ok(save) => save,
             Err(e) => {
                 let corrupted_path = ResourcePaths::data_folder_absolute("corrupted_save.dat");
@@ -64,9 +67,46 @@ impl GlobalSave {
                 // we never want to accidentally reset a player's save, it should be recoverable
                 std::fs::write(corrupted_path, bytes).unwrap();
 
-                Self::default()
+                return Self::default();
+            }
+        };
+
+        // backwards compat for saves from before data sync existed
+        if save.character_update_times.is_empty() {
+            let time = GlobalSave::current_time();
+            let mut updated = false;
+
+            for key in save.installed_blocks.keys() {
+                save.character_update_times.insert(key.clone(), time);
+                updated = true;
+            }
+
+            for key in save.installed_drive_parts.keys() {
+                save.character_update_times.insert(key.clone(), time);
+                updated = true;
+            }
+
+            // make sure the pre-installed server has a nil uuid
+            if save.server_list.iter().all(|info| !info.uuid.is_nil()) {
+                for server_info in &mut save.server_list {
+                    if server_info.address == FIRST_SERVER_ADDRESS {
+                        if !server_info.uuid.is_nil() {
+                            server_info.uuid = Uuid::nil();
+                            server_info.update_time = time;
+                            updated = true;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            if updated {
+                save.save();
             }
         }
+
+        save
     }
 
     pub fn save(&self) {
@@ -290,8 +330,8 @@ impl Default for GlobalSave {
             nickname: String::from("Anon"),
             nickname_time: 0,
             server_list: vec![ServerInfo {
-                name: String::from("The Index"),
-                address: String::from("servers.hubos.dev"),
+                name: FIRST_SERVER_NAME.to_string(),
+                address: FIRST_SERVER_ADDRESS.to_string(),
                 uuid: Uuid::nil(),
                 update_time: 0,
             }],
