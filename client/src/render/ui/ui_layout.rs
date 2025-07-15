@@ -41,6 +41,16 @@ impl UiNode for () {
     fn draw_bounded(&mut self, _: &GameIO, _: &mut SpriteColorQueue, _: Rect) {}
 }
 
+pub trait IntoUiLayoutNode {
+    fn into_layout_node<'a>(self) -> UiLayoutNode<'a>;
+}
+
+impl<T: UiNode + 'static> IntoUiLayoutNode for T {
+    fn into_layout_node<'a>(self) -> UiLayoutNode<'a> {
+        self.into()
+    }
+}
+
 #[derive(Clone)]
 pub struct UiStyle {
     pub flex_direction: FlexDirection,
@@ -142,6 +152,12 @@ impl<'a> UiLayoutNode<'a> {
     pub fn with_children(mut self, children: Vec<UiLayoutNode<'a>>) -> Self {
         self.children = children;
         self
+    }
+}
+
+impl<T: UiNode + 'static> From<T> for UiLayoutNode<'_> {
+    fn from(content: T) -> Self {
+        Self::new(content)
     }
 }
 

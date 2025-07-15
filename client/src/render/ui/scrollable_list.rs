@@ -100,13 +100,14 @@ impl ScrollableList {
         self.children.len()
     }
 
-    pub fn set_children(&mut self, children: Vec<Box<dyn UiNode>>) {
-        self.scroll_tracker.set_total_items(children.len());
+    pub fn set_children(&mut self, children: impl IntoIterator<Item = Box<dyn UiNode>>) {
+        self.children.clear();
+        self.children.extend(children);
+        self.scroll_tracker.set_total_items(self.children.len());
         self.scroll_tracker.set_selected_index(0);
-        self.children = children;
     }
 
-    pub fn append_children(&mut self, children: Vec<Box<dyn UiNode>>) {
+    pub fn append_children(&mut self, children: impl IntoIterator<Item = Box<dyn UiNode>>) {
         self.children.extend(children);
         self.scroll_tracker.set_total_items(self.children.len());
     }

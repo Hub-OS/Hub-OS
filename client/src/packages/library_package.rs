@@ -3,6 +3,13 @@ use crate::render::ui::{PackageListing, PackagePreviewData};
 use serde::Deserialize;
 use std::sync::Arc;
 
+#[derive(Default, Clone)]
+enum LibrarySubCategory {
+    #[default]
+    None,
+    Pack,
+}
+
 #[derive(Deserialize, Default)]
 #[serde(default)]
 struct LibraryMeta {
@@ -16,6 +23,7 @@ pub struct LibraryPackage {
     pub package_info: PackageInfo,
     name: Arc<str>,
     description: Arc<str>,
+    sub_category: LibrarySubCategory,
 }
 
 impl Package for LibraryPackage {
@@ -30,7 +38,10 @@ impl Package for LibraryPackage {
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
-            preview_data: PackagePreviewData::Library,
+            preview_data: match self.sub_category {
+                LibrarySubCategory::None => PackagePreviewData::Library,
+                LibrarySubCategory::Pack => PackagePreviewData::Pack,
+            },
             dependencies: self.package_info.requirements.clone(),
         }
     }
@@ -40,6 +51,7 @@ impl Package for LibraryPackage {
             package_info,
             name: Default::default(),
             description: Default::default(),
+            sub_category: Default::default(),
         };
 
         let meta: LibraryMeta = match package_table.try_into() {
@@ -59,6 +71,10 @@ impl Package for LibraryPackage {
 
         package.name = meta.name.into();
         package.description = meta.description.into();
+
+        if meta.category == "pack" {
+            package.sub_category = LibrarySubCategory::Pack;
+        }
 
         package
     }

@@ -1,14 +1,17 @@
 use super::PackageScene;
 use crate::bindable::SpriteColorMode;
+use crate::packages::PackageNamespace;
 use crate::render::ui::{
-    build_9patch, ContextMenu, FontName, LengthPercentageAuto, PackageListing, SceneTitle,
-    ScrollableList, SubSceneFrame, Textbox, TextboxPrompt, UiButton, UiInputTracker, UiLayout,
-    UiLayoutNode, UiNode, UiStyle,
+    build_9patch, ContextMenu, FontName, IntoUiLayoutNode, LengthPercentageAuto, PackageListing,
+    PackagePreviewData, SceneTitle, ScrollableList, SubSceneFrame, Textbox, TextboxPrompt,
+    UiButton, UiInputTracker, UiLayout, UiNode, UiStyle,
 };
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, Input, InputUtil, ResourcePaths};
 use framework::prelude::*;
+use nom::AsChar;
 use packets::address_parsing::uri_encode;
+use packets::structures::PackageCategory;
 use strum::{EnumIter, IntoEnumIterator};
 use taffy::style::{Dimension, FlexDirection};
 
@@ -17,9 +20,11 @@ const PACKAGES_PER_REQUEST: usize = 21;
 
 type RequestTask = AsyncTask<Vec<PackageListing>>;
 
+#[derive(Clone)]
 enum Event {
     OpenSearch,
     OpenCategoryMenu,
+    OpenLocationMenu,
     FilterName(String),
     ViewPackage { listing: PackageListing },
 }
@@ -60,6 +65,18 @@ impl CategoryFilter {
             CategoryFilter::Packs => "pack",
         }
     }
+
+    fn package_category(&self) -> Option<PackageCategory> {
+        match self {
+            CategoryFilter::All => None,
+            CategoryFilter::Cards => Some(PackageCategory::Card),
+            CategoryFilter::Augments => Some(PackageCategory::Augment),
+            CategoryFilter::Encounters => Some(PackageCategory::Encounter),
+            CategoryFilter::Players => Some(PackageCategory::Player),
+            CategoryFilter::Resource => Some(PackageCategory::Resource),
+            CategoryFilter::Packs => Some(PackageCategory::Library),
+        }
+    }
 }
 
 pub struct PackagesScene {
@@ -69,6 +86,7 @@ pub struct PackagesScene {
     ui_input_tracker: UiInputTracker,
     sidebar: UiLayout,
     category_menu: ContextMenu<CategoryFilter>,
+    location_menu: ContextMenu<bool>,
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     list: ScrollableList,
@@ -76,6 +94,7 @@ pub struct PackagesScene {
     exhausted_list: bool,
     category_filter: CategoryFilter,
     name_filter: String,
+    local_only: bool,
     event_sender: flume::Sender<Event>,
     event_receiver: flume::Receiver<Event>,
     textbox: Textbox,
@@ -127,6 +146,8 @@ impl PackagesScene {
                     game_io,
                     CategoryFilter::iter().map(|filter| (filter.name(), filter)),
                 ),
+            location_menu: ContextMenu::new(game_io, "Location", context_menu_position)
+                .with_options(game_io, [("Online", false), ("Installed", true)]),
             cursor_sprite,
             cursor_animator,
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
@@ -134,6 +155,7 @@ impl PackagesScene {
             exhausted_list: false,
             category_filter: initial_category,
             name_filter: String::new(),
+            local_only: false,
             event_sender,
             event_receiver,
             textbox: Textbox::new_navigation(game_io),
@@ -146,6 +168,59 @@ impl PackagesScene {
     }
 
     fn request_more(&mut self, game_io: &GameIO, skip: usize) {
+        if self.local_only {
+            if skip == 0 {
+                self.request_local(game_io);
+            }
+        } else {
+            self.request_remote(game_io, skip);
+        }
+    }
+
+    fn request_local(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let category_filter = self.category_filter.package_category();
+
+        fn case_insensitive_contains(a: &str, b: &str) -> bool {
+            let mut i = 0;
+
+            for c in a.chars() {
+                if a.len() - i < b.len() {
+                    break;
+                }
+
+                if a[i..i + b.len()].eq_ignore_ascii_case(b) {
+                    return true;
+                }
+
+                i += c.len();
+            }
+
+            false
+        }
+
+        let mut new_listings: Vec<_> = globals
+            .packages(PackageNamespace::Local)
+            .filter(|info| {
+                info.category != PackageCategory::Character
+                    && category_filter.is_none_or(|c| c == info.category)
+            })
+            .flat_map(|info| globals.create_package_listing(info.category, &info.id))
+            .filter(|listing| {
+                self.category_filter != CategoryFilter::Packs
+                    || matches!(listing.preview_data, PackagePreviewData::Pack)
+            })
+            .filter(|listing| case_insensitive_contains(&listing.name, &self.name_filter))
+            .collect();
+
+        // sort alphabetically
+        new_listings.sort_by(|a, b| (&a.name, &a.id).cmp(&(&b.name, &b.id)));
+
+        self.list.set_children([]);
+        self.append_listings(new_listings);
+    }
+
+    fn request_remote(&mut self, game_io: &GameIO, skip: usize) {
         let globals = game_io.resource::<Globals>().unwrap();
         let repo = globals.config.package_repo.clone();
 
@@ -176,6 +251,22 @@ impl PackagesScene {
             .set_label(self.category_filter.name().to_uppercase());
     }
 
+    fn append_listings(&mut self, items: impl IntoIterator<Item = PackageListing>) {
+        self.list
+            .append_children(items.into_iter().map(|listing| -> Box<dyn UiNode> {
+                Box::new(UiButton::new(listing.clone()).on_activate({
+                    let event_sender = self.event_sender.clone();
+                    move || {
+                        let event = Event::ViewPackage {
+                            listing: listing.clone(),
+                        };
+
+                        event_sender.send(event).unwrap();
+                    }
+                }))
+            }))
+    }
+
     fn generate_sidebar(
         game_io: &GameIO,
         event_sender: flume::Sender<Event>,
@@ -192,32 +283,30 @@ impl PackagesScene {
             ..Default::default()
         };
 
+        let create_button = |label: &str, event: Event| {
+            let event_sender = event_sender.clone();
+
+            UiButton::new_text(game_io, FontName::Thick, label)
+                .on_activate({
+                    move || {
+                        event_sender.send(event.clone()).unwrap();
+                    }
+                })
+                .into_layout_node()
+                .with_style(option_style.clone())
+        };
+
         UiLayout::new_vertical(
             sidebar_bounds,
-            [
-                UiButton::new_text(game_io, FontName::Thick, "Search").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        event_sender.send(Event::OpenSearch).unwrap();
-                    }
-                }),
-                UiButton::new_text(game_io, FontName::Thick, "Category").on_activate({
-                    let event_sender = event_sender.clone();
-
-                    move || {
-                        event_sender.send(Event::OpenCategoryMenu).unwrap();
-                    }
-                }),
-            ]
-            .into_iter()
-            .map(|node: UiButton<'static, _>| {
-                UiLayoutNode::new(node).with_style(option_style.clone())
-            })
-            .collect(),
+            vec![
+                create_button("Search", Event::OpenSearch),
+                create_button("Location", Event::OpenLocationMenu),
+                create_button("Category", Event::OpenCategoryMenu),
+            ],
         )
         .with_style(UiStyle {
             flex_direction: FlexDirection::Column,
+            flex_grow: 1.0,
             min_width: Dimension::Points(sidebar_bounds.width),
             ..Default::default()
         })
@@ -252,7 +341,6 @@ impl PackagesScene {
         if input_util.was_just_pressed(Input::Left) && self.list.focused() {
             self.sidebar.set_focused(true);
             self.list.set_focused(false);
-            self.sidebar.focus_default();
 
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_cancel);
@@ -271,7 +359,6 @@ impl PackagesScene {
             } else {
                 self.sidebar.set_focused(true);
                 self.list.set_focused(false);
-                self.sidebar.focus_default();
 
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.audio.play_sound(&globals.sfx.cursor_cancel);
@@ -288,6 +375,13 @@ impl PackagesScene {
                 self.restart_search(game_io);
             }
             self.category_menu.close();
+            self.sidebar.set_focused(true);
+        } else if let Some(local) = self.location_menu.update(game_io, &self.ui_input_tracker) {
+            self.list_task = None;
+            self.local_only = local;
+            self.restart_search(game_io);
+
+            self.location_menu.close();
             self.sidebar.set_focused(true);
         }
     }
@@ -317,6 +411,10 @@ impl PackagesScene {
                     self.category_menu.open();
                     self.sidebar.set_focused(false);
                 }
+                Event::OpenLocationMenu => {
+                    self.location_menu.open();
+                    self.sidebar.set_focused(false);
+                }
                 Event::FilterName(name_filter) => {
                     self.name_filter = name_filter;
                     self.restart_search(game_io);
@@ -332,7 +430,7 @@ impl PackagesScene {
     }
 
     fn restart_search(&mut self, game_io: &GameIO) {
-        self.list.set_children(vec![]);
+        self.list.set_children([]);
         self.exhausted_list = false;
         self.request_more(game_io, 0);
     }
@@ -371,23 +469,7 @@ impl Scene for PackagesScene {
                 self.exhausted_list = true;
             }
 
-            self.list.append_children(
-                items
-                    .into_iter()
-                    .map(|listing| -> Box<dyn UiNode> {
-                        Box::new(UiButton::new(listing.clone()).on_activate({
-                            let event_sender = self.event_sender.clone();
-                            move || {
-                                let event = Event::ViewPackage {
-                                    listing: listing.clone(),
-                                };
-
-                                event_sender.send(event).unwrap();
-                            }
-                        }))
-                    })
-                    .collect(),
-            )
+            self.append_listings(items);
         }
 
         let index = self.list.selected_index();
@@ -412,7 +494,14 @@ impl Scene for PackagesScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("DOWNLOAD MODS").draw(game_io, &mut sprite_queue);
+
+        let title = if self.local_only {
+            "INSTALLED MODS"
+        } else {
+            "DOWNLOAD MODS"
+        };
+
+        SceneTitle::new(title).draw(game_io, &mut sprite_queue);
 
         self.sidebar.draw(game_io, &mut sprite_queue);
         self.list.draw(game_io, &mut sprite_queue);
@@ -422,6 +511,7 @@ impl Scene for PackagesScene {
         }
 
         self.category_menu.draw(game_io, &mut sprite_queue);
+        self.location_menu.draw(game_io, &mut sprite_queue);
 
         self.textbox.draw(game_io, &mut sprite_queue);
 
