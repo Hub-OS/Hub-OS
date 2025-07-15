@@ -37,7 +37,9 @@ impl Package for EncounterPackage {
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
-            preview_data: PackagePreviewData::Encounter,
+            preview_data: PackagePreviewData::Encounter {
+                recording: self.recording_path.is_some(),
+            },
             dependencies: self.package_info.requirements.clone(),
         }
     }

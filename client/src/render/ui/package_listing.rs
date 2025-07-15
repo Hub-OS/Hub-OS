@@ -87,7 +87,9 @@ impl From<&json::Value> for PackageListing {
                     bools.and_then(|bools| bools.try_into().ok())
                 },
             },
-            "encounter" => PackagePreviewData::Encounter,
+            "encounter" => PackagePreviewData::Encounter {
+                recording: !get_str(package_table, "recording_path").is_empty(),
+            },
             "library" => PackagePreviewData::Library,
             "pack" => PackagePreviewData::Pack,
             "resource" => PackagePreviewData::Resource,
@@ -311,8 +313,9 @@ impl UiNode for PackageListing {
                     used_x += category_sprite.size().x;
                 }
             }
-            PackagePreviewData::Encounter => {
-                let category_sprite = create_category_sprite(game_io, bounds, "ENCOUNTER");
+            PackagePreviewData::Encounter { recording } => {
+                let state = if *recording { "RECORDING" } else { "ENCOUNTER" };
+                let category_sprite = create_category_sprite(game_io, bounds, state);
                 sprite_queue.draw_sprite(&category_sprite);
 
                 used_x += category_sprite.size().x;

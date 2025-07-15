@@ -28,7 +28,9 @@ pub enum PackagePreviewData {
         colors: Vec<BlockColor>,
         shape: Option<[bool; 5 * 5]>,
     },
-    Encounter,
+    Encounter {
+        recording: bool,
+    },
     Pack,
     Library,
     Status,
@@ -47,7 +49,7 @@ impl PackagePreviewData {
             PackagePreviewData::Card { .. } => Some(PackageCategory::Card),
             PackagePreviewData::Player { .. } => Some(PackageCategory::Player),
             PackagePreviewData::Augment { .. } => Some(PackageCategory::Augment),
-            PackagePreviewData::Encounter => Some(PackageCategory::Encounter),
+            PackagePreviewData::Encounter { .. } => Some(PackageCategory::Encounter),
             PackagePreviewData::Library | PackagePreviewData::Pack => {
                 Some(PackageCategory::Library)
             }
