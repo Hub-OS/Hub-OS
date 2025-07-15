@@ -10,17 +10,21 @@ use std::collections::HashMap;
 #[serde(default)]
 pub struct GlobalSave {
     pub nickname: String,
+    #[serde(default = "GlobalSave::current_time")]
     pub nickname_time: u64,
     pub server_list: Vec<ServerInfo>,
     pub decks: Vec<Deck>,
     pub selected_deck: usize,
+    #[serde(default = "GlobalSave::current_time")]
     pub selected_deck_time: u64,
     pub selected_character: PackageId,
+    #[serde(default = "GlobalSave::current_time")]
     pub selected_character_time: u64,
     pub character_update_times: HashMap<PackageId, u64>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
     pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
     pub resource_package_order: Vec<(PackageId, bool)>,
+    #[serde(default = "GlobalSave::current_time")]
     pub resource_order_time: u64,
 }
 
