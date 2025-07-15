@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PackageListing {
+    pub local: bool,
     pub id: PackageId,
     pub name: Arc<str>,
     pub description: Arc<str>,
@@ -23,6 +24,7 @@ impl From<&json::Value> for PackageListing {
     fn from(value: &json::Value) -> Self {
         let Some(package_table) = value.get("package") else {
             return Self {
+                local: false,
                 id: PackageId::new_blank(),
                 name: "Broken package".into(),
                 description: "???".into(),
@@ -126,6 +128,7 @@ impl From<&json::Value> for PackageListing {
         }
 
         Self {
+            local: false,
             id: get_str(package_table, "id").into(),
             name: get_str(package_table, "name").into(),
             description: description.into(),

@@ -13,6 +13,7 @@ impl Package for CharacterPackage {
 
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
+            local: true,
             id: self.package_info.id.clone(),
             name: Default::default(),
             description: Default::default(),

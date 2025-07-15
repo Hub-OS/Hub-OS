@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 #[derive(Default, Clone)]
-enum LibrarySubCategory {
+pub enum LibrarySubCategory {
     #[default]
     None,
     Pack,
@@ -16,14 +16,16 @@ struct LibraryMeta {
     category: String,
     name: String,
     description: String,
+    preview_texture_path: String,
 }
 
 #[derive(Default, Clone)]
 pub struct LibraryPackage {
     pub package_info: PackageInfo,
-    name: Arc<str>,
-    description: Arc<str>,
-    sub_category: LibrarySubCategory,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
+    pub preview_texture_path: String,
+    pub sub_category: LibrarySubCategory,
 }
 
 impl Package for LibraryPackage {
@@ -33,6 +35,7 @@ impl Package for LibraryPackage {
 
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
+            local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
@@ -51,6 +54,7 @@ impl Package for LibraryPackage {
             package_info,
             name: Default::default(),
             description: Default::default(),
+            preview_texture_path: Default::default(),
             sub_category: Default::default(),
         };
 
@@ -71,6 +75,7 @@ impl Package for LibraryPackage {
 
         package.name = meta.name.into();
         package.description = meta.description.into();
+        package.preview_texture_path = meta.preview_texture_path;
 
         if meta.category == "pack" {
             package.sub_category = LibrarySubCategory::Pack;

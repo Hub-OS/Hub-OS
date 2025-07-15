@@ -15,13 +15,15 @@ struct ResourceMeta {
     category: String,
     name: String,
     description: String,
+    preview_texture_path: String,
 }
 
 #[derive(Default, Clone)]
 pub struct ResourcePackage {
     pub package_info: PackageInfo,
-    name: Arc<str>,
-    description: Arc<str>,
+    pub name: Arc<str>,
+    pub description: Arc<str>,
+    pub preview_texture_path: String,
 }
 
 impl ResourcePackage {
@@ -49,6 +51,7 @@ impl ResourcePackage {
 
     pub fn default_package_listing() -> PackageListing {
         PackageListing {
+            local: true,
             id: PackageId::default(),
             name: "Default".into(),
             description: "Default resources for the OS.".into(),
@@ -67,6 +70,7 @@ impl Package for ResourcePackage {
 
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
+            local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
@@ -82,6 +86,7 @@ impl Package for ResourcePackage {
             package_info,
             name: Default::default(),
             description: Default::default(),
+            preview_texture_path: Default::default(),
         };
 
         let meta: ResourceMeta = match package_table.try_into() {
@@ -101,6 +106,7 @@ impl Package for ResourcePackage {
 
         package.name = meta.name.into();
         package.description = meta.description.into();
+        package.preview_texture_path = meta.preview_texture_path;
 
         package
     }

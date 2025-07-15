@@ -66,6 +66,7 @@ impl Package for CardPackage {
 
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
+            local: true,
             id: self.package_info.id.clone(),
             name: self.card_properties.short_name.clone().into(),
             description: if !self.long_description.is_empty() {

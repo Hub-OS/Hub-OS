@@ -1,5 +1,6 @@
 use super::{BlockPreview, ElementSprite, FontName, Text};
 use crate::bindable::{CardClass, Element};
+use crate::packages::PackageNamespace;
 use crate::render::ui::PackageListing;
 use crate::render::{Animator, SpriteColorQueue};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
@@ -70,16 +71,62 @@ pub struct PackagePreview {
 }
 
 impl PackagePreview {
-    pub fn new(listing: PackageListing) -> Self {
+    pub fn new(game_io: &GameIO, listing: PackageListing) -> Self {
+        let image_sprite = if listing.local {
+            Some(
+                Self::resolve_local_preview_image(game_io, &listing).unwrap_or_else(|| {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let assets = &globals.assets;
+                    assets.new_sprite(game_io, ResourcePaths::BLANK)
+                }),
+            )
+        } else {
+            None
+        };
+
         Self {
             listing,
             position: Vec2::ZERO,
-            image_sprite: None,
+            image_sprite,
             image_task: None,
             image_requested: false,
             sprites: Vec::new(),
             text: Vec::new(),
             dirty: true,
+        }
+    }
+
+    fn resolve_local_preview_image(game_io: &GameIO, listing: &PackageListing) -> Option<Sprite> {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+        let ns = PackageNamespace::Local;
+
+        match listing.preview_data.category()? {
+            PackageCategory::Card => {
+                let package = globals.card_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, &package.preview_texture_path))
+            }
+            PackageCategory::Player => {
+                let package = globals.player_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, &package.preview_texture_path))
+            }
+            PackageCategory::Encounter => {
+                let package = globals.encounter_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, &package.preview_texture_path))
+            }
+            PackageCategory::Resource => {
+                let package = globals.resource_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, &package.preview_texture_path))
+            }
+            PackageCategory::Library => {
+                let package = globals.library_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, &package.preview_texture_path))
+            }
+            PackageCategory::Status => {
+                let package = globals.status_packages.package(ns, &listing.id)?;
+                Some(assets.new_sprite(game_io, package.icon_texture_path.as_ref()?))
+            }
+            _ => None,
         }
     }
 
@@ -90,6 +137,10 @@ impl PackagePreview {
 
     pub fn listing(&self) -> &PackageListing {
         &self.listing
+    }
+
+    pub fn position(&self) -> Vec2 {
+        self.position
     }
 
     pub fn set_position(&mut self, position: Vec2) {
@@ -118,6 +169,10 @@ impl PackagePreview {
     }
 
     fn manage_image(&mut self, game_io: &GameIO) {
+        if self.image_sprite.is_some() || !self.listing.preview_data.has_image() {
+            return;
+        }
+
         if !self.image_requested {
             self.request_image(game_io);
             return;

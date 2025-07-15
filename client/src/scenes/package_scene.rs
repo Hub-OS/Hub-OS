@@ -74,7 +74,7 @@ impl PackageScene {
                 .with_top_bar(true)
                 .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
-            preview: PackagePreview::new(listing).with_position(preview_position),
+            preview: PackagePreview::new(game_io, listing).with_position(preview_position),
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
             buttons,
             cursor_sprite,
@@ -94,7 +94,7 @@ impl PackageScene {
         game_io: &GameIO,
         list: &ScrollableList,
         listing: &PackageListing,
-        uploader: String,
+        uploader: &str,
     ) -> Vec<Box<dyn UiNode>> {
         let mut style = TextStyle::new(game_io, FontName::Thin);
         style.bounds = list.list_bounds();
@@ -129,8 +129,11 @@ impl PackageScene {
             push_text(&mut children, &listing.description);
         }
 
-        push_blank(&mut children);
-        push_text(&mut children, &format!("Uploader: {uploader}"));
+        if !uploader.is_empty() {
+            push_blank(&mut children);
+            push_text(&mut children, &format!("Uploader: {uploader}"));
+        }
+
         push_blank(&mut children);
         push_text(&mut children, &format!("Package ID: {}", listing.id));
 
@@ -304,7 +307,7 @@ impl PackageScene {
                     game_io,
                     &self.list,
                     self.preview.listing(),
-                    uploader,
+                    &uploader,
                 ));
             }
             Event::StartDownload => {
@@ -372,6 +375,28 @@ impl PackageScene {
             // reload ui
             self.reload_buttons(game_io);
 
+            if self.preview.listing().local && self.package_updater.total_updated() > 0 {
+                // reload preview
+                let prev_listing = self.preview.listing();
+                let category = prev_listing.preview_data.category();
+
+                if let Some(new_listing) = category
+                    .and_then(|category| globals.create_package_listing(category, &prev_listing.id))
+                {
+                    let position = self.preview.position();
+                    self.preview =
+                        PackagePreview::new(game_io, new_listing).with_position(position);
+                }
+
+                // update list
+                self.list.set_children(Self::generate_list(
+                    game_io,
+                    &self.list,
+                    self.preview.listing(),
+                    "",
+                ));
+            }
+
             // notify player
             let interface = TextboxMessage::new(String::from(message));
             self.textbox.push_interface(interface);
@@ -385,10 +410,17 @@ impl PackageScene {
     }
 
     fn request_uploader(&mut self, game_io: &GameIO) {
+        let listing = self.preview.listing();
+
+        if listing.creator.is_empty() {
+            let event = Event::ReceivedUploader(Default::default());
+            let _ = self.event_sender.send(event);
+            return;
+        }
+
         let globals = game_io.resource::<Globals>().unwrap();
 
         let repo = &globals.config.package_repo;
-        let listing = self.preview.listing();
         let encoded_id = uri_encode(&listing.creator);
         let uri = format!("{repo}/api/users/{encoded_id}");
 

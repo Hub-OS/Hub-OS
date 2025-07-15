@@ -42,6 +42,7 @@ impl Package for StatusPackage {
 
     fn create_package_listing(&self) -> PackageListing {
         PackageListing {
+            local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             description: self.description.clone(),
