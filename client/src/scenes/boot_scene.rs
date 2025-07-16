@@ -3,6 +3,7 @@ use crate::packages::*;
 use crate::render::ui::{FontName, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
+use crate::tips::Tip;
 use framework::logging::{LogLevel, LogRecord};
 use framework::prelude::*;
 
@@ -27,6 +28,8 @@ pub struct BootScene {
 
 impl BootScene {
     pub fn new(game_io: &GameIO, log_receiver: flume::Receiver<LogRecord>) -> BootScene {
+        Tip::log_random(game_io);
+
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 

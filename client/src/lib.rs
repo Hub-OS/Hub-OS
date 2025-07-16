@@ -30,6 +30,7 @@ mod saves;
 mod scenes;
 mod structures;
 mod supporting_service;
+mod tips;
 mod transitions;
 
 use crate::args::Args;

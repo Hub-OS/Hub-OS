@@ -3,10 +3,16 @@ use crate::render::SpriteColorQueue;
 use framework::logging::{LogLevel, LogRecord};
 use framework::prelude::*;
 
+struct LogLine {
+    is_tip: bool,
+    level: LogLevel,
+    message: String,
+}
+
 pub struct LogBox {
     bounds: Rect,
     text_style: TextStyle,
-    records: Vec<LogRecord>,
+    lines: Vec<LogLine>,
     error_count: usize,
     warning_count: usize,
 }
@@ -19,7 +25,7 @@ impl LogBox {
         Self {
             text_style,
             bounds,
-            records: Vec::new(),
+            lines: Vec::new(),
             error_count: 0,
             warning_count: 0,
         }
@@ -47,13 +53,24 @@ impl LogBox {
             _ => {}
         }
 
-        let new_records = text_measurement.line_ranges.iter().map(|range| LogRecord {
+        let is_tip = record.message.starts_with("Tip:");
+
+        if is_tip {
+            // add a space before the tip
+            self.lines.push(LogLine {
+                is_tip: true,
+                level: LogLevel::Info,
+                message: String::new(),
+            })
+        }
+
+        let new_records = text_measurement.line_ranges.iter().map(|range| LogLine {
+            is_tip,
             level: record.level,
             message: record.message[range.clone()].to_string(),
-            target: record.target.clone(),
         });
 
-        self.records.extend(new_records);
+        self.lines.extend(new_records);
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
@@ -62,25 +79,31 @@ impl LogBox {
         let line_height = self.text_style.line_height();
         let max_lines = (self.bounds.height / line_height) as usize;
 
-        let bottom = self.bounds.top() + line_height * self.records.len().min(max_lines) as f32;
+        let bottom = self.bounds.top() + line_height * self.lines.len().min(max_lines) as f32;
 
-        for (i, record) in self.records.iter().rev().enumerate() {
+        for (i, line) in self.lines.iter().rev().enumerate() {
             if i >= max_lines {
                 break;
             }
 
-            let color = match record.level {
+            let color = match line.level {
                 LogLevel::Error => Color::RED,
                 LogLevel::Warn => Color::YELLOW,
                 LogLevel::Trace | LogLevel::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
-                _ => Color::WHITE,
+                _ => {
+                    if line.is_tip {
+                        Color::GREEN
+                    } else {
+                        Color::WHITE
+                    }
+                }
             };
 
             self.text_style.color = color;
 
             self.text_style.bounds.y = bottom - i as f32 * line_height - line_height;
 
-            self.text_style.draw(game_io, sprite_queue, &record.message);
+            self.text_style.draw(game_io, sprite_queue, &line.message);
         }
     }
 }
