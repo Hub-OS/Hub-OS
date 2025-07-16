@@ -25,6 +25,7 @@ pub struct InitialConnectScene {
     event_receiver: flume::Receiver<Event>,
     deferred_packets: Vec<ServerPacket>,
     textbox: Textbox,
+    connection_started: bool,
     success: bool,
     next_scene: NextScene,
 }
@@ -73,6 +74,7 @@ impl InitialConnectScene {
             event_receiver,
             deferred_packets: Vec::new(),
             textbox: Textbox::new_navigation(game_io),
+            connection_started: false,
             success: false,
             next_scene: NextScene::None,
         }
@@ -105,7 +107,10 @@ impl InitialConnectScene {
                             return;
                         }
 
-                        online_scene.start_connection(game_io, self.data.take());
+                        if !self.connection_started {
+                            online_scene.start_connection(game_io, self.data.take());
+                            self.connection_started = true;
+                        }
                     }
                     ServerPacket::Kick { reason } => {
                         let event = Event::Failed {
