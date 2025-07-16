@@ -23,7 +23,8 @@ pub struct AutoEmotes {
     set_last_emote: bool,
     auto_emote: AutoEmote,
     afk_state: Option<String>,
-    busy_state: Option<String>,
+    battling_state: Option<String>,
+    in_menu_state: Option<String>,
 }
 
 impl AutoEmotes {
@@ -35,7 +36,8 @@ impl AutoEmotes {
             set_last_emote: false,
             auto_emote: AutoEmote::None,
             afk_state: None,
-            busy_state: None,
+            battling_state: None,
+            in_menu_state: None,
         };
 
         s.read_animator(emote_animator);
@@ -44,15 +46,22 @@ impl AutoEmotes {
     }
 
     pub fn read_animator(&mut self, emote_animator: &Animator) {
-        self.afk_state = emote_animator
-            .iter_states()
-            .find(|(state, _)| state.contains("AFK"))
-            .map(|(state, _)| state.to_string());
+        self.afk_state = Self::resolve_emote_state(emote_animator, |state| state.contains("AFK"));
 
-        self.busy_state = emote_animator
+        self.battling_state = Self::resolve_emote_state(emote_animator, |state| {
+            state.contains("BUSY") && state.contains("...")
+        });
+
+        self.in_menu_state = Self::resolve_emote_state(emote_animator, |state| {
+            state.contains("BUSY") && state.contains("MENUS")
+        });
+    }
+
+    fn resolve_emote_state(animator: &Animator, filter: impl Fn(&str) -> bool) -> Option<String> {
+        animator
             .iter_states()
-            .find(|(state, _)| state.contains("BUSY") && state.contains("MENUS"))
-            .map(|(state, _)| state.to_string());
+            .find(|(state, _)| filter(state))
+            .map(|(state, _)| state.to_string())
     }
 
     pub fn set_auto_emote(&mut self, emote: AutoEmote) {
@@ -110,16 +119,16 @@ impl AutoEmotes {
 
         // resolve which emote to send, if any
         let emote_id = match self.auto_emote {
-            AutoEmote::None | AutoEmote::Battle => {
+            AutoEmote::None => {
                 if self.set_last_emote {
                     // clear emote
-                    self.set_last_emote = false;
                     Some(String::default())
                 } else {
                     None
                 }
             }
-            AutoEmote::Menu => self.busy_state.clone(),
+            AutoEmote::Battle => self.battling_state.clone(),
+            AutoEmote::Menu => self.in_menu_state.clone(),
             AutoEmote::Afk => self.afk_state.clone(),
         };
 
