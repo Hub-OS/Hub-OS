@@ -39,6 +39,14 @@ impl LogBox {
         self.warning_count
     }
 
+    pub fn push_space(&mut self) {
+        self.lines.push(LogLine {
+            is_tip: false,
+            level: LogLevel::Info,
+            message: String::new(),
+        })
+    }
+
     pub fn push_record(&mut self, record: LogRecord) {
         self.text_style.bounds = self.bounds;
         let text_measurement = self.text_style.measure(&record.message);
@@ -57,11 +65,7 @@ impl LogBox {
 
         if is_tip {
             // add a space before the tip
-            self.lines.push(LogLine {
-                is_tip: true,
-                level: LogLevel::Info,
-                message: String::new(),
-            })
+            self.push_space();
         }
 
         let new_records = text_measurement.line_ranges.iter().map(|range| LogLine {
@@ -69,6 +73,11 @@ impl LogBox {
             level: record.level,
             message: record.message[range.clone()].to_string(),
         });
+
+        if is_tip {
+            // add a space after the tip
+            self.push_space();
+        }
 
         self.lines.extend(new_records);
     }
