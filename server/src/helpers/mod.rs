@@ -23,5 +23,3 @@ pub fn normalize_path(path: &std::path::Path) -> std::path::PathBuf {
 
     normalized_path
 }
-
-pub mod iterators;
