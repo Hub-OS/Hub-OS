@@ -20,7 +20,7 @@ roxmltree = "0.19"
 itertools = "0.12"
 rand = "0.8"
 getrandom = "0.2"
-zip = "0.6"
+zip = { version = "0.6", features = ["deflate"], default-features = false }
 flate2 = "1.0"
 log = "0.4"
 termcolor = "1.1"
