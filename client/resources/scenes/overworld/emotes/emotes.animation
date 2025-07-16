@@ -77,7 +77,7 @@ animation state="CHIP"
 frame x="37" y="32" w="10" h="13" originx="6" originy="14" duration="0"
 
 animation state="FOLDER BUSY THINKING IN MENUS"
-frame x="49" y="30" w="14" h="14" originx="8" originy="15" duration="0"
+frame x="49" y="30" w="14" h="14" originx="7" originy="15" duration="0"
 
 animation state="BUSY..."
 frame x="56" y="30" w="7" h="3" originx="4" originy="5" duration="0"
