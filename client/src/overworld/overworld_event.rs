@@ -1,4 +1,5 @@
 use super::OverworldArea;
+use crate::overworld::AutoEmote;
 use crate::render::ui::PackageListing;
 use framework::common::GameIO;
 use framework::prelude::{NextScene, Vec3};
@@ -31,6 +32,6 @@ pub enum OverworldEvent {
         message: String,
     },
     PackageReferred(PackageListing),
-    NextScene(NextScene),
+    NextScene((AutoEmote, NextScene)),
     Leave,
 }

@@ -31,8 +31,9 @@ pub struct OverworldOnlineScene {
     area: OverworldArea,
     menu_manager: OverworldMenuManager,
     hud: OverworldHud,
+    auto_emotes: AutoEmotes,
     next_scene: NextScene,
-    next_scene_queue: VecDeque<NextScene>,
+    next_scene_queue: VecDeque<(AutoEmote, NextScene)>,
     connected: bool,
     transferring: bool,
     identity: Identity,
@@ -89,12 +90,16 @@ impl OverworldOnlineScene {
         // hud
         let hud = OverworldHud::new(game_io, area.player_data.health);
 
+        // auto emotes
+        let auto_emotes = AutoEmotes::new(&area.emote_animator);
+
         let (battle_sender, battle_receiver) = flume::unbounded();
 
         Self {
             area,
             menu_manager,
             hud,
+            auto_emotes,
             next_scene: NextScene::None,
             next_scene_queue: VecDeque::new(),
             connected: true,
@@ -235,7 +240,8 @@ impl OverworldOnlineScene {
 
         let next_scene = self.menu_manager.update(game_io, &mut self.area);
 
-        if self.next_scene.is_none() {
+        if self.next_scene.is_none() && next_scene.is_some() {
+            self.auto_emotes.set_auto_emote(AutoEmote::Menu);
             self.next_scene = next_scene;
         }
     }
@@ -459,6 +465,7 @@ impl OverworldOnlineScene {
             } => {
                 self.area.emote_animator = Animator::load_new(&self.assets, &animation_path);
                 self.area.emote_sprite = self.assets.new_sprite(game_io, &texture_path);
+                self.auto_emotes.read_animator(&self.area.emote_animator);
             }
             ServerPacket::MapUpdate { map_path } => {
                 use crate::overworld::load_map;
@@ -943,7 +950,8 @@ impl OverworldOnlineScene {
 
                 let transition = crate::transitions::new_sub_scene(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
-                self.next_scene_queue.push_back(next_scene);
+                self.next_scene_queue
+                    .push_back((AutoEmote::Menu, next_scene));
             }
             ServerPacket::ReferPackage { package_id } => {
                 let globals = game_io.resource::<Globals>().unwrap();
@@ -1043,7 +1051,8 @@ impl OverworldOnlineScene {
 
                     let transition = crate::transitions::new_battle_init(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
-                    self.next_scene_queue.push_back(next_scene);
+                    self.next_scene_queue
+                        .push_back((AutoEmote::Battle, next_scene));
                 } else {
                     log::error!("Failed to initiate encounter: no package for {package_path:?}")
                 }
@@ -1098,7 +1107,8 @@ impl OverworldOnlineScene {
 
                 let transition = crate::transitions::new_battle_init(game_io);
                 let next_scene = NextScene::new_push(scene).with_transition(transition);
-                self.next_scene_queue.push_back(next_scene);
+                self.next_scene_queue
+                    .push_back((AutoEmote::Battle, next_scene));
             }
 
             ServerPacket::BattleMessage { battle_id, data } => {
@@ -1572,7 +1582,8 @@ impl OverworldOnlineScene {
                     let scene = InitialConnectScene::new(game_io, address, data, false);
                     let next_scene = NextScene::new_swap(scene).with_transition(transition);
 
-                    self.next_scene_queue.push_back(next_scene);
+                    self.next_scene_queue
+                        .push_back((AutoEmote::None, next_scene));
                 }
                 OverworldEvent::Disconnected { message } => {
                     let event_sender = self.area.event_sender.clone();
@@ -1592,15 +1603,18 @@ impl OverworldOnlineScene {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let next_scene = NextScene::new_push(scene).with_transition(transition);
 
-                    self.next_scene_queue.push_back(next_scene);
+                    self.next_scene_queue
+                        .push_back((AutoEmote::Menu, next_scene));
                 }
-                OverworldEvent::NextScene(next_scene) => {
-                    self.next_scene_queue.push_back(next_scene);
+                OverworldEvent::NextScene(next) => {
+                    self.next_scene_queue.push_back(next);
                 }
                 OverworldEvent::Leave => {
                     let transition = crate::transitions::new_connect(game_io);
-                    self.next_scene_queue
-                        .push_back(NextScene::new_pop().with_transition(transition));
+                    self.next_scene_queue.push_back((
+                        AutoEmote::None,
+                        NextScene::new_pop().with_transition(transition),
+                    ));
                 }
             }
         }
@@ -1712,9 +1726,11 @@ impl OverworldOnlineScene {
             return;
         }
 
-        let Some(next_scene) = self.next_scene_queue.pop_front() else {
+        let Some((auto_emote, next_scene)) = self.next_scene_queue.pop_front() else {
             return;
         };
+
+        self.auto_emotes.set_auto_emote(auto_emote);
 
         if !matches!(&next_scene, NextScene::Push { .. }) && self.connected {
             // leaving as anything that isn't NextScene::Push will end up dropping this scene
@@ -1759,6 +1775,8 @@ impl Scene for OverworldOnlineScene {
     fn enter(&mut self, game_io: &mut GameIO) {
         self.area.visible = true;
 
+        self.auto_emotes.set_auto_emote(AutoEmote::None);
+
         // handle events triggered from other scenes
         // should be called before handling packets, but it's not necessary to do this every frame
         self.handle_events(game_io);
@@ -1799,6 +1817,8 @@ impl Scene for OverworldOnlineScene {
 
     fn continuous_update(&mut self, game_io: &mut GameIO) {
         self.handle_packets(game_io);
+        self.auto_emotes
+            .update(game_io, &mut self.area, &self.send_packet);
 
         if !self.area.visible {
             let area = &mut self.area;
