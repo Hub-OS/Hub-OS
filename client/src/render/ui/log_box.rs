@@ -74,12 +74,12 @@ impl LogBox {
             message: record.message[range.clone()].to_string(),
         });
 
+        self.lines.extend(new_records);
+
         if is_tip {
             // add a space after the tip
             self.push_space();
         }
-
-        self.lines.extend(new_records);
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
