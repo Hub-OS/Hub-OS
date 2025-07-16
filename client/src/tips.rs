@@ -57,7 +57,7 @@ impl Tip {
             }
             Tip::OpenEmotes => {
                 let mut message = String::from("Emotes can be accessed by pressing ");
-                Self::write_input_binding(game_io, &mut message, Input::Special);
+                Self::write_input_binding(game_io, &mut message, Input::Option2);
                 message.push('.');
                 message
             }
