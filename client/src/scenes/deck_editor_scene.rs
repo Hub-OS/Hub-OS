@@ -528,7 +528,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
         let event_sender = scene.event_sender.clone();
 
-        let interface = TextboxQuestion::new(String::from("Choose Regular Card?"), move |yes| {
+        let interface = TextboxQuestion::new(String::from("Choose Regular Chip?"), move |yes| {
             if yes {
                 event_sender
                     .send(Event::SwitchMode(EditorMode::Regular))
@@ -668,13 +668,13 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
             }
         }
 
-        let interface = TextboxMessage::new(String::from("Finished setting up\nthe Regular Card"));
+        let interface = TextboxMessage::new(String::from("Finished setting up\nthe Regular Chip"));
         scene.textbox.push_interface(interface);
         scene.textbox.open();
 
         globals.audio.play_sound(&globals.sfx.card_select_confirm);
     } else {
-        let interface = TextboxMessage::new(String::from("Regular Card\nsettings released."));
+        let interface = TextboxMessage::new(String::from("Regular Chip\nsettings released."));
         scene.textbox.push_interface(interface);
         scene.textbox.open();
 
