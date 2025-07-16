@@ -87,7 +87,10 @@ impl BootScene {
 
     fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
         while let Ok(record) = self.log_receiver.try_recv() {
-            let high_priority = if cfg!(debug_assertions) {
+            let high_priority_internal = record.target.starts_with(env!("CARGO_PKG_NAME"))
+                && record.level != LogLevel::Trace;
+
+            let high_priority_external = if cfg!(debug_assertions) {
                 // display warnings in debug builds
                 matches!(record.level, LogLevel::Warn | LogLevel::Error)
             } else {
@@ -95,7 +98,7 @@ impl BootScene {
                 record.level == LogLevel::Error
             };
 
-            if record.target.starts_with(env!("CARGO_PKG_NAME")) || high_priority {
+            if high_priority_internal || high_priority_external {
                 self.log_box.push_record(record);
             }
         }

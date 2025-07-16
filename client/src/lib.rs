@@ -99,8 +99,16 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
 }
 
 #[cfg(target_os = "android")]
+mod android;
+
+#[cfg(target_os = "android")]
 #[no_mangle]
 pub fn android_main(app: WinitPlatformApp) {
+    let locks = (
+        android::acquire_multicast_lock(&app),
+        android::acquire_low_latency_lock(&app),
+    );
+
     // init_game_folders for set_current_dir
     ResourcePaths::init_game_folders(&app, None);
 
@@ -108,7 +116,9 @@ pub fn android_main(app: WinitPlatformApp) {
 
     update_resources(&app);
 
-    main(app).unwrap()
+    main(app).unwrap();
+
+    std::mem::drop(locks);
 }
 
 #[cfg(target_os = "android")]

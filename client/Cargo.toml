@@ -89,6 +89,12 @@ max_sdk_version = 35
 [[package.metadata.android.uses_permission]]
 name = "android.permission.INTERNET"
 
+[[package.metadata.android.uses_permission]]
+name = "android.permission.CHANGE_WIFI_MULTICAST_STATE"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.WAKE_LOCK"
+
 [package.metadata.android.application.activity]
 launch_mode = "singleInstance"
 orientation = "sensorLandscape"
