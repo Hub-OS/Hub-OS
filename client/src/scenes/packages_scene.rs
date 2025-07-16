@@ -45,7 +45,7 @@ impl CategoryFilter {
     fn name(&self) -> &'static str {
         match self {
             CategoryFilter::All => "All",
-            CategoryFilter::Cards => "Cards",
+            CategoryFilter::Cards => "Chips",
             CategoryFilter::Augments => "Augments",
             CategoryFilter::Encounters => "Battles",
             CategoryFilter::Players => "Players",

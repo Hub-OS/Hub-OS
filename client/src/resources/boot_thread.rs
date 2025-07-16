@@ -117,7 +117,7 @@ impl BootThread {
         self.send(BootEvent::PlayerManager(player_packages));
 
         // load cards
-        let card_packages = self.load_category(PackageCategory::Card, "Cards");
+        let card_packages = self.load_category(PackageCategory::Card, "Chips");
 
         self.send(BootEvent::CardManager(card_packages));
 
