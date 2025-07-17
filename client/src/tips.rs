@@ -12,6 +12,7 @@ pub enum Tip {
     TurnAround,
     FlippingCards,
     SpecialButton,
+    AutoEmotes,
 }
 
 impl Tip {
@@ -28,6 +29,7 @@ impl Tip {
             Tip::TurnAround,
             Tip::FlippingCards,
             Tip::SpecialButton,
+            Tip::AutoEmotes,
         ];
 
         let tip = tips.choose(&mut rand::thread_rng()).unwrap();
@@ -78,6 +80,9 @@ impl Tip {
                 Self::write_input_binding(game_io, &mut message, Input::Special);
                 message.push_str(" is used to activate extra equipment such as shields. This is similar to B+Left from other games.");
                 message
+            }
+            Tip::AutoEmotes => {
+                String::from("A thinking emote will appear over players messing with settings.")
             }
         }
     }
