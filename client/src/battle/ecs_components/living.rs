@@ -652,9 +652,16 @@ impl Living {
         };
 
         let entities = &mut simulation.entities;
-        let Ok(living) = entities.query_one_mut::<&mut Living>(action.entity.into()) else {
+        let Ok((entity, living)) =
+            entities.query_one_mut::<(&Entity, &mut Living)>(action.entity.into())
+        else {
             return;
         };
+
+        if !entity.time_frozen && living.status_director.is_dragged() {
+            Action::delete_multi(game_io, resources, simulation, true, [action_index]);
+            return;
+        }
 
         for aux_prop in living.aux_props.values_mut() {
             if !aux_prop.effect().executes_on_current_action() {

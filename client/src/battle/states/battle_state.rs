@@ -865,10 +865,9 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        let mut callbacks = Vec::new();
-
         let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
+        let callbacks = &mut simulation.pending_callbacks;
 
         type Query<'a> = (
             &'a mut Entity,
@@ -884,13 +883,14 @@ impl BattleState {
 
             entity.updated = true;
 
-            if living.status_director.is_dragged() && movement.is_none() {
-                // let the status director know we're no longer being dragged
-                living.status_director.end_drag()
-            }
+            if living.status_director.is_dragged() {
+                if movement.is_none() {
+                    // let the status director know we're no longer being dragged
+                    living.status_director.end_drag()
+                }
+            } else {
+                // process statuses as long as the entity isn't being dragged
 
-            // process statuses as long as the entity isn't being dragged
-            if !living.status_director.is_dragged() {
                 let status_director = &mut living.status_director;
 
                 if !entity.time_frozen {
@@ -946,9 +946,7 @@ impl BattleState {
         }
 
         // execute update functions
-        for callback in callbacks {
-            callback.call(game_io, resources, simulation, ());
-        }
+        simulation.call_pending_callbacks(game_io, resources);
     }
 
     fn process_movement(
