@@ -4,7 +4,7 @@ use crate::render::ui::{FontName, LogBox, Text};
 use crate::render::*;
 use crate::resources::*;
 use crate::tips::Tip;
-use framework::logging::{LogLevel, LogRecord};
+use framework::logging::LogRecord;
 use framework::prelude::*;
 
 use super::MainMenuScene;
@@ -88,14 +88,14 @@ impl BootScene {
     fn handle_thread_messages(&mut self, game_io: &mut GameIO) {
         while let Ok(record) = self.log_receiver.try_recv() {
             let high_priority_internal = record.target.starts_with(env!("CARGO_PKG_NAME"))
-                && record.level != LogLevel::Trace;
+                && record.level != log::Level::Trace;
 
             let high_priority_external = if cfg!(debug_assertions) {
                 // display warnings in debug builds
-                matches!(record.level, LogLevel::Warn | LogLevel::Error)
+                matches!(record.level, log::Level::Warn | log::Level::Error)
             } else {
                 // ignore warnings in release builds
-                record.level == LogLevel::Error
+                record.level == log::Level::Error
             };
 
             if high_priority_internal || high_priority_external {

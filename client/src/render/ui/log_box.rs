@@ -1,11 +1,11 @@
 use super::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
-use framework::logging::{LogLevel, LogRecord};
+use framework::logging::LogRecord;
 use framework::prelude::*;
 
 struct LogLine {
     is_tip: bool,
-    level: LogLevel,
+    level: log::Level,
     message: String,
 }
 
@@ -42,7 +42,7 @@ impl LogBox {
     pub fn push_space(&mut self) {
         self.lines.push(LogLine {
             is_tip: false,
-            level: LogLevel::Info,
+            level: log::Level::Info,
             message: String::new(),
         })
     }
@@ -52,10 +52,10 @@ impl LogBox {
         let text_measurement = self.text_style.measure(&record.message);
 
         match record.level {
-            LogLevel::Error => {
+            log::Level::Error => {
                 self.error_count += 1;
             }
-            LogLevel::Warn => {
+            log::Level::Warn => {
                 self.warning_count += 1;
             }
             _ => {}
@@ -96,9 +96,9 @@ impl LogBox {
             }
 
             let color = match line.level {
-                LogLevel::Error => Color::RED,
-                LogLevel::Warn => Color::YELLOW,
-                LogLevel::Trace | LogLevel::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
+                log::Level::Error => Color::RED,
+                log::Level::Warn => Color::YELLOW,
+                log::Level::Trace | log::Level::Debug => Color::new(0.5, 0.5, 0.5, 1.0),
                 _ => {
                     if line.is_tip {
                         Color::GREEN
