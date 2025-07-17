@@ -101,7 +101,10 @@ impl Tile {
         self.team_reclaim_timer = time;
 
         if time == 0 {
-            self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
+            if self.team_flicker.is_none() {
+                self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
+            }
+
             self.team = self.original_team;
             self.direction = self.original_direction;
         }
