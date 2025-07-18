@@ -63,6 +63,11 @@ impl State for BattleState {
         // update time freeze first as it affects the rest of the updates
         TimeFreezeTracker::update(game_io, resources, simulation);
 
+        // cancel actions for drag after updating time freeze
+        // as this only happens when time freeze ends, and must happen before movement
+        // in case an action needs to return an entity to their original position for the drag
+        Living::cancel_actions_for_drag(game_io, resources, simulation);
+
         // new: process movement and actions
         self.process_movement(game_io, resources, simulation);
         Action::process_actions(game_io, resources, simulation);

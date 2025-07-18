@@ -427,6 +427,28 @@ impl Living {
         simulation.call_pending_callbacks(game_io, resources);
     }
 
+    pub fn cancel_actions_for_drag(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            return;
+        }
+
+        let mut pending_cancel = Vec::new();
+
+        for (id, living) in simulation.entities.query_mut::<&mut Living>() {
+            if living.status_director.is_dragged() {
+                pending_cancel.push(id)
+            }
+        }
+
+        for id in pending_cancel {
+            Action::cancel_all(game_io, resources, simulation, id.into());
+        }
+    }
+
     pub fn intercept_action(
         game_io: &GameIO,
         resources: &SharedBattleResources,
@@ -652,16 +674,9 @@ impl Living {
         };
 
         let entities = &mut simulation.entities;
-        let Ok((entity, living)) =
-            entities.query_one_mut::<(&Entity, &mut Living)>(action.entity.into())
-        else {
+        let Ok(living) = entities.query_one_mut::<&mut Living>(action.entity.into()) else {
             return;
         };
-
-        if !entity.time_frozen && living.status_director.is_dragged() {
-            Action::delete_multi(game_io, resources, simulation, true, [action_index]);
-            return;
-        }
 
         for aux_prop in living.aux_props.values_mut() {
             if !aux_prop.effect().executes_on_current_action() {
