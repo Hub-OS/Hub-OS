@@ -68,8 +68,10 @@ impl State for BattleState {
         // in case an action needs to return an entity to their original position for the drag
         Living::cancel_actions_for_drag(game_io, resources, simulation);
 
-        // new: process movement and actions
         self.process_movement(game_io, resources, simulation);
+
+        Living::queue_next_drag(game_io, resources, simulation);
+
         Action::process_actions(game_io, resources, simulation);
 
         // update spells
@@ -662,6 +664,8 @@ impl BattleState {
             Living::process_hits(game_io, resources, simulation, entity_id);
         }
 
+        Living::queue_next_drag(game_io, resources, simulation);
+
         Living::aux_prop_cleanup(simulation, |aux_prop| aux_prop.effect().hit_related());
 
         // resolve wash
@@ -874,26 +878,16 @@ impl BattleState {
         let entities = &mut simulation.entities;
         let callbacks = &mut simulation.pending_callbacks;
 
-        type Query<'a> = (
-            &'a mut Entity,
-            &'a mut Living,
-            Option<&'a Player>,
-            Option<&'a Movement>,
-        );
+        type Query<'a> = (&'a mut Entity, &'a mut Living, Option<&'a Player>);
 
-        for (id, (entity, living, player, movement)) in entities.query_mut::<Query>().into_iter() {
+        for (id, (entity, living, player)) in entities.query_mut::<Query>().into_iter() {
             if entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
             entity.updated = true;
 
-            if living.status_director.is_dragged() {
-                if movement.is_none() {
-                    // let the status director know we're no longer being dragged
-                    living.status_director.end_drag()
-                }
-            } else {
+            if !living.status_director.is_dragged() {
                 // process statuses as long as the entity isn't being dragged
 
                 let status_director = &mut living.status_director;

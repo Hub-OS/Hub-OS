@@ -322,45 +322,14 @@ impl Living {
             status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
 
             // handle drag
-            if hit_props.drags() && movement.is_none() {
-                let can_move_to_callback = entity.can_move_to_callback.clone();
-                let delta: IVec2 = hit_props.drag.direction.i32_vector().into();
+            if hit_props.drags() {
+                living.status_director.set_drag(hit_props.drag);
 
-                // clear + backup lockout to allow can_move_to_funcs that check for immobilize to ignore it
-                let old_lockout = status_director.remaining_drag_lockout();
-                status_director.set_remaining_drag_lockout(0);
-
-                let mut dest = IVec2::new(entity.x, entity.y);
-                let mut duration = 0;
-
-                for _ in 0..hit_props.drag.distance {
-                    dest += delta;
-
-                    let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();
-
-                    if !tile_exists
-                        || !can_move_to_callback.call(game_io, resources, simulation, dest.into())
-                    {
-                        dest -= delta;
-                        break;
+                // cancel movement
+                if movement.is_some() {
+                    if let Ok(movement) = entities.remove_one::<Movement>(entity_id.into()) {
+                        simulation.pending_callbacks.extend(movement.end_callback)
                     }
-
-                    duration += DRAG_PER_TILE_DURATION;
-                }
-
-                if duration != 0 {
-                    simulation
-                        .entities
-                        .insert_one(entity_id.into(), Movement::slide(dest.into(), duration))
-                        .unwrap();
-                } else {
-                    let living = (simulation.entities)
-                        .query_one_mut::<&mut Living>(entity_id.into())
-                        .unwrap();
-
-                    living
-                        .status_director
-                        .set_remaining_drag_lockout(old_lockout);
                 }
             }
         }
@@ -446,6 +415,65 @@ impl Living {
 
         for id in pending_cancel {
             Action::cancel_all(game_io, resources, simulation, id.into());
+        }
+    }
+
+    pub fn queue_next_drag(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let entities = &mut simulation.entities;
+        let mut pending_movements = Vec::new();
+
+        for (id, (living, movement)) in entities.query_mut::<(&mut Living, Option<&Movement>)>() {
+            if movement.is_some() {
+                continue;
+            }
+
+            let direction = living.status_director.take_next_drag_movement();
+
+            if direction.is_none() {
+                continue;
+            }
+
+            pending_movements.push((id, direction));
+        }
+
+        for (id, direction) in pending_movements {
+            let entities = &mut simulation.entities;
+            let Ok((entity, living)) = entities.query_one_mut::<(&Entity, &mut Living)>(id) else {
+                continue;
+            };
+
+            let dest = IVec2::new(entity.x, entity.y) + IVec2::from(direction.i32_vector());
+
+            // clear + backup lockout to allow can_move_to_funcs that check for immobilize to ignore it
+            let status_director = &mut living.status_director;
+            let old_lockout = status_director.remaining_drag_lockout();
+            status_director.set_remaining_drag_lockout(0);
+
+            let can_move_to_callback = entity.can_move_to_callback.clone();
+            let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();
+
+            if !tile_exists
+                || !can_move_to_callback.call(game_io, resources, simulation, dest.into())
+            {
+                if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
+                    living.status_director.end_drag();
+
+                    if old_lockout > 0 {
+                        // restore old lockout
+                        living
+                            .status_director
+                            .set_remaining_drag_lockout(old_lockout);
+                    }
+                }
+                continue;
+            }
+
+            let movement = Movement::slide(dest.into(), DRAG_PER_TILE_DURATION);
+            simulation.entities.insert_one(id, movement).unwrap();
         }
     }
 

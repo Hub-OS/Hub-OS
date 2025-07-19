@@ -1,9 +1,10 @@
 use super::{BattleCallback, Entity, SharedBattleResources, StatusRegistry};
-use crate::bindable::{HitFlag, HitFlags, SpriteColorMode};
+use crate::bindable::{Drag, HitFlag, HitFlags, SpriteColorMode};
 use crate::render::{AnimatorLoopMode, FrameTime, SpriteNode, TreeIndex};
 use crate::resources::DRAG_LOCKOUT;
 use crate::structures::{Tree, VecMap};
 use framework::prelude::GameIO;
+use packets::structures::Direction;
 
 #[derive(Clone)]
 struct AppliedStatus {
@@ -20,7 +21,7 @@ pub struct StatusDirector {
     new_statuses: Vec<AppliedStatus>,
     ready_destructors: Vec<BattleCallback>,
     status_sprites: Vec<(HitFlags, TreeIndex)>,
-    dragged: bool,
+    drag: Option<Drag>,
     remaining_drag_lockout: FrameTime,
 }
 
@@ -34,7 +35,7 @@ impl StatusDirector {
 
         self.statuses.clear();
         self.new_statuses.clear();
-        self.dragged = false;
+        self.drag = None;
         self.remaining_drag_lockout = 0;
     }
 
@@ -82,10 +83,6 @@ impl StatusDirector {
         for hit_flag in HitFlag::BAKED {
             if hit_flags & hit_flag == HitFlag::NONE {
                 continue;
-            }
-
-            if hit_flag == HitFlag::DRAG {
-                self.dragged = true;
             }
 
             self.apply_status(hit_flag, 1);
@@ -140,15 +137,33 @@ impl StatusDirector {
     }
 
     pub fn input_locked_out(&self, registry: &StatusRegistry) -> bool {
-        self.dragged || self.remaining_drag_lockout > 0 || self.is_inactionable(registry)
+        self.is_dragged() || self.remaining_drag_lockout > 0 || self.is_inactionable(registry)
     }
 
     pub fn is_dragged(&self) -> bool {
-        self.dragged
+        self.drag.is_some()
+    }
+
+    pub fn set_drag(&mut self, drag: Drag) {
+        self.drag = Some(drag);
+    }
+
+    pub fn take_next_drag_movement(&mut self) -> Direction {
+        let Some(drag) = &mut self.drag else {
+            return Direction::None;
+        };
+
+        if drag.distance == 0 {
+            self.end_drag();
+            return Direction::None;
+        }
+
+        drag.distance -= 1;
+        drag.direction
     }
 
     pub fn end_drag(&mut self) {
-        self.dragged = false;
+        self.drag = None;
 
         // adding 1 since it's immediately subtracted
         self.remaining_drag_lockout = DRAG_LOCKOUT + 1;
