@@ -18,7 +18,7 @@ frame x="88" y="21" w="26" h="26" originx="13" originy="13"
 
 animation state="DPAD"
 frame x="1" y="48" w="58" h="58" originx="29" originy="29"
-point label="DEAD_ZONE" x="7" y="7"
+point label="DEAD_ZONE" x="8" y="8"
 
 animation state="SELECT"
 frame x="75" y="60" w="49" h="17" originx="24" originy="8"
