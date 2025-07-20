@@ -279,6 +279,16 @@ impl DeckEditorScene {
     }
 }
 
+macro_rules! resolve_active_and_inactive_dock {
+    ($scene: ident) => {
+        match $scene.page_tracker.active_page() {
+            0 => (&mut $scene.deck_dock, &mut $scene.pack_dock),
+            1 => (&mut $scene.pack_dock, &mut $scene.deck_dock),
+            _ => unreachable!(),
+        }
+    };
+}
+
 impl Scene for DeckEditorScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
@@ -341,11 +351,7 @@ impl Scene for DeckEditorScene {
 
         // draw context menu
         if self.context_menu.is_open() {
-            let active_dock = match self.page_tracker.active_page() {
-                0 => &mut self.deck_dock,
-                1 => &mut self.pack_dock,
-                _ => unreachable!(),
-            };
+            let (active_dock, _) = resolve_active_and_inactive_dock!(self);
 
             // context menu
             self.context_menu
@@ -426,11 +432,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     }
 
     // dock scrolling
-    let active_dock = if scene.page_tracker.active_page() == 0 {
-        &mut scene.deck_dock
-    } else {
-        &mut scene.pack_dock
-    };
+    let (active_dock, _) = resolve_active_and_inactive_dock!(scene);
 
     let scroll_tracker = &mut active_dock.scroll_tracker;
     let original_index = scroll_tracker.selected_index();
@@ -558,12 +560,7 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         return;
     };
 
-    let dock = match scene.page_tracker.active_page() {
-        0 => &mut scene.deck_dock,
-        1 => &mut scene.pack_dock,
-        _ => unreachable!(),
-    };
-
+    let (dock, _) = resolve_active_and_inactive_dock!(scene);
     let card_slots = &mut dock.card_slots;
 
     // silly order preservation fix for the later reverse call
@@ -597,16 +594,7 @@ fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
     }
 
     // default handling, moving cards around
-    let (active_dock, inactive_dock);
-
-    if scene.page_tracker.active_page() == 0 {
-        active_dock = &mut scene.deck_dock;
-        inactive_dock = &mut scene.pack_dock;
-    } else {
-        active_dock = &mut scene.pack_dock;
-        inactive_dock = &mut scene.deck_dock;
-    }
-
+    let (active_dock, inactive_dock) = resolve_active_and_inactive_dock!(scene);
     let mut success = true;
 
     if let Some(index) = active_dock.scroll_tracker.forget_index() {
