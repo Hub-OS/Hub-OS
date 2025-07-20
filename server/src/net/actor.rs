@@ -21,6 +21,7 @@ pub struct Actor {
     pub rotation: f32,
     pub map_color: (u8, u8, u8, u8),
     pub current_animation: Option<String>,
+    pub loop_animation: bool,
     pub solid: bool,
     pub child_sprites: Vec<SpriteId>,
 }
@@ -43,14 +44,18 @@ impl Actor {
             rotation: self.rotation,
             map_color: self.map_color,
             animation: self.current_animation.clone(),
+            loop_animation: self.loop_animation,
         }
     }
 
     /// helper function that updates last_movement_time and current_animation if anything has changed
-    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
-        let position_changed = self.x != x || self.y != y || self.z != z;
+    pub fn position_matches(&self, x: f32, y: f32, z: f32) -> bool {
+        self.x == x && self.y == y && self.z == z
+    }
 
-        if !position_changed {
+    /// helper function that updates last_movement_time and current_animation if anything has changed
+    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
+        if self.position_matches(x, y, z) {
             return;
         }
 

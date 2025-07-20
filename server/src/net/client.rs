@@ -75,6 +75,7 @@ impl Client {
                 rotation: 0.0,
                 map_color: (248, 248, 0, 255),
                 current_animation: None,
+                loop_animation: false,
                 solid: false,
                 child_sprites: Vec::new(),
             },

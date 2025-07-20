@@ -264,6 +264,7 @@ pub enum ServerPacket {
         rotation: f32,
         map_color: (u8, u8, u8, u8),
         animation: Option<String>,
+        loop_animation: bool,
     },
     ActorDisconnected {
         actor_id: ActorId,

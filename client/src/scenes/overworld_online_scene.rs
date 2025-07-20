@@ -1130,6 +1130,7 @@ impl OverworldOnlineScene {
                 rotation,
                 map_color,
                 animation,
+                loop_animation,
             } => {
                 let tile_position = Vec3::new(x, y, z);
                 let position = self.area.map.tile_3d_to_world(tile_position);
@@ -1194,8 +1195,14 @@ impl OverworldOnlineScene {
                             .query_one_mut::<(&mut Animator, &mut MovementAnimator)>(entity)
                             .unwrap();
 
-                        animator.set_state(&state);
-                        movement_animator.set_animation_enabled(false);
+                        if animator.has_state(&state) {
+                            animator.set_state(&state);
+                            movement_animator.set_animation_enabled(false);
+
+                            if loop_animation {
+                                animator.set_loop_mode(AnimatorLoopMode::Loop);
+                            }
+                        }
                     }
 
                     if warp_in && !self.excluded_actors.contains(&actor_id) {
@@ -1298,6 +1305,28 @@ impl OverworldOnlineScene {
                 if let Some(&entity) = self.actor_id_map.get_by_left(&actor_id) {
                     Emote::spawn_or_recycle(&mut self.area, entity, &emote_id);
                     Emote::animate_actor(&mut self.area.entities, entity, &emote_id, false);
+
+                    if entity == self.area.player_data.entity {
+                        let entities = &mut self.area.entities;
+                        let (animator, position) = entities
+                            .query_one_mut::<(&Animator, &Vec3)>(entity)
+                            .unwrap();
+
+                        if animator.has_state(&emote_id) {
+                            let tile_position = self.area.map.world_3d_to_tile_space(*position);
+
+                            (self.send_packet)(
+                                Reliability::Reliable,
+                                ClientPacket::AnimationUpdated {
+                                    animation: emote_id,
+                                    loop_animation: false,
+                                    x: tile_position.x,
+                                    y: tile_position.y,
+                                    z: tile_position.z,
+                                },
+                            );
+                        }
+                    }
                 }
             }
             ServerPacket::ActorAnimate {

@@ -328,12 +328,7 @@ impl Server {
                 } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         if client.ready && creation_time > client.area_join_time {
-                            let position_changed =
-                                client.actor.x != x || client.actor.y != y || client.actor.z != z;
-
-                            if position_changed {
-                                client.actor.current_animation = None;
-
+                            if !client.actor.position_matches(x, y, z) {
                                 self.plugin_wrapper
                                     .handle_player_move(net, player_id, x, y, z);
                             }
@@ -428,6 +423,20 @@ impl Server {
 
                     if !prevent_default {
                         net.set_player_emote(player_id, emote_id);
+                    }
+                }
+                ClientPacket::AnimationUpdated {
+                    animation,
+                    loop_animation,
+                    x,
+                    y,
+                    z,
+                } => {
+                    if let Some(client) = net.get_client_mut(player_id) {
+                        if client.actor.position_matches(x, y, z) {
+                            client.actor.current_animation = Some(animation);
+                            client.actor.loop_animation = loop_animation;
+                        }
                     }
                 }
                 ClientPacket::ObjectInteraction {

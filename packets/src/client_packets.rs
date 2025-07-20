@@ -59,6 +59,13 @@ pub enum ClientPacket {
     Emote {
         emote_id: String,
     },
+    AnimationUpdated {
+        animation: String,
+        loop_animation: bool,
+        x: f32,
+        y: f32,
+        z: f32,
+    },
     CustomWarp {
         tile_object_id: u32,
     },

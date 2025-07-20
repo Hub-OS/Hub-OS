@@ -76,6 +76,7 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
                 rotation: 0.0,
                 map_color: (0, 0, 0, 0),
                 current_animation: animation,
+                loop_animation: false,
                 solid: solid.unwrap_or_default(),
                 child_sprites: Vec::new(),
             };

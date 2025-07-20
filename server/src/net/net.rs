@@ -357,9 +357,12 @@ impl Net {
     }
 
     pub fn animate_player(&mut self, id: ActorId, state: &str, loop_animation: bool) {
-        let Some(client) = self.clients.get(&id) else {
+        let Some(client) = self.clients.get_mut(&id) else {
             return;
         };
+
+        client.actor.current_animation = Some(state.to_string());
+        client.actor.loop_animation = loop_animation;
 
         let Some(area) = self.areas.get(&client.actor.area_id) else {
             // area deleted, should be getting kicked
@@ -397,7 +400,8 @@ impl Net {
             for (property, _) in &keyframe.property_steps {
                 match property {
                     ActorProperty::Animation(value) => {
-                        client.actor.current_animation = Some(value.clone())
+                        client.actor.current_animation = Some(value.clone());
+                        client.actor.loop_animation = false;
                     }
                     ActorProperty::ScaleX(value) => client.actor.scale_x = *value,
                     ActorProperty::ScaleY(value) => client.actor.scale_y = *value,
@@ -2255,10 +2259,13 @@ impl Net {
         );
     }
 
-    pub fn animate_bot(&mut self, id: ActorId, name: &str, loop_animation: bool) {
-        let Some(bot) = self.bots.get(&id) else {
+    pub fn animate_bot(&mut self, id: ActorId, state: &str, loop_animation: bool) {
+        let Some(bot) = self.bots.get_mut(&id) else {
             return;
         };
+
+        bot.current_animation = Some(state.to_string());
+        bot.loop_animation = loop_animation;
 
         let Some(area) = self.areas.get(&bot.area_id) else {
             return;
@@ -2270,7 +2277,7 @@ impl Net {
             Reliability::Reliable,
             ServerPacket::ActorAnimate {
                 actor_id: id,
-                state: name.to_string(),
+                state: state.to_string(),
                 loop_animation,
             },
         );
@@ -2291,7 +2298,8 @@ impl Net {
                 for (property, _) in &keyframe.property_steps {
                     match property {
                         ActorProperty::Animation(value) => {
-                            bot.current_animation = Some(value.clone())
+                            bot.current_animation = Some(value.clone());
+                            bot.loop_animation = false;
                         }
                         ActorProperty::X(value) => final_x = *value,
                         ActorProperty::Y(value) => final_y = *value,
