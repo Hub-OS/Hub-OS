@@ -9,11 +9,12 @@ use framework::prelude::*;
 use std::collections::HashMap;
 
 const NAMESPACE: PackageNamespace = PackageNamespace::Local;
+const MOVE_BULK_DELAY: FrameTime = 60;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum EditorMode {
     Default,
-    Regular,
+    SelectRegular,
 }
 
 enum Event {
@@ -126,6 +127,9 @@ pub struct DeckEditorScene {
     background: Background,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
+    confirm_held_time: FrameTime,
+    confirm_interrupted: bool,
+    select_card_on_release: bool,
     scene_time: FrameTime,
     page_tracker: PageTracker,
     context_menu: ContextMenu<Sorting>,
@@ -201,6 +205,9 @@ impl DeckEditorScene {
             background: Background::new_sub_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
+            confirm_held_time: 0,
+            confirm_interrupted: false,
+            select_card_on_release: false,
             scene_time: 0,
             page_tracker: PageTracker::new(game_io, 2)
                 .with_page_arrow_offset(0, pack_dock.page_arrow_offset),
@@ -410,7 +417,7 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         Event::SwitchMode(mode) => {
             match mode {
                 EditorMode::Default => {}
-                EditorMode::Regular => {
+                EditorMode::SelectRegular => {
                     let interface = TextboxMessage::new(String::from(
                         "Choose a card to\nuse as a Regular\nCard!",
                     ));
@@ -428,6 +435,8 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     if scene.context_menu.is_open() {
         handle_context_menu_input(scene, game_io);
+        scene.confirm_held_time = 0;
+        scene.confirm_interrupted = true;
         return;
     }
 
@@ -441,6 +450,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
     if original_index != scroll_tracker.selected_index() {
         active_dock.update_preview();
+        scene.confirm_interrupted = true;
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_move);
@@ -459,8 +469,14 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         scene.last_sort = None;
     }
 
-    if input_util.was_just_pressed(Input::Confirm) {
-        select_card(scene, game_io);
+    // see if we should do something other than default handling based on mode
+    match scene.mode {
+        EditorMode::Default => {
+            handle_default_mode_input(scene, game_io);
+        }
+        EditorMode::SelectRegular => {
+            handle_select_regular_input(scene, game_io);
+        }
     }
 
     // cancelling
@@ -468,7 +484,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.play_sound(&globals.sfx.cursor_cancel);
 
-        if scene.mode == EditorMode::Regular {
+        if scene.mode == EditorMode::SelectRegular {
             // revert to default mode
             scene.mode = EditorMode::Default;
             return;
@@ -533,13 +549,63 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
         let interface = TextboxQuestion::new(String::from("Choose Regular Chip?"), move |yes| {
             if yes {
                 event_sender
-                    .send(Event::SwitchMode(EditorMode::Regular))
+                    .send(Event::SwitchMode(EditorMode::SelectRegular))
                     .unwrap();
             }
         });
 
         scene.textbox.push_interface(interface);
         scene.textbox.open();
+    }
+}
+
+fn handle_default_mode_input(scene: &mut DeckEditorScene, game_io: &GameIO) {
+    let input_util = InputUtil::new(game_io);
+
+    if input_util.was_just_pressed(Input::Confirm) {
+        scene.confirm_interrupted = false;
+        scene.confirm_held_time = 1;
+
+        let (active_dock, _) = resolve_active_and_inactive_dock!(scene);
+        let scroll_tracker = &active_dock.scroll_tracker;
+
+        if scroll_tracker.remembered_index() != Some(scroll_tracker.selected_index()) {
+            select_card(scene, game_io);
+            scene.select_card_on_release = false;
+        } else {
+            scene.select_card_on_release = scroll_tracker.remembered_index().is_some();
+        }
+    }
+
+    if scene.confirm_interrupted {
+        return;
+    }
+
+    if input_util.is_down(Input::Confirm) {
+        scene.confirm_held_time += 1;
+
+        let (active_dock, _) = resolve_active_and_inactive_dock!(scene);
+        let scroll_tracker = &active_dock.scroll_tracker;
+
+        if scene.confirm_held_time == MOVE_BULK_DELAY
+            && scroll_tracker.remembered_index() == Some(scroll_tracker.selected_index())
+        {
+            move_in_bulk(scene, game_io);
+        }
+    } else if scene.confirm_held_time > 0 {
+        if scene.select_card_on_release && scene.confirm_held_time < MOVE_BULK_DELAY {
+            select_card(scene, game_io);
+        }
+
+        scene.confirm_held_time = 0;
+    }
+}
+
+fn handle_select_regular_input(scene: &mut DeckEditorScene, game_io: &GameIO) {
+    let input_util = InputUtil::new(game_io);
+
+    if input_util.was_just_pressed(Input::Confirm) {
+        select_regular_card(scene, game_io);
     }
 }
 
@@ -583,16 +649,85 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
     dock.update_preview();
 }
 
-fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
-    // see if we should do something other than default handling based on mode
-    match scene.mode {
-        EditorMode::Regular => {
-            select_regular_card(scene, game_io);
-            return;
+fn move_in_bulk(scene: &mut DeckEditorScene, game_io: &GameIO) {
+    scene.deck_dock.scroll_tracker.forget_index();
+    scene.pack_dock.scroll_tracker.forget_index();
+
+    let success = if scene.page_tracker.active_page() == 0 {
+        move_bulk_to_pack(scene, game_io).is_ok()
+    } else {
+        move_bulk_to_deck(scene, game_io).is_ok()
+    };
+
+    let globals = game_io.resource::<Globals>().unwrap();
+
+    if success {
+        globals.audio.play_sound(&globals.sfx.page_turn);
+        scene.deck_dock.validate(game_io, &scene.deck_restrictions);
+        scene.pack_dock.update_preview();
+        scene.deck_dock.update_preview();
+    } else {
+        globals.audio.play_sound(&globals.sfx.cursor_error);
+    }
+}
+
+fn move_bulk_to_pack(scene: &mut DeckEditorScene, game_io: &GameIO) -> Result<(), ()> {
+    let index = scene.deck_dock.scroll_tracker.selected_index();
+
+    let Some(Some(card_item)) = scene.deck_dock.card_slots.get(index) else {
+        return Err(());
+    };
+
+    let id = card_item.card.package_id.clone();
+    let code = card_item.card.code.clone();
+
+    let pack_index = transfer_to_pack(scene, game_io, index);
+
+    // count and remove duplicates
+    let mut duplicate_count = 0;
+
+    for slot in scene.deck_dock.card_slots.iter_mut() {
+        if slot
+            .as_ref()
+            .is_some_and(|item| item.card.package_id == id && item.card.code == code)
+        {
+            *slot = None;
+            duplicate_count += 1;
         }
-        EditorMode::Default => {}
     }
 
+    if let Some(index) = pack_index {
+        if let Some(slot) = scene.pack_dock.card_slots[index].as_mut() {
+            slot.count += duplicate_count;
+        }
+    }
+
+    transfer_to_pack_cleanup(scene, pack_index);
+    Ok(())
+}
+
+fn move_bulk_to_deck(scene: &mut DeckEditorScene, game_io: &GameIO) -> Result<(), ()> {
+    let index = scene.pack_dock.scroll_tracker.selected_index();
+
+    let Some(Some(card_item)) = scene.pack_dock.card_slots.get(index) else {
+        return Err(());
+    };
+
+    let count = card_item.count;
+
+    transfer_to_deck(scene, game_io, index)?;
+
+    // try to add duplicates
+    for _ in 1..count {
+        if transfer_to_deck(scene, game_io, index).is_err() {
+            break;
+        }
+    }
+
+    Ok(())
+}
+
+fn select_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
     // default handling, moving cards around
     let (active_dock, inactive_dock) = resolve_active_and_inactive_dock!(scene);
     let mut success = true;
@@ -1248,7 +1383,7 @@ impl CardListItem {
             Color::ORANGE
         };
 
-        if mode == EditorMode::Regular {
+        if mode == EditorMode::SelectRegular {
             let regular_allowed = self.valid && {
                 let globals = game_io.resource::<Globals>().unwrap();
                 let card_packages = &globals.card_packages;

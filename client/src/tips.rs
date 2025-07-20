@@ -13,6 +13,7 @@ pub enum Tip {
     FlippingCards,
     SpecialButton,
     AutoEmotes,
+    MoveCardsInBulk,
 }
 
 impl Tip {
@@ -30,6 +31,7 @@ impl Tip {
             Tip::FlippingCards,
             Tip::SpecialButton,
             Tip::AutoEmotes,
+            Tip::MoveCardsInBulk,
         ];
 
         let tip = tips.choose(&mut rand::thread_rng()).unwrap();
@@ -83,6 +85,12 @@ impl Tip {
             }
             Tip::AutoEmotes => {
                 String::from("A thinking emote will appear over players messing with settings.")
+            }
+            Tip::MoveCardsInBulk => {
+                let mut message = String::from("Folder Edit allows you to move chips in bulk by holding ");
+                Self::write_input_binding(game_io, &mut message, Input::Confirm);
+                message.push_str(" for one second.");
+                message
             }
         }
     }
