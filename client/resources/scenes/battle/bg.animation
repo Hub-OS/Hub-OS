@@ -1,5 +1,6 @@
-imagePath="bg.png"
-
-animation state="BG"
-frame w="240" h="160"
-point label="VELOCITY" x="-0.25" y="0.0"
+animation state="DEFAULT"
+blank
+point label="BACKGROUNDS/MATH_SNOW"
+point label="BACKGROUNDS/MINESWEEPER"
+point label="BACKGROUNDS/MS_PAINT_FOLDERS"
+point label="BACKGROUNDS/PLAIN_GRID"

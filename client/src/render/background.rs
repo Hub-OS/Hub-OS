@@ -134,12 +134,44 @@ impl Background {
     }
 
     pub fn new_battle(game_io: &GameIO) -> Self {
+        match Self::randomized(game_io, ResourcePaths::BATTLE_BG_ANIMATION) {
+            Ok(background) => background,
+            Err(animator) => {
+                let globals = game_io.resource::<Globals>().unwrap();
+                let assets = &globals.assets;
+                let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BG);
+                Self::new(animator, background_sprite)
+            }
+        }
+    }
+
+    #[allow(clippy::result_large_err)]
+    fn randomized(game_io: &GameIO, animator_path: &str) -> Result<Self, Animator> {
+        use rand::seq::IteratorRandom;
+
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        let background_animator = Animator::load_new(assets, ResourcePaths::BATTLE_BG_ANIMATION);
-        let background_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_BG);
-        Self::new(background_animator, background_sprite)
+        let mut animator = Animator::load_new(assets, animator_path);
+        animator.set_state("DEFAULT");
+
+        let frame_0 = animator.frame(0).cloned().unwrap_or_default();
+        let Some(background) = frame_0
+            .points
+            .iter()
+            .map(|(path, _)| path)
+            .filter(|path| *path != "VELOCITY")
+            .choose(&mut rand::thread_rng())
+        else {
+            return Err(animator);
+        };
+
+        let path = ResourcePaths::parent(animator_path).unwrap().to_string() + background.as_str();
+
+        Ok(Self::new(
+            Animator::load_new(assets, &(path.clone() + ".animation")),
+            assets.new_sprite(game_io, &(path + ".png")),
+        ))
     }
 
     pub fn animator(&self) -> &Animator {

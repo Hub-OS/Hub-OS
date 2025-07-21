@@ -1,0 +1,21 @@
+animation state="DEFAULT"
+frame duration="60f" x="0" y="0" w="240" h="96"
+point label="VELOCITY" x="-0.32" y="0.0"
+# blink bottom
+frame duration="5f" x="0" y="192" w="240" h="96"
+frame duration="15f" x="0" y="0" w="240" h="96"
+frame duration="5f" x="0" y="192" w="240" h="96"
+# pause
+frame duration="120f" x="0" y="0" w="240" h="96"
+# shock
+frame duration="120f" x="0" y="96" w="240" h="96"
+# pause
+frame duration="60f" x="0" y="0" w="240" h="96"
+# blink top
+frame duration="5f" x="240" y="0" w="240" h="96"
+frame duration="15f" x="0" y="0" w="240" h="96"
+frame duration="5f" x="240" y="0" w="240" h="96"
+# pause
+frame duration="180f" x="0" y="0" w="240" h="96"
+# wink
+frame duration="20f" x="240" y="96" w="240" h="96"

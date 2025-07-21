@@ -1,0 +1,6 @@
+animation state="DEFAULT"
+frame duration="30f" x="0" y="0" w="16" h="16"
+point label="VELOCITY" x="0.0" y="0.166"
+frame duration="30f" x="16" y="0" w="16" h="16"
+frame duration="30f" x="32" y="0" w="16" h="16"
+frame duration="30f" x="48" y="0" w="16" h="16"
