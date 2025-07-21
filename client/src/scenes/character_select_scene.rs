@@ -51,7 +51,12 @@ impl CharacterSelectScene {
             .package_ids(PackageNamespace::Local)
             .collect();
 
-        package_ids.sort_by_cached_key(|id| Self::get_player_package(game_io, id).name.clone());
+        package_ids.sort_by_cached_key(|&id| {
+            (
+                Self::get_player_package(game_io, id).name.clone(),
+                id.clone(),
+            )
+        });
 
         // layout
         let mut ui_animator =
