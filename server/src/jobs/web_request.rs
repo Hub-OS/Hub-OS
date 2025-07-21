@@ -21,7 +21,7 @@ pub fn web_request(
         let response = match web_request_internal(url, method, headers, body).await {
             Ok(response) => response,
             Err(err) => {
-                log::warn!("{}", err);
+                log::warn!("{err}");
                 thread_promise.set_value(PromiseValue::None);
                 return;
             }
@@ -42,7 +42,7 @@ pub fn web_request(
         match response.into_body().read_to_end(&mut body).await {
             Ok(body) => body,
             Err(err) => {
-                log::warn!("{}", err);
+                log::warn!("{err}");
 
                 thread_promise.set_value(PromiseValue::None);
                 return;

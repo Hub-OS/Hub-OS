@@ -49,7 +49,7 @@ fn tostring(value: mlua::Value) -> String {
         mlua::Value::String(lua_string) => {
             String::from_utf8_lossy(lua_string.as_bytes()).to_string()
         }
-        mlua::Value::Error(error) => format!("{}", error),
+        mlua::Value::Error(error) => format!("{error}"),
         _ => super::lua_helpers::lua_value_to_string(value, "\t", 0),
     }
 }

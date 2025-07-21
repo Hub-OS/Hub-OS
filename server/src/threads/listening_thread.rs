@@ -64,7 +64,7 @@ async fn listen_loop(
                 let filled_buf = &buf[..number_of_bytes];
 
                 if config.args.log_packets {
-                    log::debug!("Received packet from {}", socket_address);
+                    log::debug!("Received packet from {socket_address}");
                 }
 
                 if let Some(packet_receiver) = packet_receivers.get_mut(&socket_address) {
@@ -75,7 +75,7 @@ async fn listen_loop(
                         Ok(None) => {}
                         Err(e) => {
                             if config.args.log_packets {
-                                log::debug!("Failed to decode packet from {}: {e}", socket_address);
+                                log::debug!("Failed to decode packet from {socket_address}: {e}");
                             }
                         }
                     };
@@ -111,7 +111,7 @@ async fn decode_messages(
         }
         PacketChannels::Server => {
             if config.args.log_packets {
-                log::debug!("Received unexpected server packet from {}", socket_address);
+                log::debug!("Received unexpected server packet from {socket_address}");
             }
         }
         PacketChannels::ServerComm => {

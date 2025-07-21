@@ -104,7 +104,7 @@ impl NetplayInitScene {
         let player_setup = &mut battle_props.meta.player_setups[0];
         player_setup.index = local_index;
 
-        log::debug!("Assigned player index {}", local_index);
+        log::debug!("Assigned player index {local_index}");
 
         let globals = game_io.resource::<Globals>().unwrap();
         let network = &globals.network;
@@ -585,7 +585,7 @@ impl NetplayInitScene {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                    let path = format!("{}{}.zip", mod_cache_folder, hash);
+                    let path = format!("{mod_cache_folder}{hash}.zip");
 
                     assets.binary(&path)
                 });
@@ -605,7 +605,7 @@ impl NetplayInitScene {
                 let assets = &game_io.resource::<Globals>().unwrap().assets;
 
                 let data = assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
-                    let path = format!("{}{}.zip", mod_cache_folder, hash);
+                    let path = format!("{mod_cache_folder}{hash}.zip");
 
                     assets.binary(&path)
                 });

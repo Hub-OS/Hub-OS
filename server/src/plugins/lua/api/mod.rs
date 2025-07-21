@@ -167,8 +167,7 @@ impl LuaApi {
                             func(&api_ctx, lua, params)
                         } else {
                             Err(mlua::Error::RuntimeError(format!(
-                                "Function {:?} does not exist",
-                                function_id
+                                "Function {function_id:?} does not exist"
                             )))
                         }
                     },

@@ -1248,12 +1248,12 @@ impl Net {
 
         for asset_path in dependency_chain {
             let Some(asset) = self.asset_manager.get_asset(asset_path) else {
-                log::warn!("No asset found with path {:?}", asset_path);
+                log::warn!("No asset found with path {asset_path:?}");
                 continue;
             };
 
             let Some(package_info) = asset.package_info() else {
-                log::warn!("{:?} is not a package", asset_path);
+                log::warn!("{asset_path:?} is not a package");
                 continue;
             };
 
@@ -1292,12 +1292,12 @@ impl Net {
 
         for asset_path in dependency_chain {
             let Some(asset) = self.asset_manager.get_asset(asset_path) else {
-                log::warn!("No asset found with path {:?}", asset_path);
+                log::warn!("No asset found with path {asset_path:?}");
                 continue;
             };
 
             let Some(package_info) = asset.package_info() else {
-                log::warn!("{:?} is not a package", asset_path);
+                log::warn!("{asset_path:?} is not a package");
                 continue;
             };
 
@@ -1419,7 +1419,7 @@ impl Net {
             if let Some(item_definition) = self.item_registry.get(&item_id).cloned() {
                 item_definition
             } else {
-                log::warn!("No item found with id {:?}", item_id);
+                log::warn!("No item found with id {item_id:?}");
                 return;
             };
 
@@ -1750,8 +1750,7 @@ impl Net {
 
         if find_longest_frame_length(&animation_data) > avatar_dimensions_limit {
             let reason = format!(
-                "Avatar has frames larger than limit {}x{}",
-                avatar_dimensions_limit, avatar_dimensions_limit
+                "Avatar has frames larger than limit {avatar_dimensions_limit}x{avatar_dimensions_limit}"
             );
 
             self.kick_player(player_id, &reason, true);
@@ -2856,13 +2855,13 @@ fn ensure_asset<PI, P>(
     let assets_to_send = asset_manager.get_flattened_dependency_chain(asset_path);
 
     if assets_to_send.is_empty() {
-        log::warn!("No asset found with path {:?}", asset_path);
+        log::warn!("No asset found with path {asset_path:?}");
         return;
     }
 
     for asset_path in assets_to_send {
         let Some(asset) = asset_manager.get_asset(asset_path) else {
-            log::warn!("No asset found with path {:?}", asset_path);
+            log::warn!("No asset found with path {asset_path:?}");
             continue;
         };
 

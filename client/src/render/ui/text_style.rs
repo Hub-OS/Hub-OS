@@ -443,10 +443,11 @@ impl<'a> TextInsertTracker<'a> {
             y: 0.0,
             unscaled_bounds_size: style.bounds.size() / style.scale,
             whitespace: style.glyph_atlas.resolve_whitespace_size(&style.font),
-            ellipsis_width: style
-                .ellipsis
-                .then(|| style.measure_unbroken("...") + style.letter_spacing)
-                .unwrap_or_default(),
+            ellipsis_width: if style.ellipsis {
+                style.measure_unbroken("...") + style.letter_spacing
+            } else {
+                Default::default()
+            },
             style,
             line_start_index: 0,
             line_ranges: Vec::new(),

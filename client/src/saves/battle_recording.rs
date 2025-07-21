@@ -189,7 +189,7 @@ impl BattleRecording {
             );
 
             if let Err(e) = std::fs::write(&toml_path, toml_data) {
-                log::error!("Failed to save data to {:?}: {}", toml_path, e);
+                log::error!("Failed to save data to {toml_path:?}: {e}");
                 return;
             }
 
@@ -198,7 +198,7 @@ impl BattleRecording {
                 let to_path = folder_path.clone() + file_name.as_str();
 
                 if let Err(e) = std::fs::write(&to_path, bytes) {
-                    log::error!("Failed to copy preview texture to {:?}: {}", to_path, e);
+                    log::error!("Failed to copy preview texture to {to_path:?}: {e}");
                 }
             }
 
@@ -207,7 +207,7 @@ impl BattleRecording {
             let mut file = File::create(&dat_path).unwrap();
 
             if let Err(e) = rmp_serde::encode::write_named(&mut file, &self) {
-                log::error!("Failed to save data to {:?}: {}", dat_path, e);
+                log::error!("Failed to save data to {dat_path:?}: {e}");
                 return;
             }
 

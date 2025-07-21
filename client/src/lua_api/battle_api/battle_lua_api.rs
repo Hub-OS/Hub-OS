@@ -129,7 +129,7 @@ impl BattleLuaApi {
         );
 
         if prev.is_some() {
-            log::error!("{}:{} defined more than once", table_path, function_name)
+            log::error!("{table_path}:{function_name} defined more than once")
         }
     }
 
@@ -157,11 +157,7 @@ impl BattleLuaApi {
         );
 
         if prev.is_some() {
-            log::error!(
-                "Getter {}.{} defined more than once",
-                table_path,
-                function_name
-            )
+            log::error!("Getter {table_path}.{function_name} defined more than once")
         }
     }
 
@@ -189,11 +185,7 @@ impl BattleLuaApi {
         );
 
         if prev.is_some() {
-            log::error!(
-                "Setter {}.{} defined more than once",
-                table_path,
-                function_name
-            )
+            log::error!("Setter {table_path}.{function_name} defined more than once")
         }
     }
 

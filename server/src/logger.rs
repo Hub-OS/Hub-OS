@@ -39,7 +39,7 @@ impl log::Log for Logger {
             };
 
             stdout.set_color(&color_spec).unwrap();
-            writeln!(&mut stdout, "{}", msg).unwrap();
+            writeln!(&mut stdout, "{msg}").unwrap();
             stdout.reset().unwrap();
         }
     }

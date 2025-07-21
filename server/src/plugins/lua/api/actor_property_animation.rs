@@ -34,7 +34,7 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
                 "Sound Effect" => ActorProperty::SoundEffect(property_table.get("value")?),
                 "Sound Effect Loop" => ActorProperty::SoundEffectLoop(property_table.get("value")?),
                 _ => {
-                    let error_string = format!("Unknown Property: {}", property_name_str);
+                    let error_string = format!("Unknown Property: {property_name_str}");
                     return Err(mlua::Error::RuntimeError(error_string));
                 }
             };
@@ -51,7 +51,7 @@ pub fn parse_animation(keyframe_tables: Vec<mlua::Table>) -> mlua::Result<Vec<Ac
                         "InOut" => Ease::InOut,
                         "Floor" => Ease::Floor,
                         _ => {
-                            let error_string = format!("Unknown Ease: {}", ease_name_str);
+                            let error_string = format!("Unknown Ease: {ease_name_str}");
                             return Err(mlua::Error::RuntimeError(error_string));
                         }
                     }

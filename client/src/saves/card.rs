@@ -113,7 +113,7 @@ impl Card {
         // damage
         if damage > 0 {
             label.color = Color::WHITE;
-            let text = format!("{:>3}", damage);
+            let text = format!("{damage:>3}");
 
             let damage_width = label.measure(&text).size.x;
             let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);

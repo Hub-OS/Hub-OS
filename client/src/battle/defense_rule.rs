@@ -298,10 +298,7 @@ impl Defense {
 
                 // negative values are not allowed to prevent accidental healing and incorrect logic
                 if props.damage < 0 {
-                    log::warn!(
-                        "{} returned hit props with negative damage",
-                        FILTER_HIT_PROPS_FN
-                    );
+                    log::warn!("{FILTER_HIT_PROPS_FN} returned hit props with negative damage");
                     props.damage = 0;
                 }
 

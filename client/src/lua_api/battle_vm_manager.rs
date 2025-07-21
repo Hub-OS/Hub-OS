@@ -166,8 +166,7 @@ impl BattleVmManager {
             })
             .ok_or_else(|| {
                 rollback_mlua::Error::RuntimeError(format!(
-                    "no package with id {:?} and namespace {namespace:?} found",
-                    package_id
+                    "no package with id {package_id:?} and namespace {namespace:?} found"
                 ))
             })?;
 

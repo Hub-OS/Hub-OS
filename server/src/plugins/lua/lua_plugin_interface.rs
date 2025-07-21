@@ -47,7 +47,7 @@ impl LuaPluginInterface {
             }
 
             if let Err(err) = self.load_script(net_ref, script_path.to_path_buf()) {
-                log::error!("{}", err)
+                log::error!("{err}")
             }
         }
 
@@ -115,7 +115,7 @@ impl LuaPluginInterface {
 impl PluginInterface for LuaPluginInterface {
     fn init(&mut self, net: &mut Net) {
         if let Err(err) = self.load_scripts(net) {
-            log::error!("Failed to load lua scripts: {}", err);
+            log::error!("Failed to load lua scripts: {err}");
         }
     }
 
@@ -948,7 +948,7 @@ fn handle_event<F>(
                     let binded_func = func.bind(net_table)?;
 
                     if let Err(err) = fn_caller(lua, binded_func) {
-                        log::error!("{}", err);
+                        log::error!("{err}");
                     }
                 }
 
@@ -959,6 +959,6 @@ fn handle_event<F>(
     };
 
     if let Err(err) = call_lua() {
-        log::error!("{:#}", err);
+        log::error!("{err:#}");
     }
 }

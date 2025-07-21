@@ -84,7 +84,7 @@ impl LocalAssetManager {
         if let Some(tracking) = loaded_zips.get_mut(hash) {
             tracking.use_count -= 1;
         } else {
-            log::error!("Virtual zip usage below zero: {}", hash);
+            log::error!("Virtual zip usage below zero: {hash}");
         }
     }
 

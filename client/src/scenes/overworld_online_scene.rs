@@ -455,7 +455,7 @@ impl OverworldOnlineScene {
                         self.assets.audio(game_io, &asset_path);
                     }
                     AssetDataType::Unknown => {
-                        log::warn!("Server sent unknown AssetType? {:?}", asset_path);
+                        log::warn!("Server sent unknown AssetType? {asset_path:?}");
                     }
                 }
             }

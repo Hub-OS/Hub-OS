@@ -389,7 +389,7 @@ fn resolve_asset_data(path: &std::path::Path, data: Vec<u8>) -> AssetData {
             let translated_data = translate_tsx(path, &original_data);
 
             if translated_data.is_none() {
-                log::warn!("Invalid .tsx file: {:?}", path);
+                log::warn!("Invalid .tsx file: {path:?}");
             }
 
             AssetData::Text(translated_data.unwrap_or_else(|| original_data.to_string()))

@@ -15,7 +15,7 @@ pub fn web_download(
         let response = match web_request_internal(url, method, headers, body).await {
             Ok(response) => response,
             Err(err) => {
-                log::warn!("{}", err);
+                log::warn!("{err}");
                 thread_promise.set_value(PromiseValue::Success(false));
                 return;
             }
@@ -23,7 +23,7 @@ pub fn web_download(
 
         // writing to file
         if let Err(err) = save_response(destination, response).await {
-            log::warn!("{}", err);
+            log::warn!("{err}");
             thread_promise.set_value(PromiseValue::Success(false));
             return;
         }

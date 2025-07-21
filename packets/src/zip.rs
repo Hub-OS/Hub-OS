@@ -29,7 +29,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
     let mut archive = match zip::ZipArchive::new(cursor) {
         Ok(archive) => archive,
         Err(err) => {
-            log::error!("Failed to read zip: {}", err);
+            log::error!("Failed to read zip: {err}");
             return;
         }
     };
@@ -38,7 +38,7 @@ pub fn extract(bytes: &[u8], mut file_callback: impl FnMut(String, ZipFile)) {
         let file = match archive.by_index(i) {
             Ok(file) => file,
             Err(err) => {
-                log::error!("Failed to grab a file within zip: {}", err);
+                log::error!("Failed to grab a file within zip: {err}");
                 continue;
             }
         };
@@ -61,7 +61,7 @@ pub fn extract_to(bytes: &[u8], base_path: &str) {
 
         if let Some(parent_path) = parent(&path) {
             if let Err(err) = std::fs::create_dir_all(parent_path) {
-                log::error!("Failed to create directory {parent_path:?}: {}", err);
+                log::error!("Failed to create directory {parent_path:?}: {err}");
             }
         }
 
@@ -69,7 +69,7 @@ pub fn extract_to(bytes: &[u8], base_path: &str) {
             .and_then(|mut file| std::io::copy(&mut virtual_file, &mut file));
 
         if let Err(err) = res {
-            log::error!("Failed to write to {path:?}: {}", err);
+            log::error!("Failed to write to {path:?}: {err}");
         }
     });
 }

@@ -49,7 +49,7 @@ impl DebugOverlay {
                 .collect::<Vec<_>>()
                 .join("\n");
 
-            println!("Loaded Namespaces:\n{}", namespace_list_string);
+            println!("Loaded Namespaces:\n{namespace_list_string}");
         }
     }
 }

@@ -60,8 +60,8 @@ impl GlobalSave {
             Ok(save) => save,
             Err(e) => {
                 let corrupted_path = ResourcePaths::data_folder_absolute("corrupted_save.dat");
-                log::error!("Failed to load save data: {}", e);
-                log::info!("Backing up corrupted data to {:?}", corrupted_path);
+                log::error!("Failed to load save data: {e}");
+                log::info!("Backing up corrupted data to {corrupted_path:?}");
 
                 // crash if we can't back up the corrupted save
                 // we never want to accidentally reset a player's save, it should be recoverable
@@ -118,7 +118,7 @@ impl GlobalSave {
         let mut file = File::create(&path).unwrap();
 
         if let Err(e) = rmp_serde::encode::write_named(&mut file, self) {
-            log::error!("Failed to save data to {:?}: {}", path, e);
+            log::error!("Failed to save data to {path:?}: {e}");
         }
     }
 

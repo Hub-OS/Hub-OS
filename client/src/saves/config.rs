@@ -357,7 +357,7 @@ impl From<&str> for Config {
         let ini = match Ini::load_from_str(s) {
             Ok(ini) => ini,
             Err(e) => {
-                log::error!("Failed to parse config.ini file: {}", e);
+                log::error!("Failed to parse config.ini file: {e}");
                 return config;
             }
         };

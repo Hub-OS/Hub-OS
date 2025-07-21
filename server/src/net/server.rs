@@ -313,7 +313,7 @@ impl Server {
                     net.connect_client(player_id);
 
                     if self.config.args.log_connections {
-                        log::debug!("{:?} connected", player_id);
+                        log::debug!("{player_id:?} connected");
                     }
                 }
                 ClientPacket::Logout => {
@@ -627,10 +627,10 @@ impl Server {
             self.net.remove_player(player_id, warp_out);
 
             if self.config.args.log_connections {
-                log::debug!("{:?} disconnected for {}", player_id, reason);
+                log::debug!("{player_id:?} disconnected for {reason}");
             }
         } else if self.config.args.log_connections {
-            log::debug!("{} disconnected for {}", socket_address, reason);
+            log::debug!("{socket_address} disconnected for {reason}");
         }
     }
 }

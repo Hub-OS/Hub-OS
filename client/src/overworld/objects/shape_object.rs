@@ -58,7 +58,7 @@ pub fn shape_from_xml(object_element: roxmltree::Node) -> Option<Box<dyn Shape>>
         let mut slice_start = 0;
         let mut x = 0.0;
 
-        for (i, c) in points_str.chars().enumerate() {
+        for (i, c) in points_str.char_indices() {
             match c {
                 ',' => {
                     x = points_str[slice_start..i]

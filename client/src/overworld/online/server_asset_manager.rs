@@ -306,7 +306,7 @@ impl AssetManager for ServerAssetManager {
                 let res = fs::read(&asset.local_path);
 
                 if let Err(err) = &res {
-                    log::warn!("Failed to load {:?}: {}", path, err);
+                    log::warn!("Failed to load {path:?}: {err}");
                 }
 
                 let bytes = res.unwrap_or_default();
@@ -348,7 +348,7 @@ impl AssetManager for ServerAssetManager {
         let res = String::from_utf8(bytes);
 
         if let Err(err) = &res {
-            log::warn!("Failed to read {:?} as a string: {}", path, err);
+            log::warn!("Failed to read {path:?} as a string: {err}");
         }
 
         res.unwrap_or_default()

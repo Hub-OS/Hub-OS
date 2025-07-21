@@ -247,7 +247,7 @@ impl<T: Package> PackageManager<T> {
         }
 
         let mod_cache_folder = ResourcePaths::mod_cache_folder();
-        let path = format!("{}{}.zip", mod_cache_folder, hash);
+        let path = format!("{mod_cache_folder}{hash}.zip");
 
         if std::path::Path::new(&path).exists() {
             // file already cached
@@ -259,7 +259,7 @@ impl<T: Package> PackageManager<T> {
         }
 
         if let Err(e) = std::fs::write(&path, data) {
-            log::error!("Failed to cache package zip {:?}: {e}", path);
+            log::error!("Failed to cache package zip {path:?}: {e}");
             return None;
         }
 
@@ -290,7 +290,7 @@ impl<T: Package> PackageManager<T> {
             .or_insert_with(|| HashMap::new());
 
         if packages.contains_key(&package_id) {
-            log::error!("Duplicate package_id {:?}", package_id);
+            log::error!("Duplicate package_id {package_id:?}");
             return None;
         }
 
