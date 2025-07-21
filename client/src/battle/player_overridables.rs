@@ -123,54 +123,100 @@ impl PlayerOverridables {
         player: &'a mut Player,
         map: impl Fn(&'a mut Self) -> Option<T> + Clone + 'static,
     ) -> impl Iterator<Item = T> + 'a {
-        // form
-        let form_iter = player
-            .active_form
-            .and_then(|index| player.forms.get_mut(index))
-            .into_iter();
+        ReborrowChainMut::new(
+            player,
+            [
+                // priority augments
+                |player, i| {
+                    player
+                        .augments
+                        .values_mut()
+                        .filter(|augment| augment.priority)
+                        .map(|augment| &mut augment.overridables)
+                        .nth(i)
+                },
+                // form
+                |player, i| {
+                    if i > 0 {
+                        return None;
+                    }
 
-        let form_map = map.clone();
-        let form_callback_iter = form_iter.flat_map(move |form| form_map(&mut form.overridables));
-
-        // augment
-        let augment_iter = player.augments.values_mut();
-        let augment_map = map.clone();
-        let augment_callback_iter =
-            augment_iter.flat_map(move |augment| augment_map(&mut augment.overridables));
-
-        // base
-        let player_callback_iter = map(&mut player.overridables).into_iter();
-
-        form_callback_iter
-            .chain(augment_callback_iter)
-            .chain(player_callback_iter)
+                    player
+                        .active_form
+                        .and_then(|index| player.forms.get_mut(index))
+                        .map(|form| &mut form.overridables)
+                },
+                // augments
+                |player, i| {
+                    player
+                        .augments
+                        .values_mut()
+                        .filter(|augment| !augment.priority)
+                        .map(|augment| &mut augment.overridables)
+                        .nth(i)
+                },
+                // base
+                |player, i| {
+                    if i == 0 {
+                        Some(&mut player.overridables)
+                    } else {
+                        None
+                    }
+                },
+            ],
+        )
+        .into_iter()
+        .flat_map(map)
     }
 
     pub fn flat_map_for<'a, T: 'a>(
         player: &'a Player,
         map: impl Fn(&'a Self) -> Option<T> + Clone + 'static,
     ) -> impl Iterator<Item = T> + 'a {
-        // form
-        let form_iter = player
-            .active_form
-            .and_then(|index| player.forms.get(index))
-            .into_iter();
+        ReborrowChain::new(
+            player,
+            [
+                // priority augments
+                |player, i| {
+                    player
+                        .augments
+                        .values()
+                        .filter(|augment| augment.priority)
+                        .map(|augment| &augment.overridables)
+                        .nth(i)
+                },
+                // form
+                |player, i| {
+                    if i > 0 {
+                        return None;
+                    }
 
-        let form_map = map.clone();
-        let form_callback_iter = form_iter.flat_map(move |form| form_map(&form.overridables));
-
-        // augment
-        let augment_iter = player.augments.values();
-        let augment_map = map.clone();
-        let augment_callback_iter =
-            augment_iter.flat_map(move |augment| augment_map(&augment.overridables));
-
-        // base
-        let player_callback_iter = map(&player.overridables).into_iter();
-
-        form_callback_iter
-            .chain(augment_callback_iter)
-            .chain(player_callback_iter)
+                    player
+                        .active_form
+                        .and_then(|index| player.forms.get(index))
+                        .map(|form| &form.overridables)
+                },
+                // augments
+                |player, i| {
+                    player
+                        .augments
+                        .values()
+                        .filter(|augment| !augment.priority)
+                        .map(|augment| &augment.overridables)
+                        .nth(i)
+                },
+                // base
+                |player, i| {
+                    if i == 0 {
+                        Some(&player.overridables)
+                    } else {
+                        None
+                    }
+                },
+            ],
+        )
+        .into_iter()
+        .flat_map(map)
     }
 
     pub fn card_button_slots_for(player: &Player) -> Option<&[Option<CardSelectButton>]> {
@@ -239,3 +285,69 @@ impl PlayerOverridables {
         }
     }
 }
+
+macro_rules! create_reborrow_chain {
+    ($name:ident, $ptr_mutability:tt $(, $mutability:tt)?) => {
+        struct $name<T, State, const LEN: usize> {
+            i: usize,
+            j: usize,
+            reborrowers: [fn(&mut State, usize) -> Option<&$($mutability)* T>; LEN],
+            state: State,
+            marker: std::marker::PhantomData<T>,
+        }
+
+        impl<T, State, const LEN: usize> $name<T, State, LEN> {
+            fn new(
+                state: State,
+                reborrowers: [fn(&mut State, usize) -> Option<&$($mutability)* T>; LEN],
+            ) -> Self {
+                Self {
+                    i: 0,
+                    j: 0,
+                    state,
+                    reborrowers,
+                    marker: Default::default(),
+                }
+            }
+
+            fn fetch_current<'a>(
+                state: &'a mut State,
+                reborrowers: &[fn(&mut State, usize) -> Option<&$($mutability)* T>],
+                i: usize,
+                j: usize
+            ) -> Option<&'a $($mutability)* T> {
+                let reborrow = reborrowers.get(i)?;
+                reborrow(state, j)
+            }
+
+            fn into_iter<'a>(mut self) -> impl Iterator<Item = &'a $($mutability)* T> + 'a
+            where
+                State: 'a,
+                T: 'a
+            {
+                std::iter::from_fn(move || {
+                    while Self::fetch_current(&mut self.state, &self.reborrowers, self.i, self.j).is_none() {
+                        if self.i >= self.reborrowers.len() {
+                            return None;
+                        }
+
+                        self.i += 1;
+                        self.j = 0;
+                    }
+
+                    let current = Self::fetch_current(&mut self.state, &self.reborrowers, self.i, self.j)?;
+                    self.j += 1;
+
+                    let ptr = current as *$ptr_mutability T;
+
+                    // should be as safe as normal mutable iterators
+                    // waiting for official lending iterators
+                    Some(unsafe { &$($mutability)* *ptr })
+                })
+            }
+        }
+    };
+}
+
+create_reborrow_chain!(ReborrowChainMut, mut, mut);
+create_reborrow_chain!(ReborrowChain, const);

@@ -12,6 +12,7 @@ struct AugmentMeta {
     category: String,
     name: String,
     description: String,
+    priority: Option<bool>,
     health_boost: i32,
     attack_boost: i8,
     rapid_boost: i8,
@@ -44,6 +45,7 @@ pub struct AugmentPackage {
     pub mega_boost: isize,
     pub giga_boost: isize,
     pub hand_size_boost: i8,
+    pub priority: bool,
     pub tags: Vec<Cow<'static, str>>,
 
     // switch drive specific
@@ -128,6 +130,7 @@ impl Package for AugmentPackage {
         package.mega_boost = meta.mega_boost as isize;
         package.giga_boost = meta.giga_boost as isize;
         package.hand_size_boost = meta.hand_size_boost;
+        package.priority = meta.priority.unwrap_or_default();
         package.tags = meta.tags;
 
         // switch drive specific

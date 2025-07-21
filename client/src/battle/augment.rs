@@ -9,6 +9,7 @@ use std::borrow::Cow;
 #[derive(Clone)]
 pub struct Augment {
     pub package_id: PackageId,
+    pub priority: bool,
     pub level: u8,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -23,6 +24,7 @@ impl From<(&AugmentPackage, usize)> for Augment {
     fn from((package, level): (&AugmentPackage, usize)) -> Self {
         Self {
             package_id: package.package_info.id.clone(),
+            priority: package.priority,
             level: level as u8,
             attack_boost: package.attack_boost,
             rapid_boost: package.rapid_boost,
