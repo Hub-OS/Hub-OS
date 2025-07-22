@@ -645,14 +645,18 @@ impl CardSelectState {
                 .map(|(index, _)| index);
 
             if let Some(index) = form_index {
-                if let Some(index) = player.staged_items.stored_form_index() {
-                    // deselect the form if the player reselected it
+                let prev_index = player.staged_items.stored_form_index();
+
+                // deselect the previous form
+                if let Some(prev_index) = prev_index {
                     player.staged_items.drop_form_selection();
 
-                    if let Some(callback) = &player.forms[index].deselect_callback {
+                    if let Some(callback) = &player.forms[prev_index].deselect_callback {
                         simulation.pending_callbacks.push(callback.clone());
                     }
-                } else {
+                }
+
+                if prev_index != form_index {
                     // select new form
                     player.staged_items.stage_form(index, None, None);
 
