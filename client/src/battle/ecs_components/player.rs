@@ -30,6 +30,7 @@ pub struct Player {
     pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
+    pub form_boost_order: usize,
     pub augments: SlotMap<Augment>,
     pub overridables: PlayerOverridables,
 }
@@ -100,6 +101,7 @@ impl Player {
             emotion_window,
             forms: Vec::new(),
             active_form: None,
+            form_boost_order: 0,
             augments: Default::default(),
             overridables: PlayerOverridables::default(),
         }
@@ -256,7 +258,9 @@ impl Player {
                 .entities
                 .query_one_mut::<&mut Player>(id.into())
                 .unwrap();
-            let index = player.augments.insert(Augment::from((package, level)));
+            let mut augment = Augment::from((package, level));
+            augment.boost_order = player.augments.len();
+            let index = player.augments.insert(augment);
 
             let vms = resources.vm_manager.vms();
             let lua = &vms[vm_index].lua;

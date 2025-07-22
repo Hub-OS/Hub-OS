@@ -967,6 +967,7 @@ impl CardSelectState {
             if let Some(index) = player.staged_items.stored_form_index() {
                 // change form
                 player.active_form = Some(index);
+                player.form_boost_order = player.augments.len();
                 player.forms[index].activated = false;
             }
 

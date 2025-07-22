@@ -2130,6 +2130,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             .query_one_mut::<&mut Player>(id.into())
             .map_err(|_| entity_not_found())?;
 
+        let boost_order = player.augments.len();
         let mut augment_iter = player.augments.iter_mut();
         let existing_augment =
             augment_iter.find(|(_, augment)| augment.package_id.as_str() == augment_id);
@@ -2137,8 +2138,21 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         if let Some((index, augment)) = existing_augment {
             let updated_level = (augment.level as i32 + level_boost).clamp(0, 100);
             augment.level = updated_level as u8;
+            let prev_order = augment.boost_order;
+            augment.boost_order = boost_order;
 
-            if augment.level == 0 {
+            // adjust boost order for other augments
+            for augment in player.augments.values_mut() {
+                if augment.boost_order > prev_order {
+                    augment.boost_order -= 1;
+                }
+            }
+
+            if player.form_boost_order > prev_order {
+                player.form_boost_order -= 1;
+            }
+
+            if updated_level == 0 {
                 // delete
                 Augment::delete(game_io, resources, simulation, id, index);
             }
@@ -2158,9 +2172,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let vm_manager = &resources.vm_manager;
             let vm_index = vm_manager.find_vm(&package_info.id, namespace)?;
 
-            let index = player
-                .augments
-                .insert(Augment::from((package, level_boost as usize)));
+            let mut augment = Augment::from((package, level_boost as usize));
+            augment.boost_order = boost_order;
+
+            let index = player.augments.insert(augment);
 
             let vms = vm_manager.vms();
             let lua = &vms[vm_index].lua;
