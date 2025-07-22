@@ -570,6 +570,11 @@ impl Player {
                 } else {
                     Player::use_normal_attack(game_io, resources, simulation, entity_id)
                 }
+
+                let entities = &mut simulation.entities;
+                if let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) {
+                    player.cancel_charge();
+                }
             }
         }
     }
