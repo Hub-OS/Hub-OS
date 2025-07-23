@@ -97,11 +97,10 @@ impl FormActivateState {
     ) {
         let mut activated = Vec::new();
 
+        type Query<'a> = (&'a mut Entity, &'a mut Living, &'a mut Player);
+
         // deactivate previous forms, and activate new forms
-        for (id, (entity, living, player)) in simulation
-            .entities
-            .query_mut::<(&mut Entity, &mut Living, &Player)>()
-        {
+        for (id, (entity, living, player)) in simulation.entities.query_mut::<Query>() {
             let Some(index) = player.active_form else {
                 continue;
             };
@@ -135,6 +134,14 @@ impl FormActivateState {
 
             if let Some(callback) = form.activate_callback.clone() {
                 simulation.pending_callbacks.push(callback);
+            }
+
+            // cancel charge
+            player.cancel_charge();
+
+            if let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index) {
+                player.card_charge.update_sprite(sprite_tree);
+                player.attack_charge.update_sprite(sprite_tree);
             }
         }
 
