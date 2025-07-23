@@ -468,6 +468,7 @@ impl Player {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
+        state_time: FrameTime,
         entity_id: EntityId,
     ) {
         let max_charge_time =
@@ -559,22 +560,28 @@ impl Player {
         // update from results
 
         if let Some(fully_charged) = card_used {
-            player.card_charged = fully_charged;
-            character.card_use_requested = true;
+            if state_time > 0 {
+                player.card_charged = fully_charged;
+                character.card_use_requested = true;
+            }
         }
 
-        if !character.card_use_requested {
-            if let Some(fully_charged) = attack_fired {
+        if character.card_use_requested {
+            return;
+        }
+
+        if let Some(fully_charged) = attack_fired {
+            if state_time > 0 {
                 if fully_charged {
                     Player::use_charged_attack(game_io, resources, simulation, entity_id);
                 } else {
-                    Player::use_normal_attack(game_io, resources, simulation, entity_id)
+                    Player::use_normal_attack(game_io, resources, simulation, entity_id);
                 }
+            }
 
-                let entities = &mut simulation.entities;
-                if let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) {
-                    player.cancel_charge();
-                }
+            let entities = &mut simulation.entities;
+            if let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) {
+                player.cancel_charge();
             }
         }
     }

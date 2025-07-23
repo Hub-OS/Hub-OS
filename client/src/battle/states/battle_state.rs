@@ -150,7 +150,7 @@ impl State for BattleState {
 }
 
 impl BattleState {
-    pub const GRACE_TIME: FrameTime = 5;
+    pub const GRACE_TIME: FrameTime = 30;
 
     pub fn new() -> Self {
         Self {
@@ -826,7 +826,7 @@ impl BattleState {
             if input.was_just_pressed(Input::Special) && player.special_on_input() {
                 Player::use_special_attack(game_io, resources, simulation, id.into());
             } else {
-                Player::handle_charging(game_io, resources, simulation, id.into());
+                Player::handle_charging(game_io, resources, simulation, self.time, id.into());
             }
         }
 
