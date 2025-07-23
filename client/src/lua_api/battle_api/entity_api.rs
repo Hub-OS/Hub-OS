@@ -476,15 +476,26 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_color", None);
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
-        let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
-        let path = absolute_path(lua, path)?;
+        let (table, texture_path, animation_path): (rollback_mlua::Table, String, Option<String>) =
+            lua.unpack_multi(params)?;
+
+        let texture_path = absolute_path(lua, texture_path)?;
+        let animation_path = animation_path
+            .map(|path| absolute_path(lua, path))
+            .transpose()?;
 
         let id: EntityId = table.raw_get("#id")?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
 
-        EntityShadow::set(api_ctx.game_io, simulation, id, path);
+        EntityShadow::set(
+            api_ctx.game_io,
+            simulation,
+            id,
+            texture_path,
+            animation_path,
+        );
 
         lua.pack_multi(())
     });

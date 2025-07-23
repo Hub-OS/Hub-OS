@@ -175,8 +175,8 @@ impl BattleAnimator {
         let loop_mode = self.animator.loop_mode();
         let reversed = self.animator.reversed();
 
-        self.animator
-            .load(&game_io.resource::<Globals>().unwrap().assets, path);
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
+        self.animator.load(assets, path);
 
         if let Some(state) = &old_state {
             // reapply old settings

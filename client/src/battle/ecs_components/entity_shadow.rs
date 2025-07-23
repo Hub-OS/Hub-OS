@@ -1,5 +1,5 @@
-use crate::battle::BattleSimulation;
-use crate::bindable::{EntityId, SpriteColorMode};
+use crate::battle::{BattleAnimator, BattleSimulation, Entity};
+use crate::bindable::{EntityId, GenerationalIndex, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{Tree, TreeIndex};
 use framework::common::GameIO;
@@ -10,6 +10,7 @@ pub struct EntityShadowVisible;
 #[derive(Clone)]
 pub struct EntityShadow {
     pub sprite_tree_index: TreeIndex,
+    pub animator_index: Option<GenerationalIndex>,
 }
 
 impl EntityShadow {
@@ -27,48 +28,105 @@ impl EntityShadow {
         game_io: &GameIO,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
-        path: String,
+        texture_path: String,
+        animation_path: Option<String>,
     ) {
         let entities = &mut simulation.entities;
         let sprite_trees = &mut simulation.sprite_trees;
 
-        match entities.query_one_mut::<&mut EntityShadow>(entity_id.into()) {
-            Ok(shadow) => {
-                // update existing shadow
+        let Ok((entity, shadow)) =
+            entities.query_one_mut::<(&Entity, Option<&mut EntityShadow>)>(entity_id.into())
+        else {
+            return;
+        };
 
-                if let Some(sprite_tree) = sprite_trees.get_mut(shadow.sprite_tree_index) {
-                    let sprite_node = sprite_tree.root_mut();
-                    sprite_node.set_texture(game_io, path);
+        if let Some(shadow) = shadow {
+            // update existing shadow
 
-                    let shadow_size = sprite_node.size();
-                    sprite_node.set_origin(shadow_size * 0.5);
-                }
-            }
-            Err(hecs::QueryOneError::Unsatisfied) => {
-                // create a new one
-
-                let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
-                sprite_node.set_texture(game_io, path);
+            if let Some(sprite_tree) = sprite_trees.get_mut(shadow.sprite_tree_index) {
+                let sprite_node = sprite_tree.root_mut();
+                sprite_node.set_texture(game_io, texture_path);
 
                 let shadow_size = sprite_node.size();
                 sprite_node.set_origin(shadow_size * 0.5);
-
-                let sprite_tree = Tree::<SpriteNode>::new(sprite_node);
-                let shadow = Self {
-                    sprite_tree_index: sprite_trees.insert(sprite_tree),
-                };
-
-                let _ = simulation.entities.insert_one(entity_id.into(), shadow);
             }
-            _ => {}
-        };
+
+            if let Some(path) = animation_path {
+                if let Some(animator) = shadow
+                    .animator_index
+                    .and_then(|i| simulation.animators.get_mut(i))
+                {
+                    // reuse existing animator
+                    // shadows can't have callbacks, so we'll just ignore them
+                    let _ = animator.load(game_io, &path);
+                } else {
+                    // create a new animator
+                    let mut animator = BattleAnimator::new();
+                    animator.set_target(shadow.sprite_tree_index, GenerationalIndex::tree_root());
+
+                    let _ = animator.load(game_io, &path);
+
+                    let index = simulation.animators.insert(animator);
+                    shadow.animator_index = Some(index);
+
+                    if let Some(animator) = simulation.animators.get_mut(entity.animator_index) {
+                        animator.add_synced_animator(index);
+                    }
+                }
+            } else if let Some(index) = shadow.animator_index.take() {
+                // delete animator
+                simulation.animators.remove(index);
+
+                if let Some(animator) = simulation.animators.get_mut(entity.animator_index) {
+                    animator.remove_synced_animator(index);
+                }
+            }
+        } else {
+            // create a new one
+
+            let mut sprite_node = SpriteNode::new(game_io, SpriteColorMode::Add);
+            sprite_node.set_texture(game_io, texture_path);
+
+            let shadow_size = sprite_node.size();
+            sprite_node.set_origin(shadow_size * 0.5);
+
+            let sprite_tree = Tree::<SpriteNode>::new(sprite_node);
+            let sprite_tree_index = sprite_trees.insert(sprite_tree);
+
+            let animator_index = animation_path.map(|path| {
+                let mut animator = BattleAnimator::new();
+                animator.set_target(sprite_tree_index, GenerationalIndex::tree_root());
+
+                let _ = animator.load(game_io, &path);
+                let index = simulation.animators.insert(animator);
+
+                if let Some(animator) = simulation.animators.get_mut(entity.animator_index) {
+                    animator.add_synced_animator(index);
+                }
+
+                index
+            });
+
+            let shadow = Self {
+                sprite_tree_index,
+                animator_index,
+            };
+
+            let _ = simulation.entities.insert_one(entity_id.into(), shadow);
+        }
     }
 
     pub fn delete(simulation: &mut BattleSimulation, entity_id: EntityId) {
         let entities = &mut simulation.entities;
 
-        if let Ok(shadow) = entities.query_one_mut::<&EntityShadow>(entity_id.into()) {
-            simulation.sprite_trees.remove(shadow.sprite_tree_index);
+        let Ok(shadow) = entities.query_one_mut::<&EntityShadow>(entity_id.into()) else {
+            return;
+        };
+
+        simulation.sprite_trees.remove(shadow.sprite_tree_index);
+
+        if let Some(index) = shadow.animator_index {
+            simulation.animators.remove(index);
         }
     }
 }
