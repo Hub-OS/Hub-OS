@@ -295,9 +295,9 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         CAN_MOVE_TO_FN,
         |action| &mut action.can_move_to_callback,
-        |_, lua, table, dest| {
+        |_, lua, _, dest| {
             let tile_table = create_tile_table(lua, dest)?;
-            lua.pack_multi((table, tile_table))
+            lua.pack_multi(tile_table)
         },
     );
 }
