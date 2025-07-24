@@ -270,10 +270,10 @@ fn setter<P>(
     });
 }
 
-fn callback_setter<G, P, R>(
+fn callback_setter<P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback_getter: G,
+    callback_getter: fn(&mut PlayerForm) -> &mut Option<BattleCallback<P, R>>,
     param_transformer: for<'lua> fn(
         &'lua rollback_mlua::Lua,
         rollback_mlua::Table<'lua>,
@@ -281,8 +281,7 @@ fn callback_setter<G, P, R>(
     ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
 ) where
     P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
-    G: for<'lua> Fn(&mut PlayerForm) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + 'static,
 {
     lua_api.add_dynamic_setter(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =

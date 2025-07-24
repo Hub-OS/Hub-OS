@@ -74,24 +74,18 @@ pub fn inject_component_api(lua_api: &mut BattleLuaApi) {
     });
 }
 
-fn callback_setter<G, P, F, R>(
+fn callback_setter<P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback_getter: G,
-    param_transformer: F,
+    callback_getter: for<'lua> fn(&mut Component) -> &mut BattleCallback<P, R>,
+    param_transformer: for<'lua> fn(
+        &'lua rollback_mlua::Lua,
+        rollback_mlua::Table<'lua>,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
 ) where
-    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
-    G: for<'lua> Fn(&mut Component) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
-    F: for<'lua> Fn(
-            &'lua rollback_mlua::Lua,
-            rollback_mlua::Table<'lua>,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + Send
-        + Sync
-        + Copy
-        + 'static,
 {
     lua_api.add_dynamic_setter(COMPONENT_TABLE, name, move |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =

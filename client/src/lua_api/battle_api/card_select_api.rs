@@ -191,16 +191,16 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
     );
 }
 
-fn generate_stage_item_fn<F>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    F: for<'lua> Fn(
-            &mut Player,
-            &'lua rollback_mlua::Lua,
-            &GameIO,
-            rollback_mlua::MultiValue<'lua>,
-        ) -> rollback_mlua::Result<StagedItemData>
-        + 'static,
-{
+fn generate_stage_item_fn(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &mut Player,
+        &'lua rollback_mlua::Lua,
+        &GameIO,
+        rollback_mlua::MultiValue<'lua>,
+    ) -> rollback_mlua::Result<StagedItemData>,
+) {
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, params| {
         let (table, rest): (rollback_mlua::Table, rollback_mlua::MultiValue) =
             lua.unpack_multi(params)?;
@@ -260,16 +260,16 @@ where
     });
 }
 
-fn generate_player_mut_fn<F>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    F: for<'lua> Fn(
-            &mut Player,
-            &'lua rollback_mlua::Lua,
-            &GameIO,
-            rollback_mlua::MultiValue<'lua>,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + 'static,
-{
+fn generate_player_mut_fn(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &mut Player,
+        &'lua rollback_mlua::Lua,
+        &GameIO,
+        rollback_mlua::MultiValue<'lua>,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) {
     lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
         // todo: could we produce a better error for Nil entity tables?
         let player_value = params.pop_front();

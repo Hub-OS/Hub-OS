@@ -531,15 +531,16 @@ fn shared_attachment_constructor<'lua>(
     Ok(table)
 }
 
-fn getter<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(
-            &Action,
-            &'lua rollback_mlua::Lua,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + 'static,
+fn getter<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &Action,
+        &'lua rollback_mlua::Lua,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(ACTION_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
@@ -554,11 +555,12 @@ where
     });
 }
 
-fn setter<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(&mut Action, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<()>
-        + 'static,
+fn setter<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(&mut Action, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<()>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(ACTION_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
@@ -573,25 +575,19 @@ where
     });
 }
 
-fn callback_setter<G, P, F, R>(
+fn callback_setter<P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback_getter: G,
-    param_transformer: F,
+    callback_getter: for<'lua> fn(&mut Action) -> &mut Option<BattleCallback<P, R>>,
+    param_transformer: for<'lua> fn(
+        &mut Action,
+        &'lua rollback_mlua::Lua,
+        rollback_mlua::Table<'lua>,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
 ) where
-    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
-    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
-    G: for<'lua> Fn(&mut Action) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
-    F: for<'lua> Fn(
-            &mut Action,
-            &'lua rollback_mlua::Lua,
-            rollback_mlua::Table<'lua>,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + Send
-        + Sync
-        + Copy
-        + 'static,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
+    R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + 'static,
 {
     lua_api.add_dynamic_setter(ACTION_TABLE, name, move |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =

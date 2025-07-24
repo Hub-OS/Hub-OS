@@ -551,11 +551,13 @@ pub fn create_sprite_table(
     Ok(table)
 }
 
-fn getter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    R: for<'lua> rollback_mlua::IntoLua<'lua>,
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(&SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R> + 'static,
+fn getter<P, R>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(&SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>,
+) where
+    R: for<'lua> rollback_mlua::IntoLua<'lua> + 'static,
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
@@ -577,12 +579,17 @@ where
     });
 }
 
-fn setter<F, P, R>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(&mut SpriteNode, &'lua rollback_mlua::Lua, P) -> rollback_mlua::Result<R>
-        + 'static,
+fn setter<P, R>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &mut SpriteNode,
+        &'lua rollback_mlua::Lua,
+        P,
+    ) -> rollback_mlua::Result<R>,
+) where
+    R: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(SPRITE_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;

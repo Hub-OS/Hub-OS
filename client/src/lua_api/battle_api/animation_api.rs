@@ -239,15 +239,16 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
     );
 }
 
-fn getter<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(
-            &BattleAnimator,
-            &'lua rollback_mlua::Lua,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + 'static,
+fn getter<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &BattleAnimator,
+        &'lua rollback_mlua::Lua,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(ANIMATION_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
@@ -262,15 +263,16 @@ where
     });
 }
 
-fn setter<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(
-            &mut BattleAnimator,
-            &'lua rollback_mlua::Lua,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + 'static,
+fn setter<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &mut BattleAnimator,
+        &'lua rollback_mlua::Lua,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(ANIMATION_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
@@ -285,16 +287,17 @@ where
     });
 }
 
-fn updater<F, P>(lua_api: &mut BattleLuaApi, name: &str, callback: F)
-where
-    P: for<'lua> rollback_mlua::FromLuaMulti<'lua>,
-    F: for<'lua> Fn(
-            &mut BattleAnimator,
-            &GameIO,
-            &'lua rollback_mlua::Lua,
-            P,
-        ) -> rollback_mlua::Result<Vec<BattleCallback>>
-        + 'static,
+fn updater<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'lua> fn(
+        &mut BattleAnimator,
+        &GameIO,
+        &'lua rollback_mlua::Lua,
+        P,
+    ) -> rollback_mlua::Result<Vec<BattleCallback>>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
 {
     lua_api.add_dynamic_function(ANIMATION_TABLE, name, move |api_ctx, lua, params| {
         let (table, param): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;

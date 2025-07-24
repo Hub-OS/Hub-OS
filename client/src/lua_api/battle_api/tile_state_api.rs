@@ -122,24 +122,18 @@ fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
     );
 }
 
-fn callback_setter<G, P, F, R>(
+fn callback_setter<P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback_getter: G,
-    param_transformer: F,
+    callback_getter: for<'lua> fn(&mut TileState) -> &mut BattleCallback<P, R>,
+    param_transformer: for<'lua> fn(
+        &'lua rollback_mlua::Lua,
+        rollback_mlua::Table<'lua>,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
 ) where
-    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default + Send + Sync + Clone + 'static,
-    G: for<'lua> Fn(&mut TileState) -> &mut BattleCallback<P, R> + Send + Sync + 'static,
-    F: for<'lua> Fn(
-            &'lua rollback_mlua::Lua,
-            rollback_mlua::Table<'lua>,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + Send
-        + Sync
-        + Copy
-        + 'static,
 {
     lua_api.add_dynamic_setter(
         CUSTOM_TILE_STATE_TABLE,
