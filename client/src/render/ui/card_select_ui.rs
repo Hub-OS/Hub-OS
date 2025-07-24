@@ -142,7 +142,7 @@ impl CardSelectUi {
     pub fn animate_form_list(
         &mut self,
         simulation: &mut BattleSimulation,
-        selection: &CardSelectSelection,
+        selection: &mut CardSelectSelection,
     ) {
         let form_open_time = selection.form_open_time;
         let form_list_node = &mut self.sprites[self.form_list_index];
@@ -155,6 +155,8 @@ impl CardSelectUi {
             if player.available_forms().next().is_some() {
                 form_list_node.set_visible(true);
             } else {
+                form_list_node.set_visible(false);
+                selection.form_open_time = None;
                 // no need to animate
                 return;
             }
@@ -226,7 +228,7 @@ impl CardSelectUi {
             CardClass::Mega => "MEGA_FRAME",
             CardClass::Giga => "GIGA_FRAME",
             CardClass::Dark => "DARK_FRAME",
-            CardClass::Recipe => unreachable!(),
+            CardClass::Recipe => "STANDARD_FRAME",
         };
 
         let card_frame_node = &mut self.sprites[self.card_frame_index];

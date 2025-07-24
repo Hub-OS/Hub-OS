@@ -17,6 +17,7 @@ pub struct CardSelectSelection {
     pub col: i32,
     pub row: i32,
     pub form_row: usize,
+    pub prev_form_count: usize,
     pub has_special_button: bool,
     pub form_select_time: Option<FrameTime>,
     pub form_open_time: Option<FrameTime>,
@@ -34,6 +35,7 @@ impl CardSelectSelection {
             col: 0,
             row: 0,
             form_row: 0,
+            prev_form_count: 0,
             has_special_button: false,
             form_select_time: None,
             form_open_time: None,
@@ -484,24 +486,31 @@ impl CardSelectState {
 
             match elapsed {
                 20 => {
+                    let entities = &mut simulation.entities;
+                    let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+                        return;
+                    };
+
+                    let Some(index) = player.staged_items.stored_form_index() else {
+                        return;
+                    };
+
+                    let form = &player.forms[index];
+
                     // close menu
-                    selection.form_open_time = None;
+                    if form.close_on_select {
+                        selection.form_open_time = None;
+                    }
+
+                    // call form select callback
+                    if let Some(callback) = &form.select_callback {
+                        callback.clone().call(game_io, resources, simulation, ());
+                    }
 
                     // sfx
                     if selection.local {
                         let globals = game_io.resource::<Globals>().unwrap();
                         simulation.play_sound(game_io, &globals.sfx.form_select);
-                    }
-
-                    // call form select callback
-                    let entities = &mut simulation.entities;
-
-                    if let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) {
-                        if let Some(index) = player.staged_items.stored_form_index() {
-                            if let Some(callback) = &player.forms[index].select_callback {
-                                callback.clone().call(game_io, resources, simulation, ());
-                            }
-                        }
                     }
 
                     return;
@@ -616,6 +625,11 @@ impl CardSelectState {
         let prev_row = selection.form_row;
         let available_form_count = player.available_forms().count();
 
+        if available_form_count != selection.prev_form_count {
+            selection.prev_form_count = available_form_count;
+            selection.form_row = 0;
+        }
+
         if input.pulsed(Input::Up) {
             if selection.form_row == 0 {
                 selection.form_row = available_form_count.max(1) - 1;
@@ -648,11 +662,14 @@ impl CardSelectState {
                 let prev_index = player.staged_items.stored_form_index();
 
                 // deselect the previous form
-                if let Some(prev_index) = prev_index {
-                    player.staged_items.drop_form_selection();
-
+                if let Some((prev_index, undo_callback)) = player.staged_items.drop_form_selection()
+                {
                     if let Some(callback) = &player.forms[prev_index].deselect_callback {
                         simulation.pending_callbacks.push(callback.clone());
+                    }
+
+                    if let Some(callback) = undo_callback {
+                        simulation.pending_callbacks.push(callback);
                     }
                 }
 
@@ -660,8 +677,21 @@ impl CardSelectState {
                     // select new form
                     player.staged_items.stage_form(index, None, None);
 
-                    // select_callback will be called in the middle of the select animation
-                    selection.form_select_time = Some(self.time);
+                    let form = &player.forms[index];
+
+                    if form.transition_on_select {
+                        // select_callback will be called in the middle of the select animation
+                        selection.form_select_time = Some(self.time);
+                    } else {
+                        if form.close_on_select {
+                            selection.form_open_time = None;
+                        }
+
+                        if let Some(callback) = &form.select_callback {
+                            // select immediately
+                            simulation.pending_callbacks.push(callback.clone());
+                        }
+                    }
                 }
             }
 
@@ -763,7 +793,7 @@ impl CardSelectState {
 
         // sfx
         if previous_item != selected_item && selection.local {
-            pending_sfx.push(&globals.sfx.cursor_move);
+            pending_sfx.push((&globals.sfx.cursor_move, AudioBehavior::Default));
         }
 
         if input.was_just_pressed(Input::Confirm) {
@@ -776,7 +806,8 @@ impl CardSelectState {
 
                     // sfx
                     if selection.local {
-                        pending_sfx.push(&globals.sfx.card_select_confirm);
+                        pending_sfx
+                            .push((&globals.sfx.card_select_confirm, AudioBehavior::Default));
                     }
 
                     // activate card select close components
@@ -804,11 +835,11 @@ impl CardSelectState {
 
                         // sfx
                         if selection.local {
-                            pending_sfx.push(&globals.sfx.cursor_select);
+                            pending_sfx.push((&globals.sfx.cursor_select, AudioBehavior::Default));
                         }
                     } else if selection.local {
                         // error sfx
-                        pending_sfx.push(&globals.sfx.cursor_error);
+                        pending_sfx.push((&globals.sfx.cursor_error, AudioBehavior::NoOverlap));
                     }
                 }
                 SelectedItem::Button(i) => {
@@ -863,8 +894,8 @@ impl CardSelectState {
             }
         }
 
-        for sfx in pending_sfx {
-            simulation.play_sound(game_io, sfx);
+        for (sfx, behavior) in pending_sfx {
+            simulation.play_sound_with_behavior(game_io, sfx, behavior);
         }
     }
 
@@ -955,7 +986,11 @@ impl CardSelectState {
             if applied {
                 simulation.play_sound(game_io, &globals.sfx.cursor_cancel);
             } else {
-                simulation.play_sound(game_io, &globals.sfx.cursor_error);
+                simulation.play_sound_with_behavior(
+                    game_io,
+                    &globals.sfx.cursor_error,
+                    AudioBehavior::NoOverlap,
+                );
             }
         }
     }

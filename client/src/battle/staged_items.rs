@@ -92,11 +92,13 @@ impl StagedItems {
         })
     }
 
-    pub fn drop_form_selection(&mut self) {
-        if self.stored_form_index().is_some() {
-            self.items.pop_front();
-            self.updated = true
-        }
+    /// Returns the undo callback for the form
+    #[must_use]
+    pub fn drop_form_selection(&mut self) -> Option<(usize, Option<BattleCallback>)> {
+        let index = self.stored_form_index()?;
+        let item = self.items.pop_front()?;
+        self.updated = true;
+        Some((index, item.undo_callback))
     }
 
     pub fn has_deck_index(&self, index: usize) -> bool {

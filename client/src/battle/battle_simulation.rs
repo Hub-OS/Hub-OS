@@ -183,6 +183,19 @@ impl BattleSimulation {
         }
     }
 
+    pub fn play_sound_with_behavior(
+        &self,
+        game_io: &GameIO,
+        sound_buffer: &SoundBuffer,
+        behavior: AudioBehavior,
+    ) {
+        if !self.is_resimulation {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let audio = &globals.audio;
+            audio.play_sound_with_behavior(sound_buffer, behavior);
+        }
+    }
+
     pub fn stop_music(&self, game_io: &GameIO, resources: &SharedBattleResources) {
         let globals = game_io.resource::<Globals>().unwrap();
 

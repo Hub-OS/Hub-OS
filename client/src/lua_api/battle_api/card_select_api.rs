@@ -238,6 +238,16 @@ where
         };
 
         if let StagedItemData::Form((index, ..)) = item.data {
+            if let Some((prev_index, undo_callback)) = player.staged_items.drop_form_selection() {
+                if let Some(callback) = &player.forms[prev_index].deselect_callback {
+                    simulation.pending_callbacks.push(callback.clone());
+                }
+
+                if let Some(callback) = undo_callback {
+                    simulation.pending_callbacks.push(callback);
+                }
+            }
+
             if let Some(callback) = &player.forms[index].select_callback {
                 simulation.pending_callbacks.push(callback.clone());
             }

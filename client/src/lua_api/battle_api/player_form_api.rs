@@ -11,6 +11,7 @@ use crate::battle::{
 use crate::bindable::EntityId;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
 use crate::resources::{AssetManager, Globals};
+use framework::common::GameIO;
 
 pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(PLAYER_FORM_TABLE, "index", move |_, lua, params| {
@@ -20,52 +21,40 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(index)
     });
 
-    lua_api.add_dynamic_function(
-        PLAYER_FORM_TABLE,
+    setter(
+        lua_api,
         "set_mugshot_texture",
-        move |api_ctx, lua, params| {
-            let (table, path): (rollback_mlua::Table, String) = lua.unpack_multi(params)?;
+        |game_io, lua, form, path: String| {
             let path = absolute_path(lua, path)?;
 
-            let entity_id: EntityId = table.raw_get("#entity_id")?;
-            let index: usize = table.raw_get("#index")?;
-
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-            let player = entities
-                .query_one_mut::<&mut Player>(entity_id.into())
-                .map_err(|_| entity_not_found())?;
-
-            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
-
-            let game_io = &api_ctx.game_io;
             let assets = &game_io.resource::<Globals>().unwrap().assets;
             form.mug_texture = Some(assets.texture(game_io, &path));
 
-            lua.pack_multi(())
+            Ok(())
         },
     );
 
-    lua_api.add_dynamic_function(
-        PLAYER_FORM_TABLE,
+    setter(
+        lua_api,
         "set_description",
-        move |api_ctx, lua, params| {
-            let (table, description): (rollback_mlua::Table, Option<String>) =
-                lua.unpack_multi(params)?;
-
-            let entity_id: EntityId = table.raw_get("#entity_id")?;
-            let index: usize = table.raw_get("#index")?;
-
-            let api_ctx = &mut *api_ctx.borrow_mut();
-            let entities = &mut api_ctx.simulation.entities;
-            let player = entities
-                .query_one_mut::<&mut Player>(entity_id.into())
-                .map_err(|_| entity_not_found())?;
-
-            let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+        |_, _, form, description: Option<String>| {
             form.description = description.map(|s| s.into());
 
-            lua.pack_multi(())
+            Ok(())
+        },
+    );
+
+    setter(lua_api, "set_close_on_select", |_, _, form, value: bool| {
+        form.close_on_select = value;
+        Ok(())
+    });
+
+    setter(
+        lua_api,
+        "set_transition_on_select",
+        |_, _, form, value: bool| {
+            form.transition_on_select = value;
+            Ok(())
         },
     );
 
@@ -254,24 +243,46 @@ pub fn inject_player_form_api(lua_api: &mut BattleLuaApi) {
     );
 }
 
-fn callback_setter<G, P, F, R>(
+fn setter<P>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    setter: fn(&GameIO, &rollback_mlua::Lua, &mut PlayerForm, P) -> rollback_mlua::Result<()>,
+) where
+    P: for<'lua> rollback_mlua::FromLuaMulti<'lua> + 'static,
+{
+    lua_api.add_dynamic_function(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
+        let (table, setter_params): (rollback_mlua::Table, P) = lua.unpack_multi(params)?;
+
+        let entity_id: EntityId = table.raw_get("#entity_id")?;
+        let index: usize = table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let player = entities
+            .query_one_mut::<&mut Player>(entity_id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let form = player.forms.get_mut(index).ok_or_else(form_not_found)?;
+
+        let game_io = &api_ctx.game_io;
+        setter(game_io, lua, form, setter_params)?;
+        lua.pack_multi(())
+    });
+}
+
+fn callback_setter<G, P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
     callback_getter: G,
-    param_transformer: F,
+    param_transformer: for<'lua> fn(
+        &'lua rollback_mlua::Lua,
+        rollback_mlua::Table<'lua>,
+        P,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
 ) where
-    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua>,
+    P: for<'lua> rollback_mlua::IntoLuaMulti<'lua> + 'static,
     R: for<'lua> rollback_mlua::FromLuaMulti<'lua> + Default,
     G: for<'lua> Fn(&mut PlayerForm) -> &mut Option<BattleCallback<P, R>> + Send + Sync + 'static,
-    F: for<'lua> Fn(
-            &'lua rollback_mlua::Lua,
-            rollback_mlua::Table<'lua>,
-            P,
-        ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>
-        + Send
-        + Sync
-        + Copy
-        + 'static,
 {
     lua_api.add_dynamic_setter(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
         let (table, callback): (rollback_mlua::Table, Option<rollback_mlua::Function>) =
@@ -311,7 +322,7 @@ fn callback_setter<G, P, F, R>(
 fn flag_setter(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    setter: impl Fn(&mut PlayerOverridableFlags, Option<bool>) + 'static,
+    setter: fn(&mut PlayerOverridableFlags, Option<bool>),
 ) {
     lua_api.add_dynamic_function(PLAYER_FORM_TABLE, name, move |api_ctx, lua, params| {
         let (table, value): (rollback_mlua::Table, Option<bool>) = lua.unpack_multi(params)?;
