@@ -400,7 +400,6 @@ impl Tree<SpriteNode> {
             let color = root_sprite_node.color();
 
             sprite_queue.set_color_mode(root_sprite_node.color_mode());
-            sprite_queue.set_palette(root_sprite_node.palette.clone());
             sprite_queue.set_shader_effect(root_sprite_node.shader_effect);
 
             sprite_node = self.get_mut(index).unwrap();
@@ -410,16 +409,16 @@ impl Tree<SpriteNode> {
             let color = parent_sprite_node.color();
 
             sprite_queue.set_color_mode(parent_sprite_node.color_mode());
-            sprite_queue.set_palette(parent_sprite_node.palette.clone());
             sprite_queue.set_shader_effect(parent_sprite_node.shader_effect);
 
             sprite_node = self.get_mut(index).unwrap();
             sprite_node.set_color(color);
         } else {
             sprite_queue.set_color_mode(sprite_node.color_mode());
-            sprite_queue.set_palette(sprite_node.palette.clone());
             sprite_queue.set_shader_effect(sprite_node.shader_effect);
         }
+
+        sprite_queue.set_palette(sprite_node.palette.clone());
 
         // finally drawing the sprite
         sprite_queue.draw_sprite(sprite_node.sprite());
