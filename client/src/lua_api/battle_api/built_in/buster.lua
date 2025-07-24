@@ -19,6 +19,7 @@ function Buster.new(user, charged, damage)
 
     local buster_sprite = buster_attachment:sprite()
     buster_sprite:set_texture(user:texture())
+    buster_sprite:set_palette(user:palette())
     buster_sprite:set_layer(-2)
     buster_sprite:use_root_shader()
 
