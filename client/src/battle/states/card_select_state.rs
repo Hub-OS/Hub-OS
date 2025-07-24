@@ -622,13 +622,14 @@ impl CardSelectState {
         let input = &simulation.inputs[player.index];
         let selection = &mut self.player_selections[player.index];
 
-        let prev_row = selection.form_row;
         let available_form_count = player.available_forms().count();
 
         if available_form_count != selection.prev_form_count {
             selection.prev_form_count = available_form_count;
             selection.form_row = 0;
         }
+
+        let prev_row = selection.form_row;
 
         if input.pulsed(Input::Up) {
             if selection.form_row == 0 {
