@@ -331,8 +331,14 @@ impl State for CardSelectState {
         if let Some(time) = selection.form_open_time {
             // draw form selection
             if self.time > time + CardSelectUi::FORM_LIST_ANIMATION_TIME {
+                let selected_row = if selection.form_select_time.is_none() {
+                    Some(selection.form_row)
+                } else {
+                    None
+                };
+
                 self.ui
-                    .draw_form_list(game_io, sprite_queue, player, selection.form_row);
+                    .draw_form_list(game_io, sprite_queue, player, selected_row);
 
                 // draw cursor
                 if selection.form_select_time.is_none() {

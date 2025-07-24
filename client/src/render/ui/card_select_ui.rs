@@ -485,7 +485,7 @@ impl CardSelectUi {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         player: &Player,
-        selected_row: usize,
+        selected_row: Option<usize>,
     ) {
         // draw frames
         self.animator.set_state("FORM_FRAME");
@@ -513,7 +513,7 @@ impl CardSelectUi {
             if player.staged_items.stored_form_index() == Some(index) {
                 // selected color
                 mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
-            } else if selected_row == row {
+            } else if selected_row == Some(row) {
                 // hovered option is plain
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
                 mug_sprite.set_color(Color::WHITE);
