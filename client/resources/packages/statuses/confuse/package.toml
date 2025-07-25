@@ -3,8 +3,7 @@ category = "status"
 id = "dev.hubos.Statuses.Confuse"
 name = "Confuse Status"
 flag_name = "Confuse"
-# freeze lists this status
-mutual_exclusions = ["Paralyze"]
+mutual_exclusions = ["Freeze", "Paralyze"]
 blocks_actions = false
 blocks_mobility = false
 durations = [480]

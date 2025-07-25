@@ -3,9 +3,10 @@ category = "status"
 id = "dev.hubos.Statuses.Paralyze"
 name = "Paralyze Status"
 flag_name = "Paralyze"
-# blind, confuse, and freeze lists this status
-mutual_exclusions = ["Confuse", "Flash", "Flinch"]
-blocks_flags = ["Flinch"]
+# removes old flags (and new flags with an undefined order) if a mutual exclusion occurs
+mutual_exclusions = ["Flinch", "Flash", "Blind", "Freeze", "Confuse"]
+# removes these flags if they're being applied on the same frame
+blocks_flags = ["Flinch", "Flash", "Blind", "Freeze", "Confuse"]
 blocks_actions = true
 blocks_mobility = true
 durations = [90, 120, 150]
