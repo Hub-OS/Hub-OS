@@ -17,7 +17,7 @@ pub struct CardSelectSelection {
     pub col: i32,
     pub row: i32,
     pub form_row: usize,
-    pub prev_form_count: usize,
+    pub hovered_form: Option<usize>,
     pub has_special_button: bool,
     pub form_select_time: Option<FrameTime>,
     pub form_open_time: Option<FrameTime>,
@@ -35,7 +35,7 @@ impl CardSelectSelection {
             col: 0,
             row: 0,
             form_row: 0,
-            prev_form_count: 0,
+            hovered_form: None,
             has_special_button: false,
             form_select_time: None,
             form_open_time: None,
@@ -625,15 +625,26 @@ impl CardSelectState {
         let globals = game_io.resource::<Globals>().unwrap();
         let mut pending_sfx = Vec::new();
 
-        let input = &simulation.inputs[player.index];
         let selection = &mut self.player_selections[player.index];
 
-        let available_form_count = player.available_forms().count();
+        // try to stick to the previous selection if the form list changed
+        if let Some(hovered_index) = selection.hovered_form {
+            let initial_hover = player
+                .available_forms()
+                .nth(selection.form_row)
+                .map(|(index, _)| index);
 
-        if available_form_count != selection.prev_form_count {
-            selection.prev_form_count = available_form_count;
-            selection.form_row = 0;
+            if initial_hover != selection.hovered_form {
+                selection.form_row = player
+                    .available_forms()
+                    .position(|(index, _)| index == hovered_index)
+                    .unwrap_or_default();
+            }
         }
+
+        // handle input
+        let input = &simulation.inputs[player.index];
+        let available_form_count = player.available_forms().count();
 
         let prev_row = selection.form_row;
 
@@ -658,14 +669,14 @@ impl CardSelectState {
             pending_sfx.push(&globals.sfx.cursor_move);
         }
 
-        if input.was_just_pressed(Input::Confirm) {
-            // select form
-            let form_index = player
-                .available_forms()
-                .nth(selection.form_row)
-                .map(|(index, _)| index);
+        selection.hovered_form = player
+            .available_forms()
+            .nth(selection.form_row)
+            .map(|(index, _)| index);
 
-            if let Some(index) = form_index {
+        // select form
+        if input.was_just_pressed(Input::Confirm) {
+            if let Some(index) = selection.hovered_form {
                 let prev_index = player.staged_items.stored_form_index();
 
                 // deselect the previous form
@@ -680,7 +691,7 @@ impl CardSelectState {
                     }
                 }
 
-                if prev_index != form_index {
+                if prev_index != selection.hovered_form {
                     // select new form
                     player.staged_items.stage_form(index, None, None);
 
@@ -700,11 +711,11 @@ impl CardSelectState {
                         }
                     }
                 }
-            }
 
-            // sfx
-            if selection.local {
-                pending_sfx.push(&globals.sfx.cursor_select);
+                // sfx
+                if selection.local {
+                    pending_sfx.push(&globals.sfx.cursor_select);
+                }
             }
         }
 
