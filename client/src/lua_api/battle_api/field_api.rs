@@ -55,11 +55,12 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
+        let id: EntityId = entity_table.raw_get("#id")?;
+
         if !api_ctx.simulation.field.in_bounds((x, y)) {
+            Entity::delete(api_ctx.game_io, api_ctx.resources, api_ctx.simulation, id);
             return lua.pack_multi(());
         }
-
-        let id: EntityId = entity_table.raw_get("#id")?;
 
         let entities = &mut api_ctx.simulation.entities;
         let entity = entities
