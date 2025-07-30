@@ -15,7 +15,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             mtu: 1400,
-            initial_bytes_per_second: 1024 * 8,
+            initial_bytes_per_second: 1024 * 128, // start at 1/8 MBps or 1 Mbps
             max_bytes_per_second: None,
             bytes_per_second_increase_factor: 1.25,
             bytes_per_second_slow_factor: 0.5,
