@@ -455,7 +455,11 @@ impl IconRow {
         let mut sprite = assets.new_sprite(game_io, &info.texture_path);
         let mut animator = Animator::load_new(assets, &info.animation_path);
 
-        animator.set_state("IDLE");
+        if animator.has_state("PREVIEW") {
+            animator.set_state("PREVIEW");
+        } else {
+            animator.set_state("IDLE");
+        }
         animator.apply(&mut sprite);
         sprite.set_scale(Vec2::new(0.5, 0.5));
 
