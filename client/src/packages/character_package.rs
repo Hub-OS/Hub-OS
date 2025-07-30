@@ -16,6 +16,7 @@ impl Package for CharacterPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: Default::default(),
+            long_name: Default::default(),
             description: Default::default(),
             creator: Default::default(),
             hash: self.package_info.hash,

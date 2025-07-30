@@ -10,6 +10,7 @@ struct StatusMeta {
     category: String,
     icon_texture_path: Option<String>,
     name: String,
+    long_name: String,
     description: String,
     flag_name: String,
     mutual_exclusions: Vec<String>,
@@ -25,6 +26,7 @@ pub struct StatusPackage {
     pub package_info: PackageInfo,
     pub icon_texture_path: Option<String>,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub flag_name: String,
     pub mutual_exclusions: Vec<String>,
@@ -45,6 +47,7 @@ impl Package for StatusPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -78,6 +81,11 @@ impl Package for StatusPackage {
 
         package.icon_texture_path = meta.icon_texture_path.map(|p| base_path.clone() + &p);
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.description = meta.description.into();
         package.flag_name = meta.flag_name;
         package.mutual_exclusions = meta.mutual_exclusions;

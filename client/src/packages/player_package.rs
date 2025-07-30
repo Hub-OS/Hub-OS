@@ -9,6 +9,7 @@ use std::sync::Arc;
 #[serde(default)]
 struct PlayerMeta {
     category: String,
+    long_name: String,
     name: String,
     health: i32,
     element: String,
@@ -25,6 +26,7 @@ struct PlayerMeta {
 #[derive(Default, Clone)]
 pub struct PlayerPackage {
     pub package_info: PackageInfo,
+    pub long_name: Arc<str>,
     pub name: Arc<str>,
     pub health: i32,
     pub element: Element,
@@ -46,6 +48,7 @@ impl Package for PlayerPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -81,6 +84,11 @@ impl Package for PlayerPackage {
         let base_path = &package.package_info.base_path;
 
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.health = meta.health;
         package.element = Element::from(meta.element);
         package.description = meta.description.into();

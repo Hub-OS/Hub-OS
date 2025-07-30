@@ -10,6 +10,7 @@ use std::sync::Arc;
 struct TileStateMeta {
     category: String,
     name: String,
+    long_name: String,
     description: String,
     state_name: String,
     texture_path: String,
@@ -24,6 +25,7 @@ struct TileStateMeta {
 pub struct TileStatePackage {
     pub package_info: PackageInfo,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub state_name: String,
     pub texture_path: String,
@@ -45,6 +47,7 @@ impl Package for TileStatePackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -57,6 +60,7 @@ impl Package for TileStatePackage {
         let mut package = Self {
             package_info,
             name: Default::default(),
+            long_name: Default::default(),
             description: Default::default(),
             state_name: String::new(),
             texture_path: String::new(),
@@ -86,6 +90,11 @@ impl Package for TileStatePackage {
         let base_path = &package.package_info.base_path;
 
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.description = meta.description.into();
         package.state_name = meta.state_name;
         package.texture_path = base_path.clone() + &meta.texture_path;

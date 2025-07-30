@@ -115,7 +115,7 @@ impl PackageScene {
         };
 
         let mut children: Vec<Box<dyn UiNode>> = Vec::new();
-        push_text(&mut children, &listing.name);
+        push_text(&mut children, &listing.long_name);
 
         if let PackagePreviewData::Card { codes, .. } = &listing.preview_data {
             if !codes.is_empty() {

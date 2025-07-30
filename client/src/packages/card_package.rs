@@ -18,6 +18,7 @@ pub enum CardPackageStatusDuration {
 #[serde(default)]
 struct CardMeta {
     category: String,
+    long_name: String,
     icon_texture_path: String,
     preview_texture_path: String,
     codes: Vec<String>,
@@ -47,6 +48,7 @@ struct CardMeta {
 #[derive(Default)]
 pub struct CardPackage {
     pub package_info: PackageInfo,
+    pub long_name: Arc<str>,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
     pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
@@ -69,6 +71,7 @@ impl Package for CardPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.card_properties.short_name.clone().into(),
+            long_name: self.long_name.clone(),
             description: if !self.long_description.is_empty() {
                 self.long_description.clone()
             } else {
@@ -150,6 +153,11 @@ impl Package for CardPackage {
 
         let base_path = &package.package_info.base_path;
 
+        package.long_name = if meta.long_name.is_empty() {
+            (*meta.name.as_str()).into()
+        } else {
+            meta.long_name.into()
+        };
         package.icon_texture_path = base_path.clone() + &meta.icon_texture_path;
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.description = meta.description.into();

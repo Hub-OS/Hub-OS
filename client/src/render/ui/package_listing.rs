@@ -13,6 +13,7 @@ pub struct PackageListing {
     pub local: bool,
     pub id: PackageId,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub creator: Arc<str>,
     pub hash: FileHash,
@@ -23,10 +24,12 @@ pub struct PackageListing {
 impl From<&json::Value> for PackageListing {
     fn from(value: &json::Value) -> Self {
         let Some(package_table) = value.get("package") else {
+            let name: Arc<str> = "Broken package".into();
             return Self {
                 local: false,
                 id: PackageId::new_blank(),
-                name: "Broken package".into(),
+                name: name.clone(),
+                long_name: name,
                 description: "???".into(),
                 creator: Default::default(),
                 hash: FileHash::ZERO,
@@ -129,10 +132,18 @@ impl From<&json::Value> for PackageListing {
             }));
         }
 
+        let mut long_name = get_str(package_table, "long_name");
+        let name = get_str(package_table, "name");
+
+        if long_name.is_empty() {
+            long_name = name;
+        }
+
         Self {
             local: false,
             id: get_str(package_table, "id").into(),
-            name: get_str(package_table, "name").into(),
+            name: name.into(),
+            long_name: long_name.into(),
             description: description.into(),
             creator: get_unknown_as_string(value, "creator").into(),
             hash: FileHash::from_hex(get_str(value, "hash")).unwrap_or_default(),
@@ -344,7 +355,7 @@ impl UiNode for PackageListing {
         text_style.ellipsis = true;
         text_style.bounds = bounds + Vec2::ONE;
         text_style.bounds.width -= used_x;
-        text_style.draw(game_io, sprite_queue, &self.name);
+        text_style.draw(game_io, sprite_queue, &self.long_name);
     }
 
     fn measure_ui_size(&mut self, _: &GameIO) -> Vec2 {

@@ -11,6 +11,7 @@ use std::sync::Arc;
 struct AugmentMeta {
     category: String,
     name: String,
+    long_name: String,
     description: String,
     priority: Option<bool>,
     health_boost: i32,
@@ -37,6 +38,7 @@ struct AugmentMeta {
 pub struct AugmentPackage {
     pub package_info: PackageInfo,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub health_boost: i32,
     pub attack_boost: i8,
@@ -87,6 +89,7 @@ impl Package for AugmentPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -122,6 +125,11 @@ impl Package for AugmentPackage {
         }
 
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.description = meta.description.into();
         package.health_boost = meta.health_boost;
         package.attack_boost = meta.attack_boost;

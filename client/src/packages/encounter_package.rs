@@ -8,6 +8,7 @@ use std::sync::Arc;
 struct EncounterMeta {
     category: String,
     name: String,
+    long_name: String,
     description: String,
     preview_texture_path: String,
     recording_path: Option<String>,
@@ -18,6 +19,7 @@ struct EncounterMeta {
 pub struct EncounterPackage {
     pub package_info: PackageInfo,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub preview_texture_path: String,
     pub recording_path: Option<String>,
@@ -34,6 +36,7 @@ impl Package for EncounterPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -68,6 +71,11 @@ impl Package for EncounterPackage {
         let base_path = &package.package_info.base_path;
 
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.description = meta.description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.recording_path = meta.recording_path.map(|path| base_path.clone() + &path);

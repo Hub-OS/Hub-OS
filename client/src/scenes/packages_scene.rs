@@ -210,11 +210,14 @@ impl PackagesScene {
                 self.category_filter != CategoryFilter::Packs
                     || matches!(listing.preview_data, PackagePreviewData::Pack)
             })
-            .filter(|listing| case_insensitive_contains(&listing.name, &self.name_filter))
+            .filter(|listing| {
+                case_insensitive_contains(&listing.name, &self.name_filter)
+                    || case_insensitive_contains(&listing.long_name, &self.name_filter)
+            })
             .collect();
 
         // sort alphabetically
-        new_listings.sort_by(|a, b| (&a.name, &a.id).cmp(&(&b.name, &b.id)));
+        new_listings.sort_by(|a, b| (&a.long_name, &a.id).cmp(&(&b.long_name, &b.id)));
 
         self.list.set_children([]);
         self.append_listings(new_listings);

@@ -15,6 +15,7 @@ pub enum LibrarySubCategory {
 struct LibraryMeta {
     category: String,
     name: String,
+    long_name: String,
     description: String,
     preview_texture_path: String,
 }
@@ -23,6 +24,7 @@ struct LibraryMeta {
 pub struct LibraryPackage {
     pub package_info: PackageInfo,
     pub name: Arc<str>,
+    pub long_name: Arc<str>,
     pub description: Arc<str>,
     pub preview_texture_path: String,
     pub sub_category: LibrarySubCategory,
@@ -38,6 +40,7 @@ impl Package for LibraryPackage {
             local: true,
             id: self.package_info.id.clone(),
             name: self.name.clone(),
+            long_name: self.long_name.clone(),
             description: self.description.clone(),
             creator: Default::default(),
             hash: self.package_info.hash,
@@ -53,6 +56,7 @@ impl Package for LibraryPackage {
         let mut package = Self {
             package_info,
             name: Default::default(),
+            long_name: Default::default(),
             description: Default::default(),
             preview_texture_path: Default::default(),
             sub_category: Default::default(),
@@ -74,6 +78,11 @@ impl Package for LibraryPackage {
         }
 
         package.name = meta.name.into();
+        package.long_name = if meta.long_name.is_empty() {
+            package.name.clone()
+        } else {
+            meta.long_name.into()
+        };
         package.description = meta.description.into();
         package.preview_texture_path = meta.preview_texture_path;
 

@@ -411,7 +411,7 @@ impl IconRow {
 
                 CompactPackageInfo {
                     package_id: package_id.clone(),
-                    name: package.name.clone(),
+                    name: package.long_name.clone(),
                     texture_path: package.mugshot_paths.texture.to_string(),
                     animation_path: package.mugshot_paths.animation.to_string(),
                     valid,
