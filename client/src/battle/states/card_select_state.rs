@@ -963,7 +963,11 @@ impl CardSelectState {
                 simulation.play_sound(game_io, &globals.sfx.cursor_select);
             }
         } else if selection.local {
-            simulation.play_sound(game_io, &globals.sfx.cursor_error);
+            simulation.play_sound_with_behavior(
+                game_io,
+                &globals.sfx.cursor_error,
+                AudioBehavior::NoOverlap,
+            );
         }
     }
 
