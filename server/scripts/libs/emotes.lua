@@ -24,19 +24,21 @@ local Emotes = {
   RAINBOW_CLOWN = "RAINBOW CLOWN",
   QUESTION = "QUESTION MARK?",
   ALERT = "EXCLAMATION MARK!",
-  ZZZ = "SLEEPING ZZZ",
+  ZZZ = "SLEEPING ZZZ AFK",
+
+  CHIP = "CHIP",
   HEART = "LOVE HEART",
 }
 
 -- backwards compat
-HAPPY = Emotes.BIG_SMILE
-BLANK = Emotes.EXPRESSIONLESS
-MAD = Emotes.ANGRY
-SAD = Emotes.CRYING
+Emotes.HAPPY = Emotes.BIG_SMILE
+Emotes.BLANK = Emotes.EXPRESSIONLESS
+Emotes.MAD = Emotes.ANGRY
+Emotes.SAD = Emotes.CRYING
 Emotes.KEY = ""
-LOL = Emotes.CRY_LAUGHING
-YES = Emotes.THUMBS_UP
-NO = Emotes.THUMBS_DOWN
-SPIRIT = Emotes.EVIL_GRIN
+Emotes.LOL = Emotes.CRY_LAUGHING
+Emotes.YES = Emotes.THUMBS_UP
+Emotes.NO = Emotes.THUMBS_DOWN
+Emotes.SPIRIT = Emotes.EVIL_GRIN
 
 return Emotes
