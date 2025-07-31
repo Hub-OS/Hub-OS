@@ -5,7 +5,7 @@ use crate::structures::{Tree, TreeIndex};
 use framework::common::GameIO;
 
 #[derive(Clone)]
-pub struct EntityShadowVisible;
+pub struct EntityShadowHidden;
 
 #[derive(Clone)]
 pub struct EntityShadow {
@@ -18,9 +18,9 @@ impl EntityShadow {
         let entities = &mut simulation.entities;
 
         if visible {
-            let _ = entities.insert_one(entity_id.into(), EntityShadowVisible);
+            let _ = entities.remove_one::<EntityShadowHidden>(entity_id.into());
         } else {
-            let _ = entities.remove_one::<EntityShadowVisible>(entity_id.into());
+            let _ = entities.insert_one(entity_id.into(), EntityShadowHidden);
         }
     }
 
