@@ -114,6 +114,15 @@ impl BattleLuaApi {
                 rollback_mlua::MultiValue<'lua>,
             ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
     {
+        self.add_dynamic_function_inner(table_path, function_name, LuaApiFunction::new(func));
+    }
+
+    fn add_dynamic_function_inner(
+        &mut self,
+        table_path: &str,
+        function_name: &str,
+        func: LuaApiFunction,
+    ) {
         let index = match self.table_paths.iter().position(|name| *name == table_path) {
             Some(index) => index,
             None => {
@@ -125,7 +134,7 @@ impl BattleLuaApi {
 
         let prev = self.dynamic_functions[index].insert(
             (INDEX_CALLBACK, Cow::Owned(function_name.to_string())),
-            LuaApiFunction::new(func),
+            func,
         );
 
         if prev.is_some() {
