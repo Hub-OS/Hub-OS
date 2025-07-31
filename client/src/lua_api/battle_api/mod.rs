@@ -62,6 +62,7 @@ pub const MOVEMENT_TABLE: &str = "Movement";
 pub const ATTACHMENT_TABLE: &str = "Attachment";
 pub const COMPONENT_TABLE: &str = "Component";
 pub const FIELD_TABLE: &str = "Field";
+pub const FIELD_COMPAT_TABLE: &str = "FieldCompat";
 pub const TILE_TABLE: &str = "Tile";
 pub const TILE_STATE_TABLE: &str = "TileState";
 pub const CUSTOM_TILE_STATE_TABLE: &str = "CustomTileState";

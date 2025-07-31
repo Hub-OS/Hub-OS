@@ -15,7 +15,6 @@ local WHITE = Color.new(255, 255, 255, 255)
 
 local i = 0
 
-local field = entity:field()
 local sprite = entity:sprite()
 local component = entity:create_component(Lifetime.ActiveBattle)
 
@@ -35,7 +34,7 @@ component.on_update_func = function()
   -- spawn explosions
   if i % EXPLOSION_RATE == 1 and i < TOTAL_DURATION - END_DELAY then
     local explosion = Explosion.new()
-    field:spawn(explosion, entity:current_tile())
+    Field.spawn(explosion, entity:current_tile())
 
     explosion:sprite():set_layer(-1)
 

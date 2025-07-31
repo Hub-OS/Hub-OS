@@ -1,5 +1,5 @@
 use super::errors::{encounter_method_called_after_start, server_communication_closed};
-use super::field_api::get_field_table;
+use super::field_api::get_field_compat_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
 use crate::battle::{
     BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
@@ -197,7 +197,7 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENCOUNTER_TABLE, "field", |_, lua, _| {
-        let field_table = get_field_table(lua)?;
+        let field_table = get_field_compat_table(lua)?;
 
         lua.pack_multi(field_table)
     });

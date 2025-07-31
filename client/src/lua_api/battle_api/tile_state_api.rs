@@ -1,5 +1,5 @@
 use super::errors::invalid_custom_tile_state;
-use super::field_api::get_field_table;
+use super::field_api::get_field_compat_table;
 use super::tile_api::create_tile_table;
 use super::{
     create_entity_table, BattleLuaApi, CAN_REPLACE_FN, CUSTOM_TILE_STATE_TABLE, ENTITY_ENTER_FN,
@@ -60,7 +60,7 @@ pub fn inject_tile_state_api(lua_api: &mut BattleLuaApi) {
 
 fn inject_custom_tile_state_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(CUSTOM_TILE_STATE_TABLE, "field", |_, lua, _| {
-        let field_table = get_field_table(lua)?;
+        let field_table = get_field_compat_table(lua)?;
 
         lua.pack_multi(field_table)
     });

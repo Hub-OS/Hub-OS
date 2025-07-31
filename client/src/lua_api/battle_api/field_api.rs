@@ -5,6 +5,7 @@ use crate::battle::{
     BattleCallback, BattleScriptContext, Character, Entity, Obstacle, Player, Spell,
 };
 use crate::bindable::{EntityId, Team};
+use crate::lua_api::FIELD_COMPAT_TABLE;
 use crate::render::FrameTime;
 use crate::resources::Globals;
 use framework::prelude::IVec2;
@@ -12,7 +13,7 @@ use std::cell::RefCell;
 
 pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(FIELD_TABLE, "tile_at", |api_ctx, lua, params| {
-        let (_, x, y): (rollback_mlua::Table, i32, i32) = lua.unpack_multi(params)?;
+        let (x, y): (i32, i32) = lua.unpack_multi(params)?;
 
         let api_ctx = api_ctx.borrow();
 
@@ -36,11 +37,8 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "spawn", |api_ctx, lua, params| {
-        let (_, entity_table, rest): (
-            rollback_mlua::Table,
-            rollback_mlua::Table,
-            rollback_mlua::MultiValue,
-        ) = lua.unpack_multi(params)?;
+        let (entity_table, rest): (rollback_mlua::Table, rollback_mlua::MultiValue) =
+            lua.unpack_multi(params)?;
 
         let (x, y): (i32, i32) = lua.unpack_multi(rest.clone()).or_else(
             move |_| -> rollback_mlua::Result<(i32, i32)> {
@@ -79,7 +77,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "get_entity", |api_ctx, lua, params| {
-        let (_, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+        let id: EntityId = lua.unpack_multi(params)?;
 
         let api_ctx = api_ctx.borrow();
 
@@ -100,8 +98,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     generate_find_nearest_fn::<&Player>(lua_api, "find_nearest_players");
 
     lua_api.add_dynamic_function(FIELD_TABLE, "find_tiles", |api_ctx, lua, params| {
-        let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
+        let callback: rollback_mlua::Function = lua.unpack_multi(params)?;
 
         let tables = {
             // scope to prevent RefCell borrow escaping when control is passed back to lua
@@ -136,8 +133,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "shake", |api_ctx, lua, params| {
-        let (_, power, duration): (rollback_mlua::Table, f32, FrameTime) =
-            lua.unpack_multi(params)?;
+        let (power, duration): (f32, FrameTime) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
 
@@ -150,12 +146,8 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(FIELD_TABLE, "notify_on_delete", |api_ctx, lua, params| {
         log::warn!("field:notify_on_delete() is deprecated, use entity:on_delete() instead.");
 
-        let (_, target_id, observer_id, callback): (
-            rollback_mlua::Table,
-            EntityId,
-            EntityId,
-            rollback_mlua::Function,
-        ) = lua.unpack_multi(params)?;
+        let (target_id, observer_id, callback): (EntityId, EntityId, rollback_mlua::Function) =
+            lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
@@ -208,8 +200,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(FIELD_TABLE, "callback_on_delete", |api_ctx, lua, params| {
         log::warn!("field:callback_on_delete() is deprecated, use entity:on_delete() instead.");
 
-        let (_, id, callback): (rollback_mlua::Table, EntityId, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
+        let (id, callback): (EntityId, rollback_mlua::Function) = lua.unpack_multi(params)?;
 
         let api_ctx = &mut *api_ctx.borrow_mut();
 
@@ -236,7 +227,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(FIELD_TABLE, "reclaim_column", |api_ctx, lua, params| {
-        let (_, x, team): (rollback_mlua::Table, i32, Team) = lua.unpack_multi(params)?;
+        let (x, team): (i32, Team) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
 
@@ -256,8 +247,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
 fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
     lua_api.add_dynamic_function(FIELD_TABLE, name, |api_ctx, lua, params| {
-        let (_, callback): (rollback_mlua::Table, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
+        let callback: rollback_mlua::Function = lua.unpack_multi(params)?;
 
         let tables = {
             // scope to prevent RefCell borrow escaping when control is passed back to lua
@@ -291,11 +281,8 @@ fn generate_find_entity_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &st
 
 fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &str) {
     lua_api.add_dynamic_function(FIELD_TABLE, name, |api_ctx, lua, params| {
-        let (_, ref_table, callback): (
-            rollback_mlua::Table,
-            rollback_mlua::Table,
-            rollback_mlua::Function,
-        ) = lua.unpack_multi(params)?;
+        let (ref_table, callback): (rollback_mlua::Table, rollback_mlua::Function) =
+            lua.unpack_multi(params)?;
 
         let tables = {
             // scope to prevent RefCell borrow escaping when control is passed back to lua
@@ -344,6 +331,63 @@ fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &s
     });
 }
 
-pub fn get_field_table(lua: &rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Table> {
-    lua.named_registry_value(FIELD_TABLE)
+pub fn get_field_compat_table(
+    lua: &rollback_mlua::Lua,
+) -> rollback_mlua::Result<rollback_mlua::Table> {
+    if let Ok(table) = lua.named_registry_value::<rollback_mlua::Table>(FIELD_COMPAT_TABLE) {
+        return Ok(table);
+    }
+
+    let source_name = lua
+        .inspect_stack(1)
+        .map(|debug| debug.source().source.unwrap_or_default().to_string())
+        .unwrap_or_default();
+
+    log::warn!("deprecated use of :field() in {source_name:?}");
+
+    let table = lua.create_table()?;
+    let metatable = lua.create_table()?;
+
+    metatable.raw_set(
+        "__index",
+        lua.create_function(
+            move |lua, (self_table, key): (rollback_mlua::Table, rollback_mlua::String)| {
+                let value = self_table.raw_get::<_, rollback_mlua::Value>(key.clone())?;
+
+                if !value.is_nil() {
+                    return lua.pack_multi(value);
+                }
+
+                let table: rollback_mlua::Table = lua.named_registry_value(FIELD_TABLE)?;
+                let value = table.get::<_, rollback_mlua::Value>(key.clone())?;
+
+                if !value.is_function() {
+                    return lua.pack_multi(value);
+                }
+
+                // create a wrapper function that strips `self``
+                let captured_key = key.to_str()?.to_string();
+
+                let wrapper_func =
+                    lua.create_function(move |lua, mut params: rollback_mlua::MultiValue| {
+                        params.pop_front();
+
+                        let table: rollback_mlua::Table = lua.named_registry_value(FIELD_TABLE)?;
+                        let func =
+                            table.get::<_, rollback_mlua::Function>(captured_key.as_str())?;
+
+                        func.call::<_, rollback_mlua::MultiValue>(params)
+                    })?;
+
+                self_table.raw_set(key, wrapper_func.clone())?;
+
+                lua.pack_multi(wrapper_func)
+            },
+        )?,
+    )?;
+
+    table.set_metatable(Some(metatable));
+
+    lua.set_named_registry_value(FIELD_COMPAT_TABLE, table.clone())?;
+    Ok(table)
 }

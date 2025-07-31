@@ -4,7 +4,7 @@ use super::errors::{
     entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, sprite_not_found,
     too_many_forms,
 };
-use super::field_api::get_field_table;
+use super::field_api::get_field_compat_table;
 use super::player_form_api::create_player_form_table;
 use super::sprite_api::create_sprite_table;
 use super::sync_node_api::create_sync_node_table;
@@ -225,7 +225,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "field", |_, lua, _| {
-        let field_table = get_field_table(lua)?;
+        let field_table = get_field_compat_table(lua)?;
 
         lua.pack_multi(field_table)
     });
