@@ -28,6 +28,11 @@ impl ScrollableList {
         }
     }
 
+    pub fn with_label(mut self, label: String) -> Self {
+        self.frame.set_label(label);
+        self
+    }
+
     pub fn with_label_str(mut self, label: &str) -> Self {
         self.frame.set_label(label.to_string());
         self

@@ -16,6 +16,7 @@ pub enum FontName {
     ThinSmall,
     Micro,
     MenuTitle,
+    Navigation,
     Context,
     Code,
     PlayerHp,
@@ -39,6 +40,7 @@ impl FontName {
             "THIN" => FontName::Thin,
             "THIN_SMALL" => FontName::ThinSmall,
             "MENU_TITLE" => FontName::MenuTitle,
+            "NAVIGATION" => FontName::Navigation,
             "MICRO" => FontName::Micro,
             "CONTEXT" => FontName::Context,
             "CODE" => FontName::Code,
@@ -62,6 +64,7 @@ impl FontName {
             "THIN_SMALL_U+" => FontName::ThinSmall,
             "MICRO_U+" => FontName::Micro,
             "MENU_TITLE_U+" => FontName::MenuTitle,
+            "NAVIGATION_U+" => FontName::Navigation,
             "CONTEXT_U+" => FontName::Context,
             "CODE_U+" => FontName::Code,
             "PLAYER_HP_U+" => FontName::PlayerHp,
@@ -191,6 +194,15 @@ impl GlyphAtlas {
         font: &'a FontName,
         character: &'a str,
     ) -> Option<&'a AnimationFrame> {
+        if let Some(frame) = self
+            .map
+            .get(&(Cow::Borrowed(font), Cow::Borrowed(character)))
+        {
+            return Some(frame);
+        }
+
+        let character = remove_diacritics(character);
+
         self.map
             .get(&(Cow::Borrowed(font), Cow::Borrowed(character)))
     }
@@ -200,5 +212,23 @@ impl GlyphAtlas {
             .or_else(|| self.character_frame(font, "A"))
             .map(|frame| frame.bounds.size())
             .unwrap_or_default()
+    }
+}
+
+fn remove_diacritics(character: &str) -> &str {
+    match character {
+        "Á" | "Ä" => "A",
+        "É" => "E",
+        "Í" => "I",
+        "Ó" | "Ö" => "O",
+        "Ú" | "Ü" => "U",
+
+        "á" | "ä" => "a",
+        "é" => "e",
+        "í" => "i",
+        "ó" | "ö" => "o",
+        "ú" | "ü" => "u",
+
+        c => c,
     }
 }

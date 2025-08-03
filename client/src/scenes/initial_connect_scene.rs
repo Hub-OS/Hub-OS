@@ -100,10 +100,25 @@ impl InitialConnectScene {
                         version_id,
                         version_iteration,
                     } => {
+                        let globals = game_io.resource::<Globals>().unwrap();
+
                         if version_id != packets::VERSION_ID
                             || version_iteration != packets::VERSION_ITERATION
                         {
-                            self.fail_with_message(String::from("Server protocol mismatch"));
+                            let message = globals.translate("server-generic-incompatible-message");
+                            self.fail_with_message(message);
+                            return;
+                        }
+
+                        if version_iteration < packets::VERSION_ITERATION {
+                            let message = globals.translate("server-generic-ahead-message");
+                            self.fail_with_message(message);
+                            return;
+                        }
+
+                        if version_iteration > packets::VERSION_ITERATION {
+                            let message = globals.translate("server-generic-behind-message");
+                            self.fail_with_message(message);
                             return;
                         }
 
@@ -184,9 +199,11 @@ impl Scene for InitialConnectScene {
                     ));
                 }
                 Event::Failed { reason } => {
+                    let globals = game_io.resource::<Globals>().unwrap();
                     let message = match reason {
-                        Some(reason) => format!("We've been kicked: {reason:?}"),
-                        None => String::from("Connection failed."),
+                        Some(reason) => globals
+                            .translate_with_args("server-kicked", vec![("reason", reason.into())]),
+                        None => globals.translate("server-connection-failed"),
                     };
 
                     self.fail_with_message(message);

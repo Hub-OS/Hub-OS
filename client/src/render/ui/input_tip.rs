@@ -1,24 +1,27 @@
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::*;
-use crate::resources::TEXT_DARK_SHADOW_COLOR;
+use crate::resources::{Globals, TEXT_DARK_SHADOW_COLOR};
 use framework::prelude::*;
+use packets::structures::Input;
 
-pub struct OptionTip {
+pub struct InputTip {
+    label: String,
     action_name: String,
     top_right: Vec2,
 }
 
-impl OptionTip {
-    pub fn new(action_name: String, top_right: Vec2) -> Self {
+impl InputTip {
+    pub fn new(game_io: &GameIO, input: Input, action_key: &str, top_right: Vec2) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
-            action_name,
+            label: globals.translate(input.translation_key()).to_uppercase() + ":",
+            action_name: globals.translate(action_key),
             top_right,
         }
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
-        const LABEL: &str = "OPTION:";
-
         let mut text_style = TextStyle::new(game_io, FontName::Context);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
         text_style.bounds.set_position(self.top_right);
@@ -30,7 +33,7 @@ impl OptionTip {
 
         // draw label
         text_style.color = Color::WHITE;
-        text_style.bounds.x -= text_style.measure(LABEL).size.x + text_style.letter_spacing;
-        text_style.draw(game_io, sprite_queue, LABEL);
+        text_style.bounds.x -= text_style.measure(&self.label).size.x + text_style.letter_spacing;
+        text_style.draw(game_io, sprite_queue, &self.label);
     }
 }

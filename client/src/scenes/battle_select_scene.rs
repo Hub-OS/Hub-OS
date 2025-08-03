@@ -12,6 +12,7 @@ use framework::prelude::*;
 pub struct BattleSelectScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     preview_frame_sprite: Sprite,
@@ -22,7 +23,6 @@ pub struct BattleSelectScene {
     package_ids: Vec<PackageId>,
     textbox: Textbox,
     next_scene: NextScene,
-    title_text: String,
 }
 
 impl BattleSelectScene {
@@ -55,6 +55,7 @@ impl BattleSelectScene {
         let mut scene = Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "battle-select-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             preview_frame_sprite,
             recording_frame_sprite,
@@ -68,7 +69,6 @@ impl BattleSelectScene {
             package_ids: Vec::new(),
             textbox: Textbox::new_navigation(game_io),
             next_scene: NextScene::None,
-            title_text: String::from("BATTLE SELECT: "),
         });
 
         scene.update_title(game_io);
@@ -96,9 +96,17 @@ impl BattleSelectScene {
         let package_name = package.name.to_uppercase();
 
         if !package.name.is_empty() {
-            self.title_text = format!("BATTLE SELECT: {package_name}");
+            self.scene_title.set_title(
+                game_io,
+                "battle-select-scene-title-selection",
+                vec![("name", package_name.into())],
+            );
         } else {
-            self.title_text = String::from("BATTLE SELECT: ???");
+            self.scene_title.set_title(
+                game_io,
+                "battle-select-scene-title-selection",
+                vec![("name", "???".into())],
+            );
         }
     }
 
@@ -261,7 +269,7 @@ impl Scene for BattleSelectScene {
 
         // draw frame and title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new(self.title_text.as_str()).draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

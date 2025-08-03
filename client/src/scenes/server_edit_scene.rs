@@ -26,6 +26,7 @@ enum UiMessage {
 pub struct ServerEditScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     edit_prop: ServerEditProp,
     server_info: ServerInfo,
@@ -115,7 +116,7 @@ impl ServerEditScene {
                         // name label
                         UiLayoutNode::new(
                             Text::new(game_io, FontName::Code)
-                                .with_str("NAME")
+                                .with_string(globals.translate("server-edit-name-label"))
                                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                         )
                         .with_style(label_style.clone()),
@@ -143,7 +144,7 @@ impl ServerEditScene {
                         // address label
                         UiLayoutNode::new(
                             Text::new(game_io, FontName::Code)
-                                .with_str("ADDRESS")
+                                .with_string(globals.translate("server-edit-address-label"))
                                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
                         )
                         .with_style(label_style),
@@ -174,16 +175,22 @@ impl ServerEditScene {
                     })
                     .with_children(vec![
                         UiLayoutNode::new(
-                            UiButton::new_text(game_io, FontName::Thick, "Save").on_activate({
-                                let sender = ui_sender.clone();
+                            UiButton::new_translated(game_io, FontName::Thick, "server-edit-save")
+                                .on_activate({
+                                    let sender = ui_sender.clone();
 
-                                move || sender.send(UiMessage::Save).unwrap()
-                            }),
+                                    move || sender.send(UiMessage::Save).unwrap()
+                                }),
                         )
                         .with_style(button_style.clone())
                         .with_handle(&mut save_handle),
                         UiLayoutNode::new(
-                            UiButton::new_text(game_io, FontName::Thick, "Cancel").on_activate({
+                            UiButton::new_translated(
+                                game_io,
+                                FontName::Thick,
+                                "server-edit-cancel",
+                            )
+                            .on_activate({
                                 let sender = ui_sender;
 
                                 move || sender.send(UiMessage::Cancel).unwrap()
@@ -202,9 +209,16 @@ impl ServerEditScene {
         cursor_animator.set_state("DEFAULT");
         cursor_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
+        // title
+        let title_translation_key = match edit_prop {
+            ServerEditProp::Edit(_) => "server-edit-scene-title",
+            _ => "server-edit-new-scene-title",
+        };
+
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, title_translation_key),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
@@ -314,13 +328,8 @@ impl Scene for ServerEditScene {
         // draw static pieces
         self.background.draw(game_io, render_pass);
 
-        let scene_title = match self.edit_prop {
-            ServerEditProp::Edit(_) => "EDIT SERVER",
-            _ => "NEW SERVER",
-        };
-
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new(scene_title).draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw ui
         self.ui_layout.draw(game_io, &mut sprite_queue);

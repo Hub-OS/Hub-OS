@@ -13,7 +13,7 @@ struct LockedState<T> {
 }
 
 pub struct UiConfigDynamicCycle<T> {
-    name: &'static str,
+    label: String,
     value: T,
     value_text: String,
     text_scroller: OverflowTextScroller,
@@ -27,7 +27,7 @@ pub struct UiConfigDynamicCycle<T> {
 impl<T> UiConfigDynamicCycle<T> {
     pub fn new(
         game_io: &mut GameIO,
-        name: &'static str,
+        label_translation_key: &'static str,
         value: T,
         config: Rc<RefCell<Config>>,
         text_callback: impl Fn(&mut GameIO, &T) -> String + 'static,
@@ -37,8 +37,10 @@ impl<T> UiConfigDynamicCycle<T> {
     ) -> Self {
         let value_text = text_callback(game_io, &value);
 
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
-            name,
+            label: globals.translate(label_translation_key),
             value,
             value_text,
             text_scroller: OverflowTextScroller::new(),
@@ -81,7 +83,7 @@ impl<T: PartialEq + Clone> UiNode for UiConfigDynamicCycle<T> {
         text_style.bounds.set_position(bounds.position());
 
         // draw name
-        text_style.draw(game_io, sprite_queue, self.name);
+        text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw value
         let range = self.text_scroller.text_range(&self.value_text);

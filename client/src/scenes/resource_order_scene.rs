@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::{Package, PackageNamespace, ResourcePackage};
 use crate::render::ui::{
-    ContextMenu, FontName, OptionTip, PackageListing, SceneTitle, ScrollTracker, ScrollableFrame,
+    ContextMenu, FontName, InputTip, PackageListing, SceneTitle, ScrollTracker, ScrollableFrame,
     SubSceneFrame, TextStyle, Textbox, TextboxMessage, TextboxQuestion, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
@@ -26,8 +26,11 @@ enum Event {
 pub struct ResourceOrderScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
-    option_tip: OptionTip,
+    input_tip: InputTip,
+    enabled_string: String,
+    disabled_string: String,
     list_bounds: Rect,
     scrollable_frame: ScrollableFrame,
     scroll_tracker: ScrollTracker,
@@ -106,15 +109,27 @@ impl ResourceOrderScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "config-resource-order-scene-title"),
             frame: SubSceneFrame::new(game_io).with_everything(true),
-            option_tip: OptionTip::new(String::from("MENU"), option_tip_top_right),
+            input_tip: InputTip::new(
+                game_io,
+                Input::Option,
+                "config-resource-order-context-menu-tip",
+                option_tip_top_right,
+            ),
+            enabled_string: globals.translate("config-resource-order-enabled-label"),
+            disabled_string: globals.translate("config-resource-order-disabled-label"),
             list_bounds,
             scrollable_frame,
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
             package_order,
             moving_package: false,
-            context_menu: ContextMenu::new(game_io, "OPTIONS", context_position),
+            context_menu: ContextMenu::new_translated(
+                game_io,
+                "config-resource-order-context-menu-label",
+                context_position,
+            ),
             textbox: Textbox::new_navigation(game_io),
             event_sender,
             event_receiver,
@@ -151,7 +166,7 @@ impl ResourceOrderScene {
             } else {
                 // changes made, must verify
                 let event_sender = self.event_sender.clone();
-                let question = String::from("Save changes?");
+                let question = globals.translate("config-resource-order-save-changes-question");
                 let interface = TextboxQuestion::new(question, move |save| {
                     event_sender.send(Event::SaveResponse { save }).unwrap();
                 });
@@ -194,11 +209,16 @@ impl ResourceOrderScene {
             globals.audio.play_sound(&globals.sfx.cursor_select);
 
             if index == 0 {
-                let options = [("VIEW", MenuOption::View)];
-                self.context_menu.set_options(game_io, options)
+                let options = &[("config-resource-order-option-view", MenuOption::View)];
+                self.context_menu
+                    .set_and_translate_options(game_io, options);
             } else {
-                let options = [("MOVE", MenuOption::Move), ("VIEW", MenuOption::View)];
-                self.context_menu.set_options(game_io, options)
+                let options = &[
+                    ("config-resource-order-option-move", MenuOption::Move),
+                    ("config-resource-order-option-view", MenuOption::View),
+                ];
+                self.context_menu
+                    .set_and_translate_options(game_io, options);
             }
 
             self.moving_package = false;
@@ -262,7 +282,7 @@ impl ResourceOrderScene {
                     globals.global_save.save();
 
                     let event_sender = self.event_sender.clone();
-                    let message = String::from("Changes will be applied next launch.");
+                    let message = globals.translate("config-resource-order-save-complete");
 
                     let interface = TextboxMessage::new(message).with_callback(move || {
                         event_sender.send(Event::Exit).unwrap();
@@ -324,13 +344,17 @@ impl Scene for ResourceOrderScene {
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
         // draw items
-        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick);
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick).with_ellipsis(true);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
         let start_position = self.list_bounds.top_left();
         text_style.bounds.set_position(start_position);
+        text_style.bounds.height = text_style.line_height();
 
-        let status_x = self.list_bounds.right() - text_style.measure("Disabled").size.x;
+        let longest_status_width = (text_style.measure(&self.enabled_string).size.x)
+            .max(text_style.measure(&self.disabled_string).size.x);
+        let name_available_width =
+            self.list_bounds.width - text_style.measure_grapheme(" ").x - longest_status_width;
 
         for &(ref package_listing, enabled) in &self.package_order[self.scroll_tracker.view_range()]
         {
@@ -341,19 +365,19 @@ impl Scene for ResourceOrderScene {
             };
 
             // draw package name
-            const CHAR_LIMIT: usize = 20;
+            text_style.bounds.width = name_available_width;
+            text_style.draw(game_io, &mut sprite_queue, &package_listing.name);
 
-            if package_listing.name.len() >= CHAR_LIMIT {
-                let name = format!("{}...", &package_listing.name[0..CHAR_LIMIT - 3]);
-                text_style.draw(game_io, &mut sprite_queue, &name);
-            } else {
-                text_style.draw(game_io, &mut sprite_queue, &package_listing.name);
-            }
+            text_style.bounds.width = f32::INFINITY;
 
             // draw status
-            text_style.bounds.x = status_x;
+            let status_text = if enabled {
+                &self.enabled_string
+            } else {
+                &self.disabled_string
+            };
 
-            let status_text = if enabled { " Enabled" } else { "Disabled" };
+            text_style.bounds.x = self.list_bounds.right() - text_style.measure(status_text).size.x;
             text_style.draw(game_io, &mut sprite_queue, status_text);
 
             // update position for next iteration
@@ -369,10 +393,10 @@ impl Scene for ResourceOrderScene {
         self.frame.draw(&mut sprite_queue);
 
         // draw option tip
-        self.option_tip.draw(game_io, &mut sprite_queue);
+        self.input_tip.draw(game_io, &mut sprite_queue);
 
         // draw title
-        SceneTitle::new("RESOURCES").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw context menu
         self.context_menu.draw(game_io, &mut sprite_queue);

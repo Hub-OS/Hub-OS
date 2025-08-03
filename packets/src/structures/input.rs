@@ -102,4 +102,33 @@ impl Input {
         Input::ShoulderL,
         Input::ShoulderR,
     ];
+
+    pub fn translation_key(self) -> &'static str {
+        match self {
+            Input::Up => "input-up",
+            Input::Down => "input-down",
+            Input::Left => "input-left",
+            Input::Right => "input-right",
+            Input::UseCard => "input-use-card",
+            Input::Shoot => "input-shoot",
+            Input::Special => "input-special",
+            Input::Flee => "input-flee",
+            Input::EndTurn => "input-end-turn",
+            Input::Pause => "input-pause",
+            Input::Confirm => "input-confirm",
+            Input::Cancel => "input-cancel",
+            Input::Option => "input-option",
+            Input::Option2 => "input-option2",
+            Input::Info => "input-info",
+            Input::End => "input-end",
+            Input::Sprint => "input-sprint",
+            Input::ShoulderL => "input-shoulder-l",
+            Input::ShoulderR => "input-shoulder-r",
+            Input::Map => "input-map",
+            Input::FaceLeft => "input-face-left",
+            Input::FaceRight => "input-face-right",
+            Input::AdvanceFrame => "input-advance-frame",
+            Input::RewindFrame => "input-rewind-frame",
+        }
+    }
 }

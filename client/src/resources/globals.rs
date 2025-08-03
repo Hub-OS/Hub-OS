@@ -40,6 +40,9 @@ pub struct Globals {
     pub resource_packages: PackageManager<ResourcePackage>,
     pub battle_api: BattleLuaApi,
 
+    // translations
+    pub translations: Translations,
+
     // recording
     pub battle_recording: Option<(BattleMeta, BattleRecording)>,
 
@@ -147,6 +150,9 @@ impl Globals {
             resource_packages,
             battle_api: BattleLuaApi::new(),
 
+            // translations
+            translations: Translations::new(),
+
             // recording
             battle_recording: None,
 
@@ -179,6 +185,14 @@ impl Globals {
             // debug
             debug_visible: false,
         }
+    }
+
+    pub fn translate(&self, text_key: &str) -> String {
+        self.translations.translate(text_key)
+    }
+
+    pub fn translate_with_args(&self, text_key: &str, args: TranslationArgs) -> String {
+        self.translations.translate_with_args(text_key, args)
     }
 
     pub fn packages(&self, namespace: PackageNamespace) -> impl Iterator<Item = &PackageInfo> {

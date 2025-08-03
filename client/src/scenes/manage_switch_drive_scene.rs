@@ -178,6 +178,7 @@ pub struct ManageSwitchDriveScene {
     camera: Camera,
     background: Background,
     frame: SubSceneFrame,
+    scene_title: SceneTitle,
     animator: Animator,
     cursor_time: FrameTime,
     cursor_sprite: Sprite,
@@ -277,6 +278,7 @@ impl ManageSwitchDriveScene {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
             frame: SubSceneFrame::new(game_io).with_everything(true),
+            scene_title: SceneTitle::new(game_io, "switch-drives-scene-title"),
             animator,
             cursor_sprite,
             cursor_time: 0,
@@ -440,9 +442,17 @@ impl ManageSwitchDriveScene {
                     let package_selected = slot_ui.package_id.is_some();
 
                     let question_string = if package_selected {
-                        format!("Unequip {}?", slot_ui.package_name())
+                        globals.translate_with_args(
+                            "switch-drives-unequip-question",
+                            vec![("name", slot_ui.package_name().into())],
+                        )
                     } else {
-                        format!("Filter for {} drives?", slot.name())
+                        let slot_name = globals.translate(slot.translation_key());
+
+                        globals.translate_with_args(
+                            "switch-drives-filter-slot-question",
+                            vec![("slot", slot_name.into())],
+                        )
                     };
 
                     let question = TextboxQuestion::new(question_string, move |yes| {
@@ -758,7 +768,7 @@ impl Scene for ManageSwitchDriveScene {
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("DRIVES").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

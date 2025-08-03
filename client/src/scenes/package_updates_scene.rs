@@ -23,6 +23,7 @@ enum Event {
 pub struct PackageUpdatesScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     list: ScrollableList,
@@ -76,6 +77,7 @@ impl PackageUpdatesScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "packages-pending-update-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
@@ -143,16 +145,18 @@ impl PackageUpdatesScene {
         UiLayout::new_horizontal(
             bounds,
             [
-                UiButton::new_text(game_io, FontName::Thick, "View").on_activate({
-                    let sender = event_sender.clone();
+                UiButton::new_translated(game_io, FontName::Thick, "packages-button-view")
+                    .on_activate({
+                        let sender = event_sender.clone();
 
-                    move || sender.send(Event::ViewList).unwrap()
-                }),
-                UiButton::new_text(game_io, FontName::Thick, "Update All").on_activate({
-                    let sender = event_sender.clone();
+                        move || sender.send(Event::ViewList).unwrap()
+                    }),
+                UiButton::new_translated(game_io, FontName::Thick, "packages-button-update-all")
+                    .on_activate({
+                        let sender = event_sender.clone();
 
-                    move || sender.send(Event::Update).unwrap()
-                }),
+                        move || sender.send(Event::Update).unwrap()
+                    }),
             ]
             .into_iter()
             .map(|button| UiLayoutNode::new(button).with_style(button_style.clone()))
@@ -219,8 +223,11 @@ impl PackageUpdatesScene {
                 Event::Update => {
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
                     self.doorstop_key = Some(doorstop_key);
-                    self.textbox
-                        .push_interface(doorstop.with_str("Updating..."));
+                    self.textbox.push_interface(doorstop.with_translated(
+                        game_io,
+                        "packages-updating",
+                        vec![],
+                    ));
                     self.textbox.open();
 
                     let ids = std::mem::take(&mut self.requires_update)
@@ -247,9 +254,9 @@ impl PackageUpdatesScene {
 
         self.prev_status = status;
 
-        let message = match status {
-            UpdateStatus::Failed => "Updating failed.",
-            UpdateStatus::Success => "Updates completed!",
+        let message_key = match status {
+            UpdateStatus::Failed => "packages-updates-error",
+            UpdateStatus::Success => "packages-updates-success",
             _ => {
                 return;
             }
@@ -266,7 +273,8 @@ impl PackageUpdatesScene {
 
         // notify player
         let event_sender = self.event_sender.clone();
-        let interface = TextboxMessage::new(String::from(message))
+        let message = globals.translate(message_key);
+        let interface = TextboxMessage::new(message)
             .with_callback(move || event_sender.send(Event::Leave).unwrap());
         self.textbox.push_interface(interface);
         self.textbox.open();
@@ -328,7 +336,7 @@ impl Scene for PackageUpdatesScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("PENDING UPDATES").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         self.list.draw(game_io, &mut sprite_queue);
         self.buttons.draw(game_io, &mut sprite_queue);

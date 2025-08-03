@@ -1,5 +1,6 @@
 use super::{TextStyle, TextboxInterface};
 use crate::render::*;
+use crate::resources::{Globals, TranslationArgs};
 use framework::prelude::GameIO;
 use std::rc::{Rc, Weak};
 
@@ -24,6 +25,17 @@ impl TextboxDoorstop {
             },
             doorstop_key,
         )
+    }
+
+    pub fn with_translated(
+        mut self,
+        game_io: &GameIO,
+        text_key: &str,
+        args: TranslationArgs,
+    ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        self.text = globals.translate_with_args(text_key, args);
+        self
     }
 
     pub fn with_str(mut self, text: &str) -> Self {

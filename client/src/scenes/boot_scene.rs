@@ -113,7 +113,7 @@ impl BootScene {
             match message {
                 BootEvent::ProgressUpdate(status_update) => {
                     // update progress text
-                    self.status_label.text = status_update.label.to_string();
+                    self.status_label.text = globals.translate(status_update.label_translation_key);
 
                     // update progress bar
                     let multiplier = status_update.progress as f32 / status_update.total as f32;
@@ -156,8 +156,8 @@ impl BootScene {
                     globals.character_packages = character_packages;
                 }
                 BootEvent::Done => {
-                    let message = "Press Any Button";
-                    self.status_label.text = String::from(message);
+                    let message = globals.translate("boot-press-any-button");
+                    self.status_label.text = message;
                     self.update_progress_bar(1.0);
                     self.done = true;
                 }

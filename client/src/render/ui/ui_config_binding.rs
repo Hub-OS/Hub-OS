@@ -40,6 +40,7 @@ pub struct UiConfigBinding {
     config: Rc<RefCell<Config>>,
     binding_state: Option<Box<BindingState>>,
     cached_bindings: CachedBindings,
+    label: String,
     bound_text: String,
     text_scroller: OverflowTextScroller,
     context_receiver: Option<flume::Receiver<Option<BindingContextOption>>>,
@@ -47,7 +48,14 @@ pub struct UiConfigBinding {
 }
 
 impl UiConfigBinding {
-    fn new(input: Input, config: Rc<RefCell<Config>>, binds_keyboard: bool) -> Self {
+    fn new(
+        game_io: &GameIO,
+        input: Input,
+        config: Rc<RefCell<Config>>,
+        binds_keyboard: bool,
+    ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         let mut ui = Self {
             input,
             config,
@@ -57,13 +65,14 @@ impl UiConfigBinding {
             } else {
                 CachedBindings::Buttons(Vec::new())
             },
+            label: globals.translate(input.translation_key()),
             bound_text: String::new(),
             text_scroller: OverflowTextScroller::new(),
             context_receiver: None,
             context_requester: Box::new(|_| {}),
         };
 
-        ui.regenerate_bound_text();
+        ui.regenerate_bound_text(game_io);
 
         ui
     }
@@ -76,15 +85,15 @@ impl UiConfigBinding {
         self
     }
 
-    pub fn new_keyboard(input: Input, config: Rc<RefCell<Config>>) -> Self {
-        Self::new(input, config, true)
+    pub fn new_keyboard(game_io: &GameIO, input: Input, config: Rc<RefCell<Config>>) -> Self {
+        Self::new(game_io, input, config, true)
     }
 
-    pub fn new_controller(input: Input, config: Rc<RefCell<Config>>) -> Self {
-        Self::new(input, config, false)
+    pub fn new_controller(game_io: &GameIO, input: Input, config: Rc<RefCell<Config>>) -> Self {
+        Self::new(game_io, input, config, false)
     }
 
-    fn regenerate_bound_text(&mut self) {
+    fn regenerate_bound_text(&mut self, game_io: &GameIO) {
         let config = self.config.borrow();
 
         let binding_updated = match &self.cached_bindings {
@@ -109,11 +118,17 @@ impl UiConfigBinding {
             }
         };
 
-        self.bound_text = Self::generate_bound_text(&config, self.binds_keyboard(), self.input)
-            .unwrap_or_default();
+        self.bound_text =
+            Self::generate_bound_text(game_io, &config, self.binds_keyboard(), self.input)
+                .unwrap_or_default();
     }
 
-    fn generate_bound_text(config: &Config, binds_keyboard: bool, input: Input) -> Option<String> {
+    fn generate_bound_text(
+        game_io: &GameIO,
+        config: &Config,
+        binds_keyboard: bool,
+        input: Input,
+    ) -> Option<String> {
         if binds_keyboard {
             let keys = config.key_bindings.get(&input)?;
 
@@ -133,29 +148,11 @@ impl UiConfigBinding {
                 return None;
             }
 
+            let globals = game_io.resource::<Globals>().unwrap();
+
             let text = buttons
                 .iter()
-                .map(|button| match button {
-                    Button::DPadUp => "D-Up",
-                    Button::DPadDown => "D-Down",
-                    Button::DPadLeft => "D-Left",
-                    Button::DPadRight => "D-Right",
-                    Button::LeftShoulder => "L-Shldr",
-                    Button::LeftTrigger => "L-Trig",
-                    Button::RightShoulder => "R-Shldr",
-                    Button::RightTrigger => "R-Trig",
-                    Button::LeftStick => "L-Stick",
-                    Button::RightStick => "R-Stick",
-                    Button::LeftStickUp => "L-Up",
-                    Button::LeftStickDown => "L-Down",
-                    Button::LeftStickLeft => "L-Left",
-                    Button::LeftStickRight => "L-Right",
-                    Button::RightStickUp => "R-Up",
-                    Button::RightStickDown => "R-Down",
-                    Button::RightStickLeft => "R-Left",
-                    Button::RightStickRight => "R-Right",
-                    button => button.into(),
-                })
+                .map(|button| globals.translate(Translations::button_short_key(*button)))
                 .join(",");
 
             Some(text)
@@ -186,7 +183,7 @@ impl UiNode for UiConfigBinding {
         sprite_queue: &mut SpriteColorQueue,
         bounds: Rect,
     ) {
-        self.regenerate_bound_text();
+        self.regenerate_bound_text(game_io);
 
         let mut text_style = TextStyle::new(game_io, FontName::Thick);
         text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
@@ -198,13 +195,7 @@ impl UiNode for UiConfigBinding {
         }
 
         // draw input name
-        let text: &'static str = match self.input {
-            Input::AdvanceFrame => "AdvFrame",
-            Input::RewindFrame => "RewFrame",
-            input => input.into(),
-        };
-
-        text_style.draw(game_io, sprite_queue, text);
+        text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw binding
         let text = self.displayed_text();

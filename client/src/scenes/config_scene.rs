@@ -12,7 +12,7 @@ use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use strum::{EnumIter, IntoEnumIterator, IntoStaticStr};
+use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Clone)]
 enum Event {
@@ -34,7 +34,7 @@ enum Event {
     Leave { save: bool },
 }
 
-#[derive(EnumIter, IntoStaticStr, Clone, Copy)]
+#[derive(EnumIter, Clone, Copy)]
 enum ConfigCategory {
     Video,
     Audio,
@@ -44,9 +44,23 @@ enum ConfigCategory {
     Profile,
 }
 
+impl ConfigCategory {
+    fn translation_key(self) -> &'static str {
+        match self {
+            ConfigCategory::Video => "config-video-tab",
+            ConfigCategory::Audio => "config-audio-tab",
+            ConfigCategory::Keyboard => "config-keyboard-tab",
+            ConfigCategory::Gamepad => "config-gamepad-tab",
+            ConfigCategory::Mods => "config-mods-tab",
+            ConfigCategory::Profile => "config-profile-tab",
+        }
+    }
+}
+
 pub struct ConfigScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     primary_layout: UiLayout,
@@ -101,6 +115,7 @@ impl ConfigScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "config-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
@@ -111,18 +126,23 @@ impl ConfigScene {
                 primary_layout_start,
             ),
             secondary_layout: ScrollableList::new(game_io, secondary_bounds, 16.0)
-                .with_label_str("VIDEO")
-                .with_children(Self::generate_video_menu(&config))
+                .with_label(globals.translate("config-video-tab"))
+                .with_children(Self::generate_video_menu(game_io, &config))
                 .with_focus(false),
             cursor_sprite,
             cursor_animator,
             event_sender,
             event_receiver,
-            context_menu: ContextMenu::new(game_io, "BINDING", context_position).with_options(
+            context_menu: ContextMenu::new_translated(
                 game_io,
-                [
-                    ("Append", BindingContextOption::Append),
-                    ("Clear", BindingContextOption::Clear),
+                "config-binding-context-menu-label",
+                context_position,
+            )
+            .with_translated_options(
+                game_io,
+                &[
+                    ("config-binding-append-label", BindingContextOption::Append),
+                    ("config-binding-clear-label", BindingContextOption::Clear),
                 ],
             ),
             context_sender: None,
@@ -155,7 +175,7 @@ impl ConfigScene {
             Rect::new(start.x, start.y, f32::INFINITY, f32::INFINITY),
             ConfigCategory::iter()
                 .map(|option| {
-                    UiButton::new_text(game_io, FontName::Thick, option.into())
+                    UiButton::new_translated(game_io, FontName::Thick, option.translation_key())
                         .on_activate({
                             let event_sender = event_sender.clone();
 
@@ -188,7 +208,7 @@ impl ConfigScene {
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         match category {
-            ConfigCategory::Video => Self::generate_video_menu(config),
+            ConfigCategory::Video => Self::generate_video_menu(game_io, config),
             ConfigCategory::Audio => Self::generate_audio_menu(game_io, config),
             ConfigCategory::Keyboard => Self::generate_keyboard_menu(game_io, config, event_sender),
             ConfigCategory::Gamepad => {
@@ -199,10 +219,11 @@ impl ConfigScene {
         }
     }
 
-    fn generate_video_menu(config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
+    fn generate_video_menu(game_io: &GameIO, config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
         vec![
             Box::new(UiConfigToggle::new(
-                "Fullscreen",
+                game_io,
+                "config-fullscreen-label",
                 config.borrow().fullscreen,
                 config.clone(),
                 |game_io, mut config| {
@@ -214,7 +235,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "VSync",
+                game_io,
+                "config-vsync-label",
                 config.borrow().vsync,
                 config.clone(),
                 |game_io, mut config| {
@@ -226,13 +248,14 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigCycle::new(
-                "Resolution",
+                game_io,
+                "config-resolution-label",
                 config.borrow().internal_resolution,
                 config.clone(),
                 &[
-                    ("Default", InternalResolution::Default),
-                    ("GBA", InternalResolution::Gba),
-                    ("Auto", InternalResolution::Auto),
+                    ("config-resolution-default", InternalResolution::Default),
+                    ("config-resolution-gba", InternalResolution::Gba),
+                    ("config-resolution-auto", InternalResolution::Auto),
                 ],
                 |game_io, mut config, value, confirmed| {
                     config.internal_resolution = value;
@@ -244,7 +267,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "Lock Aspect",
+                game_io,
+                "config-lock-aspect-label",
                 config.borrow().lock_aspect_ratio,
                 config.clone(),
                 |game_io, mut config| {
@@ -263,7 +287,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "Integer Scaling",
+                game_io,
+                "config-integer-scaling-label",
                 config.borrow().integer_scaling,
                 config.clone(),
                 |game_io, mut config| {
@@ -276,7 +301,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "Snap Resize",
+                game_io,
+                "config-snap-resize-label",
                 config.borrow().snap_resize,
                 config.clone(),
                 |game_io, mut config| {
@@ -290,7 +316,8 @@ impl ConfigScene {
             )),
             Box::new(
                 UiConfigPercentage::new(
-                    "Brightness",
+                    game_io,
+                    "config-brightness-label",
                     config.borrow().brightness,
                     config.clone(),
                     |game_io, mut config, value| {
@@ -307,7 +334,8 @@ impl ConfigScene {
                 .with_lower_bound(10),
             ),
             Box::new(UiConfigPercentage::new(
-                "Saturation",
+                game_io,
+                "config-saturation-label",
                 config.borrow().saturation,
                 config.clone(),
                 |game_io, mut config, value| {
@@ -323,7 +351,8 @@ impl ConfigScene {
             )),
             Box::new(
                 UiConfigPercentage::new(
-                    "Ghosting",
+                    game_io,
+                    "config-ghosting-label",
                     config.borrow().ghosting,
                     config.clone(),
                     |game_io, mut config, value| {
@@ -339,14 +368,18 @@ impl ConfigScene {
                 .with_upper_bound(98),
             ),
             Box::new(UiConfigCycle::new(
-                "Color Sim",
+                game_io,
+                "config-color-sim-label",
                 config.borrow().color_blindness,
                 config.clone(),
                 &[
-                    ("Prot", 0),
-                    ("Deut", 1),
-                    ("Trit", 2),
-                    ("Off", PostProcessColorBlindness::TOTAL_OPTIONS),
+                    ("config-color-sim-protanopia", 0),
+                    ("config-color-sim-deuteranopia", 1),
+                    ("config-color-sim-tritanopia", 2),
+                    (
+                        "config-color-sim-off",
+                        PostProcessColorBlindness::TOTAL_OPTIONS,
+                    ),
                 ],
                 |game_io, mut config, value, _| {
                     let globals = game_io.resource_mut::<Globals>().unwrap();
@@ -368,7 +401,8 @@ impl ConfigScene {
         vec![
             Box::new(
                 UiConfigPercentage::new(
-                    "Music",
+                    game_io,
+                    "config-music-label",
                     config.borrow().music,
                     config.clone(),
                     |game_io, mut config, value| {
@@ -384,7 +418,8 @@ impl ConfigScene {
                 .with_auditory_feedback(false),
             ),
             Box::new(UiConfigPercentage::new(
-                "SFX",
+                game_io,
+                "config-sfx-label",
                 config.borrow().sfx,
                 config.clone(),
                 |game_io, mut config, value| {
@@ -399,7 +434,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "Mute Music",
+                game_io,
+                "config-mute-music-label",
                 config.borrow().mute_music,
                 config.clone(),
                 |game_io, mut config| {
@@ -412,7 +448,8 @@ impl ConfigScene {
                 },
             )),
             Box::new(UiConfigToggle::new(
-                "Mute SFX",
+                game_io,
+                "config-mute-sfx-label",
                 config.borrow().mute_sfx,
                 config.clone(),
                 |game_io, mut config| {
@@ -426,7 +463,7 @@ impl ConfigScene {
             )),
             Box::new(UiConfigDynamicCycle::new(
                 game_io,
-                "Device",
+                "config-audio-device-label",
                 config.borrow().audio_device.clone(),
                 config.clone(),
                 |_, value| {
@@ -475,13 +512,14 @@ impl ConfigScene {
     ) -> Vec<Box<dyn UiNode>> {
         let mut children: Vec<Box<dyn UiNode>> = vec![
             Box::new(UiConfigCycle::new(
-                "Style",
+                game_io,
+                "config-key-style-mix",
                 config.borrow().key_style,
                 config.clone(),
                 &[
-                    ("Mix", KeyStyle::Mix),
-                    ("WASD", KeyStyle::Wasd),
-                    ("Emulator", KeyStyle::Emulator),
+                    ("config-key-style-mix", KeyStyle::Mix),
+                    ("config-key-style-wasd", KeyStyle::Wasd),
+                    ("config-key-style-emulator", KeyStyle::Emulator),
                 ],
                 |game_io, mut config, value, confirmed| {
                     config.key_style = value;
@@ -494,30 +532,32 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
-                    let config = config.clone();
-                    let event_sender = event_sender.clone();
+                UiButton::new_translated(game_io, FontName::Thick, "config-reset-binds-label")
+                    .on_activate({
+                        let config = config.clone();
+                        let event_sender = event_sender.clone();
 
-                    move || {
-                        let mut config = config.borrow_mut();
-                        config.key_bindings = Config::default_key_bindings(config.key_style);
+                        move || {
+                            let mut config = config.borrow_mut();
+                            config.key_bindings = Config::default_key_bindings(config.key_style);
 
-                        event_sender.send(Event::ApplyKeyBinds).unwrap();
-                    }
-                }),
+                            event_sender.send(Event::ApplyKeyBinds).unwrap();
+                        }
+                    }),
             ),
         ];
 
         let binding_iter = Input::iter()
             .map(|option| {
-                UiConfigBinding::new_keyboard(option, config.clone()).with_context_requester({
-                    let event_sender = event_sender.clone();
-                    move |sender| {
-                        event_sender
-                            .send(Event::OpenBindingContextMenu(sender))
-                            .unwrap();
-                    }
-                })
+                UiConfigBinding::new_keyboard(game_io, option, config.clone())
+                    .with_context_requester({
+                        let event_sender = event_sender.clone();
+                        move |sender| {
+                            event_sender
+                                .send(Event::OpenBindingContextMenu(sender))
+                                .unwrap();
+                        }
+                    })
             })
             .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) });
 
@@ -535,7 +575,7 @@ impl ConfigScene {
             #[cfg(not(target_os = "android"))]
             Box::new(UiConfigDynamicCycle::new(
                 game_io,
-                "Active Gamepad",
+                "config-active-gamepad-label",
                 config.borrow().controller_index,
                 config.clone(),
                 |_, value| value.to_string(),
@@ -557,7 +597,12 @@ impl ConfigScene {
             )),
             #[cfg(target_os = "android")]
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, "Edit Layout").on_activate({
+                UiButton::new_text(
+                    game_io,
+                    FontName::Thick,
+                    "config-edit-virtual-controller-layout-label",
+                )
+                .on_activate({
                     let event_sender = event_sender.clone();
                     move || {
                         let _ = event_sender.send(Event::EditVirtualControllerLayout);
@@ -565,27 +610,29 @@ impl ConfigScene {
                 }),
             ),
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, "Reset Binds").on_activate({
-                    let config = config.clone();
+                UiButton::new_translated(game_io, FontName::Thick, "config-reset-binds-label")
+                    .on_activate({
+                        let config = config.clone();
 
-                    move || {
-                        let mut config = config.borrow_mut();
-                        config.controller_bindings = Config::default_controller_bindings();
-                    }
-                }),
+                        move || {
+                            let mut config = config.borrow_mut();
+                            config.controller_bindings = Config::default_controller_bindings();
+                        }
+                    }),
             ),
         ];
 
         let binding_iter = Input::iter()
             .map(|option| {
-                UiConfigBinding::new_controller(option, config.clone()).with_context_requester({
-                    let event_sender = event_sender.clone();
-                    move |sender| {
-                        event_sender
-                            .send(Event::OpenBindingContextMenu(sender))
-                            .unwrap();
-                    }
-                })
+                UiConfigBinding::new_controller(game_io, option, config.clone())
+                    .with_context_requester({
+                        let event_sender = event_sender.clone();
+                        move |sender| {
+                            event_sender
+                                .send(Event::OpenBindingContextMenu(sender))
+                                .unwrap();
+                        }
+                    })
             })
             .map(|ui_node| -> Box<dyn UiNode> { Box::new(ui_node) });
 
@@ -602,19 +649,19 @@ impl ConfigScene {
             let event_sender = event_sender.clone();
 
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, name).on_activate(move || {
+                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
                     let _ = event_sender.send(event.clone());
                 }),
             )
         };
 
         vec![
-            create_button("Manage Mods", Event::ViewPackages),
-            create_button("Update Mods", Event::UpdatePackages),
-            create_button("Resource Mods", Event::ReorderResources),
-            create_button("Clear Cache", Event::ClearCache),
+            create_button("config-manage-mods-label", Event::ViewPackages),
+            create_button("config-update-mods-label", Event::UpdatePackages),
+            create_button("config-resource-mods-label", Event::ReorderResources),
+            create_button("config-clear-cache-label", Event::ClearCache),
             #[cfg(not(target_os = "android"))]
-            create_button("Open Mods Folder", Event::OpenModsFolder),
+            create_button("config-open-mods-folder-label", Event::OpenModsFolder),
         ]
     }
 
@@ -626,15 +673,15 @@ impl ConfigScene {
             let event_sender = event_sender.clone();
 
             Box::new(
-                UiButton::new_text(game_io, FontName::Thick, name).on_activate(move || {
+                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
                     let _ = event_sender.send(event.clone());
                 }),
             )
         };
 
         vec![
-            create_button("Change Nickname", Event::RequestNicknameChange),
-            create_button("Sync Data", Event::SyncData),
+            create_button("config-change-nickname-label", Event::RequestNicknameChange),
+            create_button("config-sync-data-label", Event::SyncData),
         ]
     }
 }
@@ -670,7 +717,7 @@ impl Scene for ConfigScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("CONFIG").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         self.primary_layout.draw(game_io, &mut sprite_queue);
         self.secondary_layout.draw(game_io, &mut sprite_queue);
@@ -690,12 +737,12 @@ impl Scene for ConfigScene {
 impl ConfigScene {
     fn handle_events(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
+
         if self.opened_virtual_controller_editor && !globals.editing_virtual_controller {
             self.opened_virtual_controller_editor = false;
 
-            let message = "Tap the screen five times if you need to open the editor again.";
-            self.textbox
-                .push_interface(TextboxMessage::new(message.to_string()));
+            let message = globals.translate("config-edit-virtual-controller-layout-complete");
+            self.textbox.push_interface(TextboxMessage::new(message));
             self.textbox.open();
         }
 
@@ -705,9 +752,9 @@ impl ConfigScene {
                     let children =
                         Self::generate_submenu(game_io, &self.config, category, &self.event_sender);
 
-                    let label: &'static str = category.into();
-
-                    self.secondary_layout.set_label(label.to_ascii_uppercase());
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let label = globals.translate(category.translation_key());
+                    self.secondary_layout.set_label(label.to_uppercase());
                     self.secondary_layout.set_children(children);
                 }
                 Event::EnterCategory => {
@@ -761,14 +808,17 @@ impl ConfigScene {
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::UpdatePackages => {
-                    let globals = &mut game_io.resource::<Globals>().unwrap();
+                    let globals = game_io.resource::<Globals>().unwrap();
                     let request = globals.request_latest_hashes();
                     let event_sender = self.event_sender.clone();
                     let (doorstop, doorstop_key) = TextboxDoorstop::new();
                     self.doorstop_key = Some(doorstop_key);
 
-                    self.textbox
-                        .push_interface(doorstop.with_str("Checking for updates..."));
+                    self.textbox.push_interface(doorstop.with_translated(
+                        game_io,
+                        "packages-checking-for-updates",
+                        vec![],
+                    ));
                     self.textbox.open();
 
                     game_io
@@ -780,7 +830,7 @@ impl ConfigScene {
                         .detach();
                 }
                 Event::ReceivedLatestHashes(results) => {
-                    let globals = &mut game_io.resource::<Globals>().unwrap();
+                    let globals = game_io.resource::<Globals>().unwrap();
 
                     let requires_update: Vec<_> = results
                         .into_iter()
@@ -797,16 +847,17 @@ impl ConfigScene {
 
                     if requires_update.is_empty() {
                         let interface =
-                            TextboxMessage::new(String::from("All packages are up to date."));
+                            TextboxMessage::new(globals.translate("packages-already-up-to-date"));
                         self.textbox.push_interface(interface);
                     } else {
                         let event_sender = self.event_sender.clone();
-                        let interface = TextboxMessage::new(String::from("Updates found."))
-                            .with_callback(move || {
-                                event_sender
-                                    .send(Event::ViewUpdates(requires_update))
-                                    .unwrap()
-                            });
+                        let interface =
+                            TextboxMessage::new(globals.translate("packages-updates-found"))
+                                .with_callback(move || {
+                                    event_sender
+                                        .send(Event::ViewUpdates(requires_update))
+                                        .unwrap()
+                                });
                         self.textbox.push_interface(interface);
                     }
 
@@ -835,19 +886,19 @@ impl ConfigScene {
 
                     let message = if !globals.connected_to_server {
                         match std::fs::remove_dir_all(ResourcePaths::server_cache_folder()) {
-                            Ok(()) => String::from("Cache cleared."),
+                            Ok(()) => globals.translate("config-clear-cache-success"),
                             Err(e) => {
                                 log::error!("{e}");
 
                                 if matches!(e.kind(), std::io::ErrorKind::NotFound) {
-                                    String::from("Cache is already empty.")
+                                    globals.translate("config-clear-cache-already-empty")
                                 } else {
-                                    String::from("Failed to clear cache.")
+                                    globals.translate("config-clear-cache-error")
                                 }
                             }
                         }
                     } else {
-                        String::from("You should jack out before clearing cache.")
+                        globals.translate("config-clear-cache-connected-error")
                     };
 
                     let interface = TextboxMessage::new(message);
@@ -1032,12 +1083,15 @@ impl ConfigScene {
 
         // get permission to save
         let interface = if config.validate() {
-            TextboxQuestion::new(String::from("Save changes?"), move |save| {
-                let _ = event_sender.send(Event::Leave { save });
-            })
+            TextboxQuestion::new(
+                globals.translate("config-save-changes-question"),
+                move |save| {
+                    let _ = event_sender.send(Event::Leave { save });
+                },
+            )
         } else {
             TextboxQuestion::new(
-                String::from("Config is invalid, use old config?"),
+                globals.translate("config-invalid-revert-question"),
                 move |leave| {
                     if leave {
                         let _ = event_sender.send(Event::Leave { save: false });

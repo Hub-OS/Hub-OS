@@ -256,12 +256,12 @@ impl OverworldOnlineScene {
         }
 
         if self.packet_receiver.is_disconnected() {
+            let globals = game_io.resource::<Globals>().unwrap();
+
             self.area
                 .event_sender
                 .send(OverworldEvent::Disconnected {
-                    message: String::from(
-                        "Everything is still.\x01..\x01\nLooks like we've been disconnected.",
-                    ),
+                    message: globals.translate("server-disconnected"),
                 })
                 .unwrap();
         }
@@ -416,10 +416,12 @@ impl OverworldOnlineScene {
                 });
             }
             ServerPacket::Kick { reason } => {
+                let globals = game_io.resource::<Globals>().unwrap();
                 self.area
                     .event_sender
                     .send(OverworldEvent::Disconnected {
-                        message: format!("We've been kicked: \"{reason}\""),
+                        message: globals
+                            .translate_with_args("server-kicked", vec![("reason", reason.into())]),
                     })
                     .unwrap();
             }

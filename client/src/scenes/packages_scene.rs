@@ -42,15 +42,15 @@ pub enum CategoryFilter {
 }
 
 impl CategoryFilter {
-    fn name(&self) -> &'static str {
+    fn translation_key(&self) -> &'static str {
         match self {
-            CategoryFilter::All => "All",
-            CategoryFilter::Cards => "Chips",
-            CategoryFilter::Augments => "Augments",
-            CategoryFilter::Encounters => "Battles",
-            CategoryFilter::Players => "Players",
-            CategoryFilter::Resource => "Resource",
-            CategoryFilter::Packs => "Packs",
+            CategoryFilter::All => "packages-category-filter-all",
+            CategoryFilter::Cards => "packages-category-filter-cards",
+            CategoryFilter::Augments => "packages-category-filter-augments",
+            CategoryFilter::Encounters => "packages-category-filter-encounters",
+            CategoryFilter::Players => "packages-category-filter-players",
+            CategoryFilter::Resource => "packages-category-filter-resource",
+            CategoryFilter::Packs => "packages-category-filter-packs",
         }
     }
 
@@ -82,6 +82,7 @@ impl CategoryFilter {
 pub struct PackagesScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     sidebar: UiLayout,
@@ -136,18 +137,35 @@ impl PackagesScene {
         let mut scene = Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "packages-online-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
             ui_input_tracker: UiInputTracker::new(),
             sidebar: Self::generate_sidebar(game_io, event_sender.clone(), sidebar_bounds),
-            category_menu: ContextMenu::new(game_io, "Category", context_menu_position)
-                .with_options(
-                    game_io,
-                    CategoryFilter::iter().map(|filter| (filter.name(), filter)),
-                ),
-            location_menu: ContextMenu::new(game_io, "Location", context_menu_position)
-                .with_options(game_io, [("Online", false), ("Installed", true)]),
+            category_menu: ContextMenu::new_translated(
+                game_io,
+                "packages-category-context-menu-label",
+                context_menu_position,
+            )
+            .with_translated_options(
+                game_io,
+                &CategoryFilter::iter()
+                    .map(|filter| (filter.translation_key(), filter))
+                    .collect::<Vec<_>>(),
+            ),
+            location_menu: ContextMenu::new_translated(
+                game_io,
+                "packages-location-context-menu-label",
+                context_menu_position,
+            )
+            .with_translated_options(
+                game_io,
+                &[
+                    ("packages-location-online", false),
+                    ("packages-location-installed", true),
+                ],
+            ),
             cursor_sprite,
             cursor_animator,
             list: ScrollableList::new(game_io, list_bounds, 15.0).with_focus(false),
@@ -250,8 +268,8 @@ impl PackagesScene {
         });
 
         self.list_task = Some(task);
-        self.list
-            .set_label(self.category_filter.name().to_uppercase());
+        let label = globals.translate(self.category_filter.translation_key());
+        self.list.set_label(label.to_uppercase());
     }
 
     fn append_listings(&mut self, items: impl IntoIterator<Item = PackageListing>) {
@@ -289,7 +307,7 @@ impl PackagesScene {
         let create_button = |label: &str, event: Event| {
             let event_sender = event_sender.clone();
 
-            UiButton::new_text(game_io, FontName::Thick, label)
+            UiButton::new_translated(game_io, FontName::Thick, label)
                 .on_activate({
                     move || {
                         event_sender.send(event.clone()).unwrap();
@@ -302,9 +320,9 @@ impl PackagesScene {
         UiLayout::new_vertical(
             sidebar_bounds,
             vec![
-                create_button("Search", Event::OpenSearch),
-                create_button("Location", Event::OpenLocationMenu),
-                create_button("Category", Event::OpenCategoryMenu),
+                create_button("packages-search-tab", Event::OpenSearch),
+                create_button("packages-location-tab", Event::OpenLocationMenu),
+                create_button("packages-category-tab", Event::OpenCategoryMenu),
             ],
         )
         .with_style(UiStyle {
@@ -383,6 +401,13 @@ impl PackagesScene {
             self.list_task = None;
             self.local_only = local;
             self.restart_search(game_io);
+
+            let title = if local {
+                "packages-local-scene-title"
+            } else {
+                "packages-online-scene-title"
+            };
+            self.scene_title.set_title(game_io, title, vec![]);
 
             self.location_menu.close();
             self.sidebar.set_focused(true);
@@ -498,13 +523,7 @@ impl Scene for PackagesScene {
 
         self.frame.draw(&mut sprite_queue);
 
-        let title = if self.local_only {
-            "INSTALLED MODS"
-        } else {
-            "DOWNLOAD MODS"
-        };
-
-        SceneTitle::new(title).draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         self.sidebar.draw(game_io, &mut sprite_queue);
         self.list.draw(game_io, &mut sprite_queue);

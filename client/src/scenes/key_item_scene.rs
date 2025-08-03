@@ -14,6 +14,7 @@ const LINE_HEIGHT: f32 = 16.0;
 pub struct KeyItemsScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     key_items: Vec<ItemDefinition>,
     cursor_left_start: Vec2,
@@ -95,10 +96,10 @@ impl KeyItemsScene {
 
         let (mut interface, _) = TextboxDoorstop::new();
 
-        interface = interface.with_str(if let Some(item) = key_items.first() {
-            &item.description
+        interface = interface.with_string(if let Some(item) = key_items.first() {
+            item.description.clone()
         } else {
-            "You have no Key Items."
+            globals.translate("key-items-no-items-description")
         });
 
         textbox.push_interface(interface);
@@ -106,6 +107,7 @@ impl KeyItemsScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "key-items-scene-title"),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             key_items,
             cursor_left_start,
@@ -251,7 +253,7 @@ impl Scene for KeyItemsScene {
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("KEY ITEMS").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

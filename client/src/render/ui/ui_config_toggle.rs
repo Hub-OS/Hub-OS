@@ -7,7 +7,7 @@ use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
 pub struct UiConfigToggle {
-    name: &'static str,
+    label: String,
     value: bool,
     config: Rc<RefCell<Config>>,
     callback: Box<dyn Fn(&mut GameIO, RefMut<Config>) -> bool>,
@@ -15,13 +15,16 @@ pub struct UiConfigToggle {
 
 impl UiConfigToggle {
     pub fn new(
-        name: &'static str,
+        game_io: &GameIO,
+        label_translation_key: &'static str,
         value: bool,
         config: Rc<RefCell<Config>>,
         callback: impl Fn(&mut GameIO, RefMut<Config>) -> bool + 'static,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
-            name,
+            label: globals.translate(label_translation_key),
             config,
             value,
             callback: Box::new(callback),
@@ -41,7 +44,7 @@ impl UiNode for UiConfigToggle {
         text_style.bounds.set_position(bounds.position());
 
         // draw name
-        text_style.draw(game_io, sprite_queue, self.name);
+        text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw value
         let text = if self.value { "true" } else { "false" };

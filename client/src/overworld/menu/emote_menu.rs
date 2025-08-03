@@ -17,6 +17,7 @@ enum EmoteCategory {
 
 pub struct EmoteMenu {
     search_sprite: Sprite,
+    search_string: String,
     highlight_sprite: Sprite,
     actor_animation_sprite: Sprite,
     emote_sprite: Sprite,
@@ -80,6 +81,7 @@ impl EmoteMenu {
 
         Self {
             search_sprite,
+            search_string: globals.translate("emotes-menu-search"),
             highlight_sprite,
             actor_animation_sprite,
             emote_sprite: assets.new_sprite(game_io, ResourcePaths::OVERWORLD_EMOTES),
@@ -347,7 +349,7 @@ impl Menu for EmoteMenu {
         } else {
             // draw selection name
             let selection_name = if selected_index == 0 {
-                "SEARCH"
+                self.search_string.as_str()
             } else {
                 self.filtered_emotes[selected_index - 1].0.as_str()
             };

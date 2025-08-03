@@ -10,6 +10,7 @@ use framework::prelude::*;
 pub struct LibraryScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     card_preview: FullCard,
     ui_input_tracker: UiInputTracker,
@@ -70,6 +71,7 @@ impl LibraryScene {
         let mut scene = Box::new(Self {
             camera,
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "card-library-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             card_preview: FullCard::new(game_io, card_position),
@@ -172,7 +174,7 @@ impl Scene for LibraryScene {
 
         // draw title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("LIBRARY").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw docks
         sprite_queue.set_scissor(self.dock_scissor);
@@ -239,19 +241,12 @@ impl Dock {
         let context_menu_position = dock_offset + context_menu_point;
 
         // label
-        let label_text = match card_class {
-            CardClass::Standard => "Standard",
-            CardClass::Mega => "Mega",
-            CardClass::Giga => "Giga",
-            CardClass::Dark => "Dark",
-            CardClass::Recipe => "Recipe",
-        };
-
         let mut label = Text::new(game_io, FontName::Thick)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR)
-            .with_str(label_text);
+            .with_string(globals.translate(card_class.translation_key()));
 
-        let label_position = dock_animator.point_or_zero("LABEL") - dock_sprite.origin();
+        let label_position =
+            dock_animator.point_or_zero("LABEL") - dock_sprite.origin() + dock_offset;
         label.style.bounds.set_position(label_position);
 
         // scroll tracker

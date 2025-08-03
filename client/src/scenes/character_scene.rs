@@ -20,6 +20,7 @@ enum Event {
 pub struct CharacterScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
@@ -37,6 +38,7 @@ impl CharacterScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "character-status-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             textbox: Textbox::new_navigation(game_io).begin_open(),
             event_sender,
@@ -76,7 +78,7 @@ impl CharacterScene {
 
     fn reload_textbox(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
-        let interface = TextboxCharacterNavigation::new(move |i| {
+        let interface = TextboxCharacterNavigation::new(game_io, move |i| {
             let event = match i {
                 0 => Event::BlockCustomization,
                 1 => Event::EquipDrives,
@@ -172,7 +174,7 @@ impl Scene for CharacterScene {
 
         // draw title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("STATUS").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);
@@ -250,6 +252,8 @@ impl StatusPage {
         mut page_sprite: Sprite,
         data: &StatusData,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         let mut page = Self {
             text: Vec::new(),
             sprites: Vec::new(),
@@ -311,47 +315,51 @@ impl StatusPage {
         }
 
         let stat_text_associations = [
-            ("ATTACK_TEXT", "Attack LV ", data.attack_level),
-            ("RAPID_TEXT", "Rapid  LV ", data.rapid_level),
-            ("CHARGE_TEXT", "Charge LV ", data.charge_level),
+            (
+                "ATTACK_TEXT",
+                "character-status-attack-level-label",
+                data.attack_level,
+            ),
+            (
+                "RAPID_TEXT",
+                "character-status-rapid-level-label",
+                data.rapid_level,
+            ),
+            (
+                "CHARGE_TEXT",
+                "character-status-charge-level-label",
+                data.charge_level,
+            ),
         ];
 
-        for (label, prefix, value) in stat_text_associations {
+        for (label, prefix_key, value) in stat_text_associations {
             if let Some(point) = ui_animator.point(label) {
                 let mut text = Text::new_monospace(game_io, FontName::Thick);
                 text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
                 text.style.letter_spacing = 2.0;
                 text.style.bounds.set_position(point);
 
-                text.text = format!("{prefix}{value}");
+                text.text = format!("{} {value}", globals.translate(prefix_key));
 
                 page.text.push(text);
             }
-        }
-
-        if let Some(point) = ui_animator.point("POWER_CHARGE_TEXT") {
-            let mut text = Text::new(game_io, FontName::Thick);
-            text.style.shadow_color = TEXT_DARK_SHADOW_COLOR;
-            text.style.letter_spacing = 2.0;
-            text.style.bounds.set_position(point);
-
-            text.text = String::from("PwrCharge S");
-
-            page.text.push(text);
         }
 
         if let Some(start_point) = ui_animator.point("DECK_START") {
             let end_point = ui_animator.point_or_zero("DECK_END");
             let bounds = Rect::from_corners(start_point, end_point);
 
+            let label = globals.translate("character-status-deck-tab");
+
             let list = ScrollableList::new(game_io, bounds, 15.0)
-                .with_label_str("FOLDER")
+                .with_label(label.to_uppercase())
                 .with_focus(false)
                 .with_children(vec![
                     Box::new(
                         Text::new_monospace(game_io, FontName::Thin)
                             .with_string(format!(
-                                "MegaLim {:>2}",
+                                "{:<7} {:>2}",
+                                globals.translate("character-status-deck-mega-limit-label"),
                                 data.deck_restrictions.mega_limit
                             ))
                             .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
@@ -359,7 +367,8 @@ impl StatusPage {
                     Box::new(
                         Text::new_monospace(game_io, FontName::Thin)
                             .with_string(format!(
-                                "GigaLim {:>2}",
+                                "{:<7} {:>2}",
+                                globals.translate("character-status-deck-giga-limit-label"),
                                 data.deck_restrictions.giga_limit
                             ))
                             .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
@@ -373,8 +382,10 @@ impl StatusPage {
             let end_point = ui_animator.point_or_zero("BLOCKS_END");
             let bounds = Rect::from_corners(start_point, end_point);
 
+            let label = globals.translate("character-status-augments-tab");
+
             let list = ScrollableList::new(game_io, bounds, 15.0)
-                .with_label_str("AUGMENTS")
+                .with_label(label.to_uppercase())
                 .with_focus(false)
                 .with_children(
                     data.visible_augments

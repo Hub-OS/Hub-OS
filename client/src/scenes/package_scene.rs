@@ -16,6 +16,7 @@ enum Event {
 pub struct PackageScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     preview: PackagePreview,
@@ -70,6 +71,7 @@ impl PackageScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "package-info-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
@@ -159,24 +161,27 @@ impl PackageScene {
 
         let buttons = if installed {
             vec![
-                UiButton::new_text(game_io, FontName::Thick, "Update").on_activate({
-                    let sender = event_sender.clone();
+                UiButton::new_translated(game_io, FontName::Thick, "package-info-button-update")
+                    .on_activate({
+                        let sender = event_sender.clone();
 
-                    move || sender.send(Event::StartDownload).unwrap()
-                }),
-                UiButton::new_text(game_io, FontName::Thick, "Delete").on_activate({
-                    let sender = event_sender.clone();
+                        move || sender.send(Event::StartDownload).unwrap()
+                    }),
+                UiButton::new_translated(game_io, FontName::Thick, "package-info-button-delete")
+                    .on_activate({
+                        let sender = event_sender.clone();
 
-                    move || sender.send(Event::Delete).unwrap()
-                }),
+                        move || sender.send(Event::Delete).unwrap()
+                    }),
             ]
         } else {
             vec![
-                UiButton::new_text(game_io, FontName::Thick, "Install").on_activate({
-                    let sender = event_sender.clone();
+                UiButton::new_translated(game_io, FontName::Thick, "package-info-button-install")
+                    .on_activate({
+                        let sender = event_sender.clone();
 
-                    move || sender.send(Event::StartDownload).unwrap()
-                }),
+                        move || sender.send(Event::StartDownload).unwrap()
+                    }),
             ]
         };
 
@@ -318,20 +323,22 @@ impl PackageScene {
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 if globals.connected_to_server {
-                    let interface = TextboxMessage::new(String::from(
-                        "Package can't be deleted while connected to a server.",
-                    ));
+                    let interface = TextboxMessage::new(
+                        globals.translate("package-info-delete-while-connected-error"),
+                    );
 
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 } else {
+                    let message = globals.translate("package-info-delete-success");
+
                     self.delete_package(game_io);
                     self.reload_buttons(game_io);
 
                     // update player avatar
                     self.textbox.use_navigation_avatar(game_io);
 
-                    let interface = TextboxMessage::new(String::from("Package deleted."));
+                    let interface = TextboxMessage::new(message);
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 }
@@ -350,23 +357,26 @@ impl PackageScene {
 
         self.doorstop_key.take();
 
-        let message = match status {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let message_key = match status {
             UpdateStatus::Idle => unreachable!(),
-            UpdateStatus::CheckingForUpdate => "Checking for updates...",
-            UpdateStatus::DownloadingPackage => "Downloading...",
-            UpdateStatus::Failed => "Download failed.",
+            UpdateStatus::CheckingForUpdate => "package-info-checking-for-updates",
+            UpdateStatus::DownloadingPackage => "package-info-downloading",
+            UpdateStatus::Failed => "package-info-update-error",
             UpdateStatus::Success => {
                 if self.package_updater.total_updated() == 0 {
-                    "Already up to date."
+                    "package-info-update-unnecessary"
                 } else {
-                    "Download successful."
+                    "package-info-update-success"
                 }
             }
         };
 
+        let message = globals.translate(message_key);
+
         if matches!(status, UpdateStatus::Failed | UpdateStatus::Success) {
             // clear cached assets
-            let globals = game_io.resource::<Globals>().unwrap();
             globals.assets.clear_local_mod_assets();
 
             // update player avatar
@@ -398,12 +408,12 @@ impl PackageScene {
             }
 
             // notify player
-            let interface = TextboxMessage::new(String::from(message));
+            let interface = TextboxMessage::new(message);
             self.textbox.push_interface(interface);
         } else {
             let (doorstop, doorstop_key) = TextboxDoorstop::new();
             self.doorstop_key = Some(doorstop_key);
-            self.textbox.push_interface(doorstop.with_str(message));
+            self.textbox.push_interface(doorstop.with_string(message));
         }
 
         self.textbox.open();
@@ -427,7 +437,7 @@ impl PackageScene {
         let task = game_io.spawn_local_task(async move {
             let Some(value) = crate::http::request_json(&uri).await else {
                 // provide default
-                return Event::ReceivedUploader(String::from("unknown"));
+                return Event::ReceivedUploader(Default::default());
             };
 
             let uploader = value
@@ -505,7 +515,7 @@ impl Scene for PackageScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("PACKAGE INFO").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         self.preview.draw(game_io, &mut sprite_queue);
         self.list.draw(game_io, &mut sprite_queue);

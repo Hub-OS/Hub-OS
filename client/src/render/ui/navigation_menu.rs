@@ -1,11 +1,10 @@
+use super::{FontName, TextStyle};
 use crate::overworld::OverworldPlayerData;
 use crate::render::ui::{draw_clock, draw_date, ScrollTracker, UiInputTracker};
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::*;
 use framework::prelude::*;
-
-use super::{FontName, TextStyle};
 
 #[derive(Clone, Copy)]
 pub enum SceneOption {
@@ -39,29 +38,42 @@ impl OpenState {
 }
 
 impl SceneOption {
+    fn translation_key(&self) -> &'static str {
+        match self {
+            SceneOption::Servers => "navigation-option-servers",
+            SceneOption::Decks => "navigation-option-decks",
+            SceneOption::Items => "navigation-option-items",
+            SceneOption::Library => "navigation-option-library",
+            SceneOption::Character => "navigation-option-character-status",
+            SceneOption::KeyItems => "navigation-option-key-items",
+            SceneOption::BattleSelect => "navigation-option-battle-sim",
+            SceneOption::Config => "navigation-option-config",
+        }
+    }
+
     fn state(&self) -> &'static str {
         match self {
-            SceneOption::Servers => "SERVERS_LABEL",
-            SceneOption::Decks => "DECKS_LABEL",
-            SceneOption::Items => "ITEMS_LABEL",
-            SceneOption::Library => "LIBRARY_LABEL",
-            SceneOption::Character => "CHARACTER_LABEL",
-            SceneOption::KeyItems => "KEY_ITEMS_LABEL",
-            SceneOption::BattleSelect => "BATTLE_SELECT_LABEL",
-            SceneOption::Config => "CONFIG_LABEL",
+            SceneOption::Servers => "SERVERS_ICON",
+            SceneOption::Decks => "DECKS_ICON",
+            SceneOption::Items => "ITEMS_ICON",
+            SceneOption::Library => "LIBRARY_ICON",
+            SceneOption::Character => "CHARACTER_ICON",
+            SceneOption::KeyItems => "KEY_ITEMS_ICON",
+            SceneOption::BattleSelect => "BATTLE_SELECT_ICON",
+            SceneOption::Config => "CONFIG_ICON",
         }
     }
 
     fn blink_state(&self) -> &'static str {
         match self {
-            SceneOption::Servers => "SERVERS_LABEL_BLINK",
-            SceneOption::Decks => "DECKS_LABEL_BLINK",
-            SceneOption::Items => "ITEMS_LABEL_BLINK",
-            SceneOption::Library => "LIBRARY_LABEL_BLINK",
-            SceneOption::Character => "CHARACTER_LABEL_BLINK",
-            SceneOption::KeyItems => "KEY_ITEMS_LABEL_BLINK",
-            SceneOption::BattleSelect => "BATTLE_SELECT_LABEL_BLINK",
-            SceneOption::Config => "CONFIG_LABEL_BLINK",
+            SceneOption::Servers => "SERVERS_ICON_BLINK",
+            SceneOption::Decks => "DECKS_ICON_BLINK",
+            SceneOption::Items => "ITEMS_ICON_BLINK",
+            SceneOption::Library => "LIBRARY_ICON_BLINK",
+            SceneOption::Character => "CHARACTER_ICON_BLINK",
+            SceneOption::KeyItems => "KEY_ITEMS_ICON_BLINK",
+            SceneOption::BattleSelect => "BATTLE_SELECT_ICON_BLINK",
+            SceneOption::Config => "CONFIG_ICON_BLINK",
         }
     }
 
@@ -71,8 +83,9 @@ impl SceneOption {
 }
 
 struct NavigationItem {
-    sprite: Sprite,
+    icon_sprite: Sprite,
     target_scene: SceneOption,
+    text: String,
 }
 
 pub struct NavigationMenu {
@@ -81,10 +94,15 @@ pub struct NavigationMenu {
     animation_time: FrameTime,
     scroll_tracker: ScrollTracker,
     scroll_top: f32,
+    hp_label_point: Vec2,
     hp_point: Vec2,
+    money_label_point: Vec2,
     money_point: Vec2,
+    hp_label_text: String,
     hp_text: String,
+    money_label_text: String,
     money_text: String,
+    currency_symbol_text: String,
     animator: Animator,
     top_bar_sprite: Sprite,
     info_sprite: Sprite,
@@ -92,6 +110,10 @@ pub struct NavigationMenu {
     item_start: Vec2,
     item_next: Vec2,
     items: Vec<NavigationItem>,
+    item_label_sprite: Sprite,
+    item_text_style: TextStyle,
+    item_icon_offset: Vec2,
+    selected_item_offset: Vec2,
     ui_input_tracker: UiInputTracker,
 }
 
@@ -118,7 +140,7 @@ impl NavigationMenu {
             .into_iter()
             .enumerate()
             .map(|(i, target_scene)| {
-                let mut sprite = menu_sprite.clone();
+                let mut icon_sprite = menu_sprite.clone();
 
                 if i == 0 {
                     // use selected sprite
@@ -127,14 +149,29 @@ impl NavigationMenu {
                     ui_animator.set_state(target_scene.state());
                 }
 
-                ui_animator.apply(&mut sprite);
+                ui_animator.apply(&mut icon_sprite);
 
                 NavigationItem {
-                    sprite,
+                    icon_sprite,
                     target_scene,
+                    text: globals.translate(target_scene.translation_key()),
                 }
             })
             .collect();
+
+        // menu item label
+        let mut item_label_sprite = menu_sprite.clone();
+        ui_animator.set_state("LABEL");
+        ui_animator.apply(&mut item_label_sprite);
+
+        let mut item_text_style = TextStyle::new(game_io, FontName::Navigation);
+        item_text_style.shadow_color = Color::from_rgb_u8s(18, 70, 98);
+
+        let label_text_bounds = &mut item_text_style.bounds;
+        label_text_bounds.set_position(ui_animator.point_or_zero("TEXT"));
+
+        let item_icon_offset = ui_animator.point_or_zero("ICON") - item_label_sprite.origin();
+        let selected_item_offset = ui_animator.point_or_zero("SELECTED_OFFSET");
 
         // info sprite
         let mut info_sprite = menu_sprite;
@@ -143,6 +180,8 @@ impl NavigationMenu {
 
         let hp_point = ui_animator.point_or_zero("HP") - ui_animator.origin();
         let money_point = ui_animator.point_or_zero("MONEY") - ui_animator.origin();
+        let hp_label_point = ui_animator.point_or_zero("HP_LABEL") - ui_animator.origin();
+        let money_label_point = ui_animator.point_or_zero("MONEY_LABEL") - ui_animator.origin();
 
         // backing fade sprite
         let mut fade_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
@@ -160,10 +199,15 @@ impl NavigationMenu {
             animation_time: 0,
             scroll_tracker,
             scroll_top: 0.0,
+            hp_label_point,
             hp_point,
+            money_label_point,
             money_point,
+            hp_label_text: globals.translate("navigation-health-label").to_uppercase(),
             hp_text: String::new(),
+            money_label_text: globals.translate("currency").to_uppercase(),
             money_text: String::new(),
+            currency_symbol_text: globals.translate("currency-symbol"),
             animator: ui_animator,
             top_bar_sprite,
             info_sprite,
@@ -171,6 +215,10 @@ impl NavigationMenu {
             item_start,
             item_next,
             items,
+            item_label_sprite,
+            item_text_style,
+            item_icon_offset,
+            selected_item_offset,
             ui_input_tracker: UiInputTracker::new(),
         };
 
@@ -211,7 +259,7 @@ impl NavigationMenu {
 
     pub fn update_info(&mut self, player_data: &OverworldPlayerData) {
         self.hp_text = format!("{:>4}/{:>4}", player_data.health, player_data.max_health());
-        self.money_text = format!("{:>8}$", player_data.money);
+        self.money_text = format!("{:>8}{}", player_data.money, self.currency_symbol_text);
     }
 
     fn update_animations(&mut self) {
@@ -336,9 +384,21 @@ impl NavigationMenu {
         }
 
         // draw items
+        let text_offset = self.item_text_style.bounds.position();
+
         for item in &self.items {
-            sprite_queue.draw_sprite(&item.sprite);
+            let mut label_position = item.icon_sprite.position() - self.item_icon_offset;
+            self.item_label_sprite.set_position(label_position);
+            sprite_queue.draw_sprite(&self.item_label_sprite);
+
+            label_position += text_offset - self.item_label_sprite.origin();
+            self.item_text_style.bounds.set_position(label_position);
+            self.item_text_style.draw(game_io, sprite_queue, &item.text);
+
+            sprite_queue.draw_sprite(&item.icon_sprite);
         }
+
+        self.item_text_style.bounds.set_position(text_offset);
 
         // draw top bar
         sprite_queue.draw_sprite(&self.top_bar_sprite);
@@ -353,7 +413,15 @@ impl NavigationMenu {
             draw_clock(game_io, sprite_queue);
 
             if self.overlay {
-                let mut text_style = TextStyle::new_monospace(game_io, FontName::Thin);
+                let mut text_style = TextStyle::new_monospace(game_io, FontName::Micro);
+
+                text_style.bounds.set_position(self.hp_label_point);
+                text_style.draw(game_io, sprite_queue, &self.hp_label_text);
+
+                text_style.bounds.set_position(self.money_label_point);
+                text_style.draw(game_io, sprite_queue, &self.money_label_text);
+
+                text_style.font = FontName::Thin;
 
                 text_style.bounds.set_position(self.hp_point);
                 text_style.draw(game_io, sprite_queue, &self.hp_text);
@@ -377,7 +445,7 @@ fn system_animate_items(menu: &mut NavigationMenu) {
 
         animator.set_loop_mode(AnimatorLoopMode::Loop);
         animator.sync_time(menu.animation_time);
-        animator.apply(&mut item.sprite);
+        animator.apply(&mut item.icon_sprite);
     }
 }
 
@@ -386,12 +454,18 @@ fn system_scroll(menu: &mut NavigationMenu) {
 
     menu.scroll_top = menu.scroll_top + (target_scroll_top - menu.scroll_top) * 0.2;
 
+    let icon_start = menu.item_start + menu.item_icon_offset;
+
     for (i, item) in menu.items.iter_mut().enumerate() {
-        let mut position = menu.item_start;
+        let mut position = icon_start;
         position += i as f32 * menu.item_next;
         position += menu.scroll_top * menu.item_next;
 
-        item.sprite.set_position(position);
+        if i == menu.scroll_tracker.selected_index() {
+            position += menu.selected_item_offset;
+        }
+
+        item.icon_sprite.set_position(position);
     }
 }
 
@@ -423,11 +497,13 @@ fn system_transition(menu: &mut NavigationMenu) {
     menu.top_bar_sprite.set_position(position);
 
     // animate menu items
-    for item in &mut menu.items {
-        let mut position = item.sprite.position();
-        position.x = (position.x - RESOLUTION_F.x) * animation_progress + RESOLUTION_F.x;
+    let icon_start_x = RESOLUTION_F.x + menu.item_icon_offset.x;
 
-        item.sprite.set_position(position);
+    for item in &mut menu.items {
+        let mut position = item.icon_sprite.position();
+        position.x = (position.x - icon_start_x) * animation_progress + icon_start_x;
+
+        item.icon_sprite.set_position(position);
     }
 
     // animate info

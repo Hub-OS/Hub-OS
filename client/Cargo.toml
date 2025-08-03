@@ -60,6 +60,10 @@ dirs-next = "2.0.0"
 webbrowser = { version = "1", features = ["hardened"] }
 smol = "2"
 base64 = "0.22.1"
+fluent-templates = "0.13.0"
+sys-locale = "0.3.2"
+fluent-langneg = "0.14.1"
+fluent-resmgr = "0.0.8"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 surf = { version = "2.3", default-features = false, features = ["curl-client"] }

@@ -11,10 +11,12 @@ pub struct UiButton<'a, T> {
 }
 
 impl UiButton<'_, Text> {
-    pub fn new_text(game_io: &GameIO, font: FontName, text: &str) -> Self {
+    pub fn new_translated(game_io: &GameIO, font: FontName, text_key: &str) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self::new(
             Text::new(game_io, font)
-                .with_str(text)
+                .with_string(globals.translate(text_key))
                 .with_shadow_color(TEXT_DARK_SHADOW_COLOR),
         )
     }

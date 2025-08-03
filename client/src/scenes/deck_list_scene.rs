@@ -25,6 +25,7 @@ enum DeckOption {
 pub struct DeckListScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     scene_time: FrameTime,
@@ -132,6 +133,7 @@ impl DeckListScene {
         Box::new(Self {
             camera,
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "deck-list-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             scene_time: 0,
@@ -148,8 +150,12 @@ impl DeckListScene {
             deck_scroll_tracker,
             card_scroll_tracker,
             card_list_position,
-            context_menu: ContextMenu::new(game_io, "SELECT", Vec2::new(3.0, 50.0))
-                .with_arrow(true),
+            context_menu: ContextMenu::new_translated(
+                game_io,
+                "deck-list-context-menu-label",
+                Vec2::new(3.0, 50.0),
+            )
+            .with_arrow(true),
             event_sender,
             event_receiver,
             textbox: Textbox::new_navigation(game_io),
@@ -307,7 +313,7 @@ impl Scene for DeckListScene {
 
         // draw frame and title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("FOLDER LIST").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw context menu
         self.context_menu.draw(game_io, &mut sprite_queue);
@@ -448,16 +454,19 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         let context_menu = &mut scene.context_menu;
 
         if total_decks == 0 {
-            context_menu.set_options(game_io, [("NEW", DeckOption::New)]);
-        } else {
-            context_menu.set_options(
+            context_menu.set_and_translate_options(
                 game_io,
-                [
-                    ("EDIT", DeckOption::Edit),
-                    ("EQUIP", DeckOption::Equip),
-                    ("CHG NAME", DeckOption::ChangeName),
-                    ("NEW", DeckOption::New),
-                    ("DELETE", DeckOption::Delete),
+                &[("deck-list-option-change-name", DeckOption::New)],
+            );
+        } else {
+            context_menu.set_and_translate_options(
+                game_io,
+                &[
+                    ("deck-list-option-edit", DeckOption::Edit),
+                    ("deck-list-option-equip", DeckOption::Equip),
+                    ("deck-list-option-change-name", DeckOption::ChangeName),
+                    ("deck-list-option-new", DeckOption::New),
+                    ("deck-list-option-delete", DeckOption::Delete),
                 ],
             );
         }
@@ -472,7 +481,6 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
     };
 
     let globals = game_io.resource_mut::<Globals>().unwrap();
-    let global_save = &mut globals.global_save;
 
     match selection {
         DeckOption::Edit => {
@@ -482,6 +490,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 .with_transition(crate::transitions::new_sub_scene(game_io));
         }
         DeckOption::Equip => {
+            let global_save = &mut globals.global_save;
             global_save.selected_deck = scene.deck_scroll_tracker.selected_index();
             global_save.selected_deck_time = GlobalSave::current_time();
             global_save.save();
@@ -499,6 +508,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             };
 
             let index = scene.deck_scroll_tracker.selected_index();
+            let global_save = &globals.global_save;
             let deck_name = &global_save.decks[index].name;
             let textbox_interface = TextboxPrompt::new(callback)
                 .with_str(deck_name)
@@ -509,10 +519,18 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         }
         DeckOption::New => create_new_deck(scene, game_io),
         DeckOption::Delete => {
-            let event_sender = scene.event_sender.clone();
+            let global_save = &globals.global_save;
+
             let index = scene.deck_scroll_tracker.selected_index();
             let deck_name = &global_save.decks[index].name;
-            let callback = move |response| {
+
+            let question = globals.translate_with_args(
+                "deck-list-delete-question",
+                vec![("name", deck_name.into())],
+            );
+
+            let event_sender = scene.event_sender.clone();
+            let textbox_interface = TextboxQuestion::new(question, move |response| {
                 let event = if response {
                     Event::Delete
                 } else {
@@ -520,9 +538,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 };
 
                 event_sender.send(event).unwrap();
-            };
-
-            let textbox_interface = TextboxQuestion::new(format!("Delete {deck_name}?"), callback);
+            });
 
             scene.textbox.push_interface(textbox_interface);
             scene.textbox.open();
@@ -534,9 +550,9 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
 fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let globals = game_io.resource_mut::<Globals>().unwrap();
-    let global_save = &mut globals.global_save;
+    let name = globals.translate("deck-list-new-deck-name");
 
-    let name = String::from("NewFldr");
+    let global_save = &mut globals.global_save;
     global_save.decks.push(Deck::new(name));
     scene.deck_validities.push(DeckValidity::default());
 

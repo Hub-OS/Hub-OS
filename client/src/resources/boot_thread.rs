@@ -4,10 +4,9 @@ use crate::resources::{GlobalMusic, GlobalSfx, LocalAssetManager, ResourcePaths}
 use framework::prelude::GameIO;
 use packets::structures::FileHash;
 use std::collections::HashSet;
-use std::sync::Arc;
 
 pub struct ProgressUpdate {
-    pub label: Arc<str>,
+    pub label_translation_key: &'static str,
     pub progress: usize,
     pub total: usize,
 }
@@ -65,7 +64,7 @@ impl BootThread {
 
         // load sound font for music
         self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-            label: Arc::from("Loading Music"),
+            label_translation_key: "boot-loading-music",
             progress: 0,
             total,
         }));
@@ -77,7 +76,7 @@ impl BootThread {
 
         let load = |path: &str| {
             self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-                label: Arc::from("Loading Music"),
+                label_translation_key: "boot-loading-music",
                 progress,
                 total,
             }));
@@ -96,7 +95,7 @@ impl BootThread {
 
         let load = |path: &str| {
             self.send(BootEvent::ProgressUpdate(ProgressUpdate {
-                label: Arc::from("Loading SFX"),
+                label_translation_key: "boot-loading-sfx",
                 progress,
                 total,
             }));
@@ -112,37 +111,43 @@ impl BootThread {
 
     fn load_packages(&mut self) {
         // load players
-        let player_packages = self.load_category(PackageCategory::Player, "Players");
+        let player_packages =
+            self.load_category(PackageCategory::Player, "boot-loading-player-mods");
 
         self.send(BootEvent::PlayerManager(player_packages));
 
         // load cards
-        let card_packages = self.load_category(PackageCategory::Card, "Chips");
+        let card_packages = self.load_category(PackageCategory::Card, "boot-loading-card-mods");
 
         self.send(BootEvent::CardManager(card_packages));
 
         // load battles
-        let encounter_packages = self.load_category(PackageCategory::Encounter, "Battles");
+        let encounter_packages =
+            self.load_category(PackageCategory::Encounter, "boot-loading-encounter-mods");
 
         self.send(BootEvent::EncounterManager(encounter_packages));
 
         // load augments
-        let augment_packages = self.load_category(PackageCategory::Augment, "Augments");
+        let augment_packages =
+            self.load_category(PackageCategory::Augment, "boot-loading-augment-mods");
 
         self.send(BootEvent::AugmentManager(augment_packages));
 
         // load statuses
-        let status_packages = self.load_category(PackageCategory::Status, "Statuses");
+        let status_packages =
+            self.load_category(PackageCategory::Status, "boot-loading-status-mods");
 
         self.send(BootEvent::StatusManager(status_packages));
 
         // load tile states
-        let tile_state_packages = self.load_category(PackageCategory::TileState, "Tiles");
+        let tile_state_packages =
+            self.load_category(PackageCategory::TileState, "boot-loading-tile-state-mods");
 
         self.send(BootEvent::TileStateManager(tile_state_packages));
 
         // load libraries
-        let library_packages = self.load_category(PackageCategory::Library, "Libraries");
+        let library_packages =
+            self.load_category(PackageCategory::Library, "boot-loading-library-mods");
 
         self.send(BootEvent::LibraryManager(library_packages));
 
@@ -159,24 +164,22 @@ impl BootThread {
     fn load_category<P: Package>(
         &mut self,
         category: PackageCategory,
-        plural_name: &'static str,
+        label_translation_key: &'static str,
     ) -> PackageManager<P> {
         let mut package_manager = PackageManager::<P>::new(category);
-
-        let label: Arc<str> = Arc::from(format!("Loading {plural_name}"));
 
         self.load_package_folder(
             &mut package_manager,
             PackageNamespace::BuiltIn,
             &ResourcePaths::game_folder_absolute(category.built_in_path()),
-            label.clone(),
+            label_translation_key,
         );
 
         self.load_package_folder(
             &mut package_manager,
             PackageNamespace::Local,
             &ResourcePaths::data_folder_absolute(category.mod_path()),
-            label,
+            label_translation_key,
         );
 
         package_manager
@@ -187,7 +190,7 @@ impl BootThread {
         package_manager: &mut PackageManager<P>,
         namespace: PackageNamespace,
         path: &str,
-        label: Arc<str>,
+        label_translation_key: &'static str,
     ) {
         package_manager.load_packages_in_folder(
             &self.assets,
@@ -195,7 +198,7 @@ impl BootThread {
             path,
             |progress, total| {
                 let status_update = ProgressUpdate {
-                    label: label.clone(),
+                    label_translation_key,
                     progress,
                     total,
                 };
@@ -228,7 +231,7 @@ impl BootThread {
 
         for (i, (child_package, namespace)) in self.child_packages.iter().enumerate() {
             let status_update = ProgressUpdate {
-                label: Arc::from("Loading Enemies"),
+                label_translation_key: "boot-loading-character-mods",
                 progress: i,
                 total: total_child_packages,
             };
@@ -269,7 +272,7 @@ impl BootThread {
 
         for (i, entry) in entries.into_iter().enumerate() {
             let status_update = ProgressUpdate {
-                label: Arc::from("Cleaning Cache"),
+                label_translation_key: "boot-cleaning-cache",
                 progress: i,
                 total,
             };

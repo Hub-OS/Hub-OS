@@ -244,7 +244,8 @@ impl BattleScene {
                     if can_run {
                         // confirm
                         let event_sender = self.resources.event_sender.clone();
-                        let text = String::from("Should we run?");
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        let text = globals.translate("battle-run-question");
 
                         let interface = TextboxQuestion::new(text, move |yes| {
                             if yes {
@@ -255,7 +256,8 @@ impl BattleScene {
                         self.textbox.push_interface(interface);
                     } else {
                         // can't run
-                        let text = String::from("This is no time to run!");
+                        let globals = game_io.resource::<Globals>().unwrap();
+                        let text = globals.translate("battle-run-disabled-message");
                         let interface = TextboxMessage::new(text);
 
                         self.textbox.push_interface(interface);
@@ -269,13 +271,17 @@ impl BattleScene {
                 }
                 BattleEvent::FleeResult(success) => {
                     let event_sender = self.resources.event_sender.clone();
-                    let text = if success {
-                        String::from("\x01...\x01OK!\nWe got away!")
+                    let message_key = if success {
+                        "battle-run-success"
                     } else {
-                        String::from("\x01...\x01It's no good!\nWe can't run away!")
+                        "battle-run-failed"
                     };
 
-                    let interface = TextboxMessage::new(text).with_callback(move || {
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let message =
+                        String::from("\x01...\x01") + globals.translate(message_key).as_str();
+
+                    let interface = TextboxMessage::new(message).with_callback(move || {
                         event_sender
                             .send(BattleEvent::CompleteFlee(success))
                             .unwrap();

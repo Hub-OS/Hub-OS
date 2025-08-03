@@ -13,7 +13,7 @@ struct LockedState {
 }
 
 pub struct UiConfigCycle<T> {
-    name: &'static str,
+    label: String,
     selection: usize,
     options: Vec<(String, T)>,
     config: Rc<RefCell<Config>>,
@@ -23,21 +23,24 @@ pub struct UiConfigCycle<T> {
 
 impl<T: Copy + PartialEq> UiConfigCycle<T> {
     pub fn new(
-        name: &'static str,
+        game_io: &GameIO,
+        label_translation_key: &str,
         value: T,
         config: Rc<RefCell<Config>>,
         options: &[(&str, T)],
         callback: impl Fn(&mut GameIO, RefMut<Config>, T, bool) + 'static,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
-            name,
+            label: globals.translate(label_translation_key),
             selection: options
                 .iter()
                 .position(|(_, v)| *v == value)
                 .unwrap_or_default(),
             options: options
                 .iter()
-                .map(|(name, value)| (name.to_string(), *value))
+                .map(|(name, value)| (globals.translate(name), *value))
                 .collect(),
             config,
             callback: Box::new(callback),
@@ -58,7 +61,7 @@ impl<T: Copy> UiNode for UiConfigCycle<T> {
         text_style.bounds.set_position(bounds.position());
 
         // draw name
-        text_style.draw(game_io, sprite_queue, self.name);
+        text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw value
         let text = &self.options[self.selection].0;

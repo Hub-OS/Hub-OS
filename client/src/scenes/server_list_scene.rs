@@ -20,6 +20,7 @@ enum Event {
 pub struct ServerListScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     scrollable_frame: ScrollableFrame,
     status_animator: Animator,
@@ -28,7 +29,7 @@ pub struct ServerListScene {
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
     context_menu: ContextMenu<MenuOption>,
-    option_tip: OptionTip,
+    input_tip: InputTip,
     active_poll_task: Option<(String, AsyncTask<ServerStatus>)>,
     textbox: Textbox,
     event_sender: flume::Sender<Event>,
@@ -66,11 +67,20 @@ impl ServerListScene {
 
         // context menu
         let context_position = ui_animator.point_or_zero("CONTEXT_MENU");
-        let context_menu = ContextMenu::new(game_io, "OPTIONS", context_position);
+        let context_menu = ContextMenu::new_translated(
+            game_io,
+            "server-list-context-menu-label",
+            context_position,
+        );
 
         // option tip
         let option_tip_top_right = ui_animator.point_or_zero("MENU_TIP_TOP_RIGHT");
-        let option_tip = OptionTip::new(String::from("MENU"), option_tip_top_right);
+        let input_tip = InputTip::new(
+            game_io,
+            Input::Option,
+            "server-list-context-menu-tip",
+            option_tip_top_right,
+        );
 
         // events
         let (event_sender, event_receiver) = flume::unbounded();
@@ -78,6 +88,7 @@ impl ServerListScene {
         Box::new(Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "server-list-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             scrollable_frame,
             status_animator: ui_animator,
@@ -86,7 +97,7 @@ impl ServerListScene {
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
             context_menu,
-            option_tip,
+            input_tip,
             active_poll_task: None,
             textbox: Textbox::new_navigation(game_io),
             event_sender,
@@ -112,25 +123,26 @@ impl ServerListScene {
         }
     }
 
-    fn create_message(status: Option<ServerStatus>, server_name: &str) -> Option<String> {
+    fn create_message(
+        globals: &Globals,
+        status: Option<ServerStatus>,
+        server_name: &str,
+    ) -> Option<String> {
         let status = status?;
 
-        let message = match status {
+        let translation_key = match status {
             ServerStatus::Online => {
                 return None;
             }
-            ServerStatus::Offline => format!("{server_name} is offline."),
-            ServerStatus::TooOld => {
-                format!("{server_name} is behind. We'll need to downgrade to connect.")
-            }
-            ServerStatus::TooNew => {
-                format!("{server_name} is ahead. We'll need to update to connect.")
-            }
-            ServerStatus::Incompatible => format!("{server_name} is incompatible."),
-            ServerStatus::InvalidAddress => {
-                format!("I couldn't understand the address for {server_name}.")
-            }
+            ServerStatus::Offline => "server-offline-message",
+            ServerStatus::TooOld => "server-behind-message",
+            ServerStatus::TooNew => "server-ahead-message",
+            ServerStatus::Incompatible => "server-incompatible-message",
+            ServerStatus::InvalidAddress => "server-invalid-address-message",
         };
+
+        let message =
+            globals.translate_with_args(translation_key, vec![("name", server_name.into())]);
 
         Some(message)
     }
@@ -218,15 +230,15 @@ impl ServerListScene {
 
         if global_save.server_list.is_empty() {
             self.context_menu
-                .set_options(game_io, [("NEW", MenuOption::New)]);
+                .set_and_translate_options(game_io, &[("server-list-option-new", MenuOption::New)]);
         } else {
-            self.context_menu.set_options(
+            self.context_menu.set_and_translate_options(
                 game_io,
-                [
-                    ("NEW", MenuOption::New),
-                    ("EDIT", MenuOption::Edit),
-                    ("MOVE", MenuOption::Move),
-                    ("DELETE", MenuOption::Delete),
+                &[
+                    ("server-list-option-new", MenuOption::New),
+                    ("server-list-option-edit", MenuOption::Edit),
+                    ("server-list-option-move", MenuOption::Move),
+                    ("server-list-option-delete", MenuOption::Delete),
                 ],
             );
         }
@@ -267,16 +279,20 @@ impl ServerListScene {
                 self.context_menu.close();
 
                 let selected_index = self.scroll_tracker.selected_index();
-                let global_save = &game_io.resource::<Globals>().unwrap().global_save;
+                let globals = game_io.resource::<Globals>().unwrap();
+                let global_save = &globals.global_save;
                 let server_name = &global_save.server_list[selected_index].name;
 
                 let event_sender = self.event_sender.clone();
-                let interface =
-                    TextboxQuestion::new(format!("Delete {server_name}?"), move |yes| {
-                        if yes {
-                            event_sender.send(Event::Delete).unwrap();
-                        }
-                    });
+                let question = globals.translate_with_args(
+                    "server-list-delete-question",
+                    vec![("name", server_name.into())],
+                );
+                let interface = TextboxQuestion::new(question, move |yes| {
+                    if yes {
+                        event_sender.send(Event::Delete).unwrap();
+                    }
+                });
 
                 self.textbox.push_interface(interface);
                 self.textbox.open();
@@ -409,7 +425,7 @@ impl Scene for ServerListScene {
                 }
 
                 // see if there's a message to display
-                if let Some(message) = Self::create_message(*status, server_name) {
+                if let Some(message) = Self::create_message(globals, *status, server_name) {
                     let textbox_interface = TextboxMessage::new(message);
                     self.textbox.push_interface(textbox_interface);
                     self.textbox.open();
@@ -439,7 +455,7 @@ impl Scene for ServerListScene {
         self.background.draw(game_io, render_pass);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("SERVER LIST").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         self.scrollable_frame.draw(game_io, &mut sprite_queue);
 
@@ -487,7 +503,7 @@ impl Scene for ServerListScene {
         self.context_menu.draw(game_io, &mut sprite_queue);
 
         // draw help
-        self.option_tip.draw(game_io, &mut sprite_queue);
+        self.input_tip.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

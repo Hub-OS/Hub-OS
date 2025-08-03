@@ -14,6 +14,7 @@ mod network;
 mod resource_paths;
 mod restrictions;
 mod sound_buffer;
+mod translations;
 
 pub use asset_manager::*;
 pub use audio_manager::*;
@@ -32,3 +33,4 @@ pub use packets::structures::Input;
 pub use resource_paths::*;
 pub use restrictions::*;
 pub use sound_buffer::*;
+pub use translations::*;

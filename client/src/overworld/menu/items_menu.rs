@@ -15,6 +15,7 @@ use packets::structures::{Input, ItemDefinition};
 
 pub struct ItemsMenu {
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     health_ui: PlayerHealthUi,
     ui_input_tracker: UiInputTracker,
@@ -22,6 +23,7 @@ pub struct ItemsMenu {
     background_sprites: Vec<Sprite>,
     player_sprite: Sprite,
     player_animator: Animator,
+    no_items_string: String,
     description_text: Text,
     button_nine_patch: NinePatch,
     items_start: Vec2,
@@ -98,10 +100,11 @@ impl ItemsMenu {
         let mut description_text = Text::new(game_io, FontName::Thin);
         description_text.style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
         description_text.style.bounds = Rect::from_corners(description_start, description_end);
-        description_text.text = String::from("You have no items.");
+        description_text.text = globals.translate("items-no-items-description");
 
         Self {
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "items-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_left_arm(true)
@@ -112,6 +115,7 @@ impl ItemsMenu {
             background_sprites,
             player_sprite,
             player_animator,
+            no_items_string: globals.translate("items-no-items-item"),
             description_text,
             button_nine_patch,
             items_start,
@@ -316,7 +320,7 @@ impl Menu for ItemsMenu {
         } else {
             // display a default item
             self.button_nine_patch.draw(sprite_queue, patch_bounds);
-            text_style.draw(game_io, sprite_queue, "No Items");
+            text_style.draw(game_io, sprite_queue, &self.no_items_string);
         }
 
         // draw cursor
@@ -327,6 +331,6 @@ impl Menu for ItemsMenu {
 
         // draw frame
         self.frame.draw(sprite_queue);
-        SceneTitle::new("ITEMS").draw(game_io, sprite_queue);
+        self.scene_title.draw(game_io, sprite_queue);
     }
 }

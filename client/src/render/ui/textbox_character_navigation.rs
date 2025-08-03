@@ -7,6 +7,7 @@ use framework::prelude::*;
 const TOTAL_OPTIONS: usize = 3;
 
 pub struct TextboxCharacterNavigation {
+    text: String,
     selection: usize,
     callback: Box<dyn Fn(usize)>,
     cursor: Option<TextboxCursor>,
@@ -14,8 +15,16 @@ pub struct TextboxCharacterNavigation {
 }
 
 impl TextboxCharacterNavigation {
-    pub fn new(callback: impl Fn(usize) + 'static) -> Self {
+    pub fn new(game_io: &GameIO, callback: impl Fn(usize) + 'static) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
+            text: format!(
+                "\x02  {}\n  {}\n  {}",
+                globals.translate("character-status-blocks-option"),
+                globals.translate("character-status-switch-drives-option"),
+                globals.translate("character-status-navis-option")
+            ),
             selection: 0,
             callback: Box::new(callback),
             cursor: None,
@@ -59,7 +68,7 @@ impl TextboxCharacterNavigation {
 
 impl TextboxInterface for TextboxCharacterNavigation {
     fn text(&self) -> &str {
-        "\x02  Blocks\n  Drives\n  Switch"
+        &self.text
     }
 
     fn is_complete(&self) -> bool {

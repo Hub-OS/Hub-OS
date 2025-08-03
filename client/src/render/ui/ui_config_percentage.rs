@@ -13,7 +13,7 @@ struct LockedState {
 }
 
 pub struct UiConfigPercentage {
-    name: &'static str,
+    label: String,
     value: u8,
     value_text: String,
     lower_bound: u8,
@@ -27,15 +27,18 @@ pub struct UiConfigPercentage {
 
 impl UiConfigPercentage {
     pub fn new(
-        name: &'static str,
+        game_io: &GameIO,
+        label_translation_key: &'static str,
         value: u8,
         config: Rc<RefCell<Config>>,
         callback: impl Fn(&mut GameIO, RefMut<Config>, u8) + 'static,
     ) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
-            name,
+            label: globals.translate(label_translation_key),
             value,
-            value_text: Self::generate_value_text(value),
+            value_text: Self::generate_value_text(globals, value),
             lower_bound: 0,
             upper_bound: 100,
             auditory_feedback: true,
@@ -61,8 +64,8 @@ impl UiConfigPercentage {
         self
     }
 
-    fn generate_value_text(level: u8) -> String {
-        format!("{level}%")
+    fn generate_value_text(globals: &Globals, value: u8) -> String {
+        globals.translate_with_args("config-percentage", vec![("value", value.into())])
     }
 }
 
@@ -78,7 +81,7 @@ impl UiNode for UiConfigPercentage {
         text_style.bounds.set_position(bounds.position());
 
         // draw name
-        text_style.draw(game_io, sprite_queue, self.name);
+        text_style.draw(game_io, sprite_queue, &self.label);
 
         // draw value
         let metrics = text_style.measure(&self.value_text);
@@ -135,7 +138,7 @@ impl UiNode for UiConfigPercentage {
 
             if let Some(locked_state) = self.locked_state.take() {
                 self.value = locked_state.original_value;
-                self.value_text = Self::generate_value_text(self.value);
+                self.value_text = Self::generate_value_text(globals, self.value);
                 (self.callback)(game_io, self.config.borrow_mut(), self.value);
             }
         }
@@ -188,7 +191,8 @@ impl UiNode for UiConfigPercentage {
         }
 
         // update visual
-        self.value_text = Self::generate_value_text(self.value);
+        let globals = game_io.resource::<Globals>().unwrap();
+        self.value_text = Self::generate_value_text(globals, self.value);
 
         (self.callback)(game_io, self.config.borrow_mut(), self.value);
 

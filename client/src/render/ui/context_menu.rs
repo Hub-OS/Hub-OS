@@ -19,7 +19,13 @@ pub struct ContextMenu<T: Copy + 'static> {
 }
 
 impl<T: Copy + 'static> ContextMenu<T> {
-    pub fn new(game_io: &GameIO, label: &str, position: Vec2) -> Self {
+    pub fn new_translated(game_io: &GameIO, label_translation_key: &str, position: Vec2) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        Self::new(game_io, globals.translate(label_translation_key), position)
+    }
+
+    pub fn new(game_io: &GameIO, label: String, position: Vec2) -> Self {
         let bounds = Rect::new(position.x, position.y, RESOLUTION_F.x, RESOLUTION_F.y);
 
         let globals = game_io.resource::<Globals>().unwrap();
@@ -67,7 +73,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
         let ui_layout = UiLayout::new_vertical(
             bounds,
             vec![
-                UiLayoutNode::new(Text::new(game_io, FontName::Context).with_str(label))
+                UiLayoutNode::new(Text::new(game_io, FontName::Context).with_string(label))
                     .with_style(label_style),
                 UiLayoutNode::new_container()
                     .with_handle(&mut body_index)
@@ -98,12 +104,8 @@ impl<T: Copy + 'static> ContextMenu<T> {
         }
     }
 
-    pub fn with_options<'a>(
-        mut self,
-        game_io: &GameIO,
-        options: impl IntoIterator<Item = (&'a str, T)>,
-    ) -> Self {
-        self.set_options(game_io, options);
+    pub fn with_translated_options(mut self, game_io: &GameIO, options: &[(&str, T)]) -> Self {
+        self.set_and_translate_options(game_io, options);
         self
     }
 
@@ -132,11 +134,19 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.ui_layout.get_bounds(TreeIndex::tree_root()).unwrap()
     }
 
-    pub fn set_options<'a>(
-        &mut self,
-        game_io: &GameIO,
-        options: impl IntoIterator<Item = (&'a str, T)>,
-    ) {
+    pub fn set_and_translate_options(&mut self, game_io: &GameIO, options: &[(&str, T)]) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        self.set_options(
+            game_io,
+            options
+                .iter()
+                .map(|(label_key, option)| (globals.translate(label_key), *option))
+                .collect(),
+        );
+    }
+
+    pub fn set_options(&mut self, game_io: &GameIO, options: Vec<(String, T)>) {
         let option_style = UiStyle {
             margin_top: LengthPercentageAuto::Points(3.0),
             ..Default::default()
@@ -150,7 +160,7 @@ impl<T: Copy + 'static> ContextMenu<T> {
                 UiLayoutNode::new(
                     UiButton::new(
                         Text::new(game_io, FontName::Thin)
-                            .with_str(label)
+                            .with_string(label)
                             .with_shadow_color(CONTEXT_TEXT_SHADOW_COLOR),
                     )
                     .on_activate(move || {

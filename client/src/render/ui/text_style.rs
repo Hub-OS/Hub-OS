@@ -137,7 +137,8 @@ impl TextStyle {
         let mut size = self.glyph_atlas.resolve_whitespace_size(&self.font);
 
         if !self.monospace && grapheme != " " {
-            size.x = self.character_frame(grapheme).size().x;
+            let frame = self.character_frame(grapheme);
+            size.x = frame.size().x - frame.origin.x;
         }
 
         size
@@ -303,7 +304,7 @@ impl TextStyle {
                         }
 
                         let prev_x = insert_tracker.x;
-                        let character_size = frame.size();
+                        let character_size = frame.size() - frame.origin;
                         let (x, y) = insert_tracker.next_position(index, character_size).into();
 
                         if may_ellipse && insert_tracker.should_ellipse_before(0.0) {
@@ -398,7 +399,7 @@ impl TextStyle {
                 } else {
                     for character in word.graphemes(true) {
                         let frame = self.character_frame(character);
-                        let glyph_width = frame.size().x;
+                        let glyph_width = frame.size().x - frame.origin.x;
                         width += glyph_width.max(self.min_glyph_width) + self.letter_spacing;
                     }
                 }

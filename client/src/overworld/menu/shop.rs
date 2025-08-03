@@ -269,7 +269,8 @@ impl Menu for Shop {
             let on_leave = self.on_leave.clone();
             let leaving = self.leaving.clone();
 
-            let question_interface = TextboxQuestion::new(String::from("Leaving already?"), {
+            let question = globals.translate("shop-leave-question");
+            let question_interface = TextboxQuestion::new(question, {
                 move |yes| {
                     if yes {
                         on_leave();

@@ -1,5 +1,6 @@
 use super::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
+use crate::resources::Globals;
 use framework::logging::LogRecord;
 use framework::prelude::*;
 
@@ -12,6 +13,7 @@ struct LogLine {
 pub struct LogBox {
     bounds: Rect,
     text_style: TextStyle,
+    tip_prefix: String,
     lines: Vec<LogLine>,
     error_count: usize,
     warning_count: usize,
@@ -22,9 +24,13 @@ impl LogBox {
         let mut text_style = TextStyle::new(game_io, FontName::Thin);
         text_style.scale = Vec2::new(0.5, 0.5);
 
+        let globals = game_io.resource::<Globals>().unwrap();
+        let tip_prefix = globals.translate_with_args("tip-prefixed", vec![("tip", "".into())]);
+
         Self {
             text_style,
             bounds,
+            tip_prefix,
             lines: Vec::new(),
             error_count: 0,
             warning_count: 0,
@@ -61,7 +67,7 @@ impl LogBox {
             _ => {}
         }
 
-        let is_tip = record.message.starts_with("Tip:");
+        let is_tip = record.message.starts_with(&self.tip_prefix);
 
         if is_tip {
             // add a space before the tip

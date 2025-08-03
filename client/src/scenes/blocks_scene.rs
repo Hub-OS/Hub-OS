@@ -47,6 +47,7 @@ enum State {
 pub struct BlocksScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     animator: Animator,
     grid_sprite: Sprite,
@@ -184,6 +185,7 @@ impl BlocksScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "blocks-scene-title"),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             animator,
             grid_sprite,
@@ -199,10 +201,14 @@ impl BlocksScene {
             tracked_invalid: HashSet::new(),
             arrow: GridArrow::new(game_io),
             block_preview: None,
-            block_context_menu: ContextMenu::new(game_io, "", Vec2::ZERO).with_options(
-                game_io,
-                [("Move", BlockOption::Move), ("Remove", BlockOption::Remove)],
-            ),
+            block_context_menu: ContextMenu::new(game_io, Default::default(), Vec2::ZERO)
+                .with_translated_options(
+                    game_io,
+                    &[
+                        ("blocks-option-move", BlockOption::Move),
+                        ("blocks-option-remove", BlockOption::Remove),
+                    ],
+                ),
             held_block: None,
             block_original_rotation: 0,
             cursor,
@@ -643,18 +649,19 @@ impl BlocksScene {
                 }
 
                 if self.arrow.status() == GridArrowStatus::Complete {
-                    let interface = TextboxMessage::new(String::from("OK!\nRUN complete!"));
+                    let success_message = globals.translate("blocks-success");
+                    let interface = TextboxMessage::new(success_message);
                     self.textbox.push_interface(interface);
 
                     let event_sender = self.event_sender.clone();
-                    let interface =
-                        TextboxQuestion::new(String::from("Quit the customizer?"), move |yes| {
-                            if yes {
-                                event_sender.send(Event::Leave).unwrap();
-                            } else {
-                                event_sender.send(Event::Applied).unwrap();
-                            }
-                        });
+                    let question = globals.translate("blocks-leave-question");
+                    let interface = TextboxQuestion::new(question, move |yes| {
+                        if yes {
+                            event_sender.send(Event::Leave).unwrap();
+                        } else {
+                            event_sender.send(Event::Applied).unwrap();
+                        }
+                    });
                     self.textbox.push_interface(interface);
 
                     self.textbox.open();
@@ -1053,7 +1060,7 @@ impl Scene for BlocksScene {
 
         // draw frame
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("BLOCKS").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw block preview
         if let Some(preview) = &mut self.block_preview {

@@ -21,6 +21,7 @@ const SCROLL_STEP: f32 = 0.2;
 pub struct CharacterSelectScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     preview_sprite: Sprite,
     health_ui: PlayerHealthUi,
@@ -127,6 +128,7 @@ impl CharacterSelectScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "character-select-scene-title"),
             frame: SubSceneFrame::new(game_io).with_everything(true),
             preview_sprite,
             health_ui,
@@ -374,7 +376,7 @@ impl Scene for CharacterSelectScene {
         self.frame.draw(&mut sprite_queue);
 
         // draw title
-        SceneTitle::new("CHARACTER SELECT").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw textbox
         self.textbox.draw(game_io, &mut sprite_queue);

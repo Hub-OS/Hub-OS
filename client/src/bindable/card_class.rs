@@ -11,6 +11,18 @@ pub enum CardClass {
     Recipe,
 }
 
+impl CardClass {
+    pub fn translation_key(self) -> &'static str {
+        match self {
+            CardClass::Standard => "card-class-standard",
+            CardClass::Mega => "card-class-mega",
+            CardClass::Giga => "card-class-giga",
+            CardClass::Dark => "card-class-dark",
+            CardClass::Recipe => "card-class-recipe",
+        }
+    }
+}
+
 impl From<String> for CardClass {
     fn from(s: String) -> Self {
         Self::from(s.as_str())

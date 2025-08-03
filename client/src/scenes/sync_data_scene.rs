@@ -31,6 +31,7 @@ enum Event {
 pub struct SyncDataScene {
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     local_address_position: Vec2,
     ui_input_tracker: UiInputTracker,
@@ -75,6 +76,7 @@ impl SyncDataScene {
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "sync-data-scene-title"),
             frame: SubSceneFrame::new(game_io)
                 .with_top_bar(true)
                 .with_arms(true),
@@ -173,30 +175,33 @@ impl SyncDataScene {
         };
 
         // update textbox based on outgoing packets
+        let globals = game_io.resource::<Globals>().unwrap();
+
         match packet {
             SyncDataPacket::PackageList { .. } => {
-                let message = String::from("Syncing packages...");
+                let message = globals.translate("sync-data-syncing-packages-message");
                 let key = self.textbox.push_doorstop_with_message(message);
                 self.doorstop_key = Some(key);
             }
             SyncDataPacket::RequestSave => {
-                let message = String::from("Syncing save...");
+                let message = globals.translate("sync-data-syncing-save-message");
                 let key = self.textbox.push_doorstop_with_message(message);
                 self.doorstop_key = Some(key);
             }
             SyncDataPacket::Complete { cancelled } => {
                 self.doorstop_key.take();
 
-                let message = if cancelled {
-                    "Sync cancelled."
+                let message_key = if cancelled {
+                    "sync-data-cancelled-message"
                 } else {
-                    "Sync complete."
+                    "sync-data-complete-message"
                 };
 
                 // update avatar to match the latest save
                 self.textbox.use_navigation_avatar(game_io);
 
-                let interface = TextboxMessage::from(message);
+                let message = globals.translate(message_key);
+                let interface = TextboxMessage::new(message);
                 self.textbox.push_interface(interface);
             }
             _ => {}
@@ -253,11 +258,17 @@ impl SyncDataScene {
         let remaining = self
             .total_packages
             .saturating_sub(self.pending_packages.len());
-        let message = format!(
-            "\x04Downloading packages: {remaining}/{}",
-            self.total_packages
+
+        let globals = game_io.resource::<Globals>().unwrap();
+        let message = globals.translate_with_args(
+            "sync-data-downloading-package-message",
+            vec![
+                ("current", remaining.into()),
+                ("total", self.total_packages.into()),
+            ],
         );
 
+        let message = String::from("\x04") + message.as_str();
         let key = self.textbox.push_doorstop_with_message(message);
         self.doorstop_key = Some(key);
     }
@@ -352,9 +363,9 @@ impl SyncDataScene {
 
                             self.textbox.advance_interface(game_io);
 
-                            let interface = TextboxMessage::from(
-                                "Sync cancelled.\nStart sync from only one device.",
-                            );
+                            let globals = game_io.resource::<Globals>().unwrap();
+                            let message = globals.translate("sync-data-spider-man-pointing-error");
+                            let interface = TextboxMessage::new(message);
                             self.textbox.push_interface(interface);
                             self.doorstop_key.take();
                         }
@@ -369,16 +380,22 @@ impl SyncDataScene {
 
                     // ask for permission to sync
                     let sender = self.event_sender.clone();
-                    let interface =
-                        TextboxQuestion::new(format!("Accept sync from {addr}?"), move |accept| {
-                            let event = if accept {
-                                Event::AcceptSyncWith
-                            } else {
-                                Event::RejectSyncWith
-                            };
 
-                            let _ = sender.send(event);
-                        });
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let question = globals.translate_with_args(
+                        "sync-data-accept-sync-question",
+                        vec![("name", addr.to_string().into())],
+                    );
+
+                    let interface = TextboxQuestion::new(question, move |accept| {
+                        let event = if accept {
+                            Event::AcceptSyncWith
+                        } else {
+                            Event::RejectSyncWith
+                        };
+
+                        let _ = sender.send(event);
+                    });
 
                     self.textbox.push_interface(interface);
                     self.textbox.open();
@@ -400,7 +417,9 @@ impl SyncDataScene {
         if self.accepted_sync && receiver.is_disconnected() {
             self.sync_comms = None;
 
-            let interface = TextboxMessage::from("Connection lost.");
+            let globals = game_io.resource::<Globals>().unwrap();
+            let message = globals.translate("sync-data-disconnect-error");
+            let interface = TextboxMessage::new(message);
             self.textbox.push_interface(interface);
             self.doorstop_key.take();
             return;
@@ -440,7 +459,9 @@ impl SyncDataScene {
                         self.textbox.advance_interface(game_io);
                     }
 
-                    let interface = TextboxMessage::from("Request rejected.");
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let message = globals.translate("sync-data-rejected-message");
+                    let interface = TextboxMessage::new(message);
                     self.textbox.push_interface(interface);
                     self.textbox.open();
 
@@ -503,11 +524,12 @@ impl SyncDataScene {
                 SyncDataPacket::RequestSave => {
                     log::debug!("Sending save data");
 
-                    let message = String::from("Syncing save...");
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let message = globals.translate("sync-data-syncing-save-message");
                     let key = self.textbox.push_doorstop_with_message(message);
                     self.doorstop_key = Some(key);
 
-                    let globals = game_io.resource::<Globals>().unwrap();
                     let save = serialize(&globals.global_save);
                     self.send(game_io, SyncDataPacket::Save { save });
 
@@ -517,9 +539,9 @@ impl SyncDataScene {
                 SyncDataPacket::Save { save } => {
                     log::debug!("Received save data");
 
-                    if let Ok(remote_save) = deserialize::<GlobalSave>(&save) {
-                        let globals = game_io.resource_mut::<Globals>().unwrap();
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
 
+                    if let Ok(remote_save) = deserialize::<GlobalSave>(&save) {
                         if self.started_connection {
                             globals.global_save.sync(remote_save);
                             globals.global_save.save();
@@ -534,10 +556,11 @@ impl SyncDataScene {
                             globals.global_save.save();
                         }
                     } else {
-                        let error = "Failed to read remote save.";
-                        log::debug!("{error}");
+                        let message = globals.translate("sync-data-read-remote-save-error");
 
-                        let interface = TextboxMessage::from(error);
+                        log::debug!("{message}");
+
+                        let interface = TextboxMessage::new(message);
                         self.textbox.push_interface(interface);
                         self.textbox.open();
                     }
@@ -605,13 +628,16 @@ impl SyncDataScene {
                     // update avatar to match the latest save
                     self.textbox.use_navigation_avatar(game_io);
 
-                    let message = if cancelled {
-                        "Sync cancelled."
+                    let message_key = if cancelled {
+                        "sync-data-cancelled-message"
                     } else {
-                        "Sync complete."
+                        "sync-data-complete-message"
                     };
 
-                    let interface = TextboxMessage::from(message);
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let message = globals.translate(message_key);
+                    let interface = TextboxMessage::new(message);
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                     return;
@@ -658,7 +684,9 @@ impl SyncDataScene {
                     self.start_connection(game_io, address);
 
                     // notify user
-                    let message = "Requesting sync...";
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let message = globals.translate("sync-data-requesting-message");
                     let key = self.textbox.push_doorstop_with_message(message.to_string());
                     self.doorstop_key = Some(key);
                     self.textbox.open();
@@ -669,7 +697,9 @@ impl SyncDataScene {
                     self.send(game_io, SyncDataPacket::AcceptSync);
 
                     // notify user
-                    let message = "Syncing...";
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let message = globals.translate("sync-data-syncing-message");
                     let key = self.textbox.push_doorstop_with_message(message.to_string());
                     self.doorstop_key = Some(key);
                     self.textbox.open();
@@ -706,7 +736,7 @@ impl Scene for SyncDataScene {
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("SYNC DATA").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw list
         self.list.draw(game_io, &mut sprite_queue);

@@ -125,6 +125,7 @@ pub struct DeckEditorScene {
     deck_restrictions: DeckRestrictions,
     camera: Camera,
     background: Background,
+    scene_title: SceneTitle,
     frame: SubSceneFrame,
     ui_input_tracker: UiInputTracker,
     confirm_held_time: FrameTime,
@@ -203,6 +204,7 @@ impl DeckEditorScene {
             deck_restrictions,
             camera,
             background: Background::new_sub_scene(game_io),
+            scene_title: SceneTitle::new(game_io, "deck-editor-scene-title"),
             frame: SubSceneFrame::new(game_io).with_top_bar(true),
             ui_input_tracker: UiInputTracker::new(),
             confirm_held_time: 0,
@@ -211,15 +213,20 @@ impl DeckEditorScene {
             scene_time: 0,
             page_tracker: PageTracker::new(game_io, 2)
                 .with_page_arrow_offset(0, pack_dock.page_arrow_offset),
-            context_menu: ContextMenu::new(game_io, "SORT", Vec2::ZERO).with_options(
+            context_menu: ContextMenu::new_translated(
                 game_io,
-                [
-                    ("ID", Sorting::Id),
-                    ("ABCDE", Sorting::Alphabetical),
-                    ("Code", Sorting::Code),
-                    ("Attack", Sorting::Damage),
-                    ("Element", Sorting::Element),
-                    ("No.", Sorting::Number),
+                "deck-editor-sort-context-menu-label",
+                Vec2::ZERO,
+            )
+            .with_translated_options(
+                game_io,
+                &[
+                    ("deck-editor-sort-id", Sorting::Id),
+                    ("deck-editor-sort-alphabetical", Sorting::Alphabetical),
+                    ("deck-editor-sort-code", Sorting::Code),
+                    ("deck-editor-sort-damage", Sorting::Damage),
+                    ("deck-editor-sort-element", Sorting::Element),
+                    ("deck-editor-sort-count", Sorting::Number),
                 ],
             ),
             last_sort: None,
@@ -336,7 +343,7 @@ impl Scene for DeckEditorScene {
 
         // draw title
         self.frame.draw(&mut sprite_queue);
-        SceneTitle::new("FOLDER EDIT").draw(game_io, &mut sprite_queue);
+        self.scene_title.draw(game_io, &mut sprite_queue);
 
         // draw docks
         for (page, offset) in self.page_tracker.visible_pages() {
@@ -418,9 +425,9 @@ fn handle_events(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
             match mode {
                 EditorMode::Default => {}
                 EditorMode::SelectRegular => {
-                    let interface = TextboxMessage::new(String::from(
-                        "Choose a card to\nuse as a Regular\nCard!",
-                    ));
+                    let globals = game_io.resource::<Globals>().unwrap();
+                    let message = globals.translate("deck-editor-regular-card-mode-start");
+                    let interface = TextboxMessage::new(message);
                     scene.textbox.push_interface(interface);
                 }
             }
@@ -510,8 +517,11 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                     event_sender.send(Event::Leave(response)).unwrap();
                 };
 
-                let textbox_interface =
-                    TextboxQuestion::new(format!("Equip {}?", old_deck.name), callback);
+                let question = globals.translate_with_args(
+                    "deck-editor-equip-deck-question",
+                    vec![("name", (&old_deck.name).into())],
+                );
+                let textbox_interface = TextboxQuestion::new(question, callback);
 
                 scene.textbox.push_interface(textbox_interface);
                 scene.textbox.open();
@@ -546,7 +556,9 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
     if scene.page_tracker.active_page() == 0 && input_util.was_released(Input::Option2) {
         let event_sender = scene.event_sender.clone();
 
-        let interface = TextboxQuestion::new(String::from("Choose Regular Chip?"), move |yes| {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let message = globals.translate("deck-editor-regular-card-mode-question");
+        let interface = TextboxQuestion::new(message, move |yes| {
             if yes {
                 event_sender
                     .send(Event::SwitchMode(EditorMode::SelectRegular))
@@ -791,13 +803,15 @@ fn select_regular_card(scene: &mut DeckEditorScene, game_io: &GameIO) {
             }
         }
 
-        let interface = TextboxMessage::new(String::from("Finished setting up\nthe Regular Chip"));
+        let message = globals.translate("deck-editor-regular-card-select");
+        let interface = TextboxMessage::new(message);
         scene.textbox.push_interface(interface);
         scene.textbox.open();
 
         globals.audio.play_sound(&globals.sfx.card_select_confirm);
     } else {
-        let interface = TextboxMessage::new(String::from("Regular Chip\nsettings released."));
+        let message = globals.translate("deck-editor-regular-card-deselect");
+        let interface = TextboxMessage::new(message);
         scene.textbox.push_interface(interface);
         scene.textbox.open();
 
