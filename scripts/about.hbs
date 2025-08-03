@@ -2,36 +2,51 @@
 
 <head>
     <style>
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #333;
-                color: white;
-            }
-            a {
-                color: skyblue;
-            }
+        * {
+            box-sizing: border-box;
         }
         html {
             font-family: sans-serif;
             margin: 0;
         }
-        .intro {
-            text-align: center;
+        body {
+            background: #dec37c;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0;
+            padding: 8px;
+            height: 100vh;
         }
-        .license-id {
-            display: none;
+        a {
+            color: #4CFF32;
         }
-        .license-tabbed-container {
+        h1 {
+            margin: 0;
+            padding: 0 8px;
+            background: #605031;
+            border-color: #dec27c;
+            border-style: inset;
+        }
+        .main-container {
             display: flex;
             flex-direction: row;
-            margin-top: 8px;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+        .main-container > * {
+            background: #605031;
+            border-color: #DEC27C;
+            border-style: inset;
+            flex: 1;
+            padding: 8px;
+            max-height: 100%;
+            overflow: auto;
         }
         .license-list {
             min-width: 250px;
-            min-height: 500px;
-            overflow-x: auto;
-            background: #eee;
-            margin-right: 24px;
         }
         .license-list-item {
             white-space: nowrap;
@@ -40,19 +55,22 @@
             text-decoration: none;
         }
         .license-list-item:hover {
-            background: #ddd;
+            color: #4cff32;
         }
         .license-list-item.selected {
-            background: #ccc;
+            color: #4cff32;
         }
         .license-list-item, .license {
             display: none;
         }
-        .license-used-by {
-            margin-top: -10px;
+        .license-container {
+            flex: 3;
         }
         .license-text {
             white-space: pre-wrap;
+        }
+        h3 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -62,13 +80,13 @@
         <h1>Third Party Licenses</h1>
     </div>
 
-    <div class="licenses-overview">
-        {{#each overview}}
-        <div><a href="javascript:filter_licenses('{{id}}')">{{name}}</a> ({{count}})</div>
-        {{/each}}
-    </div>
+    <div class="main-container">
+        <div class="licenses-overview">
+            {{#each overview}}
+            <div><a href="javascript:filter_licenses('{{id}}')">{{name}}</a> ({{count}})</div>
+            {{/each}}
+        </div>
 
-    <div class="license-tabbed-container">
         <div class="license-list">
             {{#each licenses}}
             {{#each used_by}}
@@ -79,20 +97,22 @@
             {{/each}}
         </div>
 
-        {{#each licenses}}
-        {{#each used_by}}
-        <div class="license" id="{{crate.name}}">
-            <h3>
-                {{crate.name}} {{crate.version}}<br />
-                <a href="{{#if crate.repository}} {{crate.repository}} {{else}} https://crates.io/crates/{{crate.name}} {{/if}}">
-                    (project link)
-                </a>
-            </h3>
-            
-            <pre class="license-text">{{../text}}</pre>
+        <div class="license-container">
+            {{#each licenses}}
+            {{#each used_by}}
+            <div class="license" id="{{crate.name}}">
+                <h3>
+                    {{crate.name}} {{crate.version}}<br />
+                    <a href="{{#if crate.repository}} {{crate.repository}} {{else}} https://crates.io/crates/{{crate.name}} {{/if}}">
+                        (project link)
+                    </a>
+                </h3>
+                
+                <pre class="license-text">{{../text}}</pre>
+            </div>
+            {{/each}}
+            {{/each}}
         </div>
-        {{/each}}
-        {{/each}}
     </div>
 </body>
 
