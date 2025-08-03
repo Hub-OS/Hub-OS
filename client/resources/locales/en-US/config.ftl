@@ -6,6 +6,7 @@ config-keyboard-tab = Keyboard
 config-gamepad-tab = Gamepad
 config-mods-tab = Mods
 config-profile-tab = Profile
+config-about-tab = About
 
 config-vsync-label = VSync
 config-fullscreen-label = Fullscreen
@@ -57,6 +58,11 @@ config-open-mods-folder-label = Open Mods Folder
 
 config-change-nickname-label = Change Nickname
 config-sync-data-label = Sync Data
+
+config-view-credits-label = Credits
+config-visit-discord-label = Discord
+config-visit-website-label = Website
+config-view-third-party-licenses-label = Third Party Licenses
 
 config-percentage = {$value}%
 

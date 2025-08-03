@@ -7,6 +7,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Config, GlobalSave, InternalResolution, KeyStyle};
+use crate::scenes::CreditsScene;
 use framework::prelude::*;
 use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::cell::RefCell;
@@ -31,17 +32,20 @@ enum Event {
     OpenModsFolder,
     ReorderResources,
     ClearCache,
+    ViewCredits,
+    OpenLink(String),
     Leave { save: bool },
 }
 
 #[derive(EnumIter, Clone, Copy)]
 enum ConfigCategory {
+    Mods,
+    Profile,
     Video,
     Audio,
     Keyboard,
     Gamepad,
-    Mods,
-    Profile,
+    About,
 }
 
 impl ConfigCategory {
@@ -53,6 +57,7 @@ impl ConfigCategory {
             ConfigCategory::Gamepad => "config-gamepad-tab",
             ConfigCategory::Mods => "config-mods-tab",
             ConfigCategory::Profile => "config-profile-tab",
+            ConfigCategory::About => "config-about-tab",
         }
     }
 }
@@ -127,7 +132,7 @@ impl ConfigScene {
             ),
             secondary_layout: ScrollableList::new(game_io, secondary_bounds, 16.0)
                 .with_label(globals.translate("config-video-tab"))
-                .with_children(Self::generate_video_menu(game_io, &config))
+                .with_children(Self::generate_mods_menu(game_io, &event_sender))
                 .with_focus(false),
             cursor_sprite,
             cursor_animator,
@@ -216,6 +221,7 @@ impl ConfigScene {
             }
             ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
             ConfigCategory::Profile => Self::generate_profile_menu(game_io, event_sender),
+            ConfigCategory::About => Self::generate_about_menu(game_io, event_sender),
         }
     }
 
@@ -684,6 +690,40 @@ impl ConfigScene {
             create_button("config-sync-data-label", Event::SyncData),
         ]
     }
+
+    fn generate_about_menu(
+        game_io: &GameIO,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
+        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
+            let event_sender = event_sender.clone();
+
+            Box::new(
+                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
+                    let _ = event_sender.send(event.clone());
+                }),
+            )
+        };
+
+        vec![
+            create_button("config-view-credits-label", Event::ViewCredits),
+            create_button(
+                "config-visit-discord-label",
+                Event::OpenLink("https://discord.hubos.dev".to_string()),
+            ),
+            create_button(
+                "config-visit-website-label",
+                Event::OpenLink("https://hubos.dev".to_string()),
+            ),
+            #[cfg(not(target_os = "android"))]
+            create_button(
+                "config-view-third-party-licenses-label",
+                Event::OpenLink(
+                    ResourcePaths::game_folder().to_string() + "third_party_licenses.html",
+                ),
+            ),
+        ]
+    }
 }
 
 impl Scene for ConfigScene {
@@ -905,6 +945,16 @@ impl ConfigScene {
 
                     self.textbox.push_interface(interface);
                     self.textbox.open();
+                }
+                Event::ViewCredits => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = CreditsScene::new(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::OpenLink(address) => {
+                    if let Err(err) = webbrowser::open(&address) {
+                        log::error!("{err:?}");
+                    }
                 }
                 Event::Leave { save } => {
                     let globals = game_io.resource_mut::<Globals>().unwrap();

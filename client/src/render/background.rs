@@ -145,6 +145,17 @@ impl Background {
         }
     }
 
+    pub fn new_credits(game_io: &GameIO) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let assets = &globals.assets;
+
+        let animator = Animator::load_new(assets, ResourcePaths::CREDITS_BG_ANIMATION)
+            .with_state("CHARACTER_BG");
+        let sprite = assets.new_sprite(game_io, ResourcePaths::CREDITS_BG);
+
+        Self::new(animator, sprite)
+    }
+
     #[allow(clippy::result_large_err)]
     fn randomized(game_io: &GameIO, animator_path: &str) -> Result<Self, Animator> {
         use rand::seq::IteratorRandom;

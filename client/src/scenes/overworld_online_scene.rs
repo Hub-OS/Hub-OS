@@ -921,19 +921,23 @@ impl OverworldOnlineScene {
                 }
             }
             ServerPacket::ReferLink { address } => {
-                let message = String::from("Open link in browser?");
-                let interface = TextboxQuestion::new(message, move |yes| {
-                    if yes {
-                        if let Err(err) = webbrowser::open(&address) {
-                            log::error!("{err:?}");
+                if !address.starts_with("http://") && !address.starts_with("https://") {
+                    log::error!("Received non http / https address: {address:?}");
+                } else {
+                    let message = String::from("Open link in browser?");
+                    let interface = TextboxQuestion::new(message, move |yes| {
+                        if yes {
+                            if let Err(err) = webbrowser::open(&address) {
+                                log::error!("{err:?}");
+                            }
                         }
-                    }
-                });
+                    });
 
-                self.menu_manager.use_player_avatar(game_io);
-                self.menu_manager.push_textbox_interface(interface);
+                    self.menu_manager.use_player_avatar(game_io);
+                    self.menu_manager.push_textbox_interface(interface);
 
-                self.doorstop_key.take();
+                    self.doorstop_key.take();
+                }
             }
             ServerPacket::ReferServer { name, address } => {
                 let globals = game_io.resource::<Globals>().unwrap();
