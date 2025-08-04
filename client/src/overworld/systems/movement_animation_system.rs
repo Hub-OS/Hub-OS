@@ -1,10 +1,7 @@
 use crate::overworld::components::*;
-use crate::overworld::OverworldArea;
 use crate::render::AnimatorLoopMode;
 
-pub fn system_movement_animation(area: &mut OverworldArea) {
-    let entities = &mut area.entities;
-
+pub fn system_movement_animation(entities: &mut hecs::World) {
     let query = entities.query_mut::<(&mut MovementAnimator, &mut Animator, &mut Direction)>();
 
     for (_, (movement_animator, animator, direction)) in query {

@@ -1871,7 +1871,7 @@ impl Scene for OverworldOnlineScene {
         }
 
         let area = &mut self.area;
-        system_update_animation(area);
+        system_update_animation(&mut area.entities);
 
         let area = &mut self.area;
         system_player_movement(game_io, area, &self.assets);
@@ -1880,9 +1880,9 @@ impl Scene for OverworldOnlineScene {
         system_player_interaction(game_io, area);
         system_warp_effect(game_io, area);
         system_warp(game_io, area);
-        system_movement_animation(area);
+        system_movement_animation(&mut area.entities);
         system_movement(area);
-        system_apply_animation(area);
+        system_apply_animation(&mut area.entities);
         system_position(area);
         Emote::system(area);
         self.area.update(game_io);
