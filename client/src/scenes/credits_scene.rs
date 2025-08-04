@@ -6,7 +6,6 @@ use crate::resources::*;
 use framework::prelude::*;
 
 const PADDING_TOP: f32 = 16.0;
-const PADDING_BOTTOM: f32 = 8.0;
 const NAME_LINE_HEIGHT: f32 = 20.0;
 
 const FADE_IN_TIME: FrameTime = 20;
@@ -196,9 +195,14 @@ impl Scene for CreditsScene {
         if let Some((_, names)) = SECTIONS.get(self.section_index) {
             // resolve where to start drawing the names by centering within the available space
             let available_space_top = text_style.line_height() + PADDING_TOP;
-            let available_space = RESOLUTION_F.y - available_space_top - PADDING_BOTTOM;
 
+            // dynamic bottom padding
             let total_names_on_page = (names.len() - self.top_name).min(NAMES_PER_PAGE);
+            let padding_bottom =
+                NAME_LINE_HEIGHT * (NAMES_PER_PAGE - total_names_on_page) as f32 * 0.5;
+
+            let available_space = RESOLUTION_F.y - available_space_top - padding_bottom;
+
             let used_space = total_names_on_page as f32 * NAME_LINE_HEIGHT;
             text_style.bounds.y =
                 available_space_top + ((available_space - used_space) * 0.5).floor();
