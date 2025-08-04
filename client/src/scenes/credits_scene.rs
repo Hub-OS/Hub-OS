@@ -5,17 +5,25 @@ use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
 
-const SCREEN_PADDING: f32 = 16.0;
-const NAME_LINE_HEIGHT: f32 = 16.0;
+const PADDING_TOP: f32 = 16.0;
+const PADDING_BOTTOM: f32 = 8.0;
+const NAME_LINE_HEIGHT: f32 = 20.0;
 
-const FADE_IN_TIME: FrameTime = 30;
+const FADE_IN_TIME: FrameTime = 20;
 const FADE_OUT_START_TIME: FrameTime = FADE_IN_TIME + 180;
-const HOLD_BLANK_TIME: FrameTime = FADE_OUT_START_TIME + 30;
+const HOLD_BLANK_TIME: FrameTime = FADE_OUT_START_TIME + 20;
 const PAGE_TIME: FrameTime = HOLD_BLANK_TIME + 10;
 
 const NAMES_PER_PAGE: usize = 5;
 
 const SECTIONS: &[(&str, &[&str])] = &[
+    ("credits-heading", &[]),
+    // ("credits-music", &["Mondo.sp"]),
+    ("credits-sound-design", &["DJRezzed"]),
+    ("credits-graphics", &["Konst", "Salad"]),
+    ("credits-user-experience", &["Gray Nine", "KayThree"]),
+    ("credits-technical-design", &["Mars", "PlayerZero"]),
+    ("credits-programmers", &["Dawn Elaine", "Konst"]),
     ("credits-core-team", &["Dawn Elaine", "Mars", "Konst"]),
     (
         "credits-special-thanks",
@@ -25,16 +33,13 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "cantrem404",
             "CosmicNobab",
             "ChordMankey",
-            "DJRezzed",
             "Dunstan",
             "Ehab2020",
             "FrozenLake",
             "Gemini",
-            "Gray Nine",
             "Gwyneth Hestin",
             "JamesKing",
             "JonTheBurger",
-            "KayThree",
             "Keristero",
             "Kuri",
             "kyqurikan",
@@ -50,7 +55,6 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "svenevs",
             "theWildSushii",
             "Pheelbert",
-            "PlayerZero",
             "Poly",
             "Pyredrid",
             "Weenie",
@@ -67,7 +71,7 @@ pub struct CreditsScene {
     camera: Camera,
     background: Background,
     header_text: String,
-    section_index: Option<usize>,
+    section_index: usize,
     top_name: usize,
     page_time: FrameTime,
     time: FrameTime,
@@ -80,11 +84,13 @@ impl CreditsScene {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
+        let globals = game_io.resource::<Globals>().unwrap();
+
         Self {
             camera,
             background: Background::new_credits(game_io),
-            header_text: String::from("Hub OS"),
-            section_index: None,
+            header_text: globals.translate(SECTIONS[0].0),
+            section_index: 0,
             top_name: 0,
             page_time: 0,
             time: 0,
@@ -136,9 +142,8 @@ impl Scene for CreditsScene {
         self.top_name += NAMES_PER_PAGE;
         self.page_time = 0;
 
-        let total_names_in_section = self
-            .section_index
-            .and_then(|i| SECTIONS.get(i))
+        let total_names_in_section = SECTIONS
+            .get(self.section_index)
             .map(|(_, names)| names.len())
             .unwrap_or(0);
 
@@ -147,18 +152,17 @@ impl Scene for CreditsScene {
         }
 
         // advance section
-        let new_index = self.section_index.map(|i| i + 1).unwrap_or(0);
-        self.section_index = Some(new_index);
+        self.section_index += 1;
         self.top_name = 0;
 
-        if let Some((header_key, _)) = SECTIONS.get(new_index) {
+        if let Some((header_key, _)) = SECTIONS.get(self.section_index) {
             let globals = game_io.resource::<Globals>().unwrap();
             self.header_text = globals.translate(header_key);
         } else {
             // out of pages
             self.header_text.clear();
 
-            if new_index > SECTIONS.len() {
+            if self.section_index > SECTIONS.len() {
                 // close after a completely blank page
                 self.end_scene(game_io);
             }
@@ -189,10 +193,10 @@ impl Scene for CreditsScene {
         text_style.shadow_color.a = text_style.color.a;
 
         // render names
-        if let Some((_, names)) = self.section_index.and_then(|i| SECTIONS.get(i)) {
+        if let Some((_, names)) = SECTIONS.get(self.section_index) {
             // resolve where to start drawing the names by centering within the available space
-            let available_space_top = text_style.line_height() + SCREEN_PADDING;
-            let available_space = RESOLUTION_F.y - available_space_top - SCREEN_PADDING;
+            let available_space_top = text_style.line_height() + PADDING_TOP;
+            let available_space = RESOLUTION_F.y - available_space_top - PADDING_BOTTOM;
 
             let total_names_on_page = (names.len() - self.top_name).min(NAMES_PER_PAGE);
             let used_space = total_names_on_page as f32 * NAME_LINE_HEIGHT;
@@ -225,7 +229,7 @@ impl Scene for CreditsScene {
 
         let header_size = text_style.measure(&self.header_text).size;
         text_style.bounds.x = (RESOLUTION_F.x - header_size.x) * 0.5;
-        text_style.bounds.y = SCREEN_PADDING;
+        text_style.bounds.y = PADDING_TOP;
         text_style.draw(game_io, &mut sprite_queue, &self.header_text);
 
         render_pass.consume_queue(sprite_queue);

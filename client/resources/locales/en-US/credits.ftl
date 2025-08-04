@@ -1,6 +1,10 @@
+credits-heading = Hub OS Credits
 credits-music = Music
-credits-sfx = Sound Effects
+credits-sound-design = Sound Design
+credits-programmers = Programmers
 credits-graphics = Graphics
+credits-user-experience = User Experience
+credits-technical-design = Technical Design
 credits-localization = Localization
 credits-core-team = Core Team
 credits-special-thanks = Special Thanks
