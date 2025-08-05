@@ -47,14 +47,15 @@ Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/Ope
 - nickblock
 - OuroYisus
 - Pion
-- Salad
-- Shale
-- svenevs
-- theWildSushii
 - Pheelbert
 - PlayerZero
 - Poly
 - Pyredrid
+- Salad
+- Shale
+- svenevs
+- theWildSushii
+- Void.ExE
 - Weenie
 - Zeek
 
