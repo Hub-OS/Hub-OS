@@ -603,7 +603,7 @@ impl ConfigScene {
             )),
             #[cfg(target_os = "android")]
             Box::new(
-                UiButton::new_text(
+                UiButton::new_translated(
                     game_io,
                     FontName::Thick,
                     "config-edit-virtual-controller-layout-label",
