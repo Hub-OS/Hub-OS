@@ -22,7 +22,7 @@ const NAMES_PER_PAGE: usize = 5;
 
 const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-heading", &[]),
-    // ("credits-music", &["Mondo.sp"]),
+    ("credits-music", &["Mondo.sp"]),
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
@@ -66,9 +66,10 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "Zeek",
         ],
     ),
+    ("credits-roots", &["Open Net Battle"]),
     (
-        "credits-inpsirations",
-        &["Mega Man Battle Network", "Open Net Battle"],
+        "credits-inpsiration",
+        &["Mega Man Battle Network", "Capcom"],
     ),
 ];
 

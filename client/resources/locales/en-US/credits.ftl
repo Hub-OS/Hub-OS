@@ -8,4 +8,5 @@ credits-technical-design = Technical Design
 credits-localization = Localization
 credits-core-team = Core Team
 credits-special-thanks = Special Thanks
-credits-inpsirations = Our Inspirations
+credits-roots = Our Roots
+credits-inpsiration = For Inspiring Us
