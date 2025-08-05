@@ -91,7 +91,7 @@ impl Entity {
             idle_callback: BattleCallback::stub(()),
             spawn_callback: BattleCallback::stub(()),
             battle_start_callback: BattleCallback::stub(()),
-            battle_end_callback: BattleCallback::stub(()), // todo:
+            battle_end_callback: BattleCallback::stub(()),
             counter_callback: BattleCallback::stub(()),
             delete_callback: BattleCallback::new(move |game_io, resources, simulation, _| {
                 // default behavior, just erase
