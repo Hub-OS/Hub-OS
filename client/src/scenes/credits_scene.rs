@@ -26,8 +26,11 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
-    ("credits-technical-design", &["Mars"]),
-    ("credits-programmers", &["Dawn Elaine", "Konst"]),
+    ("credits-technical-design", &["JamesKing", "Mars"]),
+    (
+        "credits-programmers",
+        &["Dawn Elaine", "JamesKing", "Konst"],
+    ),
     ("credits-core-team", &["Dawn Elaine", "Mars", "Konst"]),
     (
         "credits-special-thanks",
@@ -42,7 +45,6 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "FrozenLake",
             "Gemini",
             "Gwyneth Hestin",
-            "JamesKing",
             "JonTheBurger",
             "Keristero",
             "Kuri",
