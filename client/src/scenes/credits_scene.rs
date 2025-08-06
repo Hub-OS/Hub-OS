@@ -9,6 +9,7 @@ use crate::resources::*;
 use framework::prelude::*;
 use packets::structures::*;
 use rand::seq::SliceRandom;
+use std::collections::HashMap;
 
 const PADDING_TOP: f32 = 16.0;
 const NAME_LINE_HEIGHT: f32 = 20.0;
@@ -20,6 +21,8 @@ const PAGE_TIME: FrameTime = HOLD_BLANK_TIME + 10;
 
 const NAMES_PER_PAGE: usize = 5;
 
+const VARIABLE_PREFIX: &str = "$";
+
 const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-heading", &[]),
     ("credits-music", &["Mondo.sp"]),
@@ -30,6 +33,17 @@ const SECTIONS: &[(&str, &[&str])] = &[
     (
         "credits-programmers",
         &["Dawn Elaine", "JamesKing", "Konst"],
+    ),
+    (
+        "credits-testers",
+        &[
+            "DeltaFiend",
+            "Jack",
+            "KayThree",
+            "PlayerZero",
+            "kyqurikan",
+            "Void.ExE",
+        ],
     ),
     ("credits-core-team", &["Dawn Elaine", "Mars", "Konst"]),
     (
@@ -48,7 +62,6 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "JonTheBurger",
             "Keristero",
             "Kuri",
-            "kyqurikan",
             "Loui",
             "Mint",
             "Mithalan",
@@ -56,14 +69,12 @@ const SECTIONS: &[(&str, &[&str])] = &[
             "nickblock",
             "OuroYisus",
             "Pion",
-            "Salad",
-            "Shale",
-            "svenevs",
-            "theWildSushii",
-            "PlayerZero",
             "Pheelbert",
             "Poly",
             "Pyredrid",
+            "Shale",
+            "svenevs",
+            "theWildSushii",
             "Weenie",
             "Zeek",
         ],
@@ -71,14 +82,17 @@ const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-roots", &["Open Net Battle"]),
     (
         "credits-inpsiration",
-        &["Mega Man Battle Network", "Capcom"],
+        &["$credits-mega-man-battle-network", "", "Capcom"],
     ),
+    ("", &[""]),
+    ("", &["$credits-reach-out-1", "$credits-reach-out-2"]),
 ];
 
 pub struct CreditsScene {
     camera: Camera,
     background: Background,
     header_text: String,
+    translation_cache: HashMap<&'static str, String>,
     section_index: usize,
     top_name: usize,
     page_time: FrameTime,
@@ -99,6 +113,7 @@ impl CreditsScene {
             camera,
             background: Background::new_credits(game_io),
             header_text: globals.translate(SECTIONS[0].0),
+            translation_cache: Default::default(),
             section_index: 0,
             top_name: 0,
             page_time: 0,
@@ -150,7 +165,12 @@ impl CreditsScene {
 
         if let Some((header_key, _)) = SECTIONS.get(self.section_index) {
             let globals = game_io.resource::<Globals>().unwrap();
-            self.header_text = globals.translate(header_key);
+
+            self.header_text = if header_key.is_empty() {
+                String::new()
+            } else {
+                globals.translate(header_key)
+            };
         } else {
             // out of pages
             self.header_text.clear();
@@ -197,6 +217,22 @@ impl Scene for CreditsScene {
         let mut sprite_queue =
             SpriteColorQueue::new(game_io, &self.camera, SpriteColorMode::Multiply);
 
+        // draw a backdrop to make text more clear
+        let globals = game_io.resource::<Globals>().unwrap();
+        // let assets = &globals.assets;
+
+        // let mut backdrop = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        // backdrop.set_color(Color::BLACK.multiply_alpha(0.75));
+
+        // let backdrop_size = Vec2::new(RESOLUTION_F.x * 0.6, RESOLUTION_F.y * 0.85).floor();
+        // backdrop.set_bounds(Rect::from_corners(
+        //     Vec2::new(RESOLUTION_F.x * 0.2, PADDING_TOP - 4.0),
+        //     Vec2::new(RESOLUTION_F.x * 0.8, RESOLUTION_F.y - PADDING_TOP),
+        // ));
+        // backdrop.set_position((RESOLUTION_F - backdrop_size) * 0.5);
+
+        // sprite_queue.draw_sprite(&backdrop);
+
         // draw the fun stuff under credits
         self.fun.draw(&mut sprite_queue);
 
@@ -236,6 +272,17 @@ impl Scene for CreditsScene {
             text_style.font = FontName::Thin;
 
             for name in names[self.top_name..].iter().take(NAMES_PER_PAGE) {
+                let name = if let Some(key) = name.strip_prefix(VARIABLE_PREFIX) {
+                    let translated = self
+                        .translation_cache
+                        .entry(name)
+                        .or_insert_with(|| globals.translate(key));
+
+                    translated.as_str()
+                } else {
+                    name
+                };
+
                 let header_size = text_style.measure(name).size;
                 text_style.bounds.x = (RESOLUTION_F.x - header_size.x) * 0.5;
                 text_style.draw(game_io, &mut sprite_queue, name);
@@ -512,8 +559,8 @@ impl CreditsFun {
         }
 
         const FIRST_SWITCH: FrameTime = section_end_frame(4);
-        const SECOND_SWITCH: FrameTime = section_end_frame(7);
-        const THIRD_SWITCH: FrameTime = section_end_frame(8);
+        const SECOND_SWITCH: FrameTime = section_end_frame(8);
+        const THIRD_SWITCH: FrameTime = section_end_frame(9);
 
         match time {
             1 => {
