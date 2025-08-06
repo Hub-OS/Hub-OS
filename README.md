@@ -24,6 +24,7 @@ Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/Ope
 - CosmicNobab
 - ChordMankey
 - Dawn Elaine
+- DeltaFiend
 - D3str0y3d255
 - DJRezzed
 - Dunstan
@@ -32,6 +33,7 @@ Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/Ope
 - Gemini
 - Gray Nine
 - Gwyneth Hestin
+- Jack
 - JamesKing
 - JonTheBurger
 - KayThree
