@@ -45,7 +45,7 @@ enum ConfigCategory {
     Audio,
     Keyboard,
     Gamepad,
-    About,
+    // About,
 }
 
 impl ConfigCategory {
@@ -57,7 +57,7 @@ impl ConfigCategory {
             ConfigCategory::Gamepad => "config-gamepad-tab",
             ConfigCategory::Mods => "config-mods-tab",
             ConfigCategory::Profile => "config-profile-tab",
-            ConfigCategory::About => "config-about-tab",
+            // ConfigCategory::About => "config-about-tab",
         }
     }
 }
@@ -221,7 +221,7 @@ impl ConfigScene {
             }
             ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
             ConfigCategory::Profile => Self::generate_profile_menu(game_io, event_sender),
-            ConfigCategory::About => Self::generate_about_menu(game_io, event_sender),
+            // ConfigCategory::About => Self::generate_about_menu(game_io, event_sender),
         }
     }
 
