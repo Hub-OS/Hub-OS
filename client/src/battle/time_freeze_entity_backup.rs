@@ -2,7 +2,7 @@ use super::{
     Action, ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement,
     SharedBattleResources,
 };
-use crate::bindable::{EntityId, HitFlags};
+use crate::bindable::{Drag, EntityId, HitFlags};
 use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
 use framework::prelude::GameIO;
@@ -14,6 +14,8 @@ pub struct TimeFreezeEntityBackup {
     pub movement: Option<Movement>,
     pub animator: BattleAnimator,
     pub statuses: Vec<(HitFlags, FrameTime)>,
+    pub drag: Option<Drag>,
+    pub drag_lockout: FrameTime,
 }
 
 impl TimeFreezeEntityBackup {
@@ -48,7 +50,7 @@ impl TimeFreezeEntityBackup {
         animator.clear_callbacks();
 
         // back up status_director
-        let statuses = living
+        let (statuses, drag, drag_lockout) = living
             .map(|living| {
                 let status_sprites = living.status_director.take_status_sprites();
 
@@ -61,13 +63,15 @@ impl TimeFreezeEntityBackup {
                 }
 
                 let statuses = living.status_director.applied_and_pending();
+                let drag = living.status_director.take_drag_for_backup();
+                let drag_lockout = living.status_director.remaining_drag_lockout();
 
                 // clear existing statuses and call destructors to get rid of scripted effects and artifacts
                 living.status_director.clear_statuses();
                 let destructors = living.status_director.take_ready_destructors();
                 simulation.pending_callbacks.extend(destructors);
 
-                statuses
+                (statuses, drag, drag_lockout)
             })
             .unwrap_or_default();
 
@@ -80,6 +84,8 @@ impl TimeFreezeEntityBackup {
             movement,
             animator: animator_backup,
             statuses,
+            drag,
+            drag_lockout,
         })
     }
 
@@ -115,9 +121,17 @@ impl TimeFreezeEntityBackup {
         // restore statuses
         if let Some(living) = living {
             // merge to retain statuses applied during time freeze
+            let status_director = &mut living.status_director;
+
             for (flag, duration) in self.statuses {
-                living.status_director.apply_status(flag, duration);
+                status_director.apply_status(flag, duration);
             }
+
+            if let Some(drag) = self.drag {
+                status_director.set_drag(drag);
+            }
+
+            status_director.set_remaining_drag_lockout(self.drag_lockout);
         }
 
         // restore the movement

@@ -162,6 +162,10 @@ impl StatusDirector {
         drag.direction
     }
 
+    pub fn take_drag_for_backup(&mut self) -> Option<Drag> {
+        self.drag.take()
+    }
+
     pub fn end_drag(&mut self) {
         self.drag = None;
 
