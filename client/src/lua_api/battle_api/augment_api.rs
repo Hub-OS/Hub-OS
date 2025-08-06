@@ -27,6 +27,22 @@ pub fn inject_augment_api(lua_api: &mut BattleLuaApi) {
         Ok(augment.tags.iter().any(|t| *t == tag))
     });
 
+    lua_api.add_dynamic_function(AUGMENT_TABLE, "deleted", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+        let entity_id: EntityId = table.raw_get("#id")?;
+        let index: GenerationalIndex = table.raw_get("#index")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let entities = &mut api_ctx.simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+            return lua.pack_multi(true);
+        };
+
+        let exists = player.augments.contains_key(index);
+
+        lua.pack_multi(!exists)
+    });
+
     lua_api.add_dynamic_function(
         AUGMENT_TABLE,
         "create_card_button",
