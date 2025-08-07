@@ -5,6 +5,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
+use crate::scenes::PackageScene;
 use framework::prelude::*;
 
 pub struct LibraryScene {
@@ -17,6 +18,7 @@ pub struct LibraryScene {
     page_tracker: PageTracker,
     dock_scissor: Rect,
     docks: Vec<Dock>,
+    just_pushed: bool,
     next_scene: NextScene,
 }
 
@@ -78,6 +80,7 @@ impl LibraryScene {
             page_tracker,
             dock_scissor,
             docks,
+            just_pushed: true,
             next_scene: NextScene::None,
         });
 
@@ -120,7 +123,28 @@ impl LibraryScene {
         self.page_tracker.handle_input(game_io);
 
         // leaving scene
-        if input_util.was_just_pressed(Input::Cancel) {
+        if input_util.was_just_pressed(Input::Option2) {
+            // view card package
+            let globals = game_io.resource::<Globals>().unwrap();
+            let dock = &self.docks[self.page_tracker.active_page()];
+
+            if let Some(card) = dock.cards.get(dock.scroll_tracker.selected_index()) {
+                let card_packages = &globals.card_packages;
+
+                if let Some(package) =
+                    card_packages.package(PackageNamespace::Local, &card.package_id)
+                {
+                    let scene = PackageScene::new(game_io, package.create_package_listing());
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+
+                    globals.audio.play_sound(&globals.sfx.cursor_select);
+                } else {
+                    globals.audio.play_sound(&globals.sfx.cursor_error);
+                }
+            }
+        } else if input_util.was_just_pressed(Input::Cancel) {
+            // leave scene
             let transition = crate::transitions::new_scene_pop(game_io);
             self.next_scene = NextScene::new_pop().with_transition(transition);
 
@@ -144,6 +168,17 @@ impl LibraryScene {
 impl Scene for LibraryScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        if self.just_pushed {
+            self.just_pushed = false;
+            return;
+        }
+
+        for dock in &mut self.docks {
+            dock.retain_existing(game_io)
+        }
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -273,6 +308,17 @@ impl Dock {
             list_position,
             context_menu_position,
         }
+    }
+
+    fn retain_existing(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        self.cards.retain(|card| {
+            globals
+                .card_packages
+                .package(PackageNamespace::Local, &card.package_id)
+                .is_some()
+        });
+        self.scroll_tracker.set_total_items(self.cards.len());
     }
 
     fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, offset_x: f32) {

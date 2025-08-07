@@ -20,11 +20,12 @@ impl CharacterData {
         let globals = game_io.resource_mut::<Globals>().unwrap();
 
         let player_packages = &globals.player_packages;
-        let has_selected_character = player_packages
-            .package_ids(PackageNamespace::Local)
-            .any(|player_id| *player_id == globals.global_save.selected_character);
+        let player_package = player_packages.package(
+            PackageNamespace::Local,
+            &globals.global_save.selected_character,
+        );
 
-        if has_selected_character {
+        if player_package.is_some() {
             return;
         }
 

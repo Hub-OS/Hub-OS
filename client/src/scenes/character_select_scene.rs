@@ -1,5 +1,5 @@
 use crate::bindable::SpriteColorMode;
-use crate::packages::{PackageId, PackageNamespace, PlayerPackage};
+use crate::packages::{Package, PackageId, PackageNamespace, PlayerPackage};
 use crate::render::ui::{
     ElementSprite, FontName, PlayerHealthUi, SceneTitle, ScrollTracker, SubSceneFrame, TextStyle,
     Textbox, TextboxMessage, UiInputTracker,
@@ -7,6 +7,7 @@ use crate::render::ui::{
 use crate::render::{Animator, AnimatorLoopMode, Background, Camera, SpriteColorQueue};
 use crate::resources::*;
 use crate::saves::GlobalSave;
+use crate::scenes::PackageScene;
 use framework::prelude::*;
 use itertools::Itertools;
 use std::sync::Arc;
@@ -31,12 +32,14 @@ pub struct CharacterSelectScene {
     cursor_animator: Animator,
     invalid_sprite: Sprite,
     icon_rows: Vec<IconRow>,
+    icons_per_row: usize,
     icon_start_offset: Vec2,
     scroll_offset: Vec2,
     v_scroll_tracker: ScrollTracker,
     h_scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
     textbox: Textbox,
+    just_pushed: bool,
     next_scene: NextScene,
 }
 
@@ -47,17 +50,7 @@ impl CharacterSelectScene {
         let character_id = &globals.global_save.selected_character;
         let player_package = Self::get_player_package(game_io, character_id);
 
-        let mut package_ids: Vec<_> = globals
-            .player_packages
-            .package_ids(PackageNamespace::Local)
-            .collect();
-
-        package_ids.sort_by_cached_key(|&id| {
-            (
-                Self::get_player_package(game_io, id).name.clone(),
-                id.clone(),
-            )
-        });
+        let package_ids = Self::collect_package_ids(game_io);
 
         // layout
         let mut ui_animator =
@@ -100,12 +93,7 @@ impl CharacterSelectScene {
         let h_index = selected_index % icons_per_row;
 
         // icons
-        let icon_rows: Vec<_> = package_ids
-            .into_iter()
-            .chunks(icons_per_row)
-            .into_iter()
-            .map(|package_ids| IconRow::new(game_io, package_ids))
-            .collect();
+        let icon_rows = Self::build_icon_rows(game_io, icons_per_row, package_ids);
 
         let row_count = icon_rows.len();
         let col_count = icon_rows
@@ -139,6 +127,7 @@ impl CharacterSelectScene {
             invalid_sprite,
             icon_start_offset: list_bounds.top_left(),
             icon_rows,
+            icons_per_row,
             scroll_offset: Vec2::ZERO,
             v_scroll_tracker: ScrollTracker::new(game_io, row_view_size)
                 .with_total_items(row_count)
@@ -149,8 +138,39 @@ impl CharacterSelectScene {
                 .with_selected_index(h_index),
             ui_input_tracker: UiInputTracker::new(),
             textbox: Textbox::new_navigation(game_io),
+            just_pushed: true,
             next_scene: NextScene::None,
         }
+    }
+
+    fn collect_package_ids(game_io: &GameIO) -> Vec<&PackageId> {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let mut package_ids: Vec<_> = globals
+            .player_packages
+            .package_ids(PackageNamespace::Local)
+            .collect();
+
+        package_ids.sort_by_cached_key(|&id| {
+            (
+                Self::get_player_package(game_io, id).name.clone(),
+                id.clone(),
+            )
+        });
+
+        package_ids
+    }
+
+    fn build_icon_rows(
+        game_io: &GameIO,
+        icons_per_row: usize,
+        package_ids: Vec<&PackageId>,
+    ) -> Vec<IconRow> {
+        package_ids
+            .into_iter()
+            .chunks(icons_per_row)
+            .into_iter()
+            .map(|package_ids| IconRow::new(game_io, package_ids))
+            .collect()
     }
 
     fn get_player_package<'a>(game_io: &'a GameIO, character_id: &PackageId) -> &'a PlayerPackage {
@@ -186,6 +206,17 @@ impl CharacterSelectScene {
         self.icon_rows[v_index].get_character_name(h_index)
     }
 
+    fn update_selected_character(&mut self, game_io: &GameIO) {
+        let package_id = self.selected_package_id();
+        let player_package = Self::get_player_package(game_io, package_id);
+        self.preview_sprite = Self::load_character_sprite(game_io, player_package);
+        self.health_ui.set_health(player_package.health);
+
+        let old_element_position = self.element_sprite.position();
+        self.element_sprite = ElementSprite::new(game_io, player_package.element);
+        self.element_sprite.set_position(old_element_position);
+    }
+
     fn calculate_target_scroll(index: usize) -> f32 {
         index as f32 * -ICON_Y_OFFSET
     }
@@ -216,14 +247,7 @@ impl CharacterSelectScene {
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_move);
 
-            let package_id = self.selected_package_id();
-            let player_package = Self::get_player_package(game_io, package_id);
-            self.preview_sprite = Self::load_character_sprite(game_io, player_package);
-            self.health_ui.set_health(player_package.health);
-
-            let old_element_position = self.element_sprite.position();
-            self.element_sprite = ElementSprite::new(game_io, player_package.element);
-            self.element_sprite.set_position(old_element_position);
+            self.update_selected_character(game_io);
         }
 
         // update cursor
@@ -250,6 +274,24 @@ impl CharacterSelectScene {
             let interface = TextboxMessage::new(package.description.to_string());
             self.textbox.push_interface(interface);
             self.textbox.open();
+            return;
+        }
+
+        if input_util.was_just_pressed(Input::Option2) {
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
+            let package_id = self.selected_package_id();
+            let player_packages = &globals.player_packages;
+            let package = player_packages
+                .package(PackageNamespace::Local, package_id)
+                .unwrap();
+
+            let scene = PackageScene::new(game_io, package.create_package_listing());
+            let transition = crate::transitions::new_sub_scene(game_io);
+            self.next_scene = NextScene::new_push(scene).with_transition(transition);
+
+            return;
         }
 
         // test select
@@ -282,6 +324,54 @@ impl CharacterSelectScene {
 impl Scene for CharacterSelectScene {
     fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
+    }
+
+    fn enter(&mut self, game_io: &mut GameIO) {
+        if self.just_pushed {
+            self.just_pushed = false;
+            return;
+        }
+
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let player_packages = &globals.player_packages;
+        let player_package = player_packages.package(
+            PackageNamespace::Local,
+            &globals.global_save.selected_character,
+        );
+
+        if player_package.is_none() {
+            // default to some character
+            if let Some(&package_id) = Self::collect_package_ids(game_io).first() {
+                let package_id = package_id.clone();
+
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                globals.global_save.selected_character = package_id.clone();
+                globals.global_save.save();
+            }
+        }
+
+        let package_ids = Self::collect_package_ids(game_io);
+
+        if package_ids.is_empty() {
+            let transition = crate::transitions::new_scene_pop(game_io);
+            self.next_scene = NextScene::new_pop().with_transition(transition);
+            return;
+        }
+
+        // recreate icon rows in case navis changed
+        self.icon_rows = Self::build_icon_rows(game_io, self.icons_per_row, package_ids);
+        self.v_scroll_tracker.set_total_items(self.icon_rows.len());
+
+        let row_index = self.v_scroll_tracker.selected_index();
+        let current_row_cols = self
+            .icon_rows
+            .get(row_index)
+            .map(|row| row.package_count())
+            .unwrap_or_default();
+        self.h_scroll_tracker.set_total_items(current_row_cols);
+
+        self.update_selected_character(game_io);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {

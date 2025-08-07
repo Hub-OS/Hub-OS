@@ -1,7 +1,7 @@
 use super::{BlocksScene, CharacterSelectScene, ManageSwitchDriveScene};
 use crate::battle::{Player, PlayerFallbackResources};
 use crate::bindable::SpriteColorMode;
-use crate::packages::PlayerPackage;
+use crate::packages::{PackageNamespace, PlayerPackage};
 use crate::render::ui::{
     ElementSprite, FontName, PageTracker, PlayerHealthUi, SceneTitle, ScrollableList,
     SubSceneFrame, Text, Textbox, TextboxCharacterNavigation, UiInputTracker, UiNode,
@@ -121,6 +121,18 @@ impl Scene for CharacterScene {
     }
 
     fn enter(&mut self, game_io: &mut GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let selected_id = &globals.global_save.selected_character;
+        let player_package = globals
+            .player_packages
+            .package(PackageNamespace::Local, selected_id);
+
+        if player_package.is_none() {
+            let transition = crate::transitions::new_scene_pop(game_io);
+            self.next_scene = NextScene::new_pop().with_transition(transition);
+            return;
+        }
+
         self.load_pages(game_io);
         self.reload_textbox(game_io);
     }

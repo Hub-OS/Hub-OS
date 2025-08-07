@@ -6,7 +6,7 @@ use crate::render::ui::{
 };
 use crate::render::*;
 use crate::resources::*;
-use crate::scenes::BattleInitScene;
+use crate::scenes::{BattleInitScene, PackageScene};
 use framework::prelude::*;
 
 pub struct BattleSelectScene {
@@ -194,7 +194,7 @@ impl Scene for BattleSelectScene {
             return;
         }
 
-        if input_tracker.pulsed(Input::Option2) && !self.package_ids.is_empty() {
+        if input_tracker.pulsed(Input::Option) && !self.package_ids.is_empty() {
             // description
             let globals = game_io.resource::<Globals>().unwrap();
 
@@ -210,6 +210,23 @@ impl Scene for BattleSelectScene {
             self.textbox.push_interface(interface);
             self.textbox.open();
             return;
+        }
+
+        if input_tracker.pulsed(Input::Option2) && !self.package_ids.is_empty() {
+            // view package
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_select);
+
+            let i = self.scroll_tracker.selected_index();
+            let package_id = &self.package_ids[i];
+            let package = globals
+                .encounter_packages
+                .package(PackageNamespace::Local, package_id)
+                .unwrap();
+
+            let scene = PackageScene::new(game_io, package.create_package_listing());
+            let transition = crate::transitions::new_sub_scene(game_io);
+            self.next_scene = NextScene::new_push(scene).with_transition(transition);
         }
 
         if self.ui_input_tracker.pulsed(Input::Cancel) {
