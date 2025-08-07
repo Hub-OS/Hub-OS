@@ -1,11 +1,15 @@
 use crate::bindable::SpriteColorMode;
 use crate::packages::PackageNamespace;
-use crate::render::ui::{FontName, NavigationMenu, SceneOption, TextStyle};
+use crate::render::ui::{FontName, NavigationMenu, SceneOption, TextStyle, TextboxQuestion};
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::GlobalSave;
 use framework::prelude::*;
 use ui::{Textbox, TextboxMessage};
+
+enum Event {
+    Quit,
+}
 
 struct CharacterData {
     loaded: bool,
@@ -114,6 +118,9 @@ pub struct MainMenuScene {
     character_data: CharacterData,
     navigation_menu: NavigationMenu,
     textbox: Textbox,
+    event_receiver: flume::Receiver<Event>,
+    event_sender: flume::Sender<Event>,
+    quitting: bool,
     next_scene: NextScene,
 }
 
@@ -147,6 +154,9 @@ impl MainMenuScene {
             textbox.open();
         }
 
+        // events
+        let (event_sender, event_receiver) = flume::unbounded();
+
         MainMenuScene {
             camera: Camera::new_ui(game_io),
             background: Background::new_blank(game_io),
@@ -156,6 +166,9 @@ impl MainMenuScene {
             character_data,
             navigation_menu: NavigationMenu::new(game_io, navigation_options),
             textbox,
+            event_sender,
+            event_receiver,
+            quitting: false,
             next_scene: NextScene::None,
         }
     }
@@ -196,6 +209,15 @@ impl Scene for MainMenuScene {
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
+        // handle events
+        if let Ok(Event::Quit) = self.event_receiver.try_recv() {
+            self.quitting = true;
+        }
+
+        if !self.textbox.is_open() && self.quitting {
+            game_io.quit();
+        }
+
         // music
         let globals = game_io.resource::<Globals>().unwrap();
 
@@ -217,9 +239,31 @@ impl Scene for MainMenuScene {
         self.scrolling_text_offset -= 1.0;
         self.scrolling_text_offset %= self.character_data.scrolling_text_wrap;
 
-        // update navigation menu
-        if !self.textbox.is_open() || self.navigation_menu.opening() {
-            self.next_scene = self.navigation_menu.update(game_io, |_, _| None);
+        // handle input
+        if self.textbox.is_open() && !self.navigation_menu.opening() {
+            return;
+        }
+
+        self.next_scene = self.navigation_menu.update(game_io, |_, _| None);
+
+        // handle more input if the navigation menu allows it
+        if self.next_scene.is_some() || self.navigation_menu.opening() {
+            return;
+        }
+
+        let input_util = InputUtil::new(game_io);
+
+        if input_util.was_just_pressed(Input::Cancel) {
+            let globals = game_io.resource::<Globals>().unwrap();
+            let event_sender = self.event_sender.clone();
+            let message = globals.translate("navigation-quit-question");
+            let interface = TextboxQuestion::new(message, move |yes| {
+                if yes {
+                    let _ = event_sender.send(Event::Quit);
+                }
+            });
+            self.textbox.push_interface(interface);
+            self.textbox.open();
         }
     }
 

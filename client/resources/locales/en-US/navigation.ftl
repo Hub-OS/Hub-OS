@@ -9,3 +9,5 @@ navigation-option-battle-sim = Sim
 navigation-option-config = Config
 
 navigation-health-label = Health
+
+navigation-quit-question = Close Hub OS?
