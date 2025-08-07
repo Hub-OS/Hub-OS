@@ -178,6 +178,11 @@ impl BattleAnimator {
         let assets = &game_io.resource::<Globals>().unwrap().assets;
         self.animator.load(assets, path);
 
+        // rederive states
+        for derived_state in &self.derived_states {
+            derived_state.apply(&mut self.animator);
+        }
+
         if let Some(state) = &old_state {
             // reapply old settings
             self.animator.set_state(state);
