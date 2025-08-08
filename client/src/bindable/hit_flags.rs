@@ -1,4 +1,4 @@
-pub type HitFlags = u64;
+pub type HitFlags = i64;
 
 // simulating an enum here, could use a better solution
 #[allow(non_snake_case)]
