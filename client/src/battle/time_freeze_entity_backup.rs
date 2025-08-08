@@ -36,6 +36,10 @@ impl TimeFreezeEntityBackup {
             return None;
         };
 
+        if entity.deleted {
+            return None;
+        }
+
         entity.time_frozen = false;
 
         // swap action index

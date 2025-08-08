@@ -508,10 +508,11 @@ impl TimeFreezeTracker {
     }
 
     fn begin_action(simulation: &mut BattleSimulation) {
-        let action_index = simulation
-            .time_freeze_tracker
-            .active_action_index()
-            .unwrap();
+        let Some(action_index) = simulation.time_freeze_tracker.active_action_index() else {
+            // action deleted?
+            simulation.time_freeze_tracker.end_action();
+            return;
+        };
 
         let Some(action) = simulation.actions.get(action_index) else {
             // action deleted?
