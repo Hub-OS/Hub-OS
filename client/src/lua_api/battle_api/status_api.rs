@@ -16,6 +16,12 @@ pub fn inject_status_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table.raw_get::<_, rollback_mlua::Table>("#entity")?)
     });
 
+    lua_api.add_dynamic_function(STATUS_TABLE, "reapplied", |_, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        lua.pack_multi(table.raw_get::<_, bool>("#reapplied")?)
+    });
+
     lua_api.add_dynamic_function(STATUS_TABLE, "remaining_time", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
@@ -179,6 +185,7 @@ pub fn create_status_table(
     lua: &rollback_mlua::Lua,
     id: EntityId,
     flag: HitFlags,
+    reapplied: bool,
 ) -> rollback_mlua::Result<rollback_mlua::Table> {
     let table = lua.create_table()?;
     inherit_metatable(lua, STATUS_TABLE, &table)?;
@@ -186,6 +193,7 @@ pub fn create_status_table(
     table.raw_set("#entity", create_entity_table(lua, id)?)?;
     table.raw_set("#entity_id", id)?;
     table.raw_set("#flag", flag)?;
+    table.raw_set("#reapplied", reapplied)?;
 
     Ok(table)
 }

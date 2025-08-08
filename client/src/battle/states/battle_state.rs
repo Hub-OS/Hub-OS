@@ -904,9 +904,9 @@ impl BattleState {
                 callbacks.extend(status_director.take_ready_destructors());
 
                 // new status callbacks
-                for hit_flag in status_director.take_new_statuses() {
+                for (hit_flag, reapplied) in status_director.take_new_statuses() {
                     if let Some(callback) = status_registry.status_constructor(hit_flag) {
-                        callbacks.push(callback.bind(id.into()));
+                        callbacks.push(callback.bind((id.into(), reapplied)));
                     }
 
                     // call registered status callbacks

@@ -17,7 +17,7 @@ pub struct RegisteredStatus {
     pub name: String,
     pub flag: HitFlags,
     pub durations: Vec<FrameTime>,
-    pub constructor: BattleCallback<EntityId>,
+    pub constructor: BattleCallback<(EntityId, bool)>,
 }
 
 impl RegisteredStatus {
@@ -111,20 +111,21 @@ impl StatusRegistry {
                 self.next_shift += 1;
             }
 
-            let constructor =
-                BattleCallback::new(move |game_io, resources, simulation, entity_id| {
+            let constructor = BattleCallback::new(
+                move |game_io, resources, simulation, (entity_id, reapplied)| {
                     let result = simulation.call_global(
                         game_io,
                         resources,
                         vm_index,
                         "status_init",
-                        |lua| create_status_table(lua, entity_id, flag),
+                        |lua| create_status_table(lua, entity_id, flag, reapplied),
                     );
 
                     if let Err(err) = result {
                         log::error!("{err}");
                     }
-                });
+                },
+            );
 
             let status = RegisteredStatus {
                 package_id: info.id.clone(),
@@ -199,7 +200,7 @@ impl StatusRegistry {
             .unwrap_or(1)
     }
 
-    pub fn status_constructor(&self, flag: HitFlags) -> Option<BattleCallback<EntityId>> {
+    pub fn status_constructor(&self, flag: HitFlags) -> Option<BattleCallback<(EntityId, bool)>> {
         let item = self.list.iter().find(|item| item.flag == flag)?;
         Some(item.constructor.clone())
     }

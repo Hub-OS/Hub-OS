@@ -12,6 +12,7 @@ struct AppliedStatus {
     remaining_time: FrameTime,
     lifetime: FrameTime,
     destructor: Option<BattleCallback>,
+    reapplied: bool,
 }
 
 #[derive(Clone, Default)]
@@ -103,19 +104,34 @@ impl StatusDirector {
     }
 
     pub fn apply_status(&mut self, status_flag: HitFlags, duration: FrameTime) {
-        if status_flag & self.immunity != 0 {
-            return;
-        }
-
-        self.new_statuses
-            .retain(|status| status.status_flag != status_flag);
-
-        self.new_statuses.push(AppliedStatus {
+        self.apply_status_internal(AppliedStatus {
             status_flag,
             remaining_time: duration,
             lifetime: 0,
             destructor: None,
+            reapplied: false,
         });
+    }
+
+    pub fn reapply_status(&mut self, status_flag: HitFlags, duration: FrameTime) {
+        self.apply_status_internal(AppliedStatus {
+            status_flag,
+            remaining_time: duration,
+            lifetime: 0,
+            destructor: None,
+            reapplied: true,
+        });
+    }
+
+    fn apply_status_internal(&mut self, new_status: AppliedStatus) {
+        if new_status.status_flag & self.immunity != 0 {
+            return;
+        }
+
+        self.new_statuses
+            .retain(|status| status.status_flag != new_status.status_flag);
+
+        self.new_statuses.push(new_status);
     }
 
     pub fn set_remaining_status_time(&mut self, status_flag: HitFlags, duration: FrameTime) {
@@ -310,10 +326,10 @@ impl StatusDirector {
     }
 
     // should be called after update()
-    pub fn take_new_statuses(&mut self) -> Vec<HitFlags> {
+    pub fn take_new_statuses(&mut self) -> Vec<(HitFlags, bool)> {
         self.new_statuses
             .drain(..)
-            .map(|status| status.status_flag)
+            .map(|status| (status.status_flag, status.reapplied))
             .collect()
     }
 
@@ -353,6 +369,7 @@ impl StatusDirector {
             let still_active = prev_status.remaining_time > 0;
 
             prev_status.remaining_time = status.remaining_time.max(prev_status.remaining_time);
+            prev_status.reapplied = status.reapplied;
 
             !still_active
         });

@@ -124,7 +124,7 @@ impl TimeFreezeEntityBackup {
             let status_director = &mut living.status_director;
 
             for (flag, duration) in self.statuses {
-                status_director.apply_status(flag, duration);
+                status_director.reapply_status(flag, duration);
             }
 
             if let Some(drag) = self.drag {
