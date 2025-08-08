@@ -150,7 +150,7 @@ impl State for BattleState {
 }
 
 impl BattleState {
-    pub const GRACE_TIME: FrameTime = 30;
+    pub const GRACE_TIME: FrameTime = 5;
 
     pub fn new() -> Self {
         Self {
