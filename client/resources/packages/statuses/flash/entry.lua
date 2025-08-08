@@ -3,6 +3,12 @@ local COLOR = Color.new(0, 0, 0, 0)
 ---@param status Status
 function status_init(status)
   local entity = status:owner()
+
+  if entity:intangible() and status:reapplied() then
+    entity:remove_status(Hit.Flash)
+    return
+  end
+
   local entity_sprite = entity:sprite()
 
   local removed_intangible_rule = false
