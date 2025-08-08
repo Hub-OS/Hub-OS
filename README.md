@@ -16,50 +16,7 @@ Highlights:
 
 Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle)
 
-## Special Thanks
-
-- Abigail Allbright
-- Alrysc
-- cantrem404
-- CosmicNobab
-- ChordMankey
-- Dawn Elaine
-- DeltaFiend
-- D3str0y3d255
-- DJRezzed
-- Dunstan
-- Ehab2020
-- FrozenLake
-- Gemini
-- Gray Nine
-- Gwyneth Hestin
-- Jack
-- JamesKing
-- JonTheBurger
-- KayThree
-- Keristero
-- Konstinople
-- Kuri
-- kyqurikan
-- Loui
-- Mars
-- Mint
-- Mithalan
-- Mx. Claris Glennwood
-- nickblock
-- OuroYisus
-- Pion
-- Pheelbert
-- PlayerZero
-- Poly
-- Pyredrid
-- Salad
-- Shale
-- svenevs
-- theWildSushii
-- Void.ExE
-- Weenie
-- Zeek
+You can find our credits list on our website's [About page](https://hubos.dev/about) or Config -> About.
 
 # Building
 
