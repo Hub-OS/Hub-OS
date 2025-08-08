@@ -1297,14 +1297,16 @@ impl OverworldOnlineScene {
                 animation_path,
             } => {
                 if let Some(entity) = self.actor_id_map.get_by_left(&actor_id) {
+                    type Query<'a> = (&'a mut Sprite, &'a mut Animator, &'a mut MovementAnimator);
                     let entities = &mut self.area.entities;
-                    let (sprite, animator) = entities
-                        .query_one_mut::<(&mut Sprite, &mut Animator)>(*entity)
-                        .unwrap();
+                    let (sprite, animator, movement_animator) =
+                        entities.query_one_mut::<Query>(*entity).unwrap();
 
                     let texture = self.assets.texture(game_io, &texture_path);
                     sprite.set_texture(texture);
                     animator.load(&self.assets, &animation_path);
+
+                    movement_animator.set_animation_enabled(true);
                 }
             }
             ServerPacket::ActorEmote { actor_id, emote_id } => {
