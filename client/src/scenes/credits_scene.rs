@@ -25,7 +25,7 @@ const VARIABLE_PREFIX: &str = "$";
 
 const SECTIONS: &[(&str, &[&str])] = &[
     ("credits-heading", &[]),
-    ("credits-music", &["Mondo.sp"]),
+    ("credits-music", &["mondo."]),
     ("credits-sound-design", &["DJRezzed"]),
     ("credits-graphics", &["Konst", "Salad"]),
     ("credits-user-experience", &["Gray Nine", "KayThree"]),
