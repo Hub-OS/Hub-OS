@@ -16,7 +16,7 @@ Highlights:
 
 Hub OS has roots in [OpenNetBattle](https://github.com/TheMaverickProgrammer/OpenNetBattle)
 
-You can find our credits list on our website's [About page](https://hubos.dev/about) or Config -> About.
+You can find our credits list on our website's [Credits page](https://hubos.dev/credits) or Config -> About.
 
 # Building
 
