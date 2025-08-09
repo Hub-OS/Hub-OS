@@ -1,9 +1,10 @@
 use super::{Asset, AssetId, PackageInfo};
+use packets::structures::PackageId;
 use std::collections::HashMap;
 
 pub struct AssetManager {
     assets: HashMap<String, Asset>,
-    package_paths: HashMap<String, String>,
+    package_paths: HashMap<PackageId, String>,
 }
 
 impl AssetManager {
@@ -99,12 +100,12 @@ impl AssetManager {
             return;
         };
 
-        let try_remove = |paths: &mut HashMap<String, String>, name| {
-            let optional_path_str = paths.get(&name).map(|path| path.as_str());
+        let try_remove = |paths: &mut HashMap<PackageId, String>, id| {
+            let optional_path_str = paths.get(&id).map(|path| path.as_str());
 
             // make sure another asset did not overwrite us as this name
             if Some(path) == optional_path_str {
-                paths.remove(&name);
+                paths.remove(&id);
             }
         };
 
@@ -150,7 +151,7 @@ impl AssetManager {
     }
 
     fn resolve_dependency_path<'a>(&'a self, dependency: &'a AssetId) -> Option<&'a str> {
-        let get_as_option_str = |paths: &'a HashMap<String, String>, name| -> Option<&'a str> {
+        let get_as_option_str = |paths: &'a HashMap<PackageId, String>, name| -> Option<&'a str> {
             paths.get(name).map(|path: &String| path.as_str())
         };
 

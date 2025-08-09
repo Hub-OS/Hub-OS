@@ -221,7 +221,7 @@ pub enum ServerPacket {
     },
     OfferPackage {
         name: String,
-        id: String,
+        id: PackageId,
         category: PackageCategory,
         package_path: String,
     },

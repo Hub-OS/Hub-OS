@@ -1,9 +1,9 @@
-use packets::structures::{ActorId, AssetData, FileHash, PackageCategory};
+use packets::structures::{ActorId, AssetData, FileHash, PackageCategory, PackageId};
 
 #[derive(Clone, Debug)]
 pub struct PackageInfo {
     pub name: String,
-    pub id: String,
+    pub id: PackageId,
     pub category: PackageCategory,
 }
 
@@ -246,7 +246,7 @@ impl Asset {
 
         Some(PackageInfo {
             name: name.to_string(),
-            id: id.to_string(),
+            id: id.into(),
             category: category.into(),
         })
     }
@@ -263,7 +263,7 @@ impl Asset {
                 .iter()
                 .map(|define| PackageInfo {
                     name: get_str(define, "name").to_string(),
-                    id: get_str(define, "id").to_string(),
+                    id: get_str(define, "id").into(),
                     category: PackageCategory::Character,
                 })
                 .map(AssetId::Package),
@@ -330,7 +330,7 @@ impl Asset {
             .flat_map(|id| id.as_str())
             .map(move |id| PackageInfo {
                 name: String::new(),
-                id: id.to_string(),
+                id: id.into(),
                 category,
             })
             .map(AssetId::Package)
