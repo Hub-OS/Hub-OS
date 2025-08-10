@@ -1,4 +1,5 @@
 use crate::resources::ResourcePaths;
+use crate::saves::Config;
 use fluent_templates::Loader;
 use framework::input::Button;
 use std::collections::HashMap;
@@ -13,7 +14,7 @@ pub struct Translations {
 }
 
 impl Translations {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
         let loader = fluent_templates::ArcLoader::builder(
             &format!("{}resources/locales/", ResourcePaths::game_folder()),
             fluent_templates::langid!("en-US"),
@@ -22,14 +23,29 @@ impl Translations {
         .build()
         .unwrap();
 
+        // resolve requested locales based on system languages and config
+        let mut requested_locales = sys_locale::get_locales()
+            .flat_map(|identifer| identifer.parse::<fluent_langneg::LanguageIdentifier>())
+            .collect::<Vec<_>>();
+
+        if let Some(language_id) = config
+            .language
+            .as_ref()
+            .and_then(|l| l.parse::<fluent_langneg::LanguageIdentifier>().ok())
+        {
+            requested_locales.retain(|existing_id| *existing_id != language_id);
+            requested_locales.insert(0, language_id);
+        }
+
+        // resolve a language from the requested and supported languages
+        let supported_languages = loader
+            .locales()
+            .flat_map(|s| s.to_string().parse::<fluent_langneg::LanguageIdentifier>())
+            .collect::<Vec<_>>();
+
         let language = fluent_langneg::negotiate_languages(
-            &sys_locale::get_locales()
-                .flat_map(|identifer| identifer.parse::<fluent_langneg::LanguageIdentifier>())
-                .collect::<Vec<_>>(),
-            &loader
-                .locales()
-                .flat_map(|s| s.to_string().parse::<fluent_langneg::LanguageIdentifier>())
-                .collect::<Vec<_>>(),
+            &requested_locales,
+            &supported_languages,
             None,
             fluent_langneg::NegotiationStrategy::Lookup,
         )
@@ -38,6 +54,10 @@ impl Translations {
         .unwrap_or(loader.fallback().clone());
 
         Self { language, loader }
+    }
+
+    pub fn locales(&self) -> Box<dyn Iterator<Item = &fluent_templates::LanguageIdentifier> + '_> {
+        self.loader.locales()
     }
 
     pub fn translate(&self, text_key: &str) -> String {

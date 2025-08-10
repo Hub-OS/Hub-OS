@@ -127,6 +127,8 @@ impl Globals {
         game_io.set_post_process_enabled::<PostProcessGhosting>(enable_ghosting);
         game_io.set_post_process_enabled::<PostProcessColorBlindness>(enable_color_blindness);
 
+        let translations = Translations::new(&config);
+
         Self {
             config,
             editing_config: false,
@@ -151,7 +153,7 @@ impl Globals {
             battle_api: BattleLuaApi::new(),
 
             // translations
-            translations: Translations::new(),
+            translations,
 
             // recording
             battle_recording: None,

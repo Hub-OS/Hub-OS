@@ -283,7 +283,10 @@ impl ConfigScene {
         ]
     }
 
-    fn generate_video_menu(game_io: &GameIO, config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
+    fn generate_video_menu(
+        game_io: &mut GameIO,
+        config: &Rc<RefCell<Config>>,
+    ) -> Vec<Box<dyn UiNode>> {
         vec![
             Box::new(UiConfigToggle::new(
                 game_io,
@@ -453,6 +456,55 @@ impl ConfigScene {
 
                     let enable = value < PostProcessColorBlindness::TOTAL_OPTIONS;
                     game_io.set_post_process_enabled::<PostProcessColorBlindness>(enable);
+                },
+            )),
+            Box::new(UiConfigDynamicCycle::new(
+                game_io,
+                "config-language-label",
+                config.borrow().language.clone(),
+                config.clone(),
+                |game_io, value| {
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    value
+                        .as_ref()
+                        .map(|v| v.to_string())
+                        .unwrap_or(globals.translate("config-language-auto"))
+                },
+                |game_io, value, right| {
+                    let globals = game_io.resource::<Globals>().unwrap();
+
+                    let new_identifier = if let Some(value_string) = value {
+                        let language_id = value_string
+                            .parse::<fluent_templates::LanguageIdentifier>()
+                            .ok()?;
+
+                        let mut locales_iter = globals.translations.locales();
+                        let index = locales_iter.position(|id| *id == language_id)?;
+
+                        let mut locales_iter = globals.translations.locales();
+
+                        if right {
+                            locales_iter.nth(index + 1)
+                        } else if index > 0 {
+                            locales_iter.nth(index - 1)
+                        } else {
+                            None
+                        }
+                    } else {
+                        let mut locales_iter = globals.translations.locales();
+
+                        if right {
+                            locales_iter.next()
+                        } else {
+                            locales_iter.last()
+                        }
+                    };
+
+                    new_identifier.map(|id| id.to_string())
+                },
+                |_, mut config, value| {
+                    config.language = value.clone();
                 },
             )),
         ]

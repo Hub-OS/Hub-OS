@@ -26,6 +26,7 @@ pub enum InternalResolution {
 
 #[derive(Clone, PartialEq)]
 pub struct Config {
+    pub language: Option<String>,
     pub fullscreen: bool,
     pub vsync: bool,
     pub internal_resolution: InternalResolution,
@@ -295,6 +296,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
+            language: None,
             fullscreen: {
                 cfg_android! {true}
                 cfg_desktop_and_web! {false}
@@ -332,6 +334,7 @@ impl From<&str> for Config {
         use strum::IntoEnumIterator;
 
         let mut config = Config {
+            language: None,
             fullscreen: false,
             vsync: true,
             internal_resolution: Default::default(),
@@ -368,6 +371,7 @@ impl From<&str> for Config {
         };
 
         if let Some(properties) = ini.section(Some("Video")) {
+            config.language = properties.get("Language").map(String::from);
             config.fullscreen = parse_or_default(properties.get("Fullscreen"));
             config.vsync = parse_or(properties.get("VSync"), true);
             config.internal_resolution = match properties
@@ -490,6 +494,11 @@ impl std::fmt::Display for Config {
         use strum::IntoEnumIterator;
 
         writeln!(f, "[Video]")?;
+
+        if let Some(language) = &self.language {
+            writeln!(f, "Language = {language}")?;
+        }
+
         writeln!(f, "Fullscreen = {}", self.fullscreen)?;
         writeln!(f, "VSync = {}", self.vsync)?;
 

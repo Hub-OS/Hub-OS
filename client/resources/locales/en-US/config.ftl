@@ -22,6 +22,9 @@ config-clear-cache-error = Failed to clear cache.
 config-clear-cache-connected-error = You should jack out before clearing cache.
 config-input-delay-label = Input Delay
 
+config-language-label = Language
+config-language-auto = Auto
+
 config-vsync-label = VSync
 config-fullscreen-label = Fullscreen
 config-resolution-label = Resolution
