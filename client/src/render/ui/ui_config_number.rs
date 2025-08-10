@@ -12,10 +12,12 @@ struct LockedState {
     arrows: UiConfigCycleArrows,
 }
 
-pub struct UiConfigPercentage {
+pub struct UiConfigNumber {
     label: String,
     value: u8,
     value_text: String,
+    value_translation_key: Option<&'static str>,
+    value_step: u8,
     lower_bound: u8,
     upper_bound: u8,
     auditory_feedback: bool,
@@ -25,20 +27,23 @@ pub struct UiConfigPercentage {
     locked_state: Option<Box<LockedState>>,
 }
 
-impl UiConfigPercentage {
-    pub fn new(
+impl UiConfigNumber {
+    pub fn new_detailed(
         game_io: &GameIO,
         label_translation_key: &'static str,
+        value_translation_key: Option<&'static str>,
         value: u8,
         config: Rc<RefCell<Config>>,
-        callback: impl Fn(&mut GameIO, RefMut<Config>, u8) + 'static,
+        callback: Box<dyn Fn(&mut GameIO, RefMut<Config>, u8) + 'static>,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
 
         Self {
             label: globals.translate(label_translation_key),
             value,
-            value_text: Self::generate_value_text(globals, value),
+            value_text: Self::generate_value_text(globals, value_translation_key, value),
+            value_translation_key,
+            value_step: 10,
             lower_bound: 0,
             upper_bound: 100,
             auditory_feedback: true,
@@ -47,6 +52,45 @@ impl UiConfigPercentage {
             callback: Box::new(callback),
             locked_state: None,
         }
+    }
+
+    pub fn new(
+        game_io: &GameIO,
+        label_translation_key: &'static str,
+        value: u8,
+        config: Rc<RefCell<Config>>,
+        callback: impl Fn(&mut GameIO, RefMut<Config>, u8) + 'static,
+    ) -> Self {
+        Self::new_detailed(
+            game_io,
+            label_translation_key,
+            None,
+            value,
+            config,
+            Box::new(callback),
+        )
+    }
+
+    pub fn new_percentage(
+        game_io: &GameIO,
+        label_translation_key: &'static str,
+        value: u8,
+        config: Rc<RefCell<Config>>,
+        callback: impl Fn(&mut GameIO, RefMut<Config>, u8) + 'static,
+    ) -> Self {
+        Self::new_detailed(
+            game_io,
+            label_translation_key,
+            Some("config-percentage"),
+            value,
+            config,
+            Box::new(callback),
+        )
+    }
+
+    pub fn with_value_step(mut self, step: u8) -> Self {
+        self.value_step = step;
+        self
     }
 
     pub fn with_upper_bound(mut self, value: u8) -> Self {
@@ -64,12 +108,20 @@ impl UiConfigPercentage {
         self
     }
 
-    fn generate_value_text(globals: &Globals, value: u8) -> String {
-        globals.translate_with_args("config-percentage", vec![("value", value.into())])
+    fn generate_value_text(
+        globals: &Globals,
+        value_translation_key: Option<&'static str>,
+        value: u8,
+    ) -> String {
+        if let Some(translation_key) = value_translation_key {
+            globals.translate_with_args(translation_key, vec![("value", value.into())])
+        } else {
+            value.to_string()
+        }
     }
 }
 
-impl UiNode for UiConfigPercentage {
+impl UiNode for UiConfigNumber {
     fn draw_bounded(
         &mut self,
         game_io: &GameIO,
@@ -138,7 +190,8 @@ impl UiNode for UiConfigPercentage {
 
             if let Some(locked_state) = self.locked_state.take() {
                 self.value = locked_state.original_value;
-                self.value_text = Self::generate_value_text(globals, self.value);
+                self.value_text =
+                    Self::generate_value_text(globals, self.value_translation_key, self.value);
                 (self.callback)(game_io, self.config.borrow_mut(), self.value);
             }
         }
@@ -170,16 +223,16 @@ impl UiNode for UiConfigPercentage {
 
         // nudge by 10
         if self.ui_input_tracker.pulsed(Input::ShoulderL) {
-            if self.value >= self.lower_bound + 10 {
-                self.value -= 10;
+            if self.value >= self.lower_bound + self.value_step {
+                self.value -= self.value_step;
             } else {
                 self.value = self.lower_bound;
             }
         }
 
         if self.ui_input_tracker.pulsed(Input::ShoulderR) {
-            if self.value <= self.upper_bound - 10 {
-                self.value += 10;
+            if self.value <= self.upper_bound - self.value_step {
+                self.value += self.value_step;
             } else {
                 self.value = self.upper_bound;
             }
@@ -192,7 +245,8 @@ impl UiNode for UiConfigPercentage {
 
         // update visual
         let globals = game_io.resource::<Globals>().unwrap();
-        self.value_text = Self::generate_value_text(globals, self.value);
+        self.value_text =
+            Self::generate_value_text(globals, self.value_translation_key, self.value);
 
         (self.callback)(game_io, self.config.borrow_mut(), self.value);
 

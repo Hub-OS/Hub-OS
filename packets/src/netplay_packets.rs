@@ -40,6 +40,7 @@ pub enum NetplayPacketData {
         recipes: Vec<PackageId>,
         blocks: Vec<InstalledBlock>,
         drives: Vec<InstalledSwitchDrive>,
+        input_delay: usize,
     },
     PackageList {
         // category, package_id, hash

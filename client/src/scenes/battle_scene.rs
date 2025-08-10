@@ -14,7 +14,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
-const LEAD_TOLERANCE: f32 = 2.0;
+const LEAD_TOLERANCE: usize = 2;
 const LEAD_AVERAGE_PERIOD: f32 = SLOW_COOLDOWN as _;
 
 fn simple_rolling_average(average: &mut f32, new_data: f32) {
@@ -475,6 +475,11 @@ impl BattleScene {
         }
 
         let sync_dist = (self.simulation.time - self.synced_time) as f32;
+        let target_buffer_len = self
+            .local_index
+            .map(|index| self.player_controllers[index].buffer.delay());
+
+        let mut should_slow = false;
 
         for (i, controller) in self.player_controllers.iter_mut().enumerate() {
             if !controller.connected || self.local_index == Some(i) {
@@ -487,12 +492,29 @@ impl BattleScene {
             // to use a final single value for the frame
             simple_rolling_average(&mut controller.local_average, lead);
 
-            let has_substantial_diff = controller.connected
-                && controller.local_average > controller.remote_average + LEAD_TOLERANCE;
-
-            if self.slow_cooldown == 0 && has_substantial_diff {
-                self.slow_cooldown = SLOW_COOLDOWN;
+            if !controller.connected {
+                // don't need to account for this controller
+                continue;
             }
+
+            if let Some(target_len) = target_buffer_len {
+                // try to maintain a buffer len to stay in the past
+                if controller.buffer.len() + LEAD_TOLERANCE < target_len {
+                    should_slow = true;
+                }
+            } else {
+                // legacy slowdown logic as a fallback
+                let has_substantial_diff =
+                    controller.local_average > controller.remote_average + LEAD_TOLERANCE as f32;
+
+                if has_substantial_diff {
+                    should_slow = true;
+                }
+            }
+        }
+
+        if should_slow && self.slow_cooldown == 0 {
+            self.slow_cooldown = SLOW_COOLDOWN;
         }
     }
 
@@ -719,7 +741,8 @@ impl BattleScene {
             }
 
             if let Some(index) = self.local_index {
-                debug_assert_eq!(self.player_controllers[index].buffer.len(), INPUT_DELAY);
+                let buffer = &self.player_controllers[index].buffer;
+                debug_assert_eq!(buffer.len(), buffer.delay());
             }
         }
     }

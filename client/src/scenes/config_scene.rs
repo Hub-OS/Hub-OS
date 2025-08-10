@@ -23,15 +23,15 @@ enum Event {
     OpenBindingContextMenu(flume::Sender<Option<BindingContextOption>>),
     EditVirtualControllerLayout,
     RequestNicknameChange,
-    SyncData,
     ChangeNickname { name: String },
+    SyncData,
+    ClearCache,
     ViewPackages,
     UpdatePackages,
     ReceivedLatestHashes(Vec<(PackageCategory, PackageId, FileHash)>),
     ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
     OpenModsFolder,
     ReorderResources,
-    ClearCache,
     ViewCredits,
     OpenLink(String),
     Leave { save: bool },
@@ -40,7 +40,7 @@ enum Event {
 #[derive(EnumIter, Clone, Copy)]
 enum ConfigCategory {
     Mods,
-    Profile,
+    Online,
     Video,
     Audio,
     Keyboard,
@@ -51,12 +51,12 @@ enum ConfigCategory {
 impl ConfigCategory {
     fn translation_key(self) -> &'static str {
         match self {
+            ConfigCategory::Mods => "config-mods-tab",
+            ConfigCategory::Online => "config-online-tab",
             ConfigCategory::Video => "config-video-tab",
             ConfigCategory::Audio => "config-audio-tab",
             ConfigCategory::Keyboard => "config-keyboard-tab",
             ConfigCategory::Gamepad => "config-gamepad-tab",
-            ConfigCategory::Mods => "config-mods-tab",
-            ConfigCategory::Profile => "config-profile-tab",
             ConfigCategory::About => "config-about-tab",
         }
     }
@@ -213,16 +213,74 @@ impl ConfigScene {
         event_sender: &flume::Sender<Event>,
     ) -> Vec<Box<dyn UiNode>> {
         match category {
+            ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
+            ConfigCategory::Online => Self::generate_online_menu(game_io, config, event_sender),
             ConfigCategory::Video => Self::generate_video_menu(game_io, config),
             ConfigCategory::Audio => Self::generate_audio_menu(game_io, config),
             ConfigCategory::Keyboard => Self::generate_keyboard_menu(game_io, config, event_sender),
             ConfigCategory::Gamepad => {
                 Self::generate_controller_menu(game_io, config, event_sender)
             }
-            ConfigCategory::Mods => Self::generate_mods_menu(game_io, event_sender),
-            ConfigCategory::Profile => Self::generate_profile_menu(game_io, event_sender),
             ConfigCategory::About => Self::generate_about_menu(game_io, event_sender),
         }
+    }
+
+    fn generate_mods_menu(
+        game_io: &GameIO,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
+        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
+            let event_sender = event_sender.clone();
+
+            Box::new(
+                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
+                    let _ = event_sender.send(event.clone());
+                }),
+            )
+        };
+
+        vec![
+            create_button("config-manage-mods-label", Event::ViewPackages),
+            create_button("config-update-mods-label", Event::UpdatePackages),
+            create_button("config-resource-mods-label", Event::ReorderResources),
+            #[cfg(not(target_os = "android"))]
+            create_button("config-open-mods-folder-label", Event::OpenModsFolder),
+        ]
+    }
+
+    fn generate_online_menu(
+        game_io: &GameIO,
+        config: &Rc<RefCell<Config>>,
+        event_sender: &flume::Sender<Event>,
+    ) -> Vec<Box<dyn UiNode>> {
+        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
+            let event_sender = event_sender.clone();
+
+            Box::new(
+                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
+                    let _ = event_sender.send(event.clone());
+                }),
+            )
+        };
+
+        vec![
+            create_button("config-change-nickname-label", Event::RequestNicknameChange),
+            create_button("config-sync-data-label", Event::SyncData),
+            create_button("config-clear-cache-label", Event::ClearCache),
+            Box::new(
+                UiConfigNumber::new(
+                    game_io,
+                    "config-input-delay-label",
+                    config.borrow().input_delay,
+                    config.clone(),
+                    |_, mut config, value| {
+                        config.input_delay = value;
+                    },
+                )
+                .with_upper_bound(MAX_INPUT_DELAY)
+                .with_value_step(5),
+            ),
+        ]
     }
 
     fn generate_video_menu(game_io: &GameIO, config: &Rc<RefCell<Config>>) -> Vec<Box<dyn UiNode>> {
@@ -321,7 +379,7 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiConfigPercentage::new(
+                UiConfigNumber::new_percentage(
                     game_io,
                     "config-brightness-label",
                     config.borrow().brightness,
@@ -339,7 +397,7 @@ impl ConfigScene {
                 )
                 .with_lower_bound(10),
             ),
-            Box::new(UiConfigPercentage::new(
+            Box::new(UiConfigNumber::new_percentage(
                 game_io,
                 "config-saturation-label",
                 config.borrow().saturation,
@@ -356,7 +414,7 @@ impl ConfigScene {
                 },
             )),
             Box::new(
-                UiConfigPercentage::new(
+                UiConfigNumber::new_percentage(
                     game_io,
                     "config-ghosting-label",
                     config.borrow().ghosting,
@@ -406,7 +464,7 @@ impl ConfigScene {
     ) -> Vec<Box<dyn UiNode>> {
         vec![
             Box::new(
-                UiConfigPercentage::new(
+                UiConfigNumber::new_percentage(
                     game_io,
                     "config-music-label",
                     config.borrow().music,
@@ -423,7 +481,7 @@ impl ConfigScene {
                 )
                 .with_auditory_feedback(false),
             ),
-            Box::new(UiConfigPercentage::new(
+            Box::new(UiConfigNumber::new_percentage(
                 game_io,
                 "config-sfx-label",
                 config.borrow().sfx,
@@ -647,50 +705,6 @@ impl ConfigScene {
         children
     }
 
-    fn generate_mods_menu(
-        game_io: &GameIO,
-        event_sender: &flume::Sender<Event>,
-    ) -> Vec<Box<dyn UiNode>> {
-        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
-            let event_sender = event_sender.clone();
-
-            Box::new(
-                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
-                    let _ = event_sender.send(event.clone());
-                }),
-            )
-        };
-
-        vec![
-            create_button("config-manage-mods-label", Event::ViewPackages),
-            create_button("config-update-mods-label", Event::UpdatePackages),
-            create_button("config-resource-mods-label", Event::ReorderResources),
-            create_button("config-clear-cache-label", Event::ClearCache),
-            #[cfg(not(target_os = "android"))]
-            create_button("config-open-mods-folder-label", Event::OpenModsFolder),
-        ]
-    }
-
-    fn generate_profile_menu(
-        game_io: &GameIO,
-        event_sender: &flume::Sender<Event>,
-    ) -> Vec<Box<dyn UiNode>> {
-        let create_button = |name: &str, event: Event| -> Box<dyn UiNode> {
-            let event_sender = event_sender.clone();
-
-            Box::new(
-                UiButton::new_translated(game_io, FontName::Thick, name).on_activate(move || {
-                    let _ = event_sender.send(event.clone());
-                }),
-            )
-        };
-
-        vec![
-            create_button("config-change-nickname-label", Event::RequestNicknameChange),
-            create_button("config-sync-data-label", Event::SyncData),
-        ]
-    }
-
     fn generate_about_menu(
         game_io: &GameIO,
         event_sender: &flume::Sender<Event>,
@@ -831,16 +845,41 @@ impl ConfigScene {
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 }
-                Event::SyncData => {
-                    let transition = crate::transitions::new_sub_scene(game_io);
-                    let scene = SyncDataScene::new(game_io);
-                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
-                }
                 Event::ChangeNickname { name } => {
                     let global_save = &mut game_io.resource_mut::<Globals>().unwrap().global_save;
                     global_save.nickname = name;
                     global_save.nickname_time = GlobalSave::current_time();
                     global_save.save();
+                }
+                Event::SyncData => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = SyncDataScene::new(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::ClearCache => {
+                    let globals = &mut game_io.resource::<Globals>().unwrap();
+
+                    let message = if !globals.connected_to_server {
+                        match std::fs::remove_dir_all(ResourcePaths::server_cache_folder()) {
+                            Ok(()) => globals.translate("config-clear-cache-success"),
+                            Err(e) => {
+                                log::error!("{e}");
+
+                                if matches!(e.kind(), std::io::ErrorKind::NotFound) {
+                                    globals.translate("config-clear-cache-already-empty")
+                                } else {
+                                    globals.translate("config-clear-cache-error")
+                                }
+                            }
+                        }
+                    } else {
+                        globals.translate("config-clear-cache-connected-error")
+                    };
+
+                    let interface = TextboxMessage::new(message);
+
+                    self.textbox.push_interface(interface);
+                    self.textbox.open();
                 }
                 Event::ViewPackages => {
                     let scene = PackagesScene::new(game_io, CategoryFilter::default());
@@ -920,31 +959,6 @@ impl ConfigScene {
                     let transition = crate::transitions::new_sub_scene(game_io);
                     let scene = ResourceOrderScene::new(game_io);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
-                }
-                Event::ClearCache => {
-                    let globals = &mut game_io.resource::<Globals>().unwrap();
-
-                    let message = if !globals.connected_to_server {
-                        match std::fs::remove_dir_all(ResourcePaths::server_cache_folder()) {
-                            Ok(()) => globals.translate("config-clear-cache-success"),
-                            Err(e) => {
-                                log::error!("{e}");
-
-                                if matches!(e.kind(), std::io::ErrorKind::NotFound) {
-                                    globals.translate("config-clear-cache-already-empty")
-                                } else {
-                                    globals.translate("config-clear-cache-error")
-                                }
-                            }
-                        }
-                    } else {
-                        globals.translate("config-clear-cache-connected-error")
-                    };
-
-                    let interface = TextboxMessage::new(message);
-
-                    self.textbox.push_interface(interface);
-                    self.textbox.open();
                 }
                 Event::ViewCredits => {
                     let transition = crate::transitions::new_sub_scene(game_io);

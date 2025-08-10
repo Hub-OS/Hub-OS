@@ -1,12 +1,26 @@
 config-scene-title = Config
 
+config-mods-tab = Mods
+config-online-tab = Online
 config-video-tab = Video
 config-audio-tab = Audio
 config-keyboard-tab = Keyboard
 config-gamepad-tab = Gamepad
-config-mods-tab = Mods
-config-profile-tab = Profile
 config-about-tab = About
+
+config-manage-mods-label = Manage Mods
+config-update-mods-label = Update Mods
+config-resource-mods-label = Resource Mods
+config-open-mods-folder-label = Open Mods Folder
+
+config-change-nickname-label = Change Nickname
+config-sync-data-label = Sync Data
+config-clear-cache-label = Clear Cache
+config-clear-cache-success = Cache cleared.
+config-clear-cache-already-empty = Cache is already empty.
+config-clear-cache-error = Failed to clear cache.
+config-clear-cache-connected-error = You should jack out before clearing cache.
+config-input-delay-label = Input Delay
 
 config-vsync-label = VSync
 config-fullscreen-label = Fullscreen
@@ -45,19 +59,6 @@ config-reset-binds-label = Reset Binds
 config-binding-context-menu-label = BINDING
 config-binding-append-label = Append
 config-binding-clear-label = Clear
-
-config-manage-mods-label = Manage Mods
-config-update-mods-label = Update Mods
-config-resource-mods-label = Resource Mods
-config-clear-cache-label = Clear Cache
-config-clear-cache-success = Cache cleared.
-config-clear-cache-already-empty = Cache is already empty.
-config-clear-cache-error = Failed to clear cache.
-config-clear-cache-connected-error = You should jack out before clearing cache.
-config-open-mods-folder-label = Open Mods Folder
-
-config-change-nickname-label = Change Nickname
-config-sync-data-label = Sync Data
 
 config-view-credits-label = Credits
 config-visit-discord-label = Discord

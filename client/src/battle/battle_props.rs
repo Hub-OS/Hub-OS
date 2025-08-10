@@ -1,3 +1,4 @@
+use super::{BattleScriptContext, BattleSimulation, SharedBattleResources};
 use crate::lua_api::encounter_init;
 use crate::packages::*;
 use crate::render::*;
@@ -11,10 +12,6 @@ use packets::structures::{
     BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive,
 };
 use serde::{Deserialize, Serialize};
-
-use super::BattleScriptContext;
-use super::BattleSimulation;
-use super::SharedBattleResources;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PlayerSetup {
@@ -132,7 +129,7 @@ impl PlayerSetup {
             blocks,
             drives,
             local: true,
-            buffer: PlayerInputBuffer::new_with_delay(INPUT_DELAY),
+            buffer: PlayerInputBuffer::new_with_delay(globals.config.input_delay as _),
         }
     }
 

@@ -13,7 +13,8 @@ pub const RESOLUTION_F: Vec2 = Vec2::new(RESOLUTION.x as _, RESOLUTION.y as _);
 pub const MAX_VOLUME: u8 = 100;
 
 // battle
-pub const INPUT_DELAY: usize = 2;
+pub const DEFAULT_INPUT_DELAY: u8 = 2;
+pub const MAX_INPUT_DELAY: u8 = 15;
 pub const BATTLE_UI_MARGIN: f32 = 2.0;
 pub const CARD_SELECT_CARD_COLS: usize = 5;
 pub const CARD_SELECT_COLS: usize = CARD_SELECT_CARD_COLS + 1;

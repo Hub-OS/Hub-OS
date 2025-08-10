@@ -1,26 +1,31 @@
-use crate::resources::INPUT_DELAY;
+use crate::resources::MAX_INPUT_DELAY;
 use packets::NetplayBufferItem;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct PlayerInputBuffer {
     buffer: VecDeque<(NetplayBufferItem, usize)>,
     len: usize,
-}
-
-impl Default for PlayerInputBuffer {
-    fn default() -> Self {
-        Self::new_with_delay(INPUT_DELAY)
-    }
+    delay: usize,
 }
 
 impl PlayerInputBuffer {
     pub fn new_with_delay(delay: usize) -> Self {
-        let mut buffer = VecDeque::default();
-        buffer.push_back((NetplayBufferItem::default(), delay));
+        let mut s = Self::default();
+        s.set_delay(delay);
+        s
+    }
 
-        Self { buffer, len: delay }
+    pub fn set_delay(&mut self, mut delay: usize) {
+        delay = delay.min(MAX_INPUT_DELAY as usize);
+        self.buffer.push_back((NetplayBufferItem::default(), delay));
+        self.len = delay;
+        self.delay = delay;
+    }
+
+    pub fn delay(&self) -> usize {
+        self.delay
     }
 
     pub fn len(&self) -> usize {

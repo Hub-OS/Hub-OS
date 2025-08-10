@@ -1,5 +1,7 @@
 use crate::render::PostProcessColorBlindness;
-use crate::resources::{AssetManager, Input, ResourcePaths, DEFAULT_PACKAGE_REPO, MAX_VOLUME};
+use crate::resources::{
+    AssetManager, Input, ResourcePaths, DEFAULT_INPUT_DELAY, DEFAULT_PACKAGE_REPO, MAX_VOLUME,
+};
 use framework::cfg_macros::{cfg_android, cfg_desktop_and_web};
 use framework::input::{Button, Key};
 use framework::math::Vec2;
@@ -45,6 +47,7 @@ pub struct Config {
     pub controller_index: usize,
     pub virtual_input_positions: HashMap<Button, Vec2>,
     pub virtual_controller_scale: f32,
+    pub input_delay: u8,
     pub package_repo: String,
 }
 
@@ -316,6 +319,7 @@ impl Default for Config {
             controller_index: 0,
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
+            input_delay: DEFAULT_INPUT_DELAY,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         }
     }
@@ -349,6 +353,7 @@ impl From<&str> for Config {
             controller_index: 0,
             virtual_input_positions: Self::default_virtual_input_positions(),
             virtual_controller_scale: 1.0,
+            input_delay: DEFAULT_INPUT_DELAY,
             package_repo: String::from(DEFAULT_PACKAGE_REPO),
         };
 
@@ -464,6 +469,8 @@ impl From<&str> for Config {
         }
 
         if let Some(properties) = ini.section(Some("Online")) {
+            config.input_delay = parse_or(properties.get("InputDelay"), DEFAULT_INPUT_DELAY);
+
             config.package_repo = properties
                 .get("PackageRepo")
                 .unwrap_or(DEFAULT_PACKAGE_REPO)
@@ -557,6 +564,7 @@ impl std::fmt::Display for Config {
         }
 
         writeln!(f, "[Online]")?;
+        writeln!(f, "InputDelay = {}", self.input_delay)?;
 
         if self.package_repo != DEFAULT_PACKAGE_REPO {
             writeln!(f, "PackageRepo = {}", self.package_repo)?;

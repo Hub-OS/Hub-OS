@@ -340,6 +340,7 @@ impl NetplayInitScene {
                 recipes,
                 blocks,
                 drives,
+                input_delay,
                 ..
             } => {
                 let setup = &mut connection.player_setup;
@@ -353,6 +354,8 @@ impl NetplayInitScene {
                 setup.recipes = recipes;
                 setup.blocks = blocks;
                 setup.drives = drives;
+                setup.buffer.clear();
+                setup.buffer.set_delay(input_delay);
             }
             NetplayPacketData::PackageList { packages } => {
                 if !connection.spectating {
@@ -562,6 +565,7 @@ impl NetplayInitScene {
             regular_card: player_setup.deck.regular_index,
             blocks: player_setup.blocks.clone(),
             drives: player_setup.drives.clone(),
+            input_delay: player_setup.buffer.delay(),
         })
     }
 
