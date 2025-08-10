@@ -15,11 +15,6 @@ use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
 const LEAD_TOLERANCE: usize = 2;
-const LEAD_AVERAGE_PERIOD: f32 = SLOW_COOLDOWN as _;
-
-fn simple_rolling_average(average: &mut f32, new_data: f32) {
-    *average = (*average * (LEAD_AVERAGE_PERIOD - 1.0) + new_data) / LEAD_AVERAGE_PERIOD;
-}
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -34,8 +29,6 @@ pub enum BattleEvent {
 struct PlayerController {
     connected: bool,
     buffer: PlayerInputBuffer,
-    local_average: f32,
-    remote_average: f32,
 }
 
 struct Backup {
@@ -149,8 +142,6 @@ impl BattleScene {
             player_controllers.push(PlayerController {
                 connected: !is_playing_back_recording,
                 buffer: setup.buffer.clone(),
-                local_average: 0.0,
-                remote_average: 0.0,
             });
 
             if !config.spectators.contains(&setup.index) {
@@ -420,7 +411,7 @@ impl BattleScene {
 
         // after resolving packets we should see if we're too far ahead of other players
         // and decide whether we should slow down
-        self.resolve_slowdown();
+        self.resolve_slowdown(game_io);
     }
 
     fn handle_packet(&mut self, packet: NetplayPacket) -> Option<FrameTime> {
@@ -428,19 +419,12 @@ impl BattleScene {
         let mut resimulation_time = None;
 
         match packet.data {
-            NetplayPacketData::Buffer { data, lead } => {
+            NetplayPacketData::Buffer { data } => {
                 if let Some(controller) = self.player_controllers.get_mut(index) {
                     // check disconnect
                     if data.signals.contains(&NetplaySignal::Disconnect) {
                         controller.connected = false;
                         self.resources.external_events.dropped_player(index);
-                    }
-
-                    // track data for resolving if we should slow down
-                    let remote_lead = self.local_index.and_then(|index| lead.get(index)).cloned();
-
-                    if let Some(remote_lead) = remote_lead {
-                        simple_rolling_average(&mut controller.remote_average, remote_lead as _);
                     }
 
                     if let Some(input) = self.simulation.inputs.get(index) {
@@ -469,47 +453,29 @@ impl BattleScene {
         resimulation_time
     }
 
-    fn resolve_slowdown(&mut self) {
+    fn resolve_slowdown(&mut self, game_io: &GameIO) {
         if self.slow_cooldown > 0 {
             self.slow_cooldown -= 1;
         }
 
-        let sync_dist = (self.simulation.time - self.synced_time) as f32;
         let target_buffer_len = self
             .local_index
-            .map(|index| self.player_controllers[index].buffer.delay());
+            .map(|index| self.player_controllers[index].buffer.delay())
+            .unwrap_or_else(|| {
+                let globals = game_io.resource::<Globals>().unwrap();
+                globals.config.input_delay as usize
+            });
 
         let mut should_slow = false;
 
-        for (i, controller) in self.player_controllers.iter_mut().enumerate() {
+        for (i, controller) in self.player_controllers.iter().enumerate() {
             if !controller.connected || self.local_index == Some(i) {
                 continue;
             }
 
-            let lead = sync_dist - controller.buffer.len() as f32;
-
-            // resolve local average separately from processing packets
-            // to use a final single value for the frame
-            simple_rolling_average(&mut controller.local_average, lead);
-
-            if !controller.connected {
-                // don't need to account for this controller
-                continue;
-            }
-
-            if let Some(target_len) = target_buffer_len {
-                // try to maintain a buffer len to stay in the past
-                if controller.buffer.len() + LEAD_TOLERANCE < target_len {
-                    should_slow = true;
-                }
-            } else {
-                // legacy slowdown logic as a fallback
-                let has_substantial_diff =
-                    controller.local_average > controller.remote_average + LEAD_TOLERANCE as f32;
-
-                if has_substantial_diff {
-                    should_slow = true;
-                }
+            // try to maintain a buffer len to stay in the past
+            if controller.buffer.len() + LEAD_TOLERANCE < target_buffer_len {
+                should_slow = true;
             }
         }
 
@@ -582,16 +548,7 @@ impl BattleScene {
         // update local buffer
         local_controller.buffer.push_last(data.clone());
 
-        // calculate our lead against each remote for them to know if they should slow down
-        let sync_dist = (self.simulation.time - self.synced_time) as i16;
-
-        let lead = self
-            .player_controllers
-            .iter()
-            .map(|controller| sync_dist - controller.buffer.len() as i16)
-            .collect();
-
-        self.broadcast(NetplayPacketData::Buffer { data, lead });
+        self.broadcast(NetplayPacketData::Buffer { data });
     }
 
     fn record_buffer_limits(&mut self) {
