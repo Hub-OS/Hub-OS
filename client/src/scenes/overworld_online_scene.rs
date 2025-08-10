@@ -19,8 +19,8 @@ use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{
-    ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, SpriteId, SpriteParent,
-    TextboxOptions,
+    ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, PackageCategory, SpriteId,
+    SpriteParent, TextboxOptions,
 };
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -144,9 +144,48 @@ impl OverworldOnlineScene {
             },
         );
 
+        // send avatar data
+        self.send_avatar_data(game_io);
+
+        // send boosts
+        self.send_boosts(game_io);
+    }
+
+    pub fn sync_assets(
+        &mut self,
+        game_io: &mut GameIO,
+        package_list: Vec<(String, PackageCategory, PackageId, FileHash)>,
+    ) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let namespace = PackageNamespace::Local;
+
+        for (remote_path, category, package_id, file_hash) in package_list {
+            if self.assets.file_hash(&remote_path) == Some(file_hash) {
+                // already up to date, skip
+                continue;
+            }
+
+            let Some(package_info) = globals.package_info(category, namespace, &package_id) else {
+                // don't have this package
+                continue;
+            };
+
+            if package_info.hash != file_hash {
+                // our package doesn't match
+                continue;
+            }
+
+            let zip_path = format!("{}{}.zip", ResourcePaths::mod_cache_folder(), file_hash);
+            let Ok(data) = std::fs::read(&zip_path) else {
+                continue;
+            };
+
+            self.assets.store_asset(remote_path, file_hash, data, true);
+        }
+
         // send asset found signals
         for asset in self.assets.stored_assets() {
-            send_packet(
+            (self.send_packet)(
                 Reliability::ReliableOrdered,
                 ClientPacket::AssetFound {
                     path: asset.remote_path,
@@ -154,14 +193,9 @@ impl OverworldOnlineScene {
                 },
             );
         }
+    }
 
-        // send boosts
-        self.send_boosts(game_io);
-
-        // send avatar data
-        self.send_avatar_data(game_io);
-
-        // nothing else to send, request join
+    pub fn request_join(&mut self) {
         let send_packet = &self.send_packet;
         send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
     }
@@ -280,6 +314,9 @@ impl OverworldOnlineScene {
             }
             ServerPacket::Heartbeat => {
                 // no action required, server just wants an ack to keep connections alive on both sides
+            }
+            ServerPacket::PackageList { packages } => {
+                // handled in initial_connect_scene
             }
             ServerPacket::Authorize { address, data } => {
                 let globals = game_io.resource_mut::<Globals>().unwrap();

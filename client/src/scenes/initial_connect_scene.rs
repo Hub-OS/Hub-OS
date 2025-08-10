@@ -127,6 +127,12 @@ impl InitialConnectScene {
                             self.connection_started = true;
                         }
                     }
+                    ServerPacket::PackageList { packages } => {
+                        online_scene.sync_assets(game_io, packages);
+
+                        // nothing else to sync, request join
+                        online_scene.request_join();
+                    }
                     ServerPacket::Kick { reason } => {
                         let event = Event::Failed {
                             reason: Some(reason),

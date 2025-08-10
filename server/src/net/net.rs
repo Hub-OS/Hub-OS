@@ -120,6 +120,14 @@ impl Net {
         );
     }
 
+    pub(crate) fn share_packages(&self, id: ActorId) {
+        let mut orchestrator = self.packet_orchestrator.borrow_mut();
+        let packet = ServerPacket::PackageList {
+            packages: self.asset_manager.create_package_list(),
+        };
+        orchestrator.send_by_id(id, Reliability::ReliableOrdered, packet);
+    }
+
     pub fn get_areas(&self) -> impl Iterator<Item = &Area> {
         self.areas.values()
     }

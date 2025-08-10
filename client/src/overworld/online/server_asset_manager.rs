@@ -279,6 +279,11 @@ impl ServerAssetManager {
             })
             .collect()
     }
+
+    pub fn file_hash(&self, path: &str) -> Option<FileHash> {
+        let stored_assets = self.stored_assets.borrow();
+        Some(stored_assets.get(path)?.hash)
+    }
 }
 
 impl AssetManager for ServerAssetManager {

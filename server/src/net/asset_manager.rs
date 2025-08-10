@@ -1,5 +1,5 @@
 use super::{Asset, AssetId, PackageInfo};
-use packets::structures::PackageId;
+use packets::structures::{FileHash, PackageCategory, PackageId};
 use std::collections::HashMap;
 
 pub struct AssetManager {
@@ -163,5 +163,36 @@ impl AssetManager {
                 category: _,
             }) => get_as_option_str(&self.package_paths, id),
         }
+    }
+
+    pub fn create_package_list(&self) -> Vec<(String, PackageCategory, PackageId, FileHash)> {
+        self.package_paths
+            .iter()
+            .flat_map(|(id, path)| {
+                let asset = self.assets.get(path)?;
+
+                let package_category = asset
+                    .alternate_names
+                    .iter()
+                    .flat_map(|name| {
+                        let AssetId::Package(package_info) = name else {
+                            return None;
+                        };
+
+                        if package_info.category == PackageCategory::Character {
+                            return None;
+                        }
+
+                        if package_info.id != *id {
+                            return None;
+                        }
+
+                        Some(package_info.category)
+                    })
+                    .next()?;
+
+                Some((path.clone(), package_category, id.clone(), asset.hash))
+            })
+            .collect()
     }
 }

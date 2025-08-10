@@ -607,6 +607,8 @@ impl Server {
 
                     self.plugin_wrapper
                         .handle_player_request(net, player_id, &data);
+
+                    net.share_packages(player_id);
                 }
                 _ => {
                     if self.config.args.log_packets {

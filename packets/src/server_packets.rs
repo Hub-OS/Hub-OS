@@ -16,6 +16,9 @@ pub enum ServerPacket {
         address: String,
         data: Vec<u8>,
     },
+    PackageList {
+        packages: Vec<(String, PackageCategory, PackageId, FileHash)>,
+    },
     Login {
         actor_id: ActorId,
         warp_in: bool,
