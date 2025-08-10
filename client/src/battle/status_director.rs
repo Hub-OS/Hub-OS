@@ -304,7 +304,25 @@ impl StatusDirector {
             .map(|status| status.lifetime)
     }
 
-    pub fn remove_status(&mut self, status_flag: HitFlags) {
+    pub fn remove_statuses(&mut self, mut status_flags: HitFlags) {
+        let mut i = 0;
+
+        loop {
+            if status_flags == 0 {
+                break;
+            }
+
+            status_flags >>= i;
+
+            if status_flags & 1 == 1 {
+                self.remove_status(1 << i);
+            }
+
+            i += 1;
+        }
+    }
+
+    fn remove_status(&mut self, status_flag: HitFlags) {
         let status_search = self
             .statuses
             .iter_mut()
@@ -322,6 +340,11 @@ impl StatusDirector {
 
         if let Some(index) = new_status_search {
             self.new_statuses.remove(index);
+        }
+
+        if status_flag == HitFlag::DRAG {
+            self.drag = None;
+            self.remaining_drag_lockout = 0;
         }
     }
 

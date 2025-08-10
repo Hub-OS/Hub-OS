@@ -1425,7 +1425,7 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "remove_status",
         |living: &mut Living, _, hit_flag: HitFlags| {
-            living.status_director.remove_status(hit_flag);
+            living.status_director.remove_statuses(hit_flag);
             Ok(())
         },
     );

@@ -182,7 +182,7 @@ impl Living {
                     living.status_director.apply_status(*hit_flag, *duration)
                 }
                 AuxEffect::RemoveStatus(hit_flag) => {
-                    living.status_director.remove_status(*hit_flag)
+                    living.status_director.remove_statuses(*hit_flag)
                 }
                 _ => log::error!("Engine error: Unexpected AuxEffect!"),
             }
