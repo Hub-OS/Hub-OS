@@ -73,7 +73,7 @@ impl PostProcess for PostProcessColorBlindness {
         &self.pipeline
     }
 
-    fn uniform_resources(&self) -> Vec<BindingResource> {
+    fn uniform_resources(&self) -> Vec<BindingResource<'_>> {
         vec![self.matrix_resource.as_binding()]
     }
 

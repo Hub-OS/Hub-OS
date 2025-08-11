@@ -16,7 +16,9 @@ macro_rules! built_in_table {
         $lua_api.add_static_injector(|lua| {
             let meta_table = lua.create_table()?;
 
-            fn load_table(lua: &rollback_mlua::Lua) -> rollback_mlua::Result<rollback_mlua::Table> {
+            fn load_table(
+                lua: &rollback_mlua::Lua,
+            ) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
                 let function = lua
                     .load(include_str!(concat!("built_in/", $file_name, ".lua")))
                     .set_name(concat!("built_in/", $file_name, ".lua"))

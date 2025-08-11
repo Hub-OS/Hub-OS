@@ -499,7 +499,7 @@ fn create_spawner(
     lua: &rollback_mlua::Lua,
     package_id: String,
     rank: CharacterRank,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     inherit_metatable(lua, SPAWNER_TABLE, &table)?;
     table.set("#package_id", package_id)?;
@@ -525,7 +525,7 @@ pub fn inject_mutator_api(lua_api: &mut BattleLuaApi) {
 fn create_mutator(
     lua: &rollback_mlua::Lua,
     id: EntityId,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.set("#entity_id", id)?;
     inherit_metatable(lua, MUTATOR_TABLE, &table)?;

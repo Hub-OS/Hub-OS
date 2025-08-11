@@ -34,7 +34,7 @@ impl PostProcess for PostProcessAdjust {
         &self.pipeline
     }
 
-    fn uniform_resources(&self) -> Vec<BindingResource> {
+    fn uniform_resources(&self) -> Vec<BindingResource<'_>> {
         vec![self.config_resource.as_binding()]
     }
 

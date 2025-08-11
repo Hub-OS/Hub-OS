@@ -25,7 +25,7 @@ pub fn create_sync_node_table(
     tree_slot_index: GenerationalIndex,
     sprite_index: GenerationalIndex,
     animator_index: GenerationalIndex,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.raw_set("#anim", animator_index)?;
     table.raw_set("#animation", create_animation_table(lua, animator_index)?)?;

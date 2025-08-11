@@ -537,7 +537,7 @@ pub fn create_sprite_table(
     slot_index: GenerationalIndex,
     sprite_index: TreeIndex,
     animator_index: Option<GenerationalIndex>,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.raw_set("#tree", slot_index)?;
     table.raw_set("#sprite", sprite_index)?;

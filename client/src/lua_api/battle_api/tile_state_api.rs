@@ -176,7 +176,7 @@ fn callback_setter<P, R>(
 pub fn create_custom_tile_state_table(
     lua: &rollback_mlua::Lua,
     index: usize,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     inherit_metatable(lua, CUSTOM_TILE_STATE_TABLE, &table)?;
 

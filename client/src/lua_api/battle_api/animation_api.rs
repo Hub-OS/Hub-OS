@@ -325,7 +325,7 @@ fn updater<P>(
 pub fn create_animation_table(
     lua: &rollback_mlua::Lua,
     index: GenerationalIndex,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.raw_set("#id", index)?;
     inherit_metatable(lua, ANIMATION_TABLE, &table)?;

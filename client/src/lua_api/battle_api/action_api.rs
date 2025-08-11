@@ -628,7 +628,7 @@ fn callback_setter<P, R>(
 pub fn create_action_table(
     lua: &rollback_mlua::Lua,
     index: GenerationalIndex,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.raw_set("#id", index)?;
     inherit_metatable(lua, ACTION_TABLE, &table)?;

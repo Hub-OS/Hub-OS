@@ -186,7 +186,7 @@ pub fn create_status_table(
     id: EntityId,
     flag: HitFlags,
     reapplied: bool,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     inherit_metatable(lua, STATUS_TABLE, &table)?;
 

@@ -196,7 +196,7 @@ pub fn create_augment_table(
     lua: &rollback_mlua::Lua,
     entity_id: EntityId,
     index: GenerationalIndex,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     table.raw_set("#id", entity_id)?;
     table.raw_set("#index", index)?;

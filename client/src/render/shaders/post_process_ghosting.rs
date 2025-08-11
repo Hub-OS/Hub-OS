@@ -44,7 +44,7 @@ impl PostProcess for PostProcessGhosting {
         &self.post_pipeline
     }
 
-    fn uniform_resources(&self) -> Vec<BindingResource> {
+    fn uniform_resources(&self) -> Vec<BindingResource<'_>> {
         Vec::new()
     }
 

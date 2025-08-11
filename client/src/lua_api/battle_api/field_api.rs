@@ -333,7 +333,7 @@ fn generate_find_nearest_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, name: &s
 
 pub fn get_field_compat_table(
     lua: &rollback_mlua::Lua,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     if let Ok(table) = lua.named_registry_value::<rollback_mlua::Table>(FIELD_COMPAT_TABLE) {
         return Ok(table);
     }

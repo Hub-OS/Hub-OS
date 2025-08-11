@@ -554,7 +554,7 @@ fn inject_tile_cache(lua_api: &mut BattleLuaApi) {
 pub fn create_tile_table(
     lua: &rollback_mlua::Lua,
     (x, y): (i32, i32),
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let tile_cache: rollback_mlua::Table = lua.named_registry_value(TILE_CACHE_REGISTRY_KEY)?;
 
     let key = ((x as i64) << 4) | y as i64;

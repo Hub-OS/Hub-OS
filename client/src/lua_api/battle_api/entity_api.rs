@@ -2674,7 +2674,7 @@ fn generate_cast_fn<Q: hecs::Query>(lua_api: &mut BattleLuaApi, table_name: &str
 pub fn create_entity_table(
     lua: &rollback_mlua::Lua,
     id: EntityId,
-) -> rollback_mlua::Result<rollback_mlua::Table> {
+) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let table = lua.create_table()?;
     inherit_metatable(lua, ENTITY_TABLE, &table)?;
 
