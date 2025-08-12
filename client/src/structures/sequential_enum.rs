@@ -27,7 +27,7 @@ macro_rules! sequential_enum {
 
         impl std::cmp::PartialOrd for $name {
             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                Some((*self as u8).cmp(&(*other as u8)))
+                Some(self.cmp(other))
             }
         }
     }
