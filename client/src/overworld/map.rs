@@ -311,12 +311,24 @@ impl Map {
             test_pos.y += 1.0;
         }
 
-        // convert to iso pixels
-        test_pos.x *= (self.tile_size.x / 2) as f32;
-        test_pos.y *= self.tile_size.y as f32;
-
+        // convert to pixels, and get a new test position accounting for elevation
         let layer_relative_z = tile_point.z.fract();
-        let tile_test_pos = test_pos - layer_relative_z * self.tile_size.y as f32;
+        let elevation_in_pixels = layer_relative_z * self.tile_size.y as f32 * 0.5;
+
+        let tile_test_pos = match self.projection {
+            Projection::Isometric => {
+                test_pos.x *= (self.tile_size.x / 2) as f32;
+                test_pos.y *= self.tile_size.y as f32;
+
+                test_pos - elevation_in_pixels
+            }
+            Projection::Orthographic => {
+                test_pos.x *= self.tile_size.x as f32;
+                test_pos.y *= self.tile_size.y as f32;
+
+                test_pos - Vec2::new(0.0, elevation_in_pixels)
+            }
+        };
 
         if tile.intersects(self, tile_test_pos) {
             return false;
