@@ -1,5 +1,3 @@
-character-select-scene-title = Navis
-
 character-status-scene-title = Status
 character-status-blocks-option = Blocks
 character-status-switch-drives-option = Drives
@@ -52,6 +50,11 @@ deck-editor-regular-card-deselect =
     Regular Chip
     settings released.
 deck-editor-equip-deck-question = Equip {$name}?
+
+character-select-scene-title = Navis
+character-select-locked-character = Locked by a rule set or connected server.
+character-select-invalid-dependencies = Missing or invalid dependencies.
+character-select-fallback-details = Continuing with this navi will discard innate abilities.
 
 blocks-scene-title = Blocks
 blocks-option-move = Move

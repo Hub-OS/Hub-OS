@@ -12,9 +12,19 @@ use framework::prelude::*;
 use itertools::Itertools;
 use std::sync::Arc;
 
+#[derive(Clone, Copy)]
 enum CharacterError {
     Locked,
     MissingOrInvalidDependencies,
+}
+
+impl CharacterError {
+    fn translation_key(self) -> &'static str {
+        match self {
+            CharacterError::Locked => "character-select-locked-character",
+            CharacterError::MissingOrInvalidDependencies => "character-select-invalid-dependencies",
+        }
+    }
 }
 
 const ICON_WIDTH: f32 = 20.0;
@@ -210,6 +220,13 @@ impl CharacterSelectScene {
         self.icon_rows[v_index].get_package_id(h_index)
     }
 
+    fn selected_package_error(&self) -> Option<CharacterError> {
+        let v_index = self.v_scroll_tracker.selected_index();
+        let h_index = self.h_scroll_tracker.selected_index();
+
+        self.icon_rows[v_index].compact_package_data[h_index].error
+    }
+
     fn selected_character_name(&self) -> &str {
         let v_index = self.v_scroll_tracker.selected_index();
         let h_index = self.h_scroll_tracker.selected_index();
@@ -317,6 +334,21 @@ impl CharacterSelectScene {
             globals.global_save.selected_character = package_id.clone();
             globals.global_save.selected_character_time = GlobalSave::current_time();
             globals.global_save.save();
+
+            if let Some(error) = self.selected_package_error() {
+                let messages = [
+                    globals.translate(error.translation_key()),
+                    globals.translate("character-select-fallback-details"),
+                ];
+
+                self.textbox.use_navigation_avatar(game_io);
+
+                for message in messages {
+                    self.textbox.push_interface(TextboxMessage::new(message));
+                }
+
+                self.textbox.open();
+            }
         }
 
         // test leave
@@ -510,7 +542,7 @@ impl IconRow {
             .flat_map(|id| player_packages.package(PackageNamespace::Local, id))
             .map(|package| {
                 let package_id = &package.package_info.id;
-                let error;
+                let mut error = None;
 
                 if !restrictions.owns_player(package_id) {
                     error = Some(CharacterError::Locked);
