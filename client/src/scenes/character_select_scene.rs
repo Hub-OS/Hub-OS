@@ -12,6 +12,11 @@ use framework::prelude::*;
 use itertools::Itertools;
 use std::sync::Arc;
 
+enum CharacterError {
+    Locked,
+    MissingOrInvalidDependencies,
+}
+
 const ICON_WIDTH: f32 = 20.0;
 const ICON_HEIGHT: f32 = 24.0;
 const ICON_MARGIN: f32 = 1.0;
@@ -31,6 +36,7 @@ pub struct CharacterSelectScene {
     cursor_sprite: Sprite,
     cursor_animator: Animator,
     invalid_sprite: Sprite,
+    locked_sprite: Sprite,
     icon_rows: Vec<IconRow>,
     icons_per_row: usize,
     icon_start_offset: Vec2,
@@ -68,12 +74,6 @@ impl CharacterSelectScene {
 
         // name_position
         let name_position = ui_animator.point_or_zero("NAME");
-
-        // invalid sprite
-        let mut invalid_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_UI);
-        let invalid_animator = ui_animator.clone().with_state("INVALID_BADGE");
-
-        invalid_animator.apply(&mut invalid_sprite);
 
         // list bounds
         let list_bounds = Rect::from_corners(
@@ -113,6 +113,16 @@ impl CharacterSelectScene {
 
         cursor_animator.apply(&mut cursor_sprite);
 
+        // invalid sprite
+        let mut invalid_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_UI);
+        ui_animator.set_state("INVALID_BADGE");
+        ui_animator.apply(&mut invalid_sprite);
+
+        // locked sprite
+        let mut locked_sprite = assets.new_sprite(game_io, ResourcePaths::CHARACTER_SELECT_UI);
+        ui_animator.set_state("LOCKED_BADGE");
+        ui_animator.apply(&mut locked_sprite);
+
         Self {
             camera: Camera::new_ui(game_io),
             background: Background::new_character_scene(game_io),
@@ -125,6 +135,7 @@ impl CharacterSelectScene {
             cursor_sprite,
             cursor_animator,
             invalid_sprite,
+            locked_sprite,
             icon_start_offset: list_bounds.top_left(),
             icon_rows,
             icons_per_row,
@@ -435,6 +446,7 @@ impl Scene for CharacterSelectScene {
                 game_io,
                 &mut sprite_queue,
                 &mut self.invalid_sprite,
+                &mut self.locked_sprite,
                 offset,
                 saved_package_id,
             );
@@ -480,7 +492,7 @@ struct CompactPackageInfo {
     name: Arc<str>,
     texture_path: String,
     animation_path: String,
-    valid: bool,
+    error: Option<CharacterError>,
 }
 
 struct IconRow {
@@ -498,15 +510,22 @@ impl IconRow {
             .flat_map(|id| player_packages.package(PackageNamespace::Local, id))
             .map(|package| {
                 let package_id = &package.package_info.id;
-                let valid = restrictions.owns_player(package_id)
-                    && restrictions.validate_package_tree(game_io, package.package_info.triplet());
+                let error;
+
+                if !restrictions.owns_player(package_id) {
+                    error = Some(CharacterError::Locked);
+                } else if !restrictions
+                    .validate_package_tree(game_io, package.package_info.triplet())
+                {
+                    error = Some(CharacterError::MissingOrInvalidDependencies);
+                }
 
                 CompactPackageInfo {
                     package_id: package_id.clone(),
                     name: package.long_name.clone(),
                     texture_path: package.mugshot_paths.texture.to_string(),
                     animation_path: package.mugshot_paths.animation.to_string(),
-                    valid,
+                    error,
                 }
             })
             .collect();
@@ -563,6 +582,7 @@ impl IconRow {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         invalid_sprite: &mut Sprite,
+        locked_sprite: &mut Sprite,
         mut offset: Vec2,
         saved_package_id: &PackageId,
     ) {
@@ -580,9 +600,16 @@ impl IconRow {
             sprite.set_position(offset);
             sprite_queue.draw_sprite(sprite);
 
-            if !data.valid {
-                invalid_sprite.set_position(offset);
-                sprite_queue.draw_sprite(invalid_sprite);
+            match data.error {
+                Some(CharacterError::Locked) => {
+                    locked_sprite.set_position(offset);
+                    sprite_queue.draw_sprite(locked_sprite);
+                }
+                Some(CharacterError::MissingOrInvalidDependencies) => {
+                    invalid_sprite.set_position(offset);
+                    sprite_queue.draw_sprite(invalid_sprite);
+                }
+                None => {}
             }
 
             offset.x += ICON_X_OFFSET;

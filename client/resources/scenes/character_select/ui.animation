@@ -7,4 +7,7 @@ point label="ELEMENT" x="102" y="16"
 point label="NAME" x="3" y="147"
 
 animation state="INVALID_BADGE"
-frame w="12" h="13" originx="-4" originy="-6"
+frame x="2" y="1" w="12" h="13" originx="-4" originy="-6"
+
+animation state="LOCKED_BADGE"
+frame x="19" y="1" w="10" h="13" originx="-5" originy="-6"
