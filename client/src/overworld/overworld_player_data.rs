@@ -3,7 +3,7 @@ use crate::packages::PackageNamespace;
 use crate::resources::Globals;
 use crate::saves::BlockGrid;
 use framework::prelude::{GameIO, Vec3};
-use packets::structures::{ActorId, Inventory, PackageId};
+use packets::structures::{ActorId, Inventory, PackageCategory, PackageId};
 
 pub struct OverworldPlayerData {
     pub entity: hecs::Entity,
@@ -49,20 +49,45 @@ impl OverworldPlayerData {
         let globals = game_io.resource::<Globals>().unwrap();
 
         let global_save = &globals.global_save;
+        let restrictions = &globals.restrictions;
 
         // base_health
         let player_package = global_save.player_package(game_io).unwrap();
         self.base_health = player_package.health;
 
-        // health_boost
-        let blocks = global_save.active_blocks().to_vec();
-        let block_grid = BlockGrid::new(PackageNamespace::Local).with_blocks(game_io, blocks);
-
+        // resolving health boost from augments
         let mut health_boost = 0;
+
+        // health boost from blocks
+        let ns = PackageNamespace::Local;
+        let blocks: Vec<_> = restrictions
+            .filter_blocks(game_io, ns, global_save.active_blocks().iter())
+            .cloned()
+            .collect();
+
+        let block_grid = BlockGrid::new(ns).with_blocks(game_io, blocks);
 
         for (package, level) in block_grid.augments(game_io) {
             health_boost += package.health_boost * level as i32;
         }
+
+        // health boost from switch drives
+        let drives: Vec<_> = global_save
+            .active_drive_parts()
+            .iter()
+            .filter(|drive| {
+                restrictions.validate_package_tree(
+                    game_io,
+                    (PackageCategory::Augment, ns, drive.package_id.clone()),
+                )
+            })
+            .cloned()
+            .collect();
+
+        health_boost += drives
+            .iter()
+            .flat_map(|drive| globals.augment_packages.package(ns, &drive.package_id))
+            .fold(0, |acc, package| acc + package.health_boost);
 
         self.health_boost = health_boost;
 
