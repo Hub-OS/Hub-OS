@@ -1204,18 +1204,15 @@ impl CardSelectState {
             .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
         if is_dark {
-            let mut pending_sfx = Vec::new();
-
             let globals = game_io.resource::<Globals>().unwrap();
-
-            pending_sfx.push(&globals.sfx.dark_card);
 
             resources.ui_fade_color.set(Color::new(0.0, 0.0, 0.0, 0.5));
 
-            for sfx in pending_sfx {
-                let audio = &globals.audio;
-                audio.play_sound_with_behavior(sfx, AudioBehavior::NoOverlap);
-            }
+            simulation.play_sound_with_behavior(
+                game_io,
+                &globals.sfx.dark_card,
+                AudioBehavior::NoOverlap,
+            );
         }
     }
 }

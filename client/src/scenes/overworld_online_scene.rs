@@ -144,11 +144,12 @@ impl OverworldOnlineScene {
             },
         );
 
+        // send boosts before sending avatar data
+        // allows the server to accurately calculate health
+        self.send_boosts(game_io);
+
         // send avatar data
         self.send_avatar_data(game_io);
-
-        // send boosts
-        self.send_boosts(game_io);
     }
 
     pub fn sync_assets(
@@ -1858,7 +1859,8 @@ impl Scene for OverworldOnlineScene {
         let previous_player_id = self.area.player_data.package_id.clone();
         self.area.enter(game_io);
 
-        // send boosts
+        // send boosts before sending avatar data
+        // allows the server to accurately calculate health
         self.send_boosts(game_io);
 
         if previous_player_id != self.area.player_data.package_id {

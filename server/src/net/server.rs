@@ -366,6 +366,11 @@ impl Server {
                 } => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         let player_data = &mut client.player_data;
+
+                        if player_data.health == player_data.max_health() {
+                            player_data.health = player_data.base_health + health_boost;
+                        }
+
                         player_data.health_boost = health_boost;
                         player_data.health = player_data.max_health().min(player_data.health);
 
