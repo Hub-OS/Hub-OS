@@ -461,6 +461,7 @@ impl NetplayInitScene {
 
                 connection.player_setup.buffer.push_last(data);
             }
+            NetplayPacketData::ReceiveCounts { .. } => {}
         }
     }
 

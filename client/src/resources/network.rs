@@ -444,7 +444,10 @@ impl EventListener {
             }
             Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
                 addr,
-                if body.data == NetplayPacketData::Heartbeat {
+                if matches!(
+                    body.data,
+                    NetplayPacketData::Heartbeat | NetplayPacketData::ReceiveCounts { .. }
+                ) {
                     Reliability::Reliable
                 } else {
                     Reliability::ReliableOrdered

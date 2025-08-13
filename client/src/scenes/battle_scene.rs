@@ -14,7 +14,8 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SLOW_COOLDOWN: FrameTime = INPUT_BUFFER_LIMIT as FrameTime;
-const LEAD_TOLERANCE: usize = 2;
+const DEFAULT_LEAD_TOLERANCE: usize = 2;
+const SEND_RECEIVE_COUNTS_RATE: FrameTime = 60;
 
 pub enum BattleEvent {
     Description(Arc<str>),
@@ -29,6 +30,7 @@ pub enum BattleEvent {
 struct PlayerController {
     connected: bool,
     buffer: PlayerInputBuffer,
+    lead_tolerance: usize,
 }
 
 struct Backup {
@@ -142,6 +144,7 @@ impl BattleScene {
             player_controllers.push(PlayerController {
                 connected: !is_playing_back_recording,
                 buffer: setup.buffer.clone(),
+                lead_tolerance: DEFAULT_LEAD_TOLERANCE,
             });
 
             if !config.spectators.contains(&setup.index) {
@@ -442,6 +445,20 @@ impl BattleScene {
                     controller.buffer.push_last(data);
                 }
             }
+            NetplayPacketData::ReceiveCounts { received } => {
+                if let Some(local_index) = self.local_index {
+                    let local_controller = &self.player_controllers[local_index];
+                    let sent = self.synced_time as usize + local_controller.buffer.len();
+
+                    if let Some(controller) = self.player_controllers.get_mut(index) {
+                        if let Some(&count) = received.get(local_index) {
+                            // treating sent - received as rtt in frames
+                            // half of rtt + 1 will be our new lead tolerance
+                            controller.lead_tolerance = sent.saturating_sub(count).div_ceil(2) + 1;
+                        }
+                    }
+                }
+            }
             NetplayPacketData::Heartbeat => {}
             data => {
                 let name: &'static str = (&data).into();
@@ -474,7 +491,7 @@ impl BattleScene {
             }
 
             // try to maintain a buffer len to stay in the past
-            if controller.buffer.len() + LEAD_TOLERANCE < target_buffer_len {
+            if controller.buffer.len() + controller.lead_tolerance < target_buffer_len {
                 should_slow = true;
             }
         }
@@ -549,6 +566,17 @@ impl BattleScene {
         local_controller.buffer.push_last(data.clone());
 
         self.broadcast(NetplayPacketData::Buffer { data });
+
+        // send receive counts for resolving lead tolerance
+        if self.simulation.time % SEND_RECEIVE_COUNTS_RATE == 0 {
+            self.broadcast(NetplayPacketData::ReceiveCounts {
+                received: self
+                    .player_controllers
+                    .iter()
+                    .map(|controller| self.synced_time as usize + controller.buffer.len())
+                    .collect(),
+            });
+        }
     }
 
     fn record_buffer_limits(&mut self) {

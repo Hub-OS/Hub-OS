@@ -58,6 +58,9 @@ pub enum NetplayPacketData {
     Buffer {
         data: NetplayBufferItem,
     },
+    ReceiveCounts {
+        received: Vec<usize>,
+    },
 }
 
 impl NetplayPacket {
