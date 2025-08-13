@@ -549,10 +549,8 @@ impl Animator {
             self.frame_progress = time;
             self.frame_index = frame_index;
         } else {
-            let mut frame_index = frame_list.frames().len() - 1;
-
-            // flip the time
-            time = frame_list.duration() - time;
+            let frame_len = frame_list.frames().len();
+            let mut frame_index = frame_len;
 
             for frame in frame_list.frames().iter().rev() {
                 if time < frame.duration {
@@ -565,7 +563,7 @@ impl Animator {
 
             // flip the time back
             self.frame_progress = frame_list.duration() - time;
-            self.frame_index = frame_index;
+            self.frame_index = frame_index.min(frame_len.saturating_sub(1));
         }
 
         self.bounced = !forward;

@@ -273,6 +273,8 @@ impl BattleAnimator {
                 self.animator.set_reversed(true);
             }
         }
+
+        self.animator.sync_time(self.time);
     }
 
     pub fn reversed(&self) -> bool {
