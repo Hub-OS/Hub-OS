@@ -25,7 +25,7 @@ impl TextboxQuestion {
         Self {
             message: message + LAST_LINE,
             complete: false,
-            selection: false,
+            selection: true,
             callback: Some(Box::new(callback)),
             render_data: None,
             input_tracker: UiInputTracker::new(),
