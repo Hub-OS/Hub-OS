@@ -407,8 +407,17 @@ impl Living {
 
         let mut pending_cancel = Vec::new();
 
-        for (id, living) in simulation.entities.query_mut::<&mut Living>() {
-            if living.status_director.is_dragged() {
+        for (id, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
+            if !living.status_director.is_dragged() {
+                continue;
+            }
+
+            let Some(animator) = simulation.animators.get(entity.animator_index) else {
+                continue;
+            };
+
+            // only cancel actions if the entity supports flinching
+            if animator.has_state("CHARACTER_HIT") {
                 pending_cancel.push(id)
             }
         }
