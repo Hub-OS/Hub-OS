@@ -214,9 +214,9 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(lua_api, "set_playback", |animator, lua, mode| {
+    updater(lua_api, "set_playback", |animator, _, _, mode| {
         animator.set_playback_mode(mode);
-        lua.pack_multi(())
+        Ok(Vec::new())
     });
 
     setter(lua_api, "on_complete", |animator, lua, callback| {
