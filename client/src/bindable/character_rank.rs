@@ -9,17 +9,17 @@ pub enum CharacterRank {
     V3,
     V4,
     V5,
-    SP,
-    EX,
-    Rare1,
-    Rare2,
-    NM,
-    RV,
-    DS,
     Alpha,
     Beta,
     Omega,
     Sigma,
+    EX,
+    SP,
+    Rare1,
+    Rare2,
+    DS,
+    RV,
+    NM,
 }
 
 impl CharacterRank {
@@ -29,15 +29,15 @@ impl CharacterRank {
             Self::V3 => "3", // alternate: "\u{e006}"
             Self::V4 => "4", // alternate: "\u{e007}"
             Self::V5 => "5", // alternate: "\u{e008}"
+            Self::Alpha => "α",
+            Self::Beta => "β",
+            Self::Omega => "Ω",
+            Self::Sigma => "Σ",
             Self::EX => "\u{e000}",
             Self::SP => "\u{e001}",
             Self::DS => "\u{e003}",
             Self::RV => "\u{e004}",
             Self::NM => "\u{e005}",
-            Self::Alpha => "α",
-            Self::Beta => "β",
-            Self::Omega => "Ω",
-            Self::Sigma => "Σ",
             _ => "",
         }
     }
