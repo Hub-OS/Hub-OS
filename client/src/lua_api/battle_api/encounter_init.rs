@@ -3,7 +3,7 @@ use super::field_api::get_field_compat_table;
 use super::{create_entity_table, BattleLuaApi, ENCOUNTER_TABLE, MUTATOR_TABLE, SPAWNER_TABLE};
 use crate::battle::{
     BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
-    SharedBattleResources,
+    SharedBattleResources, TileState, TileStateAnimationSupport,
 };
 use crate::bindable::{CharacterRank, EntityId};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
@@ -201,6 +201,54 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(field_table)
     });
+
+    lua_api.add_dynamic_function(ENCOUNTER_TABLE, "set_tile_size", |api_ctx, lua, params| {
+        let (_, width, height): (rollback_mlua::Table, f32, f32) = lua.unpack_multi(params)?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        simulation.field.set_tile_size(Vec2::new(width, height));
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "set_tile_state_resources",
+        |api_ctx, lua, params| {
+            let (_, state_index, texture_path, animation_path): (
+                rollback_mlua::Table,
+                usize,
+                String,
+                String,
+            ) = lua.unpack_multi(params)?;
+            let texture_path = absolute_path(lua, texture_path)?;
+            let animation_path = absolute_path(lua, animation_path)?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            let game_io = &api_ctx.game_io;
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            let texture = globals.assets.texture(game_io, &texture_path);
+            let animator = Animator::load_new(&globals.assets, &animation_path);
+
+            if state_index == TileState::NORMAL {
+                let field = &mut api_ctx.simulation.field;
+                field.set_tile_filled_resources(texture, animator);
+            } else if state_index == TileState::HOLE {
+                let field = &mut api_ctx.simulation.field;
+                field.set_tile_frame_resources(texture, animator);
+            } else if let Some(state) = simulation.tile_states.get_mut(state_index) {
+                state.texture = texture;
+                state.animation_support = TileStateAnimationSupport::from_animator(&animator);
+                state.animator = animator;
+            }
+
+            lua.pack_multi(())
+        },
+    );
 
     lua_api.add_dynamic_function(
         ENCOUNTER_TABLE,

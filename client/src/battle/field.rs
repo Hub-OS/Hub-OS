@@ -6,6 +6,7 @@ use crate::bindable::*;
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
+use std::sync::Arc;
 
 const FRAME_ANIMATION_SUPPORT: TileStateAnimationSupport = TileStateAnimationSupport::TeamRows;
 
@@ -17,7 +18,10 @@ pub struct Field {
     tile_size: Vec2,
     frame_sprite: Sprite,
     frame_animator: Animator,
-    frame_full_animator: Animator,
+    frame_animation_support: TileStateAnimationSupport,
+    filled_sprite: Sprite,
+    filled_animator: Animator,
+    filled_animation_support: TileStateAnimationSupport,
     time: FrameTime,
 }
 
@@ -42,6 +46,13 @@ impl Field {
 
         let mut frame_sprite = assets.new_sprite(game_io, ResourcePaths::BATTLE_TILES);
         frame_sprite.set_color(Color::BLACK);
+        let frame_animator = Animator::load_new(assets, ResourcePaths::BATTLE_TILE_HOLE_ANIMATION);
+        let frame_animation_support = TileStateAnimationSupport::from_animator(&frame_animator);
+
+        let filled_sprite = frame_sprite.clone();
+        let filled_animator =
+            Animator::load_new(assets, ResourcePaths::BATTLE_TILE_NORMAL_ANIMATION);
+        let filled_animation_support = TileStateAnimationSupport::from_animator(&filled_animator);
 
         Self {
             cols,
@@ -49,11 +60,11 @@ impl Field {
             tiles,
             tile_size: Vec2::new(40.0, 24.0), // todo: read from .animation?
             frame_sprite,
-            frame_animator: Animator::load_new(assets, ResourcePaths::BATTLE_TILE_HOLE_ANIMATION),
-            frame_full_animator: Animator::load_new(
-                assets,
-                ResourcePaths::BATTLE_TILE_NORMAL_ANIMATION,
-            ),
+            frame_animator,
+            frame_animation_support,
+            filled_sprite,
+            filled_animator,
+            filled_animation_support,
             time: 0,
         }
     }
@@ -84,6 +95,22 @@ impl Field {
 
     pub fn tile_size(&self) -> Vec2 {
         self.tile_size
+    }
+
+    pub fn set_tile_size(&mut self, size: Vec2) {
+        self.tile_size = size;
+    }
+
+    pub fn set_tile_frame_resources(&mut self, texture: Arc<Texture>, animator: Animator) {
+        self.frame_sprite.set_texture(texture);
+        self.frame_animation_support = TileStateAnimationSupport::from_animator(&animator);
+        self.frame_animator = animator;
+    }
+
+    pub fn set_tile_filled_resources(&mut self, texture: Arc<Texture>, animator: Animator) {
+        self.filled_sprite.set_texture(texture);
+        self.filled_animation_support = TileStateAnimationSupport::from_animator(&animator);
+        self.filled_animator = animator;
     }
 
     pub fn in_bounds(&self, (col, row): (i32, i32)) -> bool {
@@ -362,9 +389,6 @@ impl Field {
 
                 let team = tile.visible_team();
 
-                let frame_animation_state =
-                    FRAME_ANIMATION_SUPPORT.animation_state(team, state_row, flipped);
-
                 // resolve position
                 let position = Vec2::new(
                     (top_left.x + col as f32 * self.tile_size.x) * flip_multiplier,
@@ -373,22 +397,33 @@ impl Field {
 
                 // draw frame
                 if !tile_state.hide_frame {
-                    let frame_animator = if tile_state.hide_body {
+                    let (animator, sprite, animation_support) = if tile_state.hide_body {
                         // render just the frame
-                        &mut self.frame_animator
+                        (
+                            &mut self.frame_animator,
+                            &mut self.frame_sprite,
+                            self.frame_animation_support,
+                        )
                     } else {
                         // render the full tile
-                        &mut self.frame_full_animator
+                        (
+                            &mut self.filled_animator,
+                            &mut self.filled_sprite,
+                            self.filled_animation_support,
+                        )
                     };
 
-                    frame_animator.set_state(frame_animation_state);
-                    frame_animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    frame_animator.sync_time(self.time);
+                    let frame_animation_state =
+                        animation_support.animation_state(team, state_row, flipped);
+
+                    animator.set_state(frame_animation_state);
+                    animator.set_loop_mode(AnimatorLoopMode::Loop);
+                    animator.sync_time(self.time);
 
                     // set frame and draw
-                    self.frame_sprite.set_position(position - sprite_origin);
-                    frame_animator.apply(&mut self.frame_sprite);
-                    sprite_queue.draw_sprite(&self.frame_sprite);
+                    sprite.set_position(position - sprite_origin);
+                    animator.apply(sprite);
+                    sprite_queue.draw_sprite(sprite);
                 }
 
                 // resolve highlight
