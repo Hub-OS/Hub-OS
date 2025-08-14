@@ -270,7 +270,7 @@ impl Menu for Shop {
             let leaving = self.leaving.clone();
 
             let question = globals.translate("shop-leave-question");
-            let question_interface = TextboxQuestion::new(question, {
+            let question_interface = TextboxQuestion::new(game_io, question, {
                 move |yes| {
                     if yes {
                         on_leave();

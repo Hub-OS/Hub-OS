@@ -387,7 +387,7 @@ impl SyncDataScene {
                         vec![("name", addr.to_string().into())],
                     );
 
-                    let interface = TextboxQuestion::new(question, move |accept| {
+                    let interface = TextboxQuestion::new(game_io, question, move |accept| {
                         let event = if accept {
                             Event::AcceptSyncWith
                         } else {

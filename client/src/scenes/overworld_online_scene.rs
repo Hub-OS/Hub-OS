@@ -760,7 +760,7 @@ impl OverworldOnlineScene {
                 textbox_options,
             } => {
                 let event_sender = self.area.event_sender.clone();
-                let interface = TextboxQuestion::new(message, move |response| {
+                let interface = TextboxQuestion::new(game_io, message, move |response| {
                     event_sender
                         .send(OverworldEvent::TextboxResponse(response as u8))
                         .unwrap();
@@ -963,7 +963,7 @@ impl OverworldOnlineScene {
                     log::error!("Received non http / https address: {address:?}");
                 } else {
                     let message = String::from("Open link in browser?");
-                    let interface = TextboxQuestion::new(message, move |yes| {
+                    let interface = TextboxQuestion::new(game_io, message, move |yes| {
                         if yes {
                             if let Err(err) = webbrowser::open(&address) {
                                 log::error!("{err:?}");
@@ -1702,11 +1702,12 @@ impl OverworldOnlineScene {
             self.menu_manager.use_player_avatar(game_io);
             let event_sender = self.area.event_sender.clone();
 
-            let interface = TextboxQuestion::new(String::from("Jack out?"), move |response| {
-                if response {
-                    event_sender.send(OverworldEvent::Leave).unwrap();
-                }
-            });
+            let interface =
+                TextboxQuestion::new(game_io, String::from("Jack out?"), move |response| {
+                    if response {
+                        event_sender.send(OverworldEvent::Leave).unwrap();
+                    }
+                });
 
             self.menu_manager.push_textbox_interface(interface);
         }

@@ -521,7 +521,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
                     "deck-editor-equip-deck-question",
                     vec![("name", (&old_deck.name).into())],
                 );
-                let textbox_interface = TextboxQuestion::new(question, callback);
+                let textbox_interface = TextboxQuestion::new(game_io, question, callback);
 
                 scene.textbox.push_interface(textbox_interface);
                 scene.textbox.open();
@@ -558,7 +558,7 @@ fn handle_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) {
 
         let globals = game_io.resource::<Globals>().unwrap();
         let message = globals.translate("deck-editor-regular-card-mode-question");
-        let interface = TextboxQuestion::new(message, move |yes| {
+        let interface = TextboxQuestion::new(game_io, message, move |yes| {
             if yes {
                 event_sender
                     .send(Event::SwitchMode(EditorMode::SelectRegular))

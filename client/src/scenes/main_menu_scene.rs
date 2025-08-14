@@ -257,7 +257,7 @@ impl Scene for MainMenuScene {
             let globals = game_io.resource::<Globals>().unwrap();
             let event_sender = self.event_sender.clone();
             let message = globals.translate("navigation-quit-question");
-            let interface = TextboxQuestion::new(message, move |yes| {
+            let interface = TextboxQuestion::new(game_io, message, move |yes| {
                 if yes {
                     let _ = event_sender.send(Event::Quit);
                 }

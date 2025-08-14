@@ -530,7 +530,7 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             );
 
             let event_sender = scene.event_sender.clone();
-            let textbox_interface = TextboxQuestion::new(question, move |response| {
+            let textbox_interface = TextboxQuestion::new(game_io, question, move |response| {
                 let event = if response {
                     Event::Delete
                 } else {

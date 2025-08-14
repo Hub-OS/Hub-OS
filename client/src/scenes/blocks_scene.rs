@@ -448,6 +448,7 @@ impl BlocksScene {
                     let event_sender = self.event_sender.clone();
 
                     let question = TextboxQuestion::new(
+                        game_io,
                         String::from("Quit customizing and return to menu?"),
                         move |yes| {
                             if yes {
@@ -655,7 +656,7 @@ impl BlocksScene {
 
                     let event_sender = self.event_sender.clone();
                     let question = globals.translate("blocks-leave-question");
-                    let interface = TextboxQuestion::new(question, move |yes| {
+                    let interface = TextboxQuestion::new(game_io, question, move |yes| {
                         if yes {
                             event_sender.send(Event::Leave).unwrap();
                         } else {

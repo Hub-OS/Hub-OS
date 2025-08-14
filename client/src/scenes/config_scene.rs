@@ -1200,6 +1200,7 @@ impl ConfigScene {
         // get permission to save
         let interface = if config.validate() {
             TextboxQuestion::new(
+                game_io,
                 globals.translate("config-save-changes-question"),
                 move |save| {
                     let _ = event_sender.send(Event::Leave { save });
@@ -1207,6 +1208,7 @@ impl ConfigScene {
             )
         } else {
             TextboxQuestion::new(
+                game_io,
                 globals.translate("config-invalid-revert-question"),
                 move |leave| {
                     if leave {

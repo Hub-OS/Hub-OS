@@ -241,7 +241,7 @@ impl BattleScene {
                         let globals = game_io.resource::<Globals>().unwrap();
                         let text = globals.translate("battle-run-question");
 
-                        let interface = TextboxQuestion::new(text, move |yes| {
+                        let interface = TextboxQuestion::new(game_io, text, move |yes| {
                             if yes {
                                 event_sender.send(BattleEvent::AttemptFlee).unwrap();
                             }

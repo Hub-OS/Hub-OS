@@ -11,3 +11,5 @@ navigation-option-config = Config
 navigation-health-label = Health
 
 navigation-quit-question = Close Hub OS?
+navigation-yes = Yes
+navigation-no = No

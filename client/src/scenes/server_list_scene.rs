@@ -288,7 +288,7 @@ impl ServerListScene {
                     "server-list-delete-question",
                     vec![("name", server_name.into())],
                 );
-                let interface = TextboxQuestion::new(question, move |yes| {
+                let interface = TextboxQuestion::new(game_io, question, move |yes| {
                     if yes {
                         event_sender.send(Event::Delete).unwrap();
                     }

@@ -167,7 +167,7 @@ impl ResourceOrderScene {
                 // changes made, must verify
                 let event_sender = self.event_sender.clone();
                 let question = globals.translate("config-resource-order-save-changes-question");
-                let interface = TextboxQuestion::new(question, move |save| {
+                let interface = TextboxQuestion::new(game_io, question, move |save| {
                     event_sender.send(Event::SaveResponse { save }).unwrap();
                 });
 

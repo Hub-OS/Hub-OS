@@ -369,10 +369,11 @@ impl ManageSwitchDriveScene {
         true
     }
 
-    fn request_leave(&mut self) {
+    fn request_leave(&mut self, game_io: &GameIO) {
         let event_sender = self.event_sender.clone();
 
         let question = TextboxQuestion::new(
+            game_io,
             String::from("Quit customizing and return to menu?"),
             move |yes| {
                 if yes {
@@ -399,7 +400,7 @@ impl ManageSwitchDriveScene {
                         self.event_sender.send(Event::ApplyFilter(None)).unwrap();
                         globals.audio.play_sound(&globals.sfx.cursor_cancel);
                     } else {
-                        self.request_leave();
+                        self.request_leave(game_io);
                     }
                 } else if self.input_tracker.pulsed(Input::Left) {
                     self.state = State::EquipmentSelection;
@@ -455,7 +456,7 @@ impl ManageSwitchDriveScene {
                         )
                     };
 
-                    let question = TextboxQuestion::new(question_string, move |yes| {
+                    let question = TextboxQuestion::new(game_io, question_string, move |yes| {
                         if !yes {
                             return;
                         }
@@ -497,7 +498,7 @@ impl ManageSwitchDriveScene {
                             self.event_sender.send(Event::ApplyFilter(None)).unwrap();
                             globals.audio.play_sound(&globals.sfx.cursor_cancel);
                         } else {
-                            self.request_leave();
+                            self.request_leave(game_io);
                         }
                     } else {
                         self.state = State::ListSelection;

@@ -11,6 +11,9 @@ struct RenderData {
 
 pub struct TextboxQuestion {
     message: String,
+    response_start: usize,
+    yes_string: String,
+    no_string: String,
     selection: bool,
     complete: bool,
     callback: Option<Box<dyn FnOnce(bool)>>,
@@ -18,12 +21,19 @@ pub struct TextboxQuestion {
     input_tracker: UiInputTracker,
 }
 
-const LAST_LINE: &str = "\n\x02       Yes     No";
-
 impl TextboxQuestion {
-    pub fn new(message: String, callback: impl FnOnce(bool) + 'static) -> Self {
+    pub fn new(game_io: &GameIO, message: String, callback: impl FnOnce(bool) + 'static) -> Self {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let response_start = message.len() + 1;
+        let yes_string = globals.translate("navigation-yes");
+        let no_string = globals.translate("navigation-no");
+
         Self {
-            message: message + LAST_LINE,
+            message: format!("{message}\n\x02       {yes_string:<7} {no_string}",),
+            response_start,
+            yes_string,
+            no_string,
             complete: false,
             selection: true,
             callback: Some(Box::new(callback)),
@@ -56,10 +66,12 @@ impl TextboxInterface for TextboxQuestion {
                 text_style.bounds.y + text_height - line_height * 0.5,
             );
 
-            let yes_index = LAST_LINE.find("Yes").unwrap();
-            let yes_offset = text_style.measure(&LAST_LINE[..yes_index]).size.x;
-            let no_index = LAST_LINE.find("No").unwrap();
-            let no_offset = text_style.measure(&LAST_LINE[..no_index]).size.x;
+            let last_line = &self.message[self.response_start..];
+
+            let yes_index = last_line.find(&self.yes_string).unwrap();
+            let yes_offset = text_style.measure(&last_line[..yes_index]).size.x;
+            let no_index = last_line.rfind(&self.no_string).unwrap();
+            let no_offset = text_style.measure(&last_line[..no_index]).size.x;
 
             let render_data = RenderData {
                 yes_position: left + Vec2::new(yes_offset, 0.0),
