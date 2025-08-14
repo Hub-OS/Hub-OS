@@ -275,11 +275,6 @@ impl GlobalSave {
             return;
         }
 
-        // update selected character
-        if self.selected_character == *old_id {
-            self.selected_character = new_id.clone();
-        }
-
         // update decks
         for deck in &mut self.decks {
             for card in &mut deck.cards {
@@ -287,6 +282,15 @@ impl GlobalSave {
                     card.package_id = new_id.clone();
                 }
             }
+        }
+
+        // update selected character
+        if self.selected_character == *old_id {
+            self.selected_character = new_id.clone();
+        }
+
+        if let Some(time) = self.character_update_times.remove(old_id) {
+            self.character_update_times.insert(new_id.clone(), time);
         }
 
         // update blocks
