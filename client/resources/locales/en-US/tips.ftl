@@ -1,6 +1,6 @@
 tip-prefixed = Tip: {$tip}
 
-tip-change-display-name = Your display name can be changed in Config -> Profile -> Nickname.
+tip-change-display-name = Your display name can be changed in Config -> Online -> Nickname.
 tip-view-display-name = You can see display names by placing your cursor over another character in the cyberworld.
 tip-updating-mods = You should update mods every once in a while through Config -> Mods -> Update Mods.
 tip-server-music = Resource mods can customize visuals, sounds, and music, including default server music.
