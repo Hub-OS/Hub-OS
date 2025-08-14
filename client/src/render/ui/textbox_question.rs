@@ -35,7 +35,7 @@ impl TextboxQuestion {
             yes_string,
             no_string,
             complete: false,
-            selection: false,
+            selection: true,
             callback: Some(Box::new(callback)),
             render_data: None,
             input_tracker: UiInputTracker::new(),
