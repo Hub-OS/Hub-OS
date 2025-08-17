@@ -184,5 +184,35 @@ frame duration="50f" x="222" y="105" w="20" h="20"
 animation state="YELLOW_INDICATOR"
 frame duration="50f" x="243" y="106" w="12" h="7"
 
+animation state="ORANGE_FLAT"
+frame duration="50f" x="163" y="127" w="18" h="18" originx="-1" originy="-1"
+
+animation state="ORANGE_PLUS"
+frame duration="50f" x="182" y="127" w="18" h="18" originx="-1" originy="-1"
+
+animation state="ORANGE_FLAT_HELD"
+frame duration="50f" x="201" y="126" w="20" h="20"
+
+animation state="ORANGE_PLUS_HELD"
+frame duration="50f" x="222" y="126" w="20" h="20"
+
+animation state="ORANGE_INDICATOR"
+frame duration="50f" x="243" y="127" w="12" h="7"
+
+animation state="PURPLE_FLAT"
+frame duration="50f" x="163" y="148" w="18" h="18" originx="-1" originy="-1"
+
+animation state="PURPLE_PLUS"
+frame duration="50f" x="182" y="148" w="18" h="18" originx="-1" originy="-1"
+
+animation state="PURPLE_FLAT_HELD"
+frame duration="50f" x="201" y="147" w="20" h="20"
+
+animation state="PURPLE_PLUS_HELD"
+frame duration="50f" x="222" y="147" w="20" h="20"
+
+animation state="PURPLE_INDICATOR"
+frame duration="50f" x="243" y="148" w="12" h="7"
+
 animation state="INVALID_FRAME"
 frame duration="50f" x="140" y="22" w="22" h="22" originx="1" originy="1"

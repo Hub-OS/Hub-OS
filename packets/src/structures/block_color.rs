@@ -3,7 +3,18 @@ use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
 #[derive(
-    Default, Debug, Clone, Copy, Hash, PartialEq, Eq, FromPrimitive, Serialize, Deserialize,
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    FromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 pub enum BlockColor {
     #[default]
@@ -13,6 +24,7 @@ pub enum BlockColor {
     Blue,
     Pink,
     Yellow,
+    Orange,
 }
 
 impl BlockColor {
@@ -24,6 +36,7 @@ impl BlockColor {
             BlockColor::Blue => "BLUE_INDICATOR",
             BlockColor::Pink => "PINK_INDICATOR",
             BlockColor::Yellow => "YELLOW_INDICATOR",
+            BlockColor::Orange => "ORANGE_INDICATOR",
         }
     }
 
@@ -35,6 +48,7 @@ impl BlockColor {
             BlockColor::Blue => "BLUE_FLAT",
             BlockColor::Pink => "PINK_FLAT",
             BlockColor::Yellow => "YELLOW_FLAT",
+            BlockColor::Orange => "ORANGE_FLAT",
         }
     }
 
@@ -46,6 +60,7 @@ impl BlockColor {
             BlockColor::Blue => "BLUE_PLUS",
             BlockColor::Pink => "PINK_PLUS",
             BlockColor::Yellow => "YELLOW_PLUS",
+            BlockColor::Orange => "ORANGE_PLUS",
         }
     }
 
@@ -57,6 +72,7 @@ impl BlockColor {
             BlockColor::Blue => "BLUE_FLAT_HELD",
             BlockColor::Pink => "PINK_FLAT_HELD",
             BlockColor::Yellow => "YELLOW_FLAT_HELD",
+            BlockColor::Orange => "ORANGE_FLAT_HELD",
         }
     }
 
@@ -68,6 +84,7 @@ impl BlockColor {
             BlockColor::Blue => "BLUE_PLUS_HELD",
             BlockColor::Pink => "PINK_PLUS_HELD",
             BlockColor::Yellow => "YELLOW_PLUS_HELD",
+            BlockColor::Orange => "ORANGE_PLUS_HELD",
         }
     }
 }
@@ -86,6 +103,7 @@ impl From<&str> for BlockColor {
             "blue" => BlockColor::Blue,
             "pink" => BlockColor::Pink,
             "yellow" => BlockColor::Yellow,
+            "orange" => BlockColor::Orange,
             _ => BlockColor::White,
         }
     }

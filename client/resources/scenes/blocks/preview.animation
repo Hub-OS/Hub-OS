@@ -40,3 +40,15 @@ frame duration="0.005" x="243" y="114" w="3" h="3" originx="0" originy="0" flipx
 
 animation state="YELLOW_PLUS"
 frame duration="0.005" x="247" y="114" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="ORANGE_FLAT"
+frame duration="0.005" x="243" y="135" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="ORANGE_PLUS"
+frame duration="0.005" x="247" y="135" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="PURPLE_FLAT"
+frame duration="0.005" x="243" y="156" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
+
+animation state="PURPLE_PLUS"
+frame duration="0.005" x="247" y="156" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
