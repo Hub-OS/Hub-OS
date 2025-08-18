@@ -3,23 +3,18 @@ packages-checking-for-updates = Checking for updates...
 packages-updates-found = Updates found.
 packages-updates-success = Updates completed!
 packages-updates-error = Updating failed.
-
 packages-pending-update-scene-title = Pending Updates
 packages-updating = Updating...
 packages-button-view = View
 packages-button-update-all = Update All
-
 packages-local-scene-title = Installed Mods
 packages-online-scene-title = Download Mods
-
 packages-search-tab = Search
 packages-location-tab = Location
 packages-category-tab = Category
-
 packages-location-context-menu-label = Category
 packages-location-online = Online
 packages-location-installed = Installed
-
 packages-category-context-menu-label = Category
 packages-category-filter-all = All
 packages-category-filter-cards = Chips
@@ -28,7 +23,6 @@ packages-category-filter-encounters = Battles
 packages-category-filter-players = Navis
 packages-category-filter-resource = Resource
 packages-category-filter-packs = Packs
-
 package-info-scene-title = Package Info
 package-info-button-install = Install
 package-info-button-update = Update
