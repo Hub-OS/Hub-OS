@@ -1,0 +1,3 @@
+files:
+  - source: /client/resources/locales/en-US/**/*.ftl
+    translation: /client/resources/locales/%locale%/**/%original_file_name%
