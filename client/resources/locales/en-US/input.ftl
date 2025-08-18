@@ -22,7 +22,6 @@ input-face-left = FaceLeft
 input-face-right = FaceRight
 input-advance-frame = AdvFrame
 input-rewind-frame = RewFrame
-
 button-meta = Meta
 button-start = Start
 button-select = Select
@@ -54,7 +53,6 @@ button-paddle1 = Paddle1
 button-paddle2 = Paddle2
 button-paddle3 = Paddle3
 button-paddle4 = Paddle4
-
 button-meta-short = Meta
 button-start-short = Start
 button-select-short = Select
