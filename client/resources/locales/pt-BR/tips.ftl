@@ -1,0 +1,15 @@
+tip-prefixed = Tip: { $tip }
+tip-change-display-name = Your display name can be changed in Config -> Online -> Nickname.
+tip-view-display-name = You can see display names by placing your cursor over another character in the cyberworld.
+tip-updating-mods = You should update mods every once in a while through Config -> Mods -> Update Mods.
+tip-server-music = Resource mods can customize visuals, sounds, and music, including default server music.
+tip-open-map = The map can be opened with { $binding }.
+tip-open-emotes = Emotes can be accessed by pressing { $binding }.
+tip-turn-around = Some battles allow you to turn around using { $binding }.
+tip-flipping-cards = Status effects and other properties are listed on the backs of chips. Use { $binding } to see the back of a chip.
+tip-special-button = { $binding } is used to activate extra equipment such as shields. This is similar to B+Left from other games.
+tip-auto-emotes = A thinking emote will appear over players messing with settings.
+tip-move-cards-in-bulk = Folder Edit allows you to move chips in bulk by holding { $binding } for one second.
+tip-binding-with-key = { $input } ({ $key } on keyboard)
+tip-binding-with-button = { $input } ({ $button } on a controller)
+tip-binding-with-key-and-button = { $input } ({ $key } on keyboard or { $button } on a controller)
