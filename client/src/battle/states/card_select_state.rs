@@ -59,11 +59,17 @@ enum SelectedItem {
 
 impl SelectedItem {
     fn button(self, player: &Player) -> Option<&CardSelectButton> {
-        match self {
-            SelectedItem::Button(index) => PlayerOverridables::card_button_slots_for(player)
-                .and_then(|buttons| buttons.get(index)?.as_ref()),
-            _ => None,
+        let SelectedItem::Button(index) = self else {
+            return None;
+        };
+
+        if index == CardSelectButton::SPECIAL_SLOT {
+            return PlayerOverridables::special_button_for(player);
         }
+
+        let index = index - 1;
+        PlayerOverridables::card_button_slots_for(player)
+            .and_then(|buttons| buttons.get(index)?.as_ref())
     }
 }
 
