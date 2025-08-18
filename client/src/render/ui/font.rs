@@ -28,6 +28,7 @@ pub enum FontName {
     EntityHp,
     EntityHpRed,
     EntityHpGreen,
+    DuplicateCount,
     External(Arc<str>),
 }
 
@@ -53,6 +54,7 @@ impl FontName {
             "ENTITY_HP" => FontName::EntityHp,
             "ENTITY_HP_RED" => FontName::EntityHpRed,
             "ENTITY_HP_GREEN" => FontName::EntityHpGreen,
+            "DUPLICATE_COUNT" => FontName::DuplicateCount,
             _ => FontName::External(uppercase_name.into()),
         }
     }
@@ -76,6 +78,7 @@ impl FontName {
             "ENTITY_HP_U+" => FontName::EntityHp,
             "ENTITY_HP_RED_U+" => FontName::EntityHpRed,
             "ENTITY_HP_GREEN_U+" => FontName::EntityHpGreen,
+            "DUPLICATE_COUNT_U+" => FontName::DuplicateCount,
             _ => {
                 let name_end = state_prefix.rfind(SPLIT_PATTERN)?;
                 let name = &state_prefix[0..name_end];

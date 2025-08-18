@@ -5,6 +5,9 @@ frame duration="0.005" x="143" y="1" w="19" h="19" originx="0" originy="0" flipx
 point label="GRID_START" x="2" y="2"
 point label="GRID_STEP" x="3" y="3"
 
+animation state="MULTI_COLOR_INDICATOR"
+frame x="137" y="1" w="5" h="5" originx="-15" originy="-14"
+
 animation state="WHITE_FLAT"
 frame duration="0.005" x="243" y="9" w="3" h="3" originx="0" originy="0" flipx="0" flipy="0"
 

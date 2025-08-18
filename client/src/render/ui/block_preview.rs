@@ -60,6 +60,18 @@ impl BlockPreview {
         }
     }
 
+    pub fn add_multi_color_indicator(&mut self, game_io: &GameIO) {
+        let assets = &game_io.resource::<Globals>().unwrap().assets;
+
+        let mut animator = Animator::load_new(assets, ResourcePaths::BLOCKS_PREVIEW_ANIMATION);
+        let mut sprite = assets.new_sprite(game_io, ResourcePaths::BLOCKS_UI);
+
+        // add background to sprites list
+        animator.set_state("MULTI_COLOR_INDICATOR");
+        animator.apply(&mut sprite);
+        self.sprites.push(sprite);
+    }
+
     pub fn with_position(mut self, position: Vec2) -> Self {
         self.position = position;
         self
@@ -72,6 +84,20 @@ impl BlockPreview {
 
     pub fn size(&self) -> Vec2 {
         self.size
+    }
+
+    pub fn set_position(&mut self, position: Vec2) {
+        self.position = position;
+    }
+
+    pub fn position(&self) -> Vec2 {
+        self.position
+    }
+
+    pub fn set_tint(&mut self, color: Color) {
+        for sprite in &mut self.sprites {
+            sprite.set_color(color);
+        }
     }
 
     pub fn draw(&mut self, sprite_queue: &mut SpriteColorQueue) {

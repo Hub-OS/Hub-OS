@@ -1,3 +1,5 @@
+use crate::render::SpriteColorQueue;
+
 use super::{ScrollTracker, UiInputTracker};
 use framework::prelude::*;
 
@@ -11,7 +13,10 @@ pub struct GridScrollTracker {
 }
 
 impl GridScrollTracker {
-    pub fn new(game_io: &GameIO, width: usize, height: usize) -> Self {
+    pub fn new(game_io: &GameIO, mut width: usize, mut height: usize) -> Self {
+        width = width.max(1);
+        height = height.max(1);
+
         Self {
             total_items: 0,
             columns: width,
@@ -40,6 +45,20 @@ impl GridScrollTracker {
     pub fn with_total_items(mut self, total_items: usize) -> Self {
         self.set_total_items(total_items);
         self
+    }
+
+    pub fn set_view_size(&mut self, width: usize, height: usize) {
+        self.h_scroll_tracker.set_view_size(width.max(1));
+        self.v_scroll_tracker.set_view_size(height.max(1));
+        self.columns = width;
+    }
+
+    pub fn set_position(&mut self, position: Vec2) {
+        self.position = position;
+    }
+
+    pub fn set_step(&mut self, step: Vec2) {
+        self.step = step;
     }
 
     pub fn set_total_items(&mut self, total_items: usize) {
@@ -79,6 +98,18 @@ impl GridScrollTracker {
         let h_index = self.h_scroll_tracker.selected_index();
 
         v_index * self.columns + h_index
+    }
+
+    pub fn set_selected_index(&mut self, index: usize) {
+        let v_index = index / self.columns;
+        let h_index = index % self.columns;
+
+        self.v_scroll_tracker.set_selected_index(v_index);
+
+        let cross_size = self.row_size_at(self.v_scroll_tracker.selected_index());
+        self.h_scroll_tracker.set_total_items(cross_size);
+
+        self.h_scroll_tracker.set_selected_index(h_index);
     }
 
     pub fn handle_input(&mut self, input_tracker: &UiInputTracker) {
@@ -127,5 +158,24 @@ impl GridScrollTracker {
                 (row * self.columns + col, item_position)
             })
         })
+    }
+
+    pub fn define_cursor(&mut self, offset: Vec2) {
+        // store definition in h_scroll_tracker
+        self.h_scroll_tracker.define_cursor(offset, 0.0);
+    }
+
+    pub fn draw_cursor(&mut self, sprite_queue: &mut SpriteColorQueue) {
+        // read definition from h_scroll_tracker and render using v_scroll_tracker
+        let (offset, _) = self.h_scroll_tracker.cursor_definition();
+
+        let h_index = self.h_scroll_tracker.selected_index();
+        let v_index = self.v_scroll_tracker.selected_index();
+
+        let position =
+            self.position + offset + Vec2::new(h_index as f32, v_index as f32) * self.step;
+
+        self.v_scroll_tracker.define_cursor(position, 0.0);
+        self.v_scroll_tracker.draw_cursor(sprite_queue);
     }
 }
