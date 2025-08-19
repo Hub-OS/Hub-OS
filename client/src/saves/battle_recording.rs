@@ -138,7 +138,6 @@ impl BattleRecording {
                 }
 
                 let file_name = ResourcePaths::file_name(path)?;
-                println!("resolved {file_name} from {path}");
 
                 Some((file_name.to_string(), bytes))
             });
