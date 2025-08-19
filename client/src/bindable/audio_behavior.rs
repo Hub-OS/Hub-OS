@@ -2,7 +2,9 @@
 pub enum AudioBehavior {
     #[default]
     Default,
+    Overlap,
     NoOverlap,
+    Restart,
     LoopSection(usize, usize),
     EndLoop,
 }
@@ -23,9 +25,11 @@ impl<'lua> rollback_mlua::FromLua<'lua> for AudioBehavior {
         let id: usize = table.get("id")?;
 
         Ok(match id {
-            1 => AudioBehavior::NoOverlap,
-            2 => AudioBehavior::LoopSection(table.get("start")?, table.get("end")?),
-            3 => AudioBehavior::EndLoop,
+            1 => AudioBehavior::Overlap,
+            2 => AudioBehavior::NoOverlap,
+            3 => AudioBehavior::Restart,
+            4 => AudioBehavior::LoopSection(table.get("start")?, table.get("end")?),
+            5 => AudioBehavior::EndLoop,
             _ => AudioBehavior::Default,
         })
     }
@@ -42,16 +46,22 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for AudioBehavior {
             AudioBehavior::Default => {
                 table.set("id", 0)?;
             }
-            AudioBehavior::NoOverlap => {
+            AudioBehavior::Overlap => {
                 table.set("id", 1)?;
             }
-            AudioBehavior::LoopSection(start, end) => {
+            AudioBehavior::NoOverlap => {
                 table.set("id", 2)?;
+            }
+            AudioBehavior::Restart => {
+                table.set("id", 3)?;
+            }
+            AudioBehavior::LoopSection(start, end) => {
+                table.set("id", 4)?;
                 table.set("start", start)?;
                 table.set("end", end)?;
             }
             AudioBehavior::EndLoop => {
-                table.set("id", 3)?;
+                table.set("id", 5)?;
             }
         };
 

@@ -202,45 +202,73 @@ impl AudioManager {
     pub fn play_sound_with_behavior(&self, buffer: &SoundBuffer, behavior: AudioBehavior) {
         match behavior {
             AudioBehavior::Default => self.play_sound(buffer),
+            AudioBehavior::Overlap => self.play_sound(buffer),
             AudioBehavior::NoOverlap => self.play_no_overlap(buffer),
+            AudioBehavior::Restart => self.play_restart(buffer),
             AudioBehavior::LoopSection(start, end) => self.play_loop_section(buffer, start, end),
             AudioBehavior::EndLoop => self.end_sound_loop(buffer),
         }
     }
 
-    fn play_no_overlap(&self, buffer: &SoundBuffer) {
+    fn try_ensure_sink(&self, buffer: &SoundBuffer) {
         let Some(stream_handle) = self.stream_handle.as_ref() else {
             return;
         };
 
         let mut sfx_sinks = self.sfx_sinks.borrow_mut();
-        let (start_instant, sfx_sink);
 
-        if let Some((instant, sink, end_loop)) = sfx_sinks.get_mut(&buffer.id()) {
-            if end_loop.is_some() {
-                // audio is looping, blocking us from playing again
+        if sfx_sinks.contains_key(&buffer.id()) {
+            return;
+        }
+
+        // create a new sink
+        let sink = match rodio::Sink::try_new(stream_handle) {
+            Ok(sfx_sink) => sfx_sink,
+            Err(e) => {
+                log::error!("Failed to create sfx sink: {e}");
                 return;
             }
+        };
 
-            // reuse sink
-            start_instant = instant;
-            sfx_sink = sink;
-        } else {
-            // create a new sink
-            let sink = match rodio::Sink::try_new(stream_handle) {
-                Ok(sfx_sink) => sfx_sink,
-                Err(e) => {
-                    log::error!("Failed to create sfx sink: {e}");
-                    return;
-                }
-            };
+        sfx_sinks.insert(buffer.id(), (Instant::now(), sink, None));
+    }
 
-            sfx_sinks.insert(buffer.id(), (Instant::now(), sink, None));
+    fn play_restart(&self, buffer: &SoundBuffer) {
+        self.try_ensure_sink(buffer);
 
-            // get the newly created sink
-            let (instant, sink, _) = sfx_sinks.get_mut(&buffer.id()).unwrap();
-            start_instant = instant;
-            sfx_sink = sink;
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+
+        let Some((start_instant, sfx_sink, end_loop)) = sfx_sinks.get_mut(&buffer.id()) else {
+            return;
+        };
+
+        if end_loop.is_some() {
+            // audio is looping, avoid ending the loop
+            return;
+        }
+
+        let source = buffer
+            .create_sampler()
+            .convert_samples::<f32>()
+            .amplify(self.sfx_volume);
+
+        sfx_sink.stop();
+        sfx_sink.append(source);
+        *start_instant = Instant::now();
+    }
+
+    fn play_no_overlap(&self, buffer: &SoundBuffer) {
+        self.try_ensure_sink(buffer);
+
+        let mut sfx_sinks = self.sfx_sinks.borrow_mut();
+
+        let Some((start_instant, sfx_sink, end_loop)) = sfx_sinks.get_mut(&buffer.id()) else {
+            return;
+        };
+
+        if end_loop.is_some() {
+            // blocked by looping audio
+            return;
         }
 
         // queue if there's no sfx queued, or the currently queued sfx is about to end

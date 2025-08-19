@@ -254,6 +254,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     let audio_behavior_table = lua.create_table()?;
     audio_behavior_table.set("Default", AudioBehavior::Default)?;
+    audio_behavior_table.set("Restart", AudioBehavior::Restart)?;
+    audio_behavior_table.set("Overlap", AudioBehavior::Overlap)?;
     audio_behavior_table.set("NoOverlap", AudioBehavior::NoOverlap)?;
     audio_behavior_table.set(
         "LoopSection",
