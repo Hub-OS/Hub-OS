@@ -197,6 +197,8 @@ impl Living {
 
         for hit_props in &mut hit_prop_list {
             // filter statuses through defense rules
+            let original_damage = hit_props.damage;
+
             Defense::filter_statuses(game_io, resources, simulation, hit_props, &defense_rules);
 
             let entities = &mut simulation.entities;
@@ -258,9 +260,9 @@ impl Living {
             }
 
             // update total damage
-            total_damage += modified_hit_damage - hit_props.damage;
+            total_damage += modified_hit_damage - original_damage;
 
-            if modified_hit_damage == 0 && hit_props.damage != 0 {
+            if modified_hit_damage == 0 && original_damage != 0 {
                 // no hit flags can apply if damage is changed to 0 by aux props
                 continue;
             }
