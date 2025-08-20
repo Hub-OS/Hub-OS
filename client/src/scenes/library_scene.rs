@@ -253,7 +253,11 @@ impl Dock {
         let cards: Vec<_> = available_packages
             .iter()
             .flat_map(|id| globals.card_packages.package(PackageNamespace::Local, id))
-            .filter(|package| !package.hidden && package.card_properties.card_class == card_class)
+            .filter(|package| {
+                package.card_properties.card_class == card_class
+                    && package.limit > 0
+                    && !package.hidden
+            })
             .map(|package| Card {
                 package_id: package.package_info.id.clone(),
                 code: String::new(),
