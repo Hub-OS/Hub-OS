@@ -84,8 +84,8 @@ impl Animator {
         for (i, line) in data.lines().enumerate() {
             let line = line.trim();
 
-            if line.starts_with('#') {
-                // comment
+            if line.starts_with(['#', '!']) {
+                // comment or metadata
                 continue;
             }
 
@@ -95,7 +95,7 @@ impl Animator {
             let word = &line[..len];
 
             match word {
-                "animation" => {
+                "anim" | "animation" => {
                     if let Some((state_name, mut frame_list)) = work_state.take() {
                         if let Some(frame) = frame.take() {
                             frame_list.add_frame(frame);
@@ -104,12 +104,16 @@ impl Animator {
                         self.states.insert(Uncased::from(state_name), frame_list);
                     }
 
-                    let attributes = Animator::read_attributes(word, line, i);
+                    let state_name = if word == "anim" {
+                        line[word.len()..].trim().to_ascii_uppercase()
+                    } else {
+                        let attributes = Animator::read_attributes(word, line, i);
 
-                    let state_name = attributes
-                        .get("state")
-                        .map(|value| value.to_ascii_uppercase())
-                        .unwrap_or_else(|| "".into());
+                        attributes
+                            .get("state")
+                            .map(|value| value.to_ascii_uppercase())
+                            .unwrap_or_default()
+                    };
 
                     let frame_list = FrameList::default();
 
@@ -124,9 +128,7 @@ impl Animator {
                         let attributes = Animator::read_attributes(word, line, i);
 
                         frame = Some(AnimationFrame {
-                            duration: Animator::parse_duration_or_default(
-                                attributes.get("duration").cloned(),
-                            ),
+                            duration: Animator::parse_duration_or_default(&attributes),
                             valid: true,
                             ..AnimationFrame::default()
                         });
@@ -142,9 +144,7 @@ impl Animator {
 
                         let attributes = Animator::read_attributes(word, line, i);
 
-                        let duration = Animator::parse_duration_or_default(
-                            attributes.get("duration").cloned(),
-                        );
+                        let duration = Animator::parse_duration_or_default(&attributes);
 
                         let x: f32 = parse_or_default(attributes.get("x").cloned());
                         let y: f32 = parse_or_default(attributes.get("y").cloned());
@@ -234,8 +234,8 @@ impl Animator {
         }
     }
 
-    fn parse_duration_or_default(duration_str: Option<&str>) -> FrameTime {
-        let duration_str = match duration_str {
+    fn parse_duration_or_default(attributes: &IndexMap<&str, &str>) -> FrameTime {
+        let duration_str = match attributes.get("duration").or(attributes.get("dur")) {
             Some(duration_str) => duration_str.trim(),
             _ => return 0,
         };
