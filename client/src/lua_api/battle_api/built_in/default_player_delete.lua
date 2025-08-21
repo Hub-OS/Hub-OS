@@ -23,7 +23,7 @@ shine_animation:on_complete(function()
   shine:delete()
 end)
 
-entity:field():spawn(shine, entity:current_tile())
+Field.spawn(shine, entity:current_tile())
 
 -- create component
 local START_DELAY = 25
