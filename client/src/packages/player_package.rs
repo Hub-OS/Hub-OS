@@ -14,6 +14,7 @@ struct PlayerMeta {
     health: i32,
     element: String,
     description: String,
+    long_description: String,
     preview_texture_path: String,
     overworld_animation_path: String,
     overworld_texture_path: String,
@@ -31,6 +32,7 @@ pub struct PlayerPackage {
     pub health: i32,
     pub element: Element,
     pub description: Arc<str>,
+    pub long_description: Arc<str>,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
     pub overworld_paths: TextureAnimPathPair<'static>,
@@ -49,7 +51,11 @@ impl Package for PlayerPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             long_name: self.long_name.clone(),
-            description: self.description.clone(),
+            description: if !self.long_description.is_empty() {
+                self.long_description.clone()
+            } else {
+                self.description.clone()
+            },
             creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Player {
@@ -92,6 +98,7 @@ impl Package for PlayerPackage {
         package.health = meta.health;
         package.element = Element::from(meta.element);
         package.description = meta.description.into();
+        package.long_description = meta.long_description.into();
         package.preview_texture_path = base_path.clone() + &meta.preview_texture_path;
         package.overworld_paths.texture = (base_path.clone() + &meta.overworld_texture_path).into();
         package.overworld_paths.animation =

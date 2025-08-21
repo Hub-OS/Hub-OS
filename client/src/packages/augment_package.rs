@@ -13,6 +13,7 @@ struct AugmentMeta {
     name: String,
     long_name: String,
     description: String,
+    long_description: String,
     priority: Option<bool>,
     health_boost: i32,
     attack_boost: i8,
@@ -40,6 +41,7 @@ pub struct AugmentPackage {
     pub name: Arc<str>,
     pub long_name: Arc<str>,
     pub description: Arc<str>,
+    pub long_description: Arc<str>,
     pub health_boost: i32,
     pub attack_boost: i8,
     pub rapid_boost: i8,
@@ -90,7 +92,11 @@ impl Package for AugmentPackage {
             id: self.package_info.id.clone(),
             name: self.name.clone(),
             long_name: self.long_name.clone(),
-            description: self.description.clone(),
+            description: if !self.long_description.is_empty() {
+                self.long_description.clone()
+            } else {
+                self.description.clone()
+            },
             creator: Default::default(),
             hash: self.package_info.hash,
             preview_data: PackagePreviewData::Augment {
@@ -131,6 +137,7 @@ impl Package for AugmentPackage {
             meta.long_name.into()
         };
         package.description = meta.description.into();
+        package.long_description = meta.long_description.into();
         package.health_boost = meta.health_boost;
         package.attack_boost = meta.attack_boost;
         package.rapid_boost = meta.rapid_boost;
