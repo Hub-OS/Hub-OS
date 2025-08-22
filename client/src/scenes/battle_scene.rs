@@ -477,7 +477,7 @@ impl BattleScene {
 
         let target_buffer_len = self
             .local_index
-            .map(|index| self.player_controllers[index].buffer.delay())
+            .map(|index| self.player_controllers[index].buffer.len())
             .unwrap_or_else(|| {
                 let globals = game_io.resource::<Globals>().unwrap();
                 globals.config.input_delay as usize
