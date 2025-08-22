@@ -62,7 +62,7 @@ pub struct BattleScene {
     draw_player_indices: bool,
     already_snapped: bool,
     is_playing_back_recording: bool,
-    playback_2x: bool,
+    playback_multiplier: u8,
     playback_flow: Option<RecordedSimulationFlow>,
     exiting: bool,
     next_scene: NextScene,
@@ -191,7 +191,7 @@ impl BattleScene {
             draw_player_indices: false,
             already_snapped: false,
             is_playing_back_recording,
-            playback_2x: false,
+            playback_multiplier: 1,
             playback_flow,
             exiting: false,
             next_scene: NextScene::None,
@@ -976,11 +976,23 @@ impl Scene for BattleScene {
 
         self.core_update(game_io);
 
-        // 2x speed while holding confirm in a replay
+        // multiply speed while holding confirm in a replay
         let input_util = InputUtil::new(game_io);
-        self.playback_2x = self.is_playing_back_recording && input_util.is_down(Input::Confirm);
+        if self.is_playing_back_recording && input_util.is_down(Input::Confirm) {
+            if input_util.was_just_pressed(Input::Left) {
+                self.playback_multiplier -= 1;
+            }
 
-        if self.playback_2x {
+            if input_util.was_just_pressed(Input::Right) {
+                self.playback_multiplier += 1;
+            }
+
+            self.playback_multiplier = self.playback_multiplier.clamp(2, 10);
+        } else {
+            self.playback_multiplier = 1;
+        }
+
+        for _ in 1..self.playback_multiplier {
             self.core_update(game_io);
         }
 
@@ -1016,14 +1028,14 @@ impl Scene for BattleScene {
         self.resources
             .draw_fade_sprite(&mut sprite_queue, fade_color);
 
-        if self.playback_2x {
-            let text = "2X";
+        if self.playback_multiplier > 1 {
+            let text = format!("{}X", self.playback_multiplier);
             let mut text_style = TextStyle::new_monospace(game_io, FontName::Code);
             text_style.shadow_color = TEXT_DARK_SHADOW_COLOR;
 
-            let metrics = text_style.measure(text);
+            let metrics = text_style.measure(&text);
             text_style.bounds += RESOLUTION_F - metrics.size - 1.0;
-            text_style.draw(game_io, &mut sprite_queue, text);
+            text_style.draw(game_io, &mut sprite_queue, &text);
         }
 
         if self.is_playing_back_recording {
