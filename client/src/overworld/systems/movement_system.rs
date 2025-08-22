@@ -37,14 +37,18 @@ pub fn system_movement(area: &mut OverworldArea) {
         };
 
         let original_position = *position;
-        let final_position = find_final_position(
-            actor_entity,
-            entities,
-            map,
-            original_position,
-            movement_direction,
-            speed,
-        );
+        let final_position = if speed == 0.0 {
+            original_position
+        } else {
+            find_final_position(
+                actor_entity,
+                entities,
+                map,
+                original_position,
+                movement_direction,
+                speed,
+            )
+        };
 
         updates.push((actor_entity, final_position, movement_direction));
     }
@@ -141,21 +145,19 @@ fn try_move_to(
     offset: Vec2,
     speed: f32,
 ) -> (bool, Vec3) {
-    let max_elevation_diff = (speed + 1.0) / map.tile_size().y as f32 * 2.0;
-
+    let max_elevation_diff = map.world_to_tile_space(offset.abs() + 1.0).max_element();
     let mut target_pos = current_pos + offset.extend(0.0);
 
     let curr_layer = current_pos.z as i32;
     let curr_tile_pos = map.world_to_tile_space(current_pos.xy());
     let target_tile_pos = map.world_to_tile_space(target_pos.xy());
-    let tile_speed = curr_tile_pos.distance(target_tile_pos);
 
     let layer_relative_elevation = current_pos.z.fract();
     let new_layer = get_target_layer(
         map,
         curr_layer,
         layer_relative_elevation,
-        tile_speed,
+        max_elevation_diff,
         curr_tile_pos,
         target_tile_pos,
     );
@@ -177,22 +179,26 @@ fn try_move_to(
 
         // detect collision at the edge of the collisionRadius
 
-        let edge_tile_space = map.world_to_tile_space(current_pos.xy() + ray);
+        let edge_tile_pos = map.world_to_tile_space(current_pos.xy() + ray);
+
+        let ray_max_elevation_diff = map
+            .world_to_tile_space((ray - offset).abs() + 1.0)
+            .max_element();
 
         let edge_layer = get_target_layer(
             map,
-            curr_layer,
-            layer_relative_elevation,
-            tile_speed,
-            curr_tile_pos,
-            edge_tile_space,
+            new_layer,
+            target_pos.z.fract(),
+            ray_max_elevation_diff,
+            target_tile_pos,
+            edge_tile_pos,
         );
 
-        let edge_elevation = map.elevation_at(edge_tile_space, edge_layer);
+        let edge_elevation = map.elevation_at(edge_tile_pos, edge_layer);
 
-        let can_move_to_edge = map.can_move_to(edge_tile_space.extend(edge_elevation));
+        let can_move_to_edge = map.can_move_to(edge_tile_pos.extend(edge_elevation));
 
-        if !can_move_to_edge || (target_pos.z - edge_elevation).abs() > max_elevation_diff {
+        if !can_move_to_edge || (target_pos.z - edge_elevation).abs() > ray_max_elevation_diff {
             return (false, current_pos);
         }
     }
@@ -262,7 +268,7 @@ fn get_target_layer(
     map: &Map,
     current_layer: i32,
     layer_relative_elevation: f32,
-    tile_speed: f32,
+    max_elevation_diff: f32,
     current_tile_pos: Vec2,
     target_tile_pos: Vec2,
 ) -> i32 {
@@ -275,11 +281,12 @@ fn get_target_layer(
     }
 
     // test going up
-    let elevation_padding = 1.0 / map.tile_size().y as f32 * 2.0;
-    let max_elevation_diff = tile_speed + elevation_padding;
     let can_climb = layer_relative_elevation >= 1.0 - max_elevation_diff;
 
-    if can_climb && !same_tile(current_tile_pos, target_tile_pos) {
+    if can_climb
+        && !same_tile(current_tile_pos, target_tile_pos)
+        && map.can_move_to(target_tile_pos.extend(current_layer as f32 + 1.0))
+    {
         // if we're at the top of stairs, target the layer above
         return current_layer + 1;
     }

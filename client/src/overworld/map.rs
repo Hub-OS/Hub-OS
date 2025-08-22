@@ -293,8 +293,14 @@ impl Map {
             return false;
         }
 
+        let tile_ivec2 = tile_point.xy().floor().as_ivec2();
+
+        if self.ignore_tile_above(tile_ivec2, layer_index - 1) {
+            return false;
+        }
+
         let layer = self.tile_layer(layer_index as usize).unwrap();
-        let tile = layer.tile_at_f32(tile_point.xy());
+        let tile = layer.tile_at(tile_ivec2);
 
         if tile.gid == 0 {
             return false;
@@ -386,11 +392,17 @@ impl Map {
             _ => 0.0,
         };
 
-        layer_elevation + layer_relative_elevation
+        let elevation = layer_elevation + layer_relative_elevation;
+
+        if elevation == layer_elevation + 1.0 {
+            return elevation.next_down();
+        }
+
+        elevation
     }
 
     pub fn ignore_tile_above_f32(&self, tile_position: Vec2, layer_index: i32) -> bool {
-        self.ignore_tile_above(tile_position.as_ivec2(), layer_index)
+        self.ignore_tile_above(tile_position.floor().as_ivec2(), layer_index)
     }
 
     pub fn ignore_tile_above(&self, tile_position: IVec2, layer_index: i32) -> bool {
@@ -398,15 +410,13 @@ impl Map {
             return false;
         }
 
-        let layer = match self.tile_layers.get(layer_index as usize) {
-            Some(layer) => layer,
-            _ => return false,
+        let Some(layer) = self.tile_layers.get(layer_index as usize) else {
+            return false;
         };
 
         let tile = layer.tile_at(tile_position);
-        let tile_meta = match self.tile_meta_for_tile(tile.gid) {
-            Some(tile_meta) => tile_meta,
-            _ => return false,
+        let Some(tile_meta) = self.tile_meta_for_tile(tile.gid) else {
+            return false;
         };
 
         tile_meta.tile_class == TileClass::Stairs
