@@ -181,11 +181,11 @@ impl PackageUpdatesScene {
             self.textbox.close();
         }
 
-        self.list.update(game_io, &self.ui_input_tracker);
-
         if self.textbox.is_open() || game_io.is_in_transition() {
             return;
         }
+
+        self.list.update(game_io, &self.ui_input_tracker);
 
         self.buttons.update(game_io, &self.ui_input_tracker);
 
