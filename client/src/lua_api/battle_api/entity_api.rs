@@ -470,10 +470,13 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "remove_node", None);
     lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "hide", None);
     lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "reveal", None);
     lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "color", None);
     lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_color", None);
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "layer", None);
+    lua_api.add_convenience_method(ENTITY_TABLE, "sprite", "set_layer", None);
 
     lua_api.add_dynamic_function(ENTITY_TABLE, "set_shadow", |api_ctx, lua, params| {
         let (table, texture_path, animation_path): (rollback_mlua::Table, String, Option<String>) =
