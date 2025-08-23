@@ -19,7 +19,11 @@ impl PlayerInputBuffer {
 
     pub fn set_delay(&mut self, mut delay: usize) {
         delay = delay.min(MAX_INPUT_DELAY as usize);
-        self.buffer.push_back((NetplayBufferItem::default(), delay));
+
+        if delay > 0 {
+            self.buffer.push_back((NetplayBufferItem::default(), delay));
+        }
+
         self.len = delay;
         self.delay = delay;
     }
