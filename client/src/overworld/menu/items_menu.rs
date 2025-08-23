@@ -77,9 +77,16 @@ impl ItemsMenu {
 
         // player
         let mut player_sprite = assets.new_sprite(game_io, &player_package.overworld_paths.texture);
-        let player_animator = Animator::load_new(assets, &player_package.overworld_paths.animation)
-            .with_state("IDLE_D")
-            .with_loop_mode(AnimatorLoopMode::Loop);
+        let mut player_animator =
+            Animator::load_new(assets, &player_package.overworld_paths.animation);
+
+        if player_animator.has_state("IDLE_D") {
+            player_animator.set_state("IDLE_D");
+        } else {
+            player_animator.set_state("IDLE_DR");
+        }
+
+        player_animator.set_loop_mode(AnimatorLoopMode::Loop);
 
         player_sprite.set_position(player_position);
         player_animator.apply(&mut player_sprite);
