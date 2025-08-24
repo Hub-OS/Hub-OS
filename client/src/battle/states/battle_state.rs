@@ -249,11 +249,6 @@ impl BattleState {
             return;
         }
 
-        if simulation.time_freeze_tracker.time_is_frozen() {
-            // allow the time freeze action to finish
-            return;
-        }
-
         if let Some(t) = &mut self.end_timer {
             *t -= 1;
 
@@ -261,6 +256,11 @@ impl BattleState {
                 simulation.progress = BattleProgress::Exiting;
             }
 
+            return;
+        }
+
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            // allow the time freeze action to finish
             return;
         }
 
