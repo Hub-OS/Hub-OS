@@ -312,11 +312,11 @@ impl StatusDirector {
                 break;
             }
 
-            status_flags >>= i;
-
             if status_flags & 1 == 1 {
                 self.remove_status(1 << i);
             }
+
+            status_flags >>= 1;
 
             i += 1;
         }
