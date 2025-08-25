@@ -753,7 +753,7 @@ impl Player {
             return;
         };
 
-        Action::queue_action(simulation, entity_id, index);
+        Action::queue_action(game_io, resources, simulation, entity_id, index);
     }
 
     pub fn handle_movement_input(

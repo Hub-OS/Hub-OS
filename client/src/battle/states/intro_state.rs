@@ -92,7 +92,7 @@ impl State for IntroState {
                     simulation.play_music(game_io, resources, &init_music.buffer, init_music.loops);
                 }
 
-                self.queue_next_intro(simulation);
+                self.queue_next_intro(game_io, resources, simulation);
             }
             std::cmp::Ordering::Greater => {}
         }
@@ -108,7 +108,7 @@ impl State for IntroState {
 
             if pop {
                 self.tracked_intros.pop();
-                self.queue_next_intro(simulation);
+                self.queue_next_intro(game_io, resources, simulation);
             }
         }
 
@@ -134,13 +134,18 @@ impl IntroState {
         }
     }
 
-    fn queue_next_intro(&self, simulation: &mut BattleSimulation) {
+    fn queue_next_intro(
+        &self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
         let Some(&(entity_id, index)) = self.tracked_intros.last() else {
             return;
         };
 
         ActionQueue::ensure(&mut simulation.entities, entity_id);
-        Action::queue_action(simulation, entity_id, index);
+        Action::queue_action(game_io, resources, simulation, entity_id, index);
     }
 
     fn resolve_intro_action(

@@ -289,6 +289,8 @@ impl Action {
     }
 
     pub fn queue_action(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         entity_id: EntityId,
         index: GenerationalIndex,
@@ -301,12 +303,26 @@ impl Action {
         let Ok((character, action_queue)) =
             entities.query_one_mut::<(Option<&mut Character>, &mut ActionQueue)>(id)
         else {
+            log::error!("Failed to create action queue");
+            Action::delete_multi(game_io, resources, simulation, false, [index]);
             return;
         };
 
         let Some(action) = simulation.actions.get(index) else {
             return;
         };
+
+        if action.entity != entity_id {
+            log::error!("Action bound to another entity");
+            Action::delete_multi(game_io, resources, simulation, false, [index]);
+            return;
+        }
+
+        if action.processed || action.deleted || action_queue.pending.iter().any(|&i| i == index) {
+            log::error!("Action already queued");
+            Action::delete_multi(game_io, resources, simulation, false, [index]);
+            return;
+        }
 
         let time_is_frozen = simulation.time_freeze_tracker.time_is_frozen();
 

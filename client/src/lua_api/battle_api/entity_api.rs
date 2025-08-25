@@ -639,6 +639,8 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let simulation = &mut api_ctx.simulation;
+        let game_io = api_ctx.game_io;
+        let resources = api_ctx.resources;
 
         let id: EntityId = table.raw_get("#id")?;
         let action_index: GenerationalIndex = action_table.raw_get("#id")?;
@@ -655,7 +657,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             return Err(action_entity_mismatch());
         }
 
-        Action::queue_action(simulation, id, action_index);
+        Action::queue_action(game_io, resources, simulation, id, action_index);
 
         lua.pack_multi(())
     });

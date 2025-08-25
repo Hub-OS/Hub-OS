@@ -44,7 +44,12 @@ impl TimeFreezeEntityBackup {
 
         // swap action index
         let old_action_queue = std::mem::take(action_queue);
-        action_queue.active = Some(action_index);
+
+        action_queue.active = if simulation.actions.contains_key(action_index) {
+            Some(action_index)
+        } else {
+            None
+        };
 
         // back up animator
         let animator = &mut simulation.animators[entity.animator_index];
