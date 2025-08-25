@@ -165,10 +165,24 @@ impl Shop {
     }
 
     pub fn remove_item(&mut self, id: &str) {
-        if let Some(index) = self.items.iter().position(|s| s.id() == id) {
-            self.items.remove(index);
-            self.scroll_tracker.set_total_items(self.items.len());
+        let Some(index) = self.items.iter().position(|s| s.id() == id) else {
+            return;
+        };
+
+        self.items.remove(index);
+
+        let selected_index = self.scroll_tracker.selected_index();
+        let top_index = self.scroll_tracker.top_index();
+
+        if index < top_index {
+            self.scroll_tracker.set_top_index(top_index - 1);
         }
+
+        if index < selected_index {
+            self.scroll_tracker.set_selected_index(selected_index - 1);
+        }
+
+        self.scroll_tracker.set_total_items(self.items.len());
     }
 
     pub fn close(&mut self) {
