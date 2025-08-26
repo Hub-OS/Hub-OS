@@ -976,7 +976,10 @@ impl Net {
         packet_orchestrator.send(
             client.socket_address,
             Reliability::ReliableOrdered,
-            ServerPacket::ShopInventory { items },
+            ServerPacket::AppendShopItems {
+                reference: None,
+                items,
+            },
         );
     }
 
@@ -990,6 +993,44 @@ impl Net {
             client.socket_address,
             Reliability::ReliableOrdered,
             ServerPacket::ShopMessage { message },
+        );
+    }
+
+    pub fn prepend_shop_items(
+        &mut self,
+        player_id: ActorId,
+        reference: Option<&str>,
+        items: Vec<ShopItem>,
+    ) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
+            return;
+        };
+
+        let reference = reference.map(|reference_str| reference_str.to_string());
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::PrependShopItems { reference, items },
+        );
+    }
+
+    pub fn append_shop_items(
+        &mut self,
+        player_id: ActorId,
+        reference: Option<&str>,
+        items: Vec<ShopItem>,
+    ) {
+        let Some(client) = self.clients.get_mut(&player_id) else {
+            return;
+        };
+
+        let reference = reference.map(|reference_str| reference_str.to_string());
+
+        self.packet_orchestrator.borrow_mut().send(
+            client.socket_address,
+            Reliability::ReliableOrdered,
+            ServerPacket::AppendShopItems { reference, items },
         );
     }
 

@@ -154,6 +154,46 @@ impl Shop {
         self.items = items;
     }
 
+    pub fn prepend_items(
+        &mut self,
+        before_id: Option<&str>,
+        items: impl IntoIterator<Item = ShopItem>,
+    ) {
+        let at_index = before_id
+            .and_then(|id| self.items.iter().position(|item| item.id() == id))
+            .unwrap_or_default();
+
+        self.items.splice(at_index..at_index, items);
+
+        // update selection
+        let increase = self.items.len() - self.scroll_tracker.total_items();
+        self.scroll_tracker.handle_insert(at_index, increase);
+    }
+
+    pub fn append_items(
+        &mut self,
+        after_id: Option<&str>,
+        items: impl IntoIterator<Item = ShopItem>,
+    ) {
+        let reference_index =
+            after_id.and_then(|id| self.items.iter().position(|item| item.id() == id));
+
+        if let Some(index) = reference_index {
+            let after_index = index + 1;
+
+            // insert items
+            self.items.splice(after_index..after_index, items);
+
+            // update selection
+            let increase = self.items.len() - self.scroll_tracker.total_items();
+            self.scroll_tracker.handle_insert(after_index, increase);
+        } else {
+            // add new items to the end
+            self.items.extend(items);
+            self.scroll_tracker.set_total_items(self.items.len());
+        }
+    }
+
     pub fn update_item(&mut self, item: ShopItem) {
         let item_id = item.id();
 

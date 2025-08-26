@@ -938,9 +938,14 @@ impl OverworldOnlineScene {
                 shop.set_shop_avatar(game_io, &self.assets, textbox_options.mug.as_ref());
                 shop.set_money(self.area.player_data.money);
             }
-            ServerPacket::ShopInventory { items } => {
+            ServerPacket::PrependShopItems { reference, items } => {
                 if let Some(shop) = self.menu_manager.shop_mut() {
-                    shop.set_items(items);
+                    shop.prepend_items(reference.as_deref(), items);
+                }
+            }
+            ServerPacket::AppendShopItems { reference, items } => {
+                if let Some(shop) = self.menu_manager.shop_mut() {
+                    shop.append_items(reference.as_deref(), items);
                 }
             }
             ServerPacket::ShopMessage { message } => {

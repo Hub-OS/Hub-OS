@@ -250,6 +250,47 @@ impl ScrollTracker {
         self.selected_index = (self.top_index + relative_index).min(self.total_items.max(1) - 1);
     }
 
+    /// Shifts selected index, remembered index, top index, and updates total items.
+    pub fn handle_insert(&mut self, index: usize, len: usize) {
+        if index <= self.selected_index {
+            self.selected_index += len;
+        }
+
+        if let Some(remembered_index) = &mut self.remembered_index {
+            if index <= *remembered_index {
+                *remembered_index += len;
+            }
+        }
+
+        if index <= self.top_index {
+            self.top_index += len;
+        }
+
+        self.total_items += len;
+
+        // keep selected index in view
+        self.set_selected_index(self.selected_index);
+    }
+
+    /// Shifts selected index, remembered index, top index, and updates total items.
+    pub fn handle_remove(&mut self, index: usize) {
+        if index < self.selected_index {
+            self.selected_index -= 1;
+        }
+
+        if let Some(remembered_index) = &mut self.remembered_index {
+            if index < *remembered_index {
+                *remembered_index -= 1;
+            }
+        }
+
+        if index < self.top_index {
+            self.top_index -= 1;
+        }
+
+        self.total_items -= 1;
+    }
+
     pub fn remembered_index(&self) -> Option<usize> {
         self.remembered_index
     }

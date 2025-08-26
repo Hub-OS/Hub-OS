@@ -200,7 +200,12 @@ pub enum ServerPacket {
     OpenShop {
         textbox_options: TextboxOptions,
     },
-    ShopInventory {
+    PrependShopItems {
+        reference: Option<String>,
+        items: Vec<ShopItem>,
+    },
+    AppendShopItems {
+        reference: Option<String>,
         items: Vec<ShopItem>,
     },
     ShopMessage {

@@ -307,6 +307,48 @@ pub fn inject_dynamic(lua_api: &mut LuaApi) {
         lua.pack_multi(())
     });
 
+    lua_api.add_dynamic_function("Net", "prepend_shop_items", |api_ctx, lua, params| {
+        let (player_id, item_tables, reference): (ActorId, Vec<mlua::Table>, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        let mut items = Vec::with_capacity(item_tables.len());
+
+        for item_table in item_tables {
+            items.push(table_to_shop_item(item_table)?);
+        }
+
+        net.prepend_shop_items(
+            player_id,
+            optional_lua_string_to_optional_str(&reference)?,
+            items,
+        );
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function("Net", "append_shop_items", |api_ctx, lua, params| {
+        let (player_id, item_tables, reference): (ActorId, Vec<mlua::Table>, Option<mlua::String>) =
+            lua.unpack_multi(params)?;
+
+        let mut net = api_ctx.net_ref.borrow_mut();
+
+        let mut items = Vec::with_capacity(item_tables.len());
+
+        for item_table in item_tables {
+            items.push(table_to_shop_item(item_table)?);
+        }
+
+        net.append_shop_items(
+            player_id,
+            optional_lua_string_to_optional_str(&reference)?,
+            items,
+        );
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function("Net", "update_shop_item", |api_ctx, lua, params| {
         let (player_id, table): (ActorId, mlua::Table) = lua.unpack_multi(params)?;
 

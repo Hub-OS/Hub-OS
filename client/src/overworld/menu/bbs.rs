@@ -108,27 +108,11 @@ impl Bbs {
             .and_then(|id| self.posts.iter().position(|post| post.id == id))
             .unwrap_or_default();
 
-        let old_size = self.posts.len();
         self.posts.splice(at_index..at_index, posts);
 
         // update selection
-        let new_size = self.posts.len();
-        let selected_index = self.scroll_tracker.selected_index();
-        let top_index = self.scroll_tracker.top_index();
-
-        let increase = new_size - old_size;
-
-        if top_index >= at_index {
-            let updated_index = top_index + increase;
-            self.scroll_tracker.set_top_index(updated_index);
-        }
-
-        if selected_index >= at_index {
-            let updated_index = selected_index + increase;
-            self.scroll_tracker.set_selected_index(updated_index);
-        }
-
-        self.scroll_tracker.set_total_items(self.posts.len());
+        let increase = self.posts.len() - self.scroll_tracker.total_items();
+        self.scroll_tracker.handle_insert(at_index, increase);
     }
 
     pub fn append_posts(
@@ -136,8 +120,6 @@ impl Bbs {
         after_id: Option<&str>,
         posts: impl IntoIterator<Item = BbsPost>,
     ) {
-        let old_size = self.posts.len();
-
         let reference_index =
             after_id.and_then(|id| self.posts.iter().position(|post| post.id == id));
 
@@ -145,53 +127,28 @@ impl Bbs {
             let after_index = index + 1;
 
             if after_index == self.posts.len() {
-                // added new posts at the end
+                // added new posts to the end
                 self.reached_end = false;
             }
 
+            // insert posts
             self.posts.splice(after_index..after_index, posts);
 
             // update selection
-            let new_size = self.posts.len();
-            let selected_index = self.scroll_tracker.selected_index();
-            let top_index = self.scroll_tracker.top_index();
-
-            let increase = new_size - old_size;
-
-            if top_index > after_index {
-                let updated_index = top_index + increase;
-                self.scroll_tracker.set_top_index(updated_index);
-            }
-
-            if selected_index > after_index {
-                let updated_index = selected_index + increase;
-                self.scroll_tracker.set_selected_index(updated_index);
-            }
+            let increase = self.posts.len() - self.scroll_tracker.total_items();
+            self.scroll_tracker.handle_insert(after_index, increase);
         } else {
-            // add new posts at the end
+            // add new posts to the end
             self.posts.extend(posts);
             self.reached_end = false;
+            self.scroll_tracker.set_total_items(self.posts.len());
         }
-
-        self.scroll_tracker.set_total_items(self.posts.len());
     }
 
     pub fn remove_post(&mut self, id: &str) {
         if let Some(index) = self.posts.iter().position(|post| post.id == id) {
             self.posts.remove(index);
-
-            let selected_index = self.scroll_tracker.selected_index();
-            let top_index = self.scroll_tracker.top_index();
-
-            if index < top_index {
-                self.scroll_tracker.set_top_index(top_index - 1);
-            }
-
-            if index < selected_index {
-                self.scroll_tracker.set_selected_index(selected_index - 1);
-            }
-
-            self.scroll_tracker.set_total_items(self.posts.len());
+            self.scroll_tracker.handle_remove(index);
         }
     }
 }
