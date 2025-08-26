@@ -198,8 +198,8 @@ impl BattleScene {
         }
     }
 
-    fn is_solo(&self) -> bool {
-        self.player_controllers.len() == 1
+    fn is_offline(&self) -> bool {
+        self.player_controllers.len() == 1 && self.comms.server.is_none()
     }
 
     fn update_textbox(&mut self, game_io: &mut GameIO) {
@@ -895,7 +895,7 @@ impl BattleScene {
 
             can_simulate &= !should_slow_down;
 
-            self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_solo())
+            self.frame_by_frame_debug = (self.is_playing_back_recording || self.is_offline())
                 && (input_util.was_just_pressed(Input::RewindFrame)
                     || input_util.was_just_pressed(Input::AdvanceFrame));
         }
