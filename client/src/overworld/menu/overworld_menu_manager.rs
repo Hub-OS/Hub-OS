@@ -609,7 +609,7 @@ impl OverworldMenuManager {
         self.textbox.draw(game_io, sprite_queue);
 
         // draw widget attachments
-        area.draw_screen_attachments::<WidgetAttachment>(sprite_queue);
+        area.draw_screen_attachments::<WidgetAttachment>(game_io, sprite_queue);
 
         if !self.is_blocking_view() {
             // draw navigation menu

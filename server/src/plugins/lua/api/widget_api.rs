@@ -418,7 +418,7 @@ fn parse_texture_animation_pair(table: mlua::Table) -> mlua::Result<TextureAnimP
     })
 }
 
-fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> {
+pub fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> {
     fn get_option<'lua, T: mlua::FromLua<'lua>>(
         table: &mlua::Table<'lua>,
         key: &str,
@@ -437,7 +437,7 @@ fn parse_text_style(table: mlua::Table) -> mlua::Result<TextStyleBlueprint> {
         color: get_option::<mlua::Table>(&table, "color")?
             .map(parse_rgb_table)
             .transpose()?
-            .unwrap_or_default(),
+            .unwrap_or((255, 255, 255)),
         shadow_color: get_option::<mlua::Table>(&table, "shadow_color")?
             .map(parse_rgba_table)
             .transpose()?

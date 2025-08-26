@@ -1918,12 +1918,20 @@ impl Net {
                 continue;
             }
 
-            asset_paths.push(sprite.definition.animation_path.clone());
-            asset_paths.push(sprite.definition.texture_path.clone());
+            if let SpriteDefinition::Sprite {
+                animation_path,
+                texture_path,
+                ..
+            } = &sprite.definition
+            {
+                asset_paths.push(animation_path.clone());
+                asset_paths.push(texture_path.clone());
+            }
 
             packets.push(ServerPacket::SpriteCreated {
                 sprite_id,
-                sprite_definition: sprite.definition.clone(),
+                definition: sprite.definition.clone(),
+                attachment: sprite.attachment.clone(),
             });
         }
 
@@ -1992,11 +2000,13 @@ impl Net {
 
         for sprite_id in client.actor.child_sprites.clone() {
             let sprite = self.sprites.get(sprite_id).unwrap();
-            let sprite_definition = sprite.definition.clone();
+            let definition = sprite.definition.clone();
+            let attachment = sprite.attachment.clone();
 
             self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteCreated {
                 sprite_id,
-                sprite_definition,
+                definition,
+                attachment,
             });
         }
     }
@@ -2402,10 +2412,7 @@ impl Net {
                 &self.asset_manager,
                 &mut self.clients,
                 area.connected_players(),
-                [
-                    &sprite.definition.texture_path,
-                    &sprite.definition.animation_path,
-                ],
+                sprite.definition.dependencies(),
             );
 
             let Some(scope) = Self::resolve_sprite_packet_scope(&self.clients, &self.bots, sprite)
@@ -2420,7 +2427,8 @@ impl Net {
                 Reliability::ReliableOrdered,
                 ServerPacket::SpriteCreated {
                     sprite_id: *sprite_id,
-                    sprite_definition: sprite.definition.clone(),
+                    definition: sprite.definition.clone(),
+                    attachment: sprite.attachment.clone(),
                 },
             );
         }
@@ -2429,7 +2437,8 @@ impl Net {
     pub fn create_sprite(
         &mut self,
         client_id_restriction: Option<ActorId>,
-        sprite_definition: SpriteDefinition,
+        attachment: SpriteAttachment,
+        definition: SpriteDefinition,
     ) -> SpriteId {
         let id = self.sprites.insert_with_key(|id| {
             let public_sprites_index = if client_id_restriction.is_none() {
@@ -2439,13 +2448,14 @@ impl Net {
             };
 
             Sprite {
-                definition: sprite_definition.clone(),
+                attachment: attachment.clone(),
+                definition: definition.clone(),
                 public_sprite_id: public_sprites_index,
                 client_id_restriction,
             }
         });
 
-        if let SpriteParent::Actor(actor_id) = &sprite_definition.parent {
+        if let SpriteParent::Actor(actor_id) = &attachment.parent {
             if let Some(client) = self.clients.get_mut(actor_id) {
                 client.actor.child_sprites.push(id);
             } else if let Some(bot) = self.bots.get_mut(actor_id) {
@@ -2471,16 +2481,14 @@ impl Net {
             &self.areas,
             &mut self.clients,
             &scope,
-            [
-                &sprite_definition.animation_path,
-                &sprite_definition.texture_path,
-            ],
+            definition.dependencies(),
         );
 
         // send creation packet
         let packet = ServerPacket::SpriteCreated {
             sprite_id: id,
-            sprite_definition,
+            definition,
+            attachment,
         };
 
         broadcast_to_scope(
@@ -2495,10 +2503,21 @@ impl Net {
     }
 
     pub fn animate_sprite(&mut self, sprite_id: SpriteId, state: String, loop_animation: bool) {
-        if let Some(sprite) = self.sprites.get_mut(sprite_id) {
-            sprite.definition.animation_state.clone_from(&state);
-            sprite.definition.animation_loops = loop_animation;
-        }
+        let Some(sprite) = self.sprites.get_mut(sprite_id) else {
+            return;
+        };
+
+        let SpriteDefinition::Sprite {
+            animation_state,
+            animation_loops,
+            ..
+        } = &mut sprite.definition
+        else {
+            return;
+        };
+
+        animation_state.clone_from(&state);
+        *animation_loops = loop_animation;
 
         self.message_sprite_aware(sprite_id, |sprite_id| ServerPacket::SpriteAnimate {
             sprite_id,
@@ -2520,7 +2539,7 @@ impl Net {
             self.public_sprites.remove(id);
         }
 
-        if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+        if let SpriteParent::Actor(actor_id) = &sprite.attachment.parent {
             let mut empty = Vec::new();
 
             let id_list = if let Some(client) = self.clients.get_mut(actor_id) {
@@ -2568,7 +2587,7 @@ impl Net {
         sprite: &'a Sprite,
     ) -> Option<PacketScope<'a>> {
         if let Some(client_id) = &sprite.client_id_restriction {
-            if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+            if let SpriteParent::Actor(actor_id) = &sprite.attachment.parent {
                 // test if the parent actor has spawned
                 let actor_spawned = client_id == actor_id
                     || clients
@@ -2587,7 +2606,7 @@ impl Net {
 
         // assume public as there's no client_id_restriction
 
-        if let SpriteParent::Actor(actor_id) = &sprite.definition.parent {
+        if let SpriteParent::Actor(actor_id) = &sprite.attachment.parent {
             // send just to clients in the same area as the actor
             let area_id = if let Some(client) = clients.get(actor_id) {
                 if !client.ready {

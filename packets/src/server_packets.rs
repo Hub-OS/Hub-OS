@@ -308,7 +308,8 @@ pub enum ServerPacket {
     },
     SpriteCreated {
         sprite_id: SpriteId,
-        sprite_definition: SpriteDefinition,
+        attachment: SpriteAttachment,
+        definition: SpriteDefinition,
     },
     SpriteAnimate {
         sprite_id: SpriteId,

@@ -1,5 +1,6 @@
 use super::components::*;
 use super::*;
+use crate::render::ui::Text;
 use crate::render::*;
 use framework::prelude::*;
 use hecs::Entity;
@@ -733,25 +734,31 @@ impl Map {
         });
     }
 
-    /// Generates layers of mixed actor and tile object sprites.
-    /// Actors must have a WorldPositon and Sprite for inclusion.
-    pub fn generate_sprite_layers(&self, entities: &hecs::World) -> Vec<OverworldSpriteLayer> {
+    /// Generates layers of mixed entity and tile object sprites.
+    /// Entities must have a WorldPositon and Sprite or Text for inclusion.
+    pub fn generate_sprite_layers(&self, worlds: &[&hecs::World]) -> Vec<OverworldSpriteLayer> {
         let mut sprite_layers: Vec<OverworldSpriteLayer> = Vec::new();
         sprite_layers.resize_with(self.tile_layers.len() + 1, Default::default);
 
-        let mut queries = [entities, &self.object_entities]
-            .map(|entities| entities.query::<hecs::Without<(&mut Sprite, &Vec3), &Excluded>>());
+        type Query<'a> =
+            hecs::Without<(&'a Vec3, Option<&'a Sprite>, Option<&'a Text>), &'a Excluded>;
 
-        for query in &mut queries {
-            for (_, (sprite, &position)) in query.iter() {
+        let queries = worlds.iter().map(|entities| entities.query::<Query>());
+
+        for (world_index, mut query) in queries.enumerate() {
+            for (entity_id, (&position, sprite, text)) in query.iter() {
+                if sprite.is_none() && text.is_none() {
+                    continue;
+                }
+
                 // sprites with a fractional z are bumped up to the next layer
-                // this pushes actors on stairs to the next layer
+                // this pushes entities on stairs to the next layer
                 let mut layer_index = position.z.ceil() as usize + 1;
                 layer_index = layer_index.min(sprite_layers.len() - 1);
 
                 let sprite_layer = &mut sprite_layers[layer_index];
 
-                sprite_layer.add_sprite(self, sprite.clone(), position);
+                sprite_layer.add_sprite(self, world_index, entity_id, position);
             }
         }
 

@@ -1,5 +1,6 @@
 use crate::overworld::components::*;
 use crate::overworld::OverworldArea;
+use crate::render::ui::Text;
 
 pub fn system_position(area: &mut OverworldArea) {
     let entities = &mut area.entities;
@@ -31,9 +32,20 @@ pub fn system_position(area: &mut OverworldArea) {
         sprite.set_position(position);
     }
 
+    for (_, (world_position, text)) in entities.query_mut::<(&Vec3, &mut Text)>() {
+        let bounds = &mut text.style.bounds;
+        let position = map.world_3d_to_screen(*world_position).floor();
+        bounds.set_position(position);
+    }
+
     // move attachment sprites to anchor points
-    for (_, (sprite, attachment)) in entities
-        .query::<(&mut Sprite, &ActorAttachment)>()
+    for (_, (sprite, text, attachment, offset)) in entities
+        .query::<(
+            Option<&mut Sprite>,
+            Option<&mut Text>,
+            &ActorAttachment,
+            &Vec2,
+        )>()
         .into_iter()
     {
         let Some(point_name) = &attachment.point else {
@@ -45,18 +57,27 @@ pub fn system_position(area: &mut OverworldArea) {
             continue;
         };
 
-        if let Some(animator) = query.get() {
-            let point_offset = resolve_actor_point(animator, point_name);
-            sprite.set_position(sprite.position() + point_offset);
+        let Some(animator) = query.get() else {
+            continue;
+        };
+
+        let total_offset = resolve_actor_point(animator, point_name) + *offset;
+
+        if let Some(sprite) = sprite {
+            sprite.set_position(sprite.position() + total_offset);
+        }
+
+        if let Some(text) = text {
+            let bounds = &mut text.style.bounds;
+            bounds.set_position(bounds.position() + total_offset);
         }
     }
 
-    // apply attachment offsets
-    for (_, (sprite, &offset, _)) in entities
-        .query::<(&mut Sprite, &Vec2, &ActorAttachment)>()
-        .into_iter()
+    // fix text alignment
+    for (_, (text, alignment, _)) in
+        entities.query_mut::<(&mut Text, &AttachmentAlignment, &ActorAttachment)>()
     {
-        sprite.set_position(sprite.position() + offset);
+        alignment.align_text(text);
     }
 }
 

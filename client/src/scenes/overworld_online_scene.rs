@@ -8,7 +8,7 @@ use crate::overworld::components::*;
 use crate::overworld::*;
 use crate::packages::{PackageId, PackageNamespace};
 use crate::render::ui::{
-    PackageListing, TextStyle, TextboxDoorstop, TextboxDoorstopKey, TextboxInterface,
+    PackageListing, Text, TextStyle, TextboxDoorstop, TextboxDoorstopKey, TextboxInterface,
     TextboxMessage, TextboxMessageAuto, TextboxPrompt, TextboxQuestion, TextboxQuiz,
 };
 use crate::render::{AnimatorLoopMode, SpriteColorQueue};
@@ -19,8 +19,8 @@ use bimap::BiMap;
 use framework::prelude::*;
 use packets::address_parsing::uri_encode;
 use packets::structures::{
-    ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, PackageCategory, SpriteId,
-    SpriteParent, TextboxOptions,
+    ActorId, ActorProperty, BattleId, BattleStatistics, FileHash, PackageCategory,
+    SpriteDefinition, SpriteId, TextboxOptions,
 };
 use packets::{
     address_parsing, ClientAssetType, ClientPacket, Reliability, ServerPacket, SERVER_TICK_RATE,
@@ -1436,60 +1436,52 @@ impl OverworldOnlineScene {
             }
             ServerPacket::SpriteCreated {
                 sprite_id,
-                sprite_definition,
+                attachment,
+                definition,
             } => {
                 self.sprite_id_map.entry(sprite_id).or_insert_with(|| {
                     let entities = &mut self.area.entities;
                     let assets = &self.assets;
 
-                    // setup sprite
-                    let mut sprite = assets.new_sprite(game_io, &sprite_definition.texture_path);
+                    let entity = match definition {
+                        SpriteDefinition::Sprite {
+                            texture_path,
+                            animation_path,
+                            animation_state,
+                            animation_loops,
+                        } => {
+                            // set up sprite
+                            let mut sprite = assets.new_sprite(game_io, &texture_path);
 
-                    // setup offset
-                    let offset = Vec2::new(sprite_definition.x, sprite_definition.y);
-                    sprite.set_position(offset);
+                            // set up animator
+                            let mut animator = Animator::load_new(assets, &animation_path);
+                            animator.set_state(&animation_state);
 
-                    // setup layer
-                    let layer = AttachmentLayer(if sprite_definition.layer <= 0 {
-                        // shift 0 and lower by -1, forces layer 0 to always display in front of the parent
-                        sprite_definition.layer - 1
-                    } else {
-                        sprite_definition.layer
-                    });
+                            if animation_loops {
+                                animator.set_loop_mode(AnimatorLoopMode::Loop);
+                            } else if let Some(frame_list) = animator.frame_list(&animation_state) {
+                                // end the state
+                                animator.sync_time(frame_list.duration());
+                            }
 
-                    // setup animator
-                    let mut animator =
-                        Animator::load_new(assets, &sprite_definition.animation_path);
-                    animator.set_state(&sprite_definition.animation_state);
+                            entities.spawn((animator, sprite))
+                        }
+                        SpriteDefinition::Text {
+                            text: value,
+                            text_style,
+                            h_align,
+                            v_align,
+                        } => {
+                            let text_style = TextStyle::from_blueprint(game_io, assets, text_style);
+                            let mut text = Text::from(text_style);
+                            text.text = value;
+                            let alignment = AttachmentAlignment(h_align, v_align);
 
-                    if sprite_definition.animation_loops {
-                        animator.set_loop_mode(AnimatorLoopMode::Loop);
-                    } else if let Some(frame_list) =
-                        animator.frame_list(&sprite_definition.animation_state)
-                    {
-                        // end the state
-                        animator.sync_time(frame_list.duration());
-                    }
-
-                    let entity = entities.spawn((animator, sprite, offset, layer));
-
-                    // set attachment
-                    let _ = match sprite_definition.parent {
-                        SpriteParent::Widget => entities.insert_one(entity, WidgetAttachment),
-                        SpriteParent::Hud => entities.insert_one(entity, HudAttachment),
-                        SpriteParent::Actor(actor_id) => {
-                            let attachment = ActorAttachment {
-                                actor_entity: self
-                                    .actor_id_map
-                                    .get_by_left(&actor_id)
-                                    .cloned()
-                                    .unwrap_or(hecs::Entity::DANGLING),
-                                point: sprite_definition.parent_point,
-                            };
-
-                            entities.insert(entity, (attachment, Vec3::ZERO))
+                            entities.spawn((text, alignment))
                         }
                     };
+
+                    insert_attachment_bundle(entities, &self.actor_id_map, attachment, entity);
 
                     entity
                 });
@@ -1969,7 +1961,7 @@ impl Scene for OverworldOnlineScene {
 
             // draw hud attachments
             self.area
-                .draw_screen_attachments::<HudAttachment>(&mut sprite_queue);
+                .draw_screen_attachments::<HudAttachment>(game_io, &mut sprite_queue);
         }
 
         // draw menu, also draws widget attachments

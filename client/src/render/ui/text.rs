@@ -8,6 +8,15 @@ pub struct Text {
     pub style: TextStyle,
 }
 
+impl From<TextStyle> for Text {
+    fn from(style: TextStyle) -> Self {
+        Self {
+            text: String::new(),
+            style,
+        }
+    }
+}
+
 impl Text {
     pub fn new(game_io: &GameIO, font: FontName) -> Self {
         Self {
@@ -30,11 +39,6 @@ impl Text {
 
     pub fn with_string(mut self, text: String) -> Self {
         self.text = text;
-        self
-    }
-
-    pub fn with_text_style(mut self, style: TextStyle) -> Self {
-        self.style = style;
         self
     }
 

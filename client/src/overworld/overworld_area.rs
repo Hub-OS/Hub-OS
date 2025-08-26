@@ -1,6 +1,6 @@
 use crate::overworld::components::*;
 use crate::overworld::*;
-use crate::render::ui::{FontName, TextStyle};
+use crate::render::ui::{FontName, Text, TextStyle};
 use crate::render::*;
 use crate::resources::*;
 use framework::prelude::*;
@@ -250,18 +250,30 @@ impl OverworldArea {
             .set_offset(screen_position * foreground_parallax);
     }
 
-    pub fn draw_screen_attachments<C: hecs::Component>(&self, sprite_queue: &mut SpriteColorQueue) {
-        let mut query = self.entities.query::<(&Sprite, &AttachmentLayer, &C)>();
+    pub fn draw_screen_attachments<C: hecs::Component>(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+    ) {
+        let mut query = self
+            .entities
+            .query::<(Option<&Sprite>, Option<&Text>, &AttachmentLayer, &C)>();
         let mut render_order = Vec::new();
 
-        for (_, (sprite, &AttachmentLayer(layer), _)) in query.into_iter() {
-            render_order.push((sprite, layer));
+        for (_, (sprite, text, &AttachmentLayer(layer), _)) in query.into_iter() {
+            render_order.push((sprite, text, layer));
         }
 
-        render_order.sort_by_key(|(_, layer)| -*layer);
+        render_order.sort_by_key(|(_, _, layer)| -*layer);
 
-        for (sprite, _) in render_order {
-            sprite_queue.draw_sprite(sprite);
+        for (sprite, text, _) in render_order {
+            if let Some(sprite) = sprite {
+                sprite_queue.draw_sprite(sprite);
+            }
+
+            if let Some(text) = text {
+                text.draw(game_io, sprite_queue);
+            }
         }
     }
 
@@ -324,7 +336,8 @@ impl OverworldArea {
         self.background.draw(game_io, render_pass);
 
         // draw world
-        let sprite_layers = self.map.generate_sprite_layers(&self.entities);
+        let worlds = &[&self.entities, self.map.object_entities()];
+        let sprite_layers = self.map.generate_sprite_layers(worlds);
 
         for (i, mut sprite_layer) in sprite_layers.into_iter().enumerate() {
             let layer_is_visible = self.map.tile_layer(i).is_some_and(|layer| layer.visible());
@@ -334,7 +347,7 @@ impl OverworldArea {
                     .draw_tile_layer(game_io, sprite_queue, &self.world_camera, i);
             }
 
-            sprite_layer.draw(&self.map, sprite_queue);
+            sprite_layer.draw(game_io, &self.map, worlds, sprite_queue);
         }
 
         player_interaction_debug_render(game_io, self, sprite_queue);

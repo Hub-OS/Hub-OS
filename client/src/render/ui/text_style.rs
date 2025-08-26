@@ -81,7 +81,11 @@ impl TextStyle {
 
         Self {
             glyph_atlas,
-            font: FontName::from_name(&blueprint.font_name),
+            font: if blueprint.font_name.is_empty() {
+                FontName::Thin
+            } else {
+                FontName::from_name(&blueprint.font_name)
+            },
             min_glyph_width: blueprint.min_glyph_width,
             letter_spacing: blueprint.letter_spacing,
             line_spacing: blueprint.line_spacing,
