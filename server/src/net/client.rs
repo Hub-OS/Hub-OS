@@ -126,39 +126,90 @@ pub(super) fn find_longest_frame_length(animation_data: &str) -> u32 {
             let width: i32 = value_of(line, "w").unwrap_or_default();
             let width = width.wrapping_abs() as u32;
 
-            if width > longest_length {
-                return width;
-            }
-
             let height: i32 = value_of(line, "h").unwrap_or_default();
             let height = height.wrapping_abs() as u32;
 
-            if height > longest_length {
-                return height;
-            }
-
-            longest_length
+            longest_length.max(width.max(height))
         })
 }
 
-fn value_of<T>(line: &str, key: &str) -> Option<T>
+fn value_of<T>(mut line: &str, key: &str) -> Option<T>
 where
     T: std::str::FromStr,
 {
-    let key_index = line.find(key)?;
+    loop {
+        line = line.trim_start();
 
-    // based on ValueOf in bnAnimation.cpp
-    // skips the = and ", but technically could be any two values here
-    let value_start_index = key_index + key.len() + 2;
+        let Some(key_end) = line.find([' ', '=']) else {
+            break;
+        };
 
-    if value_start_index >= line.len() {
-        return None;
+        let found_key = &line[..key_end];
+
+        // strip key and whitespace
+        line = line[key_end..].trim_start();
+
+        if !line.starts_with('=') {
+            continue;
+        }
+
+        // strip '=' and whitespace
+        line = line[1..].trim_start();
+
+        let value = if line.starts_with('"') {
+            // strip quote
+            line = &line[1..];
+
+            // find the closing quote
+            let Some(value_end) = line.find('"') else {
+                // invalid line, exit early
+                break;
+            };
+
+            let value = &line[..value_end];
+
+            // strip value and end quote
+            line = &line[value_end + 1..];
+
+            value
+        } else {
+            // read until whitespace or the end of line
+            let value_end = line.find(' ').unwrap_or(line.len());
+            let value = &line[..value_end];
+
+            // strip value
+            line = &line[value_end..];
+
+            value
+        };
+
+        if found_key == key {
+            return value.parse().ok();
+        }
     }
 
-    let value_slice = &line[value_start_index..];
+    None
+}
 
-    let value_end_index = value_slice.find('"')?;
-    let value_slice = &value_slice[..value_end_index];
+#[cfg(test)]
+mod test {
+    use super::*;
 
-    value_slice.parse().ok()
+    #[test]
+    fn animation_parsing() {
+        const SAMPLE_A: &str = "animation\nframe x=100 w=\"80\" h=50\nframe x=100 w=\"80\" h=120";
+        const SAMPLE_B: &str = "animation\nframe x=100 w = \"150\" h=50\nframe x=100 w=\"80\" h=90";
+
+        assert_eq!(find_longest_frame_length(SAMPLE_A), 120);
+        assert_eq!(find_longest_frame_length(SAMPLE_B), 150);
+
+        // ensure no panics from invalid data
+        find_longest_frame_length("");
+        find_longest_frame_length(" ");
+        find_longest_frame_length("fr");
+        find_longest_frame_length("frame");
+        find_longest_frame_length("frame w=");
+        find_longest_frame_length("frame w=\"");
+        find_longest_frame_length("frame w= h=30");
+    }
 }
