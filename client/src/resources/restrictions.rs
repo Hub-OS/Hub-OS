@@ -1,4 +1,5 @@
 use super::{DeckRestrictions, Globals};
+use crate::packages::PackageInfo;
 use crate::{packages::PackageNamespace, saves::Card};
 use framework::prelude::GameIO;
 use packets::structures::{BlockColor, FileHash, InstalledBlock, PackageCategory, PackageId};
@@ -7,8 +8,9 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Default)]
 pub struct Restrictions {
-    package_whitelist: HashSet<FileHash>,
-    package_blacklist: HashSet<FileHash>,
+    hash_whitelist: HashSet<FileHash>,
+    id_whitelist: HashSet<PackageId>,
+    id_blacklist: HashSet<PackageId>,
     base_deck_restrictions: DeckRestrictions,
     owned_cards: HashMap<Card, usize>,
     owned_blocks: HashMap<(Cow<'static, PackageId>, BlockColor), usize>,
@@ -51,23 +53,41 @@ impl Restrictions {
             })
         };
 
-        // packages.whitelist
-        self.package_whitelist = packages_table
+        let package_id_mapper = |mut value: toml::Value| {
+            value.as_array_mut().map(|array| {
+                let values = std::mem::take(array);
+
+                values
+                    .into_iter()
+                    .flat_map(|value| value.as_str().map(PackageId::from))
+                    .collect::<HashSet<PackageId>>()
+            })
+        };
+
+        // packages.hash_whitelist
+        self.hash_whitelist = packages_table
             .as_mut()
-            .and_then(|packages_table| packages_table.remove("whitelist"))
+            .and_then(|packages_table| packages_table.remove("hash_whitelist"))
             .and_then(file_hashset_mapper)
             .unwrap_or_default();
 
-        // packages.blacklist
-        self.package_blacklist = packages_table
-            .and_then(|mut packages_table| packages_table.remove("blacklist"))
-            .and_then(file_hashset_mapper)
+        // packages.id_whitelist
+        self.id_whitelist = packages_table
+            .as_mut()
+            .and_then(|packages_table| packages_table.remove("id_whitelist"))
+            .and_then(package_id_mapper)
+            .unwrap_or_default();
+
+        // packages.id_blacklist
+        self.id_blacklist = packages_table
+            .and_then(|mut packages_table| packages_table.remove("id_blacklist"))
+            .and_then(package_id_mapper)
             .unwrap_or_default();
     }
 
-    fn is_hash_allowed(&self, hash: &FileHash) -> bool {
-        (self.package_whitelist.is_empty() || self.package_whitelist.contains(hash))
-            && (self.package_blacklist.is_empty() || !self.package_blacklist.contains(hash))
+    fn is_package_allowed(&self, info: &PackageInfo) -> bool {
+        (self.id_whitelist.is_empty() || self.id_whitelist.contains(&info.id))
+            && (self.id_blacklist.is_empty() || !self.id_blacklist.contains(&info.id))
     }
 
     pub fn base_deck_restrictions(&self) -> DeckRestrictions {
@@ -180,7 +200,7 @@ impl Restrictions {
             packages_hit.insert(&info.id);
             packages_expected.extend(info.requirements.iter().map(|(_, id)| id));
 
-            if !self.is_hash_allowed(&info.hash) {
+            if !self.is_package_allowed(info) {
                 return false;
             }
         }
