@@ -48,20 +48,18 @@ pub fn system_position(area: &mut OverworldArea) {
         )>()
         .into_iter()
     {
-        let Some(point_name) = &attachment.point else {
-            continue;
-        };
+        let mut total_offset = *offset;
 
-        let Ok(mut query) = entities.query_one::<&Animator>(attachment.actor_entity) else {
-            log::error!("A sprite attachment exists without parent actor");
-            continue;
-        };
+        if let Some(point_name) = &attachment.point {
+            let Ok(mut query) = entities.query_one::<&Animator>(attachment.actor_entity) else {
+                log::error!("A sprite attachment exists without parent actor");
+                continue;
+            };
 
-        let Some(animator) = query.get() else {
-            continue;
-        };
-
-        let total_offset = resolve_actor_point(animator, point_name) + *offset;
+            if let Some(animator) = query.get() {
+                total_offset += resolve_actor_point(animator, point_name);
+            }
+        }
 
         if let Some(sprite) = sprite {
             sprite.set_position(sprite.position() + total_offset);
