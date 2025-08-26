@@ -1,21 +1,19 @@
-# @frame_rate 60
-
-imagePath="/home/konst/Documents/Projects/Real-PET/real_pet/client/resources/scenes/overworld/shop/ui.png"
 
 animation state="LIST"
-frame duration="0f" x="0" y="0" w="167" h="95" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0f" x="0" y="0" w="167" h="95" originx="0" originy="0"
 point label="LIST_LEFT" x="16" y="10"
-point label="LIST_RIGHT" x="151" y="10"
+point label="LIST_RIGHT" x="159" y="10"
 point label="CURSOR" x="16" y="16"
 
 animation state="MONEY"
-frame duration="0f" x="1" y="96" w="70" h="33" originx="-169" originy="-2" flipx="0" flipy="0"
-point label="AMOUNT_RIGHT" x="62" y="16"
+frame duration="0f" x="1" y="96" w="70" h="33" originx="-169" originy="-2"
+point label="CURRENCY_LABEL" x="35" y="6"
+point label="AMOUNT_RIGHT" x="64" y="16"
 
 animation state="ARROW_UP"
-frame duration="20f" x="72" y="96" w="8" h="6" originx="-80" originy="-5" flipx="0" flipy="0"
-frame duration="12f" x="81" y="96" w="8" h="6" originx="-80" originy="-5" flipx="0" flipy="0"
+frame duration="20f" x="72" y="96" w="8" h="6" originx="-80" originy="-5"
+frame duration="12f" x="81" y="96" w="8" h="6" originx="-80" originy="-5"
 
 animation state="ARROW_DOWN"
-frame duration="20f" x="72" y="103" w="8" h="6" originx="-80" originy="-86" flipx="0" flipy="0"
-frame duration="12f" x="81" y="103" w="8" h="6" originx="-80" originy="-86" flipx="0" flipy="0"
+frame duration="20f" x="72" y="103" w="8" h="6" originx="-80" originy="-86"
+frame duration="12f" x="81" y="103" w="8" h="6" originx="-80" originy="-86"

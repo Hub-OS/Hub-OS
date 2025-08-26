@@ -31,11 +31,13 @@ pub struct Shop {
     recycled_sprite: Sprite,
     list_left: Vec2,
     list_right: Vec2,
+    currency_center: Vec2,
     money_amount_right: Vec2,
     idle_cursor: bool,
     scroll_tracker: ScrollTracker,
     ui_input_tracker: UiInputTracker,
     items: Vec<ShopItem>,
+    currency_text: String,
     money_text: String,
     base_textbox: Textbox,
     doorstop_key: Option<TextboxDoorstopKey>,
@@ -81,6 +83,7 @@ impl Shop {
 
         animator.set_state("MONEY");
         animator.apply(&mut list_sprite);
+        let currency_center = animator.point_or_zero("CURRENCY_LABEL") - animator.origin();
         let money_amount_right = animator.point_or_zero("AMOUNT_RIGHT") - animator.origin();
 
         // recycled sprite
@@ -103,11 +106,13 @@ impl Shop {
             recycled_sprite,
             list_left,
             list_right,
+            currency_center,
             money_amount_right,
             idle_cursor: false,
             scroll_tracker,
             ui_input_tracker: UiInputTracker::new(),
             items: Vec::new(),
+            currency_text: globals.translate("currency"),
             money_text: String::from("0"),
             base_textbox: Textbox::new_overworld(game_io)
                 .with_transition_animation_enabled(false)
@@ -406,10 +411,21 @@ impl Menu for Shop {
         }
 
         // draw money
+        text_style.shadow_color = Color::TRANSPARENT;
+
         let money_offset = Vec2::new(-text_style.measure(&self.money_text).size.x, 0.0);
         let money_position = self.money_amount_right + money_offset;
         text_style.bounds.set_position(money_position);
         text_style.draw(game_io, sprite_queue, &self.money_text);
+
+        // draw currency
+        text_style.font = FontName::Code;
+        text_style.color = Color::WHITE;
+
+        let mut currency_position = self.currency_center;
+        currency_position.x -= text_style.measure(&self.currency_text).size.x * 0.5;
+        text_style.bounds.set_position(currency_position);
+        text_style.draw(game_io, sprite_queue, &self.currency_text);
 
         // draw textbox
         self.base_textbox.draw(game_io, sprite_queue);
