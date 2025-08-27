@@ -1,0 +1,16 @@
+credits-heading = Hub OS Credits
+credits-music = Music
+credits-sound-design = Sound Design
+credits-programmers = Programmers
+credits-graphics = Graphics
+credits-user-experience = User Experience
+credits-technical-design = Technical Design
+credits-localization = Localization
+credits-testers = Testers
+credits-core-team = Core Team
+credits-special-thanks = Special Thanks
+credits-roots = Our Roots
+credits-inpsiration = For Inspiring Us
+credits-mega-man-battle-network = Mega Man Battle Network
+credits-reach-out-1 = If we missed you,
+credits-reach-out-2 = reach out!
