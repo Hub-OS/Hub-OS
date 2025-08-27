@@ -1,7 +1,7 @@
 use crate::bindable::SpriteColorMode;
 use crate::render::ui::{
     FontName, SceneTitle, ScrollTracker, ScrollableFrame, SubSceneFrame, TextStyle, Textbox,
-    TextboxDoorstop, UiInputTracker,
+    TextboxDoorstop, TextboxDoorstopKey, UiInputTracker,
 };
 use crate::render::{Animator, Background, Camera, SpriteColorQueue};
 use crate::resources::{Globals, Input, ResourcePaths, TEXT_DARK_SHADOW_COLOR};
@@ -25,6 +25,7 @@ pub struct KeyItemsScene {
     h_scroll_tracker: ScrollTracker,
     items_frame: ScrollableFrame,
     textbox: Textbox,
+    doorstop_key: Option<TextboxDoorstopKey>,
     next_scene: NextScene,
 }
 
@@ -94,7 +95,7 @@ impl KeyItemsScene {
             }),
         );
 
-        let (mut interface, _) = TextboxDoorstop::new();
+        let (mut interface, doorstop_key) = TextboxDoorstop::new();
 
         interface = interface.with_string(if let Some(item) = key_items.first() {
             item.description.clone()
@@ -118,6 +119,7 @@ impl KeyItemsScene {
             h_scroll_tracker,
             items_frame: scrollable_frame,
             textbox,
+            doorstop_key: Some(doorstop_key),
             next_scene: NextScene::None,
         }
     }
@@ -183,11 +185,11 @@ impl Scene for KeyItemsScene {
 
             // update textbox
             let item = &self.key_items[v_index * 2 + h_index];
-            let (mut interface, _) = TextboxDoorstop::new();
+            let (mut interface, doorstop_key) = TextboxDoorstop::new();
             interface = interface.with_str(&item.description);
+            self.doorstop_key = Some(doorstop_key);
 
             self.textbox.push_interface(interface);
-            self.textbox.advance_interface(game_io);
         }
 
         // update cursor column
