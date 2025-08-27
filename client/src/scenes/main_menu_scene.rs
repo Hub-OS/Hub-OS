@@ -195,6 +195,9 @@ impl Scene for MainMenuScene {
                 NavigationMenu::new(game_io, self.character_data.navigation_options());
         }
 
+        // update character in the textbox
+        self.textbox.use_navigation_avatar(game_io);
+
         // can't be on a server if the player is viewing the main menu
         let globals = game_io.resource_mut::<Globals>().unwrap();
         globals.connected_to_server = false;
