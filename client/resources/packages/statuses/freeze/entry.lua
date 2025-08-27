@@ -33,7 +33,7 @@ local function spawn_alert(parent)
   local movement_offset = parent:movement_offset()
   alert_artifact:set_offset(movement_offset.x, movement_offset.y - parent:height())
 
-  parent:field():spawn(alert_artifact, parent:current_tile())
+  Field.spawn(alert_artifact, parent:current_tile())
 end
 
 ---@param status Status
@@ -117,7 +117,7 @@ function status_init(status)
       status:set_remaining_time(150)
     end
 
-    if hit_props.element == Element.Break or hit_props.secondary_element == Element.Break then
+    if hit_props.element == Element.Break or hit_props.secondary_element == Element.Break or hit_props.flags & Hit.PierceGuard ~= 0 then
       hit_props.damage = hit_props.damage * 2
       status:set_remaining_time(0)
       spawn_alert(entity)
