@@ -210,11 +210,18 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
     });
 
     lua_api.add_dynamic_function(TILE_TABLE, "reserve_for_id", |api_ctx, lua, params| {
-        let (table, id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
+        let (table, entity_id): (rollback_mlua::Table, EntityId) = lua.unpack_multi(params)?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
-        tile.reserve_for(id);
+        let simulation = &mut api_ctx.simulation;
+
+        let entities = &mut simulation.entities;
+        let entity = entities.query_one_mut::<&mut Entity>(entity_id.into());
+
+        if entity.is_ok_and(|e| !e.deleted) {
+            let tile = tile_mut_from_table(&mut simulation.field, table)?;
+            tile.reserve_for(entity_id);
+        }
 
         lua.pack_multi(())
     });
@@ -226,8 +233,15 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         let entity_id: EntityId = entity_table.raw_get("#id")?;
 
         let mut api_ctx = api_ctx.borrow_mut();
-        let tile = tile_mut_from_table(&mut api_ctx.simulation.field, table)?;
-        tile.reserve_for(entity_id);
+        let simulation = &mut api_ctx.simulation;
+
+        let entities = &mut simulation.entities;
+        let entity = entities.query_one_mut::<&mut Entity>(entity_id.into());
+
+        if entity.is_ok_and(|e| !e.deleted) {
+            let tile = tile_mut_from_table(&mut simulation.field, table)?;
+            tile.reserve_for(entity_id);
+        }
 
         lua.pack_multi(())
     });

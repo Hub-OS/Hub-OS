@@ -248,6 +248,9 @@ impl Entity {
         simulation.pending_callbacks.push(delete_callback);
 
         simulation.call_pending_callbacks(game_io, resources);
+
+        // clear reservations
+        simulation.field.drop_entity(id);
     }
 
     pub fn mark_erased(

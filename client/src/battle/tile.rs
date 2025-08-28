@@ -218,7 +218,7 @@ impl Tile {
         entity: &Entity,
         action_queue: Option<&ActionQueue>,
     ) -> bool {
-        if !entity.auto_reserves_tiles {
+        if !entity.auto_reserves_tiles || entity.deleted {
             return false;
         }
 
