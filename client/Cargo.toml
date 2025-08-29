@@ -86,7 +86,6 @@ assets = "cache/android_assets"
 resources = "android_res"
 
 [package.metadata.android.sdk]
-target_sdk_version = 30
 min_sdk_version = 30
 max_sdk_version = 35
 
