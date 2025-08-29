@@ -85,7 +85,7 @@ impl RepoPackageUpdater {
                     }
                 }
 
-                let globals = game_io.resource::<Globals>().unwrap();
+                let globals = game_io.resource_mut::<Globals>().unwrap();
 
                 // test for required install
                 if let Some(category) = listing.preview_data.category() {
@@ -113,6 +113,8 @@ impl RepoPackageUpdater {
                         // uninstall old package
                         let base_path = globals.resolve_package_download_path(category, queued_id);
                         let _ = std::fs::remove_dir_all(base_path);
+
+                        globals.unload_package(category, PackageNamespace::Local, queued_id);
                     } else if requires_update && !already_updating {
                         // save package id for install pass
                         let install_id = existing_package
