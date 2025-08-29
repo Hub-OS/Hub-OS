@@ -51,16 +51,21 @@ jobs:
           rustup target add armv7-linux-androideabi aarch64-linux-android
           cargo install cargo-apk
 
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo $KEYSTORE_BASE64 | base64 --decode > client/release.keystore
+
       - name: Build APK
         run: cargo run --bin dist-android
 
-      - name: Push to itch.io
-        run: |
-          mkdir butler
-          cd butler
-          wget -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
-          unzip butler.zip
-          chmod +x ./butler
-          export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
-          ./butler push ../dist/hub_os.apk hub-os/hub-os:android --userversion 0.62.0
-          cd ..
+      # - name: Push to itch.io
+      #   run: |
+      #     mkdir butler
+      #     cd butler
+      #     wget -O butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+      #     unzip butler.zip
+      #     chmod +x ./butler
+      #     export BUTLER_API_KEY=${{ secrets.BUTLER_API_KEY }}
+      #     ./butler push ../dist/hub_os.apk hub-os/hub-os:android --userversion 0.62.0
+      #     cd ..

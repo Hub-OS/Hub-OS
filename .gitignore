@@ -19,3 +19,4 @@ crash.txt
 # private files
 _*
 .cargo
+release.keystore
