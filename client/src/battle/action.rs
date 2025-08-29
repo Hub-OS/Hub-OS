@@ -72,7 +72,7 @@ impl Action {
             step_index: 0,
             attachments: Vec::new(),
             lockout_type: ActionLockout::Animation,
-            allows_auto_reserve: false,
+            allows_auto_reserve: true,
             old_position: None,
             can_move_to_callback: None,
             update_callback: None,
