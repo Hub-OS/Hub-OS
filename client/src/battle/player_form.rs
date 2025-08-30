@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PlayerForm {
+    pub hidden: bool,
     pub activated: bool,
     pub deactivated: bool,
     pub close_on_select: bool,
@@ -25,6 +26,7 @@ pub struct PlayerForm {
 impl Default for PlayerForm {
     fn default() -> Self {
         Self {
+            hidden: false,
             activated: false,
             deactivated: false,
             close_on_select: true,

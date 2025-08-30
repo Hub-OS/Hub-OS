@@ -2068,7 +2068,7 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let index = player.forms.len();
 
             let form = PlayerForm {
-                activated: true,
+                hidden: true,
                 ..Default::default()
             };
 

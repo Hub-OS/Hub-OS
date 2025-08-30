@@ -374,7 +374,7 @@ impl Player {
         self.forms
             .iter()
             .enumerate()
-            .filter(|(_, form)| !form.activated)
+            .filter(|(_, form)| !form.activated && !form.hidden)
     }
 
     pub fn namespace(&self) -> PackageNamespace {
