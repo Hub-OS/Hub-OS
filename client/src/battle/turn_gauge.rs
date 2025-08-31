@@ -63,7 +63,7 @@ impl TurnGauge {
     }
 
     pub fn is_complete(&self) -> bool {
-        self.time >= self.max_time || self.completed_turn
+        self.enabled && (self.time >= self.max_time || self.completed_turn)
     }
 
     pub fn progress(&self) -> f32 {
