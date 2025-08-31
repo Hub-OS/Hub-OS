@@ -261,10 +261,14 @@ impl BattleSimulation {
     }
 
     pub fn handle_local_signals(&mut self, local_index: usize, resources: &SharedBattleResources) {
+        if self.is_resimulation {
+            return;
+        }
+
         let input = &mut self.inputs[local_index];
 
         // handle flee
-        if !self.is_resimulation && input.has_signal(NetplaySignal::AttemptingFlee) {
+        if input.has_signal(NetplaySignal::AttemptingFlee) {
             // todo: check for success using some method in battle_init, as long as the player is not a spectator
             resources
                 .event_sender
