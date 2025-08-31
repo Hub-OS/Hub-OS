@@ -1157,10 +1157,11 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         match lua.unpack(middle_param.clone()) {
             Ok(element) => {
                 secondary_element = element;
-                context = rest
-                    .pop_front()
-                    .map(|value| lua.unpack(value))
-                    .transpose()?;
+                context = if let Some(context_value) = rest.pop_front() {
+                    lua.unpack::<Option<AttackContext>>(context_value)?
+                } else {
+                    None
+                }
             }
             Err(_) => {
                 secondary_element = Element::None;
