@@ -108,15 +108,10 @@ function status_init(status)
     end
   end
 
-  -- defense rule to add Break weakness and refresh from Aqua attacks
+  -- defense rule to add Break weakness
   local defense_rule = DefenseRule.new(DefensePriority.Last, DefenseOrder.CollisionOnly)
 
   defense_rule.filter_func = function(hit_props)
-    if not TurnGauge.frozen() and hit_props.element == Element.Aqua or hit_props.secondary_element == Element.Aqua then
-      -- refresh when hit with an Aqua attack out of time freeze
-      status:set_remaining_time(150)
-    end
-
     if hit_props.element == Element.Break or hit_props.secondary_element == Element.Break or hit_props.flags & Hit.PierceGuard ~= 0 then
       hit_props.damage = hit_props.damage * 2
       status:set_remaining_time(0)
