@@ -13,7 +13,7 @@ use packets::{NetplayBufferItem, NetplayPacket, NetplayPacketData, NetplaySignal
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 
-const MAX_FALLBACK_SILENCE: Duration = Duration::from_secs(3);
+const MAX_SILENCE: Duration = Duration::from_secs(3);
 const HEARTBEAT_RATE: Duration = Duration::from_secs(1);
 
 pub struct NetplayProps {
@@ -63,6 +63,7 @@ impl ConnectionStage {
 }
 
 struct RemotePlayerConnection {
+    last_message: Instant,
     player_setup: PlayerSetup,
     spectating: bool,
     load_map: HashMap<FileHash, PackageCategory>,
@@ -159,6 +160,7 @@ impl NetplayInitScene {
             let _ = event_sender.send(event);
         };
 
+        let now = game_io.frame_start_instant();
         let remote_player_connections: Vec<_> = remote_players
             .into_iter()
             .map(
@@ -169,6 +171,7 @@ impl NetplayInitScene {
                      base_health,
                      emotion,
                  }| RemotePlayerConnection {
+                    last_message: now,
                     player_setup: PlayerSetup {
                         health,
                         base_health,
@@ -234,6 +237,8 @@ impl NetplayInitScene {
     fn handle_packets(&mut self, game_io: &mut GameIO) {
         let mut packets = Vec::new();
 
+        let mut player_disconnected = false;
+
         if let Some((_, receiver)) = &self.fallback_sender_receiver {
             if receiver.is_disconnected() {
                 self.stage = ConnectionStage::Failed;
@@ -248,15 +253,25 @@ impl NetplayInitScene {
                 packets.push(packet);
             }
 
-            if game_io.frame_start_instant() - self.last_fallback_instant > MAX_FALLBACK_SILENCE {
+            if game_io.frame_start_instant() - self.last_fallback_instant > MAX_SILENCE {
                 // remote must've disconnected in some edge case, such as leaving before connection even starts
                 log::error!("Relayed connection silent");
                 self.stage = ConnectionStage::Failed;
             }
-        } else {
-            let mut player_disconnected = false;
 
-            for connection in &self.player_connections {
+            // detect connection loss with other clients
+            for connection in &mut self.player_connections {
+                if connection.ready {
+                    continue;
+                }
+
+                if game_io.frame_start_instant() - connection.last_message > MAX_SILENCE {
+                    connection.player_setup.connected = false;
+                    player_disconnected = true;
+                }
+            }
+        } else {
+            for connection in &mut self.player_connections {
                 let Some(receiver) = &connection.receiver else {
                     continue;
                 };
@@ -266,37 +281,27 @@ impl NetplayInitScene {
                 }
 
                 if receiver.is_disconnected() {
+                    connection.player_setup.connected = false;
                     player_disconnected = true;
                 }
             }
+        }
 
-            if player_disconnected {
-                // identify spectators early if we need to
-                self.identify_spectators(game_io);
+        if player_disconnected {
+            // identify spectators early if we need to
+            self.identify_spectators(game_io);
 
-                // see if it's a spectator or fail
-                self.player_connections.retain(|connection| {
-                    let Some(receiver) = &connection.receiver else {
-                        // receiver was taken, we're done listening to this one already
-                        return true;
-                    };
+            // fail if the player that disconnected isn't spectating
+            for connection in &self.player_connections {
+                if connection.player_setup.connected || connection.spectating {
+                    continue;
+                }
 
-                    if !receiver.is_disconnected() {
-                        // didn't disconnect
-                        return true;
-                    }
+                // fail entirely if this player is involved in the battle
+                self.stage = ConnectionStage::Failed;
 
-                    if !connection.spectating {
-                        // fail entirely if this player is involved in the battle
-                        log::error!(
-                            "Lost connection with player {}",
-                            connection.player_setup.index
-                        );
-                        self.stage = ConnectionStage::Failed;
-                    }
-
-                    false
-                });
+                let index = connection.player_setup.index;
+                log::error!("Lost connection with player {index}");
             }
         }
 
@@ -319,6 +324,8 @@ impl NetplayInitScene {
         else {
             return;
         };
+
+        connection.last_message = game_io.frame_start_instant();
 
         if !matches!(
             packet.data,
@@ -624,7 +631,10 @@ impl NetplayInitScene {
     }
 
     fn check_peers(&mut self, f: impl FnMut(&RemotePlayerConnection) -> bool) -> bool {
-        self.player_connections.iter().all(f)
+        self.player_connections
+            .iter()
+            .filter(|c| c.player_setup.connected)
+            .all(f)
     }
 
     fn handle_stage(&mut self, game_io: &mut GameIO) {

@@ -142,7 +142,7 @@ impl BattleScene {
 
         for setup in player_setups {
             player_controllers.push(PlayerController {
-                connected: !is_playing_back_recording,
+                connected: !is_playing_back_recording && setup.connected,
                 buffer: setup.buffer.clone(),
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
             });
@@ -342,6 +342,13 @@ impl BattleScene {
             while let Ok(packet) = receiver.try_recv() {
                 if index.is_some() && Some(packet.index) != *index {
                     // ignore obvious impersonation cheat
+                    continue;
+                }
+
+                let controller = self.player_controllers.get(packet.index);
+
+                if controller.is_none_or(|c| !c.connected) {
+                    // ignore packets from players that have already disconnected
                     continue;
                 }
 

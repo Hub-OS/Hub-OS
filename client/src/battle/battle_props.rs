@@ -26,6 +26,7 @@ pub struct PlayerSetup {
     pub drives: Vec<InstalledSwitchDrive>,
     pub index: usize,
     pub local: bool,
+    pub connected: bool,
     pub buffer: PlayerInputBuffer,
 }
 
@@ -43,6 +44,7 @@ impl PlayerSetup {
             drives: Default::default(),
             index,
             local,
+            connected: true,
             buffer: PlayerInputBuffer::default(),
         }
     }
@@ -129,6 +131,7 @@ impl PlayerSetup {
             blocks,
             drives,
             local: true,
+            connected: true,
             buffer: PlayerInputBuffer::new_with_delay(globals.config.input_delay as _),
         }
     }
