@@ -20,7 +20,7 @@ impl HoldColorScene {
         camera.set_inverted_y(false);
 
         let mut model = FlatModel::new_square_model(game_io);
-        model.set_color(color);
+        model.set_color(color.to_linear());
 
         Self {
             start_instant: Instant::now(),

@@ -6,6 +6,7 @@ use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleEvent;
+use crate::transitions::transparent_flash_color;
 use framework::prelude::*;
 
 const FORM_FADE_DELAY: FrameTime = 10;
@@ -468,7 +469,8 @@ impl State for CardSelectState {
                 inverse_lerp!(FORM_FADE_DELAY, FORM_FADE_DELAY + FORM_FADE_TIME, elapsed);
             let a = crate::ease::quadratic(progress);
 
-            resources.ui_fade_color.set(Color::WHITE.multiply_alpha(a));
+            let color = transparent_flash_color(game_io).multiply_alpha(a);
+            resources.ui_fade_color.set(color);
         }
     }
 }

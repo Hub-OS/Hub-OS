@@ -52,7 +52,7 @@ impl SceneTransition for ColorFadeTransition {
         let render_pipeline = game_io.resource::<FlatPipeline>().unwrap();
         let mut flat_queue = RenderQueue::new(game_io, render_pipeline, [self.camera.as_binding()]);
 
-        let mut color = self.color;
+        let mut color = self.color.to_linear();
 
         // symmetric quart
         color.a = 1.0 - (progress * 2.0 - 1.0).powf(4.0);

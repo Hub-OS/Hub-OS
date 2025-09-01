@@ -5,7 +5,7 @@ use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::Card;
-use crate::transitions::HoldColorScene;
+use crate::transitions::{flash_color, HoldColorScene};
 use framework::prelude::*;
 use futures::Future;
 use packets::structures::{FileHash, PackageCategory, RemotePlayerInfo};
@@ -187,6 +187,9 @@ impl NetplayInitScene {
             )
             .collect();
 
+        let mut sprite = (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        sprite.set_color(flash_color(game_io));
+
         Self {
             stage: Default::default(),
             local_index,
@@ -199,7 +202,7 @@ impl NetplayInitScene {
             fallback_sender_receiver: None,
             event_receiver,
             ui_camera: Camera::new_ui(game_io),
-            sprite: (globals.assets).new_sprite(game_io, ResourcePaths::WHITE_PIXEL),
+            sprite,
             communication_future: Some(Box::pin(communication_future)),
             start_instant: Instant::now(),
             next_scene: NextScene::None,
@@ -720,8 +723,9 @@ impl NetplayInitScene {
                         .checked_sub(self.start_instant.elapsed())
                         .unwrap_or_default();
 
+                    let color = flash_color(game_io);
                     let scene =
-                        HoldColorScene::new(game_io, Color::WHITE, hold_duration, move |game_io| {
+                        HoldColorScene::new(game_io, color, hold_duration, move |game_io| {
                             let transition = crate::transitions::new_battle(game_io);
                             NextScene::new_swap(battle_scene).with_transition(transition)
                         });

@@ -9,12 +9,13 @@ pub struct PixelateTransition {
     elapsed_frames: FrameTime,
     start_instant: Option<Instant>,
     duration: Duration,
+    color: Color,
     target: Option<RenderTarget>,
     camera: Camera,
 }
 
 impl PixelateTransition {
-    pub fn new(game_io: &GameIO, duration: Duration) -> Self {
+    pub fn new(game_io: &GameIO, color: Color, duration: Duration) -> Self {
         let mut camera = Camera::new(game_io);
         camera.snap(RESOLUTION_F * 0.5);
 
@@ -22,12 +23,13 @@ impl PixelateTransition {
             elapsed_frames: 0,
             start_instant: None,
             duration,
+            color,
             target: None,
             camera,
         }
     }
 
-    fn calculate_white_intensity(&self, progress: f32) -> f32 {
+    fn calculate_color_intensity(&self, progress: f32) -> f32 {
         let linear_intensity = (progress * 2.0 - 1.0).abs();
 
         // transition during the first and last 15 frames, hold white in between
@@ -83,25 +85,25 @@ impl SceneTransition for PixelateTransition {
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Pixelate);
 
-        let white_intensity = self.calculate_white_intensity(progress);
+        let color_intensity = self.calculate_color_intensity(progress);
 
         // render pixelated scene
         let mut target_sprite = Sprite::new(game_io, target.texture().clone());
         target_sprite.set_color(Color {
-            a: 1.0 - white_intensity * MAX_PIXELATION,
+            a: 1.0 - color_intensity * MAX_PIXELATION,
             ..Color::WHITE
         });
         target_sprite.set_size(RESOLUTION_F);
         sprite_queue.draw_sprite(&target_sprite);
 
-        // flash white on top
-        let mut white_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
-        white_sprite.set_size(RESOLUTION_F);
-        white_sprite.set_color(Color {
-            a: white_intensity,
-            ..Color::WHITE
+        // flash color on top
+        let mut color_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
+        color_sprite.set_size(RESOLUTION_F);
+        color_sprite.set_color(Color {
+            a: color_intensity,
+            ..self.color
         });
-        sprite_queue.draw_sprite(&white_sprite);
+        sprite_queue.draw_sprite(&color_sprite);
 
         self.elapsed_frames += 1;
 

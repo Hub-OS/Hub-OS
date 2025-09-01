@@ -14,6 +14,7 @@ use push_transition::*;
 use framework::prelude::{Color, Duration, GameIO};
 use packets::structures::Direction;
 
+use crate::resources::Globals;
 use crate::transitions::pixelate_out_transition::PixelateTransition;
 
 pub const DEFAULT_PUSH_DURATION: Duration = Duration::from_millis(300);
@@ -43,18 +44,28 @@ pub fn new_sub_scene_pop(game_io: &GameIO) -> ColorFadeTransition {
     new_sub_scene(game_io)
 }
 
+pub fn flash_color(game_io: &GameIO) -> Color {
+    let globals = game_io.resource::<Globals>().unwrap();
+    let brightness = globals.config.flash_brightness as f32 / 100.0;
+    Color::new(brightness, brightness, brightness, 1.0)
+}
+
+pub fn transparent_flash_color(game_io: &GameIO) -> Color {
+    flash_color(game_io)
+}
+
 pub fn new_battle_init(game_io: &GameIO) -> PixelateTransition {
-    PixelateTransition::new(game_io, BATTLE_FADE_DURATION)
+    PixelateTransition::new(game_io, flash_color(game_io), BATTLE_FADE_DURATION)
 }
 
 pub fn new_battle(game_io: &GameIO) -> ColorFadeTransition {
-    ColorFadeTransition::new(game_io, Color::WHITE, BATTLE_FADE_DURATION)
+    ColorFadeTransition::new(game_io, flash_color(game_io), BATTLE_FADE_DURATION)
 }
 
 pub fn new_battle_pop(game_io: &GameIO) -> ColorFadeTransition {
-    ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION)
+    ColorFadeTransition::new(game_io, flash_color(game_io), DEFAULT_FADE_DURATION)
 }
 
 pub fn new_connect(game_io: &GameIO) -> ColorFadeTransition {
-    ColorFadeTransition::new(game_io, Color::WHITE, DEFAULT_FADE_DURATION)
+    ColorFadeTransition::new(game_io, flash_color(game_io), DEFAULT_FADE_DURATION)
 }

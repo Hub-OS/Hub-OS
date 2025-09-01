@@ -381,6 +381,15 @@ impl ConfigScene {
                     config.snap_resize
                 },
             )),
+            Box::new(UiConfigNumber::new_percentage(
+                game_io,
+                "config-flash-brightness-label",
+                config.borrow().flash_brightness,
+                config.clone(),
+                |_, mut config, value| {
+                    config.flash_brightness = value;
+                },
+            )),
             Box::new(
                 UiConfigNumber::new_percentage(
                     game_io,

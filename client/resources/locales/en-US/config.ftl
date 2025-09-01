@@ -35,6 +35,7 @@ config-lock-aspect-label = Lock Aspect
 config-integer-scaling-label = Integer Scaling
 config-snap-resize-label = Snap Resize
 config-brightness-label = Brightness
+config-flash-brightness-label = Flash Brghtnss
 config-saturation-label = Saturation
 config-ghosting-label = Ghosting
 config-color-sim-label = Color Sim

@@ -1,7 +1,9 @@
 // for online battles see netplay_init_scene.rs
 
 use super::BattleScene;
-use crate::{battle::BattleProps, resources::Globals, transitions::BATTLE_HOLD_DURATION};
+use crate::battle::BattleProps;
+use crate::resources::Globals;
+use crate::transitions::{flash_color, BATTLE_HOLD_DURATION};
 use framework::prelude::*;
 
 pub struct BattleInitScene {
@@ -18,7 +20,7 @@ impl BattleInitScene {
         camera.set_inverted_y(false);
 
         let mut model = FlatModel::new_square_model(game_io);
-        model.set_color(Color::WHITE);
+        model.set_color(flash_color(game_io).to_linear());
 
         Self {
             start_instant: Instant::now(),

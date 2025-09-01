@@ -33,6 +33,7 @@ pub struct Config {
     pub lock_aspect_ratio: bool,
     pub integer_scaling: bool,
     pub snap_resize: bool,
+    pub flash_brightness: u8,
     pub brightness: u8,
     pub saturation: u8,
     pub ghosting: u8,
@@ -306,6 +307,7 @@ impl Default for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            flash_brightness: 100,
             brightness: 100,
             saturation: 100,
             ghosting: 0,
@@ -341,6 +343,7 @@ impl From<&str> for Config {
             lock_aspect_ratio: true,
             integer_scaling: false,
             snap_resize: false,
+            flash_brightness: 100,
             brightness: 100,
             saturation: 100,
             ghosting: 0,
@@ -387,6 +390,7 @@ impl From<&str> for Config {
             config.lock_aspect_ratio = parse_or_default(properties.get("LockAspectRatio"));
             config.integer_scaling = parse_or_default(properties.get("IntegerScaling"));
             config.snap_resize = parse_or_default(properties.get("SnapResize"));
+            config.flash_brightness = parse_or(properties.get("FlashBrightness"), 100);
             config.brightness = parse_or(properties.get("Brightness"), 100);
             config.saturation = parse_or(properties.get("Saturation"), 100);
             config.ghosting = parse_or_default(properties.get("Ghosting"));
@@ -511,6 +515,7 @@ impl std::fmt::Display for Config {
         writeln!(f, "LockAspectRatio = {}", self.lock_aspect_ratio)?;
         writeln!(f, "IntegerScaling = {}", self.integer_scaling)?;
         writeln!(f, "SnapResize = {}", self.snap_resize)?;
+        writeln!(f, "FlashBrightness = {}", self.flash_brightness)?;
         writeln!(f, "Brightness = {}", self.brightness)?;
         writeln!(f, "Saturation = {}", self.saturation)?;
         writeln!(f, "Ghosting = {}", self.ghosting)?;
