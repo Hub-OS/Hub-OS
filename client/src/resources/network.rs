@@ -442,18 +442,9 @@ impl EventListener {
             Event::SendingClientPacket(addr, reliability, body) => {
                 self.send_client_packet(addr, reliability, body)
             }
-            Event::SendingNetplayPacket(addr, body) => self.send_netplay_packet(
-                addr,
-                if matches!(
-                    body.data,
-                    NetplayPacketData::Heartbeat | NetplayPacketData::ReceiveCounts { .. }
-                ) {
-                    Reliability::Reliable
-                } else {
-                    Reliability::ReliableOrdered
-                },
-                body,
-            ),
+            Event::SendingNetplayPacket(addr, body) => {
+                self.send_netplay_packet(addr, body.default_reliability(), body)
+            }
             Event::SendingSyncPacket(addr, reliability, body) => {
                 self.send_sync_packet(addr, reliability, body)
             }

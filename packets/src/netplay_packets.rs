@@ -3,6 +3,7 @@
 use crate::structures::{
     FileHash, Input, InstalledBlock, InstalledSwitchDrive, PackageCategory, PackageId,
 };
+use network_channels::Reliability;
 use serde::{Deserialize, Serialize};
 use strum::IntoStaticStr;
 
@@ -64,6 +65,17 @@ pub enum NetplayPacketData {
 }
 
 impl NetplayPacket {
+    pub fn default_reliability(&self) -> Reliability {
+        if matches!(
+            self.data,
+            NetplayPacketData::Heartbeat | NetplayPacketData::ReceiveCounts { .. }
+        ) {
+            Reliability::Reliable
+        } else {
+            Reliability::ReliableOrdered
+        }
+    }
+
     pub fn new_disconnect_signal(index: usize) -> NetplayPacket {
         NetplayPacket {
             index,

@@ -1,7 +1,7 @@
 use packets::structures::ActorId;
 use packets::{
-    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, NetplayPacketData, PacketChannels,
-    PacketReceiver, PacketSender, Reliability, ServerCommPacket, ServerPacket,
+    serialize, ChannelSender, ConnectionBuilder, NetplayPacket, PacketChannels, PacketReceiver,
+    PacketSender, Reliability, ServerCommPacket, ServerPacket,
 };
 use slotmap::SlotMap;
 use std::collections::{HashMap, HashSet};
@@ -229,12 +229,7 @@ impl PacketOrchestrator {
             }
         }
 
-        let reliability = if packet.data == NetplayPacketData::Heartbeat {
-            Reliability::Reliable
-        } else {
-            Reliability::ReliableOrdered
-        };
-
+        let reliability = packet.default_reliability();
         let data = Arc::new(serialize(packet));
 
         if let Some(addresses) = self.netplay_route_map.get(&socket_address) {
