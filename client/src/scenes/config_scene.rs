@@ -280,6 +280,16 @@ impl ConfigScene {
                 .with_upper_bound(MAX_INPUT_DELAY)
                 .with_value_step(5),
             ),
+            Box::new(UiConfigCycle::new(
+                game_io,
+                "config-relay-label",
+                config.borrow().force_relay,
+                config.clone(),
+                &[("config-relay-auto", false), ("config-relay-always", true)],
+                |_, mut config, value, _| {
+                    config.force_relay = value;
+                },
+            )),
         ]
     }
 

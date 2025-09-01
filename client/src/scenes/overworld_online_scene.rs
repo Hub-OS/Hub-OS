@@ -201,6 +201,18 @@ impl OverworldOnlineScene {
         send_packet(Reliability::ReliableOrdered, ClientPacket::RequestJoin);
     }
 
+    pub fn send_preferences(&mut self, game_io: &GameIO) {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let send_packet = &self.send_packet;
+        send_packet(
+            Reliability::ReliableOrdered,
+            ClientPacket::NetplayPreferences {
+                force_relay: globals.config.force_relay,
+            },
+        );
+    }
+
     pub fn send_boosts(&mut self, game_io: &GameIO) {
         let globals = game_io.resource::<Globals>().unwrap();
         let global_save = &globals.global_save;
@@ -1856,6 +1868,9 @@ impl Scene for OverworldOnlineScene {
 
         let previous_player_id = self.area.player_data.package_id.clone();
         self.area.enter(game_io);
+
+        // send preferences in case they've updated
+        self.send_preferences(game_io);
 
         // send boosts before sending avatar data
         // allows the server to accurately calculate health

@@ -113,14 +113,21 @@ impl NetplayInitScene {
         let remote_index_map: Vec<_> = remote_players.iter().map(|info| info.index).collect();
         let total_remote = remote_players.len();
 
-        let remote_futures: Vec<_> = remote_players
-            .iter()
-            .map(|remote_player| network.subscribe_to_netplay(remote_player.address.to_string()))
-            .chain(std::iter::once(
-                network.subscribe_to_netplay(fallback_address),
-            ))
-            .collect();
+        // build connection futures
+        let mut remote_futures = Vec::with_capacity(total_remote + 1);
 
+        if !globals.config.force_relay && remote_players.iter().all(|r| r.address.is_some()) {
+            remote_futures.extend(
+                remote_players
+                    .iter()
+                    .flat_map(|remote_player| remote_player.address)
+                    .map(|address| network.subscribe_to_netplay(address.to_string())),
+            )
+        }
+
+        remote_futures.push(network.subscribe_to_netplay(fallback_address));
+
+        // build hole punching future
         let (event_sender, event_receiver) = flume::unbounded();
 
         let communication_future = async move {
@@ -129,7 +136,7 @@ impl NetplayInitScene {
             let fallback_sender_receiver = senders_and_receivers.pop().unwrap();
 
             if senders_and_receivers.len() < total_remote {
-                log::error!("Server sent an invalid address for a remote player, using fallback");
+                log::info!("Using relay due to player preferences");
 
                 let _ = event_sender.send(Event::Fallback {
                     fallback: fallback_sender_receiver,

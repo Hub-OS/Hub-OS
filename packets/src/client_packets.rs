@@ -107,6 +107,9 @@ pub enum ClientPacket {
     ItemUse {
         item_id: String,
     },
+    NetplayPreferences {
+        force_relay: bool,
+    },
     EncounterStart,
     BattleMessage {
         message: String,

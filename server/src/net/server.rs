@@ -553,6 +553,11 @@ impl Server {
                         ServerPacket::SelectionAck,
                     );
                 }
+                ClientPacket::NetplayPreferences { force_relay } => {
+                    if let Some(client) = net.get_client_mut(player_id) {
+                        client.force_relay = force_relay;
+                    }
+                }
                 ClientPacket::EncounterStart => {
                     if let Some(client) = net.get_client_mut(player_id) {
                         if let Some(info) = client.battle_tracker.front() {

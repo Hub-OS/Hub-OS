@@ -14,6 +14,7 @@ pub(super) struct BattleTrackingInfo {
 
 pub(super) struct Client {
     pub socket_address: SocketAddr,
+    pub force_relay: bool,
     pub actor: Actor,
     pub warp_in: bool,
     pub warp_area: String,
@@ -53,6 +54,7 @@ impl Client {
 
         Client {
             socket_address,
+            force_relay: true,
             actor: Actor {
                 id,
                 name,

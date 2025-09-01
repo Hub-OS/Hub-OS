@@ -1140,7 +1140,11 @@ impl Net {
             .flat_map(|(i, id)| {
                 self.clients.get(id).map(|client| RemotePlayerInfo {
                     index: i,
-                    address: client.socket_address,
+                    address: if client.force_relay {
+                        None
+                    } else {
+                        Some(client.socket_address)
+                    },
                     health: client.player_data.health,
                     base_health: client.player_data.base_health,
                     emotion: client.player_data.emotion.clone(),
@@ -1159,17 +1163,19 @@ impl Net {
             let mut final_list = IndexSet::default();
 
             for (player_index, id) in ids.iter().enumerate() {
+                let remote_addresses: Vec<_> = ids
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| *i != player_index)
+                    .flat_map(|(_, id)| self.clients.get(id))
+                    .map(|client| client.socket_address)
+                    .collect();
+
                 let Some(client) = self.clients.get_mut(id) else {
                     continue;
                 };
 
                 final_list.insert(*id);
-
-                let remote_addresses: Vec<_> = remote_players
-                    .iter()
-                    .filter(|info| info.address != client.socket_address)
-                    .map(|info| info.address)
-                    .collect();
 
                 let tracking_info = BattleTrackingInfo {
                     battle_id,
