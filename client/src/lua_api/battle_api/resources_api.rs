@@ -1,8 +1,9 @@
 use super::{BattleLuaApi, ENTITY_TABLE, GAME_FOLDER_REGISTRY_KEY, RESOURCES_TABLE};
 use crate::battle::Player;
-use crate::bindable::{AudioBehavior, EntityId, InputQuery};
+use crate::bindable::{AudioBehavior, EntityId, InputQuery, LuaColor};
 use crate::lua_api::helpers::absolute_path;
 use crate::resources::{AssetManager, Globals};
+use crate::transitions::flash_color;
 
 pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(RESOURCES_TABLE, "load_texture", |api_ctx, lua, params| {
@@ -110,6 +111,12 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(RESOURCES_TABLE, "game_folder", |_, lua, _| {
         let path_str: rollback_mlua::String = lua.named_registry_value(GAME_FOLDER_REGISTRY_KEY)?;
         lua.pack_multi(path_str)
+    });
+
+    lua_api.add_dynamic_function(RESOURCES_TABLE, "white_flash_color", |api_ctx, lua, _| {
+        let game_io = api_ctx.borrow().game_io;
+        let color = flash_color(game_io);
+        lua.pack_multi(LuaColor::from(color))
     });
 
     lua_api.add_dynamic_function(RESOURCES_TABLE, "is_local", |api_ctx, lua, params| {
