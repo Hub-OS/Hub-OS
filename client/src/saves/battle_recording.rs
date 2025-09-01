@@ -109,10 +109,24 @@ impl BattleRecording {
                 }
 
                 self.package_map.entry((category, hash)).or_insert_with(|| {
-                    globals.assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
+                    let mut bytes = globals.assets.virtual_zip_bytes(&hash).unwrap_or_else(|| {
                         let path = format!("{}{}.zip", &mod_cache_folder, hash);
                         globals.assets.binary(&path)
-                    })
+                    });
+
+                    if bytes.is_empty() && info.namespace == PackageNamespace::Local {
+                        // might be a package that doesn't need to be sent to other players
+                        // such as an encounter without any characters defined
+                        // try zipping
+                        match packets::zip::compress(&info.base_path) {
+                            Ok(data) => bytes = data,
+                            Err(e) => {
+                                log::error!("Failed to zip package {:?}: {e}", info.base_path);
+                            }
+                        }
+                    }
+
+                    bytes
                 });
 
                 self.required_packages.push((category, namespace, hash));
