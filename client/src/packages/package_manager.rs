@@ -140,9 +140,13 @@ impl<T: Package> PackageManager<T> {
         let path_string = ResourcePaths::clean(path_str);
 
         let mut package_info = self.generate_package_info(namespace, &path_string)?;
+
+        // parse toml before zipping to resolve child packages
+        // and provide enough details for correct output from `package_info.local_only()`
+        let package_table = package_info.parse_toml(assets)?;
+
         package_info.hash = Self::zip_and_hash(&package_info)?;
 
-        let package_table = package_info.parse_toml(assets)?;
         self.internal_load_package(package_info, package_table)
     }
 
