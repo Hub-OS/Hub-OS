@@ -606,6 +606,25 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "start_context", |api_ctx, lua, params| {
+        let (table, action_type): (rollback_mlua::Table, ActionTypes) = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+
+        Living::update_action_context(
+            api_ctx.game_io,
+            api_ctx.resources,
+            simulation,
+            action_type,
+            id,
+        );
+
+        lua.pack_multi(())
+    });
+
     lua_api.add_dynamic_function(ENTITY_TABLE, "has_actions", |api_ctx, lua, params| {
         let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
