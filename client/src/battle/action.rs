@@ -574,7 +574,13 @@ impl Action {
 
                 if action_queue.action_type == ActionType::NONE {
                     // the action was prompted by script, not by the engine
-                    action_queue.action_type = ActionType::SCRIPT;
+                    Living::update_action_context(
+                        game_io,
+                        resources,
+                        simulation,
+                        ActionType::SCRIPT,
+                        entity_id,
+                    );
                 }
 
                 if !simulation.is_entity_actionable(resources, entity_id) {
@@ -747,6 +753,7 @@ impl Action {
                     } else {
                         HitFlag::NONE
                     };
+                    let _ = entities.insert_one(entity_id.into(), attack_context);
                 }
             }
         }
