@@ -7,7 +7,7 @@ frame duration="50f" x="1" y="216" w="73" h="19"
 point label="START" x="144" y="0"
 point label="STEP" x="0" y="18"
 point label="TEXT_START" x="4" y="4"
-point label="TEXT_END" x="69" y="18"
+point label="TEXT_END" x="67" y="18"
 point label="BLOCK_PREVIEW" x="75" y="-1"
 point label="COUNT_RIGHT" x="75" y="9"
 
@@ -55,6 +55,7 @@ frame duration="6f" x="47" y="177" w="9" h="14" originx="11" originy="-2"
 
 animation state="TEXTBOX"
 frame duration="50f" x="163" y="195" w="92" h="60" originx="-140" originy="-94"
+point label="LABEL_CENTER" x="46" y="3"
 point label="TEXT_START" x="4" y="12"
 point label="TEXT_END" x="88" y="56"
 

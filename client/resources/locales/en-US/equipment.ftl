@@ -57,6 +57,8 @@ character-select-invalid-dependencies = Missing or invalid dependencies.
 character-select-fallback-details = Continuing with this navi will discard innate abilities.
 
 blocks-scene-title = Blocks
+blocks-information-box-label = INFORMATION
+blocks-apply-label = RUN!
 blocks-option-move = Move
 blocks-option-remove = Remove
 blocks-leave-question = Quit the customizer?

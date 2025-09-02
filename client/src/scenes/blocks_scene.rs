@@ -102,7 +102,9 @@ pub struct BlocksScene {
     grid_start: Vec2,
     grid_increment: Vec2,
     rail_sprite: Sprite,
+    apply_text: String,
     information_box_sprite: Sprite,
+    information_label: Text,
     information_text: Text,
     input_tracker: UiInputTracker,
     scroll_tracker: ScrollTracker,
@@ -202,10 +204,17 @@ impl BlocksScene {
         animator.set_state("TEXTBOX");
         animator.apply(&mut information_box_sprite);
 
+        let mut information_label = Text::new(game_io, FontName::Context);
+        let mut info_label_pos = animator.point_or_zero("LABEL_CENTER") - animator.origin();
+        information_label.text = globals.translate("blocks-information-box-label");
+        info_label_pos.x -= information_label.measure().size.x * 0.5;
+        information_label.style.bounds.set_position(info_label_pos);
+
         let information_bounds = Rect::from_corners(
             animator.point_or_zero("TEXT_START"),
             animator.point_or_zero("TEXT_END"),
         ) - animator.origin();
+
         let information_text = Text::new(game_io, FontName::Thin)
             .with_bounds(information_bounds)
             .with_shadow_color(TEXT_DARK_SHADOW_COLOR);
@@ -242,7 +251,9 @@ impl BlocksScene {
             grid_start,
             grid_increment: grid_step,
             rail_sprite,
+            apply_text: globals.translate("blocks-apply-label"),
             information_box_sprite,
+            information_label,
             information_text,
             input_tracker: UiInputTracker::new(),
             scroll_tracker,
@@ -1192,6 +1203,11 @@ impl Scene for BlocksScene {
 
                 self.animator.apply(&mut recycled_sprite);
                 sprite_queue.draw_sprite(&recycled_sprite);
+
+                let text_width = text_style.measure(&self.apply_text).size.x;
+                text_style.bounds += Vec2::new((text_bounds.width - text_width) * 0.5, 0.0);
+                text_style.monospace = true;
+                text_style.draw(game_io, &mut sprite_queue, &self.apply_text);
                 continue;
             }
 
@@ -1225,8 +1241,9 @@ impl Scene for BlocksScene {
             }
         }
 
-        // draw information text
+        // draw the information box
         sprite_queue.draw_sprite(&self.information_box_sprite);
+        self.information_label.draw(game_io, &mut sprite_queue);
         self.information_text.draw(game_io, &mut sprite_queue);
 
         // draw context menu
