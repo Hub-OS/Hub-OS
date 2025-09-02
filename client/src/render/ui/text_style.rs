@@ -215,6 +215,7 @@ impl TextStyle {
         let mut max_x: f32 = 0.0;
         let mut max_y: f32 = 0.0;
         let mut last_index = 0;
+        let mut last_grapheme = "";
 
         'primary: for (word_index, word) in word_indices(text) {
             if word_index + word.len() - 1 < range.start {
@@ -343,6 +344,7 @@ impl TextStyle {
                 max_x = max_x.max(insert_tracker.x);
                 max_y = line_bottom;
                 last_index = index;
+                last_grapheme = character;
             }
         }
 
@@ -352,7 +354,7 @@ impl TextStyle {
         }
 
         let range_start = insert_tracker.line_start_index;
-        let range_end = text.len().min(last_index + 1);
+        let range_end = text.len().min(last_index + last_grapheme.len());
 
         if range_start < range_end {
             insert_tracker.line_ranges.push(range_start..range_end);

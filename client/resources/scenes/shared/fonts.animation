@@ -2448,3 +2448,42 @@ frame x="174" y="85" w="6" h="12"
 
 animation state="THIN_U+00FC"
 frame x="174" y="99" w="6" h="12"
+
+animation state="THIN_U+E000"
+frame x="182" y="153" w="6" h="11"
+
+animation state="THIN_U+E001"
+frame x="174" y="113" w="6" h="11"
+
+animation state="THIN_U+E002"
+frame x="174" y="126" w="6" h="11"
+
+animation state="THIN_U+E003"
+frame x="174" y="139" w="6" h="11"
+
+animation state="THIN_U+E004"
+frame x="174" y="152" w="6" h="11"
+
+animation state="THIN_U+E005"
+frame x="1" y="158" w="6" h="12"
+
+animation state="THIN_U+E006"
+frame x="9" y="158" w="6" h="12"
+
+animation state="THIN_U+E007"
+frame x="17" y="158" w="6" h="12"
+
+animation state="THIN_U+E008"
+frame x="25" y="158" w="6" h="12"
+
+animation state="THIN_U+03B1"
+frame x="1" y="172" w="6" h="11"
+
+animation state="THIN_U+03B2"
+frame x="9" y="172" w="6" h="11"
+
+animation state="THIN_U+03A3"
+frame x="17" y="172" w="6" h="11"
+
+animation state="THIN_U+03A9"
+frame x="25" y="172" w="6" h="11"
