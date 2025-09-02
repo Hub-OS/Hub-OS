@@ -1062,7 +1062,10 @@ impl BattleSimulation {
         if let Ok((entity, character)) =
             (self.entities).query_one_mut::<(&Entity, &Character)>(self.local_player_id.into())
         {
-            if entity.on_field {
+            let sprite_tree = self.sprite_trees.get(entity.sprite_tree_index);
+
+            if !entity.deleted && entity.on_field && sprite_tree.is_some_and(|t| t.root().visible())
+            {
                 sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
                 let mut base_position = entity.screen_position(&self.field, perspective_flipped);
