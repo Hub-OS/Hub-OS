@@ -236,7 +236,9 @@ impl BattleRecording {
 
     pub fn load(assets: &impl AssetManager, path: &str) -> Option<Self> {
         let bytes = assets.binary(path);
-        rmp_serde::from_slice(&bytes).ok()
+        rmp_serde::from_slice(&bytes)
+            .inspect_err(|e| log::error!("Failed to read recording: {e:?}"))
+            .ok()
     }
 
     pub fn load_packages(&self, game_io: &mut GameIO, ignored_package_ids: Vec<PackageId>) {
