@@ -10,6 +10,7 @@ pub struct PlayerInput {
     held_navigation_input: Vec<Input>,
     navigation_held_duration: FrameTime,
     signals: Vec<NetplaySignal>,
+    input_delay: u8,
     disconnected: bool,
     fleeing: bool,
 }
@@ -17,6 +18,14 @@ pub struct PlayerInput {
 impl PlayerInput {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn input_delay(&self) -> usize {
+        self.input_delay as _
+    }
+
+    pub fn set_input_delay(&mut self, delay: usize) {
+        self.input_delay = delay as _;
     }
 
     pub fn pulsed(&self, input: Input) -> bool {

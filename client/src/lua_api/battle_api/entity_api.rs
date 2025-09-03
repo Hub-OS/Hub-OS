@@ -1677,6 +1677,26 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         }
     });
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "input_delay", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let delay = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map(|player| {
+                let player_input = &simulation.inputs[player.index];
+                player_input.input_delay()
+            })
+            .unwrap_or_default();
+
+        lua.pack_multi(delay)
+    });
+
     // player:play_audio() is defined in resource_api.rs
 
     lua_api.add_dynamic_function(

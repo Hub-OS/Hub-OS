@@ -141,6 +141,8 @@ impl BattleScene {
         let config = resources.config.borrow();
 
         for setup in player_setups {
+            simulation.inputs[setup.index].set_input_delay(setup.buffer.delay());
+
             player_controllers.push(PlayerController {
                 connected: !is_playing_back_recording && setup.connected,
                 buffer: setup.buffer.clone(),
