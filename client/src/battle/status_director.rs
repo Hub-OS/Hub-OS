@@ -81,6 +81,17 @@ impl StatusDirector {
     ) {
         hit_flags &= !self.immunity;
 
+        // handle blocked_by / blocks_flags
+        for registered_status in status_registry.registered_list() {
+            if hit_flags & registered_status.flag == HitFlag::NONE {
+                continue;
+            }
+
+            if hit_flags & status_registry.overrides_for(registered_status.flag) != HitFlag::NONE {
+                hit_flags &= !registered_status.flag;
+            }
+        }
+
         for hit_flag in HitFlag::BAKED {
             if hit_flags & hit_flag == HitFlag::NONE {
                 continue;
@@ -400,18 +411,6 @@ impl StatusDirector {
 
     fn resolve_conflicts(&mut self, registry: &StatusRegistry) {
         let mut cancelled_statuses = Vec::new();
-
-        // handle blocked_by / blocks_flags
-        self.new_statuses.retain({
-            let new_status_iter = self.new_statuses.iter();
-            let pending_flags = new_status_iter.fold(0, |flags, status| flags | status.status_flag);
-
-            move |status| {
-                let flag = status.status_flag;
-
-                (registry.overrides_for(flag) & pending_flags) == 0
-            }
-        });
 
         // reverse to preserve the newest statuses
         self.new_statuses.reverse();

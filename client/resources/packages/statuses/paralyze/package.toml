@@ -4,8 +4,8 @@ id = "dev.hubos.Statuses.Paralyze"
 name = "Paralyze Status"
 flag_name = "Paralyze"
 # removes old flags (and new flags with an undefined order) if a mutual exclusion occurs
-mutual_exclusions = ["Flinch", "Flash", "Blind", "Freeze", "Confuse"]
-# removes these flags if they're being applied on the same frame
+mutual_exclusions = ["Flinch", "Blind", "Freeze", "Confuse"]
+# removes these flags if they're applied on the same hit
 blocks_flags = ["Flinch", "Flash", "Blind", "Freeze", "Confuse"]
 blocks_actions = true
 blocks_mobility = true
