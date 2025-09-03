@@ -33,7 +33,6 @@ impl ResourcePaths {
     pub const TRANSMISSION_SFX: &'static str = "resources/sfx/transmission.ogg";
     pub const WARP_SFX: &'static str = "resources/sfx/warp.ogg";
     pub const BATTLE_TRANSITION_SFX: &'static str = "resources/sfx/battle_transition.ogg";
-    pub const BATTLE_FAILED_SFX: &'static str = "resources/sfx/battle_failed.ogg";
     pub const APPEAR_SFX: &'static str = "resources/sfx/appear.ogg";
     pub const CARD_SELECT_OPEN_SFX: &'static str = "resources/sfx/card_select_open.ogg";
     pub const CARD_SELECT_CONFIRM_SFX: &'static str = "resources/sfx/card_select_confirm.ogg";

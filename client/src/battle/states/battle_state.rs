@@ -371,9 +371,6 @@ impl BattleState {
         let message = if simulation.local_player_id == EntityId::default() {
             BattleBannerMessage::BattleOver
         } else {
-            let globals = game_io.resource::<Globals>().unwrap();
-            simulation.play_music(game_io, resources, &globals.sfx.battle_failed, false);
-
             BattleBannerMessage::Failed
         };
 
