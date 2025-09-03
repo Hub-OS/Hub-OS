@@ -40,7 +40,7 @@ pub fn inject_engine_api(lua_api: &mut BattleLuaApi) {
         let game_io = &api_ctx.game_io;
         let simulation = &api_ctx.simulation;
 
-        if !simulation.is_resimulation {
+        if !simulation.is_resimulation || matches!(behavior, AudioBehavior::EndLoop) {
             let globals = game_io.resource::<Globals>().unwrap();
             let sound_buffer = globals.assets.audio(game_io, &path);
             let audio = &globals.audio;
