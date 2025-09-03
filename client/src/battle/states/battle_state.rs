@@ -25,7 +25,7 @@ impl State for BattleState {
 
     fn next_state(&self, game_io: &GameIO) -> Option<Box<dyn State>> {
         if self.out_of_time {
-            Some(Box::new(TimeUpState::new()))
+            Some(Box::new(TimeUpState::new(game_io)))
         } else if self.complete {
             Some(Box::new(CardSelectState::new(game_io)))
         } else {
@@ -352,7 +352,7 @@ impl BattleState {
         message: BattleBannerMessage,
     ) {
         if resources.config.borrow().automatic_scene_end {
-            let mut banner = BattleBannerPopup::new(message);
+            let mut banner = BattleBannerPopup::new(game_io, message);
             banner.show_for(TOTAL_MESSAGE_TIME);
             simulation.banner_popups.insert(banner);
 

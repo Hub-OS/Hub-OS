@@ -26,6 +26,7 @@ impl TurnStartState {
 
     fn spawn_banner(
         &mut self,
+        game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
@@ -39,7 +40,7 @@ impl TurnStartState {
             BattleBannerMessage::TurnStart
         };
 
-        let mut banner = BattleBannerPopup::new(message);
+        let mut banner = BattleBannerPopup::new(game_io, message);
         banner.show_for(DISPLAY_DURATION);
 
         let key = simulation.banner_popups.insert(banner);
@@ -62,7 +63,7 @@ impl State for TurnStartState {
 
     fn update(
         &mut self,
-        _game_io: &GameIO,
+        game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
@@ -72,7 +73,7 @@ impl State for TurnStartState {
         }
 
         if self.time == DELAY {
-            self.spawn_banner(resources, simulation);
+            self.spawn_banner(game_io, resources, simulation);
         } else if let Some(key) = self.banner_key {
             self.complete = !simulation.banner_popups.contains_key(key);
         }

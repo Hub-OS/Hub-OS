@@ -1,6 +1,7 @@
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
+use crate::resources::Globals;
 use crate::RESOLUTION_F;
 use framework::common::GameIO;
 use std::rc::Rc;
@@ -19,28 +20,33 @@ enum Mode {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum BattleBannerMessage {
-    TimeUp,
     TurnStart,
     TurnNumberStart(u32),
     FinalTurn,
-    Failed,
     Success,
+    Failed,
+    TimeUp,
     BattleOver,
 }
 
 impl BattleBannerMessage {
-    fn resolve_text(self) -> Rc<str> {
-        match self {
-            BattleBannerMessage::TimeUp => Rc::from("<_TIME_UP!_>"),
-            BattleBannerMessage::TurnStart => Rc::from("<_TURN_START!_>"),
-            BattleBannerMessage::TurnNumberStart(number) => {
-                Rc::from(format!("<_TURN_{number}_START!_>"))
-            }
-            BattleBannerMessage::FinalTurn => Rc::from("<_FINAL_TURN!_>"),
-            BattleBannerMessage::Failed => Rc::from("<_FAILED_>"),
-            BattleBannerMessage::Success => Rc::from("<_SUCCESS_>"),
-            BattleBannerMessage::BattleOver => Rc::from("<_BATTLE_OVER_>"),
-        }
+    fn resolve_text(self, game_io: &GameIO) -> Rc<str> {
+        let globals = game_io.resource::<Globals>().unwrap();
+
+        let text = match self {
+            BattleBannerMessage::TurnStart => globals.translate("battle-turn-start-banner"),
+            BattleBannerMessage::TurnNumberStart(number) => globals.translate_with_args(
+                "battle-turn-number-start-banner",
+                vec![("number", number.into())],
+            ),
+            BattleBannerMessage::FinalTurn => globals.translate("battle-final-turn-banner"),
+            BattleBannerMessage::Failed => globals.translate("battle-success-banner"),
+            BattleBannerMessage::Success => globals.translate("battle-failed-banner"),
+            BattleBannerMessage::TimeUp => globals.translate("battle-time-up-banner"),
+            BattleBannerMessage::BattleOver => globals.translate("battle-over-banner"),
+        };
+
+        format!("<_{}_>", text.replace(' ', "_")).into()
     }
 }
 
@@ -53,9 +59,9 @@ pub struct BattleBannerPopup {
 }
 
 impl BattleBannerPopup {
-    pub fn new(message: BattleBannerMessage) -> Self {
+    pub fn new(game_io: &GameIO, message: BattleBannerMessage) -> Self {
         Self {
-            message: message.resolve_text(),
+            message: message.resolve_text(game_io),
             time: 0,
             mode: Mode::Hidden,
             bottom: 0.0,

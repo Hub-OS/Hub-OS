@@ -12,8 +12,8 @@ pub struct TimeUpState {
 }
 
 impl TimeUpState {
-    pub fn new() -> Self {
-        let mut banner = BattleBannerPopup::new(BattleBannerMessage::TimeUp);
+    pub fn new(game_io: &GameIO) -> Self {
+        let mut banner = BattleBannerPopup::new(game_io, BattleBannerMessage::TimeUp);
         banner.show_for(DISPLAY_DURATION);
 
         Self { banner }
