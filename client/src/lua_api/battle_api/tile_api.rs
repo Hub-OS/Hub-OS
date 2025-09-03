@@ -571,7 +571,7 @@ pub fn create_tile_table(
 ) -> rollback_mlua::Result<rollback_mlua::Table<'_>> {
     let tile_cache: rollback_mlua::Table = lua.named_registry_value(TILE_CACHE_REGISTRY_KEY)?;
 
-    let key = ((x as i64) << 4) | y as i64;
+    let key = ((x as i64) << 8) | y as i64;
 
     let table = if let Ok(table) = tile_cache.get(key) {
         table
