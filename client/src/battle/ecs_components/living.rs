@@ -281,6 +281,10 @@ impl Living {
                 living.hit = true
             }
 
+            // apply statuses
+            let status_director = &mut living.status_director;
+            status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
+
             // handle counter
             if living.counterable
                 && !living.status_director.is_inactionable(status_registry)
@@ -318,10 +322,6 @@ impl Living {
 
                 simulation.pending_callbacks.push(notify_aggressor);
             }
-
-            // apply statuses
-            let status_director = &mut living.status_director;
-            status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
 
             // handle drag
             if hit_props.drags() {
