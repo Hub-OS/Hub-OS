@@ -281,16 +281,22 @@ impl Living {
                 living.hit = true
             }
 
+            let countered = living.counterable
+                && !living.status_director.is_inactionable(status_registry)
+                && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
+                && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0;
+
+            if countered {
+                // strip flashing
+                hit_props.flags &= !HitFlag::FLASH;
+            }
+
             // apply statuses
             let status_director = &mut living.status_director;
             status_director.apply_hit_flags(status_registry, hit_props.flags, &hit_props.durations);
 
             // handle counter
-            if living.counterable
-                && !living.status_director.is_inactionable(status_registry)
-                && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
-                && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0
-            {
+            if countered {
                 living.status_director.apply_status(HitFlag::PARALYZE, 150);
                 living.counterable = false;
 
