@@ -287,7 +287,7 @@ impl Living {
                 && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0;
 
             if countered {
-                // strip flashing
+                // strip flashing if we've countered, to allow for a bonus hit
                 hit_props.flags &= !HitFlag::FLASH;
             }
 
