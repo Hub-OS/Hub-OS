@@ -22,6 +22,7 @@ pub struct Player {
     pub rapid_boost: u8,
     pub charge_boost: u8,
     pub hand_size_boost: i8,
+    pub prev_marked_charging: bool,
     pub marked_charging: bool,
     pub card_charged: bool,
     pub card_charge: AttackCharge,
@@ -84,6 +85,7 @@ impl Player {
             rapid_boost: 0,
             charge_boost: 0,
             hand_size_boost: 0,
+            prev_marked_charging: false,
             marked_charging: false,
             card_charged: false,
             card_charge: AttackCharge::new(
@@ -519,7 +521,8 @@ impl Player {
             // cancel attack charging
             player.attack_charge.cancel();
             player.card_charge.set_charging(true);
-        } else if player.marked_charging
+        } else if !player.prev_marked_charging
+            && player.marked_charging
             && (player.card_charge.charging() || !player.attack_charge.charging())
         {
             // cancel card charging
@@ -541,6 +544,7 @@ impl Player {
         }
 
         // reset flag
+        player.prev_marked_charging = player.marked_charging;
         player.marked_charging = false;
 
         if let Some(time) = card_charge_time {
