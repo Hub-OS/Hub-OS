@@ -887,9 +887,7 @@ impl BattleState {
 
             entity.updated = true;
 
-            if !living.status_director.is_dragged()
-                && living.status_director.remaining_drag_lockout() > 0
-            {
+            if !living.status_director.is_dragged() {
                 // process statuses as long as the entity isn't being dragged
 
                 let status_director = &mut living.status_director;
@@ -899,21 +897,23 @@ impl BattleState {
                     status_director.update();
                 }
 
-                // apply new statuses even if time is frozen
-                status_director.apply_new_statuses(status_registry);
+                if status_director.remaining_drag_lockout() <= 0 {
+                    // apply new statuses as long as there's no drag lockout
+                    status_director.apply_new_statuses(status_registry);
 
-                // status destructors
-                callbacks.extend(status_director.take_ready_destructors());
+                    // status destructors
+                    callbacks.extend(status_director.take_ready_destructors());
 
-                // new status callbacks
-                for (hit_flag, reapplied) in status_director.take_new_statuses() {
-                    if let Some(callback) = status_registry.status_constructor(hit_flag) {
-                        callbacks.push(callback.bind((id.into(), reapplied)));
-                    }
+                    // new status callbacks
+                    for (hit_flag, reapplied) in status_director.take_new_statuses() {
+                        if let Some(callback) = status_registry.status_constructor(hit_flag) {
+                            callbacks.push(callback.bind((id.into(), reapplied)));
+                        }
 
-                    // call registered status callbacks
-                    if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
-                        callbacks.extend(status_callbacks.iter().cloned());
+                        // call registered status callbacks
+                        if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
+                            callbacks.extend(status_callbacks.iter().cloned());
+                        }
                     }
                 }
             }
