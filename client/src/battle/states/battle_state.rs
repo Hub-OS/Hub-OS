@@ -887,7 +887,9 @@ impl BattleState {
 
             entity.updated = true;
 
-            if !living.status_director.is_dragged() {
+            if !living.status_director.is_dragged()
+                && living.status_director.remaining_drag_lockout() > 0
+            {
                 // process statuses as long as the entity isn't being dragged
 
                 let status_director = &mut living.status_director;

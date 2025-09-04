@@ -209,10 +209,11 @@ impl StatusDirector {
     }
 
     pub fn is_inactionable(&self, registry: &StatusRegistry) -> bool {
-        registry
-            .inactionable_flags()
-            .iter()
-            .any(|&flag| self.remaining_status_time(flag) > 0)
+        self.remaining_drag_lockout > 0
+            || registry
+                .inactionable_flags()
+                .iter()
+                .any(|&flag| self.remaining_status_time(flag) > 0)
     }
 
     pub fn is_immobile(&self, registry: &StatusRegistry) -> bool {
