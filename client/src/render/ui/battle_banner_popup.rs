@@ -40,8 +40,8 @@ impl BattleBannerMessage {
                 vec![("number", number.into())],
             ),
             BattleBannerMessage::FinalTurn => globals.translate("battle-final-turn-banner"),
-            BattleBannerMessage::Failed => globals.translate("battle-success-banner"),
-            BattleBannerMessage::Success => globals.translate("battle-failed-banner"),
+            BattleBannerMessage::Success => globals.translate("battle-success-banner"),
+            BattleBannerMessage::Failed => globals.translate("battle-failed-banner"),
             BattleBannerMessage::TimeUp => globals.translate("battle-time-up-banner"),
             BattleBannerMessage::BattleOver => globals.translate("battle-over-banner"),
         };
