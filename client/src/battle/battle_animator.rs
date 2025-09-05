@@ -154,6 +154,87 @@ impl BattleAnimator {
         new_state
     }
 
+    fn remove_derived_state(&mut self, state: &str) {
+        if let Some(i) = self.derived_states.iter().position(|s| s.state == state) {
+            self.derived_states.swap_remove(i);
+        }
+    }
+
+    pub fn remove_state(
+        battle_animators: &mut SlotMap<BattleAnimator>,
+        pending_callbacks: &mut Vec<BattleCallback>,
+        state: &str,
+        animator_index: GenerationalIndex,
+    ) {
+        let Some(battle_animator) = battle_animators.get_mut(animator_index) else {
+            return;
+        };
+
+        if battle_animator.current_state() == Some(state) {
+            pending_callbacks.extend(battle_animator.interrupt());
+        }
+
+        battle_animator.remove_derived_state(state);
+        battle_animator.animator.remove_state(state);
+
+        // remove from synced animators first to avoid an extra clone
+        for index in battle_animator.synced_animators.clone() {
+            if let Some(battle_animator) = battle_animators.get_mut(index) {
+                if battle_animator.current_state() == Some(state) {
+                    pending_callbacks.extend(battle_animator.interrupt());
+                }
+
+                battle_animator.remove_derived_state(state);
+                battle_animator.animator.remove_state(state);
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn set_temp_derived_state(
+        battle_animators: &mut SlotMap<BattleAnimator>,
+        original_state: &str,
+        frame_derivation: Vec<DerivedAnimationFrame>,
+        animator_index: GenerationalIndex,
+    ) -> Vec<BattleCallback> {
+        let state = Self::derive_state(
+            battle_animators,
+            original_state,
+            frame_derivation,
+            animator_index,
+        );
+
+        let battle_animator = &mut battle_animators[animator_index];
+        let callbacks = battle_animator.set_state(&state);
+
+        let complete_callback = BattleCallback::new(move |_, _, simulation, _| {
+            let Some(battle_animator) = simulation.animators.get_mut(animator_index) else {
+                return;
+            };
+
+            if battle_animator.animator.current_state() == Some(&state)
+                && !battle_animator.is_complete()
+            {
+                // ignore Playback.Loop
+                // an interrupt would have a different state
+                // a true completion would be marked as complete
+                return;
+            }
+
+            Self::remove_state(
+                &mut simulation.animators,
+                &mut simulation.pending_callbacks,
+                &state,
+                animator_index,
+            );
+        });
+
+        battle_animator.on_complete(complete_callback.clone());
+        battle_animator.on_interrupt(complete_callback);
+
+        callbacks
+    }
+
     pub fn disable(&mut self) {
         self.enabled = false;
     }
@@ -316,12 +397,6 @@ impl BattleAnimator {
     }
 
     #[must_use]
-    pub fn remove_state(&mut self, state: &str) -> Vec<BattleCallback> {
-        self.animator.remove_state(state);
-        self.interrupt()
-    }
-
-    #[must_use]
     fn interrupt(&mut self) -> Vec<BattleCallback> {
         self.time = 0;
 
@@ -441,7 +516,7 @@ impl BattleAnimator {
         }
 
         if self.animator.is_complete() || previous_loop_count != self.animator.loop_count() {
-            pending_callbacks.extend(self.complete_callbacks.clone());
+            pending_callbacks.extend(self.complete_callbacks.iter().cloned());
         }
 
         if self.animator.is_complete() {

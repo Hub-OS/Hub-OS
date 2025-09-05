@@ -205,11 +205,13 @@ impl Action {
         // animations
         let animator_index = entity.animator_index;
 
-        if let Some(derived_frames) = action.derived_frames.take() {
+        if let Some(derived_frames) = &mut action.derived_frames {
+            // using std::mem::take() on vec
+            // allows us to see derived_frames were set for cleanup later
             action.state = BattleAnimator::derive_state(
                 &mut simulation.animators,
                 &action.state,
-                derived_frames,
+                std::mem::take(derived_frames),
                 animator_index,
             );
         }
@@ -727,6 +729,16 @@ impl Action {
 
             for attachment in &action.attachments {
                 simulation.animators.remove(attachment.animator_index);
+            }
+
+            // delete derived state
+            if action.derived_frames.is_some() {
+                BattleAnimator::remove_state(
+                    &mut simulation.animators,
+                    &mut simulation.pending_callbacks,
+                    &action.state,
+                    entity.animator_index,
+                );
             }
 
             // finally remove the action

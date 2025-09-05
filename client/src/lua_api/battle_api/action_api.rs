@@ -172,6 +172,11 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
         lua_api,
         "override_animation_frames",
         |action, _, frame_data: Vec<Vec<usize>>| {
+            if action.executed {
+                // animation already set, ignore to avoid deleting a valid state
+                return Ok(());
+            }
+
             let derived_frames = frame_data
                 .into_iter()
                 .flat_map(|item| {

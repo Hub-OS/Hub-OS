@@ -143,7 +143,7 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
             return Err(animator_not_found());
         }
 
-        let state = if let Some(frame_data) = frame_data {
+        let callbacks = if let Some(frame_data) = frame_data {
             let derived_frames = frame_data
                 .into_iter()
                 .flat_map(|item| {
@@ -154,39 +154,31 @@ pub fn inject_animation_api(lua_api: &mut BattleLuaApi) {
                 })
                 .collect();
 
-            let derived_state =
-                BattleAnimator::derive_state(animators, &state, derived_frames, animator_index);
-            let closure_state = derived_state.clone();
-
-            let animator = &mut animators[animator_index];
-            animator.on_complete(BattleCallback::new(
-                move |game_io, resources, simulation, _| {
-                    // delete the derived_state
-                    let animator = &mut simulation.animators[animator_index];
-                    let callbacks = animator.remove_state(&closure_state);
-
-                    // sync
-                    animator.find_and_apply_to_target(&mut simulation.sprite_trees);
-
-                    // handle interrupt
-                    simulation.pending_callbacks.extend(callbacks);
-                    simulation.call_pending_callbacks(game_io, resources);
-                },
-            ));
-
-            derived_state
+            BattleAnimator::set_temp_derived_state(
+                animators,
+                &state,
+                derived_frames,
+                animator_index,
+            )
         } else {
-            state
+            let animator = &mut animators[animator_index];
+            animator.set_state(&state)
         };
-
-        let animator = &mut animators[animator_index];
-        let callbacks = animator.set_state(&state);
-
-        // sync
-        animator.find_and_apply_to_target(&mut simulation.sprite_trees);
 
         // handle interrupt
         simulation.pending_callbacks.extend(callbacks);
+
+        // sync
+        let animator = &mut animators[animator_index];
+        animator.find_and_apply_to_target(&mut simulation.sprite_trees);
+
+        BattleAnimator::sync_animators(
+            &mut simulation.animators,
+            &mut simulation.sprite_trees,
+            &mut simulation.pending_callbacks,
+            animator_index,
+        );
+
         simulation.call_pending_callbacks(game_io, resources);
 
         lua.pack_multi(())
