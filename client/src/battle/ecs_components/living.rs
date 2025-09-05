@@ -442,15 +442,24 @@ impl Living {
     ) {
         let entities = &mut simulation.entities;
         let mut pending_movements = Vec::new();
+        let mut pending_animation = Vec::new();
 
-        for (id, (living, movement)) in entities.query_mut::<(&mut Living, Option<&Movement>)>() {
+        for (id, (entity, living, movement)) in
+            entities.query_mut::<(&mut Entity, &mut Living, Option<&Movement>)>()
+        {
             if movement.is_some() {
+                continue;
+            }
+
+            if !living.status_director.is_dragged() {
                 continue;
             }
 
             let direction = living.status_director.take_next_drag_movement();
 
             if direction.is_none() {
+                // drag ended, animate
+                pending_animation.push(entity.animator_index);
                 continue;
             }
 
@@ -476,7 +485,11 @@ impl Living {
             if !tile_exists
                 || !can_move_to_callback.call(game_io, resources, simulation, dest.into())
             {
-                if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
+                let entities = &mut simulation.entities;
+
+                if let Ok((entity, living)) =
+                    entities.query_one_mut::<(&mut Entity, &mut Living)>(id)
+                {
                     living.status_director.end_drag();
 
                     if old_lockout > 0 {
@@ -485,12 +498,43 @@ impl Living {
                             .status_director
                             .set_remaining_drag_lockout(old_lockout);
                     }
+
+                    pending_animation.push(entity.animator_index);
                 }
+
                 continue;
             }
 
             let movement = Movement::slide(dest.into(), DRAG_PER_TILE_DURATION);
             simulation.entities.insert_one(id, movement).unwrap();
+        }
+
+        for animator_index in pending_animation {
+            // display CHARACTER_HIT
+            let animator = &mut simulation.animators[animator_index];
+
+            if !animator.has_state("CHARACTER_HIT") {
+                continue;
+            }
+
+            let callbacks = BattleAnimator::set_temp_derived_state(
+                &mut simulation.animators,
+                "CHARACTER_HIT",
+                vec![(0, 0).into()],
+                animator_index,
+            );
+
+            simulation.pending_callbacks.extend(callbacks);
+
+            let animator = &mut simulation.animators[animator_index];
+            animator.find_and_apply_to_target(&mut simulation.sprite_trees);
+
+            BattleAnimator::sync_animators(
+                &mut simulation.animators,
+                &mut simulation.sprite_trees,
+                &mut simulation.pending_callbacks,
+                animator_index,
+            );
         }
     }
 

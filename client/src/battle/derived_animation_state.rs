@@ -15,6 +15,15 @@ impl DerivedAnimationFrame {
     }
 }
 
+impl From<(usize, FrameTime)> for DerivedAnimationFrame {
+    fn from((frame_index, duration): (usize, FrameTime)) -> Self {
+        Self {
+            frame_index,
+            duration,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct DerivedAnimationState {
     pub state: String,
