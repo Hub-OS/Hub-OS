@@ -1,0 +1,55 @@
+[package]
+name = "hub_os_android"
+version.workspace = true
+edition = "2021"
+license = "GPL-3.0"
+
+# necessary for android + wasm builds
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hub_os = { path = "../client" }
+packets = { path = "../packets" }
+
+[package.metadata.android]
+package = "dev.hubos.client"
+apk_name = "hub_os"
+build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
+assets = "assets"
+resources = "res"
+
+[package.metadata.android.sdk]
+min_sdk_version = 30
+max_sdk_version = 35
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.CHANGE_WIFI_MULTICAST_STATE"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.WAKE_LOCK"
+
+[package.metadata.android.application.activity]
+launch_mode = "singleInstance"
+orientation = "sensorLandscape"
+
+[package.metadata.android.application]
+label = "Hub OS"
+theme = "@style/Theme"
+icon = "@mipmap/ic_launcher"
+
+# keystores
+[package.metadata.android.signing.dev]
+path = "debug.keystore"
+keystore_password = "android"
+
+[package.metadata.android.signing.debug]
+path = "debug.keystore"
+keystore_password = "android"
+
+[package.metadata.android.signing.release]
+path = "release.keystore"
+keystore_password = "android"

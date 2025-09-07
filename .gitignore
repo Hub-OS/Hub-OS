@@ -2,6 +2,7 @@
 /target
 dist
 *.zip
+/android/assets
 
 # editors
 *.code-workspace

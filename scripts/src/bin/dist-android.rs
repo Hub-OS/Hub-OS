@@ -18,7 +18,7 @@ fn main() -> ExitCode {
 
     let build_output = Command::new("cargo")
         .args(["apk", "build", "--lib", "--release"])
-        .current_dir("./client")
+        .current_dir("./android")
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .output()

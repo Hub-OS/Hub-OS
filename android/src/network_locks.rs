@@ -1,9 +1,10 @@
 use android::{jni, AndroidJVM};
-use framework::winit_game_loop::android;
-use framework::winit_game_loop::WinitPlatformApp;
+use hub_os::framework::logging::log;
+use hub_os::framework::winit_game_loop::android;
+use hub_os::framework::winit_game_loop::WinitPlatformApp;
 
 pub struct AndroidWifiLock {
-    lock_object: jni::objects::GlobalRef,
+    _lock_object: jni::objects::GlobalRef,
 }
 
 // API 29
@@ -54,7 +55,7 @@ pub fn acquire_multicast_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLock>
         jni_env.call_method(&multicast_lock_object, "acquire", "()V", &[])?;
 
         multicast_lock = Some(AndroidWifiLock {
-            lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
+            _lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
         });
 
         log::trace!("Acquired MulticastLock");
@@ -110,7 +111,7 @@ pub fn acquire_low_latency_lock(app: &WinitPlatformApp) -> Option<AndroidWifiLoc
         jni_env.call_method(&multicast_lock_object, "acquire", "()V", &[])?;
 
         wifi_lock = Some(AndroidWifiLock {
-            lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
+            _lock_object: jni_env.new_global_ref(&multicast_lock_object)?,
         });
 
         log::trace!("Acquired Low Latency WifiLock");

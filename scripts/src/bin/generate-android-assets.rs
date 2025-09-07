@@ -1,9 +1,7 @@
 use std::process::{Command, ExitCode};
 
 fn main() -> ExitCode {
-    std::env::set_current_dir("client").unwrap();
-
-    let android_assets_path = "cache/android_assets";
+    let android_assets_path = "android/assets";
     let zip_path = String::from(android_assets_path) + "/resources.zip";
 
     std::fs::create_dir_all(android_assets_path).unwrap();
@@ -12,9 +10,9 @@ fn main() -> ExitCode {
 
     if cfg!(target_os = "windows") {
         zip_command = Command::new("tar");
-        zip_command.args(["-cvf", &zip_path, "resources"]);
+        zip_command.args(["-cvf", &zip_path, "client/resources"]);
     } else {
-        zip_command.args([&zip_path, "resources", "-r", "-D"]);
+        zip_command.args([&zip_path, "client/resources", "-r", "-D"]);
     };
 
     let zip_output = zip_command

@@ -1,5 +1,5 @@
 [workspace]
-members = ["client", "packets", "scripts", "server", "structures"]
+members = ["android", "client", "packets", "scripts", "server", "structures"]
 resolver = "2"
 
 [workspace.package]
