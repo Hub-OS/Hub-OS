@@ -271,19 +271,19 @@ impl Living {
             if entity.time_frozen {
                 hit_props.context.flags |= HitFlag::NO_COUNTER;
 
-                if hit_props.flags & HitFlag::IMPACT != 0 {
+                if hit_props.flags & HitFlag::DRAIN == 0 {
                     hit_props.flags |= HitFlag::SHAKE;
                 }
             }
 
-            if hit_props.flags & HitFlag::IMPACT != 0 {
+            if hit_props.flags & HitFlag::DRAIN == 0 {
                 // used for flashing white
                 living.hit = true
             }
 
             let countered = living.counterable
                 && !living.status_director.is_inactionable(status_registry)
-                && (hit_props.flags & HitFlag::IMPACT) == HitFlag::IMPACT
+                && (hit_props.flags & HitFlag::DRAIN) == 0
                 && (hit_props.context.flags & HitFlag::NO_COUNTER) == 0;
 
             if countered {

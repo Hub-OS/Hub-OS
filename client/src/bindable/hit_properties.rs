@@ -18,7 +18,7 @@ impl Default for HitProperties {
     fn default() -> Self {
         HitProperties {
             damage: 0,
-            flags: HitFlag::FLINCH | HitFlag::IMPACT,
+            flags: HitFlag::NONE,
             durations: Default::default(),
             element: Element::None,
             secondary_element: Element::None,

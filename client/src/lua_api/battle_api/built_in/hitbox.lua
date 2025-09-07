@@ -6,7 +6,7 @@ function Hitbox.new(team, damage)
     local spell = Spell.new(team)
     spell:set_hit_props(HitProps.new(
         damage or 0,
-        Hit.Flinch | Hit.Impact,
+        Hit.Flinch,
         Element.None,
         spell:context(),
         Drag.None

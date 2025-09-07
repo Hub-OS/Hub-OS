@@ -12,7 +12,7 @@ pub mod HitFlag {
     pub const RETAIN_INTANGIBLE: HitFlags = 1;
     pub const NO_COUNTER: HitFlags = 1 << 1;
     pub const DRAG: HitFlags = 1 << 2;
-    pub const IMPACT: HitFlags = 1 << 3;
+    pub const DRAIN: HitFlags = 1 << 3;
     pub const FLINCH: HitFlags = 1 << 4;
     pub const PIERCE_INVIS: HitFlags = 1 << 5;
     pub const PIERCE_GUARD: HitFlags = 1 << 6; // NOTE: this is what we refer to as "true breaking"
@@ -29,7 +29,7 @@ pub mod HitFlag {
         RETAIN_INTANGIBLE,
         NO_COUNTER,
         DRAG,
-        IMPACT,
+        DRAIN,
         FLINCH,
         PIERCE_INVIS,
         PIERCE_GUARD,
@@ -38,10 +38,11 @@ pub mod HitFlag {
 
     pub fn from_str(status_registry: &StatusRegistry, s: &str) -> HitFlags {
         match s {
+            "None" => NONE,
             "RetainIntangible" => RETAIN_INTANGIBLE,
             "NoCounter" => NO_COUNTER,
             "Drag" => DRAG,
-            "Impact" => IMPACT,
+            "Drain" => DRAIN,
             "Flinch" => FLINCH,
             "Flash" => FLASH,
             "Shake" => SHAKE,
