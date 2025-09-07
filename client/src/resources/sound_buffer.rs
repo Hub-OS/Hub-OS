@@ -298,7 +298,7 @@ impl SoundBufferSampler {
 }
 
 impl Source for SoundBufferSampler {
-    fn current_frame_len(&self) -> Option<usize> {
+    fn current_span_len(&self) -> Option<usize> {
         None
     }
 
@@ -320,7 +320,7 @@ impl Source for SoundBufferSampler {
 }
 
 impl Iterator for SoundBufferSampler {
-    type Item = i16;
+    type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
         let sample = self.buffer.data.get(self.index).cloned();
@@ -336,6 +336,9 @@ impl Iterator for SoundBufferSampler {
             }
         }
 
-        sample
+        let sample = sample?;
+        let sample = dasp_sample::Sample::from_sample(sample);
+
+        Some(sample)
     }
 }
