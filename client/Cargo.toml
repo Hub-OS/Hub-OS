@@ -66,13 +66,11 @@ fluent-langneg = "0.14.1"
 fluent-resmgr = "0.0.8"
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
-surf = { version = "2.3", default-features = false, features = ["curl-client"] }
+minreq = { version = "2", features = ["https-native"] }
 opener = "0.8.2"
 
 [target.'cfg(target_os = "android")'.dependencies]
-surf = { version = "2.3", default-features = false, features = [
-  "h1-client-rustls",
-] }
+minreq = { version = "2", features = ["https"] }
 
 # necessary for android + wasm builds
 [lib]

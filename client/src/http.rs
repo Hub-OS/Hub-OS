@@ -1,19 +1,32 @@
 pub async fn request(uri: &str) -> Option<Vec<u8>> {
-    let mut response = surf::get(uri).await.ok()?;
+    let (sender, receiver) = flume::unbounded();
+    let uri = uri.to_string();
 
-    if !response.status().is_success() {
-        log::error!(
-            "Request {uri:?} failed:\n{:?}",
-            response
-                .body_string()
-                .await
-                .unwrap_or_else(|_| String::from("No reason provided"))
-        );
+    std::thread::spawn(move || {
+        let response = minreq::get(uri.clone())
+            .send()
+            .map_err(|err| Some(err.to_string()))
+            .and_then(|response| {
+                if response.status_code == 200 {
+                    Ok(response.into_bytes())
+                } else {
+                    Err(response.as_str().map(|s| s.to_string()).ok())
+                }
+            })
+            .inspect_err(|err| {
+                log::error!(
+                    "Request {uri:?} failed:\n{:?}",
+                    err.as_ref()
+                        .map(|s| s.as_str())
+                        .unwrap_or("No reason provided")
+                );
+            })
+            .ok();
 
-        return None;
-    }
+        let _ = sender.send(response);
+    });
 
-    response.body_bytes().await.ok()
+    receiver.recv_async().await.unwrap()
 }
 
 pub async fn request_json(uri: &str) -> Option<serde_json::Value> {
