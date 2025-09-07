@@ -43,7 +43,7 @@ use crate::scenes::BootScene;
 use clap::Parser;
 use framework::logging::*;
 use framework::prelude::*;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use supporting_service::*;
 
 // exported for the android crate
@@ -76,7 +76,7 @@ pub fn main(app: WinitPlatformApp) -> anyhow::Result<()> {
 
     log::info!("Version {}", env!("CARGO_PKG_VERSION"));
 
-    let random_title = TITLE_LIST.choose(&mut rand::thread_rng()).unwrap();
+    let random_title = TITLE_LIST.choose(&mut rand::rng()).unwrap();
     let game = Game::<WinitGameLoop>::new(random_title, (RESOLUTION * 4).into())
         .with_platform_app(app)
         .with_resizable(true)

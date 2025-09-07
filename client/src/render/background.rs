@@ -172,7 +172,7 @@ impl Background {
             .iter()
             .map(|(path, _)| path)
             .filter(|path| *path != "VELOCITY")
-            .choose(&mut rand::thread_rng())
+            .choose(&mut rand::rng())
         else {
             return Err(animator);
         };

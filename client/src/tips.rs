@@ -18,7 +18,7 @@ pub enum Tip {
 
 impl Tip {
     pub fn log_random(game_io: &GameIO) {
-        use rand::seq::SliceRandom;
+        use rand::seq::IndexedRandom;
 
         let tips = &[
             Tip::ChangeDisplayName,
@@ -34,7 +34,7 @@ impl Tip {
             Tip::MoveCardsInBulk,
         ];
 
-        let tip = tips.choose(&mut rand::thread_rng()).unwrap();
+        let tip = tips.choose(&mut rand::rng()).unwrap();
 
         let globals = game_io.resource::<Globals>().unwrap();
         let message = tip.create_message(game_io).into();

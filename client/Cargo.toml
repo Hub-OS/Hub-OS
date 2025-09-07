@@ -15,13 +15,13 @@ chrono = "0.4"
 flume = "0.11"
 slotmap = "1"
 hecs = "0.10"
-itertools = "0.12"
+itertools = "0.14"
 log = "0.4"
 rollback_mlua = { git = "https://github.com/Hub-OS/rollback-mlua" }
 num-derive = "0.4"
 num-traits = "0.2"
-rand = { version = "0.8", features = ["getrandom"] }
-rand_xoshiro = "0.6"
+rand = { version = "0.9", features = ["os_rng"] }
+rand_xoshiro = "0.7"
 rmp-serde = "1.1"
 rodio = { version = "0.21", default-features = false, features = [
   "playback",
@@ -48,7 +48,7 @@ futures = { version = "0.3", default-features = false, features = [
   "async-await"
 ] }
 walkdir = "2"
-toml = "0.8"
+toml = "0.9"
 serde_json = "1.0"
 enum-map = "2"
 smallvec = "1.10"

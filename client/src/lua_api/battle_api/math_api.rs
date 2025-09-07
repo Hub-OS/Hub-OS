@@ -22,7 +22,7 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
         let rng = &mut api_ctx.simulation.rng;
 
         let Some(mut n) = n else {
-            return lua.pack_multi(rng.gen::<f32>());
+            return lua.pack_multi(rng.random::<f32>());
         };
 
         let Some(mut m) = m else {
@@ -32,13 +32,13 @@ pub fn inject_math_api(lua_api: &mut BattleLuaApi) {
                 )));
             }
 
-            return lua.pack_multi(rng.gen_range(1..=n));
+            return lua.pack_multi(rng.random_range(1..=n));
         };
 
         if m < n {
             std::mem::swap(&mut n, &mut m);
         }
 
-        lua.pack_multi(rng.gen_range(n..=m))
+        lua.pack_multi(rng.random_range(n..=m))
     });
 }

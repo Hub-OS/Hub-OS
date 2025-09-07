@@ -333,7 +333,7 @@ impl CreditsFun {
             .filter(|id| **id != globals.global_save.selected_character)
             .cloned()
             .collect();
-        character_pool.shuffle(&mut rand::thread_rng());
+        character_pool.shuffle(&mut rand::rng());
 
         let mut entities = hecs::World::new();
         let main_character = Self::spawn_character(
@@ -450,7 +450,7 @@ impl CreditsFun {
     fn pull_character(&mut self) -> Option<PackageId> {
         if self.character_pool.is_empty() {
             std::mem::swap(&mut self.character_pool, &mut self.used_pool);
-            self.character_pool.shuffle(&mut rand::thread_rng());
+            self.character_pool.shuffle(&mut rand::rng());
         }
 
         self.character_pool.pop()

@@ -209,7 +209,7 @@ impl Camera {
             // Drop off to zero by end of shake
             let curr_stress = self.shake_stress * (1.0 - progress);
 
-            let angle = rand::thread_rng().gen::<f32>() * std::f32::consts::TAU;
+            let angle = rand::rng().random::<f32>() * std::f32::consts::TAU;
 
             let offset = Vec2::new(angle.sin() * curr_stress, angle.cos() * curr_stress);
 
