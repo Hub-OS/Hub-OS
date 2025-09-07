@@ -6,6 +6,7 @@ use crate::Restrictions;
 use framework::prelude::GameIO;
 use packets::structures::{PackageCategory, PackageId, Uuid};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Deck {
@@ -167,5 +168,92 @@ impl Deck {
         }
 
         results
+    }
+
+    pub fn export_string(&self, game_io: &GameIO) -> String {
+        // condense cards
+        let globals = game_io.resource::<Globals>().unwrap();
+        let card_packages = &globals.card_packages;
+        let mut card_map = HashMap::new();
+
+        for card in &self.cards {
+            if let Some((_, count)) = card_map.get_mut(card) {
+                *count += 1;
+                continue;
+            }
+
+            let Some(package) = card_packages.package(PackageNamespace::Local, &card.package_id)
+            else {
+                continue;
+            };
+
+            card_map.insert(card, (package, 1));
+        }
+
+        // sort cards
+        let mut card_list: Vec<_> = card_map.into_iter().collect();
+
+        card_list.sort_by_key(|(card, (package, _))| {
+            (
+                package.card_properties.card_class,
+                &card.package_id,
+                &card.code,
+            )
+        });
+
+        // generate output
+        use std::fmt::Write;
+
+        let mut text = String::new();
+
+        for (card, (package, count)) in card_list {
+            let id = &card.package_id;
+            let name = &package.card_properties.short_name;
+            let code = &card.code;
+
+            let _ = writeln!(&mut text, "{count} {name:<8.8} {code} {id}");
+        }
+
+        text
+    }
+
+    pub fn import_string(text: String) -> Option<Deck> {
+        let mut deck = Deck::default();
+
+        for line in text.lines() {
+            if line.is_empty() {
+                continue;
+            }
+
+            // read count
+            let count_end = line.find(" ")?;
+            let count: u8 = line[0..count_end].parse().ok()?;
+
+            // read name
+            let name_start = count_end + 1;
+            let name_end = name_start + 8;
+
+            if line.len() < name_end + 1 {
+                // must have room for the name and a space for the next read
+                return None;
+            }
+
+            // read code
+            let code_start = name_end + 1;
+            let code_end = line[code_start..].find(" ")? + code_start;
+            let code = &line[code_start..code_end];
+
+            // read id
+            let id = &line[code_end + 1..];
+
+            let card = Card {
+                package_id: id.into(),
+                code: code.into(),
+            };
+
+            deck.cards.extend(std::iter::repeat_n(card, count as _));
+        }
+
+        Some(deck)
     }
 }

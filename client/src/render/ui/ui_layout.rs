@@ -257,6 +257,15 @@ impl UiLayout {
         self.bounds.set_position(position);
     }
 
+    pub fn get_child_index(
+        &self,
+        parent: GenerationalIndex,
+        index: usize,
+    ) -> Option<GenerationalIndex> {
+        let parent = self.tree.get_node(parent)?;
+        parent.children().get(index).copied()
+    }
+
     pub fn set_children(&mut self, index: GenerationalIndex, mut children: Vec<UiLayoutNode>) {
         self.clear_children(index);
 

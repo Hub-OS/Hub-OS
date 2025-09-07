@@ -26,8 +26,16 @@ deck-list-option-new = NEW
 deck-list-option-edit = EDIT
 deck-list-option-equip = EQUIP
 deck-list-option-change-name = CHG NAME
+deck-list-option-more = MORE
+deck-list-option-back = BACK{"    "}
+deck-list-option-clone = CLONE
 deck-list-option-delete = DELETE
 deck-list-delete-question = Delete {$name}?
+deck-list-option-export = EXPORT
+deck-list-copied-to-clipboard = Copied to clipboard.
+deck-list-copied-to-clipboard-failed = Failed to copy to clipboard.
+deck-list-option-import = IMPORT
+deck-list-import-failed = Failed to read from clipboard.
 deck-list-new-deck-name = NewFldr
 
 deck-editor-scene-title = Folder Edit

@@ -211,6 +211,14 @@ impl<T: Copy + 'static> ContextMenu<T> {
         self.ui_layout.set_position(position);
     }
 
+    pub fn set_selected_index(&mut self, index: usize) {
+        let index = self.ui_layout.get_child_index(self.body_index, index);
+
+        if let Some(index) = index {
+            self.ui_layout.set_focused_index(Some(index));
+        }
+    }
+
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
         if !self.open {
             return;

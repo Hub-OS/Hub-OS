@@ -6,11 +6,11 @@ use crate::render::*;
 use crate::resources::*;
 use crate::saves::{Deck, GlobalSave};
 use framework::prelude::*;
+use packets::structures::Uuid;
 
 enum Event {
     Rename(String),
     Delete,
-    CloseTextbox,
 }
 
 #[derive(Clone, Copy)]
@@ -19,7 +19,38 @@ enum DeckOption {
     Equip,
     ChangeName,
     New,
+    More,
+    Back,
+    Clone,
+    Export,
+    Import,
     Delete,
+}
+
+impl DeckOption {
+    const FRESH_PAGE: &[(&'static str, DeckOption)] = &[
+        ("deck-list-option-new", DeckOption::New),
+        #[cfg(not(target_os = "android"))]
+        ("deck-list-option-import", DeckOption::Import),
+    ];
+
+    const PAGE_1: &[(&'static str, DeckOption)] = &[
+        ("deck-list-option-edit", DeckOption::Edit),
+        ("deck-list-option-equip", DeckOption::Equip),
+        ("deck-list-option-change-name", DeckOption::ChangeName),
+        ("deck-list-option-new", DeckOption::New),
+        ("deck-list-option-more", DeckOption::More),
+    ];
+
+    const PAGE_2: &[(&'static str, DeckOption)] = &[
+        ("deck-list-option-back", DeckOption::Back),
+        ("deck-list-option-clone", DeckOption::Clone),
+        #[cfg(not(target_os = "android"))]
+        ("deck-list-option-export", DeckOption::Export),
+        #[cfg(not(target_os = "android"))]
+        ("deck-list-option-import", DeckOption::Import),
+        ("deck-list-option-delete", DeckOption::Delete),
+    ];
 }
 
 pub struct DeckListScene {
@@ -217,6 +248,10 @@ impl Scene for DeckListScene {
             return;
         }
 
+        if self.textbox.is_complete() {
+            self.textbox.close();
+        }
+
         self.textbox.update(game_io);
 
         handle_events(self, game_io);
@@ -368,9 +403,6 @@ fn handle_events(scene: &mut DeckListScene, game_io: &mut GameIO) {
                 create_new_deck(scene, game_io);
             }
         }
-        Ok(Event::CloseTextbox) => {
-            scene.textbox.close();
-        }
         Err(_) => {}
     }
 }
@@ -454,21 +486,9 @@ fn handle_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         let context_menu = &mut scene.context_menu;
 
         if total_decks == 0 {
-            context_menu.set_and_translate_options(
-                game_io,
-                &[("deck-list-option-change-name", DeckOption::New)],
-            );
+            context_menu.set_and_translate_options(game_io, DeckOption::FRESH_PAGE);
         } else {
-            context_menu.set_and_translate_options(
-                game_io,
-                &[
-                    ("deck-list-option-edit", DeckOption::Edit),
-                    ("deck-list-option-equip", DeckOption::Equip),
-                    ("deck-list-option-change-name", DeckOption::ChangeName),
-                    ("deck-list-option-new", DeckOption::New),
-                    ("deck-list-option-delete", DeckOption::Delete),
-                ],
-            );
+            context_menu.set_and_translate_options(game_io, DeckOption::PAGE_1);
         }
 
         scene.context_menu.open();
@@ -498,12 +518,11 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         DeckOption::ChangeName => {
             let event_sender = scene.event_sender.clone();
             let callback = move |name: String| {
-                let event = if !name.is_empty() {
-                    Event::Rename(name)
-                } else {
-                    Event::CloseTextbox
-                };
+                if name.is_empty() {
+                    return;
+                }
 
+                let event = Event::Rename(name);
                 event_sender.send(event).unwrap();
             };
 
@@ -518,6 +537,92 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
             scene.textbox.open();
         }
         DeckOption::New => create_new_deck(scene, game_io),
+        DeckOption::More => {
+            let context_menu = &mut scene.context_menu;
+            context_menu.set_and_translate_options(game_io, DeckOption::PAGE_2);
+        }
+        DeckOption::Back => {
+            let context_menu = &mut scene.context_menu;
+            context_menu.set_and_translate_options(game_io, DeckOption::PAGE_1);
+            context_menu.set_selected_index(DeckOption::PAGE_1.len() - 1);
+        }
+        DeckOption::Clone => {
+            let global_save = &mut globals.global_save;
+
+            let index = scene.deck_scroll_tracker.selected_index();
+
+            // clone deck
+            let mut deck = global_save.decks[index].clone();
+            deck.uuid = Uuid::new_v4();
+            global_save.decks.insert(index + 1, deck);
+
+            // clone validity
+            let deck_validity = scene.deck_validities[index].clone();
+            scene.deck_validities.insert(index + 1, deck_validity);
+
+            // update scroll tracker
+            let len = global_save.decks.len();
+            scene.deck_scroll_tracker.set_total_items(len);
+
+            global_save.save();
+        }
+        DeckOption::Export => {
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            let index = scene.deck_scroll_tracker.selected_index();
+            let deck = &globals.global_save.decks[index];
+            let text = deck.export_string(game_io);
+            let copied = game_io.input_mut().set_clipboard_text(text);
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            let message = if copied {
+                globals.translate("deck-list-copied-to-clipboard")
+            } else {
+                globals.translate("deck-list-copied-to-clipboard-failed")
+            };
+            let textbox_interface = TextboxMessage::new(message);
+
+            scene.textbox.push_interface(textbox_interface);
+            scene.textbox.open();
+        }
+        DeckOption::Import => {
+            let next_index = scene.deck_scroll_tracker.selected_index() + 1;
+            let insert_index = globals.global_save.decks.len().min(next_index);
+
+            let text = game_io.input_mut().request_clipboard_text();
+
+            if let Some(mut deck) = Deck::import_string(text) {
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                deck.name = globals.translate("deck-list-new-deck-name");
+
+                // validate deck
+                let deck_restrictions = globals.restrictions.base_deck_restrictions();
+                let ns = PackageNamespace::Local;
+                let validity = deck_restrictions.validate_deck(game_io, ns, &deck);
+                scene.deck_validities.insert(insert_index, validity);
+
+                // update total cards for the card scroll tracker
+                scene.card_scroll_tracker.set_total_items(deck.cards.len());
+
+                // save deck
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+                let decks = &mut globals.global_save.decks;
+                decks.insert(insert_index, deck);
+
+                // update deck scroll tracker
+                scene.deck_scroll_tracker.set_total_items(decks.len());
+                scene.deck_scroll_tracker.set_selected_index(insert_index);
+            } else {
+                let globals = game_io.resource::<Globals>().unwrap();
+
+                let message = globals.translate("deck-list-import-failed");
+                let textbox_interface = TextboxMessage::new(message);
+
+                scene.textbox.push_interface(textbox_interface);
+                scene.textbox.open();
+            }
+        }
         DeckOption::Delete => {
             let global_save = &globals.global_save;
 
@@ -531,12 +636,11 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
 
             let event_sender = scene.event_sender.clone();
             let textbox_interface = TextboxQuestion::new(game_io, question, move |response| {
-                let event = if response {
-                    Event::Delete
-                } else {
-                    Event::CloseTextbox
-                };
+                if !response {
+                    return;
+                }
 
+                let event = Event::Delete;
                 event_sender.send(event).unwrap();
             });
 
@@ -545,7 +649,9 @@ fn handle_context_menu_input(scene: &mut DeckListScene, game_io: &mut GameIO) {
         }
     }
 
-    scene.context_menu.close();
+    if !matches!(selection, DeckOption::More | DeckOption::Back) {
+        scene.context_menu.close();
+    }
 }
 
 fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
@@ -553,14 +659,18 @@ fn create_new_deck(scene: &mut DeckListScene, game_io: &mut GameIO) {
     let name = globals.translate("deck-list-new-deck-name");
 
     let global_save = &mut globals.global_save;
-    global_save.decks.push(Deck::new(name));
+
+    let deck_scroll_tracker = &mut scene.deck_scroll_tracker;
+    let next_index = deck_scroll_tracker.selected_index() + 1;
+    let insert_index = global_save.decks.len().min(next_index);
+
+    global_save.decks.insert(insert_index, Deck::new(name));
     scene.deck_validities.push(DeckValidity::default());
 
     let total_decks = global_save.decks.len();
 
-    let deck_scroll_tracker = &mut scene.deck_scroll_tracker;
     deck_scroll_tracker.set_total_items(total_decks);
-    deck_scroll_tracker.set_selected_index(total_decks - 1);
+    deck_scroll_tracker.set_selected_index(insert_index);
 
     scene.card_scroll_tracker.set_total_items(0);
 }

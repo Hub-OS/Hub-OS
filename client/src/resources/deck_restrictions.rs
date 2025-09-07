@@ -112,7 +112,7 @@ impl DeckRestrictions {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct DeckValidity {
     is_valid: bool,
     valid_regular: bool,
