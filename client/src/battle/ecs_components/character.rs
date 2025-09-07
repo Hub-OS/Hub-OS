@@ -67,6 +67,7 @@ impl Character {
         let elemental_weakness_aux_prop = AuxProp::new()
             .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
             .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_requirement(AuxRequirement::HitFlagsAbsent(HitFlag::DRAIN))
             .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
                 let entities = &mut simulation.entities;
                 let entity = entities.query_one_mut::<&Entity>(id.into()).unwrap();
