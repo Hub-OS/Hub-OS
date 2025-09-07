@@ -204,14 +204,14 @@ impl DefenseRule {
 
 #[derive(Clone, Copy)]
 pub struct Defense {
-    pub impact_blocked: bool,
+    pub responded: bool,
     pub damage_blocked: bool,
 }
 
 impl Defense {
     pub fn new() -> Self {
         Self {
-            impact_blocked: false,
+            responded: false,
             damage_blocked: false,
         }
     }
