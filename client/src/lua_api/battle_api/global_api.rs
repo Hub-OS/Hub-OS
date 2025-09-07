@@ -210,8 +210,8 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     // defense_priority_table.set("Internal", DefensePriority::Internal)?; // internal use only
     // defense_priority_table.set("Intangible", DefensePriority::Intangible)?; // excluded as modders should use set_intangible
     defense_priority_table.set("Barrier", DefensePriority::Barrier)?;
-    defense_priority_table.set("Body", DefensePriority::Body)?;
     defense_priority_table.set("Action", DefensePriority::Action)?;
+    defense_priority_table.set("Body", DefensePriority::Body)?;
     defense_priority_table.set("Trap", DefensePriority::Trap)?;
     defense_priority_table.set("Last", DefensePriority::Last)?;
     globals.set("DefensePriority", defense_priority_table)?;

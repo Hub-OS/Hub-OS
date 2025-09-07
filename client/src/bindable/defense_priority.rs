@@ -6,8 +6,8 @@ pub enum DefensePriority {
     Internal,
     Intangible,
     Barrier,
-    Body,
     Action,
+    Body,
     Trap,
     Last, // special case, appends instead of replaces
 }
