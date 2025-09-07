@@ -53,6 +53,8 @@ impl ResourcePaths {
     pub const LOW_HP_SFX: &'static str = "resources/sfx/low_hp.ogg";
     pub const PLAYER_DELETED_SFX: &'static str = "resources/sfx/player_deleted.ogg";
     pub const HURT_SFX: &'static str = "resources/sfx/hurt.ogg";
+    pub const HURT_OPPONENT_SFX: &'static str = "resources/sfx/hurt_opponent.ogg";
+    pub const HURT_OBSTACLE_SFX: &'static str = "resources/sfx/hurt_obstacle.ogg";
     pub const EXPLODE_SFX: &'static str = "resources/sfx/explode.ogg";
     pub const DARK_CARD_SFX: &'static str = "resources/sfx/dark_card.ogg";
     pub const INDICATE_SFX: &'static str = "resources/sfx/indicate.ogg";

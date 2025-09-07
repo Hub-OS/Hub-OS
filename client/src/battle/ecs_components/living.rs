@@ -194,6 +194,7 @@ impl Living {
 
         // start processing hits
         let defense_rules = living.defense_rules.clone();
+        let mut play_hurt_sfx = false;
 
         for hit_props in &mut hit_prop_list {
             // filter statuses through defense rules
@@ -340,12 +341,26 @@ impl Living {
                     }
                 }
             }
+
+            play_hurt_sfx |= hit_props.flags & HitFlag::DRAIN == 0;
         }
 
-        let living = simulation
+        let (living, obstacle) = simulation
             .entities
-            .query_one_mut::<&mut Living>(entity_id.into())
+            .query_one_mut::<(&mut Living, Option<&Obstacle>)>(entity_id.into())
             .unwrap();
+
+        if play_hurt_sfx && !simulation.is_resimulation {
+            let globals = game_io.resource::<Globals>().unwrap();
+
+            if simulation.local_player_id == entity_id {
+                globals.audio.play_sound(&globals.sfx.hurt);
+            } else if obstacle.is_some() {
+                globals.audio.play_sound(&globals.sfx.hurt_obstacle);
+            } else {
+                globals.audio.play_sound(&globals.sfx.hurt_opponent);
+            }
+        }
 
         // apply post hit aux props
         let mut health_modifier = 0;
