@@ -1,6 +1,8 @@
 pub async fn request(uri: &str) -> Option<Vec<u8>> {
     let (sender, receiver) = flume::unbounded();
-    let uri = uri.to_string();
+
+    // our uri encoder preserves spaces
+    let uri = uri.replace(' ', "%20");
 
     std::thread::spawn(move || {
         let response = minreq::get(uri.clone())
