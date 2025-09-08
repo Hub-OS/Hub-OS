@@ -457,11 +457,9 @@ impl Living {
     ) {
         let entities = &mut simulation.entities;
         let mut pending_movements = Vec::new();
-        let mut pending_animation = Vec::new();
+        let mut pending_animation: Vec<EntityId> = Vec::new();
 
-        for (id, (entity, living, movement)) in
-            entities.query_mut::<(&mut Entity, &mut Living, Option<&Movement>)>()
-        {
+        for (id, (living, movement)) in entities.query_mut::<(&mut Living, Option<&Movement>)>() {
             if movement.is_some() {
                 continue;
             }
@@ -474,7 +472,7 @@ impl Living {
 
             if direction.is_none() {
                 // drag ended, animate
-                pending_animation.push(entity.animator_index);
+                pending_animation.push(id.into());
                 continue;
             }
 
@@ -502,9 +500,7 @@ impl Living {
             {
                 let entities = &mut simulation.entities;
 
-                if let Ok((entity, living)) =
-                    entities.query_one_mut::<(&mut Entity, &mut Living)>(id)
-                {
+                if let Ok(living) = entities.query_one_mut::<&mut Living>(id) {
                     living.status_director.end_drag();
 
                     if old_lockout > 0 {
@@ -514,7 +510,7 @@ impl Living {
                             .set_remaining_drag_lockout(old_lockout);
                     }
 
-                    pending_animation.push(entity.animator_index);
+                    pending_animation.push(id.into());
                 }
 
                 continue;
@@ -524,8 +520,14 @@ impl Living {
             simulation.entities.insert_one(id, movement).unwrap();
         }
 
-        for animator_index in pending_animation {
+        for entity_id in pending_animation {
+            let entities = &mut simulation.entities;
+            let Ok(entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                continue;
+            };
+
             // display CHARACTER_HIT
+            let animator_index = entity.animator_index;
             let animator = &mut simulation.animators[animator_index];
 
             if !animator.has_state("CHARACTER_HIT") {
@@ -550,6 +552,17 @@ impl Living {
                 &mut simulation.pending_callbacks,
                 animator_index,
             );
+
+            // queue an action to reset
+            let state = String::from("CHARACTER_HIT");
+            let Some(action_index) = Action::create(game_io, simulation, state, entity_id) else {
+                continue;
+            };
+
+            let action = &mut simulation.actions[action_index];
+            action.derived_frames = Some(vec![(0, 0).into()]);
+
+            Action::queue_action(game_io, resources, simulation, entity_id, action_index);
         }
     }
 
