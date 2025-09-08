@@ -177,9 +177,7 @@ impl AudioManager {
 
         let source = buffer.create_sampler().amplify(self.sfx_volume);
 
-        let sink = rodio::Sink::connect_new(stream.mixer());
-        sink.append(source);
-        sink.detach();
+        stream.mixer().add(source);
     }
 
     pub fn play_sound_with_behavior(&self, buffer: &SoundBuffer, behavior: AudioBehavior) {
