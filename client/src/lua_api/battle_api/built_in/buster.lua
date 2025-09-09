@@ -128,9 +128,11 @@ function Buster.new(user, charged, damage)
             move_timer = 0
         end
 
-        spell.on_collision_func = function(self, entity)
-            Resources.play_audio(Resources.game_folder() .. "resources/sfx/hurt.ogg");
+        spell.on_collision_func = function()
+            spell:delete()
+        end
 
+        spell.on_attack_func = function(self, entity)
             local hit_x = 0
             local hit_y = entity:height()
             local state = "HIT"
@@ -155,7 +157,6 @@ function Buster.new(user, charged, damage)
             end)
 
             Field.spawn(hit_artifact, spell:current_tile())
-            spell:delete()
         end
 
         spell.on_delete_func = function()
