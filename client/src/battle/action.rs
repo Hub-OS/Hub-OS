@@ -732,7 +732,7 @@ impl Action {
             }
 
             // delete derived state
-            if action.derived_frames.is_some() {
+            if action.executed && action.derived_frames.is_some() {
                 BattleAnimator::remove_state(
                     &mut simulation.animators,
                     &mut simulation.pending_callbacks,
