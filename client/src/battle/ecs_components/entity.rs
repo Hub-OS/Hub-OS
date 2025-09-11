@@ -203,7 +203,7 @@ impl Entity {
     ) {
         let Ok((entity, action_queue)) = simulation
             .entities
-            .query_one_mut::<(&mut Entity, Option<&ActionQueue>)>(id.into())
+            .query_one_mut::<(&mut Entity, Option<&mut ActionQueue>)>(id.into())
         else {
             return;
         };
@@ -220,7 +220,7 @@ impl Entity {
             .collect();
 
         if let Some(action_queue) = action_queue {
-            action_indices.extend(&action_queue.pending);
+            action_indices.extend(action_queue.pending.drain(..));
         }
 
         // mark deleted
