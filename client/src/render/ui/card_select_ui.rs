@@ -236,6 +236,13 @@ impl CardSelectUi {
         card_frame_node.apply_animation(&self.animator);
     }
 
+    pub fn reset_card_frame(&mut self) {
+        let card_frame_node = &mut self.sprites[self.card_frame_index];
+
+        self.animator.set_state("STANDARD_FRAME");
+        card_frame_node.apply_animation(&self.animator);
+    }
+
     pub fn draw_tree(&mut self, sprite_queue: &mut SpriteColorQueue) {
         self.sprites.draw(sprite_queue)
     }

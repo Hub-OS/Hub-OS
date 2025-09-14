@@ -305,6 +305,8 @@ impl State for CardSelectState {
         // update frame
         if let SelectedItem::Card(i) = selected_item {
             self.ui.update_card_frame(game_io, player, i);
+        } else {
+            self.ui.reset_card_frame();
         }
 
         // draw sprite tree
