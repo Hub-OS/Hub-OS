@@ -1,4 +1,7 @@
-use crate::battle::{BattleSimulation, Entity, Player, PlayerSetup, SharedBattleResources};
+use crate::battle::{
+    BattleSimulation, Entity, EntityShadow, EntityShadowHidden, Player, PlayerSetup,
+    SharedBattleResources,
+};
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::packages::PlayerPackage;
 use crate::render::{Animator, SpriteNode};
@@ -113,50 +116,78 @@ impl PlayerFallbackResources {
             return Default::default();
         };
 
+        // resolve shadow sprite tree index before ggathering sync nodes
+        type ShadowQuery<'a> = hecs::Without<&'a EntityShadow, &'a EntityShadowHidden>;
+        let entities = &mut simulation.entities;
+
+        let shadow_sprite_tree_index = entities
+            .query_one_mut::<ShadowQuery>(entity_id.into())
+            .ok()
+            .map(|shadow| shadow.sprite_tree_index);
+
         // grab the entitiy
         let (entity, player) = simulation
             .entities
             .query_one_mut::<(&Entity, &Player)>(entity_id.into())
             .unwrap();
 
-        let Some(sprite_tree) = simulation.sprite_trees.get(entity.sprite_tree_index) else {
-            return Default::default();
-        };
-
         // take the animator
         let battle_animator = simulation.animators.remove(entity.animator_index).unwrap();
 
-        // retain direct synced sprites
+        // retain direct synced sprites and the synced shadow sprite
         let synced = battle_animator
             .synced_animators()
             .iter()
             .flat_map(|animator_index| {
                 let battle_animator = simulation.animators.remove(*animator_index).unwrap();
+                let target_tree_index = battle_animator.target_tree_index()?;
 
-                if entity.sprite_tree_index != battle_animator.target_tree_index()? {
+                let is_shadow = Some(target_tree_index) == shadow_sprite_tree_index;
+
+                if target_tree_index != entity.sprite_tree_index && !is_shadow {
                     return None;
                 }
 
+                let sprite_tree = simulation.sprite_trees.get(target_tree_index)?;
                 let sprite_index = battle_animator.target_sprite_index()?;
+
                 let sprite_tree_node = sprite_tree.get_node(sprite_index)?;
 
-                if sprite_tree_node.parent_index() != Some(sprite_tree.root_index()) {
+                // avoid non root and indirect sprites
+                if sprite_tree_node
+                    .parent_index()
+                    .is_some_and(|index| index != sprite_tree.root_index())
+                {
                     return None;
                 }
 
                 let sprite_node = sprite_tree_node.value();
 
+                if !sprite_node.visible() {
+                    return None;
+                }
+
+                let layer = if is_shadow {
+                    i32::MAX
+                } else {
+                    sprite_node.layer()
+                };
+
                 Some(PlayerFallbackResource {
                     texture_path: sprite_node.texture_path().to_string(),
                     animator: battle_animator.take_animator(),
                     palette_path: sprite_node.palette_path().map(String::from),
-                    layer: sprite_node.layer(),
+                    layer,
                     offset: sprite_node.offset(),
                     use_parent_shader: sprite_node.using_parent_shader()
                         || sprite_node.using_root_shader(),
                 })
             })
             .collect();
+
+        let Some(sprite_tree) = simulation.sprite_trees.get(entity.sprite_tree_index) else {
+            return Default::default();
+        };
 
         let sprite_node = sprite_tree.root();
 
