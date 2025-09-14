@@ -112,8 +112,10 @@ impl Deck {
         // Shuffle to obtain random movement order
         non_giga_vec.shuffle(rng);
 
-        // Cycle the initial 10 starting at index 0
-        for i in 0..=9 {
+        // Cycle the initial 10, skipping the first index if it's a regular card
+        let initial_index = if self.regular_index.is_some() { 1 } else { 0 };
+
+        for i in initial_index..10 {
             // Get the card we're on, skip loop if it's blank somehow
             let card = &self.cards[i];
             let Some(package) = globals
