@@ -487,7 +487,9 @@ impl Player {
         if let Some(card_props) = character.cards.last() {
             let input = &simulation.inputs[player.index];
 
-            if input.is_down(Input::UseCard) || input.was_released(Input::UseCard) {
+            if card_props.can_charge
+                && (input.is_down(Input::UseCard) || input.was_released(Input::UseCard))
+            {
                 let card_props = card_props.clone();
 
                 card_charge_time = Self::resolve_card_charger(

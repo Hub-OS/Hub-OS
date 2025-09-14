@@ -185,6 +185,9 @@ impl Package for CardPackage {
 
         if let Some(can_charge) = meta.can_charge {
             package.card_properties.can_charge = can_charge;
+        } else {
+            package.card_properties.can_charge =
+                package.card_properties.card_class != CardClass::Recipe;
         }
 
         package.card_properties.time_freeze = meta.time_freeze;
