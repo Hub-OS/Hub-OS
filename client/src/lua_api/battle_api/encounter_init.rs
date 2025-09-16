@@ -5,7 +5,7 @@ use crate::battle::{
     BattleInitMusic, BattleProgress, BattleScriptContext, BattleSimulation, Character, Entity,
     SharedBattleResources, TileState, TileStateAnimationSupport,
 };
-use crate::bindable::{CharacterRank, EntityId};
+use crate::bindable::{CharacterRank, EntityId, TimeFreezeChainLimit};
 use crate::lua_api::helpers::{absolute_path, inherit_metatable, lua_value_to_string};
 use crate::packages::PackageId;
 use crate::render::{Animator, Background};
@@ -283,6 +283,21 @@ pub fn inject_encounter_init_api(lua_api: &mut BattleLuaApi) {
 
         lua.pack_multi(())
     });
+
+    lua_api.add_dynamic_function(
+        ENCOUNTER_TABLE,
+        "set_time_freeze_chain_limit",
+        |api_ctx, lua, params| {
+            let (_, chain_limit): (rollback_mlua::Table, TimeFreezeChainLimit) =
+                lua.unpack_multi(params)?;
+
+            let mut api_ctx = api_ctx.borrow_mut();
+            let simulation = &mut api_ctx.simulation;
+            simulation.time_freeze_tracker.set_chain_limit(chain_limit);
+
+            lua.pack_multi(())
+        },
+    );
 
     lua_api.add_dynamic_function(
         ENCOUNTER_TABLE,

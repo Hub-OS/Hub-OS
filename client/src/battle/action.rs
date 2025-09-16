@@ -570,6 +570,13 @@ impl Action {
 
             // execute
             if !action.executed {
+                if time_is_frozen
+                    && simulation.time_freeze_tracker.active_action_index() != Some(action_index)
+                {
+                    // avoid starting pending time freeze actions
+                    continue;
+                }
+
                 if movement.is_some() {
                     continue;
                 }

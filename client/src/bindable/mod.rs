@@ -24,6 +24,7 @@ mod math_expression;
 mod sprite_color_mode;
 mod team;
 mod tile_highlight;
+mod time_freeze_chain_limit;
 
 pub use action_lockout::*;
 pub use animator_playback_mode::*;
@@ -51,6 +52,7 @@ pub use math_expression::*;
 pub use sprite_color_mode::*;
 pub use team::*;
 pub use tile_highlight::*;
+pub use time_freeze_chain_limit::*;
 
 pub use packets::structures::BlockColor;
 pub use packets::structures::Direction;

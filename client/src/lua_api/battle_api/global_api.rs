@@ -1,5 +1,5 @@
 use crate::battle::ActionType;
-use crate::bindable::{AudioBehavior, LuaVector};
+use crate::bindable::{AudioBehavior, LuaVector, TimeFreezeChainLimit};
 use crate::render::FrameTime;
 use crate::resources::ResourcePaths;
 use rollback_mlua::LuaSerdeExt;
@@ -10,6 +10,12 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
     globals.set("load", rollback_mlua::Nil)?;
     globals.set("loadfile", rollback_mlua::Nil)?;
     globals.set("dofile", rollback_mlua::Nil)?;
+
+    let tfc_chain_limit_table = lua.create_table()?;
+    tfc_chain_limit_table.set("OnePerEntity", TimeFreezeChainLimit::OnePerEntity)?;
+    tfc_chain_limit_table.set("OnePerTeam", TimeFreezeChainLimit::OnePerTeam)?;
+    tfc_chain_limit_table.set("Unlimited", TimeFreezeChainLimit::Unlimited)?;
+    globals.set("TimeFreezeChainLimit", tfc_chain_limit_table)?;
 
     let element_table = lua.create_table()?;
     element_table.set("None", Element::None)?;

@@ -2,7 +2,7 @@ use super::{
     Action, Artifact, BattleCallback, BattleSimulation, Character, Entity, Player,
     SharedBattleResources, TimeFreezeEntityBackup,
 };
-use crate::bindable::{CardProperties, EntityId, Team};
+use crate::bindable::{CardProperties, EntityId, Team, TimeFreezeChainLimit};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
@@ -126,6 +126,7 @@ pub struct TimeFreezeTracker {
     previous_state: TimeFreezeState,
     should_defrost: bool,
     skipping_intros: bool,
+    chain_limit: TimeFreezeChainLimit,
     character_backup: Option<TimeFreezeEntityBackup>,
     animation_queue: VecDeque<(BattleCallback, FrameTime)>,
 }
@@ -155,6 +156,10 @@ impl TimeFreezeTracker {
         }
     }
 
+    pub fn set_chain_limit(&mut self, limit: TimeFreezeChainLimit) {
+        self.chain_limit = limit;
+    }
+
     #[must_use]
     pub fn set_team_action(
         &mut self,
@@ -163,12 +168,18 @@ impl TimeFreezeTracker {
         action: &Action,
     ) -> Option<GenerationalIndex> {
         let mut tracked_action_iter = self.action_chain.iter();
-        let dropped_action_index = tracked_action_iter
-            .position(|t| t.team == team)
-            .map(|index| {
-                let tracked_action = self.action_chain.remove(index);
-                tracked_action.action_index
-            });
+        let dropped_chain_index = match self.chain_limit {
+            TimeFreezeChainLimit::Unlimited => None,
+            TimeFreezeChainLimit::OnePerTeam => tracked_action_iter.position(|t| t.team == team),
+            TimeFreezeChainLimit::OnePerEntity => {
+                tracked_action_iter.position(|t| t.entity == action.entity)
+            }
+        };
+
+        let dropped_action_index = dropped_chain_index.map(|index| {
+            let tracked_action = self.action_chain.remove(index);
+            tracked_action.action_index
+        });
 
         if !self.time_is_frozen() {
             self.active_time = 0;
@@ -242,7 +253,7 @@ impl TimeFreezeTracker {
         ) && self.active_time == self.state_start_time
     }
 
-    fn active_action_index(&self) -> Option<GenerationalIndex> {
+    pub fn active_action_index(&self) -> Option<GenerationalIndex> {
         if self.state != ActionFreezeState::Action.into()
             && self.state != ActionFreezeState::BeginAction.into()
         {
