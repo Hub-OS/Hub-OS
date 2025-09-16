@@ -299,6 +299,10 @@ impl ScrollTracker {
         self.remembered_index = Some(self.selected_index)
     }
 
+    pub fn set_remembered_index(&mut self, index: usize) {
+        self.remembered_index = Some(index)
+    }
+
     pub fn forget_index(&mut self) -> Option<usize> {
         self.remembered_index.take()
     }

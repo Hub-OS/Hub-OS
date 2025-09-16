@@ -646,6 +646,18 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         card_slots.reverse();
     }
 
+    // save selections to restore after sorting
+    let selection_value = card_slots
+        .get(dock.scroll_tracker.selected_index())
+        .unwrap_or(&None)
+        .clone();
+
+    let remembered_value = dock
+        .scroll_tracker
+        .remembered_index()
+        .map(|i| card_slots.get(i).unwrap_or(&None).clone());
+
+    // sort
     let globals = game_io.resource::<Globals>().unwrap();
     selected_option.sort_items(globals, card_slots);
 
@@ -653,6 +665,23 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
         card_slots.reverse();
     } else {
         scene.last_sort = Some(selected_option);
+    }
+
+    // restore selections
+    let new_selected_index = card_slots
+        .iter()
+        .position(|slot| *slot == selection_value)
+        .unwrap_or_default();
+
+    dock.scroll_tracker.set_selected_index(new_selected_index);
+
+    if let Some(value) = remembered_value {
+        let new_index = card_slots
+            .iter()
+            .position(|slot| *slot == value)
+            .unwrap_or_default();
+
+        dock.scroll_tracker.set_remembered_index(new_index)
     }
 
     // blanks should always be at the bottom
@@ -1258,6 +1287,7 @@ impl Dock {
     }
 }
 
+#[derive(Clone, PartialEq, Eq)]
 struct CardListItem {
     card: Card,
     valid: bool,
