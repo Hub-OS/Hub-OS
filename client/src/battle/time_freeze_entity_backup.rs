@@ -15,7 +15,7 @@ pub struct TimeFreezeEntityBackup {
     pub animator: BattleAnimator,
     pub statuses: Vec<(HitFlags, FrameTime)>,
     pub drag: Option<Drag>,
-    pub drag_lockout: FrameTime,
+    pub drag_lockout: u8,
 }
 
 impl TimeFreezeEntityBackup {

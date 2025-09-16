@@ -18,12 +18,11 @@ pub mod HitFlag {
     pub const PIERCE_GUARD: HitFlags = 1 << 6; // NOTE: this is what we refer to as "true breaking"
     pub const PIERCE_GROUND: HitFlags = 1 << 7;
 
-    pub const SHAKE: HitFlags = 1 << 8;
-    pub const FLASH: HitFlags = 1 << 9;
-    pub const PARALYZE: HitFlags = 1 << 10;
-    pub const BLIND: HitFlags = 1 << 11;
-    pub const CONFUSE: HitFlags = 1 << 12;
-    pub const NEXT_SHIFT: HitFlags = 13;
+    pub const FLASH: HitFlags = 1 << 8;
+    pub const PARALYZE: HitFlags = 1 << 9;
+    pub const BLIND: HitFlags = 1 << 10;
+    pub const CONFUSE: HitFlags = 1 << 11;
+    pub const NEXT_SHIFT: HitFlags = 12;
 
     pub const BAKED: [HitFlags; 8] = [
         RETAIN_INTANGIBLE,
@@ -45,7 +44,6 @@ pub mod HitFlag {
             "Drain" => DRAIN,
             "Flinch" => FLINCH,
             "Flash" => FLASH,
-            "Shake" => SHAKE,
             "PierceInvis" => PIERCE_INVIS,
             "PierceGuard" => PIERCE_GUARD,
             "PierceGround" => PIERCE_GROUND,

@@ -273,7 +273,7 @@ impl Living {
                 hit_props.context.flags |= HitFlag::NO_COUNTER;
 
                 if hit_props.flags & HitFlag::DRAIN == 0 {
-                    hit_props.flags |= HitFlag::SHAKE;
+                    living.status_director.start_shake();
                 }
             }
 

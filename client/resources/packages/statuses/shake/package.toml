@@ -1,9 +1,0 @@
-[package]
-category = "status"
-id = "dev.hubos.Statuses.Shake"
-name = "Shake Status"
-flag_name = "Shake"
-mutual_exclusions = []
-blocks_actions = false
-blocks_mobility = false
-durations = [30]

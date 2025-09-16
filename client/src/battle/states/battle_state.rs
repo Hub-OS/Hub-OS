@@ -887,17 +887,13 @@ impl BattleState {
 
             entity.updated = true;
 
-            if !living.status_director.is_dragged() {
-                // process statuses as long as the entity isn't being dragged
-
+            if !living.status_director.is_dragged() && !entity.time_frozen {
+                // process statuses as long as the entity isn't being dragged and time is not frozen
                 let status_director = &mut living.status_director;
 
-                if !entity.time_frozen {
-                    // tick statuses only if time isn't frozen
-                    status_director.update();
-                }
+                status_director.update();
 
-                if status_director.remaining_drag_lockout() <= 0 {
+                if status_director.remaining_drag_lockout() == 0 {
                     // apply new statuses as long as there's no drag lockout
                     status_director.apply_new_statuses(status_registry);
 
@@ -1123,6 +1119,17 @@ impl BattleState {
             }
 
             status_director.update_status_sprites(game_io, shared_assets, entity, sprite_tree);
+
+            let remaining_shake = status_director.remaining_shake();
+            if remaining_shake > 0 {
+                status_director.set_remaining_shake(remaining_shake - 1);
+
+                use rand::Rng;
+                entity.movement_offset += Vec2::new(
+                    rand::rng().random_range(-1..=1) as _,
+                    rand::rng().random_range(-1..=1) as _,
+                );
+            }
         }
     }
 }

@@ -23,7 +23,8 @@ pub struct StatusDirector {
     ready_destructors: Vec<BattleCallback>,
     status_sprites: Vec<(HitFlags, TreeIndex)>,
     drag: Option<Drag>,
-    remaining_drag_lockout: FrameTime,
+    remaining_drag_lockout: u8,
+    remaining_shake: u8,
 }
 
 impl StatusDirector {
@@ -200,12 +201,24 @@ impl StatusDirector {
         self.remaining_drag_lockout = DRAG_LOCKOUT + 1;
     }
 
-    pub fn remaining_drag_lockout(&self) -> FrameTime {
+    pub fn remaining_drag_lockout(&self) -> u8 {
         self.remaining_drag_lockout
     }
 
-    pub fn set_remaining_drag_lockout(&mut self, time: FrameTime) {
+    pub fn set_remaining_drag_lockout(&mut self, time: u8) {
         self.remaining_drag_lockout = time;
+    }
+
+    pub fn remaining_shake(&self) -> u8 {
+        self.remaining_shake
+    }
+
+    pub fn start_shake(&mut self) {
+        self.remaining_shake = 30;
+    }
+
+    pub fn set_remaining_shake(&mut self, remaining: u8) {
+        self.remaining_shake = remaining;
     }
 
     pub fn is_inactionable(&self, registry: &StatusRegistry) -> bool {

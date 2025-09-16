@@ -35,7 +35,7 @@ pub const TEMP_TEAM_DURATION: FrameTime = 1800;
 
 // statuses
 pub const DRAG_PER_TILE_DURATION: FrameTime = 4;
-pub const DRAG_LOCKOUT: FrameTime = 22;
+pub const DRAG_LOCKOUT: u8 = 22;
 
 // overworld
 pub const OVERWORLD_WALK_SPEED: f32 = 1.0;
