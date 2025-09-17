@@ -647,11 +647,6 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
     }
 
     // save selections to restore after sorting
-    let selection_value = card_slots
-        .get(dock.scroll_tracker.selected_index())
-        .unwrap_or(&None)
-        .clone();
-
     let remembered_value = dock
         .scroll_tracker
         .remembered_index()
@@ -668,13 +663,6 @@ fn handle_context_menu_input(scene: &mut DeckEditorScene, game_io: &mut GameIO) 
     }
 
     // restore selections
-    let new_selected_index = card_slots
-        .iter()
-        .position(|slot| *slot == selection_value)
-        .unwrap_or_default();
-
-    dock.scroll_tracker.set_selected_index(new_selected_index);
-
     if let Some(value) = remembered_value {
         let new_index = card_slots
             .iter()
