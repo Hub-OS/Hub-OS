@@ -555,7 +555,9 @@ impl Player {
 
         player.attack_charge.set_max_charge_time(max_charge_time);
 
-        let card_used = if card_charge_time.is_none() && input.was_just_pressed(Input::UseCard) {
+        let card_used = if character.cards.is_empty() {
+            None
+        } else if card_charge_time.is_none() && input.was_just_pressed(Input::UseCard) {
             Some(false)
         } else {
             player.card_charge.update(game_io, play_sfx)
@@ -569,6 +571,7 @@ impl Player {
             if state_time > 0 {
                 player.card_charged = fully_charged;
                 character.card_use_requested = true;
+                player.cancel_charge();
             }
         }
 

@@ -763,6 +763,10 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        if simulation.time_freeze_tracker.time_is_frozen() {
+            return;
+        }
+
         let status_registry = &resources.status_registry;
         let entities = &mut simulation.entities;
 
@@ -818,9 +822,9 @@ impl BattleState {
             }
 
             if simulation.time_freeze_tracker.time_is_frozen() {
-                // stop adding card actions if time freeze is starting
-                // this way time freeze cards aren't eaten
-                continue;
+                // stop processing actions if time freeze is starting
+                // this way new time freeze actions aren't eaten
+                break;
             }
 
             if input.was_just_pressed(Input::Special) && player.special_on_input() {
