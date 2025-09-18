@@ -97,6 +97,7 @@ pub enum AuxRequirement {
     CardNotClass(CardClass),
     CardTimeFreeze(bool),
     CardTag(String),
+    CardNotTag(String),
     ProjectedHPThreshold(MathExpr<f32, AuxVariable>, Comparison, f32),
     ProjectedHP(MathExpr<f32, AuxVariable>, Comparison, i32),
     HPThreshold(Comparison, f32),
@@ -148,7 +149,8 @@ impl AuxRequirement {
             | AuxRequirement::CardClass(_)
             | AuxRequirement::CardNotClass(_)
             | AuxRequirement::CardTimeFreeze(_)
-            | AuxRequirement::CardTag(_) => Self::BODY_PRIORITY, // BODY
+            | AuxRequirement::CardTag(_)
+            | AuxRequirement::CardNotTag(_) => Self::BODY_PRIORITY, // BODY
             AuxRequirement::ProjectedHPThreshold(_, _, _)
             | AuxRequirement::ProjectedHP(_, _, _) => Self::HP_EXPR_PRIOIRTY, // HP EXPR
             AuxRequirement::HPThreshold(cmp, _) | AuxRequirement::HP(cmp, _) => match cmp {
@@ -212,6 +214,7 @@ impl AuxRequirement {
             "require_card_not_class" => AuxRequirement::CardNotClass(table.get(2)?),
             "require_card_time_freeze" => AuxRequirement::CardTimeFreeze(table.get(2)?),
             "require_card_tag" => AuxRequirement::CardTag(table.get(2)?),
+            "require_card_not_tag" => AuxRequirement::CardNotTag(table.get(2)?),
             "require_projected_health_threshold" => {
                 let expr = resources.parse_math_expr(table.get(2)?)?;
                 AuxRequirement::ProjectedHPThreshold(expr, table.get(3)?, table.get(4)?)
@@ -616,6 +619,9 @@ impl AuxProp {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
                 AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                AuxRequirement::CardNotTag(tag) => {
+                    card.is_some_and(|card| !card.tags.contains(tag))
+                }
                 AuxRequirement::Action(action_type_filter) => {
                     action_queue.is_some_and(|q| q.action_type & *action_type_filter != 0)
                 }
@@ -660,6 +666,9 @@ impl AuxProp {
                     card.is_some_and(|card| card.time_freeze == *time_freeze)
                 }
                 AuxRequirement::CardTag(tag) => card.is_some_and(|card| card.tags.contains(tag)),
+                AuxRequirement::CardNotTag(tag) => {
+                    card.is_some_and(|card| !card.tags.contains(tag))
+                }
                 _ => continue,
             };
 
