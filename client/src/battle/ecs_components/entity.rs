@@ -36,14 +36,6 @@ pub struct Entity {
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
     pub local_components: Vec<GenerationalIndex>,
-    pub can_move_to_callback: BattleCallback<(i32, i32), bool>,
-    pub spawn_callback: BattleCallback,
-    pub update_callback: BattleCallback,
-    pub idle_callback: BattleCallback,
-    pub counter_callback: BattleCallback<EntityId>,
-    pub battle_start_callback: BattleCallback,
-    pub battle_end_callback: BattleCallback<bool>,
-    pub delete_callback: BattleCallback,
     pub delete_callbacks: Vec<BattleCallback>,
 }
 
@@ -86,21 +78,16 @@ impl Entity {
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
             local_components: Vec::new(),
-            can_move_to_callback: BattleCallback::stub(false),
-            update_callback: BattleCallback::stub(()),
-            idle_callback: BattleCallback::stub(()),
-            spawn_callback: BattleCallback::stub(()),
-            battle_start_callback: BattleCallback::stub(()),
-            battle_end_callback: BattleCallback::stub(()),
-            counter_callback: BattleCallback::stub(()),
-            delete_callback: BattleCallback::new(move |game_io, resources, simulation, _| {
-                // default behavior, just erase
-                Entity::mark_erased(game_io, resources, simulation, id);
-            }),
             delete_callbacks: Vec::new(),
         };
 
-        simulation.entities.spawn_at(id.into(), (entity,));
+        let delete_callback = BattleCallback::new(move |game_io, resources, simulation, _| {
+            // default behavior, just erase
+            Entity::mark_erased(game_io, resources, simulation, id);
+        });
+
+        let components = (entity, DeleteCallback(delete_callback));
+        simulation.entities.spawn_at(id.into(), components);
 
         id
     }
@@ -128,13 +115,13 @@ impl Entity {
         position: (i32, i32),
     ) -> bool {
         let entities = &mut simulation.entities;
-        let Ok((entity, action_queue)) =
-            entities.query_one_mut::<(&Entity, Option<&ActionQueue>)>(entity_id.into())
+        let Ok((can_move_to_callback, action_queue)) =
+            entities.query_one_mut::<(&CanMoveToCallback, Option<&ActionQueue>)>(entity_id.into())
         else {
             return false;
         };
 
-        let entity_callback = entity.can_move_to_callback.clone();
+        let entity_callback = can_move_to_callback.0.clone();
         let Some(index) = action_queue.and_then(|q| q.active) else {
             return entity_callback.call(game_io, resources, simulation, position);
         };
@@ -201,10 +188,11 @@ impl Entity {
         simulation: &mut BattleSimulation,
         id: EntityId,
     ) {
-        let Ok((entity, action_queue)) = simulation
-            .entities
-            .query_one_mut::<(&mut Entity, Option<&mut ActionQueue>)>(id.into())
-        else {
+        let Ok((entity, action_queue, delete_callback)) = simulation.entities.query_one_mut::<(
+            &mut Entity,
+            Option<&mut ActionQueue>,
+            Option<&DeleteCallback>,
+        )>(id.into()) else {
             return;
         };
 
@@ -228,7 +216,7 @@ impl Entity {
 
         // gather delete callbacks
         let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
-        let delete_callback = entity.delete_callback.clone();
+        let delete_callback = delete_callback.cloned();
 
         // delete player augments
         if let Ok(player) = simulation.entities.query_one_mut::<&mut Player>(id.into()) {
@@ -245,7 +233,10 @@ impl Entity {
 
         // call delete callbacks after
         simulation.pending_callbacks.extend(listener_callbacks);
-        simulation.pending_callbacks.push(delete_callback);
+
+        if let Some(callback) = delete_callback {
+            simulation.pending_callbacks.push(callback.0);
+        }
 
         simulation.call_pending_callbacks(game_io, resources);
 
@@ -259,6 +250,9 @@ impl Entity {
         simulation: &mut BattleSimulation,
         id: EntityId,
     ) {
+        // clear the delete callback
+        let _ = simulation.entities.remove_one::<DeleteCallback>(id.into());
+
         let Ok(entity) = simulation.entities.query_one_mut::<&mut Entity>(id.into()) else {
             return;
         };
@@ -266,9 +260,6 @@ impl Entity {
         if entity.erased {
             return;
         }
-
-        // clear the delete callback
-        entity.delete_callback = BattleCallback::default();
 
         // mark as erased
         entity.erased = true;

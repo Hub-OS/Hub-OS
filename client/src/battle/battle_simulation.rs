@@ -141,6 +141,11 @@ impl BattleSimulation {
         clone_component!(Artifact, Character, Living, Obstacle, Player, Spell);
         clone_component!(EntityName, EntityShadow, EntityShadowHidden, HpDisplay);
         clone_component!(ActionQueue, AttackContext, Movement);
+        clone_component!(SpawnCallback, IntroCallback, UpdateCallback, DeleteCallback);
+        clone_component!(CanMoveToCallback, IdleCallback);
+        clone_component!(CollisionCallback, AttackCallback);
+        clone_component!(CounterCallback, CounteredCallback);
+        clone_component!(BattleStartCallback, BattleEndCallback);
 
         Self {
             statistics: self.statistics.clone(),
@@ -423,9 +428,16 @@ impl BattleSimulation {
     }
 
     fn spawn_pending(&mut self) {
-        type Query<'a> = (&'a mut Entity, Option<&'a ActionQueue>);
+        type Query<'a> = (
+            &'a mut Entity,
+            Option<&'a ActionQueue>,
+            Option<&'a SpawnCallback>,
+            Option<&'a BattleStartCallback>,
+        );
 
-        for (id, (entity, action_queue)) in self.entities.query_mut::<Query>() {
+        for (id, (entity, action_queue, spawn_callback, battle_start_callback)) in
+            self.entities.query_mut::<Query>()
+        {
             if !entity.pending_spawn {
                 continue;
             }
@@ -437,7 +449,10 @@ impl BattleSimulation {
             entity.on_field = true;
 
             self.animators[entity.animator_index].enable();
-            self.pending_callbacks.push(entity.spawn_callback.clone());
+
+            if let Some(callback) = spawn_callback {
+                self.pending_callbacks.push(callback.0.clone());
+            }
 
             for component in self.components.values() {
                 if component.entity == entity_id {
@@ -446,9 +461,10 @@ impl BattleSimulation {
             }
 
             if self.progress >= BattleProgress::BattleStarted {
-                self.pending_callbacks
-                    .push(entity.battle_start_callback.clone())
-            };
+                if let Some(callback) = battle_start_callback {
+                    self.pending_callbacks.push(callback.0.clone());
+                }
+            }
 
             if let Some(tile) = self.field.tile_at_mut((entity.x, entity.y)) {
                 tile.handle_auto_reservation_addition(
@@ -779,8 +795,8 @@ impl BattleSimulation {
 
         call_encounter_end_listeners(game_io, resources, self, won);
 
-        for (_, entity) in self.entities.query_mut::<&mut Entity>() {
-            let callback = entity.battle_end_callback.clone();
+        for (_, callback) in self.entities.query_mut::<&mut BattleEndCallback>() {
+            let callback = callback.0.clone();
             self.pending_callbacks
                 .push(callback.bind(self.statistics.won));
         }

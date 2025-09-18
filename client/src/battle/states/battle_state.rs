@@ -404,8 +404,8 @@ impl BattleState {
 
         simulation.progress = BattleProgress::BattleStarted;
 
-        for (_, entity) in simulation.entities.query_mut::<&mut Entity>() {
-            let callback = entity.battle_start_callback.clone();
+        for (_, callback) in simulation.entities.query_mut::<&BattleStartCallback>() {
+            let callback = callback.0.clone();
             simulation.pending_callbacks.push(callback);
         }
 
@@ -453,7 +453,9 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        for (_, (entity, spell)) in simulation.entities.query_mut::<(&mut Entity, &Spell)>() {
+        type Query<'a> = (&'a mut Entity, &'a Spell, Option<&'a UpdateCallback>);
+
+        for (_, (entity, spell, update_callback)) in simulation.entities.query_mut::<Query>() {
             if let Some(tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
                 tile.set_highlight(spell.requested_highlight);
             }
@@ -462,7 +464,9 @@ impl BattleState {
                 continue;
             }
 
-            callbacks.push(entity.update_callback.clone());
+            if let Some(callback) = update_callback {
+                callbacks.push(callback.0.clone());
+            }
 
             for index in entity.local_components.iter().cloned() {
                 let component = simulation.components.get(index).unwrap();
@@ -591,15 +595,6 @@ impl BattleState {
             for attack_box in attack_boxes {
                 let attacker_id = attack_box.attacker_id;
 
-                // collision callback
-                let entities = &mut simulation.entities;
-                let Ok(spell) = entities.query_one_mut::<&Spell>(attacker_id.into()) else {
-                    continue;
-                };
-
-                let collision_callback = spell.collision_callback.clone();
-                let attack_callback = spell.attack_callback.clone();
-
                 // defense check against DefenseOrder::Always
                 simulation.defense = Defense::new();
 
@@ -634,7 +629,14 @@ impl BattleState {
                     tile.ignore_attacker(attacker_id);
                 }
 
-                collision_callback.call(game_io, resources, simulation, id.into());
+                // collision callback
+                let entities = &mut simulation.entities;
+                if let Ok(callback) =
+                    entities.query_one_mut::<&CollisionCallback>(attacker_id.into())
+                {
+                    let callback = callback.0.clone();
+                    callback.call(game_io, resources, simulation, id.into());
+                }
 
                 // defense check against DefenseOrder::CollisionOnly
                 Defense::defend(
@@ -656,7 +658,12 @@ impl BattleState {
                 }
 
                 // spell attack callback
-                attack_callback.call(game_io, resources, simulation, id.into());
+                let entities = &mut simulation.entities;
+                if let Ok(callback) = entities.query_one_mut::<&AttackCallback>(attacker_id.into())
+                {
+                    let callback = callback.0.clone();
+                    callback.call(game_io, resources, simulation, id.into());
+                }
             }
         }
 
@@ -725,13 +732,16 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        for (_, (entity, _artifact)) in simulation.entities.query_mut::<(&mut Entity, &Artifact)>()
-        {
+        type Query<'a> = (&'a mut Entity, &'a Artifact, Option<&'a UpdateCallback>);
+
+        for (_, (entity, _artifact, update_callback)) in simulation.entities.query_mut::<Query>() {
             if entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
 
-            callbacks.push(entity.update_callback.clone());
+            if let Some(callback) = update_callback {
+                callbacks.push(callback.0.clone());
+            }
 
             for index in entity.local_components.iter().cloned() {
                 let component = simulation.components.get(index).unwrap();
@@ -883,13 +893,21 @@ impl BattleState {
         let entities = &mut simulation.entities;
         let callbacks = &mut simulation.pending_callbacks;
 
-        type Query<'a> = (&'a mut Entity, &'a mut Living, Option<&'a Player>);
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a mut Living,
+            Option<&'a Player>,
+            Option<&'a UpdateCallback>,
+        );
 
-        for (id, (entity, living, player)) in entities.query_mut::<Query>().into_iter() {
-            if entity.updated || !entity.spawned || entity.deleted {
+        for (id, (entity, living, player, update_callback)) in
+            entities.query_mut::<Query>().into_iter()
+        {
+            if !entity.spawned || entity.deleted {
                 continue;
             }
 
+            let already_updated = entity.updated;
             entity.updated = true;
 
             if !living.status_director.is_dragged() && !entity.time_frozen {
@@ -930,8 +948,10 @@ impl BattleState {
             let deactivate_callbacks = living.intangibility.take_deactivate_callbacks();
             callbacks.extend(deactivate_callbacks);
 
-            if !living.status_director.is_inactionable(status_registry) {
-                callbacks.push(entity.update_callback.clone());
+            if !already_updated && !living.status_director.is_inactionable(status_registry) {
+                if let Some(callback) = update_callback {
+                    callbacks.push(callback.0.clone());
+                }
 
                 if let Some(player) = player {
                     if let Some(callback) = player.active_form_update_callback() {

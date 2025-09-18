@@ -1,6 +1,7 @@
 mod action_queue;
 mod artifact;
 mod attack_context;
+mod callbacks;
 mod character;
 mod entity;
 mod entity_name;
@@ -15,6 +16,7 @@ mod spell;
 pub use action_queue::*;
 pub use artifact::*;
 pub use attack_context::*;
+pub use callbacks::*;
 pub use character::*;
 pub use entity::*;
 pub use entity_name::*;

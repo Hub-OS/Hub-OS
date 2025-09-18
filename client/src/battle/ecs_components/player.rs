@@ -149,32 +149,6 @@ impl Player {
         // use preloaded package properties
         entity.element = player_package.element;
 
-        // idle callback
-        entity.idle_callback = BattleCallback::new(move |_, _, simulation, _| {
-            let Some(animator) = simulation.animators.get_mut(animator_index) else {
-                return;
-            };
-
-            let callbacks = animator.set_state(Player::IDLE_STATE);
-            animator.set_loop_mode(AnimatorLoopMode::Loop);
-            simulation.pending_callbacks.extend(callbacks);
-
-            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
-                return;
-            };
-
-            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
-            else {
-                return;
-            };
-
-            animator.apply(sprite_tree.root_mut());
-        });
-
-        // delete callback
-        let scripts = &resources.vm_manager.scripts;
-        entity.delete_callback = scripts.default_player_delete.clone().bind(id);
-
         // AuxProp for hit statistics
         let statistics_aux_prop = AuxProp::new()
             .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
@@ -199,7 +173,39 @@ impl Player {
         living.max_health = setup.base_health + health_boost;
         living.set_health(setup.health);
 
-        // insert entity
+        // idle callback
+        let idle_callback = BattleCallback::new(move |_, _, simulation, _| {
+            let Some(animator) = simulation.animators.get_mut(animator_index) else {
+                return;
+            };
+
+            let callbacks = animator.set_state(Player::IDLE_STATE);
+            animator.set_loop_mode(AnimatorLoopMode::Loop);
+            simulation.pending_callbacks.extend(callbacks);
+
+            let Ok(entity) = simulation.entities.query_one_mut::<&Entity>(id.into()) else {
+                return;
+            };
+
+            let Some(sprite_tree) = simulation.sprite_trees.get_mut(entity.sprite_tree_index)
+            else {
+                return;
+            };
+
+            animator.apply(sprite_tree.root_mut());
+        });
+
+        // delete callback
+        let scripts = &resources.vm_manager.scripts;
+        let delete_callback = scripts.default_player_delete.clone().bind(id);
+
+        // insert callbacks
+        let _ = simulation.entities.insert(
+            id.into(),
+            (IdleCallback(idle_callback), DeleteCallback(delete_callback)),
+        );
+
+        // insert player component
         let script_enabled = setup.script_enabled;
 
         let card_charge_sprite_index =
@@ -220,7 +226,7 @@ impl Player {
             attack_charge_sprite_index,
         );
 
-        simulation.entities.insert_one(id.into(), player).unwrap();
+        let _ = simulation.entities.insert_one(id.into(), player);
 
         // init player
         if script_enabled {

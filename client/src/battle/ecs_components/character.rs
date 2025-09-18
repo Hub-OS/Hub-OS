@@ -1,7 +1,7 @@
 use super::{Artifact, HpDisplay, Living, Player};
 use crate::battle::{
-    Action, ActionQueue, ActionType, BattleCallback, BattleSimulation, BattleState, Entity,
-    Movement, SharedBattleResources, TileState,
+    Action, ActionQueue, ActionType, BattleCallback, BattleSimulation, BattleState,
+    CanMoveToCallback, DeleteCallback, Entity, Movement, SharedBattleResources, TileState,
 };
 use crate::bindable::*;
 use crate::lua_api::create_entity_table;
@@ -19,7 +19,6 @@ pub struct Character {
     pub cards: Vec<CardProperties>, // stores cards reversed
     pub card_use_requested: bool,
     pub next_card_mutation: Option<usize>, // stores card index, invert to get a usable index
-    pub intro_callback: BattleCallback<(), Option<GenerationalIndex>>,
 }
 
 impl Character {
@@ -30,7 +29,6 @@ impl Character {
             cards: Vec::new(),
             card_use_requested: false,
             next_card_mutation: None,
-            intro_callback: BattleCallback::stub(None),
         }
     }
 
@@ -43,52 +41,7 @@ impl Character {
     ) -> rollback_mlua::Result<EntityId> {
         let id = Entity::create(game_io, simulation);
 
-        simulation
-            .entities
-            .insert(
-                id.into(),
-                (
-                    Character::new(rank, namespace),
-                    Living::default(),
-                    HpDisplay::default(),
-                ),
-            )
-            .unwrap();
-
-        let (entity, living) = simulation
-            .entities
-            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
-            .unwrap();
-
-        // characters should own their tiles by default
-        entity.share_tile = false;
-        entity.auto_reserves_tiles = true;
-
-        let elemental_weakness_aux_prop = AuxProp::new()
-            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
-            .with_requirement(AuxRequirement::HitElementIsWeakness)
-            .with_requirement(AuxRequirement::HitFlagsAbsent(HitFlag::DRAIN))
-            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
-                let entities = &mut simulation.entities;
-                let entity = entities.query_one_mut::<&Entity>(id.into()).unwrap();
-
-                // spawn alert artifact
-                let mut alert_position = entity.full_position();
-                alert_position.offset += Vec2::new(0.0, -entity.height);
-
-                let alert_id = Artifact::create_alert(game_io, simulation);
-                let alert_entity = simulation
-                    .entities
-                    .query_one_mut::<&mut Entity>(alert_id.into())
-                    .unwrap();
-
-                alert_entity.copy_full_position(alert_position);
-                alert_entity.pending_spawn = true;
-            }));
-
-        living.add_aux_prop(elemental_weakness_aux_prop);
-
-        entity.can_move_to_callback = BattleCallback::new(move |_, resources, simulation, dest| {
+        let can_move_to_callback = BattleCallback::new(move |_, resources, simulation, dest| {
             let Some(tile) = simulation.field.tile_at_mut(dest) else {
                 return false;
             };
@@ -146,7 +99,50 @@ impl Character {
         });
 
         let scripts = &resources.vm_manager.scripts;
-        entity.delete_callback = scripts.default_character_delete.clone().bind((id, None));
+        let delete_callback = scripts.default_character_delete.clone().bind((id, None));
+
+        let components = (
+            Character::new(rank, namespace),
+            Living::default(),
+            HpDisplay::default(),
+            CanMoveToCallback(can_move_to_callback),
+            DeleteCallback(delete_callback),
+        );
+
+        simulation.entities.insert(id.into(), components).unwrap();
+
+        let (entity, living) = simulation
+            .entities
+            .query_one_mut::<(&mut Entity, &mut Living)>(id.into())
+            .unwrap();
+
+        // characters should own their tiles by default
+        entity.share_tile = false;
+        entity.auto_reserves_tiles = true;
+
+        let elemental_weakness_aux_prop = AuxProp::new()
+            .with_requirement(AuxRequirement::HitDamage(Comparison::GT, 0))
+            .with_requirement(AuxRequirement::HitElementIsWeakness)
+            .with_requirement(AuxRequirement::HitFlagsAbsent(HitFlag::DRAIN))
+            .with_callback(BattleCallback::new(move |game_io, _, simulation, _| {
+                let entities = &mut simulation.entities;
+                let entity = entities.query_one_mut::<&Entity>(id.into()).unwrap();
+
+                // spawn alert artifact
+                let mut alert_position = entity.full_position();
+                alert_position.offset += Vec2::new(0.0, -entity.height);
+
+                let alert_id = Artifact::create_alert(game_io, simulation);
+                let alert_entity = simulation
+                    .entities
+                    .query_one_mut::<&mut Entity>(alert_id.into())
+                    .unwrap();
+
+                alert_entity.copy_full_position(alert_position);
+                alert_entity.pending_spawn = true;
+            }));
+
+        living.add_aux_prop(elemental_weakness_aux_prop);
 
         Ok(id)
     }

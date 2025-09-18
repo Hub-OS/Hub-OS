@@ -3,6 +3,7 @@ use super::{
     BattleSimulation, Character, DerivedAnimationFrame, Entity, Field, Living, Movement, Player,
     SharedBattleResources,
 };
+use crate::battle::IdleCallback;
 use crate::bindable::{
     ActionLockout, CardProperties, EntityId, GenerationalIndex, HitFlag, SpriteColorMode,
 };
@@ -819,8 +820,8 @@ impl Action {
         field: &mut Field,
     ) {
         let id = self.entity.into();
-        let Ok((entity, action_queue)) =
-            entities.query_one_mut::<(&mut Entity, &mut ActionQueue)>(id)
+        let Ok((action_queue, idle_callback)) =
+            entities.query_one_mut::<(&mut ActionQueue, Option<&IdleCallback>)>(id)
         else {
             log::error!("Entity or ActionQueue deleted before Action::complete_sync()?");
             return;
@@ -830,7 +831,9 @@ impl Action {
         action_queue.active = None;
 
         if action_queue.pending.is_empty() {
-            pending_callbacks.push(entity.idle_callback.clone());
+            if let Some(callback) = idle_callback {
+                pending_callbacks.push(callback.0.clone());
+            }
         }
 
         self.set_auto_reservation_preference(entities, field, true);

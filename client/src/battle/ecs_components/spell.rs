@@ -1,5 +1,5 @@
 use super::Entity;
-use crate::battle::{AttackBox, BattleCallback, BattleSimulation};
+use crate::battle::{AttackBox, BattleCallback, BattleSimulation, CanMoveToCallback};
 use crate::bindable::*;
 use framework::prelude::GameIO;
 
@@ -7,18 +7,17 @@ use framework::prelude::GameIO;
 pub struct Spell {
     pub requested_highlight: TileHighlight,
     pub hit_props: HitProperties,
-    pub collision_callback: BattleCallback<EntityId>,
-    pub attack_callback: BattleCallback<EntityId>,
 }
 
 impl Spell {
     pub fn create(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
         let id = Entity::create(game_io, simulation);
 
-        simulation
-            .entities
-            .insert(id.into(), (Spell::default(),))
-            .unwrap();
+        let components = (
+            Spell::default(),
+            CanMoveToCallback(BattleCallback::stub(true)),
+        );
+        simulation.entities.insert(id.into(), components).unwrap();
 
         let entity = simulation
             .entities
@@ -27,7 +26,6 @@ impl Spell {
 
         entity.ignore_hole_tiles = true;
         entity.ignore_negative_tile_effects = true;
-        entity.can_move_to_callback = BattleCallback::stub(true);
 
         id
     }

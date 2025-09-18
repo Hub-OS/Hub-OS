@@ -16,7 +16,6 @@ pub struct Living {
     pub defense_rules: Vec<DefenseRule>,
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
-    pub countered_callback: BattleCallback,
     pub aux_props: SlotMap<AuxProp>,
     pub pending_hits: Vec<HitProperties>,
 }
@@ -33,7 +32,6 @@ impl Default for Living {
             defense_rules: Vec::new(),
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
-            countered_callback: BattleCallback::default(),
             aux_props: Default::default(),
             pending_hits: Vec::new(),
         }
@@ -203,8 +201,13 @@ impl Living {
             Defense::filter_statuses(game_io, resources, simulation, hit_props, &defense_rules);
 
             let entities = &mut simulation.entities;
-            let Ok((entity, living, movement)) = entities
-                .query_one_mut::<(&Entity, &mut Living, Option<&Movement>)>(entity_id.into())
+            let Ok((entity, living, countered_callback, movement)) =
+                entities.query_one_mut::<(
+                    &Entity,
+                    &mut Living,
+                    Option<&CounteredCallback>,
+                    Option<&Movement>,
+                )>(entity_id.into())
             else {
                 return;
             };
@@ -302,8 +305,9 @@ impl Living {
                 living.counterable = false;
 
                 // notify self
-                let self_callback = living.countered_callback.clone();
-                simulation.pending_callbacks.push(self_callback);
+                if let Some(callback) = countered_callback {
+                    simulation.pending_callbacks.push(callback.0.clone());
+                }
 
                 // notify aggressor
                 let aggressor_id = hit_props.context.aggressor;
@@ -311,14 +315,12 @@ impl Living {
                 let notify_aggressor =
                     BattleCallback::new(move |game_io, resources, simulation, ()| {
                         let entities = &mut simulation.entities;
-                        let Ok(aggressor_entity) =
-                            entities.query_one_mut::<&Entity>(aggressor_id.into())
-                        else {
-                            return;
+                        if let Ok(callback) =
+                            entities.query_one_mut::<&CounterCallback>(aggressor_id.into())
+                        {
+                            let callback = callback.0.clone();
+                            callback.call(game_io, resources, simulation, entity_id);
                         };
-
-                        let callback = aggressor_entity.counter_callback.clone();
-                        callback.call(game_io, resources, simulation, entity_id);
 
                         // play counter sfx if the attack was caused by the local player
                         if simulation.local_player_id == aggressor_id {
@@ -492,11 +494,10 @@ impl Living {
             let old_lockout = status_director.remaining_drag_lockout();
             status_director.set_remaining_drag_lockout(0);
 
-            let can_move_to_callback = entity.can_move_to_callback.clone();
             let tile_exists = simulation.field.tile_at_mut(dest.into()).is_some();
 
             if !tile_exists
-                || !can_move_to_callback.call(game_io, resources, simulation, dest.into())
+                || !Entity::can_move_to(game_io, resources, simulation, id.into(), dest.into())
             {
                 let entities = &mut simulation.entities;
 

@@ -1,5 +1,7 @@
 use super::Entity;
-use crate::battle::{BattleCallback, BattleSimulation, Component};
+use crate::battle::{
+    BattleCallback, BattleSimulation, CanMoveToCallback, Component, SpawnCallback,
+};
 use crate::bindable::EntityId;
 use crate::resources::{Globals, ResourcePaths};
 use framework::prelude::GameIO;
@@ -11,10 +13,12 @@ impl Artifact {
     pub fn create(game_io: &GameIO, simulation: &mut BattleSimulation) -> EntityId {
         let id = Entity::create(game_io, simulation);
 
-        simulation
-            .entities
-            .insert(id.into(), (Artifact::default(),))
-            .unwrap();
+        let components = (
+            Artifact::default(),
+            CanMoveToCallback(BattleCallback::stub(true)),
+        );
+
+        simulation.entities.insert(id.into(), components).unwrap();
 
         let entity = simulation
             .entities
@@ -23,7 +27,6 @@ impl Artifact {
 
         entity.ignore_hole_tiles = true;
         entity.ignore_negative_tile_effects = true;
-        entity.can_move_to_callback = BattleCallback::stub(true);
 
         id
     }
@@ -71,14 +74,13 @@ impl Artifact {
             ResourcePaths::BATTLE_EXPLOSION_ANIMATION,
         );
 
-        let entity = simulation
-            .entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .unwrap();
-
-        entity.spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
+        let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
             simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.explode);
         });
+
+        let _ = simulation
+            .entities
+            .insert_one(id.into(), SpawnCallback(spawn_callback));
 
         id
     }
@@ -100,14 +102,13 @@ impl Artifact {
             ResourcePaths::BATTLE_TRAP_ALERT_ANIMATION,
         );
 
-        let entity = simulation
-            .entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .unwrap();
-
-        entity.spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
+        let spawn_callback = BattleCallback::new(|game_io, _, simulation, _| {
             simulation.play_sound(game_io, &game_io.resource::<Globals>().unwrap().sfx.trap);
         });
+
+        let _ = simulation
+            .entities
+            .insert_one(id.into(), SpawnCallback(spawn_callback));
 
         id
     }

@@ -1,6 +1,7 @@
 use super::{State, TurnStartState};
 use crate::battle::{
-    Artifact, BattleSimulation, Entity, Living, Movement, Player, SharedBattleResources,
+    Artifact, BattleSimulation, Entity, IdleCallback, Living, Movement, Player,
+    SharedBattleResources,
 };
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::ease::inverse_lerp;
@@ -97,10 +98,17 @@ impl FormActivateState {
     ) {
         let mut activated = Vec::new();
 
-        type Query<'a> = (&'a mut Entity, &'a mut Living, &'a mut Player);
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a mut Living,
+            &'a mut Player,
+            Option<&'a IdleCallback>,
+        );
 
         // deactivate previous forms, and activate new forms
-        for (id, (entity, living, player)) in simulation.entities.query_mut::<Query>() {
+        for (id, (entity, living, player, idle_callback)) in
+            simulation.entities.query_mut::<Query>()
+        {
             let Some(index) = player.active_form else {
                 continue;
             };
@@ -115,8 +123,9 @@ impl FormActivateState {
             living.status_director.clear_statuses();
 
             // call idle callback
-            let idle_callback = entity.idle_callback.clone();
-            simulation.pending_callbacks.push(idle_callback);
+            if let Some(callback) = idle_callback {
+                simulation.pending_callbacks.push(callback.0.clone());
+            }
 
             // deactivate previous forms
             for form in &player.forms {

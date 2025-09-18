@@ -156,8 +156,8 @@ impl IntroState {
         entity_id: EntityId,
     ) -> Option<GenerationalIndex> {
         let entities = &mut simulation.entities;
-        let Ok((character, player)) =
-            entities.query_one_mut::<(&mut Character, Option<&Player>)>(entity_id.into())
+        let Ok((intro_callback, player)) =
+            entities.query_one_mut::<(&IntroCallback, Option<&Player>)>(entity_id.into())
         else {
             return None;
         };
@@ -165,7 +165,7 @@ impl IntroState {
         let is_player = player.is_some();
 
         // see if the entity provides an intro action
-        let intro_callback = character.intro_callback.clone();
+        let intro_callback = intro_callback.0.clone();
         let action_index = intro_callback.call(game_io, resources, simulation, ());
 
         if let Some(index) = action_index {

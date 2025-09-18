@@ -931,69 +931,52 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let simulation = &mut api_ctx.simulation;
 
         let entities = &mut simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let idle_callback = entity.idle_callback.clone();
-        idle_callback.call(game_io, resources, simulation, ());
+        if let Ok(callback) = entities.query_one_mut::<&mut IdleCallback>(id.into()) {
+            let callback = callback.0.clone();
+            callback.call(game_io, resources, simulation, ());
+        }
 
         lua.pack_multi(())
     });
 
-    callback_setter(
-        lua_api,
-        SPAWN_FN,
-        |entity: &mut Entity| &mut entity.spawn_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, SPAWN_FN, SpawnCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 
-    callback_setter(
-        lua_api,
-        UPDATE_FN,
-        |entity: &mut Entity| &mut entity.update_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, UPDATE_FN, UpdateCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 
-    callback_setter(
-        lua_api,
-        IDLE_FN,
-        |entity: &mut Entity| &mut entity.idle_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, IDLE_FN, IdleCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 
-    callback_setter(
-        lua_api,
-        COUNTER_FN,
-        |entity: &mut Entity| &mut entity.counter_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, COUNTER_FN, CounterCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 
-    callback_setter(
-        lua_api,
-        DELETE_FN,
-        |entity: &mut Entity| &mut entity.delete_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, DELETE_FN, DeleteCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 
     callback_setter(
         lua_api,
         BATTLE_START_FN,
-        |entity: &mut Entity| &mut entity.battle_start_callback,
+        BattleStartCallback,
         |lua, table, _| lua.pack_multi(table),
     );
 
     callback_setter(
         lua_api,
         BATTLE_END_FN,
-        |entity: &mut Entity| &mut entity.battle_end_callback,
+        BattleEndCallback,
         |lua, table, won| lua.pack_multi((table, won)),
     );
 
     callback_setter(
         lua_api,
         CAN_MOVE_TO_FN,
-        |entity: &mut Entity| &mut entity.can_move_to_callback,
+        CanMoveToCallback,
         |lua, _, dest| {
             let tile_table = create_tile_table(lua, dest);
             lua.pack_multi(tile_table)
@@ -1151,12 +1134,9 @@ fn inject_character_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(character.rank)
     });
 
-    callback_setter(
-        lua_api,
-        INTRO_FN,
-        |character: &mut Character| &mut character.intro_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, INTRO_FN, IntroCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 }
 
 fn inject_spell_api(lua_api: &mut BattleLuaApi) {
@@ -1305,20 +1285,15 @@ fn inject_spell_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    callback_setter(
-        lua_api,
-        ATTACK_FN,
-        |spell: &mut Spell| &mut spell.attack_callback,
-        |lua, table, id| {
-            let other_table = create_entity_table(lua, id);
-            lua.pack_multi((table, other_table))
-        },
-    );
+    callback_setter(lua_api, ATTACK_FN, AttackCallback, |lua, table, id| {
+        let other_table = create_entity_table(lua, id);
+        lua.pack_multi((table, other_table))
+    });
 
     callback_setter(
         lua_api,
         COLLISION_FN,
-        |spell: &mut Spell| &mut spell.collision_callback,
+        CollisionCallback,
         |lua, table, id| {
             let other_table = create_entity_table(lua, id);
             lua.pack_multi((table, other_table))
@@ -1548,12 +1523,9 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(())
     });
 
-    callback_setter(
-        lua_api,
-        COUNTERED_FN,
-        |living: &mut Living| &mut living.countered_callback,
-        |lua, table, _| lua.pack_multi(table),
-    );
+    callback_setter(lua_api, COUNTERED_FN, CounteredCallback, |lua, table, _| {
+        lua.pack_multi(table)
+    });
 }
 
 fn inject_player_api(lua_api: &mut BattleLuaApi) {
@@ -2525,7 +2497,7 @@ fn setter<C, P>(
 fn callback_setter<C, P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback_getter: fn(&mut C) -> &mut BattleCallback<P, R>,
+    callback_constructor: fn(BattleCallback<P, R>) -> C,
     param_transformer: for<'lua> fn(
         &'lua rollback_mlua::Lua,
         rollback_mlua::Table<'lua>,
@@ -2544,14 +2516,11 @@ fn callback_setter<C, P, R>(
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
-        let Ok(entity) = entities.query_one_mut::<&mut C>(id.into()) else {
-            return lua.pack_multi(());
-        };
 
         if let Some(callback) = callback {
             let key = lua.create_registry_value(table)?;
 
-            *callback_getter(entity) = BattleCallback::new_transformed_lua_callback(
+            let callback = BattleCallback::new_transformed_lua_callback(
                 lua,
                 api_ctx.vm_index,
                 callback,
@@ -2560,9 +2529,10 @@ fn callback_setter<C, P, R>(
                     param_transformer(lua, table, p)
                 },
             )?;
+            let _ = entities.insert_one(id.into(), callback_constructor(callback));
         } else {
-            *callback_getter(entity) = BattleCallback::default();
-        }
+            let _ = entities.remove_one::<C>(id.into());
+        };
 
         lua.pack_multi(())
     });
