@@ -40,6 +40,10 @@ impl AudioManager {
 
         self.stream = OutputStreamBuilder::from_device(device)
             .and_then(|builder| builder.open_stream())
+            .map(|mut stream| {
+                stream.log_on_drop(false);
+                stream
+            })
             .inspect_err(|err| log::error!("{err}"))
             .ok();
 
