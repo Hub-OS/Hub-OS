@@ -161,9 +161,19 @@ impl Tile {
         }
     }
 
-    pub fn unignore_inactive_attackers(&mut self) {
-        self.ignored_attackers
-            .retain(|id| self.active_attackers.contains(id));
+    pub fn unignore_inactive_attackers(&mut self, entities: &mut hecs::World) {
+        self.ignored_attackers.retain(|id| {
+            if self.active_attackers.contains(id) {
+                // keep ignoring continuous attackers
+                return true;
+            }
+
+            // keep ignoring frozen attackers
+            entities
+                .query_one_mut::<&Entity>((*id).into())
+                .is_ok_and(|e| e.time_frozen)
+        });
+
         self.active_attackers.clear();
     }
 

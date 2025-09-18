@@ -158,9 +158,9 @@ impl Field {
         }
     }
 
-    pub fn resolve_ignored_attackers(&mut self) {
+    pub fn resolve_ignored_attackers(&mut self, entities: &mut hecs::World) {
         for tile in &mut self.tiles {
-            tile.unignore_inactive_attackers();
+            tile.unignore_inactive_attackers(entities);
         }
     }
 

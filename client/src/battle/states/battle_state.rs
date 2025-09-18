@@ -692,7 +692,8 @@ impl BattleState {
             }
         }
 
-        simulation.field.resolve_ignored_attackers();
+        let entities = &mut simulation.entities;
+        simulation.field.resolve_ignored_attackers(entities);
     }
 
     fn mark_deleted(
