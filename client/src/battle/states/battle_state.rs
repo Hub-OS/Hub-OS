@@ -898,9 +898,10 @@ impl BattleState {
             &'a mut Living,
             Option<&'a Player>,
             Option<&'a UpdateCallback>,
+            Option<&'a mut Movement>,
         );
 
-        for (id, (entity, living, player, update_callback)) in
+        for (id, (entity, living, player, update_callback, mut movement)) in
             entities.query_mut::<Query>().into_iter()
         {
             if !entity.spawned || entity.deleted {
@@ -925,6 +926,15 @@ impl BattleState {
 
                     // new status callbacks
                     for (hit_flag, reapplied) in status_director.take_new_statuses() {
+                        if status_registry.inactionable_flags() & hit_flag != 0 {
+                            if let Some(movement) = &mut movement {
+                                // pause movement when we become inactionable
+                                // we don't want to pause movements after the first frame
+                                // allows drag + wind to move this entity
+                                movement.paused = true;
+                            }
+                        }
+
                         if let Some(callback) = status_registry.status_constructor(hit_flag) {
                             callbacks.push(callback.bind((id.into(), reapplied)));
                         }
@@ -933,6 +943,13 @@ impl BattleState {
                         if let Some(status_callbacks) = living.status_callbacks.get(&hit_flag) {
                             callbacks.extend(status_callbacks.iter().cloned());
                         }
+                    }
+                }
+
+                if let Some(movement) = &mut movement {
+                    // unpause movement when we're actionable again
+                    if !status_director.is_inactionable(status_registry) {
+                        movement.paused = false;
                     }
                 }
             }
@@ -995,7 +1012,8 @@ impl BattleState {
                 continue;
             };
 
-            let update_progress = entity.spawned && !entity.deleted && !entity.time_frozen;
+            let update_progress =
+                !movement.paused && entity.spawned && !entity.deleted && !entity.time_frozen;
 
             let entity_id = id.into();
 

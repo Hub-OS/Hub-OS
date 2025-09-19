@@ -223,18 +223,16 @@ impl StatusDirector {
 
     pub fn is_inactionable(&self, registry: &StatusRegistry) -> bool {
         self.remaining_drag_lockout > 0
-            || registry
-                .inactionable_flags()
-                .iter()
-                .any(|&flag| self.remaining_status_time(flag) > 0)
+            || self.statuses.iter().any(|status| {
+                registry.inactionable_flags() & status.status_flag != 0 && status.remaining_time > 0
+            })
     }
 
     pub fn is_immobile(&self, registry: &StatusRegistry) -> bool {
-        self.remaining_drag_lockout > 0
-            || registry
-                .immobilizing_flags()
-                .iter()
-                .any(|&flag| self.remaining_status_time(flag) > 0)
+        self.drag.is_none()
+            && self.statuses.iter().any(|status| {
+                registry.immobilizing_flags() & status.status_flag != 0 && status.remaining_time > 0
+            })
     }
 
     pub fn take_status_sprites(&mut self) -> Vec<(HitFlags, TreeIndex)> {

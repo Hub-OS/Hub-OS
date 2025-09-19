@@ -5,5 +5,5 @@ name = "Freeze Status"
 flag_name = "Freeze"
 mutual_exclusions = ["Confuse", "Paralyze", "Flinch", "Flash"]
 blocks_actions = true
-blocks_mobility = true
+blocks_mobility = false
 durations = [150]

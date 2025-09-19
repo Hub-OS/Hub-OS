@@ -8,5 +8,5 @@ mutual_exclusions = ["Flinch", "Blind", "Freeze", "Confuse"]
 # removes these flags if they're applied on the same hit
 blocks_flags = ["Flinch", "Flash", "Blind", "Freeze", "Confuse"]
 blocks_actions = true
-blocks_mobility = true
+blocks_mobility = false
 durations = [90, 120, 150]

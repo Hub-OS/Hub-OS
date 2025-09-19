@@ -37,8 +37,8 @@ pub struct StatusRegistry {
     list: Vec<RegisteredStatus>,
     mutual_exclusions: HashMap<HitFlags, VecSet<HitFlags>>,
     overrides: HashMap<HitFlags, HitFlags>,
-    immobilizing_flags: Vec<HitFlags>,
-    inactionable_flags: Vec<HitFlags>,
+    immobilizing_flags: HitFlags,
+    inactionable_flags: HitFlags,
 }
 
 impl StatusRegistry {
@@ -48,8 +48,8 @@ impl StatusRegistry {
             list: Vec::new(),
             mutual_exclusions: Default::default(),
             overrides: Default::default(),
-            immobilizing_flags: vec![],
-            inactionable_flags: vec![],
+            immobilizing_flags: HitFlag::NONE,
+            inactionable_flags: HitFlag::NONE,
         }
     }
 
@@ -95,8 +95,8 @@ impl StatusRegistry {
 
             if flag != HitFlag::NONE {
                 // overwrite existing flag
-                self.immobilizing_flags.retain(|f| *f != flag);
-                self.inactionable_flags.retain(|f| *f != flag);
+                self.immobilizing_flags &= !flag;
+                self.inactionable_flags &= !flag;
             } else {
                 // use a new flag
                 if self.next_shift >= STATUS_LIMIT {
@@ -143,11 +143,11 @@ impl StatusRegistry {
             }
 
             if package.blocks_actions {
-                self.inactionable_flags.push(flag);
+                self.inactionable_flags |= flag;
             }
 
             if package.blocks_mobility {
-                self.immobilizing_flags.push(flag);
+                self.immobilizing_flags |= flag;
             }
         }
 
@@ -217,11 +217,11 @@ impl StatusRegistry {
         self.overrides.get(&flag).cloned().unwrap_or_default()
     }
 
-    pub fn immobilizing_flags(&self) -> &[HitFlags] {
-        &self.immobilizing_flags
+    pub fn immobilizing_flags(&self) -> HitFlags {
+        self.immobilizing_flags
     }
 
-    pub fn inactionable_flags(&self) -> &[HitFlags] {
-        &self.inactionable_flags
+    pub fn inactionable_flags(&self) -> HitFlags {
+        self.inactionable_flags
     }
 }

@@ -6,6 +6,7 @@ use crate::render::FrameTime;
 #[derive(Default, Clone)]
 pub struct Movement {
     pub success: bool,
+    pub paused: bool,
     pub elapsed: FrameTime,
     pub delta: FrameTime, // Frames between tile A and B. If 0, teleport. Else, we could be sliding
     pub delay: FrameTime, // Startup lag to be used with animations
@@ -143,6 +144,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for Movement {
 
         Ok(Self {
             success: false,
+            paused: false,
             elapsed: 0,
             delta: table.raw_get("delta").unwrap_or_default(),
             delay: table.raw_get("delay").unwrap_or_default(),
