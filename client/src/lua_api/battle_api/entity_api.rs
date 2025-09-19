@@ -719,14 +719,7 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
                 return lua.pack_multi(());
             }
 
-            if let Ok(movement) = entities.remove_one::<Movement>(id.into()) {
-                if let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) {
-                    entity.x = movement.dest.0;
-                    entity.y = movement.dest.1;
-                }
-
-                simulation.pending_callbacks.extend(movement.end_callback)
-            }
+            Movement::cancel(simulation, id);
 
             lua.pack_multi(())
         },

@@ -201,13 +201,10 @@ impl Living {
             Defense::filter_statuses(game_io, resources, simulation, hit_props, &defense_rules);
 
             let entities = &mut simulation.entities;
-            let Ok((entity, living, countered_callback, movement)) =
-                entities.query_one_mut::<(
-                    &Entity,
-                    &mut Living,
-                    Option<&CounteredCallback>,
-                    Option<&Movement>,
-                )>(entity_id.into())
+            let Ok((entity, living, countered_callback)) =
+                entities.query_one_mut::<(&Entity, &mut Living, Option<&CounteredCallback>)>(
+                    entity_id.into(),
+                )
             else {
                 return;
             };
@@ -337,11 +334,7 @@ impl Living {
                 living.status_director.set_drag(hit_props.drag);
 
                 // cancel movement
-                if movement.is_some() {
-                    if let Ok(movement) = entities.remove_one::<Movement>(entity_id.into()) {
-                        simulation.pending_callbacks.extend(movement.end_callback)
-                    }
-                }
+                Movement::cancel(simulation, entity_id);
             }
 
             play_hurt_sfx |= hit_props.flags & HitFlag::DRAIN == 0;

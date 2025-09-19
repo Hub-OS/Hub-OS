@@ -1,5 +1,5 @@
-use crate::battle::BattleCallback;
-use crate::bindable::Direction;
+use crate::battle::{BattleCallback, BattleSimulation, Entity};
+use crate::bindable::{Direction, EntityId};
 use crate::lua_api::{create_movement_table, BEGIN_FN, END_FN, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
 
@@ -108,6 +108,20 @@ impl Movement {
 
     pub fn interpolate_jump_height(&self, progress: f32) -> f32 {
         self.height * crate::ease::quadratic(progress)
+    }
+
+    pub fn cancel(simulation: &mut BattleSimulation, id: EntityId) {
+        let entities = &mut simulation.entities;
+        let Ok(movement) = entities.remove_one::<Movement>(id.into()) else {
+            return;
+        };
+
+        if let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) {
+            entity.x = movement.dest.0;
+            entity.y = movement.dest.1;
+        }
+
+        simulation.pending_callbacks.extend(movement.end_callback)
     }
 }
 
