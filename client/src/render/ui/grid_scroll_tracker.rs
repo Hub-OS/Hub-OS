@@ -66,7 +66,7 @@ impl GridScrollTracker {
 
         let mut main_size = total_items / self.columns;
 
-        if total_items % self.columns > 0 {
+        if !total_items.is_multiple_of(self.columns) {
             main_size += 1;
         }
 

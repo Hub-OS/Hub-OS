@@ -1143,7 +1143,7 @@ impl CardSelectState {
             .entities
             .query_mut::<&Player>()
             .into_iter()
-            .map(|(id, _player)| (id.into()))
+            .map(|(id, _player)| id.into())
             .collect::<Vec<EntityId>>();
 
         let entities = &mut simulation.entities;
