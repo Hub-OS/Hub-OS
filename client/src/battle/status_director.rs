@@ -381,16 +381,17 @@ impl StatusDirector {
 
     pub fn take_ready_destructors(&mut self) -> Vec<BattleCallback> {
         // append some final statuses
-        for status in &mut self.statuses {
-            if status.remaining_time <= 0 {
-                status.remaining_time = 0;
-                status.lifetime = 0;
-
-                if let Some(callback) = status.destructor.take() {
-                    self.ready_destructors.push(callback);
-                }
+        self.statuses.retain_mut(|status| {
+            if status.remaining_time > 0 {
+                return true;
             }
-        }
+
+            if let Some(callback) = status.destructor.take() {
+                self.ready_destructors.push(callback);
+            }
+
+            false
+        });
 
         std::mem::take(&mut self.ready_destructors)
     }
@@ -412,12 +413,10 @@ impl StatusDirector {
                 return true;
             };
 
-            let still_active = prev_status.remaining_time > 0;
-
             prev_status.remaining_time = status.remaining_time.max(prev_status.remaining_time);
             prev_status.reapplied = status.reapplied;
 
-            !still_active
+            false
         });
     }
 
