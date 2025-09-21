@@ -818,6 +818,7 @@ impl Player {
         if character.card_use_requested
             || action_queue.is_some_and(|q| q.active.is_some() || !q.pending.is_empty())
             || living.status_director.is_immobile(status_registry)
+            || living.status_director.is_inactionable(status_registry)
         {
             // clear the flip request if an action is being performed
             player.flip_requested = false;
