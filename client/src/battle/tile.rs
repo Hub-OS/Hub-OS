@@ -97,17 +97,21 @@ impl Tile {
         self.team_reclaim_timer
     }
 
-    pub fn sync_team_reclaim_timer(&mut self, time: FrameTime) {
+    pub fn set_team_reclaim_timer(&mut self, time: FrameTime) {
         self.team_reclaim_timer = time;
+    }
 
-        if time == 0 {
-            if self.team_flicker.is_none() {
-                self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
-            }
-
-            self.team = self.original_team;
-            self.direction = self.original_direction;
+    pub fn try_reclaim(&mut self) {
+        if self.team_reclaim_timer > 0 {
+            return;
         }
+
+        if self.team_flicker.is_none() {
+            self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
+        }
+
+        self.team = self.original_team;
+        self.direction = self.original_direction;
     }
 
     pub fn set_direction(&mut self, direction: Direction) {

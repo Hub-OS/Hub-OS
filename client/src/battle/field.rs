@@ -201,15 +201,17 @@ impl Field {
         }
     }
 
-    pub fn update_tiles(&mut self) {
-        for tile in &mut self.tiles {
-            tile.update_state();
+    pub fn update_tiles(&mut self, time_frozen: bool) {
+        if !time_frozen {
+            for tile in &mut self.tiles {
+                tile.update_state();
+            }
         }
 
-        self.sync_team_timers();
+        self.sync_team_timers(time_frozen);
     }
 
-    fn sync_team_timers(&mut self) {
+    fn sync_team_timers(&mut self, time_frozen: bool) {
         #[derive(Clone, Copy)]
         struct TeamState {
             timer: FrameTime,
@@ -270,21 +272,26 @@ impl Field {
                     continue;
                 }
 
+                if !time_frozen && timer > 0 {
+                    timer -= 1;
+                }
+
                 // reclaiming is blocked if we're behind another column that we've claimed
                 // or if we have a reservation in the column
                 let reclaim_blocked = team_state.behind_claimed || team_state.has_reservation;
-
-                if timer > 1 || !reclaim_blocked {
-                    // prevent the timer from hitting 0 if there's a rule blocking us
-                    timer -= 1;
-                }
 
                 // sync tiles in the same column that match our team
                 for row in 0..self.rows as i32 {
                     let tile = self.tile_at_mut((col, row)).unwrap();
 
-                    if tile.team() as usize == team_i {
-                        tile.sync_team_reclaim_timer(timer);
+                    if tile.team() as usize != team_i {
+                        continue;
+                    }
+
+                    tile.set_team_reclaim_timer(timer);
+
+                    if !reclaim_blocked {
+                        tile.try_reclaim();
                     }
                 }
             }

@@ -436,13 +436,13 @@ impl BattleState {
     ) {
         simulation.field.reset_highlight();
 
-        if simulation.time_freeze_tracker.time_is_frozen() {
-            // skip tile effect processing if time is frozen
-            return;
-        }
+        let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
 
-        simulation.field.update_tiles();
-        Field::apply_side_effects(game_io, resources, simulation);
+        simulation.field.update_tiles(time_frozen);
+
+        if !time_frozen {
+            Field::apply_side_effects(game_io, resources, simulation);
+        }
     }
 
     fn update_spells(

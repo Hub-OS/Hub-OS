@@ -236,7 +236,7 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
         for y in 0..field.rows() as i32 {
             if let Some(tile) = field.tile_at_mut((x, y)) {
                 if tile.original_team() == team {
-                    tile.sync_team_reclaim_timer(1);
+                    tile.set_team_reclaim_timer(0);
                 }
             }
         }
