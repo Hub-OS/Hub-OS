@@ -167,6 +167,35 @@ impl TimeFreezeTracker {
         action_index: GenerationalIndex,
         action: &Action,
     ) -> Option<GenerationalIndex> {
+        let tracked_action = TrackedAction {
+            team,
+            entity: action.entity,
+            action_index,
+            prevent_counter: action.properties.prevent_time_freeze_counter,
+        };
+
+        if matches!(
+            self.state,
+            TimeFreezeState::Action(ActionFreezeState::PollEntityAction)
+        ) {
+            // action queued in the middle of an existing action
+            let index = if self
+                .action_chain
+                .last()
+                .is_some_and(|t| t.entity == action.entity)
+            {
+                // make this play as the next action / after clean up
+                self.action_chain.len().saturating_sub(1)
+            } else {
+                // make this the last action to run
+                0
+            };
+
+            self.action_chain.insert(index, tracked_action);
+
+            return None;
+        }
+
         let mut tracked_action_iter = self.action_chain.iter();
         let dropped_chain_index = match self.chain_limit {
             TimeFreezeChainLimit::Unlimited => None,
@@ -196,12 +225,7 @@ impl TimeFreezeTracker {
         // set the state start time to allow other players to counter, as well as initialize
         self.state_start_time = self.active_time;
 
-        self.action_chain.push(TrackedAction {
-            team,
-            entity: action.entity,
-            action_index,
-            prevent_counter: action.properties.prevent_time_freeze_counter,
-        });
+        self.action_chain.push(tracked_action);
 
         dropped_action_index
     }
@@ -457,7 +481,7 @@ impl TimeFreezeTracker {
                 }
 
                 if let Some(entity_backup) = simulation.time_freeze_tracker.take_entity_backup() {
-                    entity_backup.restore(game_io, resources, simulation);
+                    entity_backup.restore(simulation);
                 }
             }
             ActionFreezeState::PollEntityAction => {

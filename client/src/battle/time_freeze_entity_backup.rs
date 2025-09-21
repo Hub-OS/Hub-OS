@@ -1,11 +1,7 @@
-use super::{
-    Action, ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement,
-    SharedBattleResources,
-};
+use super::{ActionQueue, BattleAnimator, BattleSimulation, Entity, Living, Movement};
 use crate::bindable::{Drag, EntityId, HitFlags};
 use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
-use framework::prelude::GameIO;
 
 #[derive(Clone)]
 pub struct TimeFreezeEntityBackup {
@@ -98,24 +94,11 @@ impl TimeFreezeEntityBackup {
         })
     }
 
-    pub fn restore(
-        self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        // delete action if it still exists
-        Action::cancel_all(game_io, resources, simulation, self.entity_id);
-
-        // restore action queue
+    pub fn restore(self, simulation: &mut BattleSimulation) {
+        // fully restore the entity
         let entities = &mut simulation.entities;
         let id = self.entity_id.into();
 
-        if self.action_queue.active.is_some() || !self.action_queue.pending.is_empty() {
-            let _ = entities.insert_one(id, self.action_queue);
-        }
-
-        // fully restore the entity
         let Ok((entity, living)) = entities.query_one_mut::<(&mut Entity, Option<&mut Living>)>(id)
         else {
             return;
@@ -145,7 +128,28 @@ impl TimeFreezeEntityBackup {
 
         // restore the movement
         if let Some(movement) = self.movement {
-            let _ = simulation.entities.insert_one(id, movement);
+            let _ = entities.insert_one(id, movement);
+        }
+
+        // restore action queue
+        if self.action_queue.active.is_some() || !self.action_queue.pending.is_empty() {
+            if let Ok(existing_queue) = entities.query_one_mut::<&mut ActionQueue>(id) {
+                if existing_queue.active.is_some() {
+                    log::error!("Active action overwritten by TimeFreezeEntityBackup");
+                }
+
+                existing_queue.active = self.action_queue.active;
+
+                if existing_queue.pending.is_empty() {
+                    // use old queue
+                    existing_queue.pending = self.action_queue.pending;
+                } else {
+                    // extend with old queue
+                    existing_queue.pending.extend(self.action_queue.pending);
+                }
+            } else {
+                let _ = entities.insert_one(id, self.action_queue);
+            }
         }
     }
 }
