@@ -169,7 +169,7 @@ impl Card {
 
         let recipe = &package.recipes[recipe_index];
         let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick);
-        text_style.color = Color::GREEN;
+        text_style.color = Color::from_rgb_u8s(0x48, 0xF8, 0x08);
         text_style.bounds.set_position(position);
         text_style.scale = Vec2::new(scale, 1.0);
         text_style.line_spacing = 3.0;
