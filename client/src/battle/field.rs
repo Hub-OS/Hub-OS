@@ -243,7 +243,7 @@ impl Field {
 
                 let timer = tile.team_reclaim_timer();
 
-                if team_state.timer > timer && timer > 0 {
+                if team_state.timer > timer && team != tile.original_team() {
                     team_state.timer = timer;
                 }
 
