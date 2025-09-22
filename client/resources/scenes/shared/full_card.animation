@@ -1,6 +1,7 @@
 animation state="STANDARD"
 frame x="0" y="0" w="80" h="134"
 point label="PREVIEW" x="40" y="4"
+point label="RECIPE_CYCLE_INDICATOR" x="68" y="70"
 point label="DESCRIPTION_START" x="4" y="71"
 point label="DESCRIPTION_END" x="75" y="120"
 point label="STATUS_START" x="10" y="3"

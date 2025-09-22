@@ -49,6 +49,7 @@ impl LibraryScene {
             Dock::new(game_io, dock_offset, &package_ids, CardClass::Mega),
             Dock::new(game_io, dock_offset, &package_ids, CardClass::Giga),
             Dock::new(game_io, dock_offset, &package_ids, CardClass::Dark),
+            Dock::new(game_io, dock_offset, &package_ids, CardClass::Recipe),
         ];
 
         // page tracker
@@ -117,6 +118,13 @@ impl LibraryScene {
 
             let globals = game_io.resource::<Globals>().unwrap();
             globals.audio.play_sound(&globals.sfx.cursor_select);
+        }
+
+        if !self.card_preview.flipped() && input_util.was_just_pressed(Input::Confirm) {
+            self.card_preview.cycle_recipe();
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            globals.audio.play_sound(&globals.sfx.cursor_move);
         }
 
         // switching docks
@@ -255,7 +263,7 @@ impl Dock {
             .flat_map(|id| globals.card_packages.package(PackageNamespace::Local, id))
             .filter(|package| {
                 package.card_properties.card_class == card_class
-                    && package.limit > 0
+                    && (card_class == CardClass::Recipe || package.limit > 0)
                     && !package.hidden
             })
             .map(|package| Card {

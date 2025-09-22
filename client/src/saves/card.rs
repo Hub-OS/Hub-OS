@@ -1,4 +1,4 @@
-use crate::bindable::Element;
+use crate::bindable::{CardClass, Element};
 use crate::packages::*;
 use crate::render::ui::*;
 use crate::render::*;
@@ -124,6 +124,103 @@ impl Card {
         }
     }
 
+    pub fn draw_recipe_preview(
+        &self,
+        game_io: &GameIO,
+        sprite_queue: &mut SpriteColorQueue,
+        namespace: PackageNamespace,
+        position: Vec2,
+        scale: f32,
+        recipe_index: usize,
+    ) {
+        let globals = game_io.resource::<Globals>().unwrap();
+        let package_manager = &globals.card_packages;
+
+        let Some(package) = package_manager.package_or_fallback(namespace, &self.package_id) else {
+            return;
+        };
+
+        if package.recipes.is_empty() {
+            return;
+        }
+
+        let len = package.recipes.len();
+        let recipe_index = recipe_index % len;
+
+        fn fetch_ingredient_name<'a>(
+            package_manager: &'a PackageManager<CardPackage>,
+            namespace: PackageNamespace,
+            id_type: CardRecipeIdType,
+            id: &'a str,
+        ) -> &'a str {
+            match id_type {
+                CardRecipeIdType::Name => id,
+                CardRecipeIdType::Id => {
+                    if let Some(ingredient_package) =
+                        package_manager.package_or_fallback(namespace, &PackageId::from(id))
+                    {
+                        &ingredient_package.card_properties.short_name
+                    } else {
+                        "?????"
+                    }
+                }
+            }
+        }
+
+        let recipe = &package.recipes[recipe_index];
+        let mut text_style = TextStyle::new_monospace(game_io, FontName::Thick);
+        text_style.color = Color::GREEN;
+        text_style.bounds.set_position(position);
+        text_style.scale = Vec2::new(scale, 1.0);
+        text_style.line_spacing = 3.0;
+
+        let whitespace_width = text_style.measure_grapheme(" ").x + text_style.letter_spacing;
+        let top_left = position + Vec2::new(-whitespace_width * 4.5, 0.0);
+
+        let mut line_position = top_left;
+        let line_height = text_style.line_height();
+
+        match recipe {
+            CardRecipe::CodeSequence { id_type, id, codes } => {
+                let name = fetch_ingredient_name(package_manager, namespace, *id_type, id);
+                let code_offset = Vec2::new(whitespace_width * 8.0, 0.0);
+
+                for code in codes {
+                    text_style.bounds.set_position(line_position);
+                    text_style.draw(game_io, sprite_queue, name);
+                    text_style.bounds.set_position(line_position + code_offset);
+                    text_style.draw(game_io, sprite_queue, code);
+
+                    line_position.y += line_height;
+                }
+            }
+            CardRecipe::MixSequence { mix } => {
+                for (id_type, id) in mix {
+                    let name = fetch_ingredient_name(package_manager, namespace, *id_type, id);
+
+                    text_style.bounds.set_position(line_position);
+                    text_style.draw(game_io, sprite_queue, name);
+
+                    line_position.y += line_height;
+                }
+            }
+        }
+
+        // render bottom portion unscaled
+        text_style.scale = Vec2::ONE;
+
+        let whitespace_width = text_style.measure_grapheme(" ").x + text_style.letter_spacing;
+        let top_left = position + Vec2::new(-whitespace_width * 4.5, 0.0);
+
+        // render page number
+        let offset = Vec2::new(0.0, line_height * 4.0);
+        text_style.bounds.set_position(top_left + offset);
+        text_style.color = Color::WHITE;
+
+        let page_text = format!("{}/{len}", recipe_index + 1);
+        text_style.draw(game_io, sprite_queue, &page_text);
+    }
+
     pub fn draw_list_item(
         &self,
         game_io: &GameIO,
@@ -135,7 +232,7 @@ impl Card {
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
-        let (icon_texture_path, short_name, element, limit);
+        let (icon_texture_path, short_name, element, limit, card_class);
 
         if let Some(package) =
             package_manager.package_or_fallback(PackageNamespace::Local, &self.package_id)
@@ -144,11 +241,13 @@ impl Card {
             short_name = package.card_properties.short_name.as_ref();
             element = package.card_properties.element;
             limit = package.limit;
+            card_class = package.card_properties.card_class;
         } else {
             icon_texture_path = ResourcePaths::CARD_ICON_MISSING;
             short_name = "?????";
             element = Element::None;
             limit = 0;
+            card_class = Default::default();
         };
 
         const ICON_OFFSET: Vec2 = Vec2::new(2.0, 1.0);
@@ -183,21 +282,23 @@ impl Card {
         element_sprite.set_position(ELEMENT_OFFSET + position);
         sprite_queue.draw_sprite(&element_sprite);
 
-        // code
-        label.bounds.set_position(CODE_OFFSET + position);
-        label.color = Color::WHITE;
-        label.draw(game_io, sprite_queue, &self.code);
+        if card_class != CardClass::Recipe {
+            // code
+            label.bounds.set_position(CODE_OFFSET + position);
+            label.color = Color::WHITE;
+            label.draw(game_io, sprite_queue, &self.code);
 
-        // limit
-        label.font = FontName::Code;
-        label.bounds.set_position(LIMIT_OFFSET + position);
-        let text = format!("{limit:>2}");
-        label.color = Color::from((247, 214, 99, 255));
-        label.draw(game_io, sprite_queue, &text);
+            // limit
+            label.font = FontName::Code;
+            label.bounds.set_position(LIMIT_OFFSET + position);
+            let text = format!("{limit:>2}");
+            label.color = Color::from((247, 214, 99, 255));
+            label.draw(game_io, sprite_queue, &text);
 
-        label.bounds.set_position(LIM_OFFSET + position);
-        label.color = Color::WHITE;
-        label.draw(game_io, sprite_queue, "LM");
+            label.bounds.set_position(LIM_OFFSET + position);
+            label.color = Color::WHITE;
+            label.draw(game_io, sprite_queue, "LM");
+        }
     }
 }
 

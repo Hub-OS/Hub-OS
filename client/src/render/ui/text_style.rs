@@ -145,7 +145,7 @@ impl TextStyle {
             size.x = frame.size().x - frame.origin.x;
         }
 
-        size
+        size * self.scale
     }
 
     pub fn draw(&self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue, text: &str) {

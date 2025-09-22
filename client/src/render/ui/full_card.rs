@@ -18,6 +18,8 @@ pub struct FullCard {
     status_animator: Animator,
     status_step: Vec2,
     status_bounds: Rect,
+    next_recipe_sprite: Sprite,
+    next_recipe_animator: Animator,
     position: Vec2,
     preview_position: Vec2,
     previous_card: Option<Card>,
@@ -25,6 +27,7 @@ pub struct FullCard {
     description_style: TextStyle,
     art_time: FrameTime,
     flipped: bool,
+    recipe_index: usize,
 }
 
 impl FullCard {
@@ -71,14 +74,24 @@ impl FullCard {
         description_style.color = Color::BLACK;
         description_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 
-        let description_start = card_animator.point_or_zero("description_start");
+        let description_start = card_animator.point_or_zero("DESCRIPTION_START");
 
-        let description_end = card_animator.point_or_zero("description_end");
+        let description_end = card_animator.point_or_zero("DESCRIPTION_END");
 
         let bounds_position = position + description_start;
         let bounds_size = description_end - description_start;
         description_style.bounds.set_position(bounds_position);
         description_style.bounds.set_size(bounds_size);
+
+        // recipe cycling
+        let mut next_recipe_sprite = assets.new_sprite(game_io, ResourcePaths::TEXTBOX_NEXT);
+        let mut next_recipe_animator =
+            Animator::load_new(assets, ResourcePaths::TEXTBOX_NEXT_ANIMATION);
+        next_recipe_animator.set_state("DEFAULT");
+        next_recipe_animator.set_loop_mode(AnimatorLoopMode::Loop);
+
+        next_recipe_sprite
+            .set_position(position + card_animator.point_or_zero("RECIPE_CYCLE_INDICATOR"));
 
         Self {
             card_sprite: card_sprite.clone(),
@@ -88,6 +101,8 @@ impl FullCard {
             status_animator,
             status_step,
             status_bounds,
+            next_recipe_sprite,
+            next_recipe_animator,
             position,
             preview_position: position + preview_point,
             previous_card: None,
@@ -95,6 +110,7 @@ impl FullCard {
             description_style,
             art_time: 0,
             flipped: false,
+            recipe_index: 0,
         }
     }
 
@@ -120,6 +136,14 @@ impl FullCard {
         self.previous_card = self.current_card.take();
         self.current_card = card;
         self.art_time = 0;
+        self.recipe_index = 0;
+    }
+
+    pub fn cycle_recipe(&mut self) {
+        self.previous_card.clone_from(&self.current_card);
+        self.art_time = 0;
+        self.recipe_index += 1;
+        self.next_recipe_animator.sync_time(0);
     }
 
     pub fn set_flipped(&mut self, flipped: bool) {
@@ -128,6 +152,10 @@ impl FullCard {
 
     pub fn toggle_flipped(&mut self) {
         self.set_flipped(!self.flipped);
+    }
+
+    pub fn flipped(&mut self) -> bool {
+        self.flipped
     }
 
     pub fn draw(&mut self, game_io: &GameIO, sprite_queue: &mut SpriteColorQueue) {
@@ -234,13 +262,36 @@ impl FullCard {
             if let Some(card) = card {
                 let scale = (0.5 - art_progress).abs() * 2.0;
 
-                card.draw_preview(
-                    game_io,
-                    sprite_queue,
-                    PackageNamespace::Local,
-                    self.preview_position,
-                    scale,
-                );
+                if package.is_some_and(|p| p.card_properties.card_class == CardClass::Recipe) {
+                    card.draw_recipe_preview(
+                        game_io,
+                        sprite_queue,
+                        PackageNamespace::Local,
+                        self.preview_position,
+                        scale,
+                        self.recipe_index,
+                    );
+
+                    // render cycle recipe indicator
+                    if package.is_some_and(|p| p.recipes.len() > 1) {
+                        self.next_recipe_animator
+                            .apply(&mut self.next_recipe_sprite);
+
+                        if self.art_time > MAX_ART_TIME / 2 {
+                            self.next_recipe_animator.update();
+                        }
+
+                        sprite_queue.draw_sprite(&self.next_recipe_sprite);
+                    }
+                } else {
+                    card.draw_preview(
+                        game_io,
+                        sprite_queue,
+                        PackageNamespace::Local,
+                        self.preview_position,
+                        scale,
+                    );
+                }
             }
 
             // draw description
