@@ -9,6 +9,7 @@ pub struct AttackBox {
     pub y: i32,
     pub props: HitProperties,
     pub highlight: bool,
+    pub remaining_frames: u8,
 }
 
 impl AttackBox {
@@ -44,6 +45,15 @@ impl AttackBox {
             y,
             props,
             highlight: spell.requested_highlight == TileHighlight::Automatic,
+            remaining_frames: 2,
         }
+    }
+
+    pub fn refresh(&mut self) {
+        self.remaining_frames = 2;
+    }
+
+    pub fn is_fresh(&self) -> bool {
+        self.remaining_frames == 2
     }
 }

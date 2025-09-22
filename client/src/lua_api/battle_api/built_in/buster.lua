@@ -92,8 +92,6 @@ function Buster.new(user, charged, damage)
     action:add_anim_action(2, function()
         Resources.play_audio(Resources.game_folder() .. "resources/sfx/pew.ogg");
 
-        local last_tile = user:current_tile()
-
         spell:set_hit_props(HitProps.new(
             damage,
             Hit.None,
@@ -106,9 +104,7 @@ function Buster.new(user, charged, damage)
         local move_timer = 0
 
         spell.on_update_func = function()
-            last_tile:attack_entities(spell)
-            last_tile = spell:current_tile()
-            last_tile:attack_entities(spell)
+            spell:attack_tile()
 
             move_timer = move_timer + 1
 
@@ -169,7 +165,7 @@ function Buster.new(user, charged, damage)
             spell:erase()
         end
 
-        Field.spawn(spell, last_tile)
+        Field.spawn(spell, user:current_tile())
     end)
 
     -- flare attachment

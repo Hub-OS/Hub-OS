@@ -106,7 +106,7 @@ impl Tile {
             return;
         }
 
-        if self.team_flicker.is_none() {
+        if self.team != self.original_team && self.team_flicker.is_none() {
             self.team_flicker = Some((self.team, TILE_FLICKER_DURATION));
         }
 

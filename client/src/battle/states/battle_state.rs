@@ -495,8 +495,15 @@ impl BattleState {
             }
         }
 
-        let mut queued_attacks = std::mem::take(&mut simulation.queued_attacks);
+        let mut queued_attacks = simulation.queued_attacks.clone();
         let mut washed_tiles = Vec::new();
+
+        // decrement remaining time for attacks involved in processing
+        // handling this first to avoid decrementing remaining time for attacks created in callbacks
+        // must happen after cloning so the clones are still marked as fresh
+        for attack_box in &mut simulation.queued_attacks {
+            attack_box.remaining_frames -= 1;
+        }
 
         // interactions between attack boxes and tiles
         for attack_box in &queued_attacks {
@@ -512,7 +519,9 @@ impl BattleState {
             let element = attack_box.props.element;
             let secondary_element = attack_box.props.secondary_element;
 
-            if cleanser_element == Some(element) || cleanser_element == Some(secondary_element) {
+            if attack_box.is_fresh()
+                && cleanser_element.is_some_and(|e| e == element || e == secondary_element)
+            {
                 let wash_data = (tile.state_index(), tile.position());
 
                 if !washed_tiles.contains(&wash_data) {
@@ -701,6 +710,10 @@ impl BattleState {
 
         let entities = &mut simulation.entities;
         simulation.field.resolve_ignored_attackers(entities);
+
+        // remove expired attacks
+        let filter = |attack_box: &AttackBox| attack_box.remaining_frames > 0;
+        simulation.queued_attacks.retain(filter);
     }
 
     fn mark_deleted(

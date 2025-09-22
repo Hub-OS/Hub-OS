@@ -37,10 +37,13 @@ impl Spell {
         };
 
         let queued_attacks = &mut simulation.queued_attacks;
-        let is_same_attack =
-            |attack: &AttackBox| attack.attacker_id == id && attack.x == x && attack.y == y;
+        let is_same_attack = |attack: &&mut AttackBox| -> bool {
+            attack.attacker_id == id && attack.x == x && attack.y == y
+        };
 
-        if !queued_attacks.iter().any(is_same_attack) {
+        if let Some(attack_box) = queued_attacks.iter_mut().find(is_same_attack) {
+            attack_box.refresh();
+        } else {
             let attack_box = AttackBox::new_from((x, y), id, entity, spell);
             queued_attacks.push(attack_box);
         }
