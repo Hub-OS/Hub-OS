@@ -1,4 +1,4 @@
-use crate::battle::{BattleCallback, BattleSimulation, Entity};
+use crate::battle::{ActionQueue, BattleCallback, BattleSimulation, Entity};
 use crate::bindable::{Direction, EntityId};
 use crate::lua_api::{create_movement_table, BEGIN_FN, END_FN, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
@@ -116,9 +116,34 @@ impl Movement {
             return;
         };
 
-        if let Ok(entity) = entities.query_one_mut::<&mut Entity>(id.into()) {
-            entity.x = movement.dest.0;
-            entity.y = movement.dest.1;
+        let Ok((entity, action_queue)) =
+            entities.query_one_mut::<(&mut Entity, Option<&ActionQueue>)>(id.into())
+        else {
+            return;
+        };
+
+        let prev_position = (entity.x, entity.y);
+        entity.x = movement.dest.0;
+        entity.y = movement.dest.1;
+
+        if prev_position != movement.dest {
+            if let Some(start_tile) = simulation.field.tile_at_mut(prev_position) {
+                start_tile.handle_auto_reservation_removal(
+                    &simulation.actions,
+                    id,
+                    entity,
+                    action_queue,
+                );
+            }
+
+            if let Some(dest_tile) = simulation.field.tile_at_mut(movement.dest) {
+                dest_tile.handle_auto_reservation_addition(
+                    &simulation.actions,
+                    id,
+                    entity,
+                    action_queue,
+                );
+            }
         }
 
         simulation.pending_callbacks.extend(movement.end_callback)
