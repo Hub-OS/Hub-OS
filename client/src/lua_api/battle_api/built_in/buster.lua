@@ -152,7 +152,7 @@ function Buster.new(user, charged, damage)
                 hit_artifact:erase()
             end)
 
-            Field.spawn(hit_artifact, spell:current_tile())
+            Field.spawn(hit_artifact, entity:current_tile())
         end
 
         spell.on_delete_func = function()
