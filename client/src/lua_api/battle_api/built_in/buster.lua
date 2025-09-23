@@ -141,10 +141,15 @@ function Buster.new(user, charged, damage)
                 hit_y = math.random() * hit_y
             end
 
+            local movement_offset = entity:movement_offset()
+            hit_x = hit_x + movement_offset.x
+            hit_y = hit_y - movement_offset.y
+
             local hit_artifact = Artifact.new()
             hit_artifact:load_animation(Resources.game_folder() .. "resources/scenes/battle/spell_bullet_hit.animation")
             hit_artifact:set_texture(Resources.game_folder() .. "resources/scenes/battle/spell_bullet_hit.png")
             hit_artifact:set_offset(hit_x, -hit_y)
+            hit_artifact:set_layer(-1)
 
             local hit_animation = hit_artifact:animation()
             hit_animation:set_state(state)
