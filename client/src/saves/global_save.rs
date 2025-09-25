@@ -275,6 +275,8 @@ impl GlobalSave {
             return;
         }
 
+        log::info!("Updating save for updated package id: {old_id} -> {new_id}");
+
         // update decks
         for deck in &mut self.decks {
             for card in &mut deck.cards {

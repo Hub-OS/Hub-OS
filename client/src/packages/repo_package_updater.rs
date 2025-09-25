@@ -185,6 +185,8 @@ impl RepoPackageUpdater {
         let uri = format!("{repo}/api/mods/{encoded_id}");
         let base_path = globals.resolve_package_download_path(category, install_id);
 
+        log::info!("Downloading {id}...");
+
         let task = game_io.spawn_local_task(async move {
             let Some(zip_bytes) = crate::http::request(&uri).await else {
                 log::error!("Failed to download zip");
