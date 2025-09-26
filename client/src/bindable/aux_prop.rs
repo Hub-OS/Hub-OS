@@ -3,8 +3,8 @@ use super::{
     HitProperties, MathExpr,
 };
 use crate::battle::{
-    ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, Entity, Player,
-    SharedBattleResources,
+    ActionQueue, ActionType, ActionTypes, AttackContext, BattleCallback, Character, EmotionWindow,
+    Entity, Player, SharedBattleResources,
 };
 use crate::lua_api::{create_action_table, VM_INDEX_REGISTRY_KEY};
 use crate::render::FrameTime;
@@ -556,12 +556,13 @@ impl AuxProp {
 
     pub fn process_body(
         &mut self,
+        emotion_window: Option<&EmotionWindow>,
         player: Option<&Player>,
         character: Option<&Character>,
         entity: &Entity,
         action_queue: Option<&ActionQueue>,
     ) {
-        let emotion = player.map(|player| player.emotion_window.emotion());
+        let emotion = emotion_window.map(|emotion_window| emotion_window.emotion());
         let card = character.and_then(|character| character.cards.last());
 
         for (requirement, state) in &mut self.requirements {

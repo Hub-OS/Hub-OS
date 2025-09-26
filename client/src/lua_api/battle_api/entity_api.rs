@@ -1549,34 +1549,73 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(player.index)
     });
 
-    getter::<&Player, _>(lua_api, "emotions", |player: &Player, lua, ()| {
-        let emotions = player.emotion_window.emotions();
-        let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
+    getter::<&EmotionWindow, _>(
+        lua_api,
+        "emotions",
+        |emotion_window: &EmotionWindow, lua, ()| {
+            let emotions = emotion_window.emotions();
+            let table = lua.create_table_from(emotions.enumerate().map(|(i, v)| (i + 1, v)))?;
 
-        lua.pack_multi(table)
-    });
-    getter::<&Player, _>(lua_api, "emotion", |player: &Player, lua, ()| {
-        lua.pack_multi(player.emotion_window.emotion())
-    });
+            lua.pack_multi(table)
+        },
+    );
+    getter::<&EmotionWindow, _>(
+        lua_api,
+        "emotion",
+        |emotion_window: &EmotionWindow, lua, ()| lua.pack_multi(emotion_window.emotion()),
+    );
     setter(
         lua_api,
         "set_emotion",
-        |player: &mut Player, _lua, emotion: Emotion| {
-            player.emotion_window.set_emotion(emotion);
+        |emotion_window: &mut EmotionWindow, _lua, emotion: Emotion| {
+            emotion_window.set_emotion(emotion);
             Ok(())
         },
     );
 
-    getter::<&Player, _>(
-        lua_api,
-        "emotions_texture",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.texture_path()),
-    );
+    lua_api.add_dynamic_function(ENTITY_TABLE, "emotions_texture", |api_ctx, lua, params| {
+        let table: rollback_mlua::Table = lua.unpack_multi(params)?;
 
-    getter::<&Player, _>(
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let emotion_window = entities
+            .query_one_mut::<&EmotionWindow>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let tree_index = emotion_window.sprite_tree_index();
+
+        if let Some(tree) = simulation.sprite_trees.get(tree_index) {
+            lua.pack_multi(tree.root().texture_path())
+        } else {
+            lua.pack_multi("")
+        }
+    });
+
+    getter::<&EmotionWindow, _>(
         lua_api,
         "emotions_animation_path",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.emotion_window.animation_path()),
+        |emotion_window: &EmotionWindow, lua, _: ()| {
+            lua.pack_multi(emotion_window.animation_path())
+        },
+    );
+
+    getter::<&EmotionWindow, _>(
+        lua_api,
+        "emotion_node",
+        |emotion_window: &EmotionWindow, lua, _: ()| {
+            let table = create_sprite_table(
+                lua,
+                emotion_window.sprite_tree_index(),
+                GenerationalIndex::tree_root(),
+                None,
+            )?;
+
+            lua.pack_multi(table)
+        },
     );
 
     lua_api.add_dynamic_function(
@@ -1592,11 +1631,17 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let entities = &mut simulation.entities;
 
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
+            let emotion_window = entities
+                .query_one_mut::<&EmotionWindow>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            player.emotion_window.set_texture(api_ctx.game_io, path);
+            let tree_index = emotion_window.sprite_tree_index();
+
+            if let Some(tree) = simulation.sprite_trees.get_mut(tree_index) {
+                let sprite = tree.root_mut();
+                sprite.set_texture(api_ctx.game_io, path);
+                sprite.apply_animation(emotion_window.animator());
+            }
 
             lua.pack_multi(())
         },
@@ -1615,11 +1660,17 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let entities = &mut simulation.entities;
 
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
+            let emotion_window = entities
+                .query_one_mut::<&mut EmotionWindow>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            player.emotion_window.load_animation(api_ctx.game_io, path);
+            emotion_window.load_animation(api_ctx.game_io, path);
+
+            let tree_index = emotion_window.sprite_tree_index();
+
+            if let Some(tree) = simulation.sprite_trees.get_mut(tree_index) {
+                tree.root_mut().apply_animation(emotion_window.animator());
+            }
 
             lua.pack_multi(())
         },

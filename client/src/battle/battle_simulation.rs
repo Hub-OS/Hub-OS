@@ -139,7 +139,8 @@ impl BattleSimulation {
         }
 
         clone_component!(Artifact, Character, Living, Obstacle, Player, Spell);
-        clone_component!(EntityName, EntityShadow, EntityShadowHidden, HpDisplay);
+        clone_component!(EntityName, HpDisplay, EmotionWindow);
+        clone_component!(EntityShadowHidden, HpDisplay);
         clone_component!(ActionQueue, AttackContext, Movement);
         clone_component!(SpawnCallback, IntroCallback, UpdateCallback, DeleteCallback);
         clone_component!(CanMoveToCallback, IdleCallback);
@@ -702,6 +703,9 @@ impl BattleSimulation {
             // delete shadow
             EntityShadow::delete(self, id.into());
 
+            // delete emotion window
+            EmotionWindow::delete(self, id.into());
+
             // delete entity
             self.entities.despawn(id).unwrap();
         }
@@ -720,17 +724,37 @@ impl BattleSimulation {
         let entities = &mut self.entities;
 
         // update player ui
-        if let Ok((player, living)) =
-            entities.query_one_mut::<(&mut Player, &Living)>(self.local_player_id.into())
-        {
+        if let Ok(living) = entities.query_one_mut::<&Living>(self.local_player_id.into()) {
             self.local_health_ui.set_health(living.health);
             self.local_health_ui.set_max_health(living.max_health);
-            player.emotion_window.update();
         } else {
             self.local_health_ui.set_health(0);
         }
 
         self.local_health_ui.update();
+
+        // update emotion windows
+        for (_, emotion_window) in entities.query_mut::<&mut EmotionWindow>() {
+            let Some(sprite_tree) = self
+                .sprite_trees
+                .get_mut(emotion_window.sprite_tree_index())
+            else {
+                continue;
+            };
+
+            let sprite = sprite_tree.root_mut();
+
+            // move emotion window relative to health ui
+            let local_health_bounds = self.local_health_ui.bounds();
+            let mut emotion_window_position = local_health_bounds.position();
+            emotion_window_position.y += local_health_bounds.height + 2.0;
+
+            sprite.set_offset(emotion_window_position);
+
+            // update animation
+            emotion_window.update();
+            sprite.apply_animation(emotion_window.animator());
+        }
 
         // update battle hp displays
         HpDisplay::update(self);
@@ -1129,14 +1153,18 @@ impl BattleSimulation {
 
             let entities = &mut self.entities;
 
-            if let Ok(player) = entities.query_one_mut::<&mut Player>(local_id) {
-                // draw emotion window relative to health ui
-                let local_health_bounds = self.local_health_ui.bounds();
-                let mut emotion_window_position = local_health_bounds.position();
-                emotion_window_position.y += local_health_bounds.height + 2.0;
+            let emotion_sprite_tree = entities
+                .query_one_mut::<&mut EmotionWindow>(local_id)
+                .ok()
+                .and_then(|emotion_window| {
+                    let index = emotion_window.sprite_tree_index();
+                    self.sprite_trees.get_mut(index)
+                });
 
-                player.emotion_window.set_position(emotion_window_position);
-                player.emotion_window.draw(sprite_queue);
+            if let Some(tree) = emotion_sprite_tree {
+                tree.draw(sprite_queue);
+                sprite_queue.set_color_mode(Default::default());
+                sprite_queue.set_palette(None);
             }
         }
 

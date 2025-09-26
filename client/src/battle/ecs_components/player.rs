@@ -1,6 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
-use crate::packages::{PackageNamespace, PlayerPackage};
+use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
 use crate::saves::{BlockGrid, Card, Deck};
@@ -28,7 +28,6 @@ pub struct Player {
     pub card_charge: AttackCharge,
     pub attack_charge: AttackCharge,
     pub slide_when_moving: bool,
-    pub emotion_window: EmotionUi,
     pub forms: Vec<PlayerForm>,
     pub active_form: Option<usize>,
     pub form_boost_order: usize,
@@ -42,7 +41,6 @@ impl Player {
     fn new(
         game_io: &GameIO,
         setup: &PlayerSetup,
-        player_package: &PlayerPackage,
         mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
         attack_charge_sprite_index: TreeIndex,
@@ -54,23 +52,6 @@ impl Player {
             // move the regular card to the front
             deck.cards.swap(0, index);
         }
-
-        // load emotions assets with defaults to prevent warnings
-        let emotion_window = if let Some(pair) = player_package.emotions_paths.as_ref() {
-            EmotionUi::new(
-                game_io,
-                setup.emotion.clone(),
-                &pair.texture,
-                &pair.animation,
-            )
-        } else {
-            EmotionUi::new(
-                game_io,
-                setup.emotion.clone(),
-                ResourcePaths::BLANK,
-                ResourcePaths::BLANK,
-            )
-        };
 
         Self {
             index: setup.index,
@@ -100,7 +81,6 @@ impl Player {
             )
             .with_color(Color::MAGENTA),
             slide_when_moving: false,
-            emotion_window,
             forms: Vec::new(),
             active_form: None,
             form_boost_order: 0,
@@ -220,13 +200,14 @@ impl Player {
         let player = Player::new(
             game_io,
             setup,
-            player_package,
             deck,
             card_charge_sprite_index,
             attack_charge_sprite_index,
         );
 
         let _ = simulation.entities.insert_one(id.into(), player);
+
+        EmotionWindow::build_new(game_io, simulation, player_package, setup, id);
 
         // init player
         if script_enabled {

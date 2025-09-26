@@ -130,12 +130,13 @@ impl Living {
         let entities = &mut simulation.entities;
 
         // gather body properties for aux props
-        let Ok((entity, living, player, character, action_queue)) =
-            entities.query_one_mut::<(
+        let Ok((entity, living, player, character, emotion_window, action_queue)) = entities
+            .query_one_mut::<(
                 &Entity,
                 &mut Living,
                 Option<&Player>,
                 Option<&Character>,
+                Option<&EmotionWindow>,
                 Option<&ActionQueue>,
             )>(entity_id.into())
         else {
@@ -152,7 +153,7 @@ impl Living {
             // thus can't depend on their own timers
             let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
             aux_prop.process_time(time_frozen, simulation.battle_time);
-            aux_prop.process_body(player, character, entity, action_queue);
+            aux_prop.process_body(emotion_window, player, character, entity, action_queue);
 
             for hit_props in &mut hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
@@ -572,6 +573,7 @@ impl Living {
             &'a mut Living,
             Option<&'a Character>,
             Option<&'a Player>,
+            Option<&'a EmotionWindow>,
             Option<&'a ActionQueue>,
         );
 
@@ -579,7 +581,7 @@ impl Living {
         // loops until the action stops being replaced
         loop {
             let entities = &mut simulation.entities;
-            let Ok((entity, living, character, player, action_queue)) =
+            let Ok((entity, living, character, player, emotion_window, action_queue)) =
                 entities.query_one_mut::<Query>(entity_id.into())
             else {
                 // not Living, without any auxprops we can just skip this loop
@@ -601,7 +603,7 @@ impl Living {
                     continue;
                 }
 
-                aux_prop.process_body(player, character, entity, action_queue);
+                aux_prop.process_body(emotion_window, player, character, entity, action_queue);
                 aux_prop.process_card(Some(&action.properties));
 
                 if !aux_prop.passed_all_tests() {
@@ -839,13 +841,16 @@ impl Living {
         let _ = entities.insert_one(id, attack_context);
 
         // gather body properties for aux props
-        let Ok((entity, living, player, character, action_queue)) = entities.query_one_mut::<(
-            &mut Entity,
-            &mut Living,
-            Option<&Player>,
-            Option<&Character>,
-            &mut ActionQueue,
-        )>(id) else {
+        let Ok((entity, living, player, character, emotion_window, action_queue)) = entities
+            .query_one_mut::<(
+                &mut Entity,
+                &mut Living,
+                Option<&Player>,
+                Option<&Character>,
+                Option<&EmotionWindow>,
+                &mut ActionQueue,
+            )>(id)
+        else {
             return;
         };
 
@@ -859,7 +864,13 @@ impl Living {
         aux_props.sort_by_key(|aux_prop| aux_prop.priority());
 
         for aux_prop in aux_props {
-            aux_prop.process_body(player, character, entity, Some(action_queue));
+            aux_prop.process_body(
+                emotion_window,
+                player,
+                character,
+                entity,
+                Some(action_queue),
+            );
 
             if !aux_prop.passed_all_tests() {
                 continue;

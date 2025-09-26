@@ -1,5 +1,5 @@
 use super::{Character, Entity, Living, Player};
-use crate::battle::{ActionQueue, BattleSimulation};
+use crate::battle::{ActionQueue, BattleSimulation, EmotionWindow};
 use crate::bindable::AuxEffect;
 
 #[derive(Default, Clone)]
@@ -19,10 +19,11 @@ impl HpDisplay {
             &'a Entity,
             Option<&'a Character>,
             Option<&'a Player>,
+            Option<&'a EmotionWindow>,
             Option<&'a ActionQueue>,
         );
 
-        for (_, (hp_display, living, entity, character, player, action_queue)) in
+        for (_, (hp_display, living, entity, character, player, emotion_window, action_queue)) in
             entities.query_mut::<Query>()
         {
             if !hp_display.initialized {
@@ -57,7 +58,7 @@ impl HpDisplay {
                 .any(|(_, aux_prop)| {
                     // clone to avoid modifying the original
                     let mut aux_prop = aux_prop.clone();
-                    aux_prop.process_body(player, character, entity, action_queue);
+                    aux_prop.process_body(emotion_window, player, character, entity, action_queue);
                     aux_prop.process_health_calculations(living.health, living.max_health, 0);
 
                     aux_prop.passed_non_time_tests()

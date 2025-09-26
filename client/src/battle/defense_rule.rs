@@ -1,5 +1,6 @@
 use super::{AttackBox, BattleScriptContext};
-use super::{BattleSimulation, Entity, Living, Player, SharedBattleResources};
+use super::{BattleSimulation, Entity, Living, SharedBattleResources};
+use crate::battle::EmotionWindow;
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
 use crate::lua_api::{
     create_entity_table, DEFENSE_FN, DEFENSE_TABLE, FILTER_HIT_PROPS_FN, REPLACE_FN,
@@ -183,10 +184,10 @@ impl DefenseRule {
             let player_id = simulation.local_player_id.into();
             let entities = &mut simulation.entities;
 
-            if let Ok(player) = entities.query_one_mut::<&Player>(player_id) {
-                let emotion = player.emotion_window.emotion();
+            if let Ok(emotion_window) = entities.query_one_mut::<&EmotionWindow>(player_id) {
+                let emotion = emotion_window.emotion();
 
-                if player.emotion_window.has_emotion(emotion) {
+                if emotion_window.has_emotion(emotion) {
                     let gauge_bounds = simulation.turn_gauge.bounds();
                     text_style.bounds.x = gauge_bounds.left();
                 }
