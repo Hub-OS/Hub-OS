@@ -284,13 +284,8 @@ impl FullCard {
                         sprite_queue.draw_sprite(&self.next_recipe_sprite);
                     }
                 } else {
-                    card.draw_preview(
-                        game_io,
-                        sprite_queue,
-                        PackageNamespace::Local,
-                        self.preview_position,
-                        scale,
-                    );
+                    let card_preview = CardPreview::new(card, self.preview_position, scale);
+                    card_preview.draw(game_io, sprite_queue);
                 }
             }
 
