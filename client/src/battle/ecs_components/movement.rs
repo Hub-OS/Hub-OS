@@ -134,6 +134,13 @@ impl Movement {
                     entity,
                     action_queue,
                 );
+
+                // callback for stepping off the old tile
+                let tile_state = &simulation.tile_states[start_tile.state_index()];
+                let tile_callback = tile_state.entity_leave_callback.clone();
+                let params = (id, movement.source.0, movement.source.1);
+                let callback = tile_callback.bind(params);
+                simulation.pending_callbacks.push(callback);
             }
 
             if let Some(dest_tile) = simulation.field.tile_at_mut(movement.dest) {
@@ -143,6 +150,12 @@ impl Movement {
                     entity,
                     action_queue,
                 );
+
+                // callback for stepping on the new tile
+                let tile_state = &simulation.tile_states[dest_tile.state_index()];
+                let tile_callback = tile_state.entity_enter_callback.clone();
+                let callback = tile_callback.bind(id);
+                simulation.pending_callbacks.push(callback);
             }
         }
 
