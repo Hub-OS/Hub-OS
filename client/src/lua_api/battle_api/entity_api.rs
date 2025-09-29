@@ -905,9 +905,10 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
 
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
+
+        if !entities.contains(id.into()) {
+            return Err(entity_not_found());
+        };
 
         let vm_index = api_ctx.vm_index;
 
@@ -921,7 +922,11 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
             },
         )?;
 
-        entity.delete_callbacks.push(callback);
+        if let Ok(callbacks) = entities.query_one_mut::<&mut DeleteCallbacks>(id.into()) {
+            callbacks.0.push(callback);
+        } else {
+            let _ = entities.insert_one(id.into(), DeleteCallbacks(vec![callback]));
+        }
 
         lua.pack_multi(())
     });

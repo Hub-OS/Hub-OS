@@ -35,7 +35,6 @@ pub struct Entity {
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
-    pub delete_callbacks: Vec<BattleCallback>,
 }
 
 impl Entity {
@@ -76,7 +75,6 @@ impl Entity {
             time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
-            delete_callbacks: Vec::new(),
         };
 
         let delete_callback = BattleCallback::new(move |game_io, resources, simulation, _| {
@@ -186,11 +184,14 @@ impl Entity {
         simulation: &mut BattleSimulation,
         id: EntityId,
     ) {
-        let Ok((entity, action_queue, delete_callback)) = simulation.entities.query_one_mut::<(
-            &mut Entity,
-            Option<&mut ActionQueue>,
-            Option<&DeleteCallback>,
-        )>(id.into()) else {
+        let Ok((entity, action_queue, delete_callback, delete_callbacks)) =
+            simulation.entities.query_one_mut::<(
+                &mut Entity,
+                Option<&mut ActionQueue>,
+                Option<&DeleteCallback>,
+                Option<&mut DeleteCallbacks>,
+            )>(id.into())
+        else {
             return;
         };
 
@@ -213,7 +214,9 @@ impl Entity {
         entity.deleted = true;
 
         // gather delete callbacks
-        let listener_callbacks = std::mem::take(&mut entity.delete_callbacks);
+        let listener_callbacks = delete_callbacks
+            .map(|c| std::mem::take(&mut c.0))
+            .unwrap_or_default();
         let delete_callback = delete_callback.cloned();
 
         // delete player augments

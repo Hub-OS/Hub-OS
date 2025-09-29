@@ -1,15 +1,11 @@
 use super::errors::entity_not_found;
 use super::tile_api::create_tile_table;
 use super::{create_entity_table, BattleLuaApi, FIELD_TABLE};
-use crate::battle::{
-    BattleCallback, BattleScriptContext, Character, Entity, Obstacle, Player, Spell,
-};
+use crate::battle::{Character, Entity, Obstacle, Player, Spell};
 use crate::bindable::{EntityId, Team};
 use crate::lua_api::FIELD_COMPAT_TABLE;
 use crate::render::FrameTime;
-use crate::resources::Globals;
 use framework::prelude::IVec2;
-use std::cell::RefCell;
 
 pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
     lua_api.add_dynamic_function(FIELD_TABLE, "tile_at", |api_ctx, lua, params| {
@@ -139,89 +135,6 @@ pub fn inject_field_api(lua_api: &mut BattleLuaApi) {
 
         let camera = &mut api_ctx.simulation.camera;
         camera.shake(power, duration);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(FIELD_TABLE, "notify_on_delete", |api_ctx, lua, params| {
-        log::warn!("field:notify_on_delete() is deprecated, use entity:on_delete() instead.");
-
-        let (target_id, observer_id, callback): (EntityId, EntityId, rollback_mlua::Function) =
-            lua.unpack_multi(params)?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-
-        let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(target_id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let vm_index = api_ctx.vm_index;
-
-        let callback_key = lua.create_registry_value(callback)?;
-        let callback = BattleCallback::new(move |game_io, resources, simulation, _: ()| {
-            let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
-
-            let vms = resources.vm_manager.vms();
-            let lua = &vms[vm_index].lua;
-
-            let api_ctx = RefCell::new(BattleScriptContext {
-                vm_index,
-                game_io,
-                resources,
-                simulation,
-            });
-
-            lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-                let callback: rollback_mlua::Function = lua.registry_value(&callback_key)?;
-
-                let observer_exists = {
-                    let simulation = &api_ctx.borrow().simulation;
-                    simulation.entities.contains(observer_id.into())
-                };
-
-                if !observer_exists {
-                    return Ok(());
-                }
-
-                let target_table = create_entity_table(lua, target_id)?;
-                let observer_table = create_entity_table(lua, observer_id)?;
-                callback.call::<_, ()>((target_table, observer_table))?;
-
-                Ok(())
-            });
-        });
-
-        entity.delete_callbacks.push(callback);
-
-        lua.pack_multi(())
-    });
-
-    lua_api.add_dynamic_function(FIELD_TABLE, "callback_on_delete", |api_ctx, lua, params| {
-        log::warn!("field:callback_on_delete() is deprecated, use entity:on_delete() instead.");
-
-        let (id, callback): (EntityId, rollback_mlua::Function) = lua.unpack_multi(params)?;
-
-        let api_ctx = &mut *api_ctx.borrow_mut();
-
-        let entities = &mut api_ctx.simulation.entities;
-        let entity = entities
-            .query_one_mut::<&mut Entity>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        let vm_index = api_ctx.vm_index;
-
-        let callback = BattleCallback::new_transformed_lua_callback(
-            lua,
-            vm_index,
-            callback,
-            move |_, lua, _| {
-                let entity_table = create_entity_table(lua, id)?;
-                lua.pack_multi(entity_table)
-            },
-        )?;
-
-        entity.delete_callbacks.push(callback);
 
         lua.pack_multi(())
     });

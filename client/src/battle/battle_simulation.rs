@@ -142,7 +142,8 @@ impl BattleSimulation {
         clone_component!(EntityName, HpDisplay, EmotionWindow);
         clone_component!(EntityShadow, EntityShadowHidden, HpDisplay);
         clone_component!(ActionQueue, AttackContext, Movement, LocalComponents);
-        clone_component!(SpawnCallback, IntroCallback, UpdateCallback, DeleteCallback);
+        clone_component!(SpawnCallback, IntroCallback, UpdateCallback);
+        clone_component!(DeleteCallback, DeleteCallbacks);
         clone_component!(CanMoveToCallback, IdleCallback);
         clone_component!(CollisionCallback, AttackCallback);
         clone_component!(CounterCallback, CounteredCallback);
