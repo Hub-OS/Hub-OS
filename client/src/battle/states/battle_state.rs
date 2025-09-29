@@ -1,6 +1,7 @@
 use super::State;
 use crate::battle::*;
 use crate::bindable::*;
+use crate::lua_api::CardDamageResolver;
 use crate::render::ui::BattleBannerMessage;
 use crate::render::ui::BattleBannerPopup;
 use crate::render::*;
@@ -86,6 +87,9 @@ impl State for BattleState {
 
         // process 0 HP
         self.mark_deleted(game_io, resources, simulation);
+
+        // resolve dynamic damage on cards
+        self.resolve_dynamic_card_damage(game_io, resources, simulation);
 
         // new: update living, processes statuses
         self.update_living(game_io, resources, simulation);
@@ -891,6 +895,48 @@ impl BattleState {
 
         for entity_id in entity_ids {
             Player::handle_movement_input(game_io, resources, simulation, entity_id);
+        }
+    }
+
+    fn resolve_dynamic_card_damage(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+    ) {
+        let mut pending_updates = Vec::new();
+
+        let entities = &mut simulation.entities;
+        for (id, character) in entities.query_mut::<&Character>() {
+            let Some(card) = character.cards.first() else {
+                continue;
+            };
+
+            let resolver =
+                CardDamageResolver::new(game_io, resources, character.namespace, &card.package_id);
+
+            if !resolver.needs_resolving() {
+                continue;
+            }
+
+            pending_updates.push((id, card.package_id.clone(), resolver));
+        }
+
+        for (id, package_id, resolver) in pending_updates {
+            let damage = resolver.resolve(game_io, resources, simulation, id.into());
+
+            let entities = &mut simulation.entities;
+            let Ok(character) = entities.query_one_mut::<&mut Character>(id) else {
+                continue;
+            };
+
+            let Some(card) = character.cards.first_mut() else {
+                continue;
+            };
+
+            if card.package_id == package_id {
+                card.damage = damage;
+            }
         }
     }
 

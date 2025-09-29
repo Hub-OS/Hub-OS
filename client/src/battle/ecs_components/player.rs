@@ -1,5 +1,6 @@
 use crate::battle::*;
 use crate::bindable::*;
+use crate::lua_api::CardDamageResolver;
 use crate::packages::PackageNamespace;
 use crate::render::*;
 use crate::resources::*;
@@ -339,6 +340,27 @@ impl Player {
                 simulation.pending_callbacks.extend(callbacks);
             }
         }
+    }
+
+    pub fn resolve_dynamic_damage(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        deck_index: usize,
+    ) -> i32 {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return 0;
+        };
+
+        let namespace = player.namespace();
+        let Some(card) = player.deck.get(deck_index) else {
+            return 0;
+        };
+
+        CardDamageResolver::new(game_io, resources, namespace, &card.package_id)
+            .resolve(game_io, resources, simulation, entity_id)
     }
 
     pub fn charges_with_shoot(&self) -> bool {

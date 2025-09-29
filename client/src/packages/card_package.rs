@@ -57,7 +57,6 @@ pub struct CardPackage {
     pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
     pub default_codes: Vec<String>,
     pub regular_allowed: bool,
-    pub dynamic_damage: bool,
     pub hidden: bool,
     pub limit: usize,
     pub recipes: Vec<CardRecipe>,
@@ -165,7 +164,6 @@ impl Package for CardPackage {
         package.description = meta.description.into();
         package.long_description = meta.long_description.into();
         package.default_codes = meta.codes;
-        package.dynamic_damage = meta.dynamic_damage;
         package.hidden = meta.hidden;
         package.limit = meta.limit.unwrap_or(5);
 
@@ -197,6 +195,7 @@ impl Package for CardPackage {
         package.card_properties.skip_time_freeze_intro = meta.skip_time_freeze_intro;
         package.card_properties.prevent_time_freeze_counter = meta.prevent_time_freeze_counter;
         package.card_properties.conceal = meta.conceal;
+        package.card_properties.dynamic_damage = meta.dynamic_damage;
         package.card_properties.tags = meta.tags;
 
         // default for regular_allowed is based on card class

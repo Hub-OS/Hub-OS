@@ -65,6 +65,37 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
 
     lua_api.add_dynamic_function(
         CARD_PROPERTIES_TABLE,
+        "resolve_damage",
+        |api_ctx, lua, params| {
+            let (card_properties, entity_table): (CardProperties, rollback_mlua::Table) =
+                lua.unpack_multi(params)?;
+
+            let entity_id: EntityId = entity_table.raw_get("#id")?;
+
+            let api_ctx = &mut *api_ctx.borrow_mut();
+            let vms = api_ctx.resources.vm_manager.vms();
+            let preferred_namespace = vms[api_ctx.vm_index].preferred_namespace();
+            let namespace = card_properties.namespace.unwrap_or(preferred_namespace);
+
+            let damage = CardDamageResolver::new(
+                api_ctx.game_io,
+                api_ctx.resources,
+                namespace,
+                &card_properties.package_id,
+            )
+            .resolve(
+                api_ctx.game_io,
+                api_ctx.resources,
+                api_ctx.simulation,
+                entity_id,
+            );
+
+            lua.pack_multi(damage)
+        },
+    );
+
+    lua_api.add_dynamic_function(
+        CARD_PROPERTIES_TABLE,
         "icon_texture",
         |api_ctx, lua, params| {
             let card_props: CardProperties = lua.unpack_multi(params)?;

@@ -2,17 +2,13 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
-use crate::lua_api::create_entity_table;
-use crate::packages::PackageNamespace;
+use crate::lua_api::CardDamageResolver;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleEvent;
 use crate::transitions::transparent_flash_color;
 use framework::prelude::*;
-use packets::structures::PackageId;
-use std::cell::RefCell;
-use std::collections::HashMap;
 
 const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
@@ -33,7 +29,7 @@ pub struct CardSelectSelection {
     pub visible: bool,
     pub erased: bool,
     pub local: bool,
-    pub dynamic_damage: HashMap<PackageId, i32>,
+    pub resolved_card_damage: i32,
 }
 
 impl CardSelectSelection {
@@ -52,7 +48,7 @@ impl CardSelectSelection {
             visible: true,
             erased: false,
             local: false,
-            dynamic_damage: Default::default(),
+            resolved_card_damage: Default::default(),
         }
     }
 }
@@ -129,29 +125,6 @@ impl State for CardSelectState {
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
 
-            // handle cards with dynamic damage
-            let globals = game_io.resource::<Globals>().unwrap();
-            let card_packages = &globals.card_packages;
-
-            for (_, player) in simulation.entities.query_mut::<&Player>() {
-                let selection = &mut self.player_selections[player.index];
-                let ns = player.namespace();
-
-                for card in &player.deck {
-                    let Some(package) = card_packages.package_or_fallback(ns, &card.package_id)
-                    else {
-                        continue;
-                    };
-
-                    if !package.dynamic_damage {
-                        continue;
-                    }
-
-                    // insert 0 to mark that this should update
-                    selection.dynamic_damage.insert(card.package_id.clone(), 0);
-                }
-            }
-
             // handle frame 0 scripted confirmation
             let mut pre_confirmed = false;
             for (id, player) in simulation.entities.query_mut::<&mut Player>() {
@@ -183,6 +156,7 @@ impl State for CardSelectState {
 
             // sfx
             if !pre_confirmed {
+                let globals = game_io.resource::<Globals>().unwrap();
                 simulation.play_sound(game_io, &globals.sfx.card_select_open);
             }
 
@@ -431,8 +405,7 @@ impl State for CardSelectState {
 
                     let mut preview = CardPreview::new(card, preview_point, 1.0);
                     preview.namespace = namespace;
-                    preview.damage_override =
-                        selection.dynamic_damage.get(&card.package_id).cloned();
+                    preview.damage_override = Some(selection.resolved_card_damage);
                     preview.draw(game_io, sprite_queue);
                     preview.draw_title(game_io, sprite_queue);
                 }
@@ -518,69 +491,6 @@ impl CardSelectState {
             time: 0,
             completed: false,
         }
-    }
-
-    fn resolve_dynamic_damage(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-        entity_id: EntityId,
-        namespace: PackageNamespace,
-        card_id: PackageId,
-    ) {
-        let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
-            return;
-        };
-        let selection = &mut self.player_selections[player.index];
-
-        let Ok(vm_index) = resources.vm_manager.find_vm(&card_id, namespace) else {
-            log::error!("Failed to find vm for {card_id} with namespace: {namespace:?}");
-
-            // remove to avoid error spam
-            selection.dynamic_damage.remove(&card_id);
-            return;
-        };
-
-        let vms = resources.vm_manager.vms();
-        let lua = &vms[vm_index].lua;
-        let Ok(card_init) = lua
-            .globals()
-            .get::<_, rollback_mlua::Function>("card_dynamic_damage")
-        else {
-            log::error!("{card_id} is missing card_dynamic_damage()");
-
-            // remove to avoid error spam
-            selection.dynamic_damage.remove(&card_id);
-            return;
-        };
-
-        let api_ctx = RefCell::new(BattleScriptContext {
-            vm_index,
-            resources,
-            game_io,
-            simulation,
-        });
-
-        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
-        let mut new_damage = 0;
-
-        lua_api.inject_dynamic(lua, &api_ctx, |lua| {
-            let entity_table = create_entity_table(lua, entity_id)?;
-
-            match card_init.call(entity_table) {
-                Ok(result) => new_damage = result,
-                Err(err) => {
-                    log::error!("{card_id}: {err}");
-                    return Ok(());
-                }
-            }
-
-            Ok(())
-        });
-
-        selection.dynamic_damage.insert(card_id, new_damage);
     }
 
     fn handle_input(
@@ -870,7 +780,6 @@ impl CardSelectState {
         };
 
         let player_index = player.index;
-        let namespace = player.namespace();
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
@@ -981,12 +890,11 @@ impl CardSelectState {
         }
 
         // resolve dynamic damage
-        let selection = &self.player_selections[player_index];
-        let dynamic_damage_ids: Vec<_> = selection.dynamic_damage.keys().cloned().collect();
+        let selection = &mut self.player_selections[player_index];
 
-        for card_id in dynamic_damage_ids {
-            self.resolve_dynamic_damage(
-                game_io, resources, simulation, entity_id, namespace, card_id,
+        if let SelectedItem::Card(deck_index) = selected_item {
+            selection.resolved_card_damage = Player::resolve_dynamic_damage(
+                game_io, resources, simulation, entity_id, deck_index,
             );
         }
 
@@ -1142,8 +1050,10 @@ impl CardSelectState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        let mut player_ids = Vec::new();
+
         let entities = &mut simulation.entities;
-        for (_, (player, character)) in entities.query_mut::<(&mut Player, &mut Character)>() {
+        for (id, (player, character)) in entities.query_mut::<(&mut Player, &mut Character)>() {
             if let Some(index) = player.staged_items.stored_form_index() {
                 // change form
                 player.active_form = Some(index);
@@ -1166,15 +1076,6 @@ impl CardSelectState {
                     .rev(),
             );
 
-            let selection = &self.player_selections[player.index];
-            for card in &mut character.cards {
-                let Some(damage) = selection.dynamic_damage.get(&card.package_id) else {
-                    continue;
-                };
-
-                card.damage = *damage;
-            }
-
             // remove the cards from the deck
             // must sort + loop in reverse to prevent issues from shifting indices
             let mut deck_indices: Vec<_> = player.staged_items.deck_card_indices().collect();
@@ -1192,6 +1093,32 @@ impl CardSelectState {
             }
 
             player.staged_items.clear();
+
+            player_ids.push(id);
+        }
+
+        // resolve card damage for the mutate step
+        for id in player_ids {
+            let entities = &mut simulation.entities;
+            let Ok((player, character)) =
+                entities.query_one_mut::<(&mut Player, &mut Character)>(id)
+            else {
+                continue;
+            };
+
+            let namespace = player.namespace();
+            let mut cards = std::mem::take(&mut character.cards);
+
+            for card in &mut cards {
+                card.damage =
+                    CardDamageResolver::new(game_io, resources, namespace, &card.package_id)
+                        .resolve(game_io, resources, simulation, id.into());
+            }
+
+            let entities = &mut simulation.entities;
+            if let Ok(character) = entities.query_one_mut::<&mut Character>(id) {
+                character.cards = cards;
+            }
         }
 
         Character::mutate_cards(game_io, resources, simulation);

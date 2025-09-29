@@ -30,15 +30,40 @@ code_node:set_offset(4, 16)
 -- set description
 button:use_card_description(card_properties)
 
+-- updating ui for dynamic damage
+local open_component = player:create_component(Lifetime.CardSelectOpen)
+open_component.on_update_func = function()
+  if not card_properties.dynamic_damage then
+    return
+  end
+
+  local update_component = player:create_component(Lifetime.Scene)
+  local last_damage = card_properties.damage
+  update_component.on_update_func = function()
+    card_properties.damage = CardProperties.resolve_damage(card_properties, player)
+
+    if card_properties.damage ~= last_damage then
+      last_damage = card_properties.damage
+      button:use_card_preview(card_properties)
+    end
+  end
+
+  local close_component = player:create_component(Lifetime.CardSelectClose)
+  close_component.on_update_func = function()
+    update_component:eject()
+  end
+end
+
 -- functionality
 local used = false
 
-local component = player:create_component(Lifetime.CardSelectClose)
+local close_component = player:create_component(Lifetime.CardSelectClose)
 
-component.on_update_func = function()
+close_component.on_update_func = function()
   if used then
     button:delete()
-    component:eject()
+    close_component:eject()
+    open_component:eject()
   end
 end
 

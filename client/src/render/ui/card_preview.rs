@@ -57,7 +57,8 @@ impl<'a> CardPreview<'a> {
             preview_texture_path = package.preview_texture_path.as_str();
             element = package.card_properties.element;
             secondary_element = package.card_properties.secondary_element;
-            conceal_damage = package.dynamic_damage && self.damage_override.is_none();
+            conceal_damage =
+                package.card_properties.dynamic_damage && self.damage_override.is_none();
             damage = self
                 .damage_override
                 .unwrap_or(package.card_properties.damage);

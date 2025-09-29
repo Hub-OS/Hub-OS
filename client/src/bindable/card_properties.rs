@@ -28,6 +28,7 @@ pub struct CardProperties<L = HitFlags, D = VecMap<HitFlags, FrameTime>> {
     pub skip_time_freeze_intro: bool,
     pub prevent_time_freeze_counter: bool,
     pub conceal: bool,
+    pub dynamic_damage: bool,
     pub tags: Vec<String>,
 }
 
@@ -52,6 +53,7 @@ impl<L: Default, F: Default> Default for CardProperties<L, F> {
             skip_time_freeze_intro: false,
             prevent_time_freeze_counter: false,
             conceal: false,
+            dynamic_damage: false,
             tags: Vec::new(),
         }
     }
@@ -225,6 +227,7 @@ impl CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>> {
             skip_time_freeze_intro: self.skip_time_freeze_intro,
             prevent_time_freeze_counter: self.prevent_time_freeze_counter,
             conceal: self.conceal,
+            dynamic_damage: self.dynamic_damage,
             tags: self.tags.clone(),
         }
     }
@@ -273,6 +276,7 @@ impl<'lua> rollback_mlua::FromLua<'lua> for CardProperties {
                 .get("prevent_time_freeze_counter")
                 .unwrap_or_default(),
             conceal: table.get("conceal").unwrap_or_default(),
+            dynamic_damage: table.get("dynamic_damage").unwrap_or_default(),
             tags: table.get("tags").unwrap_or_default(),
         })
     }
@@ -328,6 +332,10 @@ impl<'lua> rollback_mlua::IntoLua<'lua> for &CardProperties {
 
         if self.conceal {
             table.set("conceal", true)?;
+        }
+
+        if self.dynamic_damage {
+            table.set("dynamic_damage", true)?;
         }
 
         table.set(
