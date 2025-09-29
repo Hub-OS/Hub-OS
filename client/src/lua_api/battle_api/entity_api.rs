@@ -1393,6 +1393,36 @@ fn inject_living_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
+    lua_api.add_dynamic_function(ENTITY_TABLE, "has_defense", |api_ctx, lua, params| {
+        let (table, priority): (rollback_mlua::Table, DefensePriority) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let has_priority = DefenseRule::has_priority(api_ctx.simulation, id, priority);
+
+        lua.pack_multi(has_priority)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remove_defense", |api_ctx, lua, params| {
+        let (table, priority): (rollback_mlua::Table, DefensePriority) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        DefenseRule::remove_priority(
+            api_ctx.game_io,
+            api_ctx.resources,
+            api_ctx.simulation,
+            id,
+            priority,
+        );
+
+        lua.pack_multi(())
+    });
+
     getter::<&Living, _>(
         lua_api,
         "remaining_status_time",

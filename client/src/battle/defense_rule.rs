@@ -108,6 +108,49 @@ impl DefenseRule {
         Ok(())
     }
 
+    pub fn remove_priority(
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        priority: DefensePriority,
+    ) {
+        let entities = &mut simulation.entities;
+
+        let Ok(living) = entities.query_one_mut::<&mut Living>(entity_id.into()) else {
+            return;
+        };
+
+        let rule_index = living
+            .defense_rules
+            .iter()
+            .position(|rule| rule.priority == priority);
+
+        if let Some(index) = rule_index {
+            let rule = living.defense_rules.remove(index);
+
+            // call the on_replace_func on the old rule
+            rule.call_on_replace(game_io, resources, simulation);
+        }
+    }
+
+    pub fn has_priority(
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        priority: DefensePriority,
+    ) -> bool {
+        let entities = &mut simulation.entities;
+
+        let Ok(living) = entities.query_one_mut::<&Living>(entity_id.into()) else {
+            return false;
+        };
+
+        living
+            .defense_rules
+            .iter()
+            .any(|rule| rule.priority == priority)
+    }
+
     fn call_on_replace(
         &self,
         game_io: &GameIO,
