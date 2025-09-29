@@ -670,8 +670,6 @@ impl BattleSimulation {
 
     fn cleanup_erased_entities(&mut self) {
         let mut pending_removal = Vec::new();
-        let mut components_pending_removal = Vec::new();
-        let mut actions_pending_removal = Vec::new();
 
         for (id, entity) in self.entities.query_mut::<&Entity>() {
             if !entity.erased {
@@ -681,18 +679,6 @@ impl BattleSimulation {
             let entity_id = id.into();
             self.field.drop_entity(entity_id);
 
-            for (index, component) in &mut self.components {
-                if component.entity == entity_id {
-                    components_pending_removal.push(index);
-                }
-            }
-
-            for (index, action) in &mut self.actions {
-                if action.entity == entity_id {
-                    actions_pending_removal.push(index);
-                }
-            }
-
             self.sprite_trees.remove(entity.sprite_tree_index);
             self.animators.remove(entity.animator_index);
 
@@ -700,23 +686,23 @@ impl BattleSimulation {
         }
 
         for id in pending_removal {
+            let entity_id = id.into();
+
             // delete shadow
-            EntityShadow::delete(self, id.into());
+            EntityShadow::delete(self, entity_id);
 
             // delete emotion window
-            EmotionWindow::delete(self, id.into());
+            EmotionWindow::delete(self, entity_id);
 
             // delete entity
             self.entities.despawn(id).unwrap();
-        }
 
-        for index in components_pending_removal {
-            self.components.remove(index);
-        }
+            // delete components
+            self.components
+                .retain(|_, component| component.entity != entity_id);
 
-        for index in actions_pending_removal {
-            // action_end callbacks would already be handled by delete listeners
-            self.actions.remove(index);
+            // delete actions
+            self.actions.retain(|_, action| action.entity != entity_id);
         }
     }
 
