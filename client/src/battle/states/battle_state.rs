@@ -489,10 +489,8 @@ impl BattleState {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        for (_, (entity, living)) in simulation.entities.query_mut::<(&Entity, &mut Living)>() {
-            if !entity.time_frozen {
-                living.hit = false;
-            }
+        for (_, living) in simulation.entities.query_mut::<&mut Living>() {
+            living.hit = false;
         }
 
         let mut queued_attacks = simulation.queued_attacks.clone();
