@@ -2,12 +2,17 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
+use crate::lua_api::create_entity_table;
+use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
 use crate::scenes::BattleEvent;
 use crate::transitions::transparent_flash_color;
 use framework::prelude::*;
+use packets::structures::PackageId;
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 const FORM_FADE_DELAY: FrameTime = 10;
 const FORM_FADE_TIME: FrameTime = 20;
@@ -28,6 +33,7 @@ pub struct CardSelectSelection {
     pub visible: bool,
     pub erased: bool,
     pub local: bool,
+    pub dynamic_damage: HashMap<PackageId, i32>,
 }
 
 impl CardSelectSelection {
@@ -46,6 +52,7 @@ impl CardSelectSelection {
             visible: true,
             erased: false,
             local: false,
+            dynamic_damage: Default::default(),
         }
     }
 }
@@ -122,6 +129,29 @@ impl State for CardSelectState {
 
             simulation.update_components(game_io, resources, ComponentLifetime::CardSelectOpen);
 
+            // handle cards with dynamic damage
+            let globals = game_io.resource::<Globals>().unwrap();
+            let card_packages = &globals.card_packages;
+
+            for (_, player) in simulation.entities.query_mut::<&Player>() {
+                let selection = &mut self.player_selections[player.index];
+                let ns = player.namespace();
+
+                for card in &player.deck {
+                    let Some(package) = card_packages.package_or_fallback(ns, &card.package_id)
+                    else {
+                        continue;
+                    };
+
+                    if !package.dynamic_damage {
+                        continue;
+                    }
+
+                    // insert 0 to mark that this should update
+                    selection.dynamic_damage.insert(card.package_id.clone(), 0);
+                }
+            }
+
             // handle frame 0 scripted confirmation
             let mut pre_confirmed = false;
             for (id, player) in simulation.entities.query_mut::<&mut Player>() {
@@ -153,7 +183,6 @@ impl State for CardSelectState {
 
             // sfx
             if !pre_confirmed {
-                let globals = game_io.resource::<Globals>().unwrap();
                 simulation.play_sound(game_io, &globals.sfx.card_select_open);
             }
 
@@ -402,6 +431,8 @@ impl State for CardSelectState {
 
                     let mut preview = CardPreview::new(card, preview_point, 1.0);
                     preview.namespace = namespace;
+                    preview.damage_override =
+                        selection.dynamic_damage.get(&card.package_id).cloned();
                     preview.draw(game_io, sprite_queue);
                     preview.draw_title(game_io, sprite_queue);
                 }
@@ -487,6 +518,69 @@ impl CardSelectState {
             time: 0,
             completed: false,
         }
+    }
+
+    fn resolve_dynamic_damage(
+        &mut self,
+        game_io: &GameIO,
+        resources: &SharedBattleResources,
+        simulation: &mut BattleSimulation,
+        entity_id: EntityId,
+        namespace: PackageNamespace,
+        card_id: PackageId,
+    ) {
+        let entities = &mut simulation.entities;
+        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+            return;
+        };
+        let selection = &mut self.player_selections[player.index];
+
+        let Ok(vm_index) = resources.vm_manager.find_vm(&card_id, namespace) else {
+            log::error!("Failed to find vm for {card_id} with namespace: {namespace:?}");
+
+            // remove to avoid error spam
+            selection.dynamic_damage.remove(&card_id);
+            return;
+        };
+
+        let vms = resources.vm_manager.vms();
+        let lua = &vms[vm_index].lua;
+        let Ok(card_init) = lua
+            .globals()
+            .get::<_, rollback_mlua::Function>("card_dynamic_damage")
+        else {
+            log::error!("{card_id} is missing card_dynamic_damage()");
+
+            // remove to avoid error spam
+            selection.dynamic_damage.remove(&card_id);
+            return;
+        };
+
+        let api_ctx = RefCell::new(BattleScriptContext {
+            vm_index,
+            resources,
+            game_io,
+            simulation,
+        });
+
+        let lua_api = &game_io.resource::<Globals>().unwrap().battle_api;
+        let mut new_damage = 0;
+
+        lua_api.inject_dynamic(lua, &api_ctx, |lua| {
+            let entity_table = create_entity_table(lua, entity_id)?;
+
+            match card_init.call(entity_table) {
+                Ok(result) => new_damage = result,
+                Err(err) => {
+                    log::error!("{card_id}: {err}");
+                    return Ok(());
+                }
+            }
+
+            Ok(())
+        });
+
+        selection.dynamic_damage.insert(card_id, new_damage);
     }
 
     fn handle_input(
@@ -776,6 +870,7 @@ impl CardSelectState {
         };
 
         let player_index = player.index;
+        let namespace = player.namespace();
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
@@ -885,11 +980,21 @@ impl CardSelectState {
             self.undo(game_io, resources, simulation, entity_id);
         }
 
+        // resolve dynamic damage
+        let selection = &self.player_selections[player_index];
+        let dynamic_damage_ids: Vec<_> = selection.dynamic_damage.keys().cloned().collect();
+
+        for card_id in dynamic_damage_ids {
+            self.resolve_dynamic_damage(
+                game_io, resources, simulation, entity_id, namespace, card_id,
+            );
+        }
+
+        // dealing with signals
         let input = &simulation.inputs[player_index];
         let selection = &mut self.player_selections[player_index];
 
         if selection.local && !simulation.is_resimulation && selection.confirm_time == 0 {
-            // dealing with signals
             if input.was_just_pressed(Input::Flee) {
                 let event = BattleEvent::RequestFlee;
                 resources.event_sender.send(event).unwrap();
@@ -1060,6 +1165,15 @@ impl CardSelectState {
                     .resolve_card_properties(game_io, resources, namespace, &player.deck)
                     .rev(),
             );
+
+            let selection = &self.player_selections[player.index];
+            for card in &mut character.cards {
+                let Some(damage) = selection.dynamic_damage.get(&card.package_id) else {
+                    continue;
+                };
+
+                card.damage = *damage;
+            }
 
             // remove the cards from the deck
             // must sort + loop in reverse to prevent issues from shifting indices

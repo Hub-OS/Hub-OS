@@ -12,6 +12,7 @@ pub struct CardPreview<'a> {
     pub card: &'a Card,
     pub position: Vec2,
     pub scale: f32,
+    pub damage_override: Option<i32>,
 }
 
 impl<'a> CardPreview<'a> {
@@ -21,6 +22,7 @@ impl<'a> CardPreview<'a> {
             card,
             position,
             scale,
+            damage_override: None,
         }
     }
 
@@ -47,7 +49,7 @@ impl<'a> CardPreview<'a> {
         let assets = &globals.assets;
         let package_manager = &globals.card_packages;
 
-        let (preview_texture_path, element, secondary_element, damage);
+        let (preview_texture_path, element, secondary_element, conceal_damage, damage);
 
         if let Some(package) =
             package_manager.package_or_fallback(self.namespace, &self.card.package_id)
@@ -55,12 +57,16 @@ impl<'a> CardPreview<'a> {
             preview_texture_path = package.preview_texture_path.as_str();
             element = package.card_properties.element;
             secondary_element = package.card_properties.secondary_element;
-            damage = package.card_properties.damage;
+            conceal_damage = package.dynamic_damage && self.damage_override.is_none();
+            damage = self
+                .damage_override
+                .unwrap_or(package.card_properties.damage);
         } else {
             preview_texture_path = "";
             element = Element::None;
             secondary_element = Element::None;
-            damage = 0;
+            conceal_damage = false;
+            damage = self.damage_override.unwrap_or_default();
         }
 
         const PREVIEW_OFFSET: Vec2 = Vec2::new(0.0, 24.0);
@@ -112,16 +118,20 @@ impl<'a> CardPreview<'a> {
         label.draw(game_io, sprite_queue, &self.card.code);
 
         // damage
-        if damage > 0 {
+        if conceal_damage || damage > 0 {
             label.color = Color::WHITE;
-            let text = format!("{damage:>3}");
+            let text = if conceal_damage {
+                "???"
+            } else {
+                &format!("{damage:>3}")
+            };
 
-            let damage_width = label.measure(&text).size.x;
+            let damage_width = label.measure(text).size.x;
             let mut damage_offset = DAMAGE_OFFSET + Vec2::new(-damage_width, 0.0);
             damage_offset.x -= DAMAGE_OFFSET.x - DAMAGE_OFFSET.x * scale.x;
 
             label.bounds.set_position(damage_offset + self.position);
-            label.draw(game_io, sprite_queue, &text);
+            label.draw(game_io, sprite_queue, text);
         }
     }
 }

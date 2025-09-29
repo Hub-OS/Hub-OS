@@ -42,6 +42,7 @@ struct CardMeta {
     skip_time_freeze_intro: bool,
     prevent_time_freeze_counter: bool,
     conceal: bool,
+    dynamic_damage: bool,
     tags: Vec<String>,
 }
 
@@ -51,11 +52,12 @@ pub struct CardPackage {
     pub long_name: Arc<str>,
     pub icon_texture_path: String,
     pub preview_texture_path: String,
-    pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
     pub description: Arc<str>,
     pub long_description: Arc<str>,
+    pub card_properties: CardProperties<Vec<String>, VecMap<String, CardPackageStatusDuration>>,
     pub default_codes: Vec<String>,
     pub regular_allowed: bool,
+    pub dynamic_damage: bool,
     pub hidden: bool,
     pub limit: usize,
     pub recipes: Vec<CardRecipe>,
@@ -163,6 +165,7 @@ impl Package for CardPackage {
         package.description = meta.description.into();
         package.long_description = meta.long_description.into();
         package.default_codes = meta.codes;
+        package.dynamic_damage = meta.dynamic_damage;
         package.hidden = meta.hidden;
         package.limit = meta.limit.unwrap_or(5);
 
