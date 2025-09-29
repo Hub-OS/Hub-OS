@@ -10,6 +10,7 @@ use crate::resources::{
 use framework::prelude::GameIO;
 use packets::structures::PackageId;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct InternalScripts {
@@ -21,6 +22,8 @@ pub struct InternalScripts {
 pub struct BattleVmManager {
     pub encounter_vm: Option<usize>,
     pub vms: Vec<RollbackVM>,
+    pub vms_by_id: HashMap<PackageId, Vec<usize>>,
+    pub vms_by_path: HashMap<String, Vec<usize>>,
     pub scripts: InternalScripts,
 }
 
@@ -29,6 +32,8 @@ impl BattleVmManager {
         Self {
             encounter_vm: None,
             vms: Vec::new(),
+            vms_by_id: Default::default(),
+            vms_by_path: Default::default(),
             scripts: Default::default(),
         }
     }
@@ -120,10 +125,22 @@ impl BattleVmManager {
             path: package_info.script_path.clone(),
         };
 
-        let vms = &mut resources.vm_manager.vms;
-        let vm_index = vms.len();
-        vms.push(vm);
+        // track vm
+        let vm_manager = &mut resources.vm_manager;
+        let vm_index = vm_manager.vms.len();
 
+        let by_id_entry = vm_manager
+            .vms_by_id
+            .entry(vm.package_id.clone())
+            .or_default();
+        by_id_entry.push(vm_index);
+
+        let by_path_entry = vm_manager.vms_by_path.entry(vm.path.clone()).or_default();
+        by_path_entry.push(vm_index);
+
+        vm_manager.vms.push(vm);
+
+        // load root script
         let vms = &resources.vm_manager.vms;
         let lua = &vms.last().unwrap().lua;
         lua.set_named_registry_value(VM_INDEX_REGISTRY_KEY, vm_index)
@@ -148,9 +165,9 @@ impl BattleVmManager {
     }
 
     pub fn find_vm_from_info(&self, package_info: &PackageInfo) -> Option<usize> {
-        self.vms
-            .iter()
-            .position(|vm| vm.path == package_info.script_path)
+        self.vms_by_path
+            .get(&package_info.script_path)
+            .and_then(|vm_indices| vm_indices.first().cloned())
     }
 
     pub fn find_vm(
@@ -158,10 +175,14 @@ impl BattleVmManager {
         package_id: &PackageId,
         namespace: PackageNamespace,
     ) -> rollback_mlua::Result<usize> {
-        let vm_index = namespace
-            .find_with_fallback(|namespace| {
-                self.vms.iter().position(|vm| {
-                    vm.package_id == *package_id && vm.namespaces.contains(&namespace)
+        let vm_index = self
+            .vms_by_id
+            .get(package_id)
+            .and_then(|vm_indices| {
+                namespace.find_with_fallback(|namespace| {
+                    vm_indices
+                        .iter()
+                        .find(|&&vm_index| self.vms[vm_index].namespaces.contains(&namespace))
                 })
             })
             .ok_or_else(|| {
@@ -170,7 +191,7 @@ impl BattleVmManager {
                 ))
             })?;
 
-        Ok(vm_index)
+        Ok(*vm_index)
     }
 
     pub fn snap(&mut self) {
