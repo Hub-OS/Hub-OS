@@ -35,7 +35,6 @@ pub struct Entity {
     pub time_frozen: bool,
     pub ignore_hole_tiles: bool,
     pub ignore_negative_tile_effects: bool,
-    pub local_components: Vec<GenerationalIndex>,
     pub delete_callbacks: Vec<BattleCallback>,
 }
 
@@ -77,7 +76,6 @@ impl Entity {
             time_frozen: false,
             ignore_hole_tiles: false,
             ignore_negative_tile_effects: false,
-            local_components: Vec::new(),
             delete_callbacks: Vec::new(),
         };
 

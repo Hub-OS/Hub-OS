@@ -4,6 +4,9 @@ use crate::render::FrameTime;
 use crate::structures::GenerationalIndex;
 
 #[derive(Clone)]
+pub struct LocalComponents(pub Vec<GenerationalIndex>);
+
+#[derive(Clone)]
 pub struct Component {
     pub entity: EntityId,
     pub lifetime: ComponentLifetime,
@@ -74,15 +77,24 @@ impl Component {
 
         let entities = &mut simulation.entities;
 
-        let Ok(entity) = entities.query_one_mut::<&mut Entity>(component.entity.into()) else {
+        let Ok(components) =
+            entities.query_one_mut::<&mut LocalComponents>(component.entity.into())
+        else {
             return;
         };
 
-        let index = (entity.local_components)
+        let Some(index) = components
+            .0
             .iter()
             .position(|stored_index| *stored_index == index)
-            .unwrap();
+        else {
+            return;
+        };
 
-        entity.local_components.swap_remove(index);
+        if components.0.len() == 1 {
+            let _ = entities.remove_one::<LocalComponents>(component.entity.into());
+        } else {
+            components.0.swap_remove(index);
+        }
     }
 }

@@ -457,9 +457,16 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        type Query<'a> = (&'a mut Entity, &'a Spell, Option<&'a UpdateCallback>);
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a Spell,
+            Option<&'a UpdateCallback>,
+            Option<&'a LocalComponents>,
+        );
 
-        for (_, (entity, spell, update_callback)) in simulation.entities.query_mut::<Query>() {
+        for (_, (entity, spell, update_callback, components)) in
+            simulation.entities.query_mut::<Query>()
+        {
             if let Some(tile) = simulation.field.tile_at_mut((entity.x, entity.y)) {
                 tile.set_highlight(spell.requested_highlight);
             }
@@ -472,10 +479,12 @@ impl BattleState {
                 callbacks.push(callback.0.clone());
             }
 
-            for index in entity.local_components.iter().cloned() {
-                let component = simulation.components.get(index).unwrap();
+            if let Some(components) = components {
+                for index in &components.0 {
+                    let component = &simulation.components[*index];
 
-                callbacks.push(component.update_callback.clone());
+                    callbacks.push(component.update_callback.clone());
+                }
             }
 
             entity.updated = true;
@@ -747,9 +756,16 @@ impl BattleState {
     ) {
         let mut callbacks = Vec::new();
 
-        type Query<'a> = (&'a mut Entity, &'a Artifact, Option<&'a UpdateCallback>);
+        type Query<'a> = (
+            &'a mut Entity,
+            &'a Artifact,
+            Option<&'a UpdateCallback>,
+            Option<&'a LocalComponents>,
+        );
 
-        for (_, (entity, _artifact, update_callback)) in simulation.entities.query_mut::<Query>() {
+        for (_, (entity, _artifact, update_callback, components)) in
+            simulation.entities.query_mut::<Query>()
+        {
             if entity.updated || !entity.spawned || entity.deleted {
                 continue;
             }
@@ -758,10 +774,12 @@ impl BattleState {
                 callbacks.push(callback.0.clone());
             }
 
-            for index in entity.local_components.iter().cloned() {
-                let component = simulation.components.get(index).unwrap();
+            if let Some(components) = components {
+                for index in &components.0 {
+                    let component = &simulation.components[*index];
 
-                callbacks.push(component.update_callback.clone());
+                    callbacks.push(component.update_callback.clone());
+                }
             }
 
             entity.updated = true;
@@ -955,10 +973,11 @@ impl BattleState {
             &'a mut Living,
             Option<&'a Player>,
             Option<&'a UpdateCallback>,
+            Option<&'a LocalComponents>,
             Option<&'a mut Movement>,
         );
 
-        for (id, (entity, living, player, update_callback, mut movement)) in
+        for (id, (entity, living, player, update_callback, components, mut movement)) in
             entities.query_mut::<Query>().into_iter()
         {
             if !entity.spawned || entity.deleted {
@@ -1033,10 +1052,12 @@ impl BattleState {
                     }
                 }
 
-                for index in entity.local_components.iter().cloned() {
-                    let component = simulation.components.get(index).unwrap();
+                if let Some(components) = components {
+                    for index in &components.0 {
+                        let component = &simulation.components[*index];
 
-                    callbacks.push(component.update_callback.clone());
+                        callbacks.push(component.update_callback.clone());
+                    }
                 }
             }
         }

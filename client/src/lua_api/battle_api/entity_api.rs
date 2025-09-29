@@ -571,19 +571,25 @@ pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
         let api_ctx = &mut *api_ctx.borrow_mut();
         let entities = &mut api_ctx.simulation.entities;
 
-        let entity = entities
-            .query_one_mut::<&mut Entity>(entity_id.into())
-            .map_err(|_| entity_not_found())?;
+        if !entities.contains(entity_id.into()) {
+            return Err(entity_not_found());
+        };
 
         let component = Component::new(entity_id, lifetime);
-        let id = api_ctx.simulation.components.insert(component);
+        let index = api_ctx.simulation.components.insert(component);
 
         if lifetime == ComponentLifetime::Local {
-            entity.local_components.push(id);
+            if let Ok(components) = entities.query_one_mut::<&mut LocalComponents>(entity_id.into())
+            {
+                components.0.push(index);
+            } else {
+                let components = LocalComponents(vec![index]);
+                let _ = entities.insert_one(entity_id.into(), components);
+            }
         }
 
         let table = lua.create_table()?;
-        table.raw_set("#id", id)?;
+        table.raw_set("#id", index)?;
         table.raw_set("#entity", entity_table)?;
         inherit_metatable(lua, COMPONENT_TABLE, &table)?;
 
