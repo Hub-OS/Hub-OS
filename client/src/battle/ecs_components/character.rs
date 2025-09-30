@@ -14,7 +14,6 @@ use packets::structures::PackageId;
 
 #[derive(Clone)]
 pub struct Character {
-    pub namespace: PackageNamespace,
     pub rank: CharacterRank,
     pub cards: Vec<CardProperties>, // stores cards reversed
     pub card_use_requested: bool,
@@ -22,9 +21,8 @@ pub struct Character {
 }
 
 impl Character {
-    fn new(rank: CharacterRank, namespace: PackageNamespace) -> Self {
+    fn new(rank: CharacterRank) -> Self {
         Self {
-            namespace,
             rank,
             cards: Vec::new(),
             card_use_requested: false,
@@ -102,11 +100,12 @@ impl Character {
         let delete_callback = scripts.default_character_delete.clone().bind((id, None));
 
         let components = (
-            Character::new(rank, namespace),
+            Character::new(rank),
             Living::default(),
             HpDisplay::default(),
             CanMoveToCallback(can_move_to_callback),
             DeleteCallback(delete_callback),
+            namespace,
         );
 
         simulation.entities.insert(id.into(), components).unwrap();
@@ -184,12 +183,12 @@ impl Character {
         Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
         let entities = &mut simulation.entities;
-        let character = entities
-            .query_one_mut::<&mut Character>(entity_id.into())
+        let (character, namespace) = entities
+            .query_one_mut::<(&mut Character, &PackageNamespace)>(entity_id.into())
             .unwrap();
 
         // create card action
-        let namespace = character.namespace;
+        let namespace = *namespace;
         let card_props = character.cards.pop().unwrap();
         let action_index = Action::create_from_card_properties(
             game_io,
@@ -216,10 +215,12 @@ impl Character {
     ) {
         loop {
             let entities = &mut simulation.entities;
-            let mut character_iter = entities.query_mut::<&mut Character>().into_iter();
+            let mut character_iter = entities
+                .query_mut::<(&mut Character, &PackageNamespace)>()
+                .into_iter();
 
-            let Some((id, character)) =
-                character_iter.find(|(_, character)| character.next_card_mutation.is_some())
+            let Some((id, (character, namespace))) =
+                character_iter.find(|(_, (character, _))| character.next_card_mutation.is_some())
             else {
                 break;
             };
@@ -242,7 +243,7 @@ impl Character {
             // avoids an error message from simulation.call_global()
             // function card_mutate is optional to implement
             let vm_manager = &resources.vm_manager;
-            let Ok(vm_index) = vm_manager.find_vm(&card.package_id, character.namespace) else {
+            let Ok(vm_index) = vm_manager.find_vm(&card.package_id, *namespace) else {
                 continue;
             };
 

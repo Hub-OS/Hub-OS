@@ -1,5 +1,4 @@
-use super::Player;
-use crate::saves::Card;
+use crate::{battle::PlayerHand, saves::Card};
 use packets::structures::PackageId;
 
 #[derive(Clone, Copy)]
@@ -14,10 +13,10 @@ pub enum CardSelectRestriction<'a> {
 }
 
 impl<'a> CardSelectRestriction<'a> {
-    pub fn resolve(player: &'a Player) -> Self {
-        let ids_and_codes: Vec<_> = player
+    pub fn resolve(hand: &'a PlayerHand) -> Self {
+        let ids_and_codes: Vec<_> = hand
             .staged_items
-            .resolve_card_ids_and_codes(&player.deck)
+            .resolve_card_ids_and_codes(&hand.deck)
             .collect();
 
         if ids_and_codes.is_empty() {

@@ -10,13 +10,34 @@ use framework::prelude::*;
 use packets::structures::PackageId;
 
 #[derive(Clone)]
-pub struct Player {
-    pub index: usize,
+pub struct PlayerHand {
     pub deck: Vec<Card>,
     pub staged_items: StagedItems,
     pub used_recipes: Vec<PackageId>,
-    pub card_select_blocked: bool,
     pub has_regular_card: bool,
+    pub card_select_blocked: bool,
+}
+
+impl PlayerHand {
+    fn new(mut deck: Deck) -> Self {
+        if let Some(index) = deck.regular_index {
+            // move the regular card to the front
+            deck.cards.swap(0, index);
+        }
+
+        Self {
+            deck: deck.cards,
+            staged_items: Default::default(),
+            used_recipes: Default::default(),
+            has_regular_card: deck.regular_index.is_some(),
+            card_select_blocked: false,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Player {
+    pub index: usize,
     pub can_flip: bool,
     pub flip_requested: bool,
     pub attack_boost: u8,
@@ -42,25 +63,14 @@ impl Player {
     fn new(
         game_io: &GameIO,
         setup: &PlayerSetup,
-        mut deck: Deck,
         card_charge_sprite_index: TreeIndex,
         attack_charge_sprite_index: TreeIndex,
     ) -> Self {
         let globals = game_io.resource::<Globals>().unwrap();
         let assets = &globals.assets;
 
-        if let Some(index) = deck.regular_index {
-            // move the regular card to the front
-            deck.cards.swap(0, index);
-        }
-
         Self {
             index: setup.index,
-            deck: deck.cards,
-            staged_items: Default::default(),
-            used_recipes: Default::default(),
-            card_select_blocked: false,
-            has_regular_card: deck.regular_index.is_some(),
             can_flip: true,
             flip_requested: false,
             attack_boost: 0,
@@ -198,15 +208,17 @@ impl Player {
         let mut deck = setup.deck.clone();
         deck.shuffle(game_io, &mut simulation.rng, setup.namespace());
 
-        let player = Player::new(
-            game_io,
-            setup,
-            deck,
-            card_charge_sprite_index,
-            attack_charge_sprite_index,
+        let components = (
+            Player::new(
+                game_io,
+                setup,
+                card_charge_sprite_index,
+                attack_charge_sprite_index,
+            ),
+            PlayerHand::new(deck),
         );
 
-        let _ = simulation.entities.insert_one(id.into(), player);
+        let _ = simulation.entities.insert(id.into(), components);
 
         EmotionWindow::build_new(game_io, simulation, player_package, setup, id);
 
@@ -350,12 +362,13 @@ impl Player {
         deck_index: usize,
     ) -> i32 {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok((player, hand)) = entities.query_one_mut::<(&Player, &PlayerHand)>(entity_id.into())
+        else {
             return 0;
         };
 
         let namespace = player.namespace();
-        let Some(card) = player.deck.get(deck_index) else {
+        let Some(card) = hand.deck.get(deck_index) else {
             return 0;
         };
 
@@ -741,9 +754,9 @@ impl Player {
     ) {
         Living::update_action_context(game_io, resources, simulation, ActionType::CARD, entity_id);
 
-        let (character, player) = simulation
+        let (character, player, namespace) = simulation
             .entities
-            .query_one_mut::<(&mut Character, &mut Player)>(entity_id.into())
+            .query_one_mut::<(&mut Character, &mut Player, &PackageNamespace)>(entity_id.into())
             .unwrap();
 
         // create card action
@@ -753,7 +766,7 @@ impl Player {
 
             Self::resolve_charged_card_action(game_io, resources, simulation, entity_id, card_props)
         } else {
-            let namespace = character.namespace;
+            let namespace = *namespace;
 
             Action::create_from_card_properties(
                 game_io,

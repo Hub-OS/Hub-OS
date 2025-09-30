@@ -1,6 +1,8 @@
 use super::errors::{entity_not_found, form_not_found};
 use super::{BattleLuaApi, ENTITY_TABLE};
-use crate::battle::{BattleCallback, CardSelectRestriction, Player, StagedItem, StagedItemData};
+use crate::battle::{
+    BattleCallback, CardSelectRestriction, Player, PlayerHand, StagedItem, StagedItemData,
+};
 use crate::bindable::{CardProperties, EntityId};
 use crate::lua_api::helpers::absolute_path;
 use crate::packages::{CardPackage, PackageNamespace};
@@ -8,12 +10,12 @@ use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 
 pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
-    generate_player_mut_fn(lua_api, "staged_items_confirmed", |player, lua, _, _| {
-        lua.pack_multi(player.staged_items.confirmed())
+    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_items_confirmed", |hand, lua, _, _| {
+        lua.pack_multi(hand.staged_items.confirmed())
     });
 
-    generate_player_mut_fn(lua_api, "confirm_staged_items", |player, lua, _, _| {
-        player.staged_items.set_confirmed(true);
+    generate_query_fn::<&mut PlayerHand>(lua_api, "confirm_staged_items", |hand, lua, _, _| {
+        hand.staged_items.set_confirmed(true);
         lua.pack_multi(())
     });
 
@@ -80,11 +82,11 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let entities = &mut simulation.entities;
 
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
+            let (player, hand) = entities
+                .query_one_mut::<(&mut Player, &mut PlayerHand)>(id.into())
                 .map_err(|_| entity_not_found())?;
 
-            if let Some(item) = player.staged_items.pop() {
+            if let Some(item) = hand.staged_items.pop() {
                 if let StagedItemData::Form((index, ..)) = item.data {
                     if let Some(callback) = &player.forms[index].deselect_callback {
                         callback.clone().call(game_io, resources, simulation, ());
@@ -100,8 +102,8 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_player_mut_fn(lua_api, "staged_items", move |player, lua, _, _| {
-        let iter = player
+    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_items", move |hand, lua, _, _| {
+        let iter = hand
             .staged_items
             .iter()
             .enumerate()
@@ -111,28 +113,28 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    generate_player_mut_fn(lua_api, "staged_item", move |player, lua, _, params| {
+    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_item", move |hand, lua, _, params| {
         let index: usize = lua.unpack_multi(params)?;
 
         let index = index.saturating_sub(1);
-        let item = player.staged_items.iter().nth(index);
+        let item = hand.staged_items.iter().nth(index);
 
         lua.pack_multi(item)
     });
 
-    generate_player_mut_fn(
+    generate_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
         lua_api,
         "staged_item_texture",
-        move |player, lua, game_io, params| {
+        move |(hand, namespace), lua, game_io, params| {
             let index: usize = lua.unpack_multi(params)?;
 
             let index = index.saturating_sub(1);
-            let item = player.staged_items.iter().nth(index);
+            let item = hand.staged_items.iter().nth(index);
 
             let texture_path = item.map(|item| match &item.data {
                 StagedItemData::Deck(i) => {
-                    if let Some(card) = player.deck.get(*i) {
-                        CardPackage::icon_texture(game_io, player.namespace(), &card.package_id).1
+                    if let Some(card) = hand.deck.get(*i) {
+                        CardPackage::icon_texture(game_io, *namespace, &card.package_id).1
                     } else {
                         ResourcePaths::CARD_ICON_MISSING
                     }
@@ -156,13 +158,13 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_player_mut_fn(
+    generate_query_fn::<&mut PlayerHand>(
         lua_api,
         "card_select_restriction",
-        move |player, lua, _, _| {
+        move |hand, lua, _, _| {
             let table = lua.create_table()?;
 
-            match CardSelectRestriction::resolve(player) {
+            match CardSelectRestriction::resolve(hand) {
                 CardSelectRestriction::Code(code) => {
                     table.set("code", code)?;
                 }
@@ -180,11 +182,11 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_player_mut_fn(
+    generate_query_fn::<&mut PlayerHand>(
         lua_api,
         "set_card_selection_blocked",
-        move |player, lua, _, params| {
-            player.card_select_blocked = lua.unpack_multi(params)?;
+        move |hand, lua, _, params| {
+            hand.card_select_blocked = lua.unpack_multi(params)?;
 
             lua.pack_multi(())
         },
@@ -223,8 +225,8 @@ fn generate_stage_item_fn(
         let simulation = &mut *api_ctx.simulation;
         let entities = &mut simulation.entities;
 
-        let player = entities
-            .query_one_mut::<&mut Player>(id.into())
+        let (player, hand) = entities
+            .query_one_mut::<(&mut Player, &mut PlayerHand)>(id.into())
             .map_err(|_| entity_not_found())?;
 
         let data = callback(player, lua, game_io, params)?;
@@ -238,7 +240,7 @@ fn generate_stage_item_fn(
         };
 
         if let StagedItemData::Form((index, ..)) = item.data {
-            if let Some((prev_index, undo_callback)) = player.staged_items.drop_form_selection() {
+            if let Some((prev_index, undo_callback)) = hand.staged_items.drop_form_selection() {
                 if let Some(callback) = &player.forms[prev_index].deselect_callback {
                     simulation.pending_callbacks.push(callback.clone());
                 }
@@ -253,18 +255,18 @@ fn generate_stage_item_fn(
             }
         }
 
-        player.staged_items.stage_item(item);
+        hand.staged_items.stage_item(item);
         simulation.call_pending_callbacks(game_io, resources);
 
         lua.pack_multi(())
     });
 }
 
-fn generate_player_mut_fn(
+fn generate_query_fn<Q: hecs::Query + 'static>(
     lua_api: &mut BattleLuaApi,
     name: &str,
-    callback: for<'lua> fn(
-        &mut Player,
+    callback: for<'q, 'lua> fn(
+        Q::Item<'q>,
         &'lua rollback_mlua::Lua,
         &GameIO,
         rollback_mlua::MultiValue<'lua>,
@@ -285,7 +287,7 @@ fn generate_player_mut_fn(
         let entities = &mut api_ctx.simulation.entities;
 
         let player = entities
-            .query_one_mut::<&mut Player>(id.into())
+            .query_one_mut::<Q>(id.into())
             .map_err(|_| entity_not_found())?;
 
         callback(player, lua, game_io, params)

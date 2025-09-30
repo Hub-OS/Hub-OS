@@ -1,7 +1,8 @@
 use crate::battle::{
-    BattleSimulation, Character, Player, SharedBattleResources, StagedItem, StagedItemData,
+    BattleSimulation, Character, PlayerHand, SharedBattleResources, StagedItem, StagedItemData,
 };
 use crate::bindable::{CardProperties, EntityId};
+use crate::packages::PackageNamespace;
 use crate::render::{FrameTime, SpriteColorQueue};
 use crate::{AssetManager, Globals, ResourcePaths};
 use framework::common::GameIO;
@@ -58,36 +59,36 @@ impl CardRecipeAnimation {
     pub fn try_new(
         game_io: &GameIO,
         resources: &SharedBattleResources,
-        player: &mut Player,
+        namespace: PackageNamespace,
+        hand: &mut PlayerHand,
     ) -> Option<Self> {
-        let namespace = player.namespace();
-        let cards = player
+        let cards = hand
             .staged_items
-            .resolve_card_properties(game_io, resources, namespace, &player.deck)
+            .resolve_card_properties(game_io, resources, namespace, &hand.deck)
             .collect::<Rc<_>>();
 
         let recipes = &resources.recipes;
-        let mut changes = recipes.resolve_changes(player.namespace(), &cards, &player.used_recipes);
+        let mut changes = recipes.resolve_changes(namespace, &cards, &hand.used_recipes);
 
         if changes.is_empty() {
             return None;
         }
 
         // reset staged cards, preserve form changes and discards
-        let form_index = player.staged_items.stored_form_index();
-        let discards: Vec<_> = player.staged_items.deck_card_indices().collect();
+        let form_index = hand.staged_items.stored_form_index();
+        let discards: Vec<_> = hand.staged_items.deck_card_indices().collect();
 
-        player.staged_items.clear();
+        hand.staged_items.clear();
 
         for index in discards {
-            player.staged_items.stage_item(StagedItem {
+            hand.staged_items.stage_item(StagedItem {
                 data: StagedItemData::Discard(index),
                 undo_callback: None,
             });
         }
 
         if let Some(index) = form_index {
-            player.staged_items.stage_form(index, None, None);
+            hand.staged_items.stage_form(index, None, None);
         }
 
         // make sure the target has a VM / was properly marked as a dependency / was not banned by format
@@ -95,8 +96,8 @@ impl CardRecipeAnimation {
             .retain(|(package_id, _)| resources.vm_manager.find_vm(package_id, namespace).is_ok());
 
         // clear regular card if it was use
-        if player.has_regular_card && player.staged_items.has_deck_index(0) {
-            player.has_regular_card = false;
+        if hand.has_regular_card && hand.staged_items.has_deck_index(0) {
+            hand.has_regular_card = false;
         }
 
         Some(Self {
@@ -121,8 +122,10 @@ impl CardRecipeAnimation {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok((player, character)) =
-            entities.query_one_mut::<(&mut Player, &mut Character)>(entity_id.into())
+        let Ok((hand, character, namespace)) =
+            entities.query_one_mut::<(&mut PlayerHand, &mut Character, &PackageNamespace)>(
+                entity_id.into(),
+            )
         else {
             return;
         };
@@ -139,10 +142,9 @@ impl CardRecipeAnimation {
         let mut removed_count: usize = 0;
 
         for (package_id, range) in self.changes.iter() {
-            player.used_recipes.push(package_id.clone());
+            hand.used_recipes.push(package_id.clone());
 
-            let Some(card_package) =
-                card_packages.package_or_fallback(player.namespace(), package_id)
+            let Some(card_package) = card_packages.package_or_fallback(*namespace, package_id)
             else {
                 continue;
             };
@@ -225,7 +227,7 @@ impl CardRecipeAnimation {
         game_io: &GameIO,
         resources: &SharedBattleResources,
         sprite_queue: &mut SpriteColorQueue,
-        player: &Player,
+        namespace: PackageNamespace,
     ) {
         const TEXT_SHADOW_COLOR: Color = Color::new(0.16, 0.16, 0.16, 1.0);
         const GREEN_TEXT_COLOR: Color = Color::new(0.51, 1.0, 0.51, 1.0);
@@ -300,7 +302,6 @@ impl CardRecipeAnimation {
             State::DisplayChanges => {
                 let globals = game_io.resource::<Globals>().unwrap();
                 let card_packages = &globals.card_packages;
-                let namespace = player.namespace();
 
                 let relevant_color = match self.time / 16 % 4 {
                     0 => RED_TEXT_COLOR,

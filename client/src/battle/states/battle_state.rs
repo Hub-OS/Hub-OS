@@ -2,6 +2,7 @@ use super::State;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::lua_api::CardDamageResolver;
+use crate::packages::PackageNamespace;
 use crate::render::ui::BattleBannerMessage;
 use crate::render::ui::BattleBannerPopup;
 use crate::render::*;
@@ -925,13 +926,14 @@ impl BattleState {
         let mut pending_updates = Vec::new();
 
         let entities = &mut simulation.entities;
-        for (id, character) in entities.query_mut::<&Character>() {
+        for (id, (character, namespace)) in entities.query_mut::<(&Character, &PackageNamespace)>()
+        {
             let Some(card) = character.cards.first() else {
                 continue;
             };
 
             let resolver =
-                CardDamageResolver::new(game_io, resources, character.namespace, &card.package_id);
+                CardDamageResolver::new(game_io, resources, *namespace, &card.package_id);
 
             if !resolver.needs_resolving() {
                 continue;

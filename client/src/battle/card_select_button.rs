@@ -2,6 +2,7 @@ use super::{
     BattleAnimator, BattleCallback, BattleSimulation, Player, PlayerOverridables,
     SharedBattleResources,
 };
+use crate::battle::PlayerHand;
 use crate::bindable::{EntityId, SpriteColorMode};
 use crate::render::SpriteNode;
 use crate::structures::{GenerationalIndex, SlotMap, Tree, TreeIndex};
@@ -220,8 +221,9 @@ impl CardSelectButton {
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
-        for (_, player) in simulation.entities.query_mut::<&mut Player>() {
-            if !player.staged_items.take_updated() {
+        let entities = &mut simulation.entities;
+        for (_, (player, hand)) in entities.query_mut::<(&mut Player, &mut PlayerHand)>() {
+            if !hand.staged_items.take_updated() {
                 continue;
             }
 

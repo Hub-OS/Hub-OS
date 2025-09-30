@@ -1,8 +1,8 @@
 use super::{
     Artifact, BattleCallback, BattleSimulation, Entity, Living, Player, PlayerOverridables,
 };
-use crate::bindable::EntityId;
 use crate::resources::Globals;
+use crate::{battle::PlayerHand, bindable::EntityId};
 use framework::prelude::{Texture, Vec2};
 use std::sync::Arc;
 
@@ -47,7 +47,9 @@ impl PlayerForm {
     pub fn deactivate(simulation: &mut BattleSimulation, id: EntityId, form_index: usize) {
         let entities = &mut simulation.entities;
 
-        let Ok(player) = entities.query_one_mut::<&mut Player>(id.into()) else {
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&mut Player, &mut PlayerHand)>(id.into())
+        else {
             return;
         };
 
@@ -55,12 +57,12 @@ impl PlayerForm {
         form.deactivated = true;
         form.activated = true;
 
-        if player.staged_items.stored_form_index() == Some(form_index) {
+        if hand.staged_items.stored_form_index() == Some(form_index) {
             if let Some(callback) = &form.deselect_callback {
                 simulation.pending_callbacks.push(callback.clone());
             }
 
-            if let Some((_, Some(undo_callback))) = player.staged_items.drop_form_selection() {
+            if let Some((_, Some(undo_callback))) = hand.staged_items.drop_form_selection() {
                 simulation.pending_callbacks.push(undo_callback);
             }
         }

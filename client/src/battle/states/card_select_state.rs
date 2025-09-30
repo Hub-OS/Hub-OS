@@ -3,6 +3,7 @@ use crate::battle::*;
 use crate::bindable::*;
 use crate::ease::inverse_lerp;
 use crate::lua_api::CardDamageResolver;
+use crate::packages::PackageNamespace;
 use crate::render::ui::*;
 use crate::render::*;
 use crate::resources::*;
@@ -108,9 +109,11 @@ impl State for CardSelectState {
             simulation.statistics.turns += 1;
             simulation.turn_gauge.set_time(0);
 
+            type Query<'a> = (&'a Player, &'a mut PlayerHand);
+
             // reset staged items confirmation and initialize selection data
-            for (_, player) in simulation.entities.query_mut::<&mut Player>() {
-                player.staged_items.set_confirmed(false);
+            for (_, (player, hand)) in simulation.entities.query_mut::<Query>() {
+                hand.staged_items.set_confirmed(false);
 
                 if player.index >= self.player_selections.len() {
                     self.player_selections
@@ -127,8 +130,8 @@ impl State for CardSelectState {
 
             // handle frame 0 scripted confirmation
             let mut pre_confirmed = false;
-            for (id, player) in simulation.entities.query_mut::<&mut Player>() {
-                if !player.staged_items.confirmed() {
+            for (id, (player, hand)) in simulation.entities.query_mut::<Query>() {
+                if !hand.staged_items.confirmed() {
                     continue;
                 }
 
@@ -140,7 +143,7 @@ impl State for CardSelectState {
                 let selection = &mut self.player_selections[player.index];
                 selection.confirm_time = -CardSelectUi::SLIDE_DURATION;
                 selection.recipe_animation =
-                    CardRecipeAnimation::try_new(game_io, resources, player);
+                    CardRecipeAnimation::try_new(game_io, resources, player.namespace(), hand);
 
                 for (_, component) in &simulation.components {
                     if component.entity == id.into()
@@ -291,7 +294,8 @@ impl State for CardSelectState {
         let entity_id = simulation.local_player_id;
         let entities = &mut simulation.entities;
 
-        let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+        let Ok((player, hand)) = entities.query_one_mut::<(&Player, &PlayerHand)>(entity_id.into())
+        else {
             return;
         };
 
@@ -303,19 +307,22 @@ impl State for CardSelectState {
             return;
         }
 
-        let selected_item = resolve_selected_item(player, selection);
+        let selected_item = resolve_selected_item(player, hand, selection);
 
         // update frame
         if let SelectedItem::Card(i) = selected_item {
-            self.ui.update_card_frame(game_io, player, i);
+            self.ui
+                .update_card_frame(game_io, player.namespace(), hand, i);
         } else {
             self.ui.reset_card_frame();
         }
 
         // draw sprite tree
         self.ui.draw_tree(sprite_queue);
-        self.ui.draw_cards_in_hand(game_io, sprite_queue, player);
-        self.ui.draw_staged_icons(game_io, sprite_queue, player);
+        self.ui
+            .draw_cards_in_hand(game_io, sprite_queue, player, hand);
+        self.ui
+            .draw_staged_icons(game_io, sprite_queue, player.namespace(), hand);
 
         // draw buttons
         let card_buttons = PlayerOverridables::card_button_slots_for(player);
@@ -350,7 +357,7 @@ impl State for CardSelectState {
                 };
 
                 self.ui
-                    .draw_form_list(game_io, sprite_queue, player, selected_row);
+                    .draw_form_list(game_io, sprite_queue, player, hand, selected_row);
 
                 // draw cursor
                 if selection.form_select_time.is_none() {
@@ -360,7 +367,7 @@ impl State for CardSelectState {
         } else {
             // draw card cursor
 
-            if selection.confirm_time == 0 && !player.card_select_blocked {
+            if selection.confirm_time == 0 && !hand.card_select_blocked {
                 match selected_item {
                     SelectedItem::Card(_) => {
                         self.ui
@@ -399,7 +406,7 @@ impl State for CardSelectState {
 
             match selected_item {
                 SelectedItem::Card(i) => {
-                    let card = &player.deck[i];
+                    let card = &hand.deck[i];
                     let preview_point = self.ui.preview_point();
                     let namespace = player.namespace();
 
@@ -410,7 +417,7 @@ impl State for CardSelectState {
                     preview.draw_title(game_io, sprite_queue);
                 }
                 SelectedItem::Confirm => {
-                    self.ui.draw_confirm_preview(player, sprite_queue);
+                    self.ui.draw_confirm_preview(hand, sprite_queue);
                 }
                 SelectedItem::Button(i) => {
                     let button = if i == CardSelectButton::SPECIAL_SLOT {
@@ -432,14 +439,14 @@ impl State for CardSelectState {
             }
         }
 
-        if player.has_regular_card {
+        if hand.has_regular_card {
             self.ui.draw_regular_card_frame(sprite_queue);
         }
 
         if !selection.animating_slide {
             if let Some(animation) = &selection.recipe_animation {
                 // animate recipes
-                animation.draw(game_io, resources, sprite_queue, player);
+                animation.draw(game_io, resources, sprite_queue, player.namespace());
             } else if selection.confirm_time == 0 {
                 // render indicators while the cust is open
                 if Some(simulation.statistics.turns) == resources.config.borrow().turn_limit {
@@ -509,11 +516,13 @@ impl CardSelectState {
             match elapsed {
                 20 => {
                     let entities = &mut simulation.entities;
-                    let Ok(player) = entities.query_one_mut::<&Player>(entity_id.into()) else {
+                    let Ok((player, hand)) =
+                        entities.query_one_mut::<(&Player, &PlayerHand)>(entity_id.into())
+                    else {
                         return;
                     };
 
-                    let Some(index) = player.staged_items.stored_form_index() else {
+                    let Some(index) = hand.staged_items.stored_form_index() else {
                         return;
                     };
 
@@ -546,13 +555,13 @@ impl CardSelectState {
         }
 
         let entities = &mut simulation.entities;
-        let Ok((entity, player)) =
-            entities.query_one_mut::<(&Entity, &mut Player)>(entity_id.into())
+        let Ok((entity, player, hand)) =
+            entities.query_one_mut::<(&Entity, &Player, &mut PlayerHand)>(entity_id.into())
         else {
             return;
         };
 
-        if player.card_select_blocked {
+        if hand.card_select_blocked {
             return;
         }
 
@@ -566,10 +575,10 @@ impl CardSelectState {
         {
             // confirm
             selection.confirm_time = self.time;
-            player.staged_items.set_confirmed(true);
+            hand.staged_items.set_confirmed(true);
 
             // clear selection
-            while let Some(popped) = player.staged_items.pop() {
+            while let Some(popped) = hand.staged_items.pop() {
                 if let StagedItemData::Form((index, ..)) = popped.data {
                     if let Some(callback) = &player.forms[index].deselect_callback {
                         simulation.pending_callbacks.push(callback.clone());
@@ -585,9 +594,10 @@ impl CardSelectState {
         }
 
         // see if a script confirmed our selection for us
-        if player.staged_items.confirmed() {
+        if hand.staged_items.confirmed() {
             selection.confirm_time = self.time;
-            selection.recipe_animation = CardRecipeAnimation::try_new(game_io, resources, player);
+            selection.recipe_animation =
+                CardRecipeAnimation::try_new(game_io, resources, player.namespace(), hand);
 
             // activate card select close components
             for (_, component) in &simulation.components {
@@ -634,7 +644,9 @@ impl CardSelectState {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&Player, &mut PlayerHand)>(entity_id.into())
+        else {
             return;
         };
 
@@ -693,11 +705,10 @@ impl CardSelectState {
         // select form
         if input.was_just_pressed(Input::Confirm) {
             if let Some(index) = selection.hovered_form {
-                let prev_index = player.staged_items.stored_form_index();
+                let prev_index = hand.staged_items.stored_form_index();
 
                 // deselect the previous form
-                if let Some((prev_index, undo_callback)) = player.staged_items.drop_form_selection()
-                {
+                if let Some((prev_index, undo_callback)) = hand.staged_items.drop_form_selection() {
                     if let Some(callback) = &player.forms[prev_index].deselect_callback {
                         simulation.pending_callbacks.push(callback.clone());
                     }
@@ -709,7 +720,7 @@ impl CardSelectState {
 
                 if prev_index != selection.hovered_form {
                     // select new form
-                    player.staged_items.stage_form(index, None, None);
+                    hand.staged_items.stage_form(index, None, None);
 
                     let form = &player.forms[index];
 
@@ -775,7 +786,9 @@ impl CardSelectState {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&Player, &mut PlayerHand)>(entity_id.into())
+        else {
             return;
         };
 
@@ -784,7 +797,7 @@ impl CardSelectState {
         let selection = &mut self.player_selections[player_index];
 
         let globals = game_io.resource::<Globals>().unwrap();
-        let previous_item = resolve_selected_item(player, selection);
+        let previous_item = resolve_selected_item(player, hand, selection);
 
         if input.pulsed(Input::End) || previous_item == SelectedItem::None {
             // select Confirm as a safety net
@@ -808,22 +821,22 @@ impl CardSelectState {
         // moving cursor
 
         if input.pulsed(Input::Left) {
-            move_card_selection(player, selection, -1, 0);
+            move_card_selection(player, hand, selection, -1, 0);
         }
 
         if input.pulsed(Input::Right) {
-            move_card_selection(player, selection, 1, 0);
+            move_card_selection(player, hand, selection, 1, 0);
         }
 
         if input.pulsed(Input::Up) {
-            move_card_selection(player, selection, 0, -1);
+            move_card_selection(player, hand, selection, 0, -1);
         }
 
         if input.pulsed(Input::Down) {
-            move_card_selection(player, selection, 0, 1);
+            move_card_selection(player, hand, selection, 0, 1);
         }
 
-        let selected_item = resolve_selected_item(player, selection);
+        let selected_item = resolve_selected_item(player, hand, selection);
 
         // sfx
         if previous_item != selected_item && selection.local {
@@ -835,8 +848,8 @@ impl CardSelectState {
                 SelectedItem::Confirm => {
                     selection.confirm_time = self.time;
                     selection.recipe_animation =
-                        CardRecipeAnimation::try_new(game_io, resources, player);
-                    player.staged_items.set_confirmed(true);
+                        CardRecipeAnimation::try_new(game_io, resources, player.namespace(), hand);
+                    hand.staged_items.set_confirmed(true);
 
                     // sfx
                     if selection.local {
@@ -857,15 +870,13 @@ impl CardSelectState {
                     simulation.call_pending_callbacks(game_io, resources);
                 }
                 SelectedItem::Card(index) => {
-                    if !player.staged_items.has_deck_index(index)
-                        && can_player_select(player, index)
-                    {
+                    if !hand.staged_items.has_deck_index(index) && can_player_select(hand, index) {
                         let item = StagedItem {
                             data: StagedItemData::Deck(index),
                             undo_callback: None,
                         };
 
-                        player.staged_items.stage_item(item);
+                        hand.staged_items.stage_item(item);
 
                         // sfx
                         if selection.local {
@@ -912,9 +923,11 @@ impl CardSelectState {
                 match selected_item {
                     SelectedItem::Card(index) => {
                         let entities = &mut simulation.entities;
-                        let player = entities.query_one_mut::<&Player>(entity_id.into()).unwrap();
+                        let hand = entities
+                            .query_one_mut::<&PlayerHand>(entity_id.into())
+                            .unwrap();
 
-                        let card = &player.deck[index];
+                        let card = &hand.deck[index];
 
                         let event = BattleEvent::DescribeCard(card.package_id.clone());
                         resources.event_sender.send(event).unwrap();
@@ -1004,7 +1017,9 @@ impl CardSelectState {
         entity_id: EntityId,
     ) {
         let entities = &mut simulation.entities;
-        let Ok(player) = entities.query_one_mut::<&mut Player>(entity_id.into()) else {
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&Player, &mut PlayerHand)>(entity_id.into())
+        else {
             return;
         };
 
@@ -1012,7 +1027,7 @@ impl CardSelectState {
         let local = player.index == simulation.local_player_index;
         let mut applied = false;
 
-        if let Some(popped) = player.staged_items.pop() {
+        if let Some(popped) = hand.staged_items.pop() {
             if let StagedItemData::Form((index, ..)) = popped.data {
                 if let Some(callback) = &player.forms[index].deselect_callback {
                     callback.clone().call(game_io, resources, simulation, ());
@@ -1053,15 +1068,17 @@ impl CardSelectState {
         let mut player_ids = Vec::new();
 
         let entities = &mut simulation.entities;
-        for (id, (player, character)) in entities.query_mut::<(&mut Player, &mut Character)>() {
-            if let Some(index) = player.staged_items.stored_form_index() {
+        for (id, (player, hand, character)) in
+            entities.query_mut::<(&mut Player, &mut PlayerHand, &mut Character)>()
+        {
+            if let Some(index) = hand.staged_items.stored_form_index() {
                 // change form
                 player.active_form = Some(index);
                 player.form_boost_order = player.augments.len();
                 player.forms[index].activated = false;
             }
 
-            if player.staged_items.visible_count() > 0 {
+            if hand.staged_items.visible_count() > 0 {
                 // only clear if there's no visible changes, we keep cards from the previous selection in that case
                 character.cards.clear();
                 character.next_card_mutation = Some(0);
@@ -1070,29 +1087,28 @@ impl CardSelectState {
             // load cards in reverse as we'll pop them off in battle state (first item must be last)
             let namespace = player.namespace();
             character.cards.extend(
-                player
-                    .staged_items
-                    .resolve_card_properties(game_io, resources, namespace, &player.deck)
+                hand.staged_items
+                    .resolve_card_properties(game_io, resources, namespace, &hand.deck)
                     .rev(),
             );
 
             // remove the cards from the deck
             // must sort + loop in reverse to prevent issues from shifting indices
-            let mut deck_indices: Vec<_> = player.staged_items.deck_card_indices().collect();
+            let mut deck_indices: Vec<_> = hand.staged_items.deck_card_indices().collect();
             deck_indices.sort();
 
             for i in deck_indices.iter().rev() {
-                if player.deck.get(*i).is_some() {
-                    player.deck.remove(*i);
+                if hand.deck.get(*i).is_some() {
+                    hand.deck.remove(*i);
                 }
             }
 
             // unmark player as having regular card
-            if player.has_regular_card && player.staged_items.has_deck_index(0) {
-                player.has_regular_card = false;
+            if hand.has_regular_card && hand.staged_items.has_deck_index(0) {
+                hand.has_regular_card = false;
             }
 
-            player.staged_items.clear();
+            hand.staged_items.clear();
 
             player_ids.push(id);
         }
@@ -1100,13 +1116,13 @@ impl CardSelectState {
         // resolve card damage for the mutate step
         for id in player_ids {
             let entities = &mut simulation.entities;
-            let Ok((player, character)) =
-                entities.query_one_mut::<(&mut Player, &mut Character)>(id)
+            let Ok((character, namespace)) =
+                entities.query_one_mut::<(&mut Character, &PackageNamespace)>(id)
             else {
                 continue;
             };
 
-            let namespace = player.namespace();
+            let namespace = *namespace;
             let mut cards = std::mem::take(&mut character.cards);
 
             for card in &mut cards {
@@ -1153,9 +1169,9 @@ impl CardSelectState {
         };
 
         // we must update buttons for every player to keep the game in sync
-        for (_, player) in entities.query_mut::<&mut Player>() {
+        for (_, (player, hand)) in entities.query_mut::<(&mut Player, &PlayerHand)>() {
             let selection = &mut self.player_selections[player.index];
-            let selected_item = resolve_selected_item(player, selection);
+            let selected_item = resolve_selected_item(player, hand, selection);
 
             if let Some(buttons) = PlayerOverridables::card_button_slots_mut_for(player) {
                 for (col, row, i, button) in CardSelectButton::iter_card_button_slots_mut(buttons) {
@@ -1192,12 +1208,14 @@ impl CardSelectState {
         let entities = &mut simulation.entities;
 
         for id in player_id_vec {
-            let player = entities.query_one_mut::<&mut Player>(id.into()).unwrap();
+            let (player, hand) = entities
+                .query_one_mut::<(&Player, &PlayerHand)>(id.into())
+                .unwrap();
 
-            let card_view_size = player.deck.len().min(player.hand_size());
+            let card_view_size = hand.deck.len().min(player.hand_size());
 
             for index in 0..card_view_size {
-                let card = &player.deck[index];
+                let card = &hand.deck[index];
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 let card_packages = &globals.card_packages;
@@ -1220,7 +1238,7 @@ impl CardSelectState {
                 let x_difference = x - selection.col;
                 let y_difference = y - selection.row;
 
-                move_card_selection(player, selection, x_difference, y_difference);
+                move_card_selection(player, hand, selection, x_difference, y_difference);
 
                 break;
             }
@@ -1235,17 +1253,18 @@ impl CardSelectState {
     ) {
         let entities = &mut simulation.entities;
 
-        let Ok(player) = entities.query_one_mut::<&mut Player>(simulation.local_player_id.into())
+        let Ok((player, hand)) =
+            entities.query_one_mut::<(&Player, &PlayerHand)>(simulation.local_player_id.into())
         else {
             return;
         };
 
         let selection = &mut self.player_selections[player.index];
-        let SelectedItem::Card(deck_index) = resolve_selected_item(player, selection) else {
+        let SelectedItem::Card(deck_index) = resolve_selected_item(player, hand, selection) else {
             return;
         };
 
-        let card = &player.deck[deck_index];
+        let card = &hand.deck[deck_index];
 
         let globals = game_io.resource::<Globals>().unwrap();
 
@@ -1270,7 +1289,11 @@ impl CardSelectState {
     }
 }
 
-fn resolve_selected_item(player: &Player, selection: &CardSelectSelection) -> SelectedItem {
+fn resolve_selected_item(
+    player: &Player,
+    hand: &PlayerHand,
+    selection: &CardSelectSelection,
+) -> SelectedItem {
     let col = selection.col as usize;
     let row = selection.row as usize;
 
@@ -1294,7 +1317,7 @@ fn resolve_selected_item(player: &Player, selection: &CardSelectSelection) -> Se
         }
     }
 
-    let card_view_size = player.deck.len().min(player.hand_size());
+    let card_view_size = hand.deck.len().min(player.hand_size());
     let card_index = row * CARD_COLS + col;
 
     if card_index < card_view_size {
@@ -1306,24 +1329,25 @@ fn resolve_selected_item(player: &Player, selection: &CardSelectSelection) -> Se
     SelectedItem::None
 }
 
-fn can_player_select(player: &Player, index: usize) -> bool {
-    if player.staged_items.visible_count() >= 5 {
+fn can_player_select(hand: &PlayerHand, index: usize) -> bool {
+    if hand.staged_items.visible_count() >= 5 {
         return false;
     }
 
-    let restriction = CardSelectRestriction::resolve(player);
-    let card = &player.deck[index];
+    let restriction = CardSelectRestriction::resolve(hand);
+    let card = &hand.deck[index];
 
     restriction.allows_card(card)
 }
 
 fn move_card_selection(
     player: &Player,
+    hand: &PlayerHand,
     selection: &mut CardSelectSelection,
     col_diff: i32,
     row_diff: i32,
 ) {
-    let previous_item = resolve_selected_item(player, selection);
+    let previous_item = resolve_selected_item(player, hand, selection);
 
     // move row
     let previous_row = selection.row;
@@ -1337,7 +1361,7 @@ fn move_card_selection(
     }
 
     if col_diff == 0 {
-        if resolve_selected_item(player, selection) == SelectedItem::None {
+        if resolve_selected_item(player, hand, selection) == SelectedItem::None {
             selection.row = previous_row;
         }
 
@@ -1363,7 +1387,7 @@ fn move_card_selection(
                 break;
             }
 
-            let item = resolve_selected_item(player, selection);
+            let item = resolve_selected_item(player, hand, selection);
 
             if item != previous_item && item != SelectedItem::None {
                 test_other_rows = false;
@@ -1385,7 +1409,7 @@ fn move_card_selection(
             selection.col %= CARD_SELECT_COLS as i32;
         }
 
-        let item = resolve_selected_item(player, selection);
+        let item = resolve_selected_item(player, hand, selection);
 
         if item == SelectedItem::None {
             if test_other_rows {
@@ -1398,7 +1422,7 @@ fn move_card_selection(
                         continue;
                     }
 
-                    if resolve_selected_item(player, selection) != SelectedItem::None {
+                    if resolve_selected_item(player, hand, selection) != SelectedItem::None {
                         return;
                     }
                 }

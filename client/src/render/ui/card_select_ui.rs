@@ -1,10 +1,10 @@
 use super::{FontName, TextStyle};
 use crate::battle::{
     BattleSimulation, CardSelectRestriction, CardSelectSelection, Character, Entity, EntityName,
-    Player,
+    Player, PlayerHand,
 };
 use crate::bindable::{CardClass, SpriteColorMode};
-use crate::packages::CardPackage;
+use crate::packages::{CardPackage, PackageNamespace};
 use crate::render::{
     Animator, AnimatorLoopMode, FrameTime, ResolvedPoints, SpriteColorQueue, SpriteNode,
     SpriteShaderEffect,
@@ -212,12 +212,18 @@ impl CardSelectUi {
         simulation.local_health_ui.set_position(health_position);
     }
 
-    pub fn update_card_frame(&mut self, game_io: &GameIO, player: &Player, card_index: usize) {
+    pub fn update_card_frame(
+        &mut self,
+        game_io: &GameIO,
+        namespace: PackageNamespace,
+        hand: &PlayerHand,
+        card_index: usize,
+    ) {
         let globals = game_io.resource::<Globals>().unwrap();
-        let card = &player.deck[card_index];
+        let card = &hand.deck[card_index];
 
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_fallback(player.namespace(), &card.package_id);
+        let package = card_packages.package_or_fallback(namespace, &card.package_id);
 
         let card_class = package
             .map(|package| package.card_properties.card_class)
@@ -309,7 +315,8 @@ impl CardSelectUi {
         &mut self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
-        player: &Player,
+        namespace: PackageNamespace,
+        hand: &PlayerHand,
     ) {
         const ITEM_OFFSET: Vec2 = Vec2::new(0.0, 16.0);
 
@@ -322,25 +329,25 @@ impl CardSelectUi {
 
         let mut position = start;
 
-        for _ in 0..player.staged_items.visible_count() {
+        for _ in 0..hand.staged_items.visible_count() {
             self.recycled_sprite.set_position(position);
             sprite_queue.draw_sprite(&self.recycled_sprite);
             position += ITEM_OFFSET;
         }
 
         // draw icons
-        player.staged_items.draw_icons(
+        hand.staged_items.draw_icons(
             game_io,
             sprite_queue,
-            player.namespace(),
-            &player.deck,
+            namespace,
+            &hand.deck,
             start,
             ITEM_OFFSET,
         );
     }
 
-    pub fn draw_confirm_preview(&mut self, player: &Player, sprite_queue: &mut SpriteColorQueue) {
-        if player.staged_items.visible_count() > 0 {
+    pub fn draw_confirm_preview(&mut self, hand: &PlayerHand, sprite_queue: &mut SpriteColorQueue) {
+        if hand.staged_items.visible_count() > 0 {
             self.animator.set_state("CONFIRM_MESSAGE");
         } else {
             self.animator.set_state("EMPTY_MESSAGE");
@@ -358,19 +365,20 @@ impl CardSelectUi {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         player: &Player,
+        hand: &PlayerHand,
     ) {
         self.animator.set_state("ICON_FRAME");
         self.animator.apply(&mut self.recycled_sprite);
-        let maxed_card_usage = player.staged_items.visible_count() >= 5;
-        let card_restriction = CardSelectRestriction::resolve(player);
+        let maxed_card_usage = hand.staged_items.visible_count() >= 5;
+        let card_restriction = CardSelectRestriction::resolve(hand);
 
-        for (i, card, position) in self.card_icon_render_iter(player) {
+        for (i, card, position) in self.card_icon_render_iter(player, hand) {
             sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
             self.recycled_sprite.set_position(position);
             sprite_queue.draw_sprite(&self.recycled_sprite);
 
-            if player.staged_items.has_deck_index(i) {
+            if hand.staged_items.has_deck_index(i) {
                 continue;
             }
 
@@ -380,18 +388,13 @@ impl CardSelectUi {
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
 
-            CardPackage::draw_icon(
-                game_io,
-                sprite_queue,
-                player.namespace(),
-                &card.package_id,
-                position,
-            );
+            let namespace = player.namespace();
+            CardPackage::draw_icon(game_io, sprite_queue, namespace, &card.package_id, position);
         }
 
         sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
-        self.draw_card_codes_in_hand(game_io, sprite_queue, player);
+        self.draw_card_codes_in_hand(game_io, sprite_queue, player, hand);
     }
 
     fn draw_card_codes_in_hand(
@@ -399,6 +402,7 @@ impl CardSelectUi {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         player: &Player,
+        hand: &PlayerHand,
     ) {
         const CODE_HORIZONTAL_OFFSET: f32 = 4.0;
         const CODE_VERTICAL_OFFSET: f32 = 16.0;
@@ -406,7 +410,7 @@ impl CardSelectUi {
         let mut code_style = TextStyle::new(game_io, FontName::Code);
         code_style.color = Color::YELLOW;
 
-        for (_, card, position) in self.card_icon_render_iter(player) {
+        for (_, card, position) in self.card_icon_render_iter(player, hand) {
             code_style.bounds.set_position(position);
 
             code_style.bounds.x += CODE_HORIZONTAL_OFFSET;
@@ -419,12 +423,12 @@ impl CardSelectUi {
     fn card_icon_render_iter<'a>(
         &self,
         player: &'a Player,
+        hand: &'a PlayerHand,
     ) -> impl Iterator<Item = (usize, &'a Card, Vec2)> {
         let start = self.card_start_point();
 
         // draw icons
-        player
-            .deck
+        hand.deck
             .iter()
             .take(player.hand_size())
             .enumerate()
@@ -492,6 +496,7 @@ impl CardSelectUi {
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
         player: &Player,
+        hand: &PlayerHand,
         selected_row: Option<usize>,
     ) {
         // draw frames
@@ -517,7 +522,7 @@ impl CardSelectUi {
             // default to grayscale
             sprite_queue.set_shader_effect(SpriteShaderEffect::Grayscale);
 
-            if player.staged_items.stored_form_index() == Some(index) {
+            if hand.staged_items.stored_form_index() == Some(index) {
                 // selected color
                 mug_sprite.set_color(Color::new(0.16, 1.0, 0.87, 1.0));
             } else if selected_row == Some(row) {

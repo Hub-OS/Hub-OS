@@ -13,7 +13,7 @@ use super::*;
 use crate::battle::*;
 use crate::bindable::*;
 use crate::lua_api::helpers::{absolute_path, inherit_metatable};
-use crate::packages::PackageId;
+use crate::packages::{PackageId, PackageNamespace};
 use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::saves::Card;
@@ -1961,26 +1961,26 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         |player: &Player, lua, _: ()| lua.pack_multi(player.special_on_input()),
     );
 
-    getter::<&Player, _>(
+    getter::<&PlayerHand, _>(
         lua_api,
         "has_regular_card",
-        |player: &Player, lua, _: ()| lua.pack_multi(player.has_regular_card),
+        |hand: &PlayerHand, lua, _: ()| lua.pack_multi(hand.has_regular_card),
     );
 
-    getter::<&Player, _>(lua_api, "deck_cards", |player: &Player, lua, _: ()| {
-        let card_iter = player.deck.iter();
+    getter::<&PlayerHand, _>(lua_api, "deck_cards", |hand: &PlayerHand, lua, _: ()| {
+        let card_iter = hand.deck.iter();
         let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
         let table = lua.create_table_from(indexed_iter);
 
         lua.pack_multi(table)
     });
 
-    getter::<&Player, _>(
+    getter::<&PlayerHand, _>(
         lua_api,
         "deck_card",
-        |player: &Player, lua, index: usize| {
+        |hand: &PlayerHand, lua, index: usize| {
             let index = index.saturating_sub(1);
-            let card = player.deck.get(index);
+            let card = hand.deck.get(index);
 
             lua.pack_multi(card)
         },
@@ -1998,18 +1998,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let entities = &mut simulation.entities;
 
-            let player = entities
-                .query_one_mut::<&mut Player>(id.into())
+            let (hand, namespace) = entities
+                .query_one_mut::<(&mut PlayerHand, &PackageNamespace)>(id.into())
                 .map_err(|_| entity_not_found())?;
 
             let index = index.saturating_sub(1);
-            let Some(card) = player.deck.get(index) else {
+            let Some(card) = hand.deck.get(index) else {
                 return lua.pack_multi(());
             };
 
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
-            let ns = player.namespace();
+            let ns = *namespace;
 
             let mut card_properties =
                 if let Some(package) = card_packages.package_or_fallback(ns, &card.package_id) {
@@ -2029,10 +2029,10 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "set_deck_card",
-        |player: &mut Player, _, (index, card): (usize, Card)| {
+        |hand: &mut PlayerHand, _, (index, card): (usize, Card)| {
             let index = index.saturating_sub(1);
 
-            let Some(card_ref) = player.deck.get_mut(index) else {
+            let Some(card_ref) = hand.deck.get_mut(index) else {
                 return Ok(());
             };
 
@@ -2045,18 +2045,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "remove_deck_card",
-        |player: &mut Player, _, index: usize| {
+        |hand: &mut PlayerHand, _, index: usize| {
             let index = index.saturating_sub(1);
 
-            if player.deck.get(index).is_none() {
+            if hand.deck.get(index).is_none() {
                 return Ok(());
             }
 
-            player.deck.remove(index);
-            player.staged_items.handle_deck_index_removed(index);
+            hand.deck.remove(index);
+            hand.staged_items.handle_deck_index_removed(index);
 
             if index == 0 {
-                player.has_regular_card = false;
+                hand.has_regular_card = false;
             }
 
             Ok(())
@@ -2066,18 +2066,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     setter(
         lua_api,
         "insert_deck_card",
-        |player: &mut Player, _, (index, card): (usize, Card)| {
+        |hand: &mut PlayerHand, _, (index, card): (usize, Card)| {
             let index = index.saturating_sub(1);
 
-            if index > player.deck.len() {
-                player.deck.push(card);
+            if index > hand.deck.len() {
+                hand.deck.push(card);
             } else {
                 if index == 0 {
-                    player.has_regular_card = false;
+                    hand.has_regular_card = false;
                 }
 
-                player.deck.insert(index, card);
-                player.staged_items.handle_deck_index_inserted(index);
+                hand.deck.insert(index, card);
+                hand.staged_items.handle_deck_index_inserted(index);
             }
 
             Ok(())
