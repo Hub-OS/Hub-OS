@@ -8,12 +8,13 @@ use crate::saves::{BlockGrid, Card, Deck};
 use crate::structures::SlotMap;
 use framework::prelude::*;
 use packets::structures::PackageId;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct PlayerHand {
     pub deck: Vec<Card>,
     pub staged_items: StagedItems,
-    pub used_recipes: Vec<PackageId>,
+    pub used_recipes: HashMap<PackageId, usize>,
     pub has_regular_card: bool,
     pub card_select_blocked: bool,
 }

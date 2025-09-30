@@ -87,8 +87,8 @@ impl CardRecipe {
 
 #[derive(Default)]
 struct NamespaceData {
-    /// (name or id of first input) -> Vec<(Output, Recipe)>
-    recipes: HashMap<String, Vec<(PackageId, CardRecipe)>>,
+    /// (name or id of first input) -> Vec<(Output, Recipe, limit)>
+    recipes: HashMap<String, Vec<(PackageId, CardRecipe, usize)>>,
     /// package_id -> HashSet<name or id of first input>
     tracked_output: HashMap<PackageId, HashSet<String>>,
 }
@@ -118,8 +118,8 @@ impl CardRecipes {
             };
 
             let recipe_list = data.recipes.entry(key.clone()).or_default();
-            recipe_list.push((info.id.clone(), recipe.clone()));
-            recipe_list.sort_by(|(a, _), (b, _)| a.cmp(b));
+            recipe_list.push((info.id.clone(), recipe.clone(), package.limit));
+            recipe_list.sort_by(|(a, ..), (b, ..)| a.cmp(b));
 
             // track recipes associated to output
             tracking.insert(key);
@@ -140,7 +140,7 @@ impl CardRecipes {
                 continue;
             };
 
-            recipe_list.retain(|(o, _)| o != output);
+            recipe_list.retain(|(o, ..)| o != output);
         }
     }
 
@@ -164,7 +164,7 @@ impl CardRecipes {
 
         let iter = id_result.into_iter().chain(name_result).flatten();
 
-        for (output, _) in iter {
+        for (output, ..) in iter {
             if !results.contains(output) {
                 results.push(output.clone())
             }
@@ -177,7 +177,7 @@ impl CardRecipes {
         &self,
         namespace: PackageNamespace,
         cards: &[CardProperties],
-        blocked: &[PackageId],
+        use_counts: &HashMap<PackageId, usize>,
     ) -> Vec<(PackageId, Range<usize>)> {
         let mut results = Vec::new();
 
@@ -203,8 +203,8 @@ impl CardRecipes {
             let mut recipe_len = 0;
             let remaining_cards = &cards[i..];
 
-            'recipe_loop: for (output, recipe) in iter {
-                if blocked.contains(output) {
+            'recipe_loop: for (output, recipe, limit) in iter {
+                if use_counts.get(output).is_some_and(|uses| uses >= limit) {
                     continue;
                 }
 

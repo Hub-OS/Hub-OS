@@ -165,7 +165,6 @@ impl Package for CardPackage {
         package.long_description = meta.long_description.into();
         package.default_codes = meta.codes;
         package.hidden = meta.hidden;
-        package.limit = meta.limit.unwrap_or(5);
 
         // card properties
         package.card_properties.package_id = package.package_info.id.clone();
@@ -203,6 +202,14 @@ impl Package for CardPackage {
         package.regular_allowed = meta
             .regular_allowed
             .unwrap_or(card_class == CardClass::Standard);
+
+        package.limit = meta.limit.unwrap_or_else(|| {
+            if package.card_properties.card_class == CardClass::Recipe {
+                1
+            } else {
+                5
+            }
+        });
 
         package
     }

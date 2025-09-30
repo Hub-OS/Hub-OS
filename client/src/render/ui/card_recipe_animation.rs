@@ -142,7 +142,8 @@ impl CardRecipeAnimation {
         let mut removed_count: usize = 0;
 
         for (package_id, range) in self.changes.iter() {
-            hand.used_recipes.push(package_id.clone());
+            let uses = hand.used_recipes.entry(package_id.clone()).or_default();
+            *uses += 1;
 
             let Some(card_package) = card_packages.package_or_fallback(*namespace, package_id)
             else {
