@@ -28,6 +28,7 @@ pub struct RepoPackageUpdater {
     queue_position: usize,
     install_required: Vec<(PackageCategory, PackageId, PackageId)>,
     install_position: usize,
+    ignoring_installed_dependencies: bool,
 }
 
 impl RepoPackageUpdater {
@@ -39,7 +40,14 @@ impl RepoPackageUpdater {
             queue_position: 0,
             install_required: Vec::new(),
             install_position: 0,
+            ignoring_installed_dependencies: false,
         }
+    }
+
+    /// Used when we've already checked the hashes for installed dependencies -> when checking for updates to all packages
+    pub fn with_ignore_installed_dependencies(mut self, ignore: bool) -> Self {
+        self.ignoring_installed_dependencies = ignore;
+        self
     }
 
     pub fn total_updated(&self) -> usize {
@@ -78,14 +86,23 @@ impl RepoPackageUpdater {
 
         match event {
             Event::ReceivedListing(listing) => {
-                for (_, id) in listing.dependencies {
+                let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                for (category, id) in listing.dependencies {
+                    if self.ignoring_installed_dependencies
+                        && globals
+                            .package_info(category, PackageNamespace::Local, &id)
+                            .is_some()
+                    {
+                        // avoid checking packages that are already installed
+                        continue;
+                    }
+
                     // add only unique dependencies to avoid recursive chains
                     if !self.queue.contains(&id) {
                         self.queue.push(id);
                     }
                 }
-
-                let globals = game_io.resource_mut::<Globals>().unwrap();
 
                 // test for required install
                 if let Some(category) = listing.preview_data.category() {
@@ -154,6 +171,8 @@ impl RepoPackageUpdater {
         let encoded_id = uri_encode(id.as_str());
 
         let uri = format!("{repo}/api/mods/{encoded_id}/meta");
+
+        log::info!("Requesting metadata for {id}...");
 
         let task = game_io.spawn_local_task(async move {
             let Some(value) = crate::http::request_json(&uri).await else {

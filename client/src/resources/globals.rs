@@ -686,8 +686,14 @@ impl Globals {
 
         async move {
             let mut hash_list = Vec::new();
+            const CHUNK_SIZE: usize = 20;
 
-            for chunk in package_ids.chunks(20) {
+            for (i, chunk) in package_ids.chunks(CHUNK_SIZE).enumerate() {
+                log::info!(
+                    "Requesting hashes in batches of {CHUNK_SIZE}: {i}/{}",
+                    package_ids.len().div_ceil(CHUNK_SIZE)
+                );
+
                 let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join("&id="));
 
                 let Some(json) = crate::http::request_json(&uri).await else {

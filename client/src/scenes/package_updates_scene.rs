@@ -86,7 +86,7 @@ impl PackageUpdatesScene {
             buttons: Self::create_buttons(game_io, &event_sender, button_bounds),
             cursor_sprite,
             cursor_animator,
-            package_updater: RepoPackageUpdater::new(),
+            package_updater: RepoPackageUpdater::new().with_ignore_installed_dependencies(true),
             prev_status: UpdateStatus::Idle,
             requires_update,
             event_sender,
