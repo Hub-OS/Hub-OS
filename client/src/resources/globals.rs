@@ -690,8 +690,9 @@ impl Globals {
 
             for (i, chunk) in package_ids.chunks(CHUNK_SIZE).enumerate() {
                 log::info!(
-                    "Requesting hashes in batches of {CHUNK_SIZE}: {i}/{}",
-                    package_ids.len().div_ceil(CHUNK_SIZE)
+                    "Requesting hashes: {}/{}",
+                    i * CHUNK_SIZE + chunk.len(),
+                    package_ids.len()
                 );
 
                 let uri = format!("{repo}/api/mods/hashes?id={}", chunk.join("&id="));
