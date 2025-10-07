@@ -14,7 +14,7 @@ impl ResourcePaths {
     pub const SOUND_FONT: &'static str = "resources/music/soundfont.sf2";
     pub const MAIN_MENU_MUSIC: &'static str = "resources/music/main_menu.ogg";
     pub const CUSTOMIZE_MUSIC: &'static str = "resources/music/customize.ogg";
-    pub const BATTLE_MUSIC: &'static str = "resources/music/battle.ogg";
+    pub const BATTLE_MUSIC: &'static str = "resources/music/battle/";
     pub const OVERWORLD_MUSIC: &'static str = "resources/music/overworld.ogg";
 
     // SFX

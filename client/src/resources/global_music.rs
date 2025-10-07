@@ -9,18 +9,21 @@ pub struct GlobalMusic {
     pub sound_font: Option<Arc<SoundFont>>,
     pub main_menu: SoundBuffer,
     pub customize: SoundBuffer,
-    pub battle: SoundBuffer,
+    pub battle: Vec<SoundBuffer>,
     pub overworld: SoundBuffer,
 }
 
 impl GlobalMusic {
-    pub fn load_with(sound_font_bytes: Vec<u8>, mut load: impl FnMut(&str) -> SoundBuffer) -> Self {
+    pub fn load_with(
+        sound_font_bytes: Vec<u8>,
+        mut load: impl FnMut(&str) -> Vec<SoundBuffer>,
+    ) -> Self {
         Self {
             sound_font: Self::load_sound_font(sound_font_bytes),
-            main_menu: load(ResourcePaths::MAIN_MENU_MUSIC),
-            customize: load(ResourcePaths::CUSTOMIZE_MUSIC),
+            main_menu: load(ResourcePaths::MAIN_MENU_MUSIC).pop().unwrap(),
+            customize: load(ResourcePaths::CUSTOMIZE_MUSIC).pop().unwrap(),
             battle: load(ResourcePaths::BATTLE_MUSIC),
-            overworld: load(ResourcePaths::OVERWORLD_MUSIC),
+            overworld: load(ResourcePaths::OVERWORLD_MUSIC).pop().unwrap(),
         }
     }
 

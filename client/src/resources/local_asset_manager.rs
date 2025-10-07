@@ -288,6 +288,13 @@ impl LocalAssetManager {
             }
         }
     }
+
+    pub fn for_each_loaded_audio(&self, mut f: impl FnMut(&str, &SoundBuffer)) {
+        self.sound_cache
+            .borrow()
+            .iter()
+            .for_each(move |(key, buffer)| f(key, buffer));
+    }
 }
 
 impl AssetManager for LocalAssetManager {

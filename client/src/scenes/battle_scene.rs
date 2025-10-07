@@ -499,6 +499,12 @@ impl BattleScene {
                 continue;
             }
 
+            println!(
+                "controller: {i}, buffer + tolerance: {}, target: {} ",
+                controller.buffer.len() + controller.lead_tolerance,
+                target_buffer_len
+            );
+
             // try to maintain a buffer len to stay in the past
             if controller.buffer.len() + controller.lead_tolerance < target_buffer_len {
                 should_slow = true;
@@ -506,6 +512,7 @@ impl BattleScene {
         }
 
         if should_slow && self.slow_cooldown == 0 {
+            println!("- slowing down");
             self.slow_cooldown = SLOW_COOLDOWN;
         }
     }

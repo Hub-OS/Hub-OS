@@ -83,7 +83,27 @@ impl BootThread {
 
             progress += 1;
 
-            self.assets.non_midi_audio(path)
+            if !path.ends_with("/") {
+                // not a directory, load directly
+                return vec![self.assets.non_midi_audio(path)];
+            }
+
+            // load all audio in a directory without overwriting cached audio from resource packs
+            for dir in std::fs::read_dir(path).iter_mut().flatten().flatten() {
+                let track_path = path.to_string() + &dir.file_name().to_string_lossy();
+                self.assets.non_midi_audio(&track_path);
+            }
+
+            // resolve from loaded audio matching the path
+            let mut files = Vec::new();
+
+            self.assets.for_each_loaded_audio(|key, sound_buffer| {
+                if key.starts_with(path) {
+                    files.push(sound_buffer.clone());
+                }
+            });
+
+            files
         };
 
         let music = GlobalMusic::load_with(sound_font_bytes, load);

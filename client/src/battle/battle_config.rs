@@ -1,3 +1,5 @@
+use rand::seq::IndexedRandom;
+
 use super::BattleInitMusic;
 use crate::resources::{Globals, FIELD_DEFAULT_WIDTH};
 use std::collections::HashSet;
@@ -58,7 +60,12 @@ impl BattleConfig {
             // intangibility_duration: 120,
             // super_effective_multiplier: 2.0,
             battle_init_music: Some(BattleInitMusic {
-                buffer: globals.music.battle.clone(),
+                buffer: globals
+                    .music
+                    .battle
+                    .choose(&mut rand::rng())
+                    .cloned()
+                    .unwrap_or_default(),
                 loops: true,
             }),
         }
