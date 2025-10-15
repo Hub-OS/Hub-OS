@@ -978,7 +978,6 @@ impl Scene for BlocksScene {
 
         let globals = game_io.resource::<Globals>().unwrap();
         globals.audio.push_music_stack();
-        globals.audio.play_music(&globals.music.customize, true);
     }
 
     fn update(&mut self, game_io: &mut GameIO) {
@@ -994,6 +993,11 @@ impl Scene for BlocksScene {
 
         if !game_io.is_in_transition() && !self.textbox.is_open() {
             self.handle_input(game_io);
+
+            let globals = game_io.resource::<Globals>().unwrap();
+            if !globals.audio.is_music_playing() {
+                globals.audio.play_music(&globals.music.customize, true);
+            }
         }
 
         self.update_cursor();
