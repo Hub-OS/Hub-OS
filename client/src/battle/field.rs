@@ -201,16 +201,6 @@ impl Field {
         }
     }
 
-    pub fn update_tiles(&mut self, time_frozen: bool) {
-        if !time_frozen {
-            for tile in &mut self.tiles {
-                tile.update_state();
-            }
-        }
-
-        self.sync_team_timers(time_frozen);
-    }
-
     fn sync_team_timers(&mut self, time_frozen: bool) {
         #[derive(Clone, Copy)]
         struct TeamState {
@@ -298,11 +288,41 @@ impl Field {
         }
     }
 
-    pub fn apply_side_effects(
+    pub fn update(
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
     ) {
+        let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+
+        simulation.field.reset_highlight();
+        simulation.field.sync_team_timers(time_frozen);
+
+        if time_frozen {
+            return;
+        }
+
+        // revert state timers
+        for tile in &mut simulation.field.tiles {
+            let prev_state_index = tile.state_index();
+
+            tile.update_state();
+
+            if tile.state_index() == prev_state_index {
+                continue;
+            }
+
+            let tile_state = &simulation.tile_states[prev_state_index];
+            let tile_callback = tile_state.replace_callback.clone();
+            let tile_position = tile.position();
+
+            let callback = BattleCallback::new(move |game_io, resources, simulation, ()| {
+                tile_callback.call(game_io, resources, simulation, tile_position);
+            });
+
+            simulation.pending_callbacks.push(callback);
+        }
+
         // per tile update
         for tile in &mut simulation.field.tiles {
             let tile_state = &simulation.tile_states[tile.state_index()];

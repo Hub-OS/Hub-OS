@@ -50,7 +50,7 @@ impl State for BattleState {
         // reset frame temporary variables
         self.prepare_updates(simulation);
 
-        self.update_field(game_io, resources, simulation);
+        Field::update(game_io, resources, simulation);
 
         // allow cards to mutate
         Character::mutate_cards(game_io, resources, simulation);
@@ -430,23 +430,6 @@ impl BattleState {
                 sprite_node.set_color(Color::BLACK);
                 sprite_node.set_color_mode(SpriteColorMode::Add);
             }
-        }
-    }
-
-    pub fn update_field(
-        &mut self,
-        game_io: &GameIO,
-        resources: &SharedBattleResources,
-        simulation: &mut BattleSimulation,
-    ) {
-        simulation.field.reset_highlight();
-
-        let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
-
-        simulation.field.update_tiles(time_frozen);
-
-        if !time_frozen {
-            Field::apply_side_effects(game_io, resources, simulation);
         }
     }
 
