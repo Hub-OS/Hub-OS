@@ -149,6 +149,11 @@ impl BattleScene {
                 lead_tolerance: DEFAULT_LEAD_TOLERANCE,
             });
 
+            if !setup.memories.is_empty() {
+                let memories = EntityMemories::new(setup.memories.clone());
+                simulation.memories.insert(setup.index, memories);
+            }
+
             if !config.spectators.contains(&setup.index) {
                 let result = Player::load(game_io, &resources, &mut simulation, setup);
 
@@ -969,6 +974,19 @@ impl Scene for BattleScene {
 
     fn destroy(&mut self, game_io: &mut GameIO) {
         let globals = game_io.resource_mut::<Globals>().unwrap();
+
+        // save player memory, must occur before the recording eats setups
+        if let Some(setup) = self.meta.player_setups.iter().find(|s| s.local) {
+            let memories = self
+                .simulation
+                .memories
+                .get(&setup.index)
+                .map(|memories| memories.clone_inner());
+
+            globals
+                .global_save
+                .update_memories(&setup.package_id, memories);
+        }
 
         if let Some(recording) = self.recording.take() {
             let meta = BattleMeta {

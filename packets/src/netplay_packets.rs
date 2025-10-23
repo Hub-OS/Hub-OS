@@ -1,10 +1,11 @@
 // Increment VERSION_ITERATION lib.rs if packets are added or modified
 
 use crate::structures::{
-    FileHash, Input, InstalledBlock, InstalledSwitchDrive, PackageCategory, PackageId,
+    FileHash, Input, InstalledBlock, InstalledSwitchDrive, MemoryCell, PackageCategory, PackageId,
 };
 use network_channels::Reliability;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use strum::IntoStaticStr;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -41,6 +42,7 @@ pub enum NetplayPacketData {
         recipes: Vec<PackageId>,
         blocks: Vec<InstalledBlock>,
         drives: Vec<InstalledSwitchDrive>,
+        memories: HashMap<String, MemoryCell>,
         input_delay: usize,
     },
     PackageList {

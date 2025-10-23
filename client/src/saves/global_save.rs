@@ -2,7 +2,7 @@ use super::{BlockGrid, Deck, InstalledBlock, ServerInfo};
 use crate::packages::*;
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
-use packets::structures::{InstalledSwitchDrive, Uuid};
+use packets::structures::{InstalledSwitchDrive, MemoryCell, Uuid};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -26,6 +26,7 @@ pub struct GlobalSave {
     pub character_update_times: HashMap<PackageId, u64>,
     pub installed_blocks: HashMap<PackageId, Vec<InstalledBlock>>,
     pub installed_drive_parts: HashMap<PackageId, Vec<InstalledSwitchDrive>>,
+    pub memories: HashMap<PackageId, HashMap<String, MemoryCell>>,
     pub resource_package_order: Vec<(PackageId, bool)>,
     #[serde(default = "GlobalSave::current_time")]
     pub resource_order_time: u64,
@@ -270,6 +271,33 @@ impl GlobalSave {
         block_grid.augments(game_io)
     }
 
+    pub fn update_memories(
+        &mut self,
+        package_id: &PackageId,
+        memories: Option<HashMap<String, MemoryCell>>,
+    ) {
+        if let Some(memories) = memories.filter(|m| !m.is_empty()) {
+            match self.memories.entry(package_id.clone()) {
+                std::collections::hash_map::Entry::Occupied(mut occupied_entry) => {
+                    if *occupied_entry.get() != memories {
+                        occupied_entry.insert(memories);
+                        self.save();
+                    }
+                }
+                std::collections::hash_map::Entry::Vacant(vacant_entry) => {
+                    vacant_entry.insert(memories);
+                    self.save();
+                }
+            }
+        } else {
+            let removed_memory = self.memories.remove(package_id).is_some();
+
+            if removed_memory {
+                self.save();
+            }
+        }
+    }
+
     pub fn update_package_id(
         &mut self,
         category: PackageCategory,
@@ -329,6 +357,11 @@ impl GlobalSave {
                 if let Some(time) = self.character_update_times.remove(old_id) {
                     self.character_update_times.insert(new_id.clone(), time);
                 }
+
+                // update memories
+                if let Some(memory) = self.memories.remove(old_id) {
+                    self.memories.insert(new_id.clone(), memory);
+                }
             }
             PackageCategory::Resource => {
                 // update resources
@@ -362,6 +395,7 @@ impl Default for GlobalSave {
             character_update_times: HashMap::new(),
             installed_blocks: HashMap::new(),
             installed_drive_parts: HashMap::new(),
+            memories: HashMap::new(),
             resource_package_order: Vec::new(),
             resource_order_time: 0,
         }

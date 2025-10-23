@@ -14,6 +14,7 @@ use packets::NetplaySignal;
 use rand::SeedableRng;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 crate::structures::sequential_enum! {
     pub BattleProgress: u8 {
@@ -29,6 +30,7 @@ pub struct BattleSimulation {
     pub statistics: BattleStatistics,
     pub rng: Xoshiro256PlusPlus,
     pub inputs: Vec<PlayerInput>,
+    pub memories: HashMap<usize, EntityMemories>,
     pub time: FrameTime,
     pub battle_time: FrameTime,
     pub camera: Camera,
@@ -78,6 +80,7 @@ impl BattleSimulation {
             time: 0,
             battle_time: 0,
             inputs: vec![PlayerInput::new(); meta.player_count],
+            memories: Default::default(),
             camera,
             background: meta.background.clone(),
             turn_gauge: TurnGauge::new(game_io),
@@ -153,6 +156,7 @@ impl BattleSimulation {
         Self {
             statistics: self.statistics.clone(),
             inputs: self.inputs.clone(),
+            memories: self.memories.clone(),
             rng: self.rng.clone(),
             time: self.time,
             battle_time: self.battle_time,

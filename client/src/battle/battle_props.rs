@@ -9,9 +9,10 @@ use crate::saves::Deck;
 use crate::saves::PlayerInputBuffer;
 use framework::prelude::*;
 use packets::structures::{
-    BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive,
+    BattleId, BattleStatistics, Emotion, InstalledBlock, InstalledSwitchDrive, MemoryCell,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PlayerSetup {
@@ -24,6 +25,7 @@ pub struct PlayerSetup {
     pub recipes: Vec<PackageId>,
     pub blocks: Vec<InstalledBlock>,
     pub drives: Vec<InstalledSwitchDrive>,
+    pub memories: HashMap<String, MemoryCell>,
     pub index: usize,
     pub local: bool,
     pub connected: bool,
@@ -42,6 +44,7 @@ impl PlayerSetup {
             recipes: Default::default(),
             blocks: Default::default(),
             drives: Default::default(),
+            memories: Default::default(),
             index,
             local,
             connected: true,
@@ -119,6 +122,13 @@ impl PlayerSetup {
 
         let recipes = deck.resolve_relevant_recipes(game_io, restrictions, ns);
 
+        // memories
+        let memories = global_save
+            .memories
+            .get(&player_package_info.id)
+            .cloned()
+            .unwrap_or_default();
+
         Self {
             package_id: player_package_info.id.clone(),
             script_enabled,
@@ -130,6 +140,7 @@ impl PlayerSetup {
             recipes,
             blocks,
             drives,
+            memories,
             local: true,
             connected: true,
             buffer: PlayerInputBuffer::new_with_delay(globals.config.input_delay as _),

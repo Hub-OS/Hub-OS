@@ -574,15 +574,16 @@ impl NetplayInitScene {
         self.broadcast(NetplayPacketData::PackageList { packages });
 
         self.broadcast(NetplayPacketData::PlayerSetup {
-            player_package: player_setup.package_id.clone(),
+            player_package: player_setup.package_id,
             script_enabled: player_setup.script_enabled,
-            cards: (player_setup.deck.cards.iter())
-                .map(|card| (card.package_id.clone(), card.code.clone()))
+            cards: (player_setup.deck.cards.into_iter())
+                .map(|card| (card.package_id, card.code))
                 .collect(),
-            recipes: player_setup.recipes.clone(),
+            recipes: player_setup.recipes,
             regular_card: player_setup.deck.regular_index,
-            blocks: player_setup.blocks.clone(),
-            drives: player_setup.drives.clone(),
+            blocks: player_setup.blocks,
+            drives: player_setup.drives,
+            memories: player_setup.memories,
             input_delay: player_setup.buffer.delay(),
         })
     }

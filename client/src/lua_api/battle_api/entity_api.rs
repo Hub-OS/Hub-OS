@@ -1,8 +1,8 @@
 use super::animation_api::create_animation_table;
 use super::errors::{
     action_aready_processed, action_entity_mismatch, action_not_found, aux_prop_already_bound,
-    entity_not_found, invalid_sync_node, mismatched_entity, package_not_loaded, sprite_not_found,
-    too_many_forms,
+    entity_not_found, invalid_memory_value, invalid_sync_node, mismatched_entity,
+    package_not_loaded, sprite_not_found, too_many_forms,
 };
 use super::field_api::get_field_compat_table;
 use super::player_form_api::create_player_form_table;
@@ -20,6 +20,7 @@ use crate::saves::Card;
 use crate::structures::TreeIndex;
 use framework::common::GameIO;
 use framework::prelude::Vec2;
+use packets::structures::MemoryCell;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
     inject_character_api(lua_api);
@@ -1760,6 +1761,94 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             .unwrap_or_default();
 
         lua.pack_multi(delay)
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "remember", |api_ctx, lua, params| {
+        let (table, key, value): (rollback_mlua::Table, String, rollback_mlua::Value) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let v = match value {
+            rollback_mlua::Value::Integer(v) => v.into(),
+            rollback_mlua::Value::Number(v) => v.into(),
+            rollback_mlua::Value::String(v) => v.to_str()?.to_string().into(),
+            _ => return Err(invalid_memory_value()),
+        };
+
+        if let Some(memories) = simulation.memories.get_mut(&player.index) {
+            memories.update(|memories| {
+                memories.insert(key, v);
+            });
+        } else {
+            let memories = EntityMemories::new([(key, v)].into());
+            simulation.memories.insert(player.index, memories);
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "forget", |api_ctx, lua, params| {
+        let (table, key): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        if let Some(memories) = simulation.memories.get_mut(&player.index) {
+            let key = key.to_str()?;
+            memories.update(|memories| {
+                memories.remove(key);
+            });
+        }
+
+        lua.pack_multi(())
+    });
+
+    lua_api.add_dynamic_function(ENTITY_TABLE, "recall", |api_ctx, lua, params| {
+        let (table, key): (rollback_mlua::Table, rollback_mlua::String) =
+            lua.unpack_multi(params)?;
+
+        let id: EntityId = table.raw_get("#id")?;
+
+        let api_ctx = &mut *api_ctx.borrow_mut();
+        let simulation = &mut api_ctx.simulation;
+        let entities = &mut simulation.entities;
+
+        let player = entities
+            .query_one_mut::<&mut Player>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        let Some(memories) = simulation.memories.get_mut(&player.index) else {
+            return lua.pack_multi(());
+        };
+
+        memories.read(|memories| {
+            let Some(value) = memories.get(key.to_str()?) else {
+                return lua.pack_multi(());
+            };
+
+            match value {
+                MemoryCell::Integer(v) => lua.pack_multi(*v),
+                MemoryCell::Float(v) => lua.pack_multi(*v),
+                MemoryCell::String(v) => lua.pack_multi(lua.create_string(v)?),
+            }
+        })
     });
 
     // player:play_audio() is defined in resource_api.rs
