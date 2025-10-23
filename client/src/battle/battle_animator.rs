@@ -473,13 +473,13 @@ impl BattleAnimator {
 
             let current_frame = self.animator.current_frame_index();
 
-            if previous_frame != current_frame {
-                self.call_frame_callbacks(pending_callbacks, current_frame);
-            }
-
             if self.animator.is_complete() {
                 pending_callbacks.extend(self.complete_callbacks.clone());
                 self.interrupt_callbacks.clear();
+            }
+
+            if previous_frame != current_frame {
+                self.call_frame_callbacks(pending_callbacks, current_frame);
             }
 
             return;
@@ -511,12 +511,12 @@ impl BattleAnimator {
 
         let current_frame = self.animator.current_frame_index();
 
-        if previous_frame != current_frame {
-            self.call_frame_callbacks(pending_callbacks, current_frame);
-        }
-
         if self.animator.is_complete() || previous_loop_count != self.animator.loop_count() {
             pending_callbacks.extend(self.complete_callbacks.iter().cloned());
+        }
+
+        if previous_frame != current_frame {
+            self.call_frame_callbacks(pending_callbacks, current_frame);
         }
 
         if self.animator.is_complete() {
@@ -527,18 +527,7 @@ impl BattleAnimator {
     fn call_frame_callbacks(&mut self, pending_callbacks: &mut Vec<BattleCallback>, frame: usize) {
         if let Some(callbacks) = self.frame_callbacks.get_mut(&frame) {
             pending_callbacks.extend(callbacks.iter().map(|(callback, _)| callback.clone()));
-
-            let pending_removal: Vec<_> = callbacks
-                .iter()
-                .enumerate()
-                .filter(|(_, (_, do_once))| *do_once)
-                .map(|(i, _)| i)
-                .rev()
-                .collect();
-
-            for index in pending_removal {
-                callbacks.remove(index);
-            }
+            callbacks.retain(|(_, do_once)| !*do_once);
         }
     }
 
