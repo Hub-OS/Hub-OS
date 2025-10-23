@@ -19,7 +19,7 @@ const SEND_RECEIVE_COUNTS_RATE: FrameTime = 60;
 
 pub enum BattleEvent {
     Description(Arc<str>),
-    DescribeCard(PackageId),
+    DescribeCard(PackageNamespace, PackageId),
     RequestFlee,
     AttemptFlee,
     FleeResult(bool),
@@ -212,11 +212,11 @@ impl BattleScene {
                     self.textbox.push_interface(interface);
                     self.textbox.open();
                 }
-                BattleEvent::DescribeCard(package_id) => {
+                BattleEvent::DescribeCard(ns, package_id) => {
                     let globals = game_io.resource::<Globals>().unwrap();
-                    let ns = PackageNamespace::Local;
 
-                    let Some(package) = globals.card_packages.package(ns, &package_id) else {
+                    let Some(package) = globals.card_packages.package_or_fallback(ns, &package_id)
+                    else {
                         continue;
                     };
 
@@ -499,6 +499,7 @@ impl BattleScene {
                 continue;
             }
 
+            #[cfg(debug_assertions)]
             println!(
                 "controller: {i}, buffer + tolerance: {}, target: {} ",
                 controller.buffer.len() + controller.lead_tolerance,
@@ -512,6 +513,7 @@ impl BattleScene {
         }
 
         if should_slow && self.slow_cooldown == 0 {
+            #[cfg(debug_assertions)]
             println!("- slowing down");
             self.slow_cooldown = SLOW_COOLDOWN;
         }

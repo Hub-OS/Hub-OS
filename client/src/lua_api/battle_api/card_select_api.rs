@@ -4,17 +4,18 @@ use crate::battle::{
     BattleCallback, CardSelectRestriction, Player, PlayerHand, StagedItem, StagedItemData,
 };
 use crate::bindable::{CardProperties, EntityId};
+use crate::lua_api::battle_api::entity_api::add_entity_query_fn;
 use crate::lua_api::helpers::absolute_path;
 use crate::packages::{CardPackage, PackageNamespace};
 use crate::resources::{AssetManager, Globals, ResourcePaths};
 use framework::prelude::GameIO;
 
 pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
-    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_items_confirmed", |hand, lua, _, _| {
+    add_entity_query_fn::<&mut PlayerHand>(lua_api, "staged_items_confirmed", |hand, lua, _, _| {
         lua.pack_multi(hand.staged_items.confirmed())
     });
 
-    generate_query_fn::<&mut PlayerHand>(lua_api, "confirm_staged_items", |hand, lua, _, _| {
+    add_entity_query_fn::<&mut PlayerHand>(lua_api, "confirm_staged_items", |hand, lua, _, _| {
         hand.staged_items.set_confirmed(true);
         lua.pack_multi(())
     });
@@ -102,7 +103,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_items", move |hand, lua, _, _| {
+    add_entity_query_fn::<&mut PlayerHand>(lua_api, "staged_items", move |hand, lua, _, _| {
         let iter = hand
             .staged_items
             .iter()
@@ -113,7 +114,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(table)
     });
 
-    generate_query_fn::<&mut PlayerHand>(lua_api, "staged_item", move |hand, lua, _, params| {
+    add_entity_query_fn::<&mut PlayerHand>(lua_api, "staged_item", move |hand, lua, _, params| {
         let index: usize = lua.unpack_multi(params)?;
 
         let index = index.saturating_sub(1);
@@ -122,10 +123,10 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(item)
     });
 
-    generate_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
+    add_entity_query_fn::<&mut PlayerHand>(
         lua_api,
         "staged_item_texture",
-        move |(hand, namespace), lua, game_io, params| {
+        |hand, lua, game_io, params| {
             let index: usize = lua.unpack_multi(params)?;
 
             let index = index.saturating_sub(1);
@@ -133,7 +134,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
 
             let texture_path = item.map(|item| match &item.data {
                 StagedItemData::Deck(i) => {
-                    if let Some(card) = hand.deck.get(*i) {
+                    if let Some((card, namespace)) = hand.deck.get(*i) {
                         CardPackage::icon_texture(game_io, *namespace, &card.package_id).1
                     } else {
                         ResourcePaths::CARD_ICON_MISSING
@@ -158,7 +159,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_query_fn::<&mut PlayerHand>(
+    add_entity_query_fn::<&mut PlayerHand>(
         lua_api,
         "card_select_restriction",
         move |hand, lua, _, _| {
@@ -182,7 +183,7 @@ pub fn inject_card_select_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    generate_query_fn::<&mut PlayerHand>(
+    add_entity_query_fn::<&mut PlayerHand>(
         lua_api,
         "set_card_selection_blocked",
         move |hand, lua, _, params| {
@@ -259,37 +260,5 @@ fn generate_stage_item_fn(
         simulation.call_pending_callbacks(game_io, resources);
 
         lua.pack_multi(())
-    });
-}
-
-fn generate_query_fn<Q: hecs::Query + 'static>(
-    lua_api: &mut BattleLuaApi,
-    name: &str,
-    callback: for<'q, 'lua> fn(
-        Q::Item<'q>,
-        &'lua rollback_mlua::Lua,
-        &GameIO,
-        rollback_mlua::MultiValue<'lua>,
-    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
-) {
-    lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
-        // todo: could we produce a better error for Nil entity tables?
-        let player_value = params.pop_front();
-        let player_table = player_value
-            .as_ref()
-            .and_then(|value| value.as_table())
-            .ok_or_else(entity_not_found)?;
-
-        let id: EntityId = player_table.raw_get("#id")?;
-
-        let mut api_ctx = api_ctx.borrow_mut();
-        let game_io = api_ctx.game_io;
-        let entities = &mut api_ctx.simulation.entities;
-
-        let player = entities
-            .query_one_mut::<Q>(id.into())
-            .map_err(|_| entity_not_found())?;
-
-        callback(player, lua, game_io, params)
     });
 }

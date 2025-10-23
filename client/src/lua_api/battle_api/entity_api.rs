@@ -18,6 +18,7 @@ use crate::render::{FrameTime, SpriteNode};
 use crate::resources::Globals;
 use crate::saves::Card;
 use crate::structures::TreeIndex;
+use framework::common::GameIO;
 use framework::prelude::Vec2;
 
 pub fn inject_entity_api(lua_api: &mut BattleLuaApi) {
@@ -1968,9 +1969,11 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
     );
 
     getter::<&PlayerHand, _>(lua_api, "deck_cards", |hand: &PlayerHand, lua, _: ()| {
-        let card_iter = hand.deck.iter();
-        let indexed_iter = card_iter.enumerate().map(|(i, v)| (i + 1, v));
-        let table = lua.create_table_from(indexed_iter);
+        let table = lua.create_table_with_capacity(hand.deck.len(), 0)?;
+
+        for tuple in &hand.deck {
+            table.raw_push(create_deck_card_table(lua, tuple)?)?;
+        }
 
         lua.pack_multi(table)
     });
@@ -1980,9 +1983,13 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         "deck_card",
         |hand: &PlayerHand, lua, index: usize| {
             let index = index.saturating_sub(1);
-            let card = hand.deck.get(index);
+            let card_table = hand
+                .deck
+                .get(index)
+                .map(|tuple| create_deck_card_table(lua, tuple))
+                .transpose()?;
 
-            lua.pack_multi(card)
+            lua.pack_multi(card_table)
         },
     );
 
@@ -1998,18 +2005,18 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
             let simulation = &mut api_ctx.simulation;
             let entities = &mut simulation.entities;
 
-            let (hand, namespace) = entities
-                .query_one_mut::<(&mut PlayerHand, &PackageNamespace)>(id.into())
+            let hand = entities
+                .query_one_mut::<&mut PlayerHand>(id.into())
                 .map_err(|_| entity_not_found())?;
 
             let index = index.saturating_sub(1);
-            let Some(card) = hand.deck.get(index) else {
+            let Some((card, namespace)) = hand.deck.get(index) else {
                 return lua.pack_multi(());
             };
+            let ns = *namespace;
 
             let globals = api_ctx.game_io.resource::<Globals>().unwrap();
             let card_packages = &globals.card_packages;
-            let ns = *namespace;
 
             let mut card_properties =
                 if let Some(package) = card_packages.package_or_fallback(ns, &card.package_id) {
@@ -2026,19 +2033,19 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(
+    add_entity_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
         lua_api,
         "set_deck_card",
-        |hand: &mut PlayerHand, _, (index, card): (usize, Card)| {
+        |(hand, default_ns), lua, _, params| {
+            let (index, card_value): (usize, _) = lua.unpack_multi(params)?;
+            let (card, namespace) = read_deck_card_table(card_value)?;
             let index = index.saturating_sub(1);
 
-            let Some(card_ref) = hand.deck.get_mut(index) else {
-                return Ok(());
-            };
+            if let Some(card_ref) = hand.deck.get_mut(index) {
+                *card_ref = (card, namespace.unwrap_or(*default_ns));
+            }
 
-            *card_ref = card;
-
-            Ok(())
+            lua.pack_multi(())
         },
     );
 
@@ -2063,24 +2070,28 @@ fn inject_player_api(lua_api: &mut BattleLuaApi) {
         },
     );
 
-    setter(
+    add_entity_query_fn::<(&mut PlayerHand, &PackageNamespace)>(
         lua_api,
         "insert_deck_card",
-        |hand: &mut PlayerHand, _, (index, card): (usize, Card)| {
+        |(hand, default_ns), lua, _, params| {
+            let (index, card_value): (usize, _) = lua.unpack_multi(params)?;
+            let (card, namespace) = read_deck_card_table(card_value)?;
+            let card_tuple = (card, namespace.unwrap_or(*default_ns));
+
             let index = index.saturating_sub(1);
 
             if index > hand.deck.len() {
-                hand.deck.push(card);
+                hand.deck.push(card_tuple);
             } else {
                 if index == 0 {
                     hand.has_regular_card = false;
                 }
 
-                hand.deck.insert(index, card);
+                hand.deck.insert(index, card_tuple);
                 hand.staged_items.handle_deck_index_inserted(index);
             }
 
-            Ok(())
+            lua.pack_multi(())
         },
     );
 
@@ -2586,6 +2597,38 @@ fn setter<C, P>(
     });
 }
 
+pub fn add_entity_query_fn<Q: hecs::Query + 'static>(
+    lua_api: &mut BattleLuaApi,
+    name: &str,
+    callback: for<'q, 'lua> fn(
+        Q::Item<'q>,
+        &'lua rollback_mlua::Lua,
+        &GameIO,
+        rollback_mlua::MultiValue<'lua>,
+    ) -> rollback_mlua::Result<rollback_mlua::MultiValue<'lua>>,
+) {
+    lua_api.add_dynamic_function(ENTITY_TABLE, name, move |api_ctx, lua, mut params| {
+        // todo: could we produce a better error for Nil entity tables?
+        let player_value = params.pop_front();
+        let player_table = player_value
+            .as_ref()
+            .and_then(|value| value.as_table())
+            .ok_or_else(entity_not_found)?;
+
+        let id: EntityId = player_table.raw_get("#id")?;
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let game_io = api_ctx.game_io;
+        let entities = &mut api_ctx.simulation.entities;
+
+        let components = entities
+            .query_one_mut::<Q>(id.into())
+            .map_err(|_| entity_not_found())?;
+
+        callback(components, lua, game_io, params)
+    });
+}
+
 fn callback_setter<C, P, R>(
     lua_api: &mut BattleLuaApi,
     name: &str,
@@ -2810,4 +2853,39 @@ pub fn create_entity_table(
     table.raw_set("#id", id)?;
 
     Ok(table)
+}
+
+fn create_deck_card_table<'lua>(
+    lua: &'lua rollback_mlua::Lua,
+    (card, namespace): &(Card, PackageNamespace),
+) -> rollback_mlua::Result<rollback_mlua::Table<'lua>> {
+    let table = lua.create_table()?;
+    table.set("package_id", card.package_id.as_str())?;
+    table.set("code", card.code.as_str())?;
+    table.set("namespace", *namespace)?;
+
+    Ok(table)
+}
+
+fn read_deck_card_table(
+    lua_value: rollback_mlua::Value,
+) -> rollback_mlua::Result<(Card, Option<PackageNamespace>)> {
+    let table = match lua_value {
+        rollback_mlua::Value::Table(table) => table,
+        _ => {
+            return Err(rollback_mlua::Error::FromLuaConversionError {
+                from: lua_value.type_name(),
+                to: "DeckCard",
+                message: None,
+            })
+        }
+    };
+
+    Ok((
+        Card {
+            package_id: table.get("package_id").unwrap_or_default(),
+            code: table.get("code").unwrap_or_default(),
+        },
+        table.get("namespace").unwrap_or_default(),
+    ))
 }

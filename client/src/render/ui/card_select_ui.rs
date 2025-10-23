@@ -212,18 +212,12 @@ impl CardSelectUi {
         simulation.local_health_ui.set_position(health_position);
     }
 
-    pub fn update_card_frame(
-        &mut self,
-        game_io: &GameIO,
-        namespace: PackageNamespace,
-        hand: &PlayerHand,
-        card_index: usize,
-    ) {
+    pub fn update_card_frame(&mut self, game_io: &GameIO, hand: &PlayerHand, card_index: usize) {
         let globals = game_io.resource::<Globals>().unwrap();
-        let card = &hand.deck[card_index];
+        let (card, namespace) = &hand.deck[card_index];
 
         let card_packages = &globals.card_packages;
-        let package = card_packages.package_or_fallback(namespace, &card.package_id);
+        let package = card_packages.package_or_fallback(*namespace, &card.package_id);
 
         let card_class = package
             .map(|package| package.card_properties.card_class)
@@ -315,7 +309,6 @@ impl CardSelectUi {
         &mut self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
-        namespace: PackageNamespace,
         hand: &PlayerHand,
     ) {
         const ITEM_OFFSET: Vec2 = Vec2::new(0.0, 16.0);
@@ -336,14 +329,8 @@ impl CardSelectUi {
         }
 
         // draw icons
-        hand.staged_items.draw_icons(
-            game_io,
-            sprite_queue,
-            namespace,
-            &hand.deck,
-            start,
-            ITEM_OFFSET,
-        );
+        hand.staged_items
+            .draw_icons(game_io, sprite_queue, &hand.deck, start, ITEM_OFFSET);
     }
 
     pub fn draw_confirm_preview(&mut self, hand: &PlayerHand, sprite_queue: &mut SpriteColorQueue) {
@@ -372,7 +359,7 @@ impl CardSelectUi {
         let maxed_card_usage = hand.staged_items.visible_count() >= 5;
         let card_restriction = CardSelectRestriction::resolve(hand);
 
-        for (i, card, position) in self.card_icon_render_iter(player, hand) {
+        for (i, namespace, card, position) in self.card_icon_render_iter(player, hand) {
             sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
 
             self.recycled_sprite.set_position(position);
@@ -388,7 +375,6 @@ impl CardSelectUi {
                 sprite_queue.set_shader_effect(SpriteShaderEffect::Default);
             }
 
-            let namespace = player.namespace();
             CardPackage::draw_icon(game_io, sprite_queue, namespace, &card.package_id, position);
         }
 
@@ -410,7 +396,7 @@ impl CardSelectUi {
         let mut code_style = TextStyle::new(game_io, FontName::Code);
         code_style.color = Color::YELLOW;
 
-        for (_, card, position) in self.card_icon_render_iter(player, hand) {
+        for (_, _, card, position) in self.card_icon_render_iter(player, hand) {
             code_style.bounds.set_position(position);
 
             code_style.bounds.x += CODE_HORIZONTAL_OFFSET;
@@ -424,7 +410,7 @@ impl CardSelectUi {
         &self,
         player: &'a Player,
         hand: &'a PlayerHand,
-    ) -> impl Iterator<Item = (usize, &'a Card, Vec2)> {
+    ) -> impl Iterator<Item = (usize, PackageNamespace, &'a Card, Vec2)> {
         let start = self.card_start_point();
 
         // draw icons
@@ -432,13 +418,13 @@ impl CardSelectUi {
             .iter()
             .take(player.hand_size())
             .enumerate()
-            .map(move |(i, card)| {
+            .map(move |(i, (card, namespace))| {
                 let col = i % CARD_COLS;
                 let row = i / CARD_COLS;
 
                 let top_left = CardSelectUi::calculate_icon_position(start, col as i32, row as i32);
 
-                (i, card, top_left)
+                (i, *namespace, card, top_left)
             })
     }
 

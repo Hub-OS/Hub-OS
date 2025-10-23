@@ -311,8 +311,7 @@ impl State for CardSelectState {
 
         // update frame
         if let SelectedItem::Card(i) = selected_item {
-            self.ui
-                .update_card_frame(game_io, player.namespace(), hand, i);
+            self.ui.update_card_frame(game_io, hand, i);
         } else {
             self.ui.reset_card_frame();
         }
@@ -321,8 +320,7 @@ impl State for CardSelectState {
         self.ui.draw_tree(sprite_queue);
         self.ui
             .draw_cards_in_hand(game_io, sprite_queue, player, hand);
-        self.ui
-            .draw_staged_icons(game_io, sprite_queue, player.namespace(), hand);
+        self.ui.draw_staged_icons(game_io, sprite_queue, hand);
 
         // draw buttons
         let card_buttons = PlayerOverridables::card_button_slots_for(player);
@@ -406,12 +404,11 @@ impl State for CardSelectState {
 
             match selected_item {
                 SelectedItem::Card(i) => {
-                    let card = &hand.deck[i];
+                    let (card, namespace) = &hand.deck[i];
                     let preview_point = self.ui.preview_point();
-                    let namespace = player.namespace();
 
                     let mut preview = CardPreview::new(card, preview_point, 1.0);
-                    preview.namespace = namespace;
+                    preview.namespace = *namespace;
                     preview.damage_override = Some(selection.resolved_card_damage);
                     preview.draw(game_io, sprite_queue);
                     preview.draw_title(game_io, sprite_queue);
@@ -927,9 +924,9 @@ impl CardSelectState {
                             .query_one_mut::<&PlayerHand>(entity_id.into())
                             .unwrap();
 
-                        let card = &hand.deck[index];
+                        let (card, namespace) = &hand.deck[index];
 
-                        let event = BattleEvent::DescribeCard(card.package_id.clone());
+                        let event = BattleEvent::DescribeCard(*namespace, card.package_id.clone());
                         resources.event_sender.send(event).unwrap();
                     }
                     SelectedItem::Button(_) => {
@@ -1085,10 +1082,9 @@ impl CardSelectState {
             }
 
             // load cards in reverse as we'll pop them off in battle state (first item must be last)
-            let namespace = player.namespace();
             character.cards.extend(
                 hand.staged_items
-                    .resolve_card_properties(game_io, resources, namespace, &hand.deck)
+                    .resolve_card_properties(game_io, resources, &hand.deck)
                     .rev(),
             );
 
@@ -1215,14 +1211,13 @@ impl CardSelectState {
             let card_view_size = hand.deck.len().min(player.hand_size());
 
             for index in 0..card_view_size {
-                let card = &hand.deck[index];
+                let (card, namespace) = &hand.deck[index];
                 let globals = game_io.resource::<Globals>().unwrap();
 
                 let card_packages = &globals.card_packages;
-                let namespace = player.namespace();
 
                 let is_dark = card_packages
-                    .package_or_fallback(namespace, &card.package_id)
+                    .package_or_fallback(*namespace, &card.package_id)
                     .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
                 if !is_dark {
@@ -1264,15 +1259,14 @@ impl CardSelectState {
             return;
         };
 
-        let card = &hand.deck[deck_index];
+        let (card, namespace) = &hand.deck[deck_index];
 
         let globals = game_io.resource::<Globals>().unwrap();
 
         let card_packages = &globals.card_packages;
-        let namespace = player.namespace();
 
         let is_dark = card_packages
-            .package_or_fallback(namespace, &card.package_id)
+            .package_or_fallback(*namespace, &card.package_id)
             .is_some_and(|package| package.card_properties.card_class == CardClass::Dark);
 
         if is_dark {
@@ -1335,7 +1329,7 @@ fn can_player_select(hand: &PlayerHand, index: usize) -> bool {
     }
 
     let restriction = CardSelectRestriction::resolve(hand);
-    let card = &hand.deck[index];
+    let (card, _) = &hand.deck[index];
 
     restriction.allows_card(card)
 }

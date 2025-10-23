@@ -126,8 +126,7 @@ impl StagedItems {
         &'a self,
         game_io: &'a GameIO,
         resources: &'a SharedBattleResources,
-        namespace: PackageNamespace,
-        deck: &'a [Card],
+        deck: &'a [(Card, PackageNamespace)],
     ) -> impl DoubleEndedIterator<Item = CardProperties> + 'a {
         let globals = game_io.resource::<Globals>().unwrap();
         let card_packages = &globals.card_packages;
@@ -135,12 +134,12 @@ impl StagedItems {
 
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
-                let card = deck.get(*i)?;
-                let package = card_packages.package_or_fallback(namespace, &card.package_id)?;
+                let (card, namespace) = deck.get(*i)?;
+                let package = card_packages.package_or_fallback(*namespace, &card.package_id)?;
                 let mut card_properties = package.card_properties.to_bindable(status_registry);
 
                 card_properties.code.clone_from(&card.code);
-                card_properties.namespace = Some(namespace);
+                card_properties.namespace = Some(*namespace);
 
                 Some(card_properties)
             }
@@ -152,11 +151,11 @@ impl StagedItems {
     /// Iterator of card id and code references, includes staged cards not in the deck.
     pub fn resolve_card_ids_and_codes<'a>(
         &'a self,
-        deck: &'a [Card],
+        deck: &'a [(Card, PackageNamespace)],
     ) -> impl DoubleEndedIterator<Item = (&'a PackageId, &'a str)> {
         self.items.iter().flat_map(move |card| match &card.data {
             StagedItemData::Deck(i) => {
-                let card = deck.get(*i)?;
+                let (card, _) = deck.get(*i)?;
 
                 Some((&card.package_id, card.code.as_str()))
             }
@@ -195,8 +194,7 @@ impl StagedItems {
         &self,
         game_io: &GameIO,
         sprite_queue: &mut SpriteColorQueue,
-        namespace: PackageNamespace,
-        deck: &[Card],
+        deck: &[(Card, PackageNamespace)],
         start: Vec2,
         step: Vec2,
     ) {
@@ -209,9 +207,9 @@ impl StagedItems {
         for item in self.visible_iter() {
             let texture = match &item.data {
                 StagedItemData::Deck(i) => {
-                    if let Some(card) = deck.get(*i) {
+                    if let Some((card, namespace)) = deck.get(*i) {
                         let (texture, _) =
-                            CardPackage::icon_texture(game_io, namespace, &card.package_id);
+                            CardPackage::icon_texture(game_io, *namespace, &card.package_id);
                         texture
                     } else {
                         assets.texture(game_io, ResourcePaths::CARD_ICON_MISSING)

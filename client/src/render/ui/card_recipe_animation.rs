@@ -64,7 +64,7 @@ impl CardRecipeAnimation {
     ) -> Option<Self> {
         let cards = hand
             .staged_items
-            .resolve_card_properties(game_io, resources, namespace, &hand.deck)
+            .resolve_card_properties(game_io, resources, &hand.deck)
             .collect::<Rc<_>>();
 
         let recipes = &resources.recipes;
@@ -95,7 +95,7 @@ impl CardRecipeAnimation {
         changes
             .retain(|(package_id, _)| resources.vm_manager.find_vm(package_id, namespace).is_ok());
 
-        // clear regular card if it was use
+        // clear regular card if it was used
         if hand.has_regular_card && hand.staged_items.has_deck_index(0) {
             hand.has_regular_card = false;
         }
@@ -319,9 +319,10 @@ impl CardRecipeAnimation {
                         // render the new card if we're drawing at the first input in the recipe
                         // otherwise render nothing
                         if range.start == i {
-                            if let Some(package) =
-                                card_packages.package_or_fallback(namespace, package_id)
-                            {
+                            if let Some(package) = card_packages.package_or_fallback(
+                                card.namespace.unwrap_or(namespace),
+                                package_id,
+                            ) {
                                 let card = &package.card_properties;
                                 text_style.color = relevant_color;
                                 text_style.draw(game_io, sprite_queue, &card.short_name);

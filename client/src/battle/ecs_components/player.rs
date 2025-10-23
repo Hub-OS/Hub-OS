@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct PlayerHand {
-    pub deck: Vec<Card>,
+    pub deck: Vec<(Card, PackageNamespace)>,
     pub staged_items: StagedItems,
     pub used_recipes: HashMap<PackageId, usize>,
     pub has_regular_card: bool,
@@ -20,14 +20,14 @@ pub struct PlayerHand {
 }
 
 impl PlayerHand {
-    fn new(mut deck: Deck) -> Self {
+    fn new(namespace: PackageNamespace, mut deck: Deck) -> Self {
         if let Some(index) = deck.regular_index {
             // move the regular card to the front
             deck.cards.swap(0, index);
         }
 
         Self {
-            deck: deck.cards,
+            deck: deck.cards.into_iter().map(|c| (c, namespace)).collect(),
             staged_items: Default::default(),
             used_recipes: Default::default(),
             has_regular_card: deck.regular_index.is_some(),
@@ -207,7 +207,7 @@ impl Player {
             AttackCharge::create_sprite(game_io, sprite_tree, ResourcePaths::BATTLE_CHARGE);
 
         let mut deck = setup.deck.clone();
-        deck.shuffle(game_io, &mut simulation.rng, setup.namespace());
+        deck.shuffle(game_io, &mut simulation.rng, namespace);
 
         let components = (
             Player::new(
@@ -216,7 +216,7 @@ impl Player {
                 card_charge_sprite_index,
                 attack_charge_sprite_index,
             ),
-            PlayerHand::new(deck),
+            PlayerHand::new(namespace, deck),
         );
 
         let _ = simulation.entities.insert(id.into(), components);
@@ -363,17 +363,15 @@ impl Player {
         deck_index: usize,
     ) -> i32 {
         let entities = &mut simulation.entities;
-        let Ok((player, hand)) = entities.query_one_mut::<(&Player, &PlayerHand)>(entity_id.into())
-        else {
+        let Ok(hand) = entities.query_one_mut::<&PlayerHand>(entity_id.into()) else {
             return 0;
         };
 
-        let namespace = player.namespace();
-        let Some(card) = hand.deck.get(deck_index) else {
+        let Some((card, namespace)) = hand.deck.get(deck_index) else {
             return 0;
         };
 
-        CardDamageResolver::new(game_io, resources, namespace, &card.package_id)
+        CardDamageResolver::new(game_io, resources, *namespace, &card.package_id)
             .resolve(game_io, resources, simulation, entity_id)
     }
 
