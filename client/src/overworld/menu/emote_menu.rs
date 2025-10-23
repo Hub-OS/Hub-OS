@@ -107,7 +107,7 @@ impl EmoteMenu {
     }
 
     fn restrict_h_scroll(&mut self) {
-        let total_items = self.emotes.len() + 1;
+        let total_items = self.filtered_emotes.len() + 1;
 
         if self.v_scroll.selected_index() == self.v_scroll.total_items() - 1 {
             let remainder = total_items % self.h_scroll.view_size();
