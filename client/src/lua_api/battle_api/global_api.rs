@@ -162,11 +162,11 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
 
     use crate::bindable::TileHighlight;
 
-    let tile_state_table = lua.create_table()?;
-    tile_state_table.set("None", TileHighlight::None)?;
-    tile_state_table.set("Flash", TileHighlight::Flash)?;
-    tile_state_table.set("Solid", TileHighlight::Solid)?;
-    globals.set("Highlight", tile_state_table)?;
+    let tile_highlight_table = lua.create_table()?;
+    tile_highlight_table.set("None", TileHighlight::None)?;
+    tile_highlight_table.set("Flash", TileHighlight::Flash)?;
+    tile_highlight_table.set("Solid", TileHighlight::Solid)?;
+    globals.set("Highlight", tile_highlight_table)?;
 
     use crate::bindable::Team;
 
