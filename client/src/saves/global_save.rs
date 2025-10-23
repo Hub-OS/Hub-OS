@@ -270,62 +270,75 @@ impl GlobalSave {
         block_grid.augments(game_io)
     }
 
-    pub fn update_package_id(&mut self, old_id: &PackageId, new_id: &PackageId) {
+    pub fn update_package_id(
+        &mut self,
+        category: PackageCategory,
+        old_id: &PackageId,
+        new_id: &PackageId,
+    ) {
         if old_id == new_id {
             return;
         }
 
         log::info!("Updating save for updated package id: {old_id} -> {new_id}");
 
-        // update decks
-        for deck in &mut self.decks {
-            for card in &mut deck.cards {
-                if card.package_id == *old_id {
-                    card.package_id = new_id.clone();
+        match category {
+            PackageCategory::Augment => {
+                // update blocks
+                if let Some(blocks) = self.installed_blocks.remove(old_id) {
+                    self.installed_blocks.insert(new_id.clone(), blocks);
+                }
+
+                for blocks in &mut self.installed_blocks.values_mut() {
+                    for block in blocks {
+                        if block.package_id == *old_id {
+                            block.package_id = new_id.clone();
+                        }
+                    }
+                }
+
+                // update switch drive parts
+                if let Some(parts) = self.installed_drive_parts.remove(old_id) {
+                    self.installed_drive_parts.insert(new_id.clone(), parts);
+                }
+
+                for parts in &mut self.installed_drive_parts.values_mut() {
+                    for part in parts {
+                        if part.package_id == *old_id {
+                            part.package_id = new_id.clone();
+                        }
+                    }
                 }
             }
-        }
-
-        // update selected character
-        if self.selected_character == *old_id {
-            self.selected_character = new_id.clone();
-        }
-
-        if let Some(time) = self.character_update_times.remove(old_id) {
-            self.character_update_times.insert(new_id.clone(), time);
-        }
-
-        // update blocks
-        if let Some(blocks) = self.installed_blocks.remove(old_id) {
-            self.installed_blocks.insert(new_id.clone(), blocks);
-        }
-
-        for blocks in &mut self.installed_blocks.values_mut() {
-            for block in blocks {
-                if block.package_id == *old_id {
-                    block.package_id = new_id.clone();
+            PackageCategory::Card => {
+                // update decks
+                for deck in &mut self.decks {
+                    for card in &mut deck.cards {
+                        if card.package_id == *old_id {
+                            card.package_id = new_id.clone();
+                        }
+                    }
                 }
             }
-        }
+            PackageCategory::Player => {
+                // update selected character
+                if self.selected_character == *old_id {
+                    self.selected_character = new_id.clone();
+                }
 
-        // update switch drive parts
-        if let Some(parts) = self.installed_drive_parts.remove(old_id) {
-            self.installed_drive_parts.insert(new_id.clone(), parts);
-        }
-
-        for parts in &mut self.installed_drive_parts.values_mut() {
-            for part in parts {
-                if part.package_id == *old_id {
-                    part.package_id = new_id.clone();
+                if let Some(time) = self.character_update_times.remove(old_id) {
+                    self.character_update_times.insert(new_id.clone(), time);
                 }
             }
-        }
-
-        // update resources
-        for (id, _) in &mut self.resource_package_order {
-            if id == old_id {
-                *id = new_id.clone();
+            PackageCategory::Resource => {
+                // update resources
+                for (id, _) in &mut self.resource_package_order {
+                    if id == old_id {
+                        *id = new_id.clone();
+                    }
+                }
             }
+            _ => {}
         }
     }
 }

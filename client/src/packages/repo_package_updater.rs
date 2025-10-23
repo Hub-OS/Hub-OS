@@ -236,7 +236,7 @@ impl RepoPackageUpdater {
         // update save
         if install_id != new_id {
             let global_save = &mut globals.global_save;
-            global_save.update_package_id(install_id, new_id);
+            global_save.update_package_id(category, install_id, new_id);
             global_save.save();
         }
 
