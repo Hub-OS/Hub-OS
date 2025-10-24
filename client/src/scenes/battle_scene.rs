@@ -723,7 +723,9 @@ impl BattleScene {
     fn rewind(&mut self, game_io: &GameIO, mut steps: usize) {
         // taking an extra step back as we'll resimulate one step forward again
         // this ensures the snapshot is popped as repeated self.rollback(1) has no effect
-        steps += 1;
+        if !self.already_snapped {
+            steps += 1;
+        }
 
         if self.backups.len() < steps {
             return;
