@@ -36,8 +36,8 @@ impl PlayerInput {
             return false;
         }
 
-        if !Input::REPEATABLE.contains(&input) {
-            return self.was_just_pressed(input);
+        if self.was_just_pressed(input) {
+            return true;
         }
 
         let duration = self.navigation_held_duration;
