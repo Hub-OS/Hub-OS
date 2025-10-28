@@ -262,9 +262,15 @@ impl Dock {
             .iter()
             .flat_map(|id| globals.card_packages.package(PackageNamespace::Local, id))
             .filter(|package| {
-                package.card_properties.card_class == card_class
-                    && (card_class == CardClass::Recipe || package.limit > 0)
-                    && !package.hidden
+                if package.hidden {
+                    return false;
+                }
+
+                if card_class == CardClass::Recipe {
+                    return !package.recipes.is_empty();
+                }
+
+                package.card_properties.card_class == card_class && package.limit > 0
             })
             .map(|package| Card {
                 package_id: package.package_info.id.clone(),
