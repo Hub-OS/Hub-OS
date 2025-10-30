@@ -1807,16 +1807,16 @@ frame x="174" y="139" w="6" h="11"
 animation state="THICK_U+E004"
 frame x="174" y="152" w="6" h="11"
 
-animation state="THICK_U+E005"
+animation state="THICK_U+E008"
 frame x="1" y="158" w="6" h="12"
 
-animation state="THICK_U+E006"
+animation state="THICK_U+E009"
 frame x="9" y="158" w="6" h="12"
 
-animation state="THICK_U+E007"
+animation state="THICK_U+E00a"
 frame x="17" y="158" w="6" h="12"
 
-animation state="THICK_U+E008"
+animation state="THICK_U+E00b"
 frame x="25" y="158" w="6" h="12"
 
 animation state="THICK_U+03B1"
@@ -2464,16 +2464,16 @@ frame x="174" y="139" w="6" h="11"
 animation state="THIN_U+E004"
 frame x="174" y="152" w="6" h="11"
 
-animation state="THIN_U+E005"
+animation state="THIN_U+E008"
 frame x="1" y="158" w="6" h="12"
 
-animation state="THIN_U+E006"
+animation state="THIN_U+E009"
 frame x="9" y="158" w="6" h="12"
 
-animation state="THIN_U+E007"
+animation state="THIN_U+E00a"
 frame x="17" y="158" w="6" h="12"
 
-animation state="THIN_U+E008"
+animation state="THIN_U+E00b"
 frame x="25" y="158" w="6" h="12"
 
 animation state="THIN_U+03B1"
