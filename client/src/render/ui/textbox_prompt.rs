@@ -1,5 +1,6 @@
 use super::*;
 use crate::render::*;
+use crate::resources::TEXTBOX_TEXT_COLOR;
 use framework::prelude::*;
 
 pub struct TextboxPrompt {
@@ -69,7 +70,7 @@ impl TextboxInterface for TextboxPrompt {
             let mut text_input = TextInput::new(game_io, text_style.font.clone())
                 .with_str(&self.initial_text)
                 .with_paged(text_style.bounds.size())
-                .with_color(Color::BLACK)
+                .with_color(TEXTBOX_TEXT_COLOR)
                 .with_silent(true)
                 .with_active(true)
                 .on_change(move |value| sender.send(value.to_string()).unwrap());
