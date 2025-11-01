@@ -331,7 +331,7 @@ impl Living {
             }
 
             // handle drag
-            if hit_props.drags() {
+            if hit_props.drags() && !living.status_director.is_dragged() {
                 living.status_director.set_drag(hit_props.drag);
 
                 // cancel movement
