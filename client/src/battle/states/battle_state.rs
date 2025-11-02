@@ -938,7 +938,7 @@ impl BattleState {
             };
 
             if card.package_id == package_id {
-                card.damage = damage;
+                card.damage = damage + card.boosted_damage;
             }
         }
     }

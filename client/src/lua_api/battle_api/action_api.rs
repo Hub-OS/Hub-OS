@@ -88,7 +88,7 @@ pub fn inject_action_api(lua_api: &mut BattleLuaApi) {
                 api_ctx.resources,
                 api_ctx.simulation,
                 entity_id,
-            );
+            ) + card_properties.boosted_damage;
 
             lua.pack_multi(damage)
         },

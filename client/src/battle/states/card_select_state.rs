@@ -1124,7 +1124,8 @@ impl CardSelectState {
             for card in &mut cards {
                 card.damage =
                     CardDamageResolver::new(game_io, resources, namespace, &card.package_id)
-                        .resolve(game_io, resources, simulation, id.into());
+                        .resolve(game_io, resources, simulation, id.into())
+                        + card.boosted_damage;
             }
 
             let entities = &mut simulation.entities;
