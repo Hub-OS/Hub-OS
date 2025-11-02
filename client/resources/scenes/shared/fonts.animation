@@ -79,9 +79,6 @@ frame x="11" y="55" w="8" h="16"
 animation state="BATTLE_U+005F"
 frame x="21" y="55" w="8" h="16"
 
-animation state="BATTLE_U+0020"
-frame x="21" y="55" w="8" h="16"
-
 animation state="BATTLE_U+003C"
 frame x="31" y="55" w="8" h="16"
 
