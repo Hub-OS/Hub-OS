@@ -71,7 +71,7 @@ impl FullCard {
         // description_style
         let mut description_style = TextStyle::new(game_io, FontName::Thin);
         description_style.line_spacing = 4.0;
-        description_style.color = Color::BLACK;
+        description_style.color = TEXTBOX_TEXT_COLOR;
         description_style.shadow_color = TEXT_TRANSPARENT_SHADOW_COLOR;
 
         let description_start = card_animator.point_or_zero("DESCRIPTION_START");

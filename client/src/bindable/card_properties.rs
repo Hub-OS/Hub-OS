@@ -4,6 +4,7 @@ use crate::bindable::SpriteColorMode;
 use crate::packages::{CardPackage, CardPackageStatusDuration, PackageId, PackageNamespace};
 use crate::render::ui::{ElementSprite, FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue, SpriteNode};
+use crate::resources::BATTLE_INFO_SHADOW_COLOR;
 use crate::structures::{Tree, VecMap};
 use framework::prelude::{Color, GameIO, Vec2};
 use std::borrow::Cow;
@@ -114,7 +115,7 @@ impl<L, F> CardProperties<L, F> {
 
         // draw name
         text_style.letter_spacing = NAME_SPACING;
-        text_style.shadow_color = Color::BLACK;
+        text_style.shadow_color = BATTLE_INFO_SHADOW_COLOR;
         text_style.font = FontName::Thick;
         text_style.draw(game_io, sprite_queue, name_text);
 

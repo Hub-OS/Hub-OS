@@ -8,8 +8,8 @@ use crate::lua_api::create_entity_table;
 use crate::packages::PackageNamespace;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
-use crate::resources::RESOLUTION_F;
-use framework::prelude::{Color, GameIO, Vec2};
+use crate::resources::{BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F};
+use framework::prelude::{GameIO, Vec2};
 use packets::structures::PackageId;
 
 #[derive(Clone)]
@@ -377,7 +377,7 @@ impl Character {
         if card_multiplier != 1.0 {
             let multiplier_string = format!("\u{00D7}{card_multiplier}");
 
-            text_style.shadow_color = Color::BLACK;
+            text_style.shadow_color = BATTLE_INFO_SHADOW_COLOR;
             text_style.font = FontName::Thick;
             text_style.draw(game_io, sprite_queue, &multiplier_string);
         }

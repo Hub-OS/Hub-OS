@@ -6,7 +6,9 @@ use crate::bindable::{CardProperties, EntityId, Team, TimeFreezeChainLimit};
 use crate::ease::inverse_lerp;
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::{FrameTime, SpriteColorQueue};
-use crate::resources::{AssetManager, Globals, ResourcePaths, RESOLUTION_F};
+use crate::resources::{
+    AssetManager, Globals, ResourcePaths, BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F,
+};
 use crate::structures::GenerationalIndex;
 use framework::prelude::{Color, GameIO, Vec2};
 use packets::structures::Input;
@@ -661,7 +663,7 @@ impl TimeFreezeTracker {
 
             // draw bar shadow
             sprite.set_position(position + 1.0);
-            sprite.set_color(Color::BLACK);
+            sprite.set_color(BATTLE_INFO_SHADOW_COLOR);
             sprite_queue.draw_sprite(&sprite);
 
             // draw bar

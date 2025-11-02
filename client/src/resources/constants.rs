@@ -44,6 +44,7 @@ pub const OVERWORLD_RUN_THRESHOLD: f32 = 1.5;
 
 // text colors
 pub const TEXTBOX_TEXT_COLOR: Color = Color::new(0.2, 0.2, 0.3, 1.0);
+pub const BATTLE_INFO_SHADOW_COLOR: Color = Color::new(0.1, 0.1, 0.2, 1.0);
 pub const TEXT_TRANSPARENT_SHADOW_COLOR: Color = Color::new(0.4, 0.4, 0.4, 0.3);
 pub const TEXT_DARK_SHADOW_COLOR: Color = Color::new(0.32, 0.388, 0.45, 1.0);
 pub const CONTEXT_TEXT_SHADOW_COLOR: Color = Color::new(0.06, 0.31, 0.41, 1.0);

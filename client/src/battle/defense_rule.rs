@@ -7,8 +7,8 @@ use crate::lua_api::{
 };
 use crate::render::ui::{FontName, TextStyle};
 use crate::render::SpriteColorQueue;
-use crate::resources::{Globals, RESOLUTION_F};
-use framework::prelude::{Color, GameIO};
+use crate::resources::{Globals, BATTLE_INFO_SHADOW_COLOR, RESOLUTION_F};
+use framework::prelude::GameIO;
 use rollback_mlua::prelude::{LuaFunction, LuaRegistryKey, LuaResult, LuaTable};
 use std::cell::RefCell;
 use std::sync::Arc;
@@ -207,7 +207,7 @@ impl DefenseRule {
     ) {
         // draw ???? to indicate a trap exists for each side with a trap
         let mut text_style = TextStyle::new(game_io, FontName::Thick);
-        text_style.shadow_color = Color::BLACK;
+        text_style.shadow_color = BATTLE_INFO_SHADOW_COLOR;
 
         let health_bounds = simulation.local_health_ui.bounds();
         text_style.bounds.y = health_bounds.bottom() + 3.0;
