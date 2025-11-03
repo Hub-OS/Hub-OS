@@ -137,7 +137,7 @@ impl<L, F> CardProperties<L, F> {
         const ELEMENT_OFFSET: Vec2 = Vec2::new(-23.0, 49.0);
         const ELEMENT2_OFFSET: Vec2 = Vec2::new(-8.0, 49.0);
         const CODE_OFFSET: Vec2 = Vec2::new(-31.0, 51.0);
-        const DAMAGE_OFFSET: Vec2 = Vec2::new(31.0, 52.0);
+        const DAMAGE_OFFSET: Vec2 = Vec2::new(31.0, 51.0);
 
         // preview
         let (preview_texture, _) = CardPackage::preview_texture(game_io, &self.package_id);
