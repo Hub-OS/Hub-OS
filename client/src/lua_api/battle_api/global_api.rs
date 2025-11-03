@@ -86,6 +86,10 @@ pub(super) fn inject_global_api(lua: &rollback_mlua::Lua) -> rollback_mlua::Resu
         lua.create_function(|_, (a, b): (Direction, Direction)| Ok(a.join(b)))?,
     )?;
     direction_table.set(
+        "split",
+        lua.create_function(|_, direction: Direction| Ok(direction.split()))?,
+    )?;
+    direction_table.set(
         "vector",
         lua.create_function(|_, direction: Direction| {
             let tuple = direction.chebyshev_vector();
