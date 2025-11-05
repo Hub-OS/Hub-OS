@@ -261,7 +261,7 @@ impl Dock {
         let assets = &globals.assets;
 
         // cards
-        let cards: Vec<_> = available_packages
+        let mut cards: Vec<_> = available_packages
             .iter()
             .flat_map(|id| globals.card_packages.package(PackageNamespace::Local, id))
             .filter(|package| {
@@ -280,6 +280,25 @@ impl Dock {
                 code: String::new(),
             })
             .collect();
+
+        if card_class == CardClass::Recipe {
+            // push non recipe class cards to the bottom
+            cards.sort_by_cached_key(|card| {
+                globals
+                    .card_packages
+                    .package(PackageNamespace::Local, &card.package_id)
+                    .map(|package| {
+                        let card_class = package.card_properties.card_class;
+
+                        if card_class == CardClass::Recipe {
+                            0
+                        } else {
+                            card_class as u8 + 1
+                        }
+                    })
+                    .unwrap_or(u8::MAX)
+            });
+        }
 
         // dock
         let mut dock_sprite = assets.new_sprite(game_io, ResourcePaths::LIBRARY_UI);
