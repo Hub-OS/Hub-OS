@@ -27,6 +27,7 @@ pub struct FullCard {
     description_style: TextStyle,
     art_time: FrameTime,
     flipped: bool,
+    display_recipes: bool,
     recipe_index: usize,
 }
 
@@ -110,8 +111,13 @@ impl FullCard {
             description_style,
             art_time: 0,
             flipped: false,
+            display_recipes: false,
             recipe_index: 0,
         }
+    }
+
+    pub fn set_display_recipes(&mut self, enabled: bool) {
+        self.display_recipes = enabled;
     }
 
     pub fn position(&self) -> Vec2 {
@@ -262,7 +268,7 @@ impl FullCard {
             if let Some(card) = card {
                 let scale = (0.5 - art_progress).abs() * 2.0;
 
-                if package.is_some_and(|p| p.card_properties.card_class == CardClass::Recipe) {
+                if self.display_recipes && package.is_some_and(|p| !p.recipes.is_empty()) {
                     card.draw_recipe_preview(
                         game_io,
                         sprite_queue,

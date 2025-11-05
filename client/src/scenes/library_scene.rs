@@ -163,13 +163,15 @@ impl LibraryScene {
 
     fn update_preview(&mut self) {
         let page = self.page_tracker.active_page();
-
         let active_dock = &mut self.docks[page];
 
         let selected_index = active_dock.scroll_tracker.selected_index();
-        let card = active_dock.cards.get(selected_index).cloned();
 
+        let card = active_dock.cards.get(selected_index).cloned();
         self.card_preview.set_card(card);
+
+        let display_recipes = active_dock.card_class == CardClass::Recipe;
+        self.card_preview.set_display_recipes(display_recipes);
     }
 }
 
@@ -238,6 +240,7 @@ impl Scene for LibraryScene {
 }
 
 struct Dock {
+    card_class: CardClass,
     cards: Vec<Card>,
     scroll_tracker: ScrollTracker,
     dock_sprite: Sprite,
@@ -318,6 +321,7 @@ impl Dock {
         scroll_tracker.define_cursor(cursor_start, 16.0);
 
         Self {
+            card_class,
             cards,
             scroll_tracker,
             dock_sprite,
