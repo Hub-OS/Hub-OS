@@ -1101,7 +1101,7 @@ impl BattleSimulation {
                 sprite_queue.set_color_mode(SpriteColorMode::Multiply);
 
                 let mut base_position = entity.screen_position(&self.field, perspective_flipped);
-                base_position.y -= entity.height + 16.0;
+                base_position.y -= entity.height + 16.0 + entity.elevation;
 
                 let mut border_sprite = assets.new_sprite(game_io, ResourcePaths::WHITE_PIXEL);
                 border_sprite.set_color(Color::BLACK);
