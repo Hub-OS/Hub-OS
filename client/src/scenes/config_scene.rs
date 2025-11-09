@@ -32,6 +32,8 @@ enum Event {
     ViewUpdates(Vec<(PackageCategory, PackageId, FileHash)>),
     OpenModsFolder,
     ReorderResources,
+    SaveLastBattleQuestion,
+    SaveLastBattle,
     ViewCredits,
     OpenLink(String),
     Leave { save: bool },
@@ -243,6 +245,10 @@ impl ConfigScene {
             create_button("config-manage-mods-label", Event::ViewPackages),
             create_button("config-update-mods-label", Event::UpdatePackages),
             create_button("config-resource-mods-label", Event::ReorderResources),
+            create_button(
+                "config-save-last-battle-label",
+                Event::SaveLastBattleQuestion,
+            ),
             #[cfg(not(target_os = "android"))]
             create_button("config-open-mods-folder-label", Event::OpenModsFolder),
         ]
@@ -872,6 +878,8 @@ impl ConfigScene {
         }
 
         while let Ok(event) = self.event_receiver.try_recv() {
+            let globals = game_io.resource::<Globals>().unwrap();
+
             match event {
                 Event::CategoryChange(category) => {
                     let children =
@@ -1018,6 +1026,49 @@ impl ConfigScene {
                     let scene = PackageUpdatesScene::new(game_io, requires_update);
                     self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
+                Event::ReorderResources => {
+                    let transition = crate::transitions::new_sub_scene(game_io);
+                    let scene = ResourceOrderScene::new(game_io);
+                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
+                }
+                Event::SaveLastBattleQuestion => {
+                    if globals.battle_recording.is_none() {
+                        let interface = TextboxMessage::new(
+                            globals.translate("config-save-last-battle-missing"),
+                        );
+                        self.textbox.push_interface(interface);
+                    } else {
+                        let event_sender = self.event_sender.clone();
+                        let interface = TextboxQuestion::new(
+                            game_io,
+                            globals.translate("config-save-last-battle-question"),
+                            move |save| {
+                                if save {
+                                    let _ = event_sender.send(Event::SaveLastBattle);
+                                }
+                            },
+                        );
+                        self.textbox.push_interface(interface);
+                    }
+
+                    self.textbox.open();
+                }
+                Event::SaveLastBattle => {
+                    let globals = game_io.resource_mut::<Globals>().unwrap();
+
+                    if let Some((props, recording)) = globals.battle_recording.take() {
+                        // notify the player
+                        let interface =
+                            TextboxMessage::new(globals.translate("config-save-last-battle-save"));
+                        self.textbox.push_interface(interface);
+                        self.textbox.open();
+
+                        // save
+                        recording.save(game_io, &props);
+                    } else {
+                        log::error!("No recording? How did we get here.");
+                    }
+                }
                 Event::OpenModsFolder => {
                     #[cfg(not(target_os = "android"))]
                     if let Err(err) =
@@ -1025,11 +1076,6 @@ impl ConfigScene {
                     {
                         log::error!("{err:?}")
                     }
-                }
-                Event::ReorderResources => {
-                    let transition = crate::transitions::new_sub_scene(game_io);
-                    let scene = ResourceOrderScene::new(game_io);
-                    self.next_scene = NextScene::new_push(scene).with_transition(transition);
                 }
                 Event::ViewCredits => {
                     let transition = crate::transitions::new_sub_scene(game_io);

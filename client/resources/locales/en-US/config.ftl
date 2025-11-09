@@ -12,6 +12,15 @@ config-manage-mods-label = Manage Mods
 config-update-mods-label = Update Mods
 config-resource-mods-label = Resource Mods
 config-open-mods-folder-label = Open Mods Folder
+config-save-last-battle-label = Save Last Battle
+config-save-last-battle-question =
+  This will save your last battle as a mod.
+  Save last battle?
+config-save-last-battle-missing = You need to battle first.
+config-save-last-battle-save =
+  Started a background process to save the recording.
+  It will appear with a red outline in Battle Sim shortly.
+config-no-last-battle = Save last battle?
 
 config-change-nickname-label = Change Nickname
 config-sync-data-label = Sync Data
