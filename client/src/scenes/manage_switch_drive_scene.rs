@@ -328,10 +328,12 @@ impl ManageSwitchDriveScene {
         let globals = game_io.resource_mut::<Globals>().unwrap();
         let global_save = &mut globals.global_save;
 
-        let package = globals
+        let Some(package) = globals
             .augment_packages
             .package(PackageNamespace::Local, &package_id)
-            .unwrap();
+        else {
+            return false;
+        };
 
         let slot = package.slot.unwrap();
 
@@ -346,9 +348,16 @@ impl ManageSwitchDriveScene {
                 if let Some(index) = list.iter().position(|drive| drive.slot == slot) {
                     let drive = list.remove(index);
 
+                    let package_exists = globals
+                        .augment_packages
+                        .package(PackageNamespace::Local, &drive.package_id)
+                        .is_some();
+
                     // move drive into package_ids list
-                    if let Err(index) = self.package_ids.binary_search(&drive.package_id) {
-                        self.package_ids.insert(index, drive.package_id);
+                    if package_exists {
+                        if let Err(index) = self.package_ids.binary_search(&drive.package_id) {
+                            self.package_ids.insert(index, drive.package_id);
+                        }
                     }
                 }
 
