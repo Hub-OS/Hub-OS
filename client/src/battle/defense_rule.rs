@@ -1,4 +1,4 @@
-use super::{AttackBox, BattleScriptContext};
+use super::BattleScriptContext;
 use super::{BattleSimulation, Entity, Living, SharedBattleResources};
 use crate::battle::EmotionWindow;
 use crate::bindable::{DefensePriority, EntityId, HitFlag, HitProperties, Team};
@@ -260,12 +260,14 @@ impl Defense {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn defend(
         game_io: &GameIO,
         resources: &SharedBattleResources,
         simulation: &mut BattleSimulation,
         defender_id: EntityId,
-        attack_box: &AttackBox,
+        attacker_id: Option<EntityId>,
+        hit_props: &HitProperties,
         defense_rules: &[DefenseRule],
         collision_only: bool,
     ) {
@@ -295,14 +297,19 @@ impl Defense {
 
                 let defense_table: LuaTable = lua.globals().get(DEFENSE_TABLE)?;
 
-                let attacker_table = create_entity_table(lua, attack_box.attacker_id)?;
+                let attacker_table = if let Some(attacker_id) = attacker_id {
+                    Some(create_entity_table(lua, attacker_id)?)
+                } else {
+                    None
+                };
+
                 let defender_table = create_entity_table(lua, defender_id)?;
 
                 callback.call::<_, ()>((
                     defense_table,
                     attacker_table,
                     defender_table,
-                    &attack_box.props,
+                    hit_props,
                 ))?;
 
                 Ok(())

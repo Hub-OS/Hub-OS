@@ -17,7 +17,8 @@ pub struct Living {
     pub status_director: StatusDirector,
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub aux_props: SlotMap<AuxProp>,
-    pub pending_hits: Vec<HitProperties>,
+    pub pending_defense: Vec<(Option<(EntityId, (i32, i32))>, HitProperties)>,
+    pub pending_unblocked_hits: Vec<HitProperties>,
 }
 
 impl Default for Living {
@@ -33,7 +34,8 @@ impl Default for Living {
             status_director: StatusDirector::default(),
             status_callbacks: HashMap::new(),
             aux_props: Default::default(),
-            pending_hits: Vec::new(),
+            pending_defense: Vec::new(),
+            pending_unblocked_hits: Vec::new(),
         }
     }
 }
@@ -54,10 +56,20 @@ impl Living {
         callbacks.push(callback);
     }
 
-    pub fn queue_hit(&mut self, mut hit_props: HitProperties) {
+    pub fn queue_hit(
+        &mut self,
+        attacker: Option<(EntityId, (i32, i32))>,
+        mut hit_props: HitProperties,
+    ) {
         // negative values are prevented as they may cause accidental healing
         hit_props.damage = hit_props.damage.max(0);
-        self.pending_hits.push(hit_props);
+        self.pending_defense.push((attacker, hit_props));
+    }
+
+    pub fn queue_unblocked_hit(&mut self, mut hit_props: HitProperties) {
+        // negative values are prevented as they may cause accidental healing
+        hit_props.damage = hit_props.damage.max(0);
+        self.pending_unblocked_hits.push(hit_props);
     }
 
     pub fn add_aux_prop(&mut self, aux_prop: AuxProp) -> GenerationalIndex {
@@ -143,7 +155,7 @@ impl Living {
             return;
         };
 
-        let mut hit_prop_list = std::mem::take(&mut living.pending_hits);
+        let mut hit_prop_list = std::mem::take(&mut living.pending_unblocked_hits);
 
         // aux props
         let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();

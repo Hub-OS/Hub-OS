@@ -533,17 +533,13 @@ impl BattleState {
         }
 
         // remove ignored attacks
-        for i in (0..queued_attacks.len()).rev() {
-            let attack_box = &queued_attacks[i];
-
+        queued_attacks.retain(|attack_box| {
             let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) else {
-                continue;
+                return true;
             };
 
-            if tile.ignoring_attacker(attack_box.attacker_id) {
-                queued_attacks.swap_remove(i);
-            }
-        }
+            !tile.ignoring_attacker(attack_box.attacker_id)
+        });
 
         // interactions between attack boxes and entities
         let mut needs_processing = Vec::new();
@@ -596,50 +592,67 @@ impl BattleState {
         }
 
         for (id, intangible, defense_rules, attack_boxes) in needs_processing {
+            let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) else {
+                continue;
+            };
+
             for attack_box in attack_boxes {
                 let attacker_id = attack_box.attacker_id;
+                let tile_pos = (attack_box.x, attack_box.y);
+                living.queue_hit(Some((attacker_id, tile_pos)), attack_box.props);
+            }
 
+            for (attacker, hit_props) in std::mem::take(&mut living.pending_defense) {
                 // defense check against DefenseOrder::Always
                 simulation.defense = Defense::new();
+
+                let attacker_id = attacker.map(|(attacker_id, _)| attacker_id);
 
                 Defense::defend(
                     game_io,
                     resources,
                     simulation,
                     id.into(),
-                    &attack_box,
+                    attacker_id,
+                    &hit_props,
                     &defense_rules,
                     false,
                 );
 
-                if simulation.defense.damage_blocked {
-                    // blocked by a defense rule such as barrier, mark as ignored as if we collided
-                    if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
-                        tile.ignore_attacker(attacker_id);
+                if let Some((attacker_id, tile_pos)) = attacker {
+                    if simulation.defense.damage_blocked {
+                        // blocked by a defense rule such as barrier, mark as ignored as if we collided
+                        if let Some(tile) = simulation.field.tile_at_mut(tile_pos) {
+                            tile.ignore_attacker(attacker_id);
+                        }
                     }
                 }
 
                 // test tangibility
                 if intangible {
                     if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                        if !living.intangibility.try_pierce(&attack_box.props) {
+                        if !living.intangibility.try_pierce(&hit_props) {
                             continue;
                         }
                     }
                 }
 
-                // mark as ignored as we did collide
-                if let Some(tile) = simulation.field.tile_at_mut((attack_box.x, attack_box.y)) {
-                    tile.ignore_attacker(attacker_id);
+                if let Some((attacker_id, tile_pos)) = attacker {
+                    // mark as ignored as we did collide
+                    if let Some(tile) = simulation.field.tile_at_mut(tile_pos) {
+                        tile.ignore_attacker(attacker_id);
+                    }
                 }
 
                 // collision callback
-                let entities = &mut simulation.entities;
-                if let Ok(callback) =
-                    entities.query_one_mut::<&CollisionCallback>(attacker_id.into())
-                {
-                    let callback = callback.0.clone();
-                    callback.call(game_io, resources, simulation, id.into());
+                if let Some(attacker_id) = attacker_id {
+                    let entities = &mut simulation.entities;
+                    if let Ok(callback) =
+                        entities.query_one_mut::<&CollisionCallback>(attacker_id.into())
+                    {
+                        let callback = callback.0.clone();
+                        callback.call(game_io, resources, simulation, id.into());
+                    }
                 }
 
                 // defense check against DefenseOrder::CollisionOnly
@@ -648,7 +661,8 @@ impl BattleState {
                     resources,
                     simulation,
                     id.into(),
-                    &attack_box,
+                    attacker_id,
+                    &hit_props,
                     &defense_rules,
                     true,
                 );
@@ -658,15 +672,19 @@ impl BattleState {
                 }
 
                 if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                    living.queue_hit(attack_box.props);
+                    living.queue_unblocked_hit(hit_props);
                 }
 
                 // spell attack callback
-                let entities = &mut simulation.entities;
-                if let Ok(callback) = entities.query_one_mut::<&AttackCallback>(attacker_id.into())
-                {
-                    let callback = callback.0.clone();
-                    callback.call(game_io, resources, simulation, id.into());
+                if let Some(attacker_id) = attacker_id {
+                    let entities = &mut simulation.entities;
+
+                    if let Ok(callback) =
+                        entities.query_one_mut::<&AttackCallback>(attacker_id.into())
+                    {
+                        let callback = callback.0.clone();
+                        callback.call(game_io, resources, simulation, id.into());
+                    }
                 }
             }
         }
