@@ -592,17 +592,100 @@ impl BattleState {
         }
 
         for (id, intangible, defense_rules, attack_boxes) in needs_processing {
-            let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) else {
+            // gather properties for aux props
+            let entities = &mut simulation.entities;
+            let Ok((entity, living, player, character, emotion_window, action_queue)) = entities
+                .query_one_mut::<(
+                    &Entity,
+                    &mut Living,
+                    Option<&Player>,
+                    Option<&Character>,
+                    Option<&EmotionWindow>,
+                    Option<&ActionQueue>,
+                )>(id)
+            else {
                 continue;
             };
 
+            // queue attack box hits
             for attack_box in attack_boxes {
                 let attacker_id = attack_box.attacker_id;
                 let tile_pos = (attack_box.x, attack_box.y);
                 living.queue_hit(Some((attacker_id, tile_pos)), attack_box.props);
             }
 
-            for (attacker, hit_props) in std::mem::take(&mut living.pending_defense) {
+            // fill requirements on pre hit aux props
+            let aux_props = living.aux_props.values_mut();
+            for aux_prop in aux_props.filter(|a| a.effect().executes_pre_hit()) {
+                let time_frozen = simulation.time_freeze_tracker.time_is_frozen();
+                aux_prop.process_time(time_frozen, simulation.battle_time);
+                aux_prop.process_body(emotion_window, player, character, entity, action_queue);
+
+                for (_, hit_props) in &living.pending_defense {
+                    aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
+                }
+            }
+
+            // process defense
+            let total_pre_hit_damage = living
+                .pending_defense
+                .iter()
+                .map(|(_, hit_props)| hit_props.damage)
+                .sum();
+
+            for (attacker, mut hit_props) in std::mem::take(&mut living.pending_defense) {
+                let original_damage = hit_props.damage;
+
+                // apply pre hit aux props
+                let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) else {
+                    break;
+                };
+
+                for aux_prop in Living::pre_hit_aux_props(&mut living.aux_props) {
+                    aux_prop.process_health_calculations(
+                        living.health,
+                        living.max_health,
+                        total_pre_hit_damage,
+                    );
+                    aux_prop.mark_tested();
+
+                    if !aux_prop.passed_all_tests() {
+                        continue;
+                    }
+
+                    aux_prop.mark_activated();
+
+                    match aux_prop.effect() {
+                        AuxEffect::IncreasePreHitDamage(expr) => {
+                            let result = expr.eval(AuxVariable::create_resolver(
+                                living.health,
+                                living.max_health,
+                                original_damage,
+                            )) as i32;
+
+                            // directly update hit_props.damage for defense rules to see incoming damage
+                            hit_props.damage += result.max(0);
+                        }
+                        AuxEffect::DecreasePreHitDamage(expr) => {
+                            let result = expr.eval(AuxVariable::create_resolver(
+                                living.health,
+                                living.max_health,
+                                original_damage,
+                            )) as i32;
+
+                            // directly update hit_props.damage for defense rules to see incoming damage
+                            hit_props.damage -= result.max(0);
+                            // prevent accidental healing from stacking damage decreases
+                            hit_props.damage = hit_props.damage.max(0);
+                        }
+                        _ => log::error!("Engine error: Unexpected AuxEffect!"),
+                    }
+
+                    simulation
+                        .pending_callbacks
+                        .extend(aux_prop.callbacks().iter().cloned());
+                }
+
                 // defense check against DefenseOrder::Always
                 simulation.defense = Defense::new();
 
@@ -672,7 +755,10 @@ impl BattleState {
                 }
 
                 if let Ok(living) = simulation.entities.query_one_mut::<&mut Living>(id) {
-                    living.queue_unblocked_hit(hit_props);
+                    // revert hit_props.damage to the original damage for more processing
+                    let modified_damage = hit_props.damage;
+                    hit_props.damage = original_damage;
+                    living.queue_unblocked_hit(hit_props, modified_damage);
                 }
 
                 // spell attack callback

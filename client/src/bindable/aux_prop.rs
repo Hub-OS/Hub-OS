@@ -160,10 +160,6 @@ impl AuxRequirement {
         }
     }
 
-    fn is_hit_requirement(&self) -> bool {
-        self.priority() == Self::HIT_PRIORITY
-    }
-
     fn from_lua<'lua>(
         resources: &SharedBattleResources,
         lua: &'lua rollback_mlua::Lua,
@@ -245,6 +241,8 @@ pub enum AuxEffect {
     IncreaseCardMultiplier(f32),
     InterceptAction(BattleCallback<GenerationalIndex, Option<GenerationalIndex>>),
     InterruptAction(BattleCallback<GenerationalIndex>),
+    IncreasePreHitDamage(MathExpr<f32, AuxVariable>),
+    DecreasePreHitDamage(MathExpr<f32, AuxVariable>),
     StatusImmunity(HitFlags),
     ApplyStatus(HitFlags, FrameTime),
     RemoveStatus(HitFlags),
@@ -258,10 +256,11 @@ pub enum AuxEffect {
 }
 
 impl AuxEffect {
-    const PRE_HIT_START: usize = 5; // StatusImmunity
-    const ON_HIT_START: usize = 8; // IncreaseHitDamage
-    const POST_HIT_START: usize = 10; // DecreaseDamageSum
-    const POST_HIT_END: usize = 13; // None
+    const PRE_HIT_START: usize = 5; // IncreasePreHitDamage
+    const HIT_PREP_START: usize = 6; // StatusImmunity
+    const ON_HIT_START: usize = 10; // IncreaseHitDamage
+    const POST_HIT_START: usize = 12; // DecreaseDamageSum
+    const POST_HIT_END: usize = 15; // None
 
     const fn priority(&self) -> usize {
         match self {
@@ -270,15 +269,17 @@ impl AuxEffect {
             AuxEffect::IncreaseCardMultiplier(_) => 2,
             AuxEffect::InterceptAction(_) => 3,
             AuxEffect::InterruptAction(_) => 4,
-            AuxEffect::StatusImmunity(_) => 5,
-            AuxEffect::ApplyStatus(_, _) => 6,
-            AuxEffect::RemoveStatus(_) => 7,
-            AuxEffect::IncreaseHitDamage(_) => 8,
-            AuxEffect::DecreaseHitDamage(_) => 9,
-            AuxEffect::DecreaseDamageSum(_) => 10,
-            AuxEffect::DrainHP(_) => 11,
-            AuxEffect::RecoverHP(_) => 12,
-            AuxEffect::None => 13,
+            AuxEffect::IncreasePreHitDamage(_) => 5,
+            AuxEffect::DecreasePreHitDamage(_) => 5,
+            AuxEffect::StatusImmunity(_) => 7,
+            AuxEffect::ApplyStatus(_, _) => 8,
+            AuxEffect::RemoveStatus(_) => 9,
+            AuxEffect::IncreaseHitDamage(_) => 10,
+            AuxEffect::DecreaseHitDamage(_) => 11,
+            AuxEffect::DecreaseDamageSum(_) => 12,
+            AuxEffect::DrainHP(_) => 13,
+            AuxEffect::RecoverHP(_) => 14,
+            AuxEffect::None => 15,
         }
     }
 
@@ -301,19 +302,25 @@ impl AuxEffect {
         matches!(self, AuxEffect::InterruptAction(_))
     }
 
-    pub fn execute_before_hit(&self) -> bool {
-        const PRE_HIT_RANGE: Range<usize> = AuxEffect::PRE_HIT_START..AuxEffect::ON_HIT_START;
+    pub fn executes_pre_hit(&self) -> bool {
+        const PRE_HIT_RANGE: Range<usize> = AuxEffect::PRE_HIT_START..AuxEffect::HIT_PREP_START;
 
         PRE_HIT_RANGE.contains(&self.priority())
     }
 
-    pub fn execute_on_hit(&self) -> bool {
+    pub fn executes_hit_prep(&self) -> bool {
+        const HIT_PREP_RANGE: Range<usize> = AuxEffect::HIT_PREP_START..AuxEffect::ON_HIT_START;
+
+        HIT_PREP_RANGE.contains(&self.priority())
+    }
+
+    pub fn executes_on_hit(&self) -> bool {
         const ON_HIT_RANGE: Range<usize> = AuxEffect::ON_HIT_START..AuxEffect::POST_HIT_START;
 
         ON_HIT_RANGE.contains(&self.priority())
     }
 
-    pub fn execute_after_hit(&self) -> bool {
+    pub fn executes_after_hit(&self) -> bool {
         const POST_HIT_RANGE: RangeInclusive<usize> =
             AuxEffect::POST_HIT_START..=AuxEffect::POST_HIT_END;
 
@@ -375,6 +382,14 @@ impl AuxEffect {
                     |_, lua, index| lua.pack_multi(create_action_table(lua, index)?),
                 )?;
                 AuxEffect::InterruptAction(callback)
+            }
+            "increase_pre_hit_damage" => {
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxEffect::IncreasePreHitDamage(expr)
+            }
+            "decrease_pre_hit_damage" => {
+                let expr = resources.parse_math_expr(table.get(2)?)?;
+                AuxEffect::DecreasePreHitDamage(expr)
             }
             "drain_health" => AuxEffect::DrainHP(table.get(2)?),
             "recover_health" => AuxEffect::RecoverHP(table.get(2)?),

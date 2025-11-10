@@ -174,6 +174,36 @@ pub fn inject_tile_api(lua_api: &mut BattleLuaApi) {
         lua.pack_multi(!tile_state.is_hole)
     });
 
+    lua_api.add_dynamic_function(TILE_TABLE, "is_shareable", |api_ctx, lua, params| {
+        let (table, exclude_list): (rollback_mlua::Table, Option<Vec<EntityId>>) =
+            lua.unpack_multi(params)?;
+
+        let exclude_list = exclude_list.unwrap_or_default();
+
+        let mut api_ctx = api_ctx.borrow_mut();
+        let simulation = &mut *api_ctx.simulation;
+        let tile = tile_mut_from_table(&mut simulation.field, table)?;
+
+        for entity_id in tile.reservations().iter().cloned() {
+            if exclude_list.contains(&entity_id) {
+                continue;
+            }
+
+            let entities = &mut simulation.entities;
+            let Ok(other_entity) = entities.query_one_mut::<&Entity>(entity_id.into()) else {
+                // non entity or erased is reserving?
+                continue;
+            };
+
+            if !other_entity.share_tile {
+                // another entity is reserving this tile and refusing to share
+                return lua.pack_multi(false);
+            }
+        }
+
+        lua.pack_multi(true)
+    });
+
     lua_api.add_dynamic_function(TILE_TABLE, "is_reserved", |api_ctx, lua, params| {
         let (table, exclude_list): (rollback_mlua::Table, Option<Vec<EntityId>>) =
             lua.unpack_multi(params)?;

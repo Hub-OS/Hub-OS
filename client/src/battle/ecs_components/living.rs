@@ -18,7 +18,8 @@ pub struct Living {
     pub status_callbacks: HashMap<HitFlags, Vec<BattleCallback>>,
     pub aux_props: SlotMap<AuxProp>,
     pub pending_defense: Vec<(Option<(EntityId, (i32, i32))>, HitProperties)>,
-    pub pending_unblocked_hits: Vec<HitProperties>,
+    /// (hit_props, modified_damage)
+    pub pending_unblocked_hits: Vec<(HitProperties, i32)>,
 }
 
 impl Default for Living {
@@ -66,20 +67,32 @@ impl Living {
         self.pending_defense.push((attacker, hit_props));
     }
 
-    pub fn queue_unblocked_hit(&mut self, mut hit_props: HitProperties) {
+    pub fn queue_unblocked_hit(&mut self, mut hit_props: HitProperties, modified_damage: i32) {
         // negative values are prevented as they may cause accidental healing
         hit_props.damage = hit_props.damage.max(0);
-        self.pending_unblocked_hits.push(hit_props);
+        self.pending_unblocked_hits
+            .push((hit_props, modified_damage));
     }
 
     pub fn add_aux_prop(&mut self, aux_prop: AuxProp) -> GenerationalIndex {
         self.aux_props.insert(aux_prop)
     }
 
-    fn pre_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+    pub fn pre_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
-            .filter(|aux_prop| aux_prop.effect().execute_before_hit())
+            .filter(|aux_prop| aux_prop.effect().executes_pre_hit())
+            .collect();
+
+        aux_props.sort_by_key(|aux_props| aux_props.priority());
+
+        aux_props
+    }
+
+    fn hit_prep_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
+        let mut aux_props: Vec<_> = aux_props
+            .values_mut()
+            .filter(|aux_prop| aux_prop.effect().executes_hit_prep())
             .collect();
 
         aux_props.sort_by_key(|aux_props| aux_props.priority());
@@ -90,7 +103,7 @@ impl Living {
     fn on_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
-            .filter(|aux_prop| aux_prop.effect().execute_on_hit())
+            .filter(|aux_prop| aux_prop.effect().executes_on_hit())
             .collect();
 
         aux_props.sort_by_key(|aux_props| aux_props.priority());
@@ -101,7 +114,7 @@ impl Living {
     fn post_hit_aux_props(aux_props: &mut SlotMap<AuxProp>) -> Vec<&mut AuxProp> {
         let mut aux_props: Vec<_> = aux_props
             .values_mut()
-            .filter(|aux_prop| aux_prop.effect().execute_after_hit())
+            .filter(|aux_prop| aux_prop.effect().executes_after_hit())
             .collect();
 
         aux_props.sort_by_key(|aux_props| aux_props.priority());
@@ -158,7 +171,10 @@ impl Living {
         let mut hit_prop_list = std::mem::take(&mut living.pending_unblocked_hits);
 
         // aux props
-        let mut total_damage: i32 = hit_prop_list.iter().map(|hit_props| hit_props.damage).sum();
+        let mut total_damage: i32 = hit_prop_list
+            .iter()
+            .map(|(hit_props, _)| hit_props.damage)
+            .sum();
 
         for aux_prop in living.aux_props.values_mut() {
             // using battle_time as auxprops can be frame temporary
@@ -167,15 +183,15 @@ impl Living {
             aux_prop.process_time(time_frozen, simulation.battle_time);
             aux_prop.process_body(emotion_window, player, character, entity, action_queue);
 
-            for hit_props in &mut hit_prop_list {
+            for (hit_props, _) in &hit_prop_list {
                 aux_prop.process_hit(entity, living.health, living.max_health, hit_props);
             }
         }
 
         living.status_director.clear_immunity();
 
-        // apply pre hit aux props
-        for aux_prop in Living::pre_hit_aux_props(&mut living.aux_props) {
+        // apply hit prep aux props
+        for aux_prop in Living::hit_prep_aux_props(&mut living.aux_props) {
             aux_prop.process_health_calculations(living.health, living.max_health, total_damage);
             aux_prop.mark_tested();
 
@@ -207,7 +223,7 @@ impl Living {
         let defense_rules = living.defense_rules.clone();
         let mut play_hurt_sfx = false;
 
-        for hit_props in &mut hit_prop_list {
+        for (hit_props, modified_hit_damage) in &mut hit_prop_list {
             // filter statuses through defense rules
             let original_damage = hit_props.damage;
 
@@ -222,7 +238,7 @@ impl Living {
                 return;
             };
 
-            let mut modified_hit_damage = hit_props.damage;
+            let mut modified_hit_damage = *modified_hit_damage;
 
             // super effective bonus
             if hit_props.is_super_effective(entity.element) {

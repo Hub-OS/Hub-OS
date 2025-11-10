@@ -59,6 +59,8 @@ local eff_list = {
   "increase_card_damage",
   "intercept_action",
   "interrupt_action",
+  "increase_pre_hit_damage",
+  "decrease_pre_hit_damage",
   "declare_immunity",
   "apply_status",
   "remove_status",
