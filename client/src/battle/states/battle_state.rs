@@ -550,38 +550,35 @@ impl BattleState {
 
             all_living_ids.push(entity_id);
 
-            if !entity.on_field
-                || entity.deleted
-                || !living.hitbox_enabled
-                || living.health <= 0
-                || simulation.progress >= BattleProgress::BattleEnded
-            {
-                // entity can't be hit
+            if living.health <= 0 || simulation.progress >= BattleProgress::BattleEnded {
+                // entity can't be hurt
                 continue;
             }
 
             let mut attack_boxes = Vec::new();
 
-            for attack_box in &queued_attacks {
-                if entity.x != attack_box.x || entity.y != attack_box.y {
-                    // not on the same tile
-                    continue;
-                }
+            if entity.on_field && !entity.deleted && living.hitbox_enabled {
+                for attack_box in &queued_attacks {
+                    if entity.x != attack_box.x || entity.y != attack_box.y {
+                        // not on the same tile
+                        continue;
+                    }
 
-                if attack_box.attacker_id == entity_id {
-                    // can't hit self
-                    continue;
-                }
+                    if attack_box.attacker_id == entity_id {
+                        // can't hit self
+                        continue;
+                    }
 
-                if attack_box.team == entity.team {
-                    // can't hit members of the same team
-                    continue;
-                }
+                    if attack_box.team == entity.team {
+                        // can't hit members of the same team
+                        continue;
+                    }
 
-                attack_boxes.push(attack_box.clone());
+                    attack_boxes.push(attack_box.clone());
+                }
             }
 
-            if !attack_boxes.is_empty() {
+            if !attack_boxes.is_empty() || !living.pending_defense.is_empty() {
                 needs_processing.push((
                     id,
                     living.intangibility.is_enabled(),
