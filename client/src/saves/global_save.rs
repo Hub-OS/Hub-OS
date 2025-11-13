@@ -261,6 +261,7 @@ impl GlobalSave {
         let global_save = &globals.global_save;
         let restrictions = &globals.restrictions;
 
+        // blocks
         let blocks: Vec<_> = restrictions
             .filter_blocks(game_io, NAMESPACE, global_save.active_blocks().iter())
             .cloned()
@@ -268,7 +269,30 @@ impl GlobalSave {
 
         let block_grid = BlockGrid::new(NAMESPACE).with_blocks(game_io, blocks);
 
-        block_grid.augments(game_io)
+        let blocks_iter = block_grid.augments(game_io);
+
+        // drives
+        let drives = global_save.active_drive_parts().iter().filter(|drive| {
+            restrictions.validate_package_tree(
+                game_io,
+                (
+                    PackageCategory::Augment,
+                    NAMESPACE,
+                    drive.package_id.clone(),
+                ),
+            )
+        });
+
+        let drives_iter = drives
+            .flat_map(|drive| {
+                globals
+                    .augment_packages
+                    .package(NAMESPACE, &drive.package_id)
+            })
+            .map(|augment| (augment, 1));
+
+        // chain augments
+        blocks_iter.chain(drives_iter)
     }
 
     pub fn update_memories(

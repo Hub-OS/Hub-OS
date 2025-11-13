@@ -104,18 +104,21 @@ impl PlayerSetup {
             .cloned()
             .collect();
 
+        // combine blocks + drives for augment logic
+        let blocks_iter = grid.augments(game_io);
+        let drives_iter = drives
+            .iter()
+            .flat_map(|drive| globals.augment_packages.package(ns, &drive.package_id))
+            .map(|augment| (augment, 1));
+        let augments: Vec<_> = blocks_iter.chain(drives_iter).collect();
+
         // resolve health
-        let mut health_boost = grid.augments(game_io).fold(0, |acc, (package, level)| {
+        let health_boost = augments.iter().fold(0, |acc, &(package, level)| {
             acc + package.health_boost * level as i32
         });
 
-        health_boost += drives
-            .iter()
-            .flat_map(|drive| globals.augment_packages.package(ns, &drive.package_id))
-            .fold(0, |acc, package| acc + package.health_boost);
-
         // deck
-        deck_restrictions.apply_augments(grid.augments(game_io));
+        deck_restrictions.apply_augments(augments.into_iter());
 
         let mut deck = global_save.active_deck().cloned().unwrap_or_default();
         deck.conform(game_io, ns, &deck_restrictions);
