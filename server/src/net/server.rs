@@ -559,15 +559,19 @@ impl Server {
                     }
                 }
                 ClientPacket::EncounterStart => {
-                    if let Some(client) = net.get_client_mut(player_id) {
+                    let mut packet_orchestrator = self.packet_orchestrator.borrow_mut();
+
+                    if packet_orchestrator.disconnect_from_netplay(socket_address) {
+                        log::warn!("Received EncounterStart while already in a battle?");
+                    }
+
+                    if let Some(client) = net.get_client(player_id) {
                         if let Some(info) = client.battle_tracker.front() {
-                            self.packet_orchestrator
-                                .borrow_mut()
-                                .configure_netplay_destinations(
-                                    socket_address,
-                                    info.player_index,
-                                    info.remote_addresses.clone(),
-                                );
+                            packet_orchestrator.configure_netplay_destinations(
+                                socket_address,
+                                info.player_index,
+                                info.remote_addresses.clone(),
+                            );
                         }
                     }
                 }
@@ -581,6 +585,10 @@ impl Server {
                     );
                 }
                 ClientPacket::BattleResults { battle_stats } => {
+                    self.packet_orchestrator
+                        .borrow_mut()
+                        .disconnect_from_netplay(socket_address);
+
                     self.plugin_wrapper
                         .handle_battle_results(net, player_id, &battle_stats);
                 }

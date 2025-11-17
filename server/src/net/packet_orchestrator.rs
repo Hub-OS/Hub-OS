@@ -182,21 +182,26 @@ impl PacketOrchestrator {
         // must be dropped after self.leave_room
         self.client_room_map.remove(&socket_address);
 
-        for address in self
-            .netplay_route_map
-            .remove(&socket_address)
-            .iter()
-            .flatten()
-        {
+        self.disconnect_from_netplay(socket_address);
+    }
+
+    pub fn disconnect_from_netplay(&mut self, socket_address: SocketAddr) -> bool {
+        let Some(peers) = self.netplay_route_map.remove(&socket_address) else {
+            return false;
+        };
+
+        for address in &peers {
             if let Some(address_list) = self.netplay_route_map.get_mut(address) {
                 if let Some(index) = address_list
                     .iter()
                     .position(|address| *address == socket_address)
                 {
-                    address_list.remove(index);
+                    address_list.swap_remove(index);
                 }
             }
         }
+
+        true
     }
 
     pub fn drop_connection(&mut self, socket_address: SocketAddr) {
