@@ -74,5 +74,8 @@ opener = "0.8.2"
 [target.'cfg(target_os = "android")'.dependencies]
 minreq = { version = "2", features = ["https"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+framework = { git = "https://github.com/Hub-OS/framework", features = ["sdl2"] }
+
 [features]
 record_simulation_flow = []

@@ -708,6 +708,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.54"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "codespan-reporting"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1423,6 +1432,7 @@ dependencies = [
  "input",
  "logging",
  "math",
+ "sdl2_game_loop",
  "wasm_forward",
  "winit_game_loop",
 ]
@@ -1879,7 +1889,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os"
-version = "0.75.0"
+version = "0.76.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -1936,7 +1946,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_android"
-version = "0.75.0"
+version = "0.76.0"
 dependencies = [
  "hub_os",
  "packets",
@@ -1944,7 +1954,7 @@ dependencies = [
 
 [[package]]
 name = "hub_os_server"
-version = "0.75.0"
+version = "0.76.0"
 dependencies = [
  "async-std",
  "clap",
@@ -3831,6 +3841,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "sdl2"
+version = "0.37.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b498da7d14d1ad6c839729bd4ad6fc11d90a57583605f3b4df2cd709a9cd380"
+dependencies = [
+ "bitflags 1.3.2",
+ "lazy_static",
+ "libc",
+ "raw-window-handle",
+ "sdl2-sys",
+]
+
+[[package]]
+name = "sdl2-sys"
+version = "0.37.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "951deab27af08ed9c6068b7b0d05a93c91f0a8eb16b6b816a5e73452a43521d3"
+dependencies = [
+ "cfg-if",
+ "cmake",
+ "libc",
+ "version-compare",
+]
+
+[[package]]
+name = "sdl2_game_loop"
+version = "0.1.0"
+source = "git+https://github.com/Hub-OS/framework#cbd84c5d5305a0abf782d1293aa5fb318d81c610"
+dependencies = [
+ "anyhow",
+ "framework_core",
+ "input",
+ "math",
+ "sdl2",
+]
+
+[[package]]
 name = "security-framework"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4088,7 +4135,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "structures"
-version = "0.75.0"
+version = "0.76.0"
 
 [[package]]
 name = "strum"
@@ -4678,6 +4725,12 @@ name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
+
+[[package]]
+name = "version-compare"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "579a42fc0b8e0c63b76519a339be31bed574929511fa53c1a3acae26eb258f29"
 
 [[package]]
 name = "version_check"
