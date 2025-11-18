@@ -295,6 +295,28 @@ impl GlobalSave {
         blocks_iter.chain(drives_iter)
     }
 
+    pub fn include_new_resources(&mut self, packages: &PackageManager<ResourcePackage>) -> bool {
+        // update global save with missing entries
+        let package_id_iter = packages
+            .package_ids(PackageNamespace::BuiltIn)
+            .chain(packages.package_ids(PackageNamespace::Local));
+
+        let mut updated_order = false;
+
+        for id in package_id_iter {
+            if !self
+                .resource_package_order
+                .iter()
+                .any(|(saved_id, _)| saved_id == id)
+            {
+                self.resource_package_order.push((id.clone(), true));
+                updated_order = true;
+            }
+        }
+
+        updated_order
+    }
+
     pub fn update_memories(
         &mut self,
         package_id: &PackageId,

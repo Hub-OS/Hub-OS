@@ -45,8 +45,8 @@ pub struct ResourceOrderScene {
 }
 
 impl ResourceOrderScene {
-    pub fn new(game_io: &GameIO) -> Self {
-        let globals = game_io.resource::<Globals>().unwrap();
+    pub fn new(game_io: &mut GameIO) -> Self {
+        let globals = game_io.resource_mut::<Globals>().unwrap();
         let assets = &globals.assets;
 
         // load layout
@@ -82,21 +82,24 @@ impl ResourceOrderScene {
         list_bounds.height -= list_padding.y * 2.0;
 
         // resolve packages
+        let globals = game_io.resource_mut::<Globals>().unwrap();
         let packages = &globals.resource_packages;
-        let saved_order = &globals.global_save.resource_package_order;
 
-        let tracked_iter = saved_order.iter().cloned();
+        let global_save = &mut globals.global_save;
 
-        let missing_iter = packages
-            .package_ids(PackageNamespace::Local)
-            .filter(|id| !saved_order.iter().any(|(saved_id, _)| *saved_id == **id))
-            .map(|id| (id.clone(), true));
+        if global_save.include_new_resources(&globals.resource_packages) {
+            global_save.save();
+        }
 
-        let package_order_iter = tracked_iter.chain(missing_iter).flat_map(|(id, enabled)| {
-            let package = packages.package(PackageNamespace::Local, &id)?;
+        let package_order_iter =
+            global_save
+                .resource_package_order
+                .iter()
+                .flat_map(|(id, enabled)| {
+                    let package = packages.package_or_fallback(PackageNamespace::Local, id)?;
 
-            Some((package.create_package_listing(), enabled))
-        });
+                    Some((package.create_package_listing(), *enabled))
+                });
 
         let mut package_order = vec![(ResourcePackage::default_package_listing(), true)];
         package_order.extend(package_order_iter);
@@ -105,6 +108,10 @@ impl ResourceOrderScene {
 
         // events
         let (event_sender, event_receiver) = flume::unbounded();
+
+        // strings
+        let enabled_string = globals.translate("config-resource-order-enabled-label");
+        let disabled_string = globals.translate("config-resource-order-disabled-label");
 
         Self {
             camera: Camera::new_ui(game_io),
@@ -117,8 +124,8 @@ impl ResourceOrderScene {
                 "config-resource-order-context-menu-tip",
                 option_tip_top_right,
             ),
-            enabled_string: globals.translate("config-resource-order-enabled-label"),
-            disabled_string: globals.translate("config-resource-order-disabled-label"),
+            enabled_string,
+            disabled_string,
             list_bounds,
             scrollable_frame,
             scroll_tracker,

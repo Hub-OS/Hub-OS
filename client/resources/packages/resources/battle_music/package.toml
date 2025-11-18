@@ -1,0 +1,4 @@
+[package]
+category = "resource"
+id = "dev.hubos.Resources.BattleMusic"
+name = "Default Battle Music"

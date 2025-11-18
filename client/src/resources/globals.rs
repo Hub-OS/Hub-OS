@@ -83,13 +83,17 @@ impl Globals {
         let mut resource_packages: PackageManager<ResourcePackage> =
             PackageManager::new(PackageCategory::Resource);
 
-        let resources_mod_path =
-            ResourcePaths::data_folder_absolute(resource_packages.category().mod_path());
+        resource_packages.load_packages_in_folder(
+            &assets,
+            PackageNamespace::BuiltIn,
+            &ResourcePaths::game_folder_absolute(resource_packages.category().built_in_path()),
+            |_, _| {},
+        );
 
         resource_packages.load_packages_in_folder(
             &assets,
             PackageNamespace::Local,
-            &resources_mod_path,
+            &ResourcePaths::data_folder_absolute(resource_packages.category().mod_path()),
             |_, _| {},
         );
         resource_packages.apply(game_io, &mut global_save, &assets);

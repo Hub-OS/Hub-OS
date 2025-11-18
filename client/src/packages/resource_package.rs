@@ -131,17 +131,7 @@ impl PackageManager<ResourcePackage> {
         global_save: &mut GlobalSave,
         assets: &LocalAssetManager,
     ) {
-        let saved_order = &mut global_save.resource_package_order;
-
-        // update global save with missing entries
-        let missing_entries: Vec<_> = self
-            .package_ids(PackageNamespace::Local)
-            .filter(|id| !saved_order.iter().any(|(saved_id, _)| *saved_id == **id))
-            .map(|id| (id.clone(), true))
-            .collect();
-
-        if !missing_entries.is_empty() {
-            saved_order.extend(missing_entries);
+        if global_save.include_new_resources(self) {
             global_save.save();
         }
 
@@ -153,7 +143,7 @@ impl PackageManager<ResourcePackage> {
                 continue;
             }
 
-            let Some(package) = self.package(PackageNamespace::Local, id) else {
+            let Some(package) = self.package_or_fallback(PackageNamespace::Local, id) else {
                 continue;
             };
 
