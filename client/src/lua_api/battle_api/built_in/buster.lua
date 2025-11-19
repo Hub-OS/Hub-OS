@@ -5,6 +5,9 @@ local Buster = {}
 ---@param damage number
 function Buster.new(user, charged, damage)
     local action = Action.new(user, "CHARACTER_SHOOT")
+    action:set_lockout(ActionLockout.new_sequence())
+    action:create_step();
+
     local context = user:context()
     local rapid_level = user:rapid_level()
 
@@ -55,7 +58,7 @@ function Buster.new(user, charged, damage)
         elapsed_frames = elapsed_frames + 1
 
         if spell_erased_frame > 0 and elapsed_frames - spell_erased_frame >= cooldown then
-            user:animation():resume()
+            action:end_action()
         end
 
         if can_move then
@@ -190,18 +193,10 @@ function Buster.new(user, charged, damage)
         animation:apply(flare_sprite)
     end)
 
-    action:add_anim_action(4, function()
-        local animation = user:animation()
-
-        animation:on_interrupt(function()
-            animation:resume()
-        end)
-
-        animation:pause()
-    end)
-
-    action.on_animation_end_func = function()
-        action:end_action()
+    action.on_action_end_func = function()
+        if not spell:deleted() and not spell:spawned() then
+            spell:delete()
+        end
     end
 
     return action
