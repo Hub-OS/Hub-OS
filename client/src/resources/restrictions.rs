@@ -189,6 +189,8 @@ impl Restrictions {
         game_io: &GameIO,
         triplet: (PackageCategory, PackageNamespace, PackageId),
     ) -> bool {
+        let package_id = triplet.2.clone();
+
         let globals = game_io.resource::<Globals>().unwrap();
         let deps = globals.package_dependency_iter(std::iter::once(triplet));
 
@@ -208,6 +210,7 @@ impl Restrictions {
         // make sure every dependency is accounted for
         for id in packages_expected {
             if !packages_hit.contains(&id) {
+                log::warn!("Missing dependency {id} for {package_id}");
                 return false;
             }
         }
