@@ -1,7 +1,7 @@
 #![cfg(target_os = "android")]
 
 use hub_os::framework::prelude::WinitPlatformApp;
-use hub_os::ResourcePaths;
+use hub_os::{send_crash_report, ResourcePaths};
 use packets::structures::FileHash;
 use packets::zip;
 
@@ -9,6 +9,15 @@ mod network_locks;
 
 #[no_mangle]
 pub fn android_main(app: WinitPlatformApp) {
+    std::panic::set_hook(Box::new(|p| {
+        use std::backtrace::Backtrace;
+
+        let backtrace = Backtrace::force_capture();
+        let output = format!("{p}\n{backtrace}");
+        eprintln!("{output}");
+        send_crash_report(output);
+    }));
+
     let locks = (
         network_locks::acquire_multicast_lock(&app),
         network_locks::acquire_low_latency_lock(&app),

@@ -1,17 +1,17 @@
 // #![windows_subsystem = "windows"]
 
 use framework::prelude::WinitPlatformApp;
-use std::panic;
 
 fn main() {
-    panic::set_hook(Box::new(|p| {
+    std::panic::set_hook(Box::new(|p| {
         use std::backtrace::Backtrace;
 
         let backtrace = Backtrace::force_capture();
         let output = format!("{p}\n{backtrace}");
 
         let _ = std::fs::write("crash.txt", &output);
-        log::error!("{output}");
+        eprintln!("{output}");
+        hub_os::send_crash_report(output);
     }));
 
     // check lib.rs

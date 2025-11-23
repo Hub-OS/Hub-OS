@@ -1,6 +1,7 @@
 use crate::render::{CameraMotion, FrameTime};
 use framework::prelude::{Color, UVec2, Vec2};
 
+pub const CRASH_REPORT_ENDPOINT: &str = "https://hubos.dev/api/crash-reports";
 pub const DEFAULT_PACKAGE_REPO: &str = "https://hubos.dev";
 
 // 1 MiB
